@@ -157,228 +157,465 @@
 <p>The data for a CLB is located in the same bitstream tile as the associated <code>INT</code> tile.</p>
 <h2 id="tile-clb"><a class="header" href="#tile-clb">Tile CLB</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-slice0"><a class="header" href="#bel-slice0">Bel SLICE[0]</a></h3>
+<h3 id="bels-slice_v4"><a class="header" href="#bels-slice_v4">Bels SLICE_V4</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex4 CLB bel SLICE[0]</caption>
+<caption>virtex4 CLB bel SLICE_V4 pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>SLICE[0]</th><th>SLICE[1]</th><th>SLICE[2]</th><th>SLICE[3]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>BX</td><td>input</td><td>IMUX_BYP[0]</td></tr>
+<tr><td>F1</td><td>in</td><td>IMUX_IMUX[11]</td><td>IMUX_IMUX[15]</td><td>IMUX_IMUX[24]</td><td>IMUX_IMUX[28]</td></tr>
 
-<tr><td>BY</td><td>input</td><td>IMUX_BYP[4]</td></tr>
+<tr><td>F2</td><td>in</td><td>IMUX_IMUX[10]</td><td>IMUX_IMUX[14]</td><td>IMUX_IMUX[25]</td><td>IMUX_IMUX[29]</td></tr>
 
-<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[0]</td></tr>
+<tr><td>F3</td><td>in</td><td>IMUX_IMUX[9]</td><td>IMUX_IMUX[13]</td><td>IMUX_IMUX[26]</td><td>IMUX_IMUX[30]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[0]</td></tr>
+<tr><td>F4</td><td>in</td><td>IMUX_IMUX[8]</td><td>IMUX_IMUX[12]</td><td>IMUX_IMUX[27]</td><td>IMUX_IMUX[31]</td></tr>
 
-<tr><td>F1</td><td>input</td><td>IMUX_IMUX[11]</td></tr>
+<tr><td>G1</td><td>in</td><td>IMUX_IMUX[3]</td><td>IMUX_IMUX[7]</td><td>IMUX_IMUX[16]</td><td>IMUX_IMUX[20]</td></tr>
 
-<tr><td>F2</td><td>input</td><td>IMUX_IMUX[10]</td></tr>
+<tr><td>G2</td><td>in</td><td>IMUX_IMUX[2]</td><td>IMUX_IMUX[6]</td><td>IMUX_IMUX[17]</td><td>IMUX_IMUX[21]</td></tr>
 
-<tr><td>F3</td><td>input</td><td>IMUX_IMUX[9]</td></tr>
+<tr><td>G3</td><td>in</td><td>IMUX_IMUX[1]</td><td>IMUX_IMUX[5]</td><td>IMUX_IMUX[18]</td><td>IMUX_IMUX[22]</td></tr>
 
-<tr><td>F4</td><td>input</td><td>IMUX_IMUX[8]</td></tr>
+<tr><td>G4</td><td>in</td><td>IMUX_IMUX[0]</td><td>IMUX_IMUX[4]</td><td>IMUX_IMUX[19]</td><td>IMUX_IMUX[23]</td></tr>
 
-<tr><td>G1</td><td>input</td><td>IMUX_IMUX[3]</td></tr>
+<tr><td>BX</td><td>in</td><td id="virtex4-CLB-SLICE[0]-inpinv-BX">IMUX_BYP[0] invert by <a href="#virtex4-CLB-bit-MAIN[18][19]">!MAIN[18][19]</a></td><td id="virtex4-CLB-SLICE[1]-inpinv-BX">IMUX_BYP[5] invert by <a href="#virtex4-CLB-bit-MAIN[18][61]">!MAIN[18][61]</a></td><td id="virtex4-CLB-SLICE[2]-inpinv-BX">IMUX_BYP[2] invert by <a href="#virtex4-CLB-bit-MAIN[18][18]">!MAIN[18][18]</a></td><td id="virtex4-CLB-SLICE[3]-inpinv-BX">IMUX_BYP[7] invert by <a href="#virtex4-CLB-bit-MAIN[18][60]">!MAIN[18][60]</a></td></tr>
 
-<tr><td>G2</td><td>input</td><td>IMUX_IMUX[2]</td></tr>
+<tr><td>BY</td><td>in</td><td id="virtex4-CLB-SLICE[0]-inpinv-BY">IMUX_BYP[4] invert by <a href="#virtex4-CLB-bit-MAIN[18][22]">!MAIN[18][22]</a></td><td id="virtex4-CLB-SLICE[1]-inpinv-BY">IMUX_BYP[1] invert by <a href="#virtex4-CLB-bit-MAIN[18][58]">!MAIN[18][58]</a></td><td id="virtex4-CLB-SLICE[2]-inpinv-BY">IMUX_BYP[6] invert by <a href="#virtex4-CLB-bit-MAIN[18][21]">!MAIN[18][21]</a></td><td id="virtex4-CLB-SLICE[3]-inpinv-BY">IMUX_BYP[3] invert by <a href="#virtex4-CLB-bit-MAIN[18][57]">!MAIN[18][57]</a></td></tr>
 
-<tr><td>G3</td><td>input</td><td>IMUX_IMUX[1]</td></tr>
+<tr><td>CLK</td><td>in</td><td>IMUX_CLK_OPTINV[0]</td><td>IMUX_CLK_OPTINV[1]</td><td>IMUX_CLK_OPTINV[2]</td><td>IMUX_CLK_OPTINV[3]</td></tr>
 
-<tr><td>G4</td><td>input</td><td>IMUX_IMUX[0]</td></tr>
+<tr><td>SR</td><td>in</td><td>IMUX_SR_OPTINV[0]</td><td>IMUX_SR_OPTINV[1]</td><td>IMUX_SR_OPTINV[2]</td><td>IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
+<tr><td>CE</td><td>in</td><td>IMUX_CE_OPTINV[0]</td><td>IMUX_CE_OPTINV[1]</td><td>IMUX_CE_OPTINV[2]</td><td>IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>X</td><td>output</td><td>OUT_BEST[0]</td></tr>
+<tr><td>X</td><td>out</td><td>OUT_BEST[0]</td><td>OUT_BEST[1]</td><td>OUT_BEST[2]</td><td>OUT_BEST[3]</td></tr>
 
-<tr><td>XB</td><td>output</td><td>OUT_HALF0[4]</td></tr>
+<tr><td>Y</td><td>out</td><td>OUT_BEST[4]</td><td>OUT_BEST[5]</td><td>OUT_BEST[6]</td><td>OUT_BEST[7]</td></tr>
 
-<tr><td>XMUX</td><td>output</td><td>OUT_HALF0[0]</td></tr>
+<tr><td>XQ</td><td>out</td><td>OUT_SEC[0]</td><td>OUT_SEC[1]</td><td>OUT_SEC[2]</td><td>OUT_SEC[3]</td></tr>
 
-<tr><td>XQ</td><td>output</td><td>OUT_SEC[0]</td></tr>
+<tr><td>YQ</td><td>out</td><td>OUT_SEC[4]</td><td>OUT_SEC[5]</td><td>OUT_SEC[6]</td><td>OUT_SEC[7]</td></tr>
 
-<tr><td>Y</td><td>output</td><td>OUT_BEST[4]</td></tr>
+<tr><td>XB</td><td>out</td><td>OUT_HALF0[4]</td><td>OUT_HALF0[5]</td><td>OUT_HALF1[4]</td><td>OUT_HALF1[5]</td></tr>
 
-<tr><td>YB</td><td>output</td><td>OUT_HALF0[6]</td></tr>
+<tr><td>YB</td><td>out</td><td>OUT_HALF0[6]</td><td>OUT_HALF0[7]</td><td>OUT_HALF1[6]</td><td>OUT_HALF1[7]</td></tr>
 
-<tr><td>YMUX</td><td>output</td><td>OUT_HALF0[2]</td></tr>
+<tr><td>XMUX</td><td>out</td><td>OUT_HALF0[0]</td><td>OUT_HALF0[1]</td><td>OUT_HALF1[0]</td><td>OUT_HALF1[1]</td></tr>
 
-<tr><td>YQ</td><td>output</td><td>OUT_SEC[4]</td></tr>
+<tr><td>YMUX</td><td>out</td><td>OUT_HALF0[2]</td><td>OUT_HALF0[3]</td><td>OUT_HALF1[2]</td><td>OUT_HALF1[3]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-slice1"><a class="header" href="#bel-slice1">Bel SLICE[1]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex4 CLB bel SLICE[1]</caption>
+<caption>virtex4 CLB bel SLICE_V4 attribute bits</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Attribute</th><th>SLICE[0]</th><th>SLICE[1]</th><th>SLICE[2]</th><th>SLICE[3]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>BX</td><td>input</td><td>IMUX_BYP[5]</td></tr>
+<tr><td>F bit 0</td><td id="virtex4-CLB-SLICE[0]-F[0]"><a href="#virtex4-CLB-bit-MAIN[21][15]">MAIN[21][15]</a></td><td id="virtex4-CLB-SLICE[1]-F[0]"><a href="#virtex4-CLB-bit-MAIN[19][15]">MAIN[19][15]</a></td><td id="virtex4-CLB-SLICE[2]-F[0]"><a href="#virtex4-CLB-bit-MAIN[21][55]">MAIN[21][55]</a></td><td id="virtex4-CLB-SLICE[3]-F[0]"><a href="#virtex4-CLB-bit-MAIN[19][55]">MAIN[19][55]</a></td></tr>
 
-<tr><td>BY</td><td>input</td><td>IMUX_BYP[1]</td></tr>
+<tr><td>F bit 1</td><td id="virtex4-CLB-SLICE[0]-F[1]"><a href="#virtex4-CLB-bit-MAIN[21][14]">MAIN[21][14]</a></td><td id="virtex4-CLB-SLICE[1]-F[1]"><a href="#virtex4-CLB-bit-MAIN[19][14]">MAIN[19][14]</a></td><td id="virtex4-CLB-SLICE[2]-F[1]"><a href="#virtex4-CLB-bit-MAIN[21][54]">MAIN[21][54]</a></td><td id="virtex4-CLB-SLICE[3]-F[1]"><a href="#virtex4-CLB-bit-MAIN[19][54]">MAIN[19][54]</a></td></tr>
 
-<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[1]</td></tr>
+<tr><td>F bit 2</td><td id="virtex4-CLB-SLICE[0]-F[2]"><a href="#virtex4-CLB-bit-MAIN[21][13]">MAIN[21][13]</a></td><td id="virtex4-CLB-SLICE[1]-F[2]"><a href="#virtex4-CLB-bit-MAIN[19][13]">MAIN[19][13]</a></td><td id="virtex4-CLB-SLICE[2]-F[2]"><a href="#virtex4-CLB-bit-MAIN[21][53]">MAIN[21][53]</a></td><td id="virtex4-CLB-SLICE[3]-F[2]"><a href="#virtex4-CLB-bit-MAIN[19][53]">MAIN[19][53]</a></td></tr>
 
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[1]</td></tr>
+<tr><td>F bit 3</td><td id="virtex4-CLB-SLICE[0]-F[3]"><a href="#virtex4-CLB-bit-MAIN[21][12]">MAIN[21][12]</a></td><td id="virtex4-CLB-SLICE[1]-F[3]"><a href="#virtex4-CLB-bit-MAIN[19][12]">MAIN[19][12]</a></td><td id="virtex4-CLB-SLICE[2]-F[3]"><a href="#virtex4-CLB-bit-MAIN[21][52]">MAIN[21][52]</a></td><td id="virtex4-CLB-SLICE[3]-F[3]"><a href="#virtex4-CLB-bit-MAIN[19][52]">MAIN[19][52]</a></td></tr>
 
-<tr><td>F1</td><td>input</td><td>IMUX_IMUX[15]</td></tr>
+<tr><td>F bit 4</td><td id="virtex4-CLB-SLICE[0]-F[4]"><a href="#virtex4-CLB-bit-MAIN[21][11]">MAIN[21][11]</a></td><td id="virtex4-CLB-SLICE[1]-F[4]"><a href="#virtex4-CLB-bit-MAIN[19][11]">MAIN[19][11]</a></td><td id="virtex4-CLB-SLICE[2]-F[4]"><a href="#virtex4-CLB-bit-MAIN[21][51]">MAIN[21][51]</a></td><td id="virtex4-CLB-SLICE[3]-F[4]"><a href="#virtex4-CLB-bit-MAIN[19][51]">MAIN[19][51]</a></td></tr>
 
-<tr><td>F2</td><td>input</td><td>IMUX_IMUX[14]</td></tr>
+<tr><td>F bit 5</td><td id="virtex4-CLB-SLICE[0]-F[5]"><a href="#virtex4-CLB-bit-MAIN[21][10]">MAIN[21][10]</a></td><td id="virtex4-CLB-SLICE[1]-F[5]"><a href="#virtex4-CLB-bit-MAIN[19][10]">MAIN[19][10]</a></td><td id="virtex4-CLB-SLICE[2]-F[5]"><a href="#virtex4-CLB-bit-MAIN[21][50]">MAIN[21][50]</a></td><td id="virtex4-CLB-SLICE[3]-F[5]"><a href="#virtex4-CLB-bit-MAIN[19][50]">MAIN[19][50]</a></td></tr>
 
-<tr><td>F3</td><td>input</td><td>IMUX_IMUX[13]</td></tr>
+<tr><td>F bit 6</td><td id="virtex4-CLB-SLICE[0]-F[6]"><a href="#virtex4-CLB-bit-MAIN[21][9]">MAIN[21][9]</a></td><td id="virtex4-CLB-SLICE[1]-F[6]"><a href="#virtex4-CLB-bit-MAIN[19][9]">MAIN[19][9]</a></td><td id="virtex4-CLB-SLICE[2]-F[6]"><a href="#virtex4-CLB-bit-MAIN[21][49]">MAIN[21][49]</a></td><td id="virtex4-CLB-SLICE[3]-F[6]"><a href="#virtex4-CLB-bit-MAIN[19][49]">MAIN[19][49]</a></td></tr>
 
-<tr><td>F4</td><td>input</td><td>IMUX_IMUX[12]</td></tr>
+<tr><td>F bit 7</td><td id="virtex4-CLB-SLICE[0]-F[7]"><a href="#virtex4-CLB-bit-MAIN[21][8]">MAIN[21][8]</a></td><td id="virtex4-CLB-SLICE[1]-F[7]"><a href="#virtex4-CLB-bit-MAIN[19][8]">MAIN[19][8]</a></td><td id="virtex4-CLB-SLICE[2]-F[7]"><a href="#virtex4-CLB-bit-MAIN[21][48]">MAIN[21][48]</a></td><td id="virtex4-CLB-SLICE[3]-F[7]"><a href="#virtex4-CLB-bit-MAIN[19][48]">MAIN[19][48]</a></td></tr>
 
-<tr><td>G1</td><td>input</td><td>IMUX_IMUX[7]</td></tr>
+<tr><td>F bit 8</td><td id="virtex4-CLB-SLICE[0]-F[8]"><a href="#virtex4-CLB-bit-MAIN[21][7]">MAIN[21][7]</a></td><td id="virtex4-CLB-SLICE[1]-F[8]"><a href="#virtex4-CLB-bit-MAIN[19][7]">MAIN[19][7]</a></td><td id="virtex4-CLB-SLICE[2]-F[8]"><a href="#virtex4-CLB-bit-MAIN[21][47]">MAIN[21][47]</a></td><td id="virtex4-CLB-SLICE[3]-F[8]"><a href="#virtex4-CLB-bit-MAIN[19][47]">MAIN[19][47]</a></td></tr>
 
-<tr><td>G2</td><td>input</td><td>IMUX_IMUX[6]</td></tr>
+<tr><td>F bit 9</td><td id="virtex4-CLB-SLICE[0]-F[9]"><a href="#virtex4-CLB-bit-MAIN[21][6]">MAIN[21][6]</a></td><td id="virtex4-CLB-SLICE[1]-F[9]"><a href="#virtex4-CLB-bit-MAIN[19][6]">MAIN[19][6]</a></td><td id="virtex4-CLB-SLICE[2]-F[9]"><a href="#virtex4-CLB-bit-MAIN[21][46]">MAIN[21][46]</a></td><td id="virtex4-CLB-SLICE[3]-F[9]"><a href="#virtex4-CLB-bit-MAIN[19][46]">MAIN[19][46]</a></td></tr>
 
-<tr><td>G3</td><td>input</td><td>IMUX_IMUX[5]</td></tr>
+<tr><td>F bit 10</td><td id="virtex4-CLB-SLICE[0]-F[10]"><a href="#virtex4-CLB-bit-MAIN[21][5]">MAIN[21][5]</a></td><td id="virtex4-CLB-SLICE[1]-F[10]"><a href="#virtex4-CLB-bit-MAIN[19][5]">MAIN[19][5]</a></td><td id="virtex4-CLB-SLICE[2]-F[10]"><a href="#virtex4-CLB-bit-MAIN[21][45]">MAIN[21][45]</a></td><td id="virtex4-CLB-SLICE[3]-F[10]"><a href="#virtex4-CLB-bit-MAIN[19][45]">MAIN[19][45]</a></td></tr>
 
-<tr><td>G4</td><td>input</td><td>IMUX_IMUX[4]</td></tr>
+<tr><td>F bit 11</td><td id="virtex4-CLB-SLICE[0]-F[11]"><a href="#virtex4-CLB-bit-MAIN[21][4]">MAIN[21][4]</a></td><td id="virtex4-CLB-SLICE[1]-F[11]"><a href="#virtex4-CLB-bit-MAIN[19][4]">MAIN[19][4]</a></td><td id="virtex4-CLB-SLICE[2]-F[11]"><a href="#virtex4-CLB-bit-MAIN[21][44]">MAIN[21][44]</a></td><td id="virtex4-CLB-SLICE[3]-F[11]"><a href="#virtex4-CLB-bit-MAIN[19][44]">MAIN[19][44]</a></td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
+<tr><td>F bit 12</td><td id="virtex4-CLB-SLICE[0]-F[12]"><a href="#virtex4-CLB-bit-MAIN[21][3]">MAIN[21][3]</a></td><td id="virtex4-CLB-SLICE[1]-F[12]"><a href="#virtex4-CLB-bit-MAIN[19][3]">MAIN[19][3]</a></td><td id="virtex4-CLB-SLICE[2]-F[12]"><a href="#virtex4-CLB-bit-MAIN[21][43]">MAIN[21][43]</a></td><td id="virtex4-CLB-SLICE[3]-F[12]"><a href="#virtex4-CLB-bit-MAIN[19][43]">MAIN[19][43]</a></td></tr>
 
-<tr><td>X</td><td>output</td><td>OUT_BEST[1]</td></tr>
+<tr><td>F bit 13</td><td id="virtex4-CLB-SLICE[0]-F[13]"><a href="#virtex4-CLB-bit-MAIN[21][2]">MAIN[21][2]</a></td><td id="virtex4-CLB-SLICE[1]-F[13]"><a href="#virtex4-CLB-bit-MAIN[19][2]">MAIN[19][2]</a></td><td id="virtex4-CLB-SLICE[2]-F[13]"><a href="#virtex4-CLB-bit-MAIN[21][42]">MAIN[21][42]</a></td><td id="virtex4-CLB-SLICE[3]-F[13]"><a href="#virtex4-CLB-bit-MAIN[19][42]">MAIN[19][42]</a></td></tr>
 
-<tr><td>XB</td><td>output</td><td>OUT_HALF0[5]</td></tr>
+<tr><td>F bit 14</td><td id="virtex4-CLB-SLICE[0]-F[14]"><a href="#virtex4-CLB-bit-MAIN[21][1]">MAIN[21][1]</a></td><td id="virtex4-CLB-SLICE[1]-F[14]"><a href="#virtex4-CLB-bit-MAIN[19][1]">MAIN[19][1]</a></td><td id="virtex4-CLB-SLICE[2]-F[14]"><a href="#virtex4-CLB-bit-MAIN[21][41]">MAIN[21][41]</a></td><td id="virtex4-CLB-SLICE[3]-F[14]"><a href="#virtex4-CLB-bit-MAIN[19][41]">MAIN[19][41]</a></td></tr>
 
-<tr><td>XMUX</td><td>output</td><td>OUT_HALF0[1]</td></tr>
+<tr><td>F bit 15</td><td id="virtex4-CLB-SLICE[0]-F[15]"><a href="#virtex4-CLB-bit-MAIN[21][0]">MAIN[21][0]</a></td><td id="virtex4-CLB-SLICE[1]-F[15]"><a href="#virtex4-CLB-bit-MAIN[19][0]">MAIN[19][0]</a></td><td id="virtex4-CLB-SLICE[2]-F[15]"><a href="#virtex4-CLB-bit-MAIN[21][40]">MAIN[21][40]</a></td><td id="virtex4-CLB-SLICE[3]-F[15]"><a href="#virtex4-CLB-bit-MAIN[19][40]">MAIN[19][40]</a></td></tr>
 
-<tr><td>XQ</td><td>output</td><td>OUT_SEC[1]</td></tr>
+<tr><td>G bit 0</td><td id="virtex4-CLB-SLICE[0]-G[0]"><a href="#virtex4-CLB-bit-MAIN[21][38]">MAIN[21][38]</a></td><td id="virtex4-CLB-SLICE[1]-G[0]"><a href="#virtex4-CLB-bit-MAIN[19][38]">MAIN[19][38]</a></td><td id="virtex4-CLB-SLICE[2]-G[0]"><a href="#virtex4-CLB-bit-MAIN[21][78]">MAIN[21][78]</a></td><td id="virtex4-CLB-SLICE[3]-G[0]"><a href="#virtex4-CLB-bit-MAIN[19][78]">MAIN[19][78]</a></td></tr>
 
-<tr><td>Y</td><td>output</td><td>OUT_BEST[5]</td></tr>
+<tr><td>G bit 1</td><td id="virtex4-CLB-SLICE[0]-G[1]"><a href="#virtex4-CLB-bit-MAIN[21][37]">MAIN[21][37]</a></td><td id="virtex4-CLB-SLICE[1]-G[1]"><a href="#virtex4-CLB-bit-MAIN[19][37]">MAIN[19][37]</a></td><td id="virtex4-CLB-SLICE[2]-G[1]"><a href="#virtex4-CLB-bit-MAIN[21][77]">MAIN[21][77]</a></td><td id="virtex4-CLB-SLICE[3]-G[1]"><a href="#virtex4-CLB-bit-MAIN[19][77]">MAIN[19][77]</a></td></tr>
 
-<tr><td>YB</td><td>output</td><td>OUT_HALF0[7]</td></tr>
+<tr><td>G bit 2</td><td id="virtex4-CLB-SLICE[0]-G[2]"><a href="#virtex4-CLB-bit-MAIN[21][36]">MAIN[21][36]</a></td><td id="virtex4-CLB-SLICE[1]-G[2]"><a href="#virtex4-CLB-bit-MAIN[19][36]">MAIN[19][36]</a></td><td id="virtex4-CLB-SLICE[2]-G[2]"><a href="#virtex4-CLB-bit-MAIN[21][76]">MAIN[21][76]</a></td><td id="virtex4-CLB-SLICE[3]-G[2]"><a href="#virtex4-CLB-bit-MAIN[19][76]">MAIN[19][76]</a></td></tr>
 
-<tr><td>YMUX</td><td>output</td><td>OUT_HALF0[3]</td></tr>
+<tr><td>G bit 3</td><td id="virtex4-CLB-SLICE[0]-G[3]"><a href="#virtex4-CLB-bit-MAIN[21][35]">MAIN[21][35]</a></td><td id="virtex4-CLB-SLICE[1]-G[3]"><a href="#virtex4-CLB-bit-MAIN[19][35]">MAIN[19][35]</a></td><td id="virtex4-CLB-SLICE[2]-G[3]"><a href="#virtex4-CLB-bit-MAIN[21][75]">MAIN[21][75]</a></td><td id="virtex4-CLB-SLICE[3]-G[3]"><a href="#virtex4-CLB-bit-MAIN[19][75]">MAIN[19][75]</a></td></tr>
 
-<tr><td>YQ</td><td>output</td><td>OUT_SEC[5]</td></tr>
+<tr><td>G bit 4</td><td id="virtex4-CLB-SLICE[0]-G[4]"><a href="#virtex4-CLB-bit-MAIN[21][34]">MAIN[21][34]</a></td><td id="virtex4-CLB-SLICE[1]-G[4]"><a href="#virtex4-CLB-bit-MAIN[19][34]">MAIN[19][34]</a></td><td id="virtex4-CLB-SLICE[2]-G[4]"><a href="#virtex4-CLB-bit-MAIN[21][74]">MAIN[21][74]</a></td><td id="virtex4-CLB-SLICE[3]-G[4]"><a href="#virtex4-CLB-bit-MAIN[19][74]">MAIN[19][74]</a></td></tr>
+
+<tr><td>G bit 5</td><td id="virtex4-CLB-SLICE[0]-G[5]"><a href="#virtex4-CLB-bit-MAIN[21][33]">MAIN[21][33]</a></td><td id="virtex4-CLB-SLICE[1]-G[5]"><a href="#virtex4-CLB-bit-MAIN[19][33]">MAIN[19][33]</a></td><td id="virtex4-CLB-SLICE[2]-G[5]"><a href="#virtex4-CLB-bit-MAIN[21][73]">MAIN[21][73]</a></td><td id="virtex4-CLB-SLICE[3]-G[5]"><a href="#virtex4-CLB-bit-MAIN[19][73]">MAIN[19][73]</a></td></tr>
+
+<tr><td>G bit 6</td><td id="virtex4-CLB-SLICE[0]-G[6]"><a href="#virtex4-CLB-bit-MAIN[21][32]">MAIN[21][32]</a></td><td id="virtex4-CLB-SLICE[1]-G[6]"><a href="#virtex4-CLB-bit-MAIN[19][32]">MAIN[19][32]</a></td><td id="virtex4-CLB-SLICE[2]-G[6]"><a href="#virtex4-CLB-bit-MAIN[21][72]">MAIN[21][72]</a></td><td id="virtex4-CLB-SLICE[3]-G[6]"><a href="#virtex4-CLB-bit-MAIN[19][72]">MAIN[19][72]</a></td></tr>
+
+<tr><td>G bit 7</td><td id="virtex4-CLB-SLICE[0]-G[7]"><a href="#virtex4-CLB-bit-MAIN[21][31]">MAIN[21][31]</a></td><td id="virtex4-CLB-SLICE[1]-G[7]"><a href="#virtex4-CLB-bit-MAIN[19][31]">MAIN[19][31]</a></td><td id="virtex4-CLB-SLICE[2]-G[7]"><a href="#virtex4-CLB-bit-MAIN[21][71]">MAIN[21][71]</a></td><td id="virtex4-CLB-SLICE[3]-G[7]"><a href="#virtex4-CLB-bit-MAIN[19][71]">MAIN[19][71]</a></td></tr>
+
+<tr><td>G bit 8</td><td id="virtex4-CLB-SLICE[0]-G[8]"><a href="#virtex4-CLB-bit-MAIN[21][30]">MAIN[21][30]</a></td><td id="virtex4-CLB-SLICE[1]-G[8]"><a href="#virtex4-CLB-bit-MAIN[19][30]">MAIN[19][30]</a></td><td id="virtex4-CLB-SLICE[2]-G[8]"><a href="#virtex4-CLB-bit-MAIN[21][70]">MAIN[21][70]</a></td><td id="virtex4-CLB-SLICE[3]-G[8]"><a href="#virtex4-CLB-bit-MAIN[19][70]">MAIN[19][70]</a></td></tr>
+
+<tr><td>G bit 9</td><td id="virtex4-CLB-SLICE[0]-G[9]"><a href="#virtex4-CLB-bit-MAIN[21][29]">MAIN[21][29]</a></td><td id="virtex4-CLB-SLICE[1]-G[9]"><a href="#virtex4-CLB-bit-MAIN[19][29]">MAIN[19][29]</a></td><td id="virtex4-CLB-SLICE[2]-G[9]"><a href="#virtex4-CLB-bit-MAIN[21][69]">MAIN[21][69]</a></td><td id="virtex4-CLB-SLICE[3]-G[9]"><a href="#virtex4-CLB-bit-MAIN[19][69]">MAIN[19][69]</a></td></tr>
+
+<tr><td>G bit 10</td><td id="virtex4-CLB-SLICE[0]-G[10]"><a href="#virtex4-CLB-bit-MAIN[21][28]">MAIN[21][28]</a></td><td id="virtex4-CLB-SLICE[1]-G[10]"><a href="#virtex4-CLB-bit-MAIN[19][28]">MAIN[19][28]</a></td><td id="virtex4-CLB-SLICE[2]-G[10]"><a href="#virtex4-CLB-bit-MAIN[21][68]">MAIN[21][68]</a></td><td id="virtex4-CLB-SLICE[3]-G[10]"><a href="#virtex4-CLB-bit-MAIN[19][68]">MAIN[19][68]</a></td></tr>
+
+<tr><td>G bit 11</td><td id="virtex4-CLB-SLICE[0]-G[11]"><a href="#virtex4-CLB-bit-MAIN[21][27]">MAIN[21][27]</a></td><td id="virtex4-CLB-SLICE[1]-G[11]"><a href="#virtex4-CLB-bit-MAIN[19][27]">MAIN[19][27]</a></td><td id="virtex4-CLB-SLICE[2]-G[11]"><a href="#virtex4-CLB-bit-MAIN[21][67]">MAIN[21][67]</a></td><td id="virtex4-CLB-SLICE[3]-G[11]"><a href="#virtex4-CLB-bit-MAIN[19][67]">MAIN[19][67]</a></td></tr>
+
+<tr><td>G bit 12</td><td id="virtex4-CLB-SLICE[0]-G[12]"><a href="#virtex4-CLB-bit-MAIN[21][26]">MAIN[21][26]</a></td><td id="virtex4-CLB-SLICE[1]-G[12]"><a href="#virtex4-CLB-bit-MAIN[19][26]">MAIN[19][26]</a></td><td id="virtex4-CLB-SLICE[2]-G[12]"><a href="#virtex4-CLB-bit-MAIN[21][66]">MAIN[21][66]</a></td><td id="virtex4-CLB-SLICE[3]-G[12]"><a href="#virtex4-CLB-bit-MAIN[19][66]">MAIN[19][66]</a></td></tr>
+
+<tr><td>G bit 13</td><td id="virtex4-CLB-SLICE[0]-G[13]"><a href="#virtex4-CLB-bit-MAIN[21][25]">MAIN[21][25]</a></td><td id="virtex4-CLB-SLICE[1]-G[13]"><a href="#virtex4-CLB-bit-MAIN[19][25]">MAIN[19][25]</a></td><td id="virtex4-CLB-SLICE[2]-G[13]"><a href="#virtex4-CLB-bit-MAIN[21][65]">MAIN[21][65]</a></td><td id="virtex4-CLB-SLICE[3]-G[13]"><a href="#virtex4-CLB-bit-MAIN[19][65]">MAIN[19][65]</a></td></tr>
+
+<tr><td>G bit 14</td><td id="virtex4-CLB-SLICE[0]-G[14]"><a href="#virtex4-CLB-bit-MAIN[21][24]">MAIN[21][24]</a></td><td id="virtex4-CLB-SLICE[1]-G[14]"><a href="#virtex4-CLB-bit-MAIN[19][24]">MAIN[19][24]</a></td><td id="virtex4-CLB-SLICE[2]-G[14]"><a href="#virtex4-CLB-bit-MAIN[21][64]">MAIN[21][64]</a></td><td id="virtex4-CLB-SLICE[3]-G[14]"><a href="#virtex4-CLB-bit-MAIN[19][64]">MAIN[19][64]</a></td></tr>
+
+<tr><td>G bit 15</td><td id="virtex4-CLB-SLICE[0]-G[15]"><a href="#virtex4-CLB-bit-MAIN[21][23]">MAIN[21][23]</a></td><td id="virtex4-CLB-SLICE[1]-G[15]"><a href="#virtex4-CLB-bit-MAIN[19][23]">MAIN[19][23]</a></td><td id="virtex4-CLB-SLICE[2]-G[15]"><a href="#virtex4-CLB-bit-MAIN[21][63]">MAIN[21][63]</a></td><td id="virtex4-CLB-SLICE[3]-G[15]"><a href="#virtex4-CLB-bit-MAIN[19][63]">MAIN[19][63]</a></td></tr>
+
+<tr><td>DIF_MUX</td><td><a href="#virtex4-CLB-SLICE[0]-DIF_MUX">[enum: SLICE_V4_DIF_MUX]</a></td><td>-</td><td><a href="#virtex4-CLB-SLICE[2]-DIF_MUX">[enum: SLICE_V4_DIF_MUX]</a></td><td>-</td></tr>
+
+<tr><td>DIG_MUX</td><td><a href="#virtex4-CLB-SLICE[0]-DIG_MUX">[enum: SLICE_V4_DIG_MUX]</a></td><td>-</td><td><a href="#virtex4-CLB-SLICE[2]-DIG_MUX">[enum: SLICE_V4_DIG_MUX]</a></td><td>-</td></tr>
+
+<tr><td>F_RAM_ENABLE</td><td id="virtex4-CLB-SLICE[0]-F_RAM_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][8]">MAIN[20][8]</a></td><td>-</td><td id="virtex4-CLB-SLICE[2]-F_RAM_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][48]">MAIN[20][48]</a></td><td>-</td></tr>
+
+<tr><td>G_RAM_ENABLE</td><td id="virtex4-CLB-SLICE[0]-G_RAM_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][7]">MAIN[20][7]</a></td><td>-</td><td id="virtex4-CLB-SLICE[2]-G_RAM_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][40]">MAIN[20][40]</a></td><td>-</td></tr>
+
+<tr><td>F_SHIFT_ENABLE</td><td id="virtex4-CLB-SLICE[0]-F_SHIFT_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][37]">MAIN[20][37]</a></td><td>-</td><td id="virtex4-CLB-SLICE[2]-F_SHIFT_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][78]">MAIN[20][78]</a></td><td>-</td></tr>
+
+<tr><td>G_SHIFT_ENABLE</td><td id="virtex4-CLB-SLICE[0]-G_SHIFT_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][36]">MAIN[20][36]</a></td><td>-</td><td id="virtex4-CLB-SLICE[2]-G_SHIFT_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][77]">MAIN[20][77]</a></td><td>-</td></tr>
+
+<tr><td>F_SLICEWE0USED</td><td id="virtex4-CLB-SLICE[0]-F_SLICEWE0USED"><a href="#virtex4-CLB-bit-MAIN[20][9]">MAIN[20][9]</a></td><td>-</td><td id="virtex4-CLB-SLICE[2]-F_SLICEWE0USED"><a href="#virtex4-CLB-bit-MAIN[20][49]">MAIN[20][49]</a></td><td>-</td></tr>
+
+<tr><td>G_SLICEWE0USED</td><td id="virtex4-CLB-SLICE[0]-G_SLICEWE0USED"><a href="#virtex4-CLB-bit-MAIN[21][20]">MAIN[21][20]</a></td><td>-</td><td id="virtex4-CLB-SLICE[2]-G_SLICEWE0USED"><a href="#virtex4-CLB-bit-MAIN[21][60]">MAIN[21][60]</a></td><td>-</td></tr>
+
+<tr><td>F_SLICEWE1USED</td><td id="virtex4-CLB-SLICE[0]-F_SLICEWE1USED"><a href="#virtex4-CLB-bit-MAIN[20][11]">MAIN[20][11]</a></td><td>-</td><td id="virtex4-CLB-SLICE[2]-F_SLICEWE1USED"><a href="#virtex4-CLB-bit-MAIN[20][47]">MAIN[20][47]</a></td><td>-</td></tr>
+
+<tr><td>G_SLICEWE1USED</td><td id="virtex4-CLB-SLICE[0]-G_SLICEWE1USED"><a href="#virtex4-CLB-bit-MAIN[21][19]">MAIN[21][19]</a></td><td>-</td><td id="virtex4-CLB-SLICE[2]-G_SLICEWE1USED"><a href="#virtex4-CLB-bit-MAIN[21][59]">MAIN[21][59]</a></td><td>-</td></tr>
+
+<tr><td>CYINIT</td><td><a href="#virtex4-CLB-SLICE[0]-CYINIT">[enum: SLICE_V4_CYINIT]</a></td><td><a href="#virtex4-CLB-SLICE[1]-CYINIT">[enum: SLICE_V4_CYINIT]</a></td><td><a href="#virtex4-CLB-SLICE[2]-CYINIT">[enum: SLICE_V4_CYINIT]</a></td><td><a href="#virtex4-CLB-SLICE[3]-CYINIT">[enum: SLICE_V4_CYINIT]</a></td></tr>
+
+<tr><td>CY0F</td><td><a href="#virtex4-CLB-SLICE[0]-CY0F">[enum: SLICE_V4_CY0F]</a></td><td><a href="#virtex4-CLB-SLICE[1]-CY0F">[enum: SLICE_V4_CY0F]</a></td><td><a href="#virtex4-CLB-SLICE[2]-CY0F">[enum: SLICE_V4_CY0F]</a></td><td><a href="#virtex4-CLB-SLICE[3]-CY0F">[enum: SLICE_V4_CY0F]</a></td></tr>
+
+<tr><td>CY0G</td><td><a href="#virtex4-CLB-SLICE[0]-CY0G">[enum: SLICE_V4_CY0G]</a></td><td><a href="#virtex4-CLB-SLICE[1]-CY0G">[enum: SLICE_V4_CY0G]</a></td><td><a href="#virtex4-CLB-SLICE[2]-CY0G">[enum: SLICE_V4_CY0G]</a></td><td><a href="#virtex4-CLB-SLICE[3]-CY0G">[enum: SLICE_V4_CY0G]</a></td></tr>
+
+<tr><td>FFX_INIT bit 0</td><td id="virtex4-CLB-SLICE[0]-FFX_INIT[0]"><a href="#virtex4-CLB-bit-MAIN[20][6]">!MAIN[20][6]</a></td><td id="virtex4-CLB-SLICE[1]-FFX_INIT[0]"><a href="#virtex4-CLB-bit-MAIN[20][5]">!MAIN[20][5]</a></td><td id="virtex4-CLB-SLICE[2]-FFX_INIT[0]"><a href="#virtex4-CLB-bit-MAIN[20][46]">!MAIN[20][46]</a></td><td id="virtex4-CLB-SLICE[3]-FFX_INIT[0]"><a href="#virtex4-CLB-bit-MAIN[20][45]">!MAIN[20][45]</a></td></tr>
+
+<tr><td>FFY_INIT bit 0</td><td id="virtex4-CLB-SLICE[0]-FFY_INIT[0]"><a href="#virtex4-CLB-bit-MAIN[20][34]">!MAIN[20][34]</a></td><td id="virtex4-CLB-SLICE[1]-FFY_INIT[0]"><a href="#virtex4-CLB-bit-MAIN[20][33]">!MAIN[20][33]</a></td><td id="virtex4-CLB-SLICE[2]-FFY_INIT[0]"><a href="#virtex4-CLB-bit-MAIN[20][74]">!MAIN[20][74]</a></td><td id="virtex4-CLB-SLICE[3]-FFY_INIT[0]"><a href="#virtex4-CLB-bit-MAIN[20][73]">!MAIN[20][73]</a></td></tr>
+
+<tr><td>FFX_SRVAL bit 0</td><td id="virtex4-CLB-SLICE[0]-FFX_SRVAL[0]"><a href="#virtex4-CLB-bit-MAIN[20][0]">!MAIN[20][0]</a></td><td id="virtex4-CLB-SLICE[1]-FFX_SRVAL[0]"><a href="#virtex4-CLB-bit-MAIN[20][1]">!MAIN[20][1]</a></td><td id="virtex4-CLB-SLICE[2]-FFX_SRVAL[0]"><a href="#virtex4-CLB-bit-MAIN[20][42]">!MAIN[20][42]</a></td><td id="virtex4-CLB-SLICE[3]-FFX_SRVAL[0]"><a href="#virtex4-CLB-bit-MAIN[20][41]">!MAIN[20][41]</a></td></tr>
+
+<tr><td>FFY_SRVAL bit 0</td><td id="virtex4-CLB-SLICE[0]-FFY_SRVAL[0]"><a href="#virtex4-CLB-bit-MAIN[20][30]">!MAIN[20][30]</a></td><td id="virtex4-CLB-SLICE[1]-FFY_SRVAL[0]"><a href="#virtex4-CLB-bit-MAIN[20][29]">!MAIN[20][29]</a></td><td id="virtex4-CLB-SLICE[2]-FFY_SRVAL[0]"><a href="#virtex4-CLB-bit-MAIN[20][70]">!MAIN[20][70]</a></td><td id="virtex4-CLB-SLICE[3]-FFY_SRVAL[0]"><a href="#virtex4-CLB-bit-MAIN[20][69]">!MAIN[20][69]</a></td></tr>
+
+<tr><td>FF_LATCH</td><td id="virtex4-CLB-SLICE[0]-FF_LATCH"><a href="#virtex4-CLB-bit-MAIN[20][10]">MAIN[20][10]</a></td><td id="virtex4-CLB-SLICE[1]-FF_LATCH"><a href="#virtex4-CLB-bit-MAIN[20][22]">MAIN[20][22]</a></td><td id="virtex4-CLB-SLICE[2]-FF_LATCH"><a href="#virtex4-CLB-bit-MAIN[20][50]">MAIN[20][50]</a></td><td id="virtex4-CLB-SLICE[3]-FF_LATCH"><a href="#virtex4-CLB-bit-MAIN[20][62]">MAIN[20][62]</a></td></tr>
+
+<tr><td>FF_REV_ENABLE</td><td id="virtex4-CLB-SLICE[0]-FF_REV_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][27]">MAIN[20][27]</a></td><td id="virtex4-CLB-SLICE[1]-FF_REV_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][28]">MAIN[20][28]</a></td><td id="virtex4-CLB-SLICE[2]-FF_REV_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][67]">MAIN[20][67]</a></td><td id="virtex4-CLB-SLICE[3]-FF_REV_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][68]">MAIN[20][68]</a></td></tr>
+
+<tr><td>FF_SR_SYNC</td><td id="virtex4-CLB-SLICE[0]-FF_SR_SYNC"><a href="#virtex4-CLB-bit-MAIN[20][26]">MAIN[20][26]</a></td><td id="virtex4-CLB-SLICE[1]-FF_SR_SYNC"><a href="#virtex4-CLB-bit-MAIN[20][25]">MAIN[20][25]</a></td><td id="virtex4-CLB-SLICE[2]-FF_SR_SYNC"><a href="#virtex4-CLB-bit-MAIN[20][66]">MAIN[20][66]</a></td><td id="virtex4-CLB-SLICE[3]-FF_SR_SYNC"><a href="#virtex4-CLB-bit-MAIN[20][65]">MAIN[20][65]</a></td></tr>
+
+<tr><td>FF_SR_ENABLE</td><td id="virtex4-CLB-SLICE[0]-FF_SR_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][38]">!MAIN[20][38]</a></td><td>-</td><td id="virtex4-CLB-SLICE[2]-FF_SR_ENABLE"><a href="#virtex4-CLB-bit-MAIN[20][79]">!MAIN[20][79]</a></td><td>-</td></tr>
+
+<tr><td>FXMUX</td><td><a href="#virtex4-CLB-SLICE[0]-FXMUX">[enum: SLICE_V4_FXMUX]</a></td><td><a href="#virtex4-CLB-SLICE[1]-FXMUX">[enum: SLICE_V4_FXMUX]</a></td><td><a href="#virtex4-CLB-SLICE[2]-FXMUX">[enum: SLICE_V4_FXMUX]</a></td><td><a href="#virtex4-CLB-SLICE[3]-FXMUX">[enum: SLICE_V4_FXMUX]</a></td></tr>
+
+<tr><td>GYMUX</td><td><a href="#virtex4-CLB-SLICE[0]-GYMUX">[enum: SLICE_V4_GYMUX]</a></td><td><a href="#virtex4-CLB-SLICE[1]-GYMUX">[enum: SLICE_V4_GYMUX]</a></td><td><a href="#virtex4-CLB-SLICE[2]-GYMUX">[enum: SLICE_V4_GYMUX]</a></td><td><a href="#virtex4-CLB-SLICE[3]-GYMUX">[enum: SLICE_V4_GYMUX]</a></td></tr>
+
+<tr><td>DXMUX</td><td><a href="#virtex4-CLB-SLICE[0]-DXMUX">[enum: SLICE_V4_DXMUX]</a></td><td><a href="#virtex4-CLB-SLICE[1]-DXMUX">[enum: SLICE_V4_DXMUX]</a></td><td><a href="#virtex4-CLB-SLICE[2]-DXMUX">[enum: SLICE_V4_DXMUX]</a></td><td><a href="#virtex4-CLB-SLICE[3]-DXMUX">[enum: SLICE_V4_DXMUX]</a></td></tr>
+
+<tr><td>DYMUX</td><td><a href="#virtex4-CLB-SLICE[0]-DYMUX">[enum: SLICE_V4_DYMUX]</a></td><td><a href="#virtex4-CLB-SLICE[1]-DYMUX">[enum: SLICE_V4_DYMUX]</a></td><td><a href="#virtex4-CLB-SLICE[2]-DYMUX">[enum: SLICE_V4_DYMUX]</a></td><td><a href="#virtex4-CLB-SLICE[3]-DYMUX">[enum: SLICE_V4_DYMUX]</a></td></tr>
+
+<tr><td>XBMUX</td><td><a href="#virtex4-CLB-SLICE[0]-XBMUX">[enum: SLICE_V4_XBMUX]</a></td><td>-</td><td><a href="#virtex4-CLB-SLICE[2]-XBMUX">[enum: SLICE_V4_XBMUX]</a></td><td>-</td></tr>
+
+<tr><td>YBMUX</td><td><a href="#virtex4-CLB-SLICE[0]-YBMUX">[enum: SLICE_V4_YBMUX]</a></td><td>-</td><td><a href="#virtex4-CLB-SLICE[2]-YBMUX">[enum: SLICE_V4_YBMUX]</a></td><td>-</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-slice2"><a class="header" href="#bel-slice2">Bel SLICE[2]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex4 CLB bel SLICE[2]</caption>
+<caption>virtex4 CLB enum SLICE_V4_DIF_MUX</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr id="virtex4-CLB-SLICE[0]-DIF_MUX"><th>SLICE[0].DIF_MUX</th><td id="virtex4-CLB-SLICE[0]-DIF_MUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][2]">MAIN[20][2]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[2]-DIF_MUX"><th>SLICE[2].DIF_MUX</th><td id="virtex4-CLB-SLICE[2]-DIF_MUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][39]">MAIN[20][39]</a></td></tr>
 
 </thead>
 
 <tbody>
-<tr><td>BX</td><td>input</td><td>IMUX_BYP[2]</td></tr>
+<tr><td>ALT</td><td>0</td></tr>
 
-<tr><td>BY</td><td>input</td><td>IMUX_BYP[6]</td></tr>
-
-<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[2]</td></tr>
-
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[2]</td></tr>
-
-<tr><td>F1</td><td>input</td><td>IMUX_IMUX[24]</td></tr>
-
-<tr><td>F2</td><td>input</td><td>IMUX_IMUX[25]</td></tr>
-
-<tr><td>F3</td><td>input</td><td>IMUX_IMUX[26]</td></tr>
-
-<tr><td>F4</td><td>input</td><td>IMUX_IMUX[27]</td></tr>
-
-<tr><td>G1</td><td>input</td><td>IMUX_IMUX[16]</td></tr>
-
-<tr><td>G2</td><td>input</td><td>IMUX_IMUX[17]</td></tr>
-
-<tr><td>G3</td><td>input</td><td>IMUX_IMUX[18]</td></tr>
-
-<tr><td>G4</td><td>input</td><td>IMUX_IMUX[19]</td></tr>
-
-<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[2]</td></tr>
-
-<tr><td>X</td><td>output</td><td>OUT_BEST[2]</td></tr>
-
-<tr><td>XB</td><td>output</td><td>OUT_HALF1[4]</td></tr>
-
-<tr><td>XMUX</td><td>output</td><td>OUT_HALF1[0]</td></tr>
-
-<tr><td>XQ</td><td>output</td><td>OUT_SEC[2]</td></tr>
-
-<tr><td>Y</td><td>output</td><td>OUT_BEST[6]</td></tr>
-
-<tr><td>YB</td><td>output</td><td>OUT_HALF1[6]</td></tr>
-
-<tr><td>YMUX</td><td>output</td><td>OUT_HALF1[2]</td></tr>
-
-<tr><td>YQ</td><td>output</td><td>OUT_SEC[6]</td></tr>
+<tr><td>BX</td><td>1</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-slice3"><a class="header" href="#bel-slice3">Bel SLICE[3]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex4 CLB bel SLICE[3]</caption>
+<caption>virtex4 CLB enum SLICE_V4_DIG_MUX</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr id="virtex4-CLB-SLICE[0]-DIG_MUX"><th>SLICE[0].DIG_MUX</th><td id="virtex4-CLB-SLICE[0]-DIG_MUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][35]">MAIN[20][35]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[2]-DIG_MUX"><th>SLICE[2].DIG_MUX</th><td id="virtex4-CLB-SLICE[2]-DIG_MUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][76]">MAIN[20][76]</a></td></tr>
 
 </thead>
 
 <tbody>
-<tr><td>BX</td><td>input</td><td>IMUX_BYP[7]</td></tr>
+<tr><td>ALT</td><td>0</td></tr>
 
-<tr><td>BY</td><td>input</td><td>IMUX_BYP[3]</td></tr>
+<tr><td>BY</td><td>1</td></tr>
 
-<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[3]</td></tr>
+</tbody>
 
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[3]</td></tr>
+</table>
+</div>
 
-<tr><td>F1</td><td>input</td><td>IMUX_IMUX[28]</td></tr>
+<div class="table-wrapper">
+<table>
+<caption>virtex4 CLB enum SLICE_V4_CYINIT</caption>
+<thead>
+<tr id="virtex4-CLB-SLICE[0]-CYINIT"><th>SLICE[0].CYINIT</th><td id="virtex4-CLB-SLICE[0]-CYINIT[0]"><a href="#virtex4-CLB-bit-MAIN[21][17]">MAIN[21][17]</a></td></tr>
 
-<tr><td>F2</td><td>input</td><td>IMUX_IMUX[29]</td></tr>
+<tr id="virtex4-CLB-SLICE[1]-CYINIT"><th>SLICE[1].CYINIT</th><td id="virtex4-CLB-SLICE[1]-CYINIT[0]"><a href="#virtex4-CLB-bit-MAIN[19][16]">MAIN[19][16]</a></td></tr>
 
-<tr><td>F3</td><td>input</td><td>IMUX_IMUX[30]</td></tr>
+<tr id="virtex4-CLB-SLICE[2]-CYINIT"><th>SLICE[2].CYINIT</th><td id="virtex4-CLB-SLICE[2]-CYINIT[0]"><a href="#virtex4-CLB-bit-MAIN[21][57]">MAIN[21][57]</a></td></tr>
 
-<tr><td>F4</td><td>input</td><td>IMUX_IMUX[31]</td></tr>
+<tr id="virtex4-CLB-SLICE[3]-CYINIT"><th>SLICE[3].CYINIT</th><td id="virtex4-CLB-SLICE[3]-CYINIT[0]"><a href="#virtex4-CLB-bit-MAIN[19][56]">MAIN[19][56]</a></td></tr>
 
-<tr><td>G1</td><td>input</td><td>IMUX_IMUX[20]</td></tr>
+</thead>
 
-<tr><td>G2</td><td>input</td><td>IMUX_IMUX[21]</td></tr>
+<tbody>
+<tr><td>BX</td><td>0</td></tr>
 
-<tr><td>G3</td><td>input</td><td>IMUX_IMUX[22]</td></tr>
+<tr><td>CIN</td><td>1</td></tr>
 
-<tr><td>G4</td><td>input</td><td>IMUX_IMUX[23]</td></tr>
+</tbody>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[3]</td></tr>
+</table>
+</div>
 
-<tr><td>X</td><td>output</td><td>OUT_BEST[3]</td></tr>
+<div class="table-wrapper">
+<table>
+<caption>virtex4 CLB enum SLICE_V4_CY0F</caption>
+<thead>
+<tr id="virtex4-CLB-SLICE[0]-CY0F"><th>SLICE[0].CY0F</th><td id="virtex4-CLB-SLICE[0]-CY0F[2]"><a href="#virtex4-CLB-bit-MAIN[20][18]">MAIN[20][18]</a></td><td id="virtex4-CLB-SLICE[0]-CY0F[1]"><a href="#virtex4-CLB-bit-MAIN[20][17]">MAIN[20][17]</a></td><td id="virtex4-CLB-SLICE[0]-CY0F[0]"><a href="#virtex4-CLB-bit-MAIN[20][16]">MAIN[20][16]</a></td></tr>
 
-<tr><td>XB</td><td>output</td><td>OUT_HALF1[5]</td></tr>
+<tr id="virtex4-CLB-SLICE[1]-CY0F"><th>SLICE[1].CY0F</th><td id="virtex4-CLB-SLICE[1]-CY0F[2]"><a href="#virtex4-CLB-bit-MAIN[19][18]">MAIN[19][18]</a></td><td id="virtex4-CLB-SLICE[1]-CY0F[1]"><a href="#virtex4-CLB-bit-MAIN[19][17]">MAIN[19][17]</a></td><td id="virtex4-CLB-SLICE[1]-CY0F[0]"><a href="#virtex4-CLB-bit-MAIN[20][15]">MAIN[20][15]</a></td></tr>
 
-<tr><td>XMUX</td><td>output</td><td>OUT_HALF1[1]</td></tr>
+<tr id="virtex4-CLB-SLICE[2]-CY0F"><th>SLICE[2].CY0F</th><td id="virtex4-CLB-SLICE[2]-CY0F[2]"><a href="#virtex4-CLB-bit-MAIN[20][58]">MAIN[20][58]</a></td><td id="virtex4-CLB-SLICE[2]-CY0F[1]"><a href="#virtex4-CLB-bit-MAIN[20][57]">MAIN[20][57]</a></td><td id="virtex4-CLB-SLICE[2]-CY0F[0]"><a href="#virtex4-CLB-bit-MAIN[20][56]">MAIN[20][56]</a></td></tr>
 
-<tr><td>XQ</td><td>output</td><td>OUT_SEC[3]</td></tr>
+<tr id="virtex4-CLB-SLICE[3]-CY0F"><th>SLICE[3].CY0F</th><td id="virtex4-CLB-SLICE[3]-CY0F[2]"><a href="#virtex4-CLB-bit-MAIN[19][58]">MAIN[19][58]</a></td><td id="virtex4-CLB-SLICE[3]-CY0F[1]"><a href="#virtex4-CLB-bit-MAIN[19][57]">MAIN[19][57]</a></td><td id="virtex4-CLB-SLICE[3]-CY0F[0]"><a href="#virtex4-CLB-bit-MAIN[20][55]">MAIN[20][55]</a></td></tr>
 
-<tr><td>Y</td><td>output</td><td>OUT_BEST[7]</td></tr>
+</thead>
 
-<tr><td>YB</td><td>output</td><td>OUT_HALF1[7]</td></tr>
+<tbody>
+<tr><td>CONST_0</td><td>0</td><td>0</td><td>1</td></tr>
 
-<tr><td>YMUX</td><td>output</td><td>OUT_HALF1[3]</td></tr>
+<tr><td>CONST_1</td><td>0</td><td>0</td><td>0</td></tr>
 
-<tr><td>YQ</td><td>output</td><td>OUT_SEC[7]</td></tr>
+<tr><td>BX</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>F3</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>F2</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>PROD</td><td>1</td><td>0</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex4 CLB enum SLICE_V4_CY0G</caption>
+<thead>
+<tr id="virtex4-CLB-SLICE[0]-CY0G"><th>SLICE[0].CY0G</th><td id="virtex4-CLB-SLICE[0]-CY0G[2]"><a href="#virtex4-CLB-bit-MAIN[20][21]">MAIN[20][21]</a></td><td id="virtex4-CLB-SLICE[0]-CY0G[1]"><a href="#virtex4-CLB-bit-MAIN[20][20]">MAIN[20][20]</a></td><td id="virtex4-CLB-SLICE[0]-CY0G[0]"><a href="#virtex4-CLB-bit-MAIN[20][23]">MAIN[20][23]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[1]-CY0G"><th>SLICE[1].CY0G</th><td id="virtex4-CLB-SLICE[1]-CY0G[2]"><a href="#virtex4-CLB-bit-MAIN[19][21]">MAIN[19][21]</a></td><td id="virtex4-CLB-SLICE[1]-CY0G[1]"><a href="#virtex4-CLB-bit-MAIN[20][24]">MAIN[20][24]</a></td><td id="virtex4-CLB-SLICE[1]-CY0G[0]"><a href="#virtex4-CLB-bit-MAIN[19][22]">MAIN[19][22]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[2]-CY0G"><th>SLICE[2].CY0G</th><td id="virtex4-CLB-SLICE[2]-CY0G[2]"><a href="#virtex4-CLB-bit-MAIN[20][61]">MAIN[20][61]</a></td><td id="virtex4-CLB-SLICE[2]-CY0G[1]"><a href="#virtex4-CLB-bit-MAIN[20][60]">MAIN[20][60]</a></td><td id="virtex4-CLB-SLICE[2]-CY0G[0]"><a href="#virtex4-CLB-bit-MAIN[20][63]">MAIN[20][63]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[3]-CY0G"><th>SLICE[3].CY0G</th><td id="virtex4-CLB-SLICE[3]-CY0G[2]"><a href="#virtex4-CLB-bit-MAIN[19][61]">MAIN[19][61]</a></td><td id="virtex4-CLB-SLICE[3]-CY0G[1]"><a href="#virtex4-CLB-bit-MAIN[20][64]">MAIN[20][64]</a></td><td id="virtex4-CLB-SLICE[3]-CY0G[0]"><a href="#virtex4-CLB-bit-MAIN[19][62]">MAIN[19][62]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CONST_0</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>CONST_1</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>BY</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>G3</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>G2</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>PROD</td><td>1</td><td>0</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex4 CLB enum SLICE_V4_FXMUX</caption>
+<thead>
+<tr id="virtex4-CLB-SLICE[0]-FXMUX"><th>SLICE[0].FXMUX</th><td id="virtex4-CLB-SLICE[0]-FXMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][14]">MAIN[20][14]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[1]-FXMUX"><th>SLICE[1].FXMUX</th><td id="virtex4-CLB-SLICE[1]-FXMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][13]">MAIN[20][13]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[2]-FXMUX"><th>SLICE[2].FXMUX</th><td id="virtex4-CLB-SLICE[2]-FXMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][54]">MAIN[20][54]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[3]-FXMUX"><th>SLICE[3].FXMUX</th><td id="virtex4-CLB-SLICE[3]-FXMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][53]">MAIN[20][53]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>F5</td><td>0</td></tr>
+
+<tr><td>FXOR</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex4 CLB enum SLICE_V4_GYMUX</caption>
+<thead>
+<tr id="virtex4-CLB-SLICE[0]-GYMUX"><th>SLICE[0].GYMUX</th><td id="virtex4-CLB-SLICE[0]-GYMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][19]">MAIN[20][19]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[1]-GYMUX"><th>SLICE[1].GYMUX</th><td id="virtex4-CLB-SLICE[1]-GYMUX[0]"><a href="#virtex4-CLB-bit-MAIN[19][20]">MAIN[19][20]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[2]-GYMUX"><th>SLICE[2].GYMUX</th><td id="virtex4-CLB-SLICE[2]-GYMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][59]">MAIN[20][59]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[3]-GYMUX"><th>SLICE[3].GYMUX</th><td id="virtex4-CLB-SLICE[3]-GYMUX[0]"><a href="#virtex4-CLB-bit-MAIN[19][60]">MAIN[19][60]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>FX</td><td>0</td></tr>
+
+<tr><td>GXOR</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex4 CLB enum SLICE_V4_DXMUX</caption>
+<thead>
+<tr id="virtex4-CLB-SLICE[0]-DXMUX"><th>SLICE[0].DXMUX</th><td id="virtex4-CLB-SLICE[0]-DXMUX[4]"><a href="#virtex4-CLB-bit-MAIN[18][2]">MAIN[18][2]</a></td><td id="virtex4-CLB-SLICE[0]-DXMUX[3]"><a href="#virtex4-CLB-bit-MAIN[18][7]">MAIN[18][7]</a></td><td id="virtex4-CLB-SLICE[0]-DXMUX[2]"><a href="#virtex4-CLB-bit-MAIN[18][0]">MAIN[18][0]</a></td><td id="virtex4-CLB-SLICE[0]-DXMUX[1]"><a href="#virtex4-CLB-bit-MAIN[18][9]">MAIN[18][9]</a></td><td id="virtex4-CLB-SLICE[0]-DXMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][3]">MAIN[20][3]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[1]-DXMUX"><th>SLICE[1].DXMUX</th><td id="virtex4-CLB-SLICE[1]-DXMUX[4]"><a href="#virtex4-CLB-bit-MAIN[18][12]">MAIN[18][12]</a></td><td id="virtex4-CLB-SLICE[1]-DXMUX[3]"><a href="#virtex4-CLB-bit-MAIN[18][13]">MAIN[18][13]</a></td><td id="virtex4-CLB-SLICE[1]-DXMUX[2]"><a href="#virtex4-CLB-bit-MAIN[18][11]">MAIN[18][11]</a></td><td id="virtex4-CLB-SLICE[1]-DXMUX[1]"><a href="#virtex4-CLB-bit-MAIN[18][10]">MAIN[18][10]</a></td><td id="virtex4-CLB-SLICE[1]-DXMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][4]">MAIN[20][4]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[2]-DXMUX"><th>SLICE[2].DXMUX</th><td id="virtex4-CLB-SLICE[2]-DXMUX[4]"><a href="#virtex4-CLB-bit-MAIN[18][70]">MAIN[18][70]</a></td><td id="virtex4-CLB-SLICE[2]-DXMUX[3]"><a href="#virtex4-CLB-bit-MAIN[18][71]">MAIN[18][71]</a></td><td id="virtex4-CLB-SLICE[2]-DXMUX[2]"><a href="#virtex4-CLB-bit-MAIN[18][68]">MAIN[18][68]</a></td><td id="virtex4-CLB-SLICE[2]-DXMUX[1]"><a href="#virtex4-CLB-bit-MAIN[18][72]">MAIN[18][72]</a></td><td id="virtex4-CLB-SLICE[2]-DXMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][43]">MAIN[20][43]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[3]-DXMUX"><th>SLICE[3].DXMUX</th><td id="virtex4-CLB-SLICE[3]-DXMUX[4]"><a href="#virtex4-CLB-bit-MAIN[18][45]">MAIN[18][45]</a></td><td id="virtex4-CLB-SLICE[3]-DXMUX[3]"><a href="#virtex4-CLB-bit-MAIN[18][44]">MAIN[18][44]</a></td><td id="virtex4-CLB-SLICE[3]-DXMUX[2]"><a href="#virtex4-CLB-bit-MAIN[18][47]">MAIN[18][47]</a></td><td id="virtex4-CLB-SLICE[3]-DXMUX[1]"><a href="#virtex4-CLB-bit-MAIN[18][46]">MAIN[18][46]</a></td><td id="virtex4-CLB-SLICE[3]-DXMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][44]">MAIN[20][44]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>X</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>BX</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>F5</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>FXOR</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>XB</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex4 CLB enum SLICE_V4_DYMUX</caption>
+<thead>
+<tr id="virtex4-CLB-SLICE[0]-DYMUX"><th>SLICE[0].DYMUX</th><td id="virtex4-CLB-SLICE[0]-DYMUX[4]"><a href="#virtex4-CLB-bit-MAIN[18][15]">MAIN[18][15]</a></td><td id="virtex4-CLB-SLICE[0]-DYMUX[3]"><a href="#virtex4-CLB-bit-MAIN[18][14]">MAIN[18][14]</a></td><td id="virtex4-CLB-SLICE[0]-DYMUX[2]"><a href="#virtex4-CLB-bit-MAIN[18][5]">MAIN[18][5]</a></td><td id="virtex4-CLB-SLICE[0]-DYMUX[1]"><a href="#virtex4-CLB-bit-MAIN[18][8]">MAIN[18][8]</a></td><td id="virtex4-CLB-SLICE[0]-DYMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][31]">MAIN[20][31]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[1]-DYMUX"><th>SLICE[1].DYMUX</th><td id="virtex4-CLB-SLICE[1]-DYMUX[4]"><a href="#virtex4-CLB-bit-MAIN[18][43]">MAIN[18][43]</a></td><td id="virtex4-CLB-SLICE[1]-DYMUX[3]"><a href="#virtex4-CLB-bit-MAIN[18][40]">MAIN[18][40]</a></td><td id="virtex4-CLB-SLICE[1]-DYMUX[2]"><a href="#virtex4-CLB-bit-MAIN[18][42]">MAIN[18][42]</a></td><td id="virtex4-CLB-SLICE[1]-DYMUX[1]"><a href="#virtex4-CLB-bit-MAIN[18][41]">MAIN[18][41]</a></td><td id="virtex4-CLB-SLICE[1]-DYMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][32]">MAIN[20][32]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[2]-DYMUX"><th>SLICE[2].DYMUX</th><td id="virtex4-CLB-SLICE[2]-DYMUX[4]"><a href="#virtex4-CLB-bit-MAIN[18][69]">MAIN[18][69]</a></td><td id="virtex4-CLB-SLICE[2]-DYMUX[3]"><a href="#virtex4-CLB-bit-MAIN[18][67]">MAIN[18][67]</a></td><td id="virtex4-CLB-SLICE[2]-DYMUX[2]"><a href="#virtex4-CLB-bit-MAIN[18][74]">MAIN[18][74]</a></td><td id="virtex4-CLB-SLICE[2]-DYMUX[1]"><a href="#virtex4-CLB-bit-MAIN[18][77]">MAIN[18][77]</a></td><td id="virtex4-CLB-SLICE[2]-DYMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][71]">MAIN[20][71]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[3]-DYMUX"><th>SLICE[3].DYMUX</th><td id="virtex4-CLB-SLICE[3]-DYMUX[4]"><a href="#virtex4-CLB-bit-MAIN[18][65]">MAIN[18][65]</a></td><td id="virtex4-CLB-SLICE[3]-DYMUX[3]"><a href="#virtex4-CLB-bit-MAIN[18][79]">MAIN[18][79]</a></td><td id="virtex4-CLB-SLICE[3]-DYMUX[2]"><a href="#virtex4-CLB-bit-MAIN[18][64]">MAIN[18][64]</a></td><td id="virtex4-CLB-SLICE[3]-DYMUX[1]"><a href="#virtex4-CLB-bit-MAIN[18][66]">MAIN[18][66]</a></td><td id="virtex4-CLB-SLICE[3]-DYMUX[0]"><a href="#virtex4-CLB-bit-MAIN[20][72]">MAIN[20][72]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>Y</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>BY</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>FX</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>GXOR</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>YB</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex4 CLB enum SLICE_V4_XBMUX</caption>
+<thead>
+<tr id="virtex4-CLB-SLICE[0]-XBMUX"><th>SLICE[0].XBMUX</th><td id="virtex4-CLB-SLICE[0]-XBMUX[0]"><a href="#virtex4-CLB-bit-MAIN[21][18]">MAIN[21][18]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[2]-XBMUX"><th>SLICE[2].XBMUX</th><td id="virtex4-CLB-SLICE[2]-XBMUX[0]"><a href="#virtex4-CLB-bit-MAIN[21][58]">MAIN[21][58]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>FCY</td><td>0</td></tr>
+
+<tr><td>FMC15</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex4 CLB enum SLICE_V4_YBMUX</caption>
+<thead>
+<tr id="virtex4-CLB-SLICE[0]-YBMUX"><th>SLICE[0].YBMUX</th><td id="virtex4-CLB-SLICE[0]-YBMUX[0]"><a href="#virtex4-CLB-bit-MAIN[21][21]">MAIN[21][21]</a></td></tr>
+
+<tr id="virtex4-CLB-SLICE[2]-YBMUX"><th>SLICE[2].YBMUX</th><td id="virtex4-CLB-SLICE[2]-YBMUX[0]"><a href="#virtex4-CLB-bit-MAIN[21][61]">MAIN[21][61]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>GCY</td><td>0</td></tr>
+
+<tr><td>GMC15</td><td>1</td></tr>
 
 </tbody>
 
@@ -622,2052 +859,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B78</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B77</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B76</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B75</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B74</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B73</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B72</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B71</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B70</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B69</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B68</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B67</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B66</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B65</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B64</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B63</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B62</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B61</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B60</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B59</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B58</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B57</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B56</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B55</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B54</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B53</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B52</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B51</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B50</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B49</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B48</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B47</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B46</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B45</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B44</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B43</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B42</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B41</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B40</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B39</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B38</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B37</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B36</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B35</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B34</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B33</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B32</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B31</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B30</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B29</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B28</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B27</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B26</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>virtex4 CLB rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="22">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-<th>F6</th>
-<th>F7</th>
-<th>F8</th>
-<th>F9</th>
-<th>F10</th>
-<th>F11</th>
-<th>F12</th>
-<th>F13</th>
-<th>F14</th>
-<th>F15</th>
-<th>F16</th>
-<th>F17</th>
-<th>F18</th>
-<th>F19</th>
-<th>F20</th>
-<th>F21</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B79</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F18.B79">
-<a href="#tile-virtex4-CLB-SLICE[3]:DYMUX">SLICE[3]:DYMUX[3]</a>
+<td id="virtex4-CLB-bit-MAIN[18][79]" title="MAIN[18][79]">
+<a href="#virtex4-CLB-SLICE[3]-DYMUX[3]">SLICE[3]:  DYMUX bit 3</a>
 </td>
 <td>-</td>
-<td title="R0.F20.B79">
-<a href="#tile-virtex4-CLB-SLICE[2]:FF_SR_ENABLE">~SLICE[2]:FF_SR_ENABLE</a>
+<td id="virtex4-CLB-bit-MAIN[20][79]" title="MAIN[20][79]">
+<a href="#virtex4-CLB-SLICE[2]-FF_SR_ENABLE">SLICE[2]: ! FF_SR_ENABLE</a>
 </td>
 <td>-</td>
 </tr>
@@ -2692,14 +889,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B78">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[0]</a>
+<td id="virtex4-CLB-bit-MAIN[19][78]" title="MAIN[19][78]">
+<a href="#virtex4-CLB-SLICE[3]-G[0]">SLICE[3]:  G bit 0</a>
 </td>
-<td title="R0.F20.B78">
-<a href="#tile-virtex4-CLB-SLICE[2]:F_SHIFT">SLICE[2]:F_SHIFT</a>
+<td id="virtex4-CLB-bit-MAIN[20][78]" title="MAIN[20][78]">
+<a href="#virtex4-CLB-SLICE[2]-F_SHIFT_ENABLE">SLICE[2]:  F_SHIFT_ENABLE</a>
 </td>
-<td title="R0.F21.B78">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[0]</a>
+<td id="virtex4-CLB-bit-MAIN[21][78]" title="MAIN[21][78]">
+<a href="#virtex4-CLB-SLICE[2]-G[0]">SLICE[2]:  G bit 0</a>
 </td>
 </tr>
 
@@ -2722,17 +919,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B77">
-<a href="#tile-virtex4-CLB-SLICE[2]:DYMUX">SLICE[2]:DYMUX[4]</a>
+<td id="virtex4-CLB-bit-MAIN[18][77]" title="MAIN[18][77]">
+<a href="#virtex4-CLB-SLICE[2]-DYMUX[1]">SLICE[2]:  DYMUX bit 1</a>
 </td>
-<td title="R0.F19.B77">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[1]</a>
+<td id="virtex4-CLB-bit-MAIN[19][77]" title="MAIN[19][77]">
+<a href="#virtex4-CLB-SLICE[3]-G[1]">SLICE[3]:  G bit 1</a>
 </td>
-<td title="R0.F20.B77">
-<a href="#tile-virtex4-CLB-SLICE[2]:G_SHIFT">SLICE[2]:G_SHIFT</a>
+<td id="virtex4-CLB-bit-MAIN[20][77]" title="MAIN[20][77]">
+<a href="#virtex4-CLB-SLICE[2]-G_SHIFT_ENABLE">SLICE[2]:  G_SHIFT_ENABLE</a>
 </td>
-<td title="R0.F21.B77">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[1]</a>
+<td id="virtex4-CLB-bit-MAIN[21][77]" title="MAIN[21][77]">
+<a href="#virtex4-CLB-SLICE[2]-G[1]">SLICE[2]:  G bit 1</a>
 </td>
 </tr>
 
@@ -2756,14 +953,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B76">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[2]</a>
+<td id="virtex4-CLB-bit-MAIN[19][76]" title="MAIN[19][76]">
+<a href="#virtex4-CLB-SLICE[3]-G[2]">SLICE[3]:  G bit 2</a>
 </td>
-<td title="R0.F20.B76">
-<a href="#tile-virtex4-CLB-SLICE[2]:DIG_MUX">SLICE[2]:DIG_MUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][76]" title="MAIN[20][76]">
+<a href="#virtex4-CLB-SLICE[2]-DIG_MUX[0]">SLICE[2]:  DIG_MUX bit 0</a>
 </td>
-<td title="R0.F21.B76">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[2]</a>
+<td id="virtex4-CLB-bit-MAIN[21][76]" title="MAIN[21][76]">
+<a href="#virtex4-CLB-SLICE[2]-G[2]">SLICE[2]:  G bit 2</a>
 </td>
 </tr>
 
@@ -2787,12 +984,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B75">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[3]</a>
+<td id="virtex4-CLB-bit-MAIN[19][75]" title="MAIN[19][75]">
+<a href="#virtex4-CLB-SLICE[3]-G[3]">SLICE[3]:  G bit 3</a>
 </td>
 <td>-</td>
-<td title="R0.F21.B75">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[3]</a>
+<td id="virtex4-CLB-bit-MAIN[21][75]" title="MAIN[21][75]">
+<a href="#virtex4-CLB-SLICE[2]-G[3]">SLICE[2]:  G bit 3</a>
 </td>
 </tr>
 
@@ -2815,17 +1012,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B74">
-<a href="#tile-virtex4-CLB-SLICE[2]:DYMUX">SLICE[2]:DYMUX[1]</a>
+<td id="virtex4-CLB-bit-MAIN[18][74]" title="MAIN[18][74]">
+<a href="#virtex4-CLB-SLICE[2]-DYMUX[2]">SLICE[2]:  DYMUX bit 2</a>
 </td>
-<td title="R0.F19.B74">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[4]</a>
+<td id="virtex4-CLB-bit-MAIN[19][74]" title="MAIN[19][74]">
+<a href="#virtex4-CLB-SLICE[3]-G[4]">SLICE[3]:  G bit 4</a>
 </td>
-<td title="R0.F20.B74">
-<a href="#tile-virtex4-CLB-SLICE[2]:FFY_INIT">~SLICE[2]:FFY_INIT</a>
+<td id="virtex4-CLB-bit-MAIN[20][74]" title="MAIN[20][74]">
+<a href="#virtex4-CLB-SLICE[2]-FFY_INIT[0]">SLICE[2]: ! FFY_INIT bit 0</a>
 </td>
-<td title="R0.F21.B74">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[4]</a>
+<td id="virtex4-CLB-bit-MAIN[21][74]" title="MAIN[21][74]">
+<a href="#virtex4-CLB-SLICE[2]-G[4]">SLICE[2]:  G bit 4</a>
 </td>
 </tr>
 
@@ -2849,14 +1046,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B73">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[5]</a>
+<td id="virtex4-CLB-bit-MAIN[19][73]" title="MAIN[19][73]">
+<a href="#virtex4-CLB-SLICE[3]-G[5]">SLICE[3]:  G bit 5</a>
 </td>
-<td title="R0.F20.B73">
-<a href="#tile-virtex4-CLB-SLICE[3]:FFY_INIT">~SLICE[3]:FFY_INIT</a>
+<td id="virtex4-CLB-bit-MAIN[20][73]" title="MAIN[20][73]">
+<a href="#virtex4-CLB-SLICE[3]-FFY_INIT[0]">SLICE[3]: ! FFY_INIT bit 0</a>
 </td>
-<td title="R0.F21.B73">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[5]</a>
+<td id="virtex4-CLB-bit-MAIN[21][73]" title="MAIN[21][73]">
+<a href="#virtex4-CLB-SLICE[2]-G[5]">SLICE[2]:  G bit 5</a>
 </td>
 </tr>
 
@@ -2879,17 +1076,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B72">
-<a href="#tile-virtex4-CLB-SLICE[2]:DXMUX">SLICE[2]:DXMUX[4]</a>
+<td id="virtex4-CLB-bit-MAIN[18][72]" title="MAIN[18][72]">
+<a href="#virtex4-CLB-SLICE[2]-DXMUX[1]">SLICE[2]:  DXMUX bit 1</a>
 </td>
-<td title="R0.F19.B72">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[6]</a>
+<td id="virtex4-CLB-bit-MAIN[19][72]" title="MAIN[19][72]">
+<a href="#virtex4-CLB-SLICE[3]-G[6]">SLICE[3]:  G bit 6</a>
 </td>
-<td title="R0.F20.B72">
-<a href="#tile-virtex4-CLB-SLICE[3]:DYMUX">SLICE[3]:DYMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][72]" title="MAIN[20][72]">
+<a href="#virtex4-CLB-SLICE[3]-DYMUX[0]">SLICE[3]:  DYMUX bit 0</a>
 </td>
-<td title="R0.F21.B72">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[6]</a>
+<td id="virtex4-CLB-bit-MAIN[21][72]" title="MAIN[21][72]">
+<a href="#virtex4-CLB-SLICE[2]-G[6]">SLICE[2]:  G bit 6</a>
 </td>
 </tr>
 
@@ -2912,17 +1109,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B71">
-<a href="#tile-virtex4-CLB-SLICE[2]:DXMUX">SLICE[2]:DXMUX[3]</a>
+<td id="virtex4-CLB-bit-MAIN[18][71]" title="MAIN[18][71]">
+<a href="#virtex4-CLB-SLICE[2]-DXMUX[3]">SLICE[2]:  DXMUX bit 3</a>
 </td>
-<td title="R0.F19.B71">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[7]</a>
+<td id="virtex4-CLB-bit-MAIN[19][71]" title="MAIN[19][71]">
+<a href="#virtex4-CLB-SLICE[3]-G[7]">SLICE[3]:  G bit 7</a>
 </td>
-<td title="R0.F20.B71">
-<a href="#tile-virtex4-CLB-SLICE[2]:DYMUX">SLICE[2]:DYMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][71]" title="MAIN[20][71]">
+<a href="#virtex4-CLB-SLICE[2]-DYMUX[0]">SLICE[2]:  DYMUX bit 0</a>
 </td>
-<td title="R0.F21.B71">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[7]</a>
+<td id="virtex4-CLB-bit-MAIN[21][71]" title="MAIN[21][71]">
+<a href="#virtex4-CLB-SLICE[2]-G[7]">SLICE[2]:  G bit 7</a>
 </td>
 </tr>
 
@@ -2945,17 +1142,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B70">
-<a href="#tile-virtex4-CLB-SLICE[2]:DXMUX">SLICE[2]:DXMUX[2]</a>
+<td id="virtex4-CLB-bit-MAIN[18][70]" title="MAIN[18][70]">
+<a href="#virtex4-CLB-SLICE[2]-DXMUX[4]">SLICE[2]:  DXMUX bit 4</a>
 </td>
-<td title="R0.F19.B70">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[8]</a>
+<td id="virtex4-CLB-bit-MAIN[19][70]" title="MAIN[19][70]">
+<a href="#virtex4-CLB-SLICE[3]-G[8]">SLICE[3]:  G bit 8</a>
 </td>
-<td title="R0.F20.B70">
-<a href="#tile-virtex4-CLB-SLICE[2]:FFY_SRVAL">~SLICE[2]:FFY_SRVAL</a>
+<td id="virtex4-CLB-bit-MAIN[20][70]" title="MAIN[20][70]">
+<a href="#virtex4-CLB-SLICE[2]-FFY_SRVAL[0]">SLICE[2]: ! FFY_SRVAL bit 0</a>
 </td>
-<td title="R0.F21.B70">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[8]</a>
+<td id="virtex4-CLB-bit-MAIN[21][70]" title="MAIN[21][70]">
+<a href="#virtex4-CLB-SLICE[2]-G[8]">SLICE[2]:  G bit 8</a>
 </td>
 </tr>
 
@@ -2978,17 +1175,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B69">
-<a href="#tile-virtex4-CLB-SLICE[2]:DYMUX">SLICE[2]:DYMUX[2]</a>
+<td id="virtex4-CLB-bit-MAIN[18][69]" title="MAIN[18][69]">
+<a href="#virtex4-CLB-SLICE[2]-DYMUX[4]">SLICE[2]:  DYMUX bit 4</a>
 </td>
-<td title="R0.F19.B69">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[9]</a>
+<td id="virtex4-CLB-bit-MAIN[19][69]" title="MAIN[19][69]">
+<a href="#virtex4-CLB-SLICE[3]-G[9]">SLICE[3]:  G bit 9</a>
 </td>
-<td title="R0.F20.B69">
-<a href="#tile-virtex4-CLB-SLICE[3]:FFY_SRVAL">~SLICE[3]:FFY_SRVAL</a>
+<td id="virtex4-CLB-bit-MAIN[20][69]" title="MAIN[20][69]">
+<a href="#virtex4-CLB-SLICE[3]-FFY_SRVAL[0]">SLICE[3]: ! FFY_SRVAL bit 0</a>
 </td>
-<td title="R0.F21.B69">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[9]</a>
+<td id="virtex4-CLB-bit-MAIN[21][69]" title="MAIN[21][69]">
+<a href="#virtex4-CLB-SLICE[2]-G[9]">SLICE[2]:  G bit 9</a>
 </td>
 </tr>
 
@@ -3011,17 +1208,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B68">
-<a href="#tile-virtex4-CLB-SLICE[2]:DXMUX">SLICE[2]:DXMUX[1]</a>
+<td id="virtex4-CLB-bit-MAIN[18][68]" title="MAIN[18][68]">
+<a href="#virtex4-CLB-SLICE[2]-DXMUX[2]">SLICE[2]:  DXMUX bit 2</a>
 </td>
-<td title="R0.F19.B68">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[10]</a>
+<td id="virtex4-CLB-bit-MAIN[19][68]" title="MAIN[19][68]">
+<a href="#virtex4-CLB-SLICE[3]-G[10]">SLICE[3]:  G bit 10</a>
 </td>
-<td title="R0.F20.B68">
-<a href="#tile-virtex4-CLB-SLICE[3]:FF_REV_ENABLE">SLICE[3]:FF_REV_ENABLE</a>
+<td id="virtex4-CLB-bit-MAIN[20][68]" title="MAIN[20][68]">
+<a href="#virtex4-CLB-SLICE[3]-FF_REV_ENABLE">SLICE[3]:  FF_REV_ENABLE</a>
 </td>
-<td title="R0.F21.B68">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[10]</a>
+<td id="virtex4-CLB-bit-MAIN[21][68]" title="MAIN[21][68]">
+<a href="#virtex4-CLB-SLICE[2]-G[10]">SLICE[2]:  G bit 10</a>
 </td>
 </tr>
 
@@ -3044,17 +1241,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B67">
-<a href="#tile-virtex4-CLB-SLICE[2]:DYMUX">SLICE[2]:DYMUX[3]</a>
+<td id="virtex4-CLB-bit-MAIN[18][67]" title="MAIN[18][67]">
+<a href="#virtex4-CLB-SLICE[2]-DYMUX[3]">SLICE[2]:  DYMUX bit 3</a>
 </td>
-<td title="R0.F19.B67">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[11]</a>
+<td id="virtex4-CLB-bit-MAIN[19][67]" title="MAIN[19][67]">
+<a href="#virtex4-CLB-SLICE[3]-G[11]">SLICE[3]:  G bit 11</a>
 </td>
-<td title="R0.F20.B67">
-<a href="#tile-virtex4-CLB-SLICE[2]:FF_REV_ENABLE">SLICE[2]:FF_REV_ENABLE</a>
+<td id="virtex4-CLB-bit-MAIN[20][67]" title="MAIN[20][67]">
+<a href="#virtex4-CLB-SLICE[2]-FF_REV_ENABLE">SLICE[2]:  FF_REV_ENABLE</a>
 </td>
-<td title="R0.F21.B67">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[11]</a>
+<td id="virtex4-CLB-bit-MAIN[21][67]" title="MAIN[21][67]">
+<a href="#virtex4-CLB-SLICE[2]-G[11]">SLICE[2]:  G bit 11</a>
 </td>
 </tr>
 
@@ -3077,17 +1274,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B66">
-<a href="#tile-virtex4-CLB-SLICE[3]:DYMUX">SLICE[3]:DYMUX[4]</a>
+<td id="virtex4-CLB-bit-MAIN[18][66]" title="MAIN[18][66]">
+<a href="#virtex4-CLB-SLICE[3]-DYMUX[1]">SLICE[3]:  DYMUX bit 1</a>
 </td>
-<td title="R0.F19.B66">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[12]</a>
+<td id="virtex4-CLB-bit-MAIN[19][66]" title="MAIN[19][66]">
+<a href="#virtex4-CLB-SLICE[3]-G[12]">SLICE[3]:  G bit 12</a>
 </td>
-<td title="R0.F20.B66">
-<a href="#tile-virtex4-CLB-SLICE[2]:FF_SR_SYNC">SLICE[2]:FF_SR_SYNC</a>
+<td id="virtex4-CLB-bit-MAIN[20][66]" title="MAIN[20][66]">
+<a href="#virtex4-CLB-SLICE[2]-FF_SR_SYNC">SLICE[2]:  FF_SR_SYNC</a>
 </td>
-<td title="R0.F21.B66">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[12]</a>
+<td id="virtex4-CLB-bit-MAIN[21][66]" title="MAIN[21][66]">
+<a href="#virtex4-CLB-SLICE[2]-G[12]">SLICE[2]:  G bit 12</a>
 </td>
 </tr>
 
@@ -3110,17 +1307,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B65">
-<a href="#tile-virtex4-CLB-SLICE[3]:DYMUX">SLICE[3]:DYMUX[2]</a>
+<td id="virtex4-CLB-bit-MAIN[18][65]" title="MAIN[18][65]">
+<a href="#virtex4-CLB-SLICE[3]-DYMUX[4]">SLICE[3]:  DYMUX bit 4</a>
 </td>
-<td title="R0.F19.B65">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[13]</a>
+<td id="virtex4-CLB-bit-MAIN[19][65]" title="MAIN[19][65]">
+<a href="#virtex4-CLB-SLICE[3]-G[13]">SLICE[3]:  G bit 13</a>
 </td>
-<td title="R0.F20.B65">
-<a href="#tile-virtex4-CLB-SLICE[3]:FF_SR_SYNC">SLICE[3]:FF_SR_SYNC</a>
+<td id="virtex4-CLB-bit-MAIN[20][65]" title="MAIN[20][65]">
+<a href="#virtex4-CLB-SLICE[3]-FF_SR_SYNC">SLICE[3]:  FF_SR_SYNC</a>
 </td>
-<td title="R0.F21.B65">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[13]</a>
+<td id="virtex4-CLB-bit-MAIN[21][65]" title="MAIN[21][65]">
+<a href="#virtex4-CLB-SLICE[2]-G[13]">SLICE[2]:  G bit 13</a>
 </td>
 </tr>
 
@@ -3143,17 +1340,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B64">
-<a href="#tile-virtex4-CLB-SLICE[3]:DYMUX">SLICE[3]:DYMUX[1]</a>
+<td id="virtex4-CLB-bit-MAIN[18][64]" title="MAIN[18][64]">
+<a href="#virtex4-CLB-SLICE[3]-DYMUX[2]">SLICE[3]:  DYMUX bit 2</a>
 </td>
-<td title="R0.F19.B64">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[14]</a>
+<td id="virtex4-CLB-bit-MAIN[19][64]" title="MAIN[19][64]">
+<a href="#virtex4-CLB-SLICE[3]-G[14]">SLICE[3]:  G bit 14</a>
 </td>
-<td title="R0.F20.B64">
-<a href="#tile-virtex4-CLB-SLICE[3]:CY0G">SLICE[3]:CY0G[2]</a>
+<td id="virtex4-CLB-bit-MAIN[20][64]" title="MAIN[20][64]">
+<a href="#virtex4-CLB-SLICE[3]-CY0G[1]">SLICE[3]:  CY0G bit 1</a>
 </td>
-<td title="R0.F21.B64">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[14]</a>
+<td id="virtex4-CLB-bit-MAIN[21][64]" title="MAIN[21][64]">
+<a href="#virtex4-CLB-SLICE[2]-G[14]">SLICE[2]:  G bit 14</a>
 </td>
 </tr>
 
@@ -3177,14 +1374,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B63">
-<a href="#tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G[15]</a>
+<td id="virtex4-CLB-bit-MAIN[19][63]" title="MAIN[19][63]">
+<a href="#virtex4-CLB-SLICE[3]-G[15]">SLICE[3]:  G bit 15</a>
 </td>
-<td title="R0.F20.B63">
-<a href="#tile-virtex4-CLB-SLICE[2]:CY0G">SLICE[2]:CY0G[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][63]" title="MAIN[20][63]">
+<a href="#virtex4-CLB-SLICE[2]-CY0G[0]">SLICE[2]:  CY0G bit 0</a>
 </td>
-<td title="R0.F21.B63">
-<a href="#tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G[15]</a>
+<td id="virtex4-CLB-bit-MAIN[21][63]" title="MAIN[21][63]">
+<a href="#virtex4-CLB-SLICE[2]-G[15]">SLICE[2]:  G bit 15</a>
 </td>
 </tr>
 
@@ -3208,11 +1405,11 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B62">
-<a href="#tile-virtex4-CLB-SLICE[3]:CY0G">SLICE[3]:CY0G[0]</a>
+<td id="virtex4-CLB-bit-MAIN[19][62]" title="MAIN[19][62]">
+<a href="#virtex4-CLB-SLICE[3]-CY0G[0]">SLICE[3]:  CY0G bit 0</a>
 </td>
-<td title="R0.F20.B62">
-<a href="#tile-virtex4-CLB-SLICE[3]:FF_LATCH">SLICE[3]:FF_LATCH</a>
+<td id="virtex4-CLB-bit-MAIN[20][62]" title="MAIN[20][62]">
+<a href="#virtex4-CLB-SLICE[3]-FF_LATCH">SLICE[3]:  FF_LATCH</a>
 </td>
 <td>-</td>
 </tr>
@@ -3236,17 +1433,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B61">
-<a href="#tile-virtex4-CLB-SLICE[1]:INV.BX">~SLICE[1]:INV.BX</a>
+<td id="virtex4-CLB-bit-MAIN[18][61]" title="MAIN[18][61]">
+<a href="#virtex4-CLB-SLICE[1]-inpinv-BX">SLICE[1]: !invert BX</a>
 </td>
-<td title="R0.F19.B61">
-<a href="#tile-virtex4-CLB-SLICE[3]:CY0G">SLICE[3]:CY0G[1]</a>
+<td id="virtex4-CLB-bit-MAIN[19][61]" title="MAIN[19][61]">
+<a href="#virtex4-CLB-SLICE[3]-CY0G[2]">SLICE[3]:  CY0G bit 2</a>
 </td>
-<td title="R0.F20.B61">
-<a href="#tile-virtex4-CLB-SLICE[2]:CY0G">SLICE[2]:CY0G[1]</a>
+<td id="virtex4-CLB-bit-MAIN[20][61]" title="MAIN[20][61]">
+<a href="#virtex4-CLB-SLICE[2]-CY0G[2]">SLICE[2]:  CY0G bit 2</a>
 </td>
-<td title="R0.F21.B61">
-<a href="#tile-virtex4-CLB-SLICE[2]:YBMUX">SLICE[2]:YBMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[21][61]" title="MAIN[21][61]">
+<a href="#virtex4-CLB-SLICE[2]-YBMUX[0]">SLICE[2]:  YBMUX bit 0</a>
 </td>
 </tr>
 
@@ -3269,17 +1466,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B60">
-<a href="#tile-virtex4-CLB-SLICE[3]:INV.BX">~SLICE[3]:INV.BX</a>
+<td id="virtex4-CLB-bit-MAIN[18][60]" title="MAIN[18][60]">
+<a href="#virtex4-CLB-SLICE[3]-inpinv-BX">SLICE[3]: !invert BX</a>
 </td>
-<td title="R0.F19.B60">
-<a href="#tile-virtex4-CLB-SLICE[3]:GYMUX">SLICE[3]:GYMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[19][60]" title="MAIN[19][60]">
+<a href="#virtex4-CLB-SLICE[3]-GYMUX[0]">SLICE[3]:  GYMUX bit 0</a>
 </td>
-<td title="R0.F20.B60">
-<a href="#tile-virtex4-CLB-SLICE[2]:CY0G">SLICE[2]:CY0G[2]</a>
+<td id="virtex4-CLB-bit-MAIN[20][60]" title="MAIN[20][60]">
+<a href="#virtex4-CLB-SLICE[2]-CY0G[1]">SLICE[2]:  CY0G bit 1</a>
 </td>
-<td title="R0.F21.B60">
-<a href="#tile-virtex4-CLB-SLICE[2]:G_SLICEWE0USED">SLICE[2]:G_SLICEWE0USED</a>
+<td id="virtex4-CLB-bit-MAIN[21][60]" title="MAIN[21][60]">
+<a href="#virtex4-CLB-SLICE[2]-G_SLICEWE0USED">SLICE[2]:  G_SLICEWE0USED</a>
 </td>
 </tr>
 
@@ -3304,11 +1501,11 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F20.B59">
-<a href="#tile-virtex4-CLB-SLICE[2]:GYMUX">SLICE[2]:GYMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][59]" title="MAIN[20][59]">
+<a href="#virtex4-CLB-SLICE[2]-GYMUX[0]">SLICE[2]:  GYMUX bit 0</a>
 </td>
-<td title="R0.F21.B59">
-<a href="#tile-virtex4-CLB-SLICE[2]:G_SLICEWE1USED">SLICE[2]:G_SLICEWE1USED</a>
+<td id="virtex4-CLB-bit-MAIN[21][59]" title="MAIN[21][59]">
+<a href="#virtex4-CLB-SLICE[2]-G_SLICEWE1USED">SLICE[2]:  G_SLICEWE1USED</a>
 </td>
 </tr>
 
@@ -3331,17 +1528,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B58">
-<a href="#tile-virtex4-CLB-SLICE[1]:INV.BY">~SLICE[1]:INV.BY</a>
+<td id="virtex4-CLB-bit-MAIN[18][58]" title="MAIN[18][58]">
+<a href="#virtex4-CLB-SLICE[1]-inpinv-BY">SLICE[1]: !invert BY</a>
 </td>
-<td title="R0.F19.B58">
-<a href="#tile-virtex4-CLB-SLICE[3]:CY0F">SLICE[3]:CY0F[1]</a>
+<td id="virtex4-CLB-bit-MAIN[19][58]" title="MAIN[19][58]">
+<a href="#virtex4-CLB-SLICE[3]-CY0F[2]">SLICE[3]:  CY0F bit 2</a>
 </td>
-<td title="R0.F20.B58">
-<a href="#tile-virtex4-CLB-SLICE[2]:CY0F">SLICE[2]:CY0F[1]</a>
+<td id="virtex4-CLB-bit-MAIN[20][58]" title="MAIN[20][58]">
+<a href="#virtex4-CLB-SLICE[2]-CY0F[2]">SLICE[2]:  CY0F bit 2</a>
 </td>
-<td title="R0.F21.B58">
-<a href="#tile-virtex4-CLB-SLICE[2]:XBMUX">SLICE[2]:XBMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[21][58]" title="MAIN[21][58]">
+<a href="#virtex4-CLB-SLICE[2]-XBMUX[0]">SLICE[2]:  XBMUX bit 0</a>
 </td>
 </tr>
 
@@ -3364,17 +1561,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B57">
-<a href="#tile-virtex4-CLB-SLICE[3]:INV.BY">~SLICE[3]:INV.BY</a>
+<td id="virtex4-CLB-bit-MAIN[18][57]" title="MAIN[18][57]">
+<a href="#virtex4-CLB-SLICE[3]-inpinv-BY">SLICE[3]: !invert BY</a>
 </td>
-<td title="R0.F19.B57">
-<a href="#tile-virtex4-CLB-SLICE[3]:CY0F">SLICE[3]:CY0F[2]</a>
+<td id="virtex4-CLB-bit-MAIN[19][57]" title="MAIN[19][57]">
+<a href="#virtex4-CLB-SLICE[3]-CY0F[1]">SLICE[3]:  CY0F bit 1</a>
 </td>
-<td title="R0.F20.B57">
-<a href="#tile-virtex4-CLB-SLICE[2]:CY0F">SLICE[2]:CY0F[2]</a>
+<td id="virtex4-CLB-bit-MAIN[20][57]" title="MAIN[20][57]">
+<a href="#virtex4-CLB-SLICE[2]-CY0F[1]">SLICE[2]:  CY0F bit 1</a>
 </td>
-<td title="R0.F21.B57">
-<a href="#tile-virtex4-CLB-SLICE[2]:CYINIT">SLICE[2]:CYINIT[0]</a>
+<td id="virtex4-CLB-bit-MAIN[21][57]" title="MAIN[21][57]">
+<a href="#virtex4-CLB-SLICE[2]-CYINIT[0]">SLICE[2]:  CYINIT bit 0</a>
 </td>
 </tr>
 
@@ -3398,11 +1595,11 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B56">
-<a href="#tile-virtex4-CLB-SLICE[3]:CYINIT">SLICE[3]:CYINIT[0]</a>
+<td id="virtex4-CLB-bit-MAIN[19][56]" title="MAIN[19][56]">
+<a href="#virtex4-CLB-SLICE[3]-CYINIT[0]">SLICE[3]:  CYINIT bit 0</a>
 </td>
-<td title="R0.F20.B56">
-<a href="#tile-virtex4-CLB-SLICE[2]:CY0F">SLICE[2]:CY0F[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][56]" title="MAIN[20][56]">
+<a href="#virtex4-CLB-SLICE[2]-CY0F[0]">SLICE[2]:  CY0F bit 0</a>
 </td>
 <td>-</td>
 </tr>
@@ -3427,14 +1624,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B55">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[0]</a>
+<td id="virtex4-CLB-bit-MAIN[19][55]" title="MAIN[19][55]">
+<a href="#virtex4-CLB-SLICE[3]-F[0]">SLICE[3]:  F bit 0</a>
 </td>
-<td title="R0.F20.B55">
-<a href="#tile-virtex4-CLB-SLICE[3]:CY0F">SLICE[3]:CY0F[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][55]" title="MAIN[20][55]">
+<a href="#virtex4-CLB-SLICE[3]-CY0F[0]">SLICE[3]:  CY0F bit 0</a>
 </td>
-<td title="R0.F21.B55">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[0]</a>
+<td id="virtex4-CLB-bit-MAIN[21][55]" title="MAIN[21][55]">
+<a href="#virtex4-CLB-SLICE[2]-F[0]">SLICE[2]:  F bit 0</a>
 </td>
 </tr>
 
@@ -3458,14 +1655,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B54">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[1]</a>
+<td id="virtex4-CLB-bit-MAIN[19][54]" title="MAIN[19][54]">
+<a href="#virtex4-CLB-SLICE[3]-F[1]">SLICE[3]:  F bit 1</a>
 </td>
-<td title="R0.F20.B54">
-<a href="#tile-virtex4-CLB-SLICE[2]:FXMUX">SLICE[2]:FXMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][54]" title="MAIN[20][54]">
+<a href="#virtex4-CLB-SLICE[2]-FXMUX[0]">SLICE[2]:  FXMUX bit 0</a>
 </td>
-<td title="R0.F21.B54">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[1]</a>
+<td id="virtex4-CLB-bit-MAIN[21][54]" title="MAIN[21][54]">
+<a href="#virtex4-CLB-SLICE[2]-F[1]">SLICE[2]:  F bit 1</a>
 </td>
 </tr>
 
@@ -3489,14 +1686,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B53">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[2]</a>
+<td id="virtex4-CLB-bit-MAIN[19][53]" title="MAIN[19][53]">
+<a href="#virtex4-CLB-SLICE[3]-F[2]">SLICE[3]:  F bit 2</a>
 </td>
-<td title="R0.F20.B53">
-<a href="#tile-virtex4-CLB-SLICE[3]:FXMUX">SLICE[3]:FXMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][53]" title="MAIN[20][53]">
+<a href="#virtex4-CLB-SLICE[3]-FXMUX[0]">SLICE[3]:  FXMUX bit 0</a>
 </td>
-<td title="R0.F21.B53">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[2]</a>
+<td id="virtex4-CLB-bit-MAIN[21][53]" title="MAIN[21][53]">
+<a href="#virtex4-CLB-SLICE[2]-F[2]">SLICE[2]:  F bit 2</a>
 </td>
 </tr>
 
@@ -3520,12 +1717,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B52">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[3]</a>
+<td id="virtex4-CLB-bit-MAIN[19][52]" title="MAIN[19][52]">
+<a href="#virtex4-CLB-SLICE[3]-F[3]">SLICE[3]:  F bit 3</a>
 </td>
 <td>-</td>
-<td title="R0.F21.B52">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[3]</a>
+<td id="virtex4-CLB-bit-MAIN[21][52]" title="MAIN[21][52]">
+<a href="#virtex4-CLB-SLICE[2]-F[3]">SLICE[2]:  F bit 3</a>
 </td>
 </tr>
 
@@ -3549,12 +1746,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B51">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[4]</a>
+<td id="virtex4-CLB-bit-MAIN[19][51]" title="MAIN[19][51]">
+<a href="#virtex4-CLB-SLICE[3]-F[4]">SLICE[3]:  F bit 4</a>
 </td>
 <td>-</td>
-<td title="R0.F21.B51">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[4]</a>
+<td id="virtex4-CLB-bit-MAIN[21][51]" title="MAIN[21][51]">
+<a href="#virtex4-CLB-SLICE[2]-F[4]">SLICE[2]:  F bit 4</a>
 </td>
 </tr>
 
@@ -3578,14 +1775,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B50">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[5]</a>
+<td id="virtex4-CLB-bit-MAIN[19][50]" title="MAIN[19][50]">
+<a href="#virtex4-CLB-SLICE[3]-F[5]">SLICE[3]:  F bit 5</a>
 </td>
-<td title="R0.F20.B50">
-<a href="#tile-virtex4-CLB-SLICE[2]:FF_LATCH">SLICE[2]:FF_LATCH</a>
+<td id="virtex4-CLB-bit-MAIN[20][50]" title="MAIN[20][50]">
+<a href="#virtex4-CLB-SLICE[2]-FF_LATCH">SLICE[2]:  FF_LATCH</a>
 </td>
-<td title="R0.F21.B50">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[5]</a>
+<td id="virtex4-CLB-bit-MAIN[21][50]" title="MAIN[21][50]">
+<a href="#virtex4-CLB-SLICE[2]-F[5]">SLICE[2]:  F bit 5</a>
 </td>
 </tr>
 
@@ -3609,14 +1806,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B49">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[6]</a>
+<td id="virtex4-CLB-bit-MAIN[19][49]" title="MAIN[19][49]">
+<a href="#virtex4-CLB-SLICE[3]-F[6]">SLICE[3]:  F bit 6</a>
 </td>
-<td title="R0.F20.B49">
-<a href="#tile-virtex4-CLB-SLICE[2]:F_SLICEWE0USED">SLICE[2]:F_SLICEWE0USED</a>
+<td id="virtex4-CLB-bit-MAIN[20][49]" title="MAIN[20][49]">
+<a href="#virtex4-CLB-SLICE[2]-F_SLICEWE0USED">SLICE[2]:  F_SLICEWE0USED</a>
 </td>
-<td title="R0.F21.B49">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[6]</a>
+<td id="virtex4-CLB-bit-MAIN[21][49]" title="MAIN[21][49]">
+<a href="#virtex4-CLB-SLICE[2]-F[6]">SLICE[2]:  F bit 6</a>
 </td>
 </tr>
 
@@ -3640,14 +1837,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B48">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[7]</a>
+<td id="virtex4-CLB-bit-MAIN[19][48]" title="MAIN[19][48]">
+<a href="#virtex4-CLB-SLICE[3]-F[7]">SLICE[3]:  F bit 7</a>
 </td>
-<td title="R0.F20.B48">
-<a href="#tile-virtex4-CLB-SLICE[2]:F_RAM">SLICE[2]:F_RAM</a>
+<td id="virtex4-CLB-bit-MAIN[20][48]" title="MAIN[20][48]">
+<a href="#virtex4-CLB-SLICE[2]-F_RAM_ENABLE">SLICE[2]:  F_RAM_ENABLE</a>
 </td>
-<td title="R0.F21.B48">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[7]</a>
+<td id="virtex4-CLB-bit-MAIN[21][48]" title="MAIN[21][48]">
+<a href="#virtex4-CLB-SLICE[2]-F[7]">SLICE[2]:  F bit 7</a>
 </td>
 </tr>
 
@@ -3670,17 +1867,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B47">
-<a href="#tile-virtex4-CLB-SLICE[3]:DXMUX">SLICE[3]:DXMUX[1]</a>
+<td id="virtex4-CLB-bit-MAIN[18][47]" title="MAIN[18][47]">
+<a href="#virtex4-CLB-SLICE[3]-DXMUX[2]">SLICE[3]:  DXMUX bit 2</a>
 </td>
-<td title="R0.F19.B47">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[8]</a>
+<td id="virtex4-CLB-bit-MAIN[19][47]" title="MAIN[19][47]">
+<a href="#virtex4-CLB-SLICE[3]-F[8]">SLICE[3]:  F bit 8</a>
 </td>
-<td title="R0.F20.B47">
-<a href="#tile-virtex4-CLB-SLICE[2]:F_SLICEWE1USED">SLICE[2]:F_SLICEWE1USED</a>
+<td id="virtex4-CLB-bit-MAIN[20][47]" title="MAIN[20][47]">
+<a href="#virtex4-CLB-SLICE[2]-F_SLICEWE1USED">SLICE[2]:  F_SLICEWE1USED</a>
 </td>
-<td title="R0.F21.B47">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[8]</a>
+<td id="virtex4-CLB-bit-MAIN[21][47]" title="MAIN[21][47]">
+<a href="#virtex4-CLB-SLICE[2]-F[8]">SLICE[2]:  F bit 8</a>
 </td>
 </tr>
 
@@ -3703,17 +1900,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B46">
-<a href="#tile-virtex4-CLB-SLICE[3]:DXMUX">SLICE[3]:DXMUX[4]</a>
+<td id="virtex4-CLB-bit-MAIN[18][46]" title="MAIN[18][46]">
+<a href="#virtex4-CLB-SLICE[3]-DXMUX[1]">SLICE[3]:  DXMUX bit 1</a>
 </td>
-<td title="R0.F19.B46">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[9]</a>
+<td id="virtex4-CLB-bit-MAIN[19][46]" title="MAIN[19][46]">
+<a href="#virtex4-CLB-SLICE[3]-F[9]">SLICE[3]:  F bit 9</a>
 </td>
-<td title="R0.F20.B46">
-<a href="#tile-virtex4-CLB-SLICE[2]:FFX_INIT">~SLICE[2]:FFX_INIT</a>
+<td id="virtex4-CLB-bit-MAIN[20][46]" title="MAIN[20][46]">
+<a href="#virtex4-CLB-SLICE[2]-FFX_INIT[0]">SLICE[2]: ! FFX_INIT bit 0</a>
 </td>
-<td title="R0.F21.B46">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[9]</a>
+<td id="virtex4-CLB-bit-MAIN[21][46]" title="MAIN[21][46]">
+<a href="#virtex4-CLB-SLICE[2]-F[9]">SLICE[2]:  F bit 9</a>
 </td>
 </tr>
 
@@ -3736,17 +1933,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B45">
-<a href="#tile-virtex4-CLB-SLICE[3]:DXMUX">SLICE[3]:DXMUX[2]</a>
+<td id="virtex4-CLB-bit-MAIN[18][45]" title="MAIN[18][45]">
+<a href="#virtex4-CLB-SLICE[3]-DXMUX[4]">SLICE[3]:  DXMUX bit 4</a>
 </td>
-<td title="R0.F19.B45">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[10]</a>
+<td id="virtex4-CLB-bit-MAIN[19][45]" title="MAIN[19][45]">
+<a href="#virtex4-CLB-SLICE[3]-F[10]">SLICE[3]:  F bit 10</a>
 </td>
-<td title="R0.F20.B45">
-<a href="#tile-virtex4-CLB-SLICE[3]:FFX_INIT">~SLICE[3]:FFX_INIT</a>
+<td id="virtex4-CLB-bit-MAIN[20][45]" title="MAIN[20][45]">
+<a href="#virtex4-CLB-SLICE[3]-FFX_INIT[0]">SLICE[3]: ! FFX_INIT bit 0</a>
 </td>
-<td title="R0.F21.B45">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[10]</a>
+<td id="virtex4-CLB-bit-MAIN[21][45]" title="MAIN[21][45]">
+<a href="#virtex4-CLB-SLICE[2]-F[10]">SLICE[2]:  F bit 10</a>
 </td>
 </tr>
 
@@ -3769,17 +1966,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B44">
-<a href="#tile-virtex4-CLB-SLICE[3]:DXMUX">SLICE[3]:DXMUX[3]</a>
+<td id="virtex4-CLB-bit-MAIN[18][44]" title="MAIN[18][44]">
+<a href="#virtex4-CLB-SLICE[3]-DXMUX[3]">SLICE[3]:  DXMUX bit 3</a>
 </td>
-<td title="R0.F19.B44">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[11]</a>
+<td id="virtex4-CLB-bit-MAIN[19][44]" title="MAIN[19][44]">
+<a href="#virtex4-CLB-SLICE[3]-F[11]">SLICE[3]:  F bit 11</a>
 </td>
-<td title="R0.F20.B44">
-<a href="#tile-virtex4-CLB-SLICE[3]:DXMUX">SLICE[3]:DXMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][44]" title="MAIN[20][44]">
+<a href="#virtex4-CLB-SLICE[3]-DXMUX[0]">SLICE[3]:  DXMUX bit 0</a>
 </td>
-<td title="R0.F21.B44">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[11]</a>
+<td id="virtex4-CLB-bit-MAIN[21][44]" title="MAIN[21][44]">
+<a href="#virtex4-CLB-SLICE[2]-F[11]">SLICE[2]:  F bit 11</a>
 </td>
 </tr>
 
@@ -3802,17 +1999,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B43">
-<a href="#tile-virtex4-CLB-SLICE[1]:DYMUX">SLICE[1]:DYMUX[2]</a>
+<td id="virtex4-CLB-bit-MAIN[18][43]" title="MAIN[18][43]">
+<a href="#virtex4-CLB-SLICE[1]-DYMUX[4]">SLICE[1]:  DYMUX bit 4</a>
 </td>
-<td title="R0.F19.B43">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[12]</a>
+<td id="virtex4-CLB-bit-MAIN[19][43]" title="MAIN[19][43]">
+<a href="#virtex4-CLB-SLICE[3]-F[12]">SLICE[3]:  F bit 12</a>
 </td>
-<td title="R0.F20.B43">
-<a href="#tile-virtex4-CLB-SLICE[2]:DXMUX">SLICE[2]:DXMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][43]" title="MAIN[20][43]">
+<a href="#virtex4-CLB-SLICE[2]-DXMUX[0]">SLICE[2]:  DXMUX bit 0</a>
 </td>
-<td title="R0.F21.B43">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[12]</a>
+<td id="virtex4-CLB-bit-MAIN[21][43]" title="MAIN[21][43]">
+<a href="#virtex4-CLB-SLICE[2]-F[12]">SLICE[2]:  F bit 12</a>
 </td>
 </tr>
 
@@ -3835,17 +2032,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B42">
-<a href="#tile-virtex4-CLB-SLICE[1]:DYMUX">SLICE[1]:DYMUX[1]</a>
+<td id="virtex4-CLB-bit-MAIN[18][42]" title="MAIN[18][42]">
+<a href="#virtex4-CLB-SLICE[1]-DYMUX[2]">SLICE[1]:  DYMUX bit 2</a>
 </td>
-<td title="R0.F19.B42">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[13]</a>
+<td id="virtex4-CLB-bit-MAIN[19][42]" title="MAIN[19][42]">
+<a href="#virtex4-CLB-SLICE[3]-F[13]">SLICE[3]:  F bit 13</a>
 </td>
-<td title="R0.F20.B42">
-<a href="#tile-virtex4-CLB-SLICE[2]:FFX_SRVAL">~SLICE[2]:FFX_SRVAL</a>
+<td id="virtex4-CLB-bit-MAIN[20][42]" title="MAIN[20][42]">
+<a href="#virtex4-CLB-SLICE[2]-FFX_SRVAL[0]">SLICE[2]: ! FFX_SRVAL bit 0</a>
 </td>
-<td title="R0.F21.B42">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[13]</a>
+<td id="virtex4-CLB-bit-MAIN[21][42]" title="MAIN[21][42]">
+<a href="#virtex4-CLB-SLICE[2]-F[13]">SLICE[2]:  F bit 13</a>
 </td>
 </tr>
 
@@ -3868,17 +2065,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B41">
-<a href="#tile-virtex4-CLB-SLICE[1]:DYMUX">SLICE[1]:DYMUX[4]</a>
+<td id="virtex4-CLB-bit-MAIN[18][41]" title="MAIN[18][41]">
+<a href="#virtex4-CLB-SLICE[1]-DYMUX[1]">SLICE[1]:  DYMUX bit 1</a>
 </td>
-<td title="R0.F19.B41">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[14]</a>
+<td id="virtex4-CLB-bit-MAIN[19][41]" title="MAIN[19][41]">
+<a href="#virtex4-CLB-SLICE[3]-F[14]">SLICE[3]:  F bit 14</a>
 </td>
-<td title="R0.F20.B41">
-<a href="#tile-virtex4-CLB-SLICE[3]:FFX_SRVAL">~SLICE[3]:FFX_SRVAL</a>
+<td id="virtex4-CLB-bit-MAIN[20][41]" title="MAIN[20][41]">
+<a href="#virtex4-CLB-SLICE[3]-FFX_SRVAL[0]">SLICE[3]: ! FFX_SRVAL bit 0</a>
 </td>
-<td title="R0.F21.B41">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[14]</a>
+<td id="virtex4-CLB-bit-MAIN[21][41]" title="MAIN[21][41]">
+<a href="#virtex4-CLB-SLICE[2]-F[14]">SLICE[2]:  F bit 14</a>
 </td>
 </tr>
 
@@ -3901,17 +2098,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B40">
-<a href="#tile-virtex4-CLB-SLICE[1]:DYMUX">SLICE[1]:DYMUX[3]</a>
+<td id="virtex4-CLB-bit-MAIN[18][40]" title="MAIN[18][40]">
+<a href="#virtex4-CLB-SLICE[1]-DYMUX[3]">SLICE[1]:  DYMUX bit 3</a>
 </td>
-<td title="R0.F19.B40">
-<a href="#tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F[15]</a>
+<td id="virtex4-CLB-bit-MAIN[19][40]" title="MAIN[19][40]">
+<a href="#virtex4-CLB-SLICE[3]-F[15]">SLICE[3]:  F bit 15</a>
 </td>
-<td title="R0.F20.B40">
-<a href="#tile-virtex4-CLB-SLICE[2]:G_RAM">SLICE[2]:G_RAM</a>
+<td id="virtex4-CLB-bit-MAIN[20][40]" title="MAIN[20][40]">
+<a href="#virtex4-CLB-SLICE[2]-G_RAM_ENABLE">SLICE[2]:  G_RAM_ENABLE</a>
 </td>
-<td title="R0.F21.B40">
-<a href="#tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F[15]</a>
+<td id="virtex4-CLB-bit-MAIN[21][40]" title="MAIN[21][40]">
+<a href="#virtex4-CLB-SLICE[2]-F[15]">SLICE[2]:  F bit 15</a>
 </td>
 </tr>
 
@@ -3936,8 +2133,8 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F20.B39">
-<a href="#tile-virtex4-CLB-SLICE[2]:DIF_MUX">SLICE[2]:DIF_MUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][39]" title="MAIN[20][39]">
+<a href="#virtex4-CLB-SLICE[2]-DIF_MUX[0]">SLICE[2]:  DIF_MUX bit 0</a>
 </td>
 <td>-</td>
 </tr>
@@ -3962,14 +2159,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B38">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[0]</a>
+<td id="virtex4-CLB-bit-MAIN[19][38]" title="MAIN[19][38]">
+<a href="#virtex4-CLB-SLICE[1]-G[0]">SLICE[1]:  G bit 0</a>
 </td>
-<td title="R0.F20.B38">
-<a href="#tile-virtex4-CLB-SLICE[0]:FF_SR_ENABLE">~SLICE[0]:FF_SR_ENABLE</a>
+<td id="virtex4-CLB-bit-MAIN[20][38]" title="MAIN[20][38]">
+<a href="#virtex4-CLB-SLICE[0]-FF_SR_ENABLE">SLICE[0]: ! FF_SR_ENABLE</a>
 </td>
-<td title="R0.F21.B38">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[0]</a>
+<td id="virtex4-CLB-bit-MAIN[21][38]" title="MAIN[21][38]">
+<a href="#virtex4-CLB-SLICE[0]-G[0]">SLICE[0]:  G bit 0</a>
 </td>
 </tr>
 
@@ -3993,14 +2190,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B37">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[1]</a>
+<td id="virtex4-CLB-bit-MAIN[19][37]" title="MAIN[19][37]">
+<a href="#virtex4-CLB-SLICE[1]-G[1]">SLICE[1]:  G bit 1</a>
 </td>
-<td title="R0.F20.B37">
-<a href="#tile-virtex4-CLB-SLICE[0]:F_SHIFT">SLICE[0]:F_SHIFT</a>
+<td id="virtex4-CLB-bit-MAIN[20][37]" title="MAIN[20][37]">
+<a href="#virtex4-CLB-SLICE[0]-F_SHIFT_ENABLE">SLICE[0]:  F_SHIFT_ENABLE</a>
 </td>
-<td title="R0.F21.B37">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[1]</a>
+<td id="virtex4-CLB-bit-MAIN[21][37]" title="MAIN[21][37]">
+<a href="#virtex4-CLB-SLICE[0]-G[1]">SLICE[0]:  G bit 1</a>
 </td>
 </tr>
 
@@ -4024,14 +2221,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B36">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[2]</a>
+<td id="virtex4-CLB-bit-MAIN[19][36]" title="MAIN[19][36]">
+<a href="#virtex4-CLB-SLICE[1]-G[2]">SLICE[1]:  G bit 2</a>
 </td>
-<td title="R0.F20.B36">
-<a href="#tile-virtex4-CLB-SLICE[0]:G_SHIFT">SLICE[0]:G_SHIFT</a>
+<td id="virtex4-CLB-bit-MAIN[20][36]" title="MAIN[20][36]">
+<a href="#virtex4-CLB-SLICE[0]-G_SHIFT_ENABLE">SLICE[0]:  G_SHIFT_ENABLE</a>
 </td>
-<td title="R0.F21.B36">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[2]</a>
+<td id="virtex4-CLB-bit-MAIN[21][36]" title="MAIN[21][36]">
+<a href="#virtex4-CLB-SLICE[0]-G[2]">SLICE[0]:  G bit 2</a>
 </td>
 </tr>
 
@@ -4055,14 +2252,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B35">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[3]</a>
+<td id="virtex4-CLB-bit-MAIN[19][35]" title="MAIN[19][35]">
+<a href="#virtex4-CLB-SLICE[1]-G[3]">SLICE[1]:  G bit 3</a>
 </td>
-<td title="R0.F20.B35">
-<a href="#tile-virtex4-CLB-SLICE[0]:DIG_MUX">SLICE[0]:DIG_MUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][35]" title="MAIN[20][35]">
+<a href="#virtex4-CLB-SLICE[0]-DIG_MUX[0]">SLICE[0]:  DIG_MUX bit 0</a>
 </td>
-<td title="R0.F21.B35">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[3]</a>
+<td id="virtex4-CLB-bit-MAIN[21][35]" title="MAIN[21][35]">
+<a href="#virtex4-CLB-SLICE[0]-G[3]">SLICE[0]:  G bit 3</a>
 </td>
 </tr>
 
@@ -4086,14 +2283,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B34">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[4]</a>
+<td id="virtex4-CLB-bit-MAIN[19][34]" title="MAIN[19][34]">
+<a href="#virtex4-CLB-SLICE[1]-G[4]">SLICE[1]:  G bit 4</a>
 </td>
-<td title="R0.F20.B34">
-<a href="#tile-virtex4-CLB-SLICE[0]:FFY_INIT">~SLICE[0]:FFY_INIT</a>
+<td id="virtex4-CLB-bit-MAIN[20][34]" title="MAIN[20][34]">
+<a href="#virtex4-CLB-SLICE[0]-FFY_INIT[0]">SLICE[0]: ! FFY_INIT bit 0</a>
 </td>
-<td title="R0.F21.B34">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[4]</a>
+<td id="virtex4-CLB-bit-MAIN[21][34]" title="MAIN[21][34]">
+<a href="#virtex4-CLB-SLICE[0]-G[4]">SLICE[0]:  G bit 4</a>
 </td>
 </tr>
 
@@ -4117,14 +2314,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B33">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[5]</a>
+<td id="virtex4-CLB-bit-MAIN[19][33]" title="MAIN[19][33]">
+<a href="#virtex4-CLB-SLICE[1]-G[5]">SLICE[1]:  G bit 5</a>
 </td>
-<td title="R0.F20.B33">
-<a href="#tile-virtex4-CLB-SLICE[1]:FFY_INIT">~SLICE[1]:FFY_INIT</a>
+<td id="virtex4-CLB-bit-MAIN[20][33]" title="MAIN[20][33]">
+<a href="#virtex4-CLB-SLICE[1]-FFY_INIT[0]">SLICE[1]: ! FFY_INIT bit 0</a>
 </td>
-<td title="R0.F21.B33">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[5]</a>
+<td id="virtex4-CLB-bit-MAIN[21][33]" title="MAIN[21][33]">
+<a href="#virtex4-CLB-SLICE[0]-G[5]">SLICE[0]:  G bit 5</a>
 </td>
 </tr>
 
@@ -4148,14 +2345,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B32">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[6]</a>
+<td id="virtex4-CLB-bit-MAIN[19][32]" title="MAIN[19][32]">
+<a href="#virtex4-CLB-SLICE[1]-G[6]">SLICE[1]:  G bit 6</a>
 </td>
-<td title="R0.F20.B32">
-<a href="#tile-virtex4-CLB-SLICE[1]:DYMUX">SLICE[1]:DYMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][32]" title="MAIN[20][32]">
+<a href="#virtex4-CLB-SLICE[1]-DYMUX[0]">SLICE[1]:  DYMUX bit 0</a>
 </td>
-<td title="R0.F21.B32">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[6]</a>
+<td id="virtex4-CLB-bit-MAIN[21][32]" title="MAIN[21][32]">
+<a href="#virtex4-CLB-SLICE[0]-G[6]">SLICE[0]:  G bit 6</a>
 </td>
 </tr>
 
@@ -4179,14 +2376,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B31">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[7]</a>
+<td id="virtex4-CLB-bit-MAIN[19][31]" title="MAIN[19][31]">
+<a href="#virtex4-CLB-SLICE[1]-G[7]">SLICE[1]:  G bit 7</a>
 </td>
-<td title="R0.F20.B31">
-<a href="#tile-virtex4-CLB-SLICE[0]:DYMUX">SLICE[0]:DYMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][31]" title="MAIN[20][31]">
+<a href="#virtex4-CLB-SLICE[0]-DYMUX[0]">SLICE[0]:  DYMUX bit 0</a>
 </td>
-<td title="R0.F21.B31">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[7]</a>
+<td id="virtex4-CLB-bit-MAIN[21][31]" title="MAIN[21][31]">
+<a href="#virtex4-CLB-SLICE[0]-G[7]">SLICE[0]:  G bit 7</a>
 </td>
 </tr>
 
@@ -4210,14 +2407,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B30">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[8]</a>
+<td id="virtex4-CLB-bit-MAIN[19][30]" title="MAIN[19][30]">
+<a href="#virtex4-CLB-SLICE[1]-G[8]">SLICE[1]:  G bit 8</a>
 </td>
-<td title="R0.F20.B30">
-<a href="#tile-virtex4-CLB-SLICE[0]:FFY_SRVAL">~SLICE[0]:FFY_SRVAL</a>
+<td id="virtex4-CLB-bit-MAIN[20][30]" title="MAIN[20][30]">
+<a href="#virtex4-CLB-SLICE[0]-FFY_SRVAL[0]">SLICE[0]: ! FFY_SRVAL bit 0</a>
 </td>
-<td title="R0.F21.B30">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[8]</a>
+<td id="virtex4-CLB-bit-MAIN[21][30]" title="MAIN[21][30]">
+<a href="#virtex4-CLB-SLICE[0]-G[8]">SLICE[0]:  G bit 8</a>
 </td>
 </tr>
 
@@ -4241,14 +2438,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B29">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[9]</a>
+<td id="virtex4-CLB-bit-MAIN[19][29]" title="MAIN[19][29]">
+<a href="#virtex4-CLB-SLICE[1]-G[9]">SLICE[1]:  G bit 9</a>
 </td>
-<td title="R0.F20.B29">
-<a href="#tile-virtex4-CLB-SLICE[1]:FFY_SRVAL">~SLICE[1]:FFY_SRVAL</a>
+<td id="virtex4-CLB-bit-MAIN[20][29]" title="MAIN[20][29]">
+<a href="#virtex4-CLB-SLICE[1]-FFY_SRVAL[0]">SLICE[1]: ! FFY_SRVAL bit 0</a>
 </td>
-<td title="R0.F21.B29">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[9]</a>
+<td id="virtex4-CLB-bit-MAIN[21][29]" title="MAIN[21][29]">
+<a href="#virtex4-CLB-SLICE[0]-G[9]">SLICE[0]:  G bit 9</a>
 </td>
 </tr>
 
@@ -4272,14 +2469,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B28">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[10]</a>
+<td id="virtex4-CLB-bit-MAIN[19][28]" title="MAIN[19][28]">
+<a href="#virtex4-CLB-SLICE[1]-G[10]">SLICE[1]:  G bit 10</a>
 </td>
-<td title="R0.F20.B28">
-<a href="#tile-virtex4-CLB-SLICE[1]:FF_REV_ENABLE">SLICE[1]:FF_REV_ENABLE</a>
+<td id="virtex4-CLB-bit-MAIN[20][28]" title="MAIN[20][28]">
+<a href="#virtex4-CLB-SLICE[1]-FF_REV_ENABLE">SLICE[1]:  FF_REV_ENABLE</a>
 </td>
-<td title="R0.F21.B28">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[10]</a>
+<td id="virtex4-CLB-bit-MAIN[21][28]" title="MAIN[21][28]">
+<a href="#virtex4-CLB-SLICE[0]-G[10]">SLICE[0]:  G bit 10</a>
 </td>
 </tr>
 
@@ -4303,14 +2500,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B27">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[11]</a>
+<td id="virtex4-CLB-bit-MAIN[19][27]" title="MAIN[19][27]">
+<a href="#virtex4-CLB-SLICE[1]-G[11]">SLICE[1]:  G bit 11</a>
 </td>
-<td title="R0.F20.B27">
-<a href="#tile-virtex4-CLB-SLICE[0]:FF_REV_ENABLE">SLICE[0]:FF_REV_ENABLE</a>
+<td id="virtex4-CLB-bit-MAIN[20][27]" title="MAIN[20][27]">
+<a href="#virtex4-CLB-SLICE[0]-FF_REV_ENABLE">SLICE[0]:  FF_REV_ENABLE</a>
 </td>
-<td title="R0.F21.B27">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[11]</a>
+<td id="virtex4-CLB-bit-MAIN[21][27]" title="MAIN[21][27]">
+<a href="#virtex4-CLB-SLICE[0]-G[11]">SLICE[0]:  G bit 11</a>
 </td>
 </tr>
 
@@ -4334,14 +2531,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B26">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[12]</a>
+<td id="virtex4-CLB-bit-MAIN[19][26]" title="MAIN[19][26]">
+<a href="#virtex4-CLB-SLICE[1]-G[12]">SLICE[1]:  G bit 12</a>
 </td>
-<td title="R0.F20.B26">
-<a href="#tile-virtex4-CLB-SLICE[0]:FF_SR_SYNC">SLICE[0]:FF_SR_SYNC</a>
+<td id="virtex4-CLB-bit-MAIN[20][26]" title="MAIN[20][26]">
+<a href="#virtex4-CLB-SLICE[0]-FF_SR_SYNC">SLICE[0]:  FF_SR_SYNC</a>
 </td>
-<td title="R0.F21.B26">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[12]</a>
+<td id="virtex4-CLB-bit-MAIN[21][26]" title="MAIN[21][26]">
+<a href="#virtex4-CLB-SLICE[0]-G[12]">SLICE[0]:  G bit 12</a>
 </td>
 </tr>
 
@@ -4365,14 +2562,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B25">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[13]</a>
+<td id="virtex4-CLB-bit-MAIN[19][25]" title="MAIN[19][25]">
+<a href="#virtex4-CLB-SLICE[1]-G[13]">SLICE[1]:  G bit 13</a>
 </td>
-<td title="R0.F20.B25">
-<a href="#tile-virtex4-CLB-SLICE[1]:FF_SR_SYNC">SLICE[1]:FF_SR_SYNC</a>
+<td id="virtex4-CLB-bit-MAIN[20][25]" title="MAIN[20][25]">
+<a href="#virtex4-CLB-SLICE[1]-FF_SR_SYNC">SLICE[1]:  FF_SR_SYNC</a>
 </td>
-<td title="R0.F21.B25">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[13]</a>
+<td id="virtex4-CLB-bit-MAIN[21][25]" title="MAIN[21][25]">
+<a href="#virtex4-CLB-SLICE[0]-G[13]">SLICE[0]:  G bit 13</a>
 </td>
 </tr>
 
@@ -4396,14 +2593,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B24">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[14]</a>
+<td id="virtex4-CLB-bit-MAIN[19][24]" title="MAIN[19][24]">
+<a href="#virtex4-CLB-SLICE[1]-G[14]">SLICE[1]:  G bit 14</a>
 </td>
-<td title="R0.F20.B24">
-<a href="#tile-virtex4-CLB-SLICE[1]:CY0G">SLICE[1]:CY0G[2]</a>
+<td id="virtex4-CLB-bit-MAIN[20][24]" title="MAIN[20][24]">
+<a href="#virtex4-CLB-SLICE[1]-CY0G[1]">SLICE[1]:  CY0G bit 1</a>
 </td>
-<td title="R0.F21.B24">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[14]</a>
+<td id="virtex4-CLB-bit-MAIN[21][24]" title="MAIN[21][24]">
+<a href="#virtex4-CLB-SLICE[0]-G[14]">SLICE[0]:  G bit 14</a>
 </td>
 </tr>
 
@@ -4427,14 +2624,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B23">
-<a href="#tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G[15]</a>
+<td id="virtex4-CLB-bit-MAIN[19][23]" title="MAIN[19][23]">
+<a href="#virtex4-CLB-SLICE[1]-G[15]">SLICE[1]:  G bit 15</a>
 </td>
-<td title="R0.F20.B23">
-<a href="#tile-virtex4-CLB-SLICE[0]:CY0G">SLICE[0]:CY0G[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][23]" title="MAIN[20][23]">
+<a href="#virtex4-CLB-SLICE[0]-CY0G[0]">SLICE[0]:  CY0G bit 0</a>
 </td>
-<td title="R0.F21.B23">
-<a href="#tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G[15]</a>
+<td id="virtex4-CLB-bit-MAIN[21][23]" title="MAIN[21][23]">
+<a href="#virtex4-CLB-SLICE[0]-G[15]">SLICE[0]:  G bit 15</a>
 </td>
 </tr>
 
@@ -4457,14 +2654,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B22">
-<a href="#tile-virtex4-CLB-SLICE[0]:INV.BY">~SLICE[0]:INV.BY</a>
+<td id="virtex4-CLB-bit-MAIN[18][22]" title="MAIN[18][22]">
+<a href="#virtex4-CLB-SLICE[0]-inpinv-BY">SLICE[0]: !invert BY</a>
 </td>
-<td title="R0.F19.B22">
-<a href="#tile-virtex4-CLB-SLICE[1]:CY0G">SLICE[1]:CY0G[0]</a>
+<td id="virtex4-CLB-bit-MAIN[19][22]" title="MAIN[19][22]">
+<a href="#virtex4-CLB-SLICE[1]-CY0G[0]">SLICE[1]:  CY0G bit 0</a>
 </td>
-<td title="R0.F20.B22">
-<a href="#tile-virtex4-CLB-SLICE[1]:FF_LATCH">SLICE[1]:FF_LATCH</a>
+<td id="virtex4-CLB-bit-MAIN[20][22]" title="MAIN[20][22]">
+<a href="#virtex4-CLB-SLICE[1]-FF_LATCH">SLICE[1]:  FF_LATCH</a>
 </td>
 <td>-</td>
 </tr>
@@ -4488,17 +2685,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B21">
-<a href="#tile-virtex4-CLB-SLICE[2]:INV.BY">~SLICE[2]:INV.BY</a>
+<td id="virtex4-CLB-bit-MAIN[18][21]" title="MAIN[18][21]">
+<a href="#virtex4-CLB-SLICE[2]-inpinv-BY">SLICE[2]: !invert BY</a>
 </td>
-<td title="R0.F19.B21">
-<a href="#tile-virtex4-CLB-SLICE[1]:CY0G">SLICE[1]:CY0G[1]</a>
+<td id="virtex4-CLB-bit-MAIN[19][21]" title="MAIN[19][21]">
+<a href="#virtex4-CLB-SLICE[1]-CY0G[2]">SLICE[1]:  CY0G bit 2</a>
 </td>
-<td title="R0.F20.B21">
-<a href="#tile-virtex4-CLB-SLICE[0]:CY0G">SLICE[0]:CY0G[1]</a>
+<td id="virtex4-CLB-bit-MAIN[20][21]" title="MAIN[20][21]">
+<a href="#virtex4-CLB-SLICE[0]-CY0G[2]">SLICE[0]:  CY0G bit 2</a>
 </td>
-<td title="R0.F21.B21">
-<a href="#tile-virtex4-CLB-SLICE[0]:YBMUX">SLICE[0]:YBMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[21][21]" title="MAIN[21][21]">
+<a href="#virtex4-CLB-SLICE[0]-YBMUX[0]">SLICE[0]:  YBMUX bit 0</a>
 </td>
 </tr>
 
@@ -4522,14 +2719,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B20">
-<a href="#tile-virtex4-CLB-SLICE[1]:GYMUX">SLICE[1]:GYMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[19][20]" title="MAIN[19][20]">
+<a href="#virtex4-CLB-SLICE[1]-GYMUX[0]">SLICE[1]:  GYMUX bit 0</a>
 </td>
-<td title="R0.F20.B20">
-<a href="#tile-virtex4-CLB-SLICE[0]:CY0G">SLICE[0]:CY0G[2]</a>
+<td id="virtex4-CLB-bit-MAIN[20][20]" title="MAIN[20][20]">
+<a href="#virtex4-CLB-SLICE[0]-CY0G[1]">SLICE[0]:  CY0G bit 1</a>
 </td>
-<td title="R0.F21.B20">
-<a href="#tile-virtex4-CLB-SLICE[0]:G_SLICEWE0USED">SLICE[0]:G_SLICEWE0USED</a>
+<td id="virtex4-CLB-bit-MAIN[21][20]" title="MAIN[21][20]">
+<a href="#virtex4-CLB-SLICE[0]-G_SLICEWE0USED">SLICE[0]:  G_SLICEWE0USED</a>
 </td>
 </tr>
 
@@ -4552,15 +2749,15 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B19">
-<a href="#tile-virtex4-CLB-SLICE[0]:INV.BX">~SLICE[0]:INV.BX</a>
+<td id="virtex4-CLB-bit-MAIN[18][19]" title="MAIN[18][19]">
+<a href="#virtex4-CLB-SLICE[0]-inpinv-BX">SLICE[0]: !invert BX</a>
 </td>
 <td>-</td>
-<td title="R0.F20.B19">
-<a href="#tile-virtex4-CLB-SLICE[0]:GYMUX">SLICE[0]:GYMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][19]" title="MAIN[20][19]">
+<a href="#virtex4-CLB-SLICE[0]-GYMUX[0]">SLICE[0]:  GYMUX bit 0</a>
 </td>
-<td title="R0.F21.B19">
-<a href="#tile-virtex4-CLB-SLICE[0]:G_SLICEWE1USED">SLICE[0]:G_SLICEWE1USED</a>
+<td id="virtex4-CLB-bit-MAIN[21][19]" title="MAIN[21][19]">
+<a href="#virtex4-CLB-SLICE[0]-G_SLICEWE1USED">SLICE[0]:  G_SLICEWE1USED</a>
 </td>
 </tr>
 
@@ -4583,17 +2780,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B18">
-<a href="#tile-virtex4-CLB-SLICE[2]:INV.BX">~SLICE[2]:INV.BX</a>
+<td id="virtex4-CLB-bit-MAIN[18][18]" title="MAIN[18][18]">
+<a href="#virtex4-CLB-SLICE[2]-inpinv-BX">SLICE[2]: !invert BX</a>
 </td>
-<td title="R0.F19.B18">
-<a href="#tile-virtex4-CLB-SLICE[1]:CY0F">SLICE[1]:CY0F[1]</a>
+<td id="virtex4-CLB-bit-MAIN[19][18]" title="MAIN[19][18]">
+<a href="#virtex4-CLB-SLICE[1]-CY0F[2]">SLICE[1]:  CY0F bit 2</a>
 </td>
-<td title="R0.F20.B18">
-<a href="#tile-virtex4-CLB-SLICE[0]:CY0F">SLICE[0]:CY0F[1]</a>
+<td id="virtex4-CLB-bit-MAIN[20][18]" title="MAIN[20][18]">
+<a href="#virtex4-CLB-SLICE[0]-CY0F[2]">SLICE[0]:  CY0F bit 2</a>
 </td>
-<td title="R0.F21.B18">
-<a href="#tile-virtex4-CLB-SLICE[0]:XBMUX">SLICE[0]:XBMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[21][18]" title="MAIN[21][18]">
+<a href="#virtex4-CLB-SLICE[0]-XBMUX[0]">SLICE[0]:  XBMUX bit 0</a>
 </td>
 </tr>
 
@@ -4617,14 +2814,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B17">
-<a href="#tile-virtex4-CLB-SLICE[1]:CY0F">SLICE[1]:CY0F[2]</a>
+<td id="virtex4-CLB-bit-MAIN[19][17]" title="MAIN[19][17]">
+<a href="#virtex4-CLB-SLICE[1]-CY0F[1]">SLICE[1]:  CY0F bit 1</a>
 </td>
-<td title="R0.F20.B17">
-<a href="#tile-virtex4-CLB-SLICE[0]:CY0F">SLICE[0]:CY0F[2]</a>
+<td id="virtex4-CLB-bit-MAIN[20][17]" title="MAIN[20][17]">
+<a href="#virtex4-CLB-SLICE[0]-CY0F[1]">SLICE[0]:  CY0F bit 1</a>
 </td>
-<td title="R0.F21.B17">
-<a href="#tile-virtex4-CLB-SLICE[0]:CYINIT">SLICE[0]:CYINIT[0]</a>
+<td id="virtex4-CLB-bit-MAIN[21][17]" title="MAIN[21][17]">
+<a href="#virtex4-CLB-SLICE[0]-CYINIT[0]">SLICE[0]:  CYINIT bit 0</a>
 </td>
 </tr>
 
@@ -4648,11 +2845,11 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B16">
-<a href="#tile-virtex4-CLB-SLICE[1]:CYINIT">SLICE[1]:CYINIT[0]</a>
+<td id="virtex4-CLB-bit-MAIN[19][16]" title="MAIN[19][16]">
+<a href="#virtex4-CLB-SLICE[1]-CYINIT[0]">SLICE[1]:  CYINIT bit 0</a>
 </td>
-<td title="R0.F20.B16">
-<a href="#tile-virtex4-CLB-SLICE[0]:CY0F">SLICE[0]:CY0F[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][16]" title="MAIN[20][16]">
+<a href="#virtex4-CLB-SLICE[0]-CY0F[0]">SLICE[0]:  CY0F bit 0</a>
 </td>
 <td>-</td>
 </tr>
@@ -4676,17 +2873,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B15">
-<a href="#tile-virtex4-CLB-SLICE[0]:DYMUX">SLICE[0]:DYMUX[2]</a>
+<td id="virtex4-CLB-bit-MAIN[18][15]" title="MAIN[18][15]">
+<a href="#virtex4-CLB-SLICE[0]-DYMUX[4]">SLICE[0]:  DYMUX bit 4</a>
 </td>
-<td title="R0.F19.B15">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[0]</a>
+<td id="virtex4-CLB-bit-MAIN[19][15]" title="MAIN[19][15]">
+<a href="#virtex4-CLB-SLICE[1]-F[0]">SLICE[1]:  F bit 0</a>
 </td>
-<td title="R0.F20.B15">
-<a href="#tile-virtex4-CLB-SLICE[1]:CY0F">SLICE[1]:CY0F[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][15]" title="MAIN[20][15]">
+<a href="#virtex4-CLB-SLICE[1]-CY0F[0]">SLICE[1]:  CY0F bit 0</a>
 </td>
-<td title="R0.F21.B15">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[0]</a>
+<td id="virtex4-CLB-bit-MAIN[21][15]" title="MAIN[21][15]">
+<a href="#virtex4-CLB-SLICE[0]-F[0]">SLICE[0]:  F bit 0</a>
 </td>
 </tr>
 
@@ -4709,17 +2906,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B14">
-<a href="#tile-virtex4-CLB-SLICE[0]:DYMUX">SLICE[0]:DYMUX[3]</a>
+<td id="virtex4-CLB-bit-MAIN[18][14]" title="MAIN[18][14]">
+<a href="#virtex4-CLB-SLICE[0]-DYMUX[3]">SLICE[0]:  DYMUX bit 3</a>
 </td>
-<td title="R0.F19.B14">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[1]</a>
+<td id="virtex4-CLB-bit-MAIN[19][14]" title="MAIN[19][14]">
+<a href="#virtex4-CLB-SLICE[1]-F[1]">SLICE[1]:  F bit 1</a>
 </td>
-<td title="R0.F20.B14">
-<a href="#tile-virtex4-CLB-SLICE[0]:FXMUX">SLICE[0]:FXMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][14]" title="MAIN[20][14]">
+<a href="#virtex4-CLB-SLICE[0]-FXMUX[0]">SLICE[0]:  FXMUX bit 0</a>
 </td>
-<td title="R0.F21.B14">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[1]</a>
+<td id="virtex4-CLB-bit-MAIN[21][14]" title="MAIN[21][14]">
+<a href="#virtex4-CLB-SLICE[0]-F[1]">SLICE[0]:  F bit 1</a>
 </td>
 </tr>
 
@@ -4742,17 +2939,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B13">
-<a href="#tile-virtex4-CLB-SLICE[1]:DXMUX">SLICE[1]:DXMUX[3]</a>
+<td id="virtex4-CLB-bit-MAIN[18][13]" title="MAIN[18][13]">
+<a href="#virtex4-CLB-SLICE[1]-DXMUX[3]">SLICE[1]:  DXMUX bit 3</a>
 </td>
-<td title="R0.F19.B13">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[2]</a>
+<td id="virtex4-CLB-bit-MAIN[19][13]" title="MAIN[19][13]">
+<a href="#virtex4-CLB-SLICE[1]-F[2]">SLICE[1]:  F bit 2</a>
 </td>
-<td title="R0.F20.B13">
-<a href="#tile-virtex4-CLB-SLICE[1]:FXMUX">SLICE[1]:FXMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][13]" title="MAIN[20][13]">
+<a href="#virtex4-CLB-SLICE[1]-FXMUX[0]">SLICE[1]:  FXMUX bit 0</a>
 </td>
-<td title="R0.F21.B13">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[2]</a>
+<td id="virtex4-CLB-bit-MAIN[21][13]" title="MAIN[21][13]">
+<a href="#virtex4-CLB-SLICE[0]-F[2]">SLICE[0]:  F bit 2</a>
 </td>
 </tr>
 
@@ -4775,15 +2972,15 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B12">
-<a href="#tile-virtex4-CLB-SLICE[1]:DXMUX">SLICE[1]:DXMUX[2]</a>
+<td id="virtex4-CLB-bit-MAIN[18][12]" title="MAIN[18][12]">
+<a href="#virtex4-CLB-SLICE[1]-DXMUX[4]">SLICE[1]:  DXMUX bit 4</a>
 </td>
-<td title="R0.F19.B12">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[3]</a>
+<td id="virtex4-CLB-bit-MAIN[19][12]" title="MAIN[19][12]">
+<a href="#virtex4-CLB-SLICE[1]-F[3]">SLICE[1]:  F bit 3</a>
 </td>
 <td>-</td>
-<td title="R0.F21.B12">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[3]</a>
+<td id="virtex4-CLB-bit-MAIN[21][12]" title="MAIN[21][12]">
+<a href="#virtex4-CLB-SLICE[0]-F[3]">SLICE[0]:  F bit 3</a>
 </td>
 </tr>
 
@@ -4806,17 +3003,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B11">
-<a href="#tile-virtex4-CLB-SLICE[1]:DXMUX">SLICE[1]:DXMUX[1]</a>
+<td id="virtex4-CLB-bit-MAIN[18][11]" title="MAIN[18][11]">
+<a href="#virtex4-CLB-SLICE[1]-DXMUX[2]">SLICE[1]:  DXMUX bit 2</a>
 </td>
-<td title="R0.F19.B11">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[4]</a>
+<td id="virtex4-CLB-bit-MAIN[19][11]" title="MAIN[19][11]">
+<a href="#virtex4-CLB-SLICE[1]-F[4]">SLICE[1]:  F bit 4</a>
 </td>
-<td title="R0.F20.B11">
-<a href="#tile-virtex4-CLB-SLICE[0]:F_SLICEWE1USED">SLICE[0]:F_SLICEWE1USED</a>
+<td id="virtex4-CLB-bit-MAIN[20][11]" title="MAIN[20][11]">
+<a href="#virtex4-CLB-SLICE[0]-F_SLICEWE1USED">SLICE[0]:  F_SLICEWE1USED</a>
 </td>
-<td title="R0.F21.B11">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[4]</a>
+<td id="virtex4-CLB-bit-MAIN[21][11]" title="MAIN[21][11]">
+<a href="#virtex4-CLB-SLICE[0]-F[4]">SLICE[0]:  F bit 4</a>
 </td>
 </tr>
 
@@ -4839,17 +3036,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B10">
-<a href="#tile-virtex4-CLB-SLICE[1]:DXMUX">SLICE[1]:DXMUX[4]</a>
+<td id="virtex4-CLB-bit-MAIN[18][10]" title="MAIN[18][10]">
+<a href="#virtex4-CLB-SLICE[1]-DXMUX[1]">SLICE[1]:  DXMUX bit 1</a>
 </td>
-<td title="R0.F19.B10">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[5]</a>
+<td id="virtex4-CLB-bit-MAIN[19][10]" title="MAIN[19][10]">
+<a href="#virtex4-CLB-SLICE[1]-F[5]">SLICE[1]:  F bit 5</a>
 </td>
-<td title="R0.F20.B10">
-<a href="#tile-virtex4-CLB-SLICE[0]:FF_LATCH">SLICE[0]:FF_LATCH</a>
+<td id="virtex4-CLB-bit-MAIN[20][10]" title="MAIN[20][10]">
+<a href="#virtex4-CLB-SLICE[0]-FF_LATCH">SLICE[0]:  FF_LATCH</a>
 </td>
-<td title="R0.F21.B10">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[5]</a>
+<td id="virtex4-CLB-bit-MAIN[21][10]" title="MAIN[21][10]">
+<a href="#virtex4-CLB-SLICE[0]-F[5]">SLICE[0]:  F bit 5</a>
 </td>
 </tr>
 
@@ -4872,17 +3069,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B9">
-<a href="#tile-virtex4-CLB-SLICE[0]:DXMUX">SLICE[0]:DXMUX[4]</a>
+<td id="virtex4-CLB-bit-MAIN[18][9]" title="MAIN[18][9]">
+<a href="#virtex4-CLB-SLICE[0]-DXMUX[1]">SLICE[0]:  DXMUX bit 1</a>
 </td>
-<td title="R0.F19.B9">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[6]</a>
+<td id="virtex4-CLB-bit-MAIN[19][9]" title="MAIN[19][9]">
+<a href="#virtex4-CLB-SLICE[1]-F[6]">SLICE[1]:  F bit 6</a>
 </td>
-<td title="R0.F20.B9">
-<a href="#tile-virtex4-CLB-SLICE[0]:F_SLICEWE0USED">SLICE[0]:F_SLICEWE0USED</a>
+<td id="virtex4-CLB-bit-MAIN[20][9]" title="MAIN[20][9]">
+<a href="#virtex4-CLB-SLICE[0]-F_SLICEWE0USED">SLICE[0]:  F_SLICEWE0USED</a>
 </td>
-<td title="R0.F21.B9">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[6]</a>
+<td id="virtex4-CLB-bit-MAIN[21][9]" title="MAIN[21][9]">
+<a href="#virtex4-CLB-SLICE[0]-F[6]">SLICE[0]:  F bit 6</a>
 </td>
 </tr>
 
@@ -4905,17 +3102,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B8">
-<a href="#tile-virtex4-CLB-SLICE[0]:DYMUX">SLICE[0]:DYMUX[4]</a>
+<td id="virtex4-CLB-bit-MAIN[18][8]" title="MAIN[18][8]">
+<a href="#virtex4-CLB-SLICE[0]-DYMUX[1]">SLICE[0]:  DYMUX bit 1</a>
 </td>
-<td title="R0.F19.B8">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[7]</a>
+<td id="virtex4-CLB-bit-MAIN[19][8]" title="MAIN[19][8]">
+<a href="#virtex4-CLB-SLICE[1]-F[7]">SLICE[1]:  F bit 7</a>
 </td>
-<td title="R0.F20.B8">
-<a href="#tile-virtex4-CLB-SLICE[0]:F_RAM">SLICE[0]:F_RAM</a>
+<td id="virtex4-CLB-bit-MAIN[20][8]" title="MAIN[20][8]">
+<a href="#virtex4-CLB-SLICE[0]-F_RAM_ENABLE">SLICE[0]:  F_RAM_ENABLE</a>
 </td>
-<td title="R0.F21.B8">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[7]</a>
+<td id="virtex4-CLB-bit-MAIN[21][8]" title="MAIN[21][8]">
+<a href="#virtex4-CLB-SLICE[0]-F[7]">SLICE[0]:  F bit 7</a>
 </td>
 </tr>
 
@@ -4938,17 +3135,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B7">
-<a href="#tile-virtex4-CLB-SLICE[0]:DXMUX">SLICE[0]:DXMUX[3]</a>
+<td id="virtex4-CLB-bit-MAIN[18][7]" title="MAIN[18][7]">
+<a href="#virtex4-CLB-SLICE[0]-DXMUX[3]">SLICE[0]:  DXMUX bit 3</a>
 </td>
-<td title="R0.F19.B7">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[8]</a>
+<td id="virtex4-CLB-bit-MAIN[19][7]" title="MAIN[19][7]">
+<a href="#virtex4-CLB-SLICE[1]-F[8]">SLICE[1]:  F bit 8</a>
 </td>
-<td title="R0.F20.B7">
-<a href="#tile-virtex4-CLB-SLICE[0]:G_RAM">SLICE[0]:G_RAM</a>
+<td id="virtex4-CLB-bit-MAIN[20][7]" title="MAIN[20][7]">
+<a href="#virtex4-CLB-SLICE[0]-G_RAM_ENABLE">SLICE[0]:  G_RAM_ENABLE</a>
 </td>
-<td title="R0.F21.B7">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[8]</a>
+<td id="virtex4-CLB-bit-MAIN[21][7]" title="MAIN[21][7]">
+<a href="#virtex4-CLB-SLICE[0]-F[8]">SLICE[0]:  F bit 8</a>
 </td>
 </tr>
 
@@ -4972,14 +3169,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B6">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[9]</a>
+<td id="virtex4-CLB-bit-MAIN[19][6]" title="MAIN[19][6]">
+<a href="#virtex4-CLB-SLICE[1]-F[9]">SLICE[1]:  F bit 9</a>
 </td>
-<td title="R0.F20.B6">
-<a href="#tile-virtex4-CLB-SLICE[0]:FFX_INIT">~SLICE[0]:FFX_INIT</a>
+<td id="virtex4-CLB-bit-MAIN[20][6]" title="MAIN[20][6]">
+<a href="#virtex4-CLB-SLICE[0]-FFX_INIT[0]">SLICE[0]: ! FFX_INIT bit 0</a>
 </td>
-<td title="R0.F21.B6">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[9]</a>
+<td id="virtex4-CLB-bit-MAIN[21][6]" title="MAIN[21][6]">
+<a href="#virtex4-CLB-SLICE[0]-F[9]">SLICE[0]:  F bit 9</a>
 </td>
 </tr>
 
@@ -5002,17 +3199,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B5">
-<a href="#tile-virtex4-CLB-SLICE[0]:DYMUX">SLICE[0]:DYMUX[1]</a>
+<td id="virtex4-CLB-bit-MAIN[18][5]" title="MAIN[18][5]">
+<a href="#virtex4-CLB-SLICE[0]-DYMUX[2]">SLICE[0]:  DYMUX bit 2</a>
 </td>
-<td title="R0.F19.B5">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[10]</a>
+<td id="virtex4-CLB-bit-MAIN[19][5]" title="MAIN[19][5]">
+<a href="#virtex4-CLB-SLICE[1]-F[10]">SLICE[1]:  F bit 10</a>
 </td>
-<td title="R0.F20.B5">
-<a href="#tile-virtex4-CLB-SLICE[1]:FFX_INIT">~SLICE[1]:FFX_INIT</a>
+<td id="virtex4-CLB-bit-MAIN[20][5]" title="MAIN[20][5]">
+<a href="#virtex4-CLB-SLICE[1]-FFX_INIT[0]">SLICE[1]: ! FFX_INIT bit 0</a>
 </td>
-<td title="R0.F21.B5">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[10]</a>
+<td id="virtex4-CLB-bit-MAIN[21][5]" title="MAIN[21][5]">
+<a href="#virtex4-CLB-SLICE[0]-F[10]">SLICE[0]:  F bit 10</a>
 </td>
 </tr>
 
@@ -5036,14 +3233,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B4">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[11]</a>
+<td id="virtex4-CLB-bit-MAIN[19][4]" title="MAIN[19][4]">
+<a href="#virtex4-CLB-SLICE[1]-F[11]">SLICE[1]:  F bit 11</a>
 </td>
-<td title="R0.F20.B4">
-<a href="#tile-virtex4-CLB-SLICE[1]:DXMUX">SLICE[1]:DXMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][4]" title="MAIN[20][4]">
+<a href="#virtex4-CLB-SLICE[1]-DXMUX[0]">SLICE[1]:  DXMUX bit 0</a>
 </td>
-<td title="R0.F21.B4">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[11]</a>
+<td id="virtex4-CLB-bit-MAIN[21][4]" title="MAIN[21][4]">
+<a href="#virtex4-CLB-SLICE[0]-F[11]">SLICE[0]:  F bit 11</a>
 </td>
 </tr>
 
@@ -5067,14 +3264,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B3">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[12]</a>
+<td id="virtex4-CLB-bit-MAIN[19][3]" title="MAIN[19][3]">
+<a href="#virtex4-CLB-SLICE[1]-F[12]">SLICE[1]:  F bit 12</a>
 </td>
-<td title="R0.F20.B3">
-<a href="#tile-virtex4-CLB-SLICE[0]:DXMUX">SLICE[0]:DXMUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][3]" title="MAIN[20][3]">
+<a href="#virtex4-CLB-SLICE[0]-DXMUX[0]">SLICE[0]:  DXMUX bit 0</a>
 </td>
-<td title="R0.F21.B3">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[12]</a>
+<td id="virtex4-CLB-bit-MAIN[21][3]" title="MAIN[21][3]">
+<a href="#virtex4-CLB-SLICE[0]-F[12]">SLICE[0]:  F bit 12</a>
 </td>
 </tr>
 
@@ -5097,17 +3294,17 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B2">
-<a href="#tile-virtex4-CLB-SLICE[0]:DXMUX">SLICE[0]:DXMUX[2]</a>
+<td id="virtex4-CLB-bit-MAIN[18][2]" title="MAIN[18][2]">
+<a href="#virtex4-CLB-SLICE[0]-DXMUX[4]">SLICE[0]:  DXMUX bit 4</a>
 </td>
-<td title="R0.F19.B2">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[13]</a>
+<td id="virtex4-CLB-bit-MAIN[19][2]" title="MAIN[19][2]">
+<a href="#virtex4-CLB-SLICE[1]-F[13]">SLICE[1]:  F bit 13</a>
 </td>
-<td title="R0.F20.B2">
-<a href="#tile-virtex4-CLB-SLICE[0]:DIF_MUX">SLICE[0]:DIF_MUX[0]</a>
+<td id="virtex4-CLB-bit-MAIN[20][2]" title="MAIN[20][2]">
+<a href="#virtex4-CLB-SLICE[0]-DIF_MUX[0]">SLICE[0]:  DIF_MUX bit 0</a>
 </td>
-<td title="R0.F21.B2">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[13]</a>
+<td id="virtex4-CLB-bit-MAIN[21][2]" title="MAIN[21][2]">
+<a href="#virtex4-CLB-SLICE[0]-F[13]">SLICE[0]:  F bit 13</a>
 </td>
 </tr>
 
@@ -5131,14 +3328,14 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F19.B1">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[14]</a>
+<td id="virtex4-CLB-bit-MAIN[19][1]" title="MAIN[19][1]">
+<a href="#virtex4-CLB-SLICE[1]-F[14]">SLICE[1]:  F bit 14</a>
 </td>
-<td title="R0.F20.B1">
-<a href="#tile-virtex4-CLB-SLICE[1]:FFX_SRVAL">~SLICE[1]:FFX_SRVAL</a>
+<td id="virtex4-CLB-bit-MAIN[20][1]" title="MAIN[20][1]">
+<a href="#virtex4-CLB-SLICE[1]-FFX_SRVAL[0]">SLICE[1]: ! FFX_SRVAL bit 0</a>
 </td>
-<td title="R0.F21.B1">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[14]</a>
+<td id="virtex4-CLB-bit-MAIN[21][1]" title="MAIN[21][1]">
+<a href="#virtex4-CLB-SLICE[0]-F[14]">SLICE[0]:  F bit 14</a>
 </td>
 </tr>
 
@@ -5161,973 +3358,18 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F18.B0">
-<a href="#tile-virtex4-CLB-SLICE[0]:DXMUX">SLICE[0]:DXMUX[1]</a>
+<td id="virtex4-CLB-bit-MAIN[18][0]" title="MAIN[18][0]">
+<a href="#virtex4-CLB-SLICE[0]-DXMUX[2]">SLICE[0]:  DXMUX bit 2</a>
 </td>
-<td title="R0.F19.B0">
-<a href="#tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F[15]</a>
+<td id="virtex4-CLB-bit-MAIN[19][0]" title="MAIN[19][0]">
+<a href="#virtex4-CLB-SLICE[1]-F[15]">SLICE[1]:  F bit 15</a>
 </td>
-<td title="R0.F20.B0">
-<a href="#tile-virtex4-CLB-SLICE[0]:FFX_SRVAL">~SLICE[0]:FFX_SRVAL</a>
+<td id="virtex4-CLB-bit-MAIN[20][0]" title="MAIN[20][0]">
+<a href="#virtex4-CLB-SLICE[0]-FFX_SRVAL[0]">SLICE[0]: ! FFX_SRVAL bit 0</a>
 </td>
-<td title="R0.F21.B0">
-<a href="#tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F[15]</a>
+<td id="virtex4-CLB-bit-MAIN[21][0]" title="MAIN[21][0]">
+<a href="#virtex4-CLB-SLICE[0]-F[15]">SLICE[0]:  F bit 15</a>
 </td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:CY0F">SLICE[0]:CY0F</th>
-<th>0.F20.B17</th>
-<th>0.F20.B18</th>
-<th>0.F20.B16</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:CY0F">SLICE[1]:CY0F</th>
-<th>0.F19.B17</th>
-<th>0.F19.B18</th>
-<th>0.F20.B15</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:CY0F">SLICE[2]:CY0F</th>
-<th>0.F20.B57</th>
-<th>0.F20.B58</th>
-<th>0.F20.B56</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:CY0F">SLICE[3]:CY0F</th>
-<th>0.F19.B57</th>
-<th>0.F19.B58</th>
-<th>0.F20.B55</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PROD</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>F2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>F3</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>BX</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:CY0G">SLICE[0]:CY0G</th>
-<th>0.F20.B20</th>
-<th>0.F20.B21</th>
-<th>0.F20.B23</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:CY0G">SLICE[1]:CY0G</th>
-<th>0.F20.B24</th>
-<th>0.F19.B21</th>
-<th>0.F19.B22</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:CY0G">SLICE[2]:CY0G</th>
-<th>0.F20.B60</th>
-<th>0.F20.B61</th>
-<th>0.F20.B63</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:CY0G">SLICE[3]:CY0G</th>
-<th>0.F20.B64</th>
-<th>0.F19.B61</th>
-<th>0.F19.B62</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PROD</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>G2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>G3</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>BY</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:CYINIT">SLICE[0]:CYINIT</th>
-<th>0.F21.B17</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:CYINIT">SLICE[1]:CYINIT</th>
-<th>0.F19.B16</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:CYINIT">SLICE[2]:CYINIT</th>
-<th>0.F21.B57</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:CYINIT">SLICE[3]:CYINIT</th>
-<th>0.F19.B56</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>BX</td>
-<td>0</td>
-</tr>
-
-<tr><td>CIN</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:DIF_MUX">SLICE[0]:DIF_MUX</th>
-<th>0.F20.B2</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:DIF_MUX">SLICE[2]:DIF_MUX</th>
-<th>0.F20.B39</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>ALT</td>
-<td>0</td>
-</tr>
-
-<tr><td>BX</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:DIG_MUX">SLICE[0]:DIG_MUX</th>
-<th>0.F20.B35</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:DIG_MUX">SLICE[2]:DIG_MUX</th>
-<th>0.F20.B76</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>ALT</td>
-<td>0</td>
-</tr>
-
-<tr><td>BY</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:DXMUX">SLICE[0]:DXMUX</th>
-<th>0.F18.B9</th>
-<th>0.F18.B7</th>
-<th>0.F18.B2</th>
-<th>0.F18.B0</th>
-<th>0.F20.B3</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:DXMUX">SLICE[1]:DXMUX</th>
-<th>0.F18.B10</th>
-<th>0.F18.B13</th>
-<th>0.F18.B12</th>
-<th>0.F18.B11</th>
-<th>0.F20.B4</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:DXMUX">SLICE[2]:DXMUX</th>
-<th>0.F18.B72</th>
-<th>0.F18.B71</th>
-<th>0.F18.B70</th>
-<th>0.F18.B68</th>
-<th>0.F20.B43</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:DXMUX">SLICE[3]:DXMUX</th>
-<th>0.F18.B46</th>
-<th>0.F18.B44</th>
-<th>0.F18.B45</th>
-<th>0.F18.B47</th>
-<th>0.F20.B44</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>X</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>F5</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>XB</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>FXOR</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>BX</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:DYMUX">SLICE[0]:DYMUX</th>
-<th>0.F18.B8</th>
-<th>0.F18.B14</th>
-<th>0.F18.B15</th>
-<th>0.F18.B5</th>
-<th>0.F20.B31</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:DYMUX">SLICE[1]:DYMUX</th>
-<th>0.F18.B41</th>
-<th>0.F18.B40</th>
-<th>0.F18.B43</th>
-<th>0.F18.B42</th>
-<th>0.F20.B32</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:DYMUX">SLICE[2]:DYMUX</th>
-<th>0.F18.B77</th>
-<th>0.F18.B67</th>
-<th>0.F18.B69</th>
-<th>0.F18.B74</th>
-<th>0.F20.B71</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:DYMUX">SLICE[3]:DYMUX</th>
-<th>0.F18.B66</th>
-<th>0.F18.B79</th>
-<th>0.F18.B65</th>
-<th>0.F18.B64</th>
-<th>0.F20.B72</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>Y</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>FX</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>YB</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GXOR</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>BY</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:F">SLICE[0]:F</th>
-<th>0.F21.B0</th>
-<th>0.F21.B1</th>
-<th>0.F21.B2</th>
-<th>0.F21.B3</th>
-<th>0.F21.B4</th>
-<th>0.F21.B5</th>
-<th>0.F21.B6</th>
-<th>0.F21.B7</th>
-<th>0.F21.B8</th>
-<th>0.F21.B9</th>
-<th>0.F21.B10</th>
-<th>0.F21.B11</th>
-<th>0.F21.B12</th>
-<th>0.F21.B13</th>
-<th>0.F21.B14</th>
-<th>0.F21.B15</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:G">SLICE[0]:G</th>
-<th>0.F21.B23</th>
-<th>0.F21.B24</th>
-<th>0.F21.B25</th>
-<th>0.F21.B26</th>
-<th>0.F21.B27</th>
-<th>0.F21.B28</th>
-<th>0.F21.B29</th>
-<th>0.F21.B30</th>
-<th>0.F21.B31</th>
-<th>0.F21.B32</th>
-<th>0.F21.B33</th>
-<th>0.F21.B34</th>
-<th>0.F21.B35</th>
-<th>0.F21.B36</th>
-<th>0.F21.B37</th>
-<th>0.F21.B38</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:F">SLICE[1]:F</th>
-<th>0.F19.B0</th>
-<th>0.F19.B1</th>
-<th>0.F19.B2</th>
-<th>0.F19.B3</th>
-<th>0.F19.B4</th>
-<th>0.F19.B5</th>
-<th>0.F19.B6</th>
-<th>0.F19.B7</th>
-<th>0.F19.B8</th>
-<th>0.F19.B9</th>
-<th>0.F19.B10</th>
-<th>0.F19.B11</th>
-<th>0.F19.B12</th>
-<th>0.F19.B13</th>
-<th>0.F19.B14</th>
-<th>0.F19.B15</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:G">SLICE[1]:G</th>
-<th>0.F19.B23</th>
-<th>0.F19.B24</th>
-<th>0.F19.B25</th>
-<th>0.F19.B26</th>
-<th>0.F19.B27</th>
-<th>0.F19.B28</th>
-<th>0.F19.B29</th>
-<th>0.F19.B30</th>
-<th>0.F19.B31</th>
-<th>0.F19.B32</th>
-<th>0.F19.B33</th>
-<th>0.F19.B34</th>
-<th>0.F19.B35</th>
-<th>0.F19.B36</th>
-<th>0.F19.B37</th>
-<th>0.F19.B38</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:F">SLICE[2]:F</th>
-<th>0.F21.B40</th>
-<th>0.F21.B41</th>
-<th>0.F21.B42</th>
-<th>0.F21.B43</th>
-<th>0.F21.B44</th>
-<th>0.F21.B45</th>
-<th>0.F21.B46</th>
-<th>0.F21.B47</th>
-<th>0.F21.B48</th>
-<th>0.F21.B49</th>
-<th>0.F21.B50</th>
-<th>0.F21.B51</th>
-<th>0.F21.B52</th>
-<th>0.F21.B53</th>
-<th>0.F21.B54</th>
-<th>0.F21.B55</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:G">SLICE[2]:G</th>
-<th>0.F21.B63</th>
-<th>0.F21.B64</th>
-<th>0.F21.B65</th>
-<th>0.F21.B66</th>
-<th>0.F21.B67</th>
-<th>0.F21.B68</th>
-<th>0.F21.B69</th>
-<th>0.F21.B70</th>
-<th>0.F21.B71</th>
-<th>0.F21.B72</th>
-<th>0.F21.B73</th>
-<th>0.F21.B74</th>
-<th>0.F21.B75</th>
-<th>0.F21.B76</th>
-<th>0.F21.B77</th>
-<th>0.F21.B78</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:F">SLICE[3]:F</th>
-<th>0.F19.B40</th>
-<th>0.F19.B41</th>
-<th>0.F19.B42</th>
-<th>0.F19.B43</th>
-<th>0.F19.B44</th>
-<th>0.F19.B45</th>
-<th>0.F19.B46</th>
-<th>0.F19.B47</th>
-<th>0.F19.B48</th>
-<th>0.F19.B49</th>
-<th>0.F19.B50</th>
-<th>0.F19.B51</th>
-<th>0.F19.B52</th>
-<th>0.F19.B53</th>
-<th>0.F19.B54</th>
-<th>0.F19.B55</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:G">SLICE[3]:G</th>
-<th>0.F19.B63</th>
-<th>0.F19.B64</th>
-<th>0.F19.B65</th>
-<th>0.F19.B66</th>
-<th>0.F19.B67</th>
-<th>0.F19.B68</th>
-<th>0.F19.B69</th>
-<th>0.F19.B70</th>
-<th>0.F19.B71</th>
-<th>0.F19.B72</th>
-<th>0.F19.B73</th>
-<th>0.F19.B74</th>
-<th>0.F19.B75</th>
-<th>0.F19.B76</th>
-<th>0.F19.B77</th>
-<th>0.F19.B78</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[15]</td>
-<td>[14]</td>
-<td>[13]</td>
-<td>[12]</td>
-<td>[11]</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:FFX_INIT">SLICE[0]:FFX_INIT</th>
-<th>0.F20.B6</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:FFX_SRVAL">SLICE[0]:FFX_SRVAL</th>
-<th>0.F20.B0</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:FFY_INIT">SLICE[0]:FFY_INIT</th>
-<th>0.F20.B34</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:FFY_SRVAL">SLICE[0]:FFY_SRVAL</th>
-<th>0.F20.B30</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:FF_SR_ENABLE">SLICE[0]:FF_SR_ENABLE</th>
-<th>0.F20.B38</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:INV.BX">SLICE[0]:INV.BX</th>
-<th>0.F18.B19</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:INV.BY">SLICE[0]:INV.BY</th>
-<th>0.F18.B22</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:FFX_INIT">SLICE[1]:FFX_INIT</th>
-<th>0.F20.B5</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:FFX_SRVAL">SLICE[1]:FFX_SRVAL</th>
-<th>0.F20.B1</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:FFY_INIT">SLICE[1]:FFY_INIT</th>
-<th>0.F20.B33</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:FFY_SRVAL">SLICE[1]:FFY_SRVAL</th>
-<th>0.F20.B29</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:INV.BX">SLICE[1]:INV.BX</th>
-<th>0.F18.B61</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:INV.BY">SLICE[1]:INV.BY</th>
-<th>0.F18.B58</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:FFX_INIT">SLICE[2]:FFX_INIT</th>
-<th>0.F20.B46</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:FFX_SRVAL">SLICE[2]:FFX_SRVAL</th>
-<th>0.F20.B42</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:FFY_INIT">SLICE[2]:FFY_INIT</th>
-<th>0.F20.B74</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:FFY_SRVAL">SLICE[2]:FFY_SRVAL</th>
-<th>0.F20.B70</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:FF_SR_ENABLE">SLICE[2]:FF_SR_ENABLE</th>
-<th>0.F20.B79</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:INV.BX">SLICE[2]:INV.BX</th>
-<th>0.F18.B18</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:INV.BY">SLICE[2]:INV.BY</th>
-<th>0.F18.B21</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:FFX_INIT">SLICE[3]:FFX_INIT</th>
-<th>0.F20.B45</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:FFX_SRVAL">SLICE[3]:FFX_SRVAL</th>
-<th>0.F20.B41</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:FFY_INIT">SLICE[3]:FFY_INIT</th>
-<th>0.F20.B73</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:FFY_SRVAL">SLICE[3]:FFY_SRVAL</th>
-<th>0.F20.B69</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:INV.BX">SLICE[3]:INV.BX</th>
-<th>0.F18.B60</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:INV.BY">SLICE[3]:INV.BY</th>
-<th>0.F18.B57</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:FF_LATCH">SLICE[0]:FF_LATCH</th>
-<th>0.F20.B10</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:FF_REV_ENABLE">SLICE[0]:FF_REV_ENABLE</th>
-<th>0.F20.B27</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:FF_SR_SYNC">SLICE[0]:FF_SR_SYNC</th>
-<th>0.F20.B26</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:F_RAM">SLICE[0]:F_RAM</th>
-<th>0.F20.B8</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:F_SHIFT">SLICE[0]:F_SHIFT</th>
-<th>0.F20.B37</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:F_SLICEWE0USED">SLICE[0]:F_SLICEWE0USED</th>
-<th>0.F20.B9</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:F_SLICEWE1USED">SLICE[0]:F_SLICEWE1USED</th>
-<th>0.F20.B11</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:G_RAM">SLICE[0]:G_RAM</th>
-<th>0.F20.B7</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:G_SHIFT">SLICE[0]:G_SHIFT</th>
-<th>0.F20.B36</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:G_SLICEWE0USED">SLICE[0]:G_SLICEWE0USED</th>
-<th>0.F21.B20</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[0]:G_SLICEWE1USED">SLICE[0]:G_SLICEWE1USED</th>
-<th>0.F21.B19</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:FF_LATCH">SLICE[1]:FF_LATCH</th>
-<th>0.F20.B22</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:FF_REV_ENABLE">SLICE[1]:FF_REV_ENABLE</th>
-<th>0.F20.B28</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:FF_SR_SYNC">SLICE[1]:FF_SR_SYNC</th>
-<th>0.F20.B25</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:FF_LATCH">SLICE[2]:FF_LATCH</th>
-<th>0.F20.B50</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:FF_REV_ENABLE">SLICE[2]:FF_REV_ENABLE</th>
-<th>0.F20.B67</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:FF_SR_SYNC">SLICE[2]:FF_SR_SYNC</th>
-<th>0.F20.B66</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:F_RAM">SLICE[2]:F_RAM</th>
-<th>0.F20.B48</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:F_SHIFT">SLICE[2]:F_SHIFT</th>
-<th>0.F20.B78</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:F_SLICEWE0USED">SLICE[2]:F_SLICEWE0USED</th>
-<th>0.F20.B49</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:F_SLICEWE1USED">SLICE[2]:F_SLICEWE1USED</th>
-<th>0.F20.B47</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:G_RAM">SLICE[2]:G_RAM</th>
-<th>0.F20.B40</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:G_SHIFT">SLICE[2]:G_SHIFT</th>
-<th>0.F20.B77</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:G_SLICEWE0USED">SLICE[2]:G_SLICEWE0USED</th>
-<th>0.F21.B60</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:G_SLICEWE1USED">SLICE[2]:G_SLICEWE1USED</th>
-<th>0.F21.B59</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:FF_LATCH">SLICE[3]:FF_LATCH</th>
-<th>0.F20.B62</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:FF_REV_ENABLE">SLICE[3]:FF_REV_ENABLE</th>
-<th>0.F20.B68</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:FF_SR_SYNC">SLICE[3]:FF_SR_SYNC</th>
-<th>0.F20.B65</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:FXMUX">SLICE[0]:FXMUX</th>
-<th>0.F20.B14</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:FXMUX">SLICE[1]:FXMUX</th>
-<th>0.F20.B13</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:FXMUX">SLICE[2]:FXMUX</th>
-<th>0.F20.B54</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:FXMUX">SLICE[3]:FXMUX</th>
-<th>0.F20.B53</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>F5</td>
-<td>0</td>
-</tr>
-
-<tr><td>FXOR</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:GYMUX">SLICE[0]:GYMUX</th>
-<th>0.F20.B19</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[1]:GYMUX">SLICE[1]:GYMUX</th>
-<th>0.F19.B20</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:GYMUX">SLICE[2]:GYMUX</th>
-<th>0.F20.B59</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[3]:GYMUX">SLICE[3]:GYMUX</th>
-<th>0.F19.B60</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>FX</td>
-<td>0</td>
-</tr>
-
-<tr><td>GXOR</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:XBMUX">SLICE[0]:XBMUX</th>
-<th>0.F21.B18</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:XBMUX">SLICE[2]:XBMUX</th>
-<th>0.F21.B58</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>FCY</td>
-<td>0</td>
-</tr>
-
-<tr><td>FMC15</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex4-CLB-SLICE[0]:YBMUX">SLICE[0]:YBMUX</th>
-<th>0.F21.B21</th>
-</tr>
-
-<tr><th id="tile-virtex4-CLB-SLICE[2]:YBMUX">SLICE[2]:YBMUX</th>
-<th>0.F21.B61</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>GCY</td>
-<td>0</td>
-</tr>
-
-<tr><td>GMC15</td>
-<td>1</td>
 </tr>
 
 </tbody>

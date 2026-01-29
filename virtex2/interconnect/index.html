@@ -551,7 +551,7 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>INTF</td><td>INTF_GT_S0, INTF_GT_S123, INTF_GT_S_CLKPAD, INTF_GT_N0, INTF_GT_N123, INTF_GT_N_CLKPAD, INTF_PPC</td><td>INTF_TESTMUX</td></tr>
 
-<tr><td>BEL</td><td>CLB, IOI, IOI_CLK_S, IOI_CLK_N, BRAM, DCM_V2, DCM_V2P, GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N, PPC_W, PPC_E, CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td><td>SLICE[0], SLICE[1], SLICE[2], SLICE[3], TBUF[0], TBUF[1], TBUS, IOI[0], IOI[1], IOI[2], IOI[3], IBUF[0], IBUF[1], IBUF[2], IBUF[3], OBUF[0], OBUF[1], OBUF[2], OBUF[3], BRAM, MULT, DSP, DSP_TESTMUX, DCM, GT, GT10, PPC405, DCI[0], DCI[1], DCIRESET[0], DCIRESET[1], STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, DCMCONN_S3E, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
+<tr><td>BEL</td><td>CLB, IOI, IOI_CLK_S, IOI_CLK_N, BRAM, DCM_V2, DCM_V2P, GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N, PPC_W, PPC_E, CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td><td>SLICE[0], SLICE[1], SLICE[2], SLICE[3], TBUF[0], TBUF[1], TBUS, IOI[0], IOI[1], IOI[2], IOI[3], IBUF[0], IBUF[1], IBUF[2], IBUF[3], OBUF[0], OBUF[1], OBUF[2], OBUF[3], BRAM, MULT, MULT_INT, DSP, DSP_TESTMUX, DCM, GT, GT10, PPC405, DCI[0], DCI[1], DCIRESET[0], DCIRESET[1], STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, DCMCONN_S3E, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
 
 <tr><td>TERM_H</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E, LLH</td></tr>
 
@@ -567,7 +567,7 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>PCI_CE</td><td></td><td>PCI_CE_W, PCI_CE_E, PCI_CE_S, PCI_CE_N, PCI_CE_CNR</td></tr>
 
-<tr><td>RANDOR</td><td></td><td>RANDOR</td></tr>
+<tr><td>RANDOR</td><td></td><td>RANDOR, RANDOR_INIT</td></tr>
 
 </tbody>
 
@@ -598,19 +598,19 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>INTF_TESTMUX</td><td>routing</td><td>INTF</td><td>INTF_GT_S0, INTF_GT_S123, INTF_GT_S_CLKPAD, INTF_GT_N0, INTF_GT_N123, INTF_GT_N_CLKPAD, INTF_PPC</td></tr>
 
-<tr><td>SLICE[0]</td><td>legacy</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>SLICE[0]</td><td>SLICE</td><td>BEL</td><td>CLB</td></tr>
 
-<tr><td>SLICE[1]</td><td>legacy</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>SLICE[1]</td><td>SLICE</td><td>BEL</td><td>CLB</td></tr>
 
-<tr><td>SLICE[2]</td><td>legacy</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>SLICE[2]</td><td>SLICE</td><td>BEL</td><td>CLB</td></tr>
 
-<tr><td>SLICE[3]</td><td>legacy</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>SLICE[3]</td><td>SLICE</td><td>BEL</td><td>CLB</td></tr>
 
-<tr><td>TBUF[0]</td><td>legacy</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>TBUF[0]</td><td>TBUF</td><td>BEL</td><td>CLB</td></tr>
 
-<tr><td>TBUF[1]</td><td>legacy</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>TBUF[1]</td><td>TBUF</td><td>BEL</td><td>CLB</td></tr>
 
-<tr><td>TBUS</td><td>legacy</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>TBUS</td><td>TBUS</td><td>BEL</td><td>CLB</td></tr>
 
 <tr><td>IOI[0]</td><td>legacy</td><td>BEL</td><td>IOI, IOI_CLK_S, IOI_CLK_N</td></tr>
 
@@ -636,11 +636,13 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>OBUF[3]</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BRAM</td><td>legacy</td><td>BEL</td><td>BRAM</td></tr>
+<tr><td>BRAM</td><td>BRAM</td><td>BEL</td><td>BRAM</td></tr>
 
-<tr><td>MULT</td><td>legacy</td><td>BEL</td><td>BRAM</td></tr>
+<tr><td>MULT</td><td>MULT</td><td>BEL</td><td>BRAM</td></tr>
 
-<tr><td>DSP</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>MULT_INT</td><td>routing</td><td>BEL</td><td></td></tr>
+
+<tr><td>DSP</td><td>DSP</td><td>BEL</td><td></td></tr>
 
 <tr><td>DSP_TESTMUX</td><td>routing</td><td>BEL</td><td></td></tr>
 
@@ -680,7 +682,7 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>BREFCLK_INT</td><td>legacy</td><td>BEL</td><td>IOI_CLK_S, IOI_CLK_N</td></tr>
 
-<tr><td>RANDOR_OUT</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>RANDOR_OUT</td><td>RANDOR_OUT</td><td>BEL</td><td></td></tr>
 
 <tr><td>MISR</td><td>legacy</td><td>BEL</td><td></td></tr>
 
@@ -766,7 +768,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>PCI_CE_CNR</td><td>legacy</td><td>PCI_CE</td><td></td></tr>
 
-<tr><td>RANDOR</td><td>legacy</td><td>RANDOR</td><td></td></tr>
+<tr><td>RANDOR</td><td>RANDOR</td><td>RANDOR</td><td></td></tr>
+
+<tr><td>RANDOR_INIT</td><td>RANDOR_INIT</td><td>RANDOR</td><td></td></tr>
 
 </tbody>
 

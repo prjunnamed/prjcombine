@@ -585,212 +585,501 @@
 <p>The data for a CLB is located in the same bitstream tile as the associated <code>INT_CLB</code> tile.</p>
 <h2 id="tile-clb"><a class="header" href="#tile-clb">Tile CLB</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-slice0"><a class="header" href="#bel-slice0">Bel SLICE[0]</a></h3>
+<h3 id="bels-slice"><a class="header" href="#bels-slice">Bels SLICE</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CLB bel SLICE[0]</caption>
+<caption>spartan3 CLB bel SLICE pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>SLICE[0]</th><th>SLICE[1]</th><th>SLICE[2]</th><th>SLICE[3]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>BX</td><td>input</td><td>IMUX_FAN_BX[0]</td></tr>
+<tr><td>F1</td><td>in</td><td>IMUX_DATA[0]</td><td>IMUX_DATA[1]</td><td>IMUX_DATA[2]</td><td>IMUX_DATA[3]</td></tr>
 
-<tr><td>BY</td><td>input</td><td>IMUX_FAN_BY[0]</td></tr>
+<tr><td>F2</td><td>in</td><td>IMUX_DATA[4]</td><td>IMUX_DATA[5]</td><td>IMUX_DATA[6]</td><td>IMUX_DATA[7]</td></tr>
 
-<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[0]</td></tr>
+<tr><td>F3</td><td>in</td><td>IMUX_DATA[8]</td><td>IMUX_DATA[9]</td><td>IMUX_DATA[10]</td><td>IMUX_DATA[11]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[0]</td></tr>
+<tr><td>F4</td><td>in</td><td>IMUX_DATA[12]</td><td>IMUX_DATA[13]</td><td>IMUX_DATA[14]</td><td>IMUX_DATA[15]</td></tr>
 
-<tr><td>F1</td><td>input</td><td>IMUX_DATA[0]</td></tr>
+<tr><td>G1</td><td>in</td><td>IMUX_DATA[16]</td><td>IMUX_DATA[17]</td><td>IMUX_DATA[18]</td><td>IMUX_DATA[19]</td></tr>
 
-<tr><td>F2</td><td>input</td><td>IMUX_DATA[4]</td></tr>
+<tr><td>G2</td><td>in</td><td>IMUX_DATA[20]</td><td>IMUX_DATA[21]</td><td>IMUX_DATA[22]</td><td>IMUX_DATA[23]</td></tr>
 
-<tr><td>F3</td><td>input</td><td>IMUX_DATA[8]</td></tr>
+<tr><td>G3</td><td>in</td><td>IMUX_DATA[24]</td><td>IMUX_DATA[25]</td><td>IMUX_DATA[26]</td><td>IMUX_DATA[27]</td></tr>
 
-<tr><td>F4</td><td>input</td><td>IMUX_DATA[12]</td></tr>
+<tr><td>G4</td><td>in</td><td>IMUX_DATA[28]</td><td>IMUX_DATA[29]</td><td>IMUX_DATA[30]</td><td>IMUX_DATA[31]</td></tr>
 
-<tr><td>G1</td><td>input</td><td>IMUX_DATA[16]</td></tr>
+<tr><td>BX</td><td>in</td><td id="spartan3-CLB-SLICE[0]-inpinv-BX">IMUX_FAN_BX[0] invert by <a href="#spartan3-CLB-bit-MAIN[5][14]">MAIN[5][14]</a></td><td id="spartan3-CLB-SLICE[1]-inpinv-BX">IMUX_FAN_BX[1] invert by <a href="#spartan3-CLB-bit-MAIN[5][28]">MAIN[5][28]</a></td><td id="spartan3-CLB-SLICE[2]-inpinv-BX">IMUX_FAN_BX[2] invert by <a href="#spartan3-CLB-bit-MAIN[5][32]">MAIN[5][32]</a></td><td id="spartan3-CLB-SLICE[3]-inpinv-BX">IMUX_FAN_BX[3] invert by <a href="#spartan3-CLB-bit-MAIN[5][36]">MAIN[5][36]</a></td></tr>
 
-<tr><td>G2</td><td>input</td><td>IMUX_DATA[20]</td></tr>
+<tr><td>BY</td><td>in</td><td id="spartan3-CLB-SLICE[0]-inpinv-BY">IMUX_FAN_BY[0] invert by <a href="#spartan3-CLB-bit-MAIN[5][27]">MAIN[5][27]</a></td><td id="spartan3-CLB-SLICE[1]-inpinv-BY">IMUX_FAN_BY[1] invert by <a href="#spartan3-CLB-bit-MAIN[5][31]">MAIN[5][31]</a></td><td id="spartan3-CLB-SLICE[2]-inpinv-BY">IMUX_FAN_BY[2] invert by <a href="#spartan3-CLB-bit-MAIN[5][35]">MAIN[5][35]</a></td><td id="spartan3-CLB-SLICE[3]-inpinv-BY">IMUX_FAN_BY[3] invert by <a href="#spartan3-CLB-bit-MAIN[5][49]">MAIN[5][49]</a></td></tr>
 
-<tr><td>G3</td><td>input</td><td>IMUX_DATA[24]</td></tr>
+<tr><td>CLK</td><td>in</td><td>IMUX_CLK_OPTINV[0]</td><td>IMUX_CLK_OPTINV[1]</td><td>IMUX_CLK_OPTINV[2]</td><td>IMUX_CLK_OPTINV[3]</td></tr>
 
-<tr><td>G4</td><td>input</td><td>IMUX_DATA[28]</td></tr>
+<tr><td>SR</td><td>in</td><td>IMUX_SR_OPTINV[0]</td><td>IMUX_SR_OPTINV[1]</td><td>IMUX_SR_OPTINV[2]</td><td>IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
+<tr><td>CE</td><td>in</td><td>IMUX_CE_OPTINV[0]</td><td>IMUX_CE_OPTINV[1]</td><td>IMUX_CE_OPTINV[2]</td><td>IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>X</td><td>output</td><td>OUT_FAN[0]</td></tr>
+<tr><td>X</td><td>out</td><td>OUT_FAN[0]</td><td>OUT_FAN[1]</td><td>OUT_FAN[2]</td><td>OUT_FAN[3]</td></tr>
 
-<tr><td>XB</td><td>output</td><td>OUT_SEC[0]</td></tr>
+<tr><td>Y</td><td>out</td><td>OUT_FAN[4]</td><td>OUT_FAN[5]</td><td>OUT_FAN[6]</td><td>OUT_FAN[7]</td></tr>
 
-<tr><td>XQ</td><td>output</td><td>OUT_SEC[8]</td></tr>
+<tr><td>XQ</td><td>out</td><td>OUT_SEC[8]</td><td>OUT_SEC[9]</td><td>OUT_SEC[10]</td><td>OUT_SEC[11]</td></tr>
 
-<tr><td>Y</td><td>output</td><td>OUT_FAN[4]</td></tr>
+<tr><td>YQ</td><td>out</td><td>OUT_SEC[12]</td><td>OUT_SEC[13]</td><td>OUT_SEC[14]</td><td>OUT_SEC[15]</td></tr>
 
-<tr><td>YB</td><td>output</td><td>OUT_SEC[4]</td></tr>
+<tr><td>XB</td><td>out</td><td>OUT_SEC[0]</td><td>OUT_SEC[1]</td><td>OUT_SEC[2]</td><td>OUT_SEC[3]</td></tr>
 
-<tr><td>YQ</td><td>output</td><td>OUT_SEC[12]</td></tr>
+<tr><td>YB</td><td>out</td><td>OUT_SEC[4]</td><td>OUT_SEC[5]</td><td>OUT_SEC[6]</td><td>OUT_SEC[7]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-slice1"><a class="header" href="#bel-slice1">Bel SLICE[1]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CLB bel SLICE[1]</caption>
+<caption>spartan3 CLB bel SLICE attribute bits</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Attribute</th><th>SLICE[0]</th><th>SLICE[1]</th><th>SLICE[2]</th><th>SLICE[3]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>BX</td><td>input</td><td>IMUX_FAN_BX[1]</td></tr>
+<tr><td>F bit 0</td><td id="spartan3-CLB-SLICE[0]-F[0]"><a href="#spartan3-CLB-bit-MAIN[0][15]">!MAIN[0][15]</a></td><td id="spartan3-CLB-SLICE[1]-F[0]"><a href="#spartan3-CLB-bit-MAIN[3][15]">!MAIN[3][15]</a></td><td id="spartan3-CLB-SLICE[2]-F[0]"><a href="#spartan3-CLB-bit-MAIN[0][47]">!MAIN[0][47]</a></td><td id="spartan3-CLB-SLICE[3]-F[0]"><a href="#spartan3-CLB-bit-MAIN[3][47]">!MAIN[3][47]</a></td></tr>
 
-<tr><td>BY</td><td>input</td><td>IMUX_FAN_BY[1]</td></tr>
+<tr><td>F bit 1</td><td id="spartan3-CLB-SLICE[0]-F[1]"><a href="#spartan3-CLB-bit-MAIN[0][14]">!MAIN[0][14]</a></td><td id="spartan3-CLB-SLICE[1]-F[1]"><a href="#spartan3-CLB-bit-MAIN[3][14]">!MAIN[3][14]</a></td><td id="spartan3-CLB-SLICE[2]-F[1]"><a href="#spartan3-CLB-bit-MAIN[0][46]">!MAIN[0][46]</a></td><td id="spartan3-CLB-SLICE[3]-F[1]"><a href="#spartan3-CLB-bit-MAIN[3][46]">!MAIN[3][46]</a></td></tr>
 
-<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[1]</td></tr>
+<tr><td>F bit 2</td><td id="spartan3-CLB-SLICE[0]-F[2]"><a href="#spartan3-CLB-bit-MAIN[0][13]">!MAIN[0][13]</a></td><td id="spartan3-CLB-SLICE[1]-F[2]"><a href="#spartan3-CLB-bit-MAIN[3][13]">!MAIN[3][13]</a></td><td id="spartan3-CLB-SLICE[2]-F[2]"><a href="#spartan3-CLB-bit-MAIN[0][45]">!MAIN[0][45]</a></td><td id="spartan3-CLB-SLICE[3]-F[2]"><a href="#spartan3-CLB-bit-MAIN[3][45]">!MAIN[3][45]</a></td></tr>
 
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[1]</td></tr>
+<tr><td>F bit 3</td><td id="spartan3-CLB-SLICE[0]-F[3]"><a href="#spartan3-CLB-bit-MAIN[0][12]">!MAIN[0][12]</a></td><td id="spartan3-CLB-SLICE[1]-F[3]"><a href="#spartan3-CLB-bit-MAIN[3][12]">!MAIN[3][12]</a></td><td id="spartan3-CLB-SLICE[2]-F[3]"><a href="#spartan3-CLB-bit-MAIN[0][44]">!MAIN[0][44]</a></td><td id="spartan3-CLB-SLICE[3]-F[3]"><a href="#spartan3-CLB-bit-MAIN[3][44]">!MAIN[3][44]</a></td></tr>
 
-<tr><td>F1</td><td>input</td><td>IMUX_DATA[1]</td></tr>
+<tr><td>F bit 4</td><td id="spartan3-CLB-SLICE[0]-F[4]"><a href="#spartan3-CLB-bit-MAIN[0][11]">!MAIN[0][11]</a></td><td id="spartan3-CLB-SLICE[1]-F[4]"><a href="#spartan3-CLB-bit-MAIN[3][11]">!MAIN[3][11]</a></td><td id="spartan3-CLB-SLICE[2]-F[4]"><a href="#spartan3-CLB-bit-MAIN[0][43]">!MAIN[0][43]</a></td><td id="spartan3-CLB-SLICE[3]-F[4]"><a href="#spartan3-CLB-bit-MAIN[3][43]">!MAIN[3][43]</a></td></tr>
 
-<tr><td>F2</td><td>input</td><td>IMUX_DATA[5]</td></tr>
+<tr><td>F bit 5</td><td id="spartan3-CLB-SLICE[0]-F[5]"><a href="#spartan3-CLB-bit-MAIN[0][10]">!MAIN[0][10]</a></td><td id="spartan3-CLB-SLICE[1]-F[5]"><a href="#spartan3-CLB-bit-MAIN[3][10]">!MAIN[3][10]</a></td><td id="spartan3-CLB-SLICE[2]-F[5]"><a href="#spartan3-CLB-bit-MAIN[0][42]">!MAIN[0][42]</a></td><td id="spartan3-CLB-SLICE[3]-F[5]"><a href="#spartan3-CLB-bit-MAIN[3][42]">!MAIN[3][42]</a></td></tr>
 
-<tr><td>F3</td><td>input</td><td>IMUX_DATA[9]</td></tr>
+<tr><td>F bit 6</td><td id="spartan3-CLB-SLICE[0]-F[6]"><a href="#spartan3-CLB-bit-MAIN[0][9]">!MAIN[0][9]</a></td><td id="spartan3-CLB-SLICE[1]-F[6]"><a href="#spartan3-CLB-bit-MAIN[3][9]">!MAIN[3][9]</a></td><td id="spartan3-CLB-SLICE[2]-F[6]"><a href="#spartan3-CLB-bit-MAIN[0][41]">!MAIN[0][41]</a></td><td id="spartan3-CLB-SLICE[3]-F[6]"><a href="#spartan3-CLB-bit-MAIN[3][41]">!MAIN[3][41]</a></td></tr>
 
-<tr><td>F4</td><td>input</td><td>IMUX_DATA[13]</td></tr>
+<tr><td>F bit 7</td><td id="spartan3-CLB-SLICE[0]-F[7]"><a href="#spartan3-CLB-bit-MAIN[0][8]">!MAIN[0][8]</a></td><td id="spartan3-CLB-SLICE[1]-F[7]"><a href="#spartan3-CLB-bit-MAIN[3][8]">!MAIN[3][8]</a></td><td id="spartan3-CLB-SLICE[2]-F[7]"><a href="#spartan3-CLB-bit-MAIN[0][40]">!MAIN[0][40]</a></td><td id="spartan3-CLB-SLICE[3]-F[7]"><a href="#spartan3-CLB-bit-MAIN[3][40]">!MAIN[3][40]</a></td></tr>
 
-<tr><td>G1</td><td>input</td><td>IMUX_DATA[17]</td></tr>
+<tr><td>F bit 8</td><td id="spartan3-CLB-SLICE[0]-F[8]"><a href="#spartan3-CLB-bit-MAIN[0][7]">!MAIN[0][7]</a></td><td id="spartan3-CLB-SLICE[1]-F[8]"><a href="#spartan3-CLB-bit-MAIN[3][7]">!MAIN[3][7]</a></td><td id="spartan3-CLB-SLICE[2]-F[8]"><a href="#spartan3-CLB-bit-MAIN[0][39]">!MAIN[0][39]</a></td><td id="spartan3-CLB-SLICE[3]-F[8]"><a href="#spartan3-CLB-bit-MAIN[3][39]">!MAIN[3][39]</a></td></tr>
 
-<tr><td>G2</td><td>input</td><td>IMUX_DATA[21]</td></tr>
+<tr><td>F bit 9</td><td id="spartan3-CLB-SLICE[0]-F[9]"><a href="#spartan3-CLB-bit-MAIN[0][6]">!MAIN[0][6]</a></td><td id="spartan3-CLB-SLICE[1]-F[9]"><a href="#spartan3-CLB-bit-MAIN[3][6]">!MAIN[3][6]</a></td><td id="spartan3-CLB-SLICE[2]-F[9]"><a href="#spartan3-CLB-bit-MAIN[0][38]">!MAIN[0][38]</a></td><td id="spartan3-CLB-SLICE[3]-F[9]"><a href="#spartan3-CLB-bit-MAIN[3][38]">!MAIN[3][38]</a></td></tr>
 
-<tr><td>G3</td><td>input</td><td>IMUX_DATA[25]</td></tr>
+<tr><td>F bit 10</td><td id="spartan3-CLB-SLICE[0]-F[10]"><a href="#spartan3-CLB-bit-MAIN[0][5]">!MAIN[0][5]</a></td><td id="spartan3-CLB-SLICE[1]-F[10]"><a href="#spartan3-CLB-bit-MAIN[3][5]">!MAIN[3][5]</a></td><td id="spartan3-CLB-SLICE[2]-F[10]"><a href="#spartan3-CLB-bit-MAIN[0][37]">!MAIN[0][37]</a></td><td id="spartan3-CLB-SLICE[3]-F[10]"><a href="#spartan3-CLB-bit-MAIN[3][37]">!MAIN[3][37]</a></td></tr>
 
-<tr><td>G4</td><td>input</td><td>IMUX_DATA[29]</td></tr>
+<tr><td>F bit 11</td><td id="spartan3-CLB-SLICE[0]-F[11]"><a href="#spartan3-CLB-bit-MAIN[0][4]">!MAIN[0][4]</a></td><td id="spartan3-CLB-SLICE[1]-F[11]"><a href="#spartan3-CLB-bit-MAIN[3][4]">!MAIN[3][4]</a></td><td id="spartan3-CLB-SLICE[2]-F[11]"><a href="#spartan3-CLB-bit-MAIN[0][36]">!MAIN[0][36]</a></td><td id="spartan3-CLB-SLICE[3]-F[11]"><a href="#spartan3-CLB-bit-MAIN[3][36]">!MAIN[3][36]</a></td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
+<tr><td>F bit 12</td><td id="spartan3-CLB-SLICE[0]-F[12]"><a href="#spartan3-CLB-bit-MAIN[0][3]">!MAIN[0][3]</a></td><td id="spartan3-CLB-SLICE[1]-F[12]"><a href="#spartan3-CLB-bit-MAIN[3][3]">!MAIN[3][3]</a></td><td id="spartan3-CLB-SLICE[2]-F[12]"><a href="#spartan3-CLB-bit-MAIN[0][35]">!MAIN[0][35]</a></td><td id="spartan3-CLB-SLICE[3]-F[12]"><a href="#spartan3-CLB-bit-MAIN[3][35]">!MAIN[3][35]</a></td></tr>
 
-<tr><td>X</td><td>output</td><td>OUT_FAN[1]</td></tr>
+<tr><td>F bit 13</td><td id="spartan3-CLB-SLICE[0]-F[13]"><a href="#spartan3-CLB-bit-MAIN[0][2]">!MAIN[0][2]</a></td><td id="spartan3-CLB-SLICE[1]-F[13]"><a href="#spartan3-CLB-bit-MAIN[3][2]">!MAIN[3][2]</a></td><td id="spartan3-CLB-SLICE[2]-F[13]"><a href="#spartan3-CLB-bit-MAIN[0][34]">!MAIN[0][34]</a></td><td id="spartan3-CLB-SLICE[3]-F[13]"><a href="#spartan3-CLB-bit-MAIN[3][34]">!MAIN[3][34]</a></td></tr>
 
-<tr><td>XB</td><td>output</td><td>OUT_SEC[1]</td></tr>
+<tr><td>F bit 14</td><td id="spartan3-CLB-SLICE[0]-F[14]"><a href="#spartan3-CLB-bit-MAIN[0][1]">!MAIN[0][1]</a></td><td id="spartan3-CLB-SLICE[1]-F[14]"><a href="#spartan3-CLB-bit-MAIN[3][1]">!MAIN[3][1]</a></td><td id="spartan3-CLB-SLICE[2]-F[14]"><a href="#spartan3-CLB-bit-MAIN[0][33]">!MAIN[0][33]</a></td><td id="spartan3-CLB-SLICE[3]-F[14]"><a href="#spartan3-CLB-bit-MAIN[3][33]">!MAIN[3][33]</a></td></tr>
 
-<tr><td>XQ</td><td>output</td><td>OUT_SEC[9]</td></tr>
+<tr><td>F bit 15</td><td id="spartan3-CLB-SLICE[0]-F[15]"><a href="#spartan3-CLB-bit-MAIN[0][0]">!MAIN[0][0]</a></td><td id="spartan3-CLB-SLICE[1]-F[15]"><a href="#spartan3-CLB-bit-MAIN[3][0]">!MAIN[3][0]</a></td><td id="spartan3-CLB-SLICE[2]-F[15]"><a href="#spartan3-CLB-bit-MAIN[0][32]">!MAIN[0][32]</a></td><td id="spartan3-CLB-SLICE[3]-F[15]"><a href="#spartan3-CLB-bit-MAIN[3][32]">!MAIN[3][32]</a></td></tr>
 
-<tr><td>Y</td><td>output</td><td>OUT_FAN[5]</td></tr>
+<tr><td>G bit 0</td><td id="spartan3-CLB-SLICE[0]-G[0]"><a href="#spartan3-CLB-bit-MAIN[0][31]">!MAIN[0][31]</a></td><td id="spartan3-CLB-SLICE[1]-G[0]"><a href="#spartan3-CLB-bit-MAIN[3][31]">!MAIN[3][31]</a></td><td id="spartan3-CLB-SLICE[2]-G[0]"><a href="#spartan3-CLB-bit-MAIN[0][63]">!MAIN[0][63]</a></td><td id="spartan3-CLB-SLICE[3]-G[0]"><a href="#spartan3-CLB-bit-MAIN[3][63]">!MAIN[3][63]</a></td></tr>
 
-<tr><td>YB</td><td>output</td><td>OUT_SEC[5]</td></tr>
+<tr><td>G bit 1</td><td id="spartan3-CLB-SLICE[0]-G[1]"><a href="#spartan3-CLB-bit-MAIN[0][30]">!MAIN[0][30]</a></td><td id="spartan3-CLB-SLICE[1]-G[1]"><a href="#spartan3-CLB-bit-MAIN[3][30]">!MAIN[3][30]</a></td><td id="spartan3-CLB-SLICE[2]-G[1]"><a href="#spartan3-CLB-bit-MAIN[0][62]">!MAIN[0][62]</a></td><td id="spartan3-CLB-SLICE[3]-G[1]"><a href="#spartan3-CLB-bit-MAIN[3][62]">!MAIN[3][62]</a></td></tr>
 
-<tr><td>YQ</td><td>output</td><td>OUT_SEC[13]</td></tr>
+<tr><td>G bit 2</td><td id="spartan3-CLB-SLICE[0]-G[2]"><a href="#spartan3-CLB-bit-MAIN[0][29]">!MAIN[0][29]</a></td><td id="spartan3-CLB-SLICE[1]-G[2]"><a href="#spartan3-CLB-bit-MAIN[3][29]">!MAIN[3][29]</a></td><td id="spartan3-CLB-SLICE[2]-G[2]"><a href="#spartan3-CLB-bit-MAIN[0][61]">!MAIN[0][61]</a></td><td id="spartan3-CLB-SLICE[3]-G[2]"><a href="#spartan3-CLB-bit-MAIN[3][61]">!MAIN[3][61]</a></td></tr>
+
+<tr><td>G bit 3</td><td id="spartan3-CLB-SLICE[0]-G[3]"><a href="#spartan3-CLB-bit-MAIN[0][28]">!MAIN[0][28]</a></td><td id="spartan3-CLB-SLICE[1]-G[3]"><a href="#spartan3-CLB-bit-MAIN[3][28]">!MAIN[3][28]</a></td><td id="spartan3-CLB-SLICE[2]-G[3]"><a href="#spartan3-CLB-bit-MAIN[0][60]">!MAIN[0][60]</a></td><td id="spartan3-CLB-SLICE[3]-G[3]"><a href="#spartan3-CLB-bit-MAIN[3][60]">!MAIN[3][60]</a></td></tr>
+
+<tr><td>G bit 4</td><td id="spartan3-CLB-SLICE[0]-G[4]"><a href="#spartan3-CLB-bit-MAIN[0][27]">!MAIN[0][27]</a></td><td id="spartan3-CLB-SLICE[1]-G[4]"><a href="#spartan3-CLB-bit-MAIN[3][27]">!MAIN[3][27]</a></td><td id="spartan3-CLB-SLICE[2]-G[4]"><a href="#spartan3-CLB-bit-MAIN[0][59]">!MAIN[0][59]</a></td><td id="spartan3-CLB-SLICE[3]-G[4]"><a href="#spartan3-CLB-bit-MAIN[3][59]">!MAIN[3][59]</a></td></tr>
+
+<tr><td>G bit 5</td><td id="spartan3-CLB-SLICE[0]-G[5]"><a href="#spartan3-CLB-bit-MAIN[0][26]">!MAIN[0][26]</a></td><td id="spartan3-CLB-SLICE[1]-G[5]"><a href="#spartan3-CLB-bit-MAIN[3][26]">!MAIN[3][26]</a></td><td id="spartan3-CLB-SLICE[2]-G[5]"><a href="#spartan3-CLB-bit-MAIN[0][58]">!MAIN[0][58]</a></td><td id="spartan3-CLB-SLICE[3]-G[5]"><a href="#spartan3-CLB-bit-MAIN[3][58]">!MAIN[3][58]</a></td></tr>
+
+<tr><td>G bit 6</td><td id="spartan3-CLB-SLICE[0]-G[6]"><a href="#spartan3-CLB-bit-MAIN[0][25]">!MAIN[0][25]</a></td><td id="spartan3-CLB-SLICE[1]-G[6]"><a href="#spartan3-CLB-bit-MAIN[3][25]">!MAIN[3][25]</a></td><td id="spartan3-CLB-SLICE[2]-G[6]"><a href="#spartan3-CLB-bit-MAIN[0][57]">!MAIN[0][57]</a></td><td id="spartan3-CLB-SLICE[3]-G[6]"><a href="#spartan3-CLB-bit-MAIN[3][57]">!MAIN[3][57]</a></td></tr>
+
+<tr><td>G bit 7</td><td id="spartan3-CLB-SLICE[0]-G[7]"><a href="#spartan3-CLB-bit-MAIN[0][24]">!MAIN[0][24]</a></td><td id="spartan3-CLB-SLICE[1]-G[7]"><a href="#spartan3-CLB-bit-MAIN[3][24]">!MAIN[3][24]</a></td><td id="spartan3-CLB-SLICE[2]-G[7]"><a href="#spartan3-CLB-bit-MAIN[0][56]">!MAIN[0][56]</a></td><td id="spartan3-CLB-SLICE[3]-G[7]"><a href="#spartan3-CLB-bit-MAIN[3][56]">!MAIN[3][56]</a></td></tr>
+
+<tr><td>G bit 8</td><td id="spartan3-CLB-SLICE[0]-G[8]"><a href="#spartan3-CLB-bit-MAIN[0][23]">!MAIN[0][23]</a></td><td id="spartan3-CLB-SLICE[1]-G[8]"><a href="#spartan3-CLB-bit-MAIN[3][23]">!MAIN[3][23]</a></td><td id="spartan3-CLB-SLICE[2]-G[8]"><a href="#spartan3-CLB-bit-MAIN[0][55]">!MAIN[0][55]</a></td><td id="spartan3-CLB-SLICE[3]-G[8]"><a href="#spartan3-CLB-bit-MAIN[3][55]">!MAIN[3][55]</a></td></tr>
+
+<tr><td>G bit 9</td><td id="spartan3-CLB-SLICE[0]-G[9]"><a href="#spartan3-CLB-bit-MAIN[0][22]">!MAIN[0][22]</a></td><td id="spartan3-CLB-SLICE[1]-G[9]"><a href="#spartan3-CLB-bit-MAIN[3][22]">!MAIN[3][22]</a></td><td id="spartan3-CLB-SLICE[2]-G[9]"><a href="#spartan3-CLB-bit-MAIN[0][54]">!MAIN[0][54]</a></td><td id="spartan3-CLB-SLICE[3]-G[9]"><a href="#spartan3-CLB-bit-MAIN[3][54]">!MAIN[3][54]</a></td></tr>
+
+<tr><td>G bit 10</td><td id="spartan3-CLB-SLICE[0]-G[10]"><a href="#spartan3-CLB-bit-MAIN[0][21]">!MAIN[0][21]</a></td><td id="spartan3-CLB-SLICE[1]-G[10]"><a href="#spartan3-CLB-bit-MAIN[3][21]">!MAIN[3][21]</a></td><td id="spartan3-CLB-SLICE[2]-G[10]"><a href="#spartan3-CLB-bit-MAIN[0][53]">!MAIN[0][53]</a></td><td id="spartan3-CLB-SLICE[3]-G[10]"><a href="#spartan3-CLB-bit-MAIN[3][53]">!MAIN[3][53]</a></td></tr>
+
+<tr><td>G bit 11</td><td id="spartan3-CLB-SLICE[0]-G[11]"><a href="#spartan3-CLB-bit-MAIN[0][20]">!MAIN[0][20]</a></td><td id="spartan3-CLB-SLICE[1]-G[11]"><a href="#spartan3-CLB-bit-MAIN[3][20]">!MAIN[3][20]</a></td><td id="spartan3-CLB-SLICE[2]-G[11]"><a href="#spartan3-CLB-bit-MAIN[0][52]">!MAIN[0][52]</a></td><td id="spartan3-CLB-SLICE[3]-G[11]"><a href="#spartan3-CLB-bit-MAIN[3][52]">!MAIN[3][52]</a></td></tr>
+
+<tr><td>G bit 12</td><td id="spartan3-CLB-SLICE[0]-G[12]"><a href="#spartan3-CLB-bit-MAIN[0][19]">!MAIN[0][19]</a></td><td id="spartan3-CLB-SLICE[1]-G[12]"><a href="#spartan3-CLB-bit-MAIN[3][19]">!MAIN[3][19]</a></td><td id="spartan3-CLB-SLICE[2]-G[12]"><a href="#spartan3-CLB-bit-MAIN[0][51]">!MAIN[0][51]</a></td><td id="spartan3-CLB-SLICE[3]-G[12]"><a href="#spartan3-CLB-bit-MAIN[3][51]">!MAIN[3][51]</a></td></tr>
+
+<tr><td>G bit 13</td><td id="spartan3-CLB-SLICE[0]-G[13]"><a href="#spartan3-CLB-bit-MAIN[0][18]">!MAIN[0][18]</a></td><td id="spartan3-CLB-SLICE[1]-G[13]"><a href="#spartan3-CLB-bit-MAIN[3][18]">!MAIN[3][18]</a></td><td id="spartan3-CLB-SLICE[2]-G[13]"><a href="#spartan3-CLB-bit-MAIN[0][50]">!MAIN[0][50]</a></td><td id="spartan3-CLB-SLICE[3]-G[13]"><a href="#spartan3-CLB-bit-MAIN[3][50]">!MAIN[3][50]</a></td></tr>
+
+<tr><td>G bit 14</td><td id="spartan3-CLB-SLICE[0]-G[14]"><a href="#spartan3-CLB-bit-MAIN[0][17]">!MAIN[0][17]</a></td><td id="spartan3-CLB-SLICE[1]-G[14]"><a href="#spartan3-CLB-bit-MAIN[3][17]">!MAIN[3][17]</a></td><td id="spartan3-CLB-SLICE[2]-G[14]"><a href="#spartan3-CLB-bit-MAIN[0][49]">!MAIN[0][49]</a></td><td id="spartan3-CLB-SLICE[3]-G[14]"><a href="#spartan3-CLB-bit-MAIN[3][49]">!MAIN[3][49]</a></td></tr>
+
+<tr><td>G bit 15</td><td id="spartan3-CLB-SLICE[0]-G[15]"><a href="#spartan3-CLB-bit-MAIN[0][16]">!MAIN[0][16]</a></td><td id="spartan3-CLB-SLICE[1]-G[15]"><a href="#spartan3-CLB-bit-MAIN[3][16]">!MAIN[3][16]</a></td><td id="spartan3-CLB-SLICE[2]-G[15]"><a href="#spartan3-CLB-bit-MAIN[0][48]">!MAIN[0][48]</a></td><td id="spartan3-CLB-SLICE[3]-G[15]"><a href="#spartan3-CLB-bit-MAIN[3][48]">!MAIN[3][48]</a></td></tr>
+
+<tr><td>DIF_MUX</td><td><a href="#spartan3-CLB-SLICE[0]-DIF_MUX">[enum: SLICE_DIF_MUX]</a></td><td>-</td><td><a href="#spartan3-CLB-SLICE[2]-DIF_MUX">[enum: SLICE_DIF_MUX]</a></td><td>-</td></tr>
+
+<tr><td>DIG_MUX</td><td><a href="#spartan3-CLB-SLICE[0]-DIG_MUX">[enum: SLICE_DIG_MUX]</a></td><td>-</td><td><a href="#spartan3-CLB-SLICE[2]-DIG_MUX">[enum: SLICE_DIG_MUX]</a></td><td>-</td></tr>
+
+<tr><td>F_RAM_ENABLE</td><td id="spartan3-CLB-SLICE[0]-F_RAM_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][13]">!MAIN[1][13]</a></td><td>-</td><td id="spartan3-CLB-SLICE[2]-F_RAM_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][45]">!MAIN[1][45]</a></td><td>-</td></tr>
+
+<tr><td>G_RAM_ENABLE</td><td id="spartan3-CLB-SLICE[0]-G_RAM_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][12]">!MAIN[1][12]</a></td><td>-</td><td id="spartan3-CLB-SLICE[2]-G_RAM_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][44]">!MAIN[1][44]</a></td><td>-</td></tr>
+
+<tr><td>F_SHIFT_ENABLE</td><td id="spartan3-CLB-SLICE[0]-F_SHIFT_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][8]">!MAIN[1][8]</a></td><td>-</td><td id="spartan3-CLB-SLICE[2]-F_SHIFT_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][40]">!MAIN[1][40]</a></td><td>-</td></tr>
+
+<tr><td>G_SHIFT_ENABLE</td><td id="spartan3-CLB-SLICE[0]-G_SHIFT_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][6]">!MAIN[1][6]</a></td><td>-</td><td id="spartan3-CLB-SLICE[2]-G_SHIFT_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][38]">!MAIN[1][38]</a></td><td>-</td></tr>
+
+<tr><td>SLICEWE0USED</td><td id="spartan3-CLB-SLICE[0]-SLICEWE0USED"><a href="#spartan3-CLB-bit-MAIN[2][17]">MAIN[2][17]</a></td><td>-</td><td id="spartan3-CLB-SLICE[2]-SLICEWE0USED"><a href="#spartan3-CLB-bit-MAIN[2][49]">MAIN[2][49]</a></td><td>-</td></tr>
+
+<tr><td>SLICEWE1USED</td><td id="spartan3-CLB-SLICE[0]-SLICEWE1USED"><a href="#spartan3-CLB-bit-MAIN[1][20]">MAIN[1][20]</a></td><td>-</td><td>-</td><td>-</td></tr>
+
+<tr><td>CYINIT</td><td><a href="#spartan3-CLB-SLICE[0]-CYINIT">[enum: SLICE_CYINIT]</a></td><td><a href="#spartan3-CLB-SLICE[1]-CYINIT">[enum: SLICE_CYINIT]</a></td><td><a href="#spartan3-CLB-SLICE[2]-CYINIT">[enum: SLICE_CYINIT]</a></td><td><a href="#spartan3-CLB-SLICE[3]-CYINIT">[enum: SLICE_CYINIT]</a></td></tr>
+
+<tr><td>CY0F</td><td><a href="#spartan3-CLB-SLICE[0]-CY0F">[enum: SLICE_CY0F]</a></td><td><a href="#spartan3-CLB-SLICE[1]-CY0F">[enum: SLICE_CY0F]</a></td><td><a href="#spartan3-CLB-SLICE[2]-CY0F">[enum: SLICE_CY0F]</a></td><td><a href="#spartan3-CLB-SLICE[3]-CY0F">[enum: SLICE_CY0F]</a></td></tr>
+
+<tr><td>CY0G</td><td><a href="#spartan3-CLB-SLICE[0]-CY0G">[enum: SLICE_CY0G]</a></td><td><a href="#spartan3-CLB-SLICE[1]-CY0G">[enum: SLICE_CY0G]</a></td><td><a href="#spartan3-CLB-SLICE[2]-CY0G">[enum: SLICE_CY0G]</a></td><td><a href="#spartan3-CLB-SLICE[3]-CY0G">[enum: SLICE_CY0G]</a></td></tr>
+
+<tr><td>CYSELF</td><td><a href="#spartan3-CLB-SLICE[0]-CYSELF">[enum: SLICE_CYSELF]</a></td><td><a href="#spartan3-CLB-SLICE[1]-CYSELF">[enum: SLICE_CYSELF]</a></td><td><a href="#spartan3-CLB-SLICE[2]-CYSELF">[enum: SLICE_CYSELF]</a></td><td><a href="#spartan3-CLB-SLICE[3]-CYSELF">[enum: SLICE_CYSELF]</a></td></tr>
+
+<tr><td>CYSELG</td><td><a href="#spartan3-CLB-SLICE[0]-CYSELG">[enum: SLICE_CYSELG]</a></td><td><a href="#spartan3-CLB-SLICE[1]-CYSELG">[enum: SLICE_CYSELG]</a></td><td><a href="#spartan3-CLB-SLICE[2]-CYSELG">[enum: SLICE_CYSELG]</a></td><td><a href="#spartan3-CLB-SLICE[3]-CYSELG">[enum: SLICE_CYSELG]</a></td></tr>
+
+<tr><td>FFX_INIT bit 0</td><td id="spartan3-CLB-SLICE[0]-FFX_INIT[0]"><a href="#spartan3-CLB-bit-MAIN[1][18]">!MAIN[1][18]</a></td><td id="spartan3-CLB-SLICE[1]-FFX_INIT[0]"><a href="#spartan3-CLB-bit-MAIN[2][18]">!MAIN[2][18]</a></td><td id="spartan3-CLB-SLICE[2]-FFX_INIT[0]"><a href="#spartan3-CLB-bit-MAIN[1][50]">!MAIN[1][50]</a></td><td id="spartan3-CLB-SLICE[3]-FFX_INIT[0]"><a href="#spartan3-CLB-bit-MAIN[2][50]">!MAIN[2][50]</a></td></tr>
+
+<tr><td>FFY_INIT bit 0</td><td id="spartan3-CLB-SLICE[0]-FFY_INIT[0]"><a href="#spartan3-CLB-bit-MAIN[1][21]">!MAIN[1][21]</a></td><td id="spartan3-CLB-SLICE[1]-FFY_INIT[0]"><a href="#spartan3-CLB-bit-MAIN[2][21]">!MAIN[2][21]</a></td><td id="spartan3-CLB-SLICE[2]-FFY_INIT[0]"><a href="#spartan3-CLB-bit-MAIN[1][53]">!MAIN[1][53]</a></td><td id="spartan3-CLB-SLICE[3]-FFY_INIT[0]"><a href="#spartan3-CLB-bit-MAIN[2][53]">!MAIN[2][53]</a></td></tr>
+
+<tr><td>FFX_SRVAL bit 0</td><td id="spartan3-CLB-SLICE[0]-FFX_SRVAL[0]"><a href="#spartan3-CLB-bit-MAIN[1][14]">!MAIN[1][14]</a></td><td id="spartan3-CLB-SLICE[1]-FFX_SRVAL[0]"><a href="#spartan3-CLB-bit-MAIN[2][14]">!MAIN[2][14]</a></td><td id="spartan3-CLB-SLICE[2]-FFX_SRVAL[0]"><a href="#spartan3-CLB-bit-MAIN[1][46]">!MAIN[1][46]</a></td><td id="spartan3-CLB-SLICE[3]-FFX_SRVAL[0]"><a href="#spartan3-CLB-bit-MAIN[2][46]">!MAIN[2][46]</a></td></tr>
+
+<tr><td>FFY_SRVAL bit 0</td><td id="spartan3-CLB-SLICE[0]-FFY_SRVAL[0]"><a href="#spartan3-CLB-bit-MAIN[1][24]">!MAIN[1][24]</a></td><td id="spartan3-CLB-SLICE[1]-FFY_SRVAL[0]"><a href="#spartan3-CLB-bit-MAIN[2][24]">!MAIN[2][24]</a></td><td id="spartan3-CLB-SLICE[2]-FFY_SRVAL[0]"><a href="#spartan3-CLB-bit-MAIN[1][56]">!MAIN[1][56]</a></td><td id="spartan3-CLB-SLICE[3]-FFY_SRVAL[0]"><a href="#spartan3-CLB-bit-MAIN[2][56]">!MAIN[2][56]</a></td></tr>
+
+<tr><td>FF_LATCH</td><td id="spartan3-CLB-SLICE[0]-FF_LATCH"><a href="#spartan3-CLB-bit-MAIN[1][22]">MAIN[1][22]</a></td><td id="spartan3-CLB-SLICE[1]-FF_LATCH"><a href="#spartan3-CLB-bit-MAIN[2][22]">MAIN[2][22]</a></td><td id="spartan3-CLB-SLICE[2]-FF_LATCH"><a href="#spartan3-CLB-bit-MAIN[1][54]">MAIN[1][54]</a></td><td id="spartan3-CLB-SLICE[3]-FF_LATCH"><a href="#spartan3-CLB-bit-MAIN[2][54]">MAIN[2][54]</a></td></tr>
+
+<tr><td>FF_REV_ENABLE</td><td id="spartan3-CLB-SLICE[0]-FF_REV_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][23]">MAIN[1][23]</a></td><td id="spartan3-CLB-SLICE[1]-FF_REV_ENABLE"><a href="#spartan3-CLB-bit-MAIN[2][23]">MAIN[2][23]</a></td><td id="spartan3-CLB-SLICE[2]-FF_REV_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][55]">MAIN[1][55]</a></td><td id="spartan3-CLB-SLICE[3]-FF_REV_ENABLE"><a href="#spartan3-CLB-bit-MAIN[2][55]">MAIN[2][55]</a></td></tr>
+
+<tr><td>FF_SR_SYNC</td><td id="spartan3-CLB-SLICE[0]-FF_SR_SYNC"><a href="#spartan3-CLB-bit-MAIN[1][19]">MAIN[1][19]</a></td><td id="spartan3-CLB-SLICE[1]-FF_SR_SYNC"><a href="#spartan3-CLB-bit-MAIN[2][19]">MAIN[2][19]</a></td><td id="spartan3-CLB-SLICE[2]-FF_SR_SYNC"><a href="#spartan3-CLB-bit-MAIN[1][51]">MAIN[1][51]</a></td><td id="spartan3-CLB-SLICE[3]-FF_SR_SYNC"><a href="#spartan3-CLB-bit-MAIN[2][51]">MAIN[2][51]</a></td></tr>
+
+<tr><td>FF_SR_ENABLE</td><td id="spartan3-CLB-SLICE[0]-FF_SR_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][17]">!MAIN[1][17]</a></td><td>-</td><td id="spartan3-CLB-SLICE[2]-FF_SR_ENABLE"><a href="#spartan3-CLB-bit-MAIN[1][49]">!MAIN[1][49]</a></td><td>-</td></tr>
+
+<tr><td>FXMUX</td><td><a href="#spartan3-CLB-SLICE[0]-FXMUX">[enum: SLICE_FXMUX]</a></td><td><a href="#spartan3-CLB-SLICE[1]-FXMUX">[enum: SLICE_FXMUX]</a></td><td><a href="#spartan3-CLB-SLICE[2]-FXMUX">[enum: SLICE_FXMUX]</a></td><td><a href="#spartan3-CLB-SLICE[3]-FXMUX">[enum: SLICE_FXMUX]</a></td></tr>
+
+<tr><td>GYMUX</td><td><a href="#spartan3-CLB-SLICE[0]-GYMUX">[enum: SLICE_GYMUX]</a></td><td><a href="#spartan3-CLB-SLICE[1]-GYMUX">[enum: SLICE_GYMUX]</a></td><td><a href="#spartan3-CLB-SLICE[2]-GYMUX">[enum: SLICE_GYMUX]</a></td><td><a href="#spartan3-CLB-SLICE[3]-GYMUX">[enum: SLICE_GYMUX]</a></td></tr>
+
+<tr><td>DXMUX</td><td><a href="#spartan3-CLB-SLICE[0]-DXMUX">[enum: SLICE_DXMUX]</a></td><td><a href="#spartan3-CLB-SLICE[1]-DXMUX">[enum: SLICE_DXMUX]</a></td><td><a href="#spartan3-CLB-SLICE[2]-DXMUX">[enum: SLICE_DXMUX]</a></td><td><a href="#spartan3-CLB-SLICE[3]-DXMUX">[enum: SLICE_DXMUX]</a></td></tr>
+
+<tr><td>DYMUX</td><td><a href="#spartan3-CLB-SLICE[0]-DYMUX">[enum: SLICE_DYMUX]</a></td><td><a href="#spartan3-CLB-SLICE[1]-DYMUX">[enum: SLICE_DYMUX]</a></td><td><a href="#spartan3-CLB-SLICE[2]-DYMUX">[enum: SLICE_DYMUX]</a></td><td><a href="#spartan3-CLB-SLICE[3]-DYMUX">[enum: SLICE_DYMUX]</a></td></tr>
+
+<tr><td>XBMUX</td><td><a href="#spartan3-CLB-SLICE[0]-XBMUX">[enum: SLICE_XBMUX]</a></td><td>-</td><td><a href="#spartan3-CLB-SLICE[2]-XBMUX">[enum: SLICE_XBMUX]</a></td><td>-</td></tr>
+
+<tr><td>YBMUX</td><td><a href="#spartan3-CLB-SLICE[0]-YBMUX">[enum: SLICE_YBMUX]</a></td><td>-</td><td><a href="#spartan3-CLB-SLICE[2]-YBMUX">[enum: SLICE_YBMUX]</a></td><td>-</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-slice2"><a class="header" href="#bel-slice2">Bel SLICE[2]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CLB bel SLICE[2]</caption>
+<caption>spartan3 CLB enum SLICE_DIF_MUX</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr id="spartan3-CLB-SLICE[0]-DIF_MUX"><th>SLICE[0].DIF_MUX</th><td id="spartan3-CLB-SLICE[0]-DIF_MUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][15]">MAIN[1][15]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-DIF_MUX"><th>SLICE[2].DIF_MUX</th><td id="spartan3-CLB-SLICE[2]-DIF_MUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][47]">MAIN[1][47]</a></td></tr>
 
 </thead>
 
 <tbody>
-<tr><td>BX</td><td>input</td><td>IMUX_FAN_BX[2]</td></tr>
+<tr><td>ALT</td><td>0</td></tr>
 
-<tr><td>BY</td><td>input</td><td>IMUX_FAN_BY[2]</td></tr>
-
-<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[2]</td></tr>
-
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[2]</td></tr>
-
-<tr><td>F1</td><td>input</td><td>IMUX_DATA[2]</td></tr>
-
-<tr><td>F2</td><td>input</td><td>IMUX_DATA[6]</td></tr>
-
-<tr><td>F3</td><td>input</td><td>IMUX_DATA[10]</td></tr>
-
-<tr><td>F4</td><td>input</td><td>IMUX_DATA[14]</td></tr>
-
-<tr><td>G1</td><td>input</td><td>IMUX_DATA[18]</td></tr>
-
-<tr><td>G2</td><td>input</td><td>IMUX_DATA[22]</td></tr>
-
-<tr><td>G3</td><td>input</td><td>IMUX_DATA[26]</td></tr>
-
-<tr><td>G4</td><td>input</td><td>IMUX_DATA[30]</td></tr>
-
-<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[2]</td></tr>
-
-<tr><td>X</td><td>output</td><td>OUT_FAN[2]</td></tr>
-
-<tr><td>XB</td><td>output</td><td>OUT_SEC[2]</td></tr>
-
-<tr><td>XQ</td><td>output</td><td>OUT_SEC[10]</td></tr>
-
-<tr><td>Y</td><td>output</td><td>OUT_FAN[6]</td></tr>
-
-<tr><td>YB</td><td>output</td><td>OUT_SEC[6]</td></tr>
-
-<tr><td>YQ</td><td>output</td><td>OUT_SEC[14]</td></tr>
+<tr><td>BX</td><td>1</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-slice3"><a class="header" href="#bel-slice3">Bel SLICE[3]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CLB bel SLICE[3]</caption>
+<caption>spartan3 CLB enum SLICE_DIG_MUX</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr id="spartan3-CLB-SLICE[0]-DIG_MUX"><th>SLICE[0].DIG_MUX</th><td id="spartan3-CLB-SLICE[0]-DIG_MUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][26]">MAIN[1][26]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-DIG_MUX"><th>SLICE[2].DIG_MUX</th><td id="spartan3-CLB-SLICE[2]-DIG_MUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][58]">MAIN[1][58]</a></td></tr>
 
 </thead>
 
 <tbody>
-<tr><td>BX</td><td>input</td><td>IMUX_FAN_BX[3]</td></tr>
+<tr><td>ALT</td><td>0</td></tr>
 
-<tr><td>BY</td><td>input</td><td>IMUX_FAN_BY[3]</td></tr>
+<tr><td>BY</td><td>1</td></tr>
 
-<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[3]</td></tr>
+</tbody>
 
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[3]</td></tr>
+</table>
+</div>
 
-<tr><td>F1</td><td>input</td><td>IMUX_DATA[3]</td></tr>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_CYINIT</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-CYINIT"><th>SLICE[0].CYINIT</th><td id="spartan3-CLB-SLICE[0]-CYINIT[0]"><a href="#spartan3-CLB-bit-MAIN[1][4]">MAIN[1][4]</a></td></tr>
 
-<tr><td>F2</td><td>input</td><td>IMUX_DATA[7]</td></tr>
+<tr id="spartan3-CLB-SLICE[1]-CYINIT"><th>SLICE[1].CYINIT</th><td id="spartan3-CLB-SLICE[1]-CYINIT[0]"><a href="#spartan3-CLB-bit-MAIN[2][4]">MAIN[2][4]</a></td></tr>
 
-<tr><td>F3</td><td>input</td><td>IMUX_DATA[11]</td></tr>
+<tr id="spartan3-CLB-SLICE[2]-CYINIT"><th>SLICE[2].CYINIT</th><td id="spartan3-CLB-SLICE[2]-CYINIT[0]"><a href="#spartan3-CLB-bit-MAIN[1][36]">MAIN[1][36]</a></td></tr>
 
-<tr><td>F4</td><td>input</td><td>IMUX_DATA[15]</td></tr>
+<tr id="spartan3-CLB-SLICE[3]-CYINIT"><th>SLICE[3].CYINIT</th><td id="spartan3-CLB-SLICE[3]-CYINIT[0]"><a href="#spartan3-CLB-bit-MAIN[2][36]">MAIN[2][36]</a></td></tr>
 
-<tr><td>G1</td><td>input</td><td>IMUX_DATA[19]</td></tr>
+</thead>
 
-<tr><td>G2</td><td>input</td><td>IMUX_DATA[23]</td></tr>
+<tbody>
+<tr><td>BX</td><td>0</td></tr>
 
-<tr><td>G3</td><td>input</td><td>IMUX_DATA[27]</td></tr>
+<tr><td>CIN</td><td>1</td></tr>
 
-<tr><td>G4</td><td>input</td><td>IMUX_DATA[31]</td></tr>
+</tbody>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[3]</td></tr>
+</table>
+</div>
 
-<tr><td>X</td><td>output</td><td>OUT_FAN[3]</td></tr>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_CY0F</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-CY0F"><th>SLICE[0].CY0F</th><td id="spartan3-CLB-SLICE[0]-CY0F[2]"><a href="#spartan3-CLB-bit-MAIN[1][7]">MAIN[1][7]</a></td><td id="spartan3-CLB-SLICE[0]-CY0F[1]"><a href="#spartan3-CLB-bit-MAIN[1][10]">MAIN[1][10]</a></td><td id="spartan3-CLB-SLICE[0]-CY0F[0]"><a href="#spartan3-CLB-bit-MAIN[1][9]">MAIN[1][9]</a></td></tr>
 
-<tr><td>XB</td><td>output</td><td>OUT_SEC[3]</td></tr>
+<tr id="spartan3-CLB-SLICE[1]-CY0F"><th>SLICE[1].CY0F</th><td id="spartan3-CLB-SLICE[1]-CY0F[2]"><a href="#spartan3-CLB-bit-MAIN[2][7]">MAIN[2][7]</a></td><td id="spartan3-CLB-SLICE[1]-CY0F[1]"><a href="#spartan3-CLB-bit-MAIN[2][10]">MAIN[2][10]</a></td><td id="spartan3-CLB-SLICE[1]-CY0F[0]"><a href="#spartan3-CLB-bit-MAIN[2][9]">MAIN[2][9]</a></td></tr>
 
-<tr><td>XQ</td><td>output</td><td>OUT_SEC[11]</td></tr>
+<tr id="spartan3-CLB-SLICE[2]-CY0F"><th>SLICE[2].CY0F</th><td id="spartan3-CLB-SLICE[2]-CY0F[2]"><a href="#spartan3-CLB-bit-MAIN[1][39]">MAIN[1][39]</a></td><td id="spartan3-CLB-SLICE[2]-CY0F[1]"><a href="#spartan3-CLB-bit-MAIN[1][42]">MAIN[1][42]</a></td><td id="spartan3-CLB-SLICE[2]-CY0F[0]"><a href="#spartan3-CLB-bit-MAIN[1][41]">MAIN[1][41]</a></td></tr>
 
-<tr><td>Y</td><td>output</td><td>OUT_FAN[7]</td></tr>
+<tr id="spartan3-CLB-SLICE[3]-CY0F"><th>SLICE[3].CY0F</th><td id="spartan3-CLB-SLICE[3]-CY0F[2]"><a href="#spartan3-CLB-bit-MAIN[2][39]">MAIN[2][39]</a></td><td id="spartan3-CLB-SLICE[3]-CY0F[1]"><a href="#spartan3-CLB-bit-MAIN[2][42]">MAIN[2][42]</a></td><td id="spartan3-CLB-SLICE[3]-CY0F[0]"><a href="#spartan3-CLB-bit-MAIN[2][41]">MAIN[2][41]</a></td></tr>
 
-<tr><td>YB</td><td>output</td><td>OUT_SEC[7]</td></tr>
+</thead>
 
-<tr><td>YQ</td><td>output</td><td>OUT_SEC[15]</td></tr>
+<tbody>
+<tr><td>CONST_0</td><td>1</td><td>1</td><td>1</td></tr>
+
+<tr><td>CONST_1</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>BX</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>F1</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>F2</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>PROD</td><td>0</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_CY0G</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-CY0G"><th>SLICE[0].CY0G</th><td id="spartan3-CLB-SLICE[0]-CY0G[2]"><a href="#spartan3-CLB-bit-MAIN[1][31]">MAIN[1][31]</a></td><td id="spartan3-CLB-SLICE[0]-CY0G[1]"><a href="#spartan3-CLB-bit-MAIN[1][30]">MAIN[1][30]</a></td><td id="spartan3-CLB-SLICE[0]-CY0G[0]"><a href="#spartan3-CLB-bit-MAIN[1][29]">MAIN[1][29]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[1]-CY0G"><th>SLICE[1].CY0G</th><td id="spartan3-CLB-SLICE[1]-CY0G[2]"><a href="#spartan3-CLB-bit-MAIN[2][31]">MAIN[2][31]</a></td><td id="spartan3-CLB-SLICE[1]-CY0G[1]"><a href="#spartan3-CLB-bit-MAIN[2][30]">MAIN[2][30]</a></td><td id="spartan3-CLB-SLICE[1]-CY0G[0]"><a href="#spartan3-CLB-bit-MAIN[2][29]">MAIN[2][29]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-CY0G"><th>SLICE[2].CY0G</th><td id="spartan3-CLB-SLICE[2]-CY0G[2]"><a href="#spartan3-CLB-bit-MAIN[1][63]">MAIN[1][63]</a></td><td id="spartan3-CLB-SLICE[2]-CY0G[1]"><a href="#spartan3-CLB-bit-MAIN[1][62]">MAIN[1][62]</a></td><td id="spartan3-CLB-SLICE[2]-CY0G[0]"><a href="#spartan3-CLB-bit-MAIN[1][61]">MAIN[1][61]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[3]-CY0G"><th>SLICE[3].CY0G</th><td id="spartan3-CLB-SLICE[3]-CY0G[2]"><a href="#spartan3-CLB-bit-MAIN[2][63]">MAIN[2][63]</a></td><td id="spartan3-CLB-SLICE[3]-CY0G[1]"><a href="#spartan3-CLB-bit-MAIN[2][62]">MAIN[2][62]</a></td><td id="spartan3-CLB-SLICE[3]-CY0G[0]"><a href="#spartan3-CLB-bit-MAIN[2][61]">MAIN[2][61]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CONST_0</td><td>1</td><td>1</td><td>1</td></tr>
+
+<tr><td>CONST_1</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>BY</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>G1</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>G2</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>PROD</td><td>0</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_CYSELF</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-CYSELF"><th>SLICE[0].CYSELF</th><td id="spartan3-CLB-SLICE[0]-CYSELF[0]"><a href="#spartan3-CLB-bit-MAIN[1][0]">MAIN[1][0]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[1]-CYSELF"><th>SLICE[1].CYSELF</th><td id="spartan3-CLB-SLICE[1]-CYSELF[0]"><a href="#spartan3-CLB-bit-MAIN[2][0]">MAIN[2][0]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-CYSELF"><th>SLICE[2].CYSELF</th><td id="spartan3-CLB-SLICE[2]-CYSELF[0]"><a href="#spartan3-CLB-bit-MAIN[1][32]">MAIN[1][32]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[3]-CYSELF"><th>SLICE[3].CYSELF</th><td id="spartan3-CLB-SLICE[3]-CYSELF[0]"><a href="#spartan3-CLB-bit-MAIN[2][32]">MAIN[2][32]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CONST_1</td><td>0</td></tr>
+
+<tr><td>F</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_CYSELG</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-CYSELG"><th>SLICE[0].CYSELG</th><td id="spartan3-CLB-SLICE[0]-CYSELG[0]"><a href="#spartan3-CLB-bit-MAIN[1][3]">MAIN[1][3]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[1]-CYSELG"><th>SLICE[1].CYSELG</th><td id="spartan3-CLB-SLICE[1]-CYSELG[0]"><a href="#spartan3-CLB-bit-MAIN[2][3]">MAIN[2][3]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-CYSELG"><th>SLICE[2].CYSELG</th><td id="spartan3-CLB-SLICE[2]-CYSELG[0]"><a href="#spartan3-CLB-bit-MAIN[1][35]">MAIN[1][35]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[3]-CYSELG"><th>SLICE[3].CYSELG</th><td id="spartan3-CLB-SLICE[3]-CYSELG[0]"><a href="#spartan3-CLB-bit-MAIN[2][35]">MAIN[2][35]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CONST_1</td><td>0</td></tr>
+
+<tr><td>G</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_FXMUX</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-FXMUX"><th>SLICE[0].FXMUX</th><td id="spartan3-CLB-SLICE[0]-FXMUX[1]"><a href="#spartan3-CLB-bit-MAIN[1][16]">MAIN[1][16]</a></td><td id="spartan3-CLB-SLICE[0]-FXMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][2]">MAIN[1][2]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[1]-FXMUX"><th>SLICE[1].FXMUX</th><td id="spartan3-CLB-SLICE[1]-FXMUX[1]"><a href="#spartan3-CLB-bit-MAIN[2][16]">MAIN[2][16]</a></td><td id="spartan3-CLB-SLICE[1]-FXMUX[0]"><a href="#spartan3-CLB-bit-MAIN[2][2]">MAIN[2][2]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-FXMUX"><th>SLICE[2].FXMUX</th><td id="spartan3-CLB-SLICE[2]-FXMUX[1]"><a href="#spartan3-CLB-bit-MAIN[1][48]">MAIN[1][48]</a></td><td id="spartan3-CLB-SLICE[2]-FXMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][34]">MAIN[1][34]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[3]-FXMUX"><th>SLICE[3].FXMUX</th><td id="spartan3-CLB-SLICE[3]-FXMUX[1]"><a href="#spartan3-CLB-bit-MAIN[2][48]">MAIN[2][48]</a></td><td id="spartan3-CLB-SLICE[3]-FXMUX[0]"><a href="#spartan3-CLB-bit-MAIN[2][34]">MAIN[2][34]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>F</td><td>0</td><td>0</td></tr>
+
+<tr><td>F5</td><td>0</td><td>1</td></tr>
+
+<tr><td>FXOR</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_GYMUX</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-GYMUX"><th>SLICE[0].GYMUX</th><td id="spartan3-CLB-SLICE[0]-GYMUX[1]"><a href="#spartan3-CLB-bit-MAIN[1][28]">MAIN[1][28]</a></td><td id="spartan3-CLB-SLICE[0]-GYMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][25]">MAIN[1][25]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[1]-GYMUX"><th>SLICE[1].GYMUX</th><td id="spartan3-CLB-SLICE[1]-GYMUX[1]"><a href="#spartan3-CLB-bit-MAIN[2][28]">MAIN[2][28]</a></td><td id="spartan3-CLB-SLICE[1]-GYMUX[0]"><a href="#spartan3-CLB-bit-MAIN[2][25]">MAIN[2][25]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-GYMUX"><th>SLICE[2].GYMUX</th><td id="spartan3-CLB-SLICE[2]-GYMUX[1]"><a href="#spartan3-CLB-bit-MAIN[1][60]">MAIN[1][60]</a></td><td id="spartan3-CLB-SLICE[2]-GYMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][57]">MAIN[1][57]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[3]-GYMUX"><th>SLICE[3].GYMUX</th><td id="spartan3-CLB-SLICE[3]-GYMUX[1]"><a href="#spartan3-CLB-bit-MAIN[2][60]">MAIN[2][60]</a></td><td id="spartan3-CLB-SLICE[3]-GYMUX[0]"><a href="#spartan3-CLB-bit-MAIN[2][57]">MAIN[2][57]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>G</td><td>0</td><td>0</td></tr>
+
+<tr><td>FX</td><td>0</td><td>1</td></tr>
+
+<tr><td>GXOR</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_DXMUX</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-DXMUX"><th>SLICE[0].DXMUX</th><td id="spartan3-CLB-SLICE[0]-DXMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][11]">MAIN[1][11]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[1]-DXMUX"><th>SLICE[1].DXMUX</th><td id="spartan3-CLB-SLICE[1]-DXMUX[0]"><a href="#spartan3-CLB-bit-MAIN[2][11]">MAIN[2][11]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-DXMUX"><th>SLICE[2].DXMUX</th><td id="spartan3-CLB-SLICE[2]-DXMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][43]">MAIN[1][43]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[3]-DXMUX"><th>SLICE[3].DXMUX</th><td id="spartan3-CLB-SLICE[3]-DXMUX[0]"><a href="#spartan3-CLB-bit-MAIN[2][43]">MAIN[2][43]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>BX</td><td>0</td></tr>
+
+<tr><td>X</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_DYMUX</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-DYMUX"><th>SLICE[0].DYMUX</th><td id="spartan3-CLB-SLICE[0]-DYMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][27]">MAIN[1][27]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[1]-DYMUX"><th>SLICE[1].DYMUX</th><td id="spartan3-CLB-SLICE[1]-DYMUX[0]"><a href="#spartan3-CLB-bit-MAIN[2][27]">MAIN[2][27]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-DYMUX"><th>SLICE[2].DYMUX</th><td id="spartan3-CLB-SLICE[2]-DYMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][59]">MAIN[1][59]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[3]-DYMUX"><th>SLICE[3].DYMUX</th><td id="spartan3-CLB-SLICE[3]-DYMUX[0]"><a href="#spartan3-CLB-bit-MAIN[2][59]">MAIN[2][59]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>BY</td><td>0</td></tr>
+
+<tr><td>Y</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_XBMUX</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-XBMUX"><th>SLICE[0].XBMUX</th><td id="spartan3-CLB-SLICE[0]-XBMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][1]">MAIN[1][1]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-XBMUX"><th>SLICE[2].XBMUX</th><td id="spartan3-CLB-SLICE[2]-XBMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][33]">MAIN[1][33]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>FCY</td><td>0</td></tr>
+
+<tr><td>FMC15</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CLB enum SLICE_YBMUX</caption>
+<thead>
+<tr id="spartan3-CLB-SLICE[0]-YBMUX"><th>SLICE[0].YBMUX</th><td id="spartan3-CLB-SLICE[0]-YBMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][5]">MAIN[1][5]</a></td></tr>
+
+<tr id="spartan3-CLB-SLICE[2]-YBMUX"><th>SLICE[2].YBMUX</th><td id="spartan3-CLB-SLICE[2]-YBMUX[0]"><a href="#spartan3-CLB-bit-MAIN[1][37]">MAIN[1][37]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>GCY</td><td>0</td></tr>
+
+<tr><td>GMC15</td><td>1</td></tr>
 
 </tbody>
 
@@ -997,10 +1286,18 @@
 
 <tbody>
 <tr><td>B63</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][63]" title="MAIN[0][63]">
+<a href="#spartan3-CLB-SLICE[2]-G[0]">SLICE[2]: ! G bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][63]" title="MAIN[1][63]">
+<a href="#spartan3-CLB-SLICE[2]-CY0G[2]">SLICE[2]:  CY0G bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][63]" title="MAIN[2][63]">
+<a href="#spartan3-CLB-SLICE[3]-CY0G[2]">SLICE[3]:  CY0G bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][63]" title="MAIN[3][63]">
+<a href="#spartan3-CLB-SLICE[3]-G[0]">SLICE[3]: ! G bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1019,10 +1316,18 @@
 </tr>
 
 <tr><td>B62</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][62]" title="MAIN[0][62]">
+<a href="#spartan3-CLB-SLICE[2]-G[1]">SLICE[2]: ! G bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][62]" title="MAIN[1][62]">
+<a href="#spartan3-CLB-SLICE[2]-CY0G[1]">SLICE[2]:  CY0G bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][62]" title="MAIN[2][62]">
+<a href="#spartan3-CLB-SLICE[3]-CY0G[1]">SLICE[3]:  CY0G bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][62]" title="MAIN[3][62]">
+<a href="#spartan3-CLB-SLICE[3]-G[1]">SLICE[3]: ! G bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1041,10 +1346,18 @@
 </tr>
 
 <tr><td>B61</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][61]" title="MAIN[0][61]">
+<a href="#spartan3-CLB-SLICE[2]-G[2]">SLICE[2]: ! G bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][61]" title="MAIN[1][61]">
+<a href="#spartan3-CLB-SLICE[2]-CY0G[0]">SLICE[2]:  CY0G bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][61]" title="MAIN[2][61]">
+<a href="#spartan3-CLB-SLICE[3]-CY0G[0]">SLICE[3]:  CY0G bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][61]" title="MAIN[3][61]">
+<a href="#spartan3-CLB-SLICE[3]-G[2]">SLICE[3]: ! G bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1063,10 +1376,18 @@
 </tr>
 
 <tr><td>B60</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][60]" title="MAIN[0][60]">
+<a href="#spartan3-CLB-SLICE[2]-G[3]">SLICE[2]: ! G bit 3</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][60]" title="MAIN[1][60]">
+<a href="#spartan3-CLB-SLICE[2]-GYMUX[1]">SLICE[2]:  GYMUX bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][60]" title="MAIN[2][60]">
+<a href="#spartan3-CLB-SLICE[3]-GYMUX[1]">SLICE[3]:  GYMUX bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][60]" title="MAIN[3][60]">
+<a href="#spartan3-CLB-SLICE[3]-G[3]">SLICE[3]: ! G bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1085,10 +1406,18 @@
 </tr>
 
 <tr><td>B59</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][59]" title="MAIN[0][59]">
+<a href="#spartan3-CLB-SLICE[2]-G[4]">SLICE[2]: ! G bit 4</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][59]" title="MAIN[1][59]">
+<a href="#spartan3-CLB-SLICE[2]-DYMUX[0]">SLICE[2]:  DYMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][59]" title="MAIN[2][59]">
+<a href="#spartan3-CLB-SLICE[3]-DYMUX[0]">SLICE[3]:  DYMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][59]" title="MAIN[3][59]">
+<a href="#spartan3-CLB-SLICE[3]-G[4]">SLICE[3]: ! G bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1107,10 +1436,16 @@
 </tr>
 
 <tr><td>B58</td>
+<td id="spartan3-CLB-bit-MAIN[0][58]" title="MAIN[0][58]">
+<a href="#spartan3-CLB-SLICE[2]-G[5]">SLICE[2]: ! G bit 5</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][58]" title="MAIN[1][58]">
+<a href="#spartan3-CLB-SLICE[2]-DIG_MUX[0]">SLICE[2]:  DIG_MUX bit 0</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][58]" title="MAIN[3][58]">
+<a href="#spartan3-CLB-SLICE[3]-G[5]">SLICE[3]: ! G bit 5</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1129,10 +1464,18 @@
 </tr>
 
 <tr><td>B57</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][57]" title="MAIN[0][57]">
+<a href="#spartan3-CLB-SLICE[2]-G[6]">SLICE[2]: ! G bit 6</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][57]" title="MAIN[1][57]">
+<a href="#spartan3-CLB-SLICE[2]-GYMUX[0]">SLICE[2]:  GYMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][57]" title="MAIN[2][57]">
+<a href="#spartan3-CLB-SLICE[3]-GYMUX[0]">SLICE[3]:  GYMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][57]" title="MAIN[3][57]">
+<a href="#spartan3-CLB-SLICE[3]-G[6]">SLICE[3]: ! G bit 6</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1151,10 +1494,18 @@
 </tr>
 
 <tr><td>B56</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][56]" title="MAIN[0][56]">
+<a href="#spartan3-CLB-SLICE[2]-G[7]">SLICE[2]: ! G bit 7</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][56]" title="MAIN[1][56]">
+<a href="#spartan3-CLB-SLICE[2]-FFY_SRVAL[0]">SLICE[2]: ! FFY_SRVAL bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][56]" title="MAIN[2][56]">
+<a href="#spartan3-CLB-SLICE[3]-FFY_SRVAL[0]">SLICE[3]: ! FFY_SRVAL bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][56]" title="MAIN[3][56]">
+<a href="#spartan3-CLB-SLICE[3]-G[7]">SLICE[3]: ! G bit 7</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1173,10 +1524,18 @@
 </tr>
 
 <tr><td>B55</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][55]" title="MAIN[0][55]">
+<a href="#spartan3-CLB-SLICE[2]-G[8]">SLICE[2]: ! G bit 8</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][55]" title="MAIN[1][55]">
+<a href="#spartan3-CLB-SLICE[2]-FF_REV_ENABLE">SLICE[2]:  FF_REV_ENABLE</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][55]" title="MAIN[2][55]">
+<a href="#spartan3-CLB-SLICE[3]-FF_REV_ENABLE">SLICE[3]:  FF_REV_ENABLE</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][55]" title="MAIN[3][55]">
+<a href="#spartan3-CLB-SLICE[3]-G[8]">SLICE[3]: ! G bit 8</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1195,10 +1554,18 @@
 </tr>
 
 <tr><td>B54</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][54]" title="MAIN[0][54]">
+<a href="#spartan3-CLB-SLICE[2]-G[9]">SLICE[2]: ! G bit 9</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][54]" title="MAIN[1][54]">
+<a href="#spartan3-CLB-SLICE[2]-FF_LATCH">SLICE[2]:  FF_LATCH</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][54]" title="MAIN[2][54]">
+<a href="#spartan3-CLB-SLICE[3]-FF_LATCH">SLICE[3]:  FF_LATCH</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][54]" title="MAIN[3][54]">
+<a href="#spartan3-CLB-SLICE[3]-G[9]">SLICE[3]: ! G bit 9</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1217,10 +1584,18 @@
 </tr>
 
 <tr><td>B53</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][53]" title="MAIN[0][53]">
+<a href="#spartan3-CLB-SLICE[2]-G[10]">SLICE[2]: ! G bit 10</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][53]" title="MAIN[1][53]">
+<a href="#spartan3-CLB-SLICE[2]-FFY_INIT[0]">SLICE[2]: ! FFY_INIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][53]" title="MAIN[2][53]">
+<a href="#spartan3-CLB-SLICE[3]-FFY_INIT[0]">SLICE[3]: ! FFY_INIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][53]" title="MAIN[3][53]">
+<a href="#spartan3-CLB-SLICE[3]-G[10]">SLICE[3]: ! G bit 10</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1239,10 +1614,14 @@
 </tr>
 
 <tr><td>B52</td>
+<td id="spartan3-CLB-bit-MAIN[0][52]" title="MAIN[0][52]">
+<a href="#spartan3-CLB-SLICE[2]-G[11]">SLICE[2]: ! G bit 11</a>
+</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][52]" title="MAIN[3][52]">
+<a href="#spartan3-CLB-SLICE[3]-G[11]">SLICE[3]: ! G bit 11</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1261,10 +1640,18 @@
 </tr>
 
 <tr><td>B51</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][51]" title="MAIN[0][51]">
+<a href="#spartan3-CLB-SLICE[2]-G[12]">SLICE[2]: ! G bit 12</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][51]" title="MAIN[1][51]">
+<a href="#spartan3-CLB-SLICE[2]-FF_SR_SYNC">SLICE[2]:  FF_SR_SYNC</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][51]" title="MAIN[2][51]">
+<a href="#spartan3-CLB-SLICE[3]-FF_SR_SYNC">SLICE[3]:  FF_SR_SYNC</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][51]" title="MAIN[3][51]">
+<a href="#spartan3-CLB-SLICE[3]-G[12]">SLICE[3]: ! G bit 12</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1283,10 +1670,18 @@
 </tr>
 
 <tr><td>B50</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][50]" title="MAIN[0][50]">
+<a href="#spartan3-CLB-SLICE[2]-G[13]">SLICE[2]: ! G bit 13</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][50]" title="MAIN[1][50]">
+<a href="#spartan3-CLB-SLICE[2]-FFX_INIT[0]">SLICE[2]: ! FFX_INIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][50]" title="MAIN[2][50]">
+<a href="#spartan3-CLB-SLICE[3]-FFX_INIT[0]">SLICE[3]: ! FFX_INIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][50]" title="MAIN[3][50]">
+<a href="#spartan3-CLB-SLICE[3]-G[13]">SLICE[3]: ! G bit 13</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1305,12 +1700,22 @@
 </tr>
 
 <tr><td>B49</td>
+<td id="spartan3-CLB-bit-MAIN[0][49]" title="MAIN[0][49]">
+<a href="#spartan3-CLB-SLICE[2]-G[14]">SLICE[2]: ! G bit 14</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][49]" title="MAIN[1][49]">
+<a href="#spartan3-CLB-SLICE[2]-FF_SR_ENABLE">SLICE[2]: ! FF_SR_ENABLE</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][49]" title="MAIN[2][49]">
+<a href="#spartan3-CLB-SLICE[2]-SLICEWE0USED">SLICE[2]:  SLICEWE0USED</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][49]" title="MAIN[3][49]">
+<a href="#spartan3-CLB-SLICE[3]-G[14]">SLICE[3]: ! G bit 14</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[5][49]" title="MAIN[5][49]">
+<a href="#spartan3-CLB-SLICE[3]-inpinv-BY">SLICE[3]: invert BY</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1327,10 +1732,18 @@
 </tr>
 
 <tr><td>B48</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][48]" title="MAIN[0][48]">
+<a href="#spartan3-CLB-SLICE[2]-G[15]">SLICE[2]: ! G bit 15</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][48]" title="MAIN[1][48]">
+<a href="#spartan3-CLB-SLICE[2]-FXMUX[1]">SLICE[2]:  FXMUX bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][48]" title="MAIN[2][48]">
+<a href="#spartan3-CLB-SLICE[3]-FXMUX[1]">SLICE[3]:  FXMUX bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][48]" title="MAIN[3][48]">
+<a href="#spartan3-CLB-SLICE[3]-G[15]">SLICE[3]: ! G bit 15</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1349,10 +1762,16 @@
 </tr>
 
 <tr><td>B47</td>
+<td id="spartan3-CLB-bit-MAIN[0][47]" title="MAIN[0][47]">
+<a href="#spartan3-CLB-SLICE[2]-F[0]">SLICE[2]: ! F bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][47]" title="MAIN[1][47]">
+<a href="#spartan3-CLB-SLICE[2]-DIF_MUX[0]">SLICE[2]:  DIF_MUX bit 0</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][47]" title="MAIN[3][47]">
+<a href="#spartan3-CLB-SLICE[3]-F[0]">SLICE[3]: ! F bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1371,10 +1790,18 @@
 </tr>
 
 <tr><td>B46</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][46]" title="MAIN[0][46]">
+<a href="#spartan3-CLB-SLICE[2]-F[1]">SLICE[2]: ! F bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][46]" title="MAIN[1][46]">
+<a href="#spartan3-CLB-SLICE[2]-FFX_SRVAL[0]">SLICE[2]: ! FFX_SRVAL bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][46]" title="MAIN[2][46]">
+<a href="#spartan3-CLB-SLICE[3]-FFX_SRVAL[0]">SLICE[3]: ! FFX_SRVAL bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][46]" title="MAIN[3][46]">
+<a href="#spartan3-CLB-SLICE[3]-F[1]">SLICE[3]: ! F bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1393,10 +1820,16 @@
 </tr>
 
 <tr><td>B45</td>
+<td id="spartan3-CLB-bit-MAIN[0][45]" title="MAIN[0][45]">
+<a href="#spartan3-CLB-SLICE[2]-F[2]">SLICE[2]: ! F bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][45]" title="MAIN[1][45]">
+<a href="#spartan3-CLB-SLICE[2]-F_RAM_ENABLE">SLICE[2]: ! F_RAM_ENABLE</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][45]" title="MAIN[3][45]">
+<a href="#spartan3-CLB-SLICE[3]-F[2]">SLICE[3]: ! F bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1415,10 +1848,16 @@
 </tr>
 
 <tr><td>B44</td>
+<td id="spartan3-CLB-bit-MAIN[0][44]" title="MAIN[0][44]">
+<a href="#spartan3-CLB-SLICE[2]-F[3]">SLICE[2]: ! F bit 3</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][44]" title="MAIN[1][44]">
+<a href="#spartan3-CLB-SLICE[2]-G_RAM_ENABLE">SLICE[2]: ! G_RAM_ENABLE</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][44]" title="MAIN[3][44]">
+<a href="#spartan3-CLB-SLICE[3]-F[3]">SLICE[3]: ! F bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1437,10 +1876,18 @@
 </tr>
 
 <tr><td>B43</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][43]" title="MAIN[0][43]">
+<a href="#spartan3-CLB-SLICE[2]-F[4]">SLICE[2]: ! F bit 4</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][43]" title="MAIN[1][43]">
+<a href="#spartan3-CLB-SLICE[2]-DXMUX[0]">SLICE[2]:  DXMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][43]" title="MAIN[2][43]">
+<a href="#spartan3-CLB-SLICE[3]-DXMUX[0]">SLICE[3]:  DXMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][43]" title="MAIN[3][43]">
+<a href="#spartan3-CLB-SLICE[3]-F[4]">SLICE[3]: ! F bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1459,10 +1906,18 @@
 </tr>
 
 <tr><td>B42</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][42]" title="MAIN[0][42]">
+<a href="#spartan3-CLB-SLICE[2]-F[5]">SLICE[2]: ! F bit 5</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][42]" title="MAIN[1][42]">
+<a href="#spartan3-CLB-SLICE[2]-CY0F[1]">SLICE[2]:  CY0F bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][42]" title="MAIN[2][42]">
+<a href="#spartan3-CLB-SLICE[3]-CY0F[1]">SLICE[3]:  CY0F bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][42]" title="MAIN[3][42]">
+<a href="#spartan3-CLB-SLICE[3]-F[5]">SLICE[3]: ! F bit 5</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1481,10 +1936,18 @@
 </tr>
 
 <tr><td>B41</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][41]" title="MAIN[0][41]">
+<a href="#spartan3-CLB-SLICE[2]-F[6]">SLICE[2]: ! F bit 6</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][41]" title="MAIN[1][41]">
+<a href="#spartan3-CLB-SLICE[2]-CY0F[0]">SLICE[2]:  CY0F bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][41]" title="MAIN[2][41]">
+<a href="#spartan3-CLB-SLICE[3]-CY0F[0]">SLICE[3]:  CY0F bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][41]" title="MAIN[3][41]">
+<a href="#spartan3-CLB-SLICE[3]-F[6]">SLICE[3]: ! F bit 6</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1503,10 +1966,16 @@
 </tr>
 
 <tr><td>B40</td>
+<td id="spartan3-CLB-bit-MAIN[0][40]" title="MAIN[0][40]">
+<a href="#spartan3-CLB-SLICE[2]-F[7]">SLICE[2]: ! F bit 7</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][40]" title="MAIN[1][40]">
+<a href="#spartan3-CLB-SLICE[2]-F_SHIFT_ENABLE">SLICE[2]: ! F_SHIFT_ENABLE</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][40]" title="MAIN[3][40]">
+<a href="#spartan3-CLB-SLICE[3]-F[7]">SLICE[3]: ! F bit 7</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1525,10 +1994,18 @@
 </tr>
 
 <tr><td>B39</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][39]" title="MAIN[0][39]">
+<a href="#spartan3-CLB-SLICE[2]-F[8]">SLICE[2]: ! F bit 8</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][39]" title="MAIN[1][39]">
+<a href="#spartan3-CLB-SLICE[2]-CY0F[2]">SLICE[2]:  CY0F bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][39]" title="MAIN[2][39]">
+<a href="#spartan3-CLB-SLICE[3]-CY0F[2]">SLICE[3]:  CY0F bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][39]" title="MAIN[3][39]">
+<a href="#spartan3-CLB-SLICE[3]-F[8]">SLICE[3]: ! F bit 8</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1547,10 +2024,16 @@
 </tr>
 
 <tr><td>B38</td>
+<td id="spartan3-CLB-bit-MAIN[0][38]" title="MAIN[0][38]">
+<a href="#spartan3-CLB-SLICE[2]-F[9]">SLICE[2]: ! F bit 9</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][38]" title="MAIN[1][38]">
+<a href="#spartan3-CLB-SLICE[2]-G_SHIFT_ENABLE">SLICE[2]: ! G_SHIFT_ENABLE</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][38]" title="MAIN[3][38]">
+<a href="#spartan3-CLB-SLICE[3]-F[9]">SLICE[3]: ! F bit 9</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1569,10 +2052,16 @@
 </tr>
 
 <tr><td>B37</td>
+<td id="spartan3-CLB-bit-MAIN[0][37]" title="MAIN[0][37]">
+<a href="#spartan3-CLB-SLICE[2]-F[10]">SLICE[2]: ! F bit 10</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][37]" title="MAIN[1][37]">
+<a href="#spartan3-CLB-SLICE[2]-YBMUX[0]">SLICE[2]:  YBMUX bit 0</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][37]" title="MAIN[3][37]">
+<a href="#spartan3-CLB-SLICE[3]-F[10]">SLICE[3]: ! F bit 10</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1591,12 +2080,22 @@
 </tr>
 
 <tr><td>B36</td>
+<td id="spartan3-CLB-bit-MAIN[0][36]" title="MAIN[0][36]">
+<a href="#spartan3-CLB-SLICE[2]-F[11]">SLICE[2]: ! F bit 11</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][36]" title="MAIN[1][36]">
+<a href="#spartan3-CLB-SLICE[2]-CYINIT[0]">SLICE[2]:  CYINIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][36]" title="MAIN[2][36]">
+<a href="#spartan3-CLB-SLICE[3]-CYINIT[0]">SLICE[3]:  CYINIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][36]" title="MAIN[3][36]">
+<a href="#spartan3-CLB-SLICE[3]-F[11]">SLICE[3]: ! F bit 11</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[5][36]" title="MAIN[5][36]">
+<a href="#spartan3-CLB-SLICE[3]-inpinv-BX">SLICE[3]: invert BX</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1613,12 +2112,22 @@
 </tr>
 
 <tr><td>B35</td>
+<td id="spartan3-CLB-bit-MAIN[0][35]" title="MAIN[0][35]">
+<a href="#spartan3-CLB-SLICE[2]-F[12]">SLICE[2]: ! F bit 12</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][35]" title="MAIN[1][35]">
+<a href="#spartan3-CLB-SLICE[2]-CYSELG[0]">SLICE[2]:  CYSELG bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][35]" title="MAIN[2][35]">
+<a href="#spartan3-CLB-SLICE[3]-CYSELG[0]">SLICE[3]:  CYSELG bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][35]" title="MAIN[3][35]">
+<a href="#spartan3-CLB-SLICE[3]-F[12]">SLICE[3]: ! F bit 12</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[5][35]" title="MAIN[5][35]">
+<a href="#spartan3-CLB-SLICE[2]-inpinv-BY">SLICE[2]: invert BY</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1635,10 +2144,18 @@
 </tr>
 
 <tr><td>B34</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][34]" title="MAIN[0][34]">
+<a href="#spartan3-CLB-SLICE[2]-F[13]">SLICE[2]: ! F bit 13</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][34]" title="MAIN[1][34]">
+<a href="#spartan3-CLB-SLICE[2]-FXMUX[0]">SLICE[2]:  FXMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][34]" title="MAIN[2][34]">
+<a href="#spartan3-CLB-SLICE[3]-FXMUX[0]">SLICE[3]:  FXMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][34]" title="MAIN[3][34]">
+<a href="#spartan3-CLB-SLICE[3]-F[13]">SLICE[3]: ! F bit 13</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1657,10 +2174,16 @@
 </tr>
 
 <tr><td>B33</td>
+<td id="spartan3-CLB-bit-MAIN[0][33]" title="MAIN[0][33]">
+<a href="#spartan3-CLB-SLICE[2]-F[14]">SLICE[2]: ! F bit 14</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][33]" title="MAIN[1][33]">
+<a href="#spartan3-CLB-SLICE[2]-XBMUX[0]">SLICE[2]:  XBMUX bit 0</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][33]" title="MAIN[3][33]">
+<a href="#spartan3-CLB-SLICE[3]-F[14]">SLICE[3]: ! F bit 14</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1679,12 +2202,22 @@
 </tr>
 
 <tr><td>B32</td>
+<td id="spartan3-CLB-bit-MAIN[0][32]" title="MAIN[0][32]">
+<a href="#spartan3-CLB-SLICE[2]-F[15]">SLICE[2]: ! F bit 15</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][32]" title="MAIN[1][32]">
+<a href="#spartan3-CLB-SLICE[2]-CYSELF[0]">SLICE[2]:  CYSELF bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][32]" title="MAIN[2][32]">
+<a href="#spartan3-CLB-SLICE[3]-CYSELF[0]">SLICE[3]:  CYSELF bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][32]" title="MAIN[3][32]">
+<a href="#spartan3-CLB-SLICE[3]-F[15]">SLICE[3]: ! F bit 15</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[5][32]" title="MAIN[5][32]">
+<a href="#spartan3-CLB-SLICE[2]-inpinv-BX">SLICE[2]: invert BX</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1701,12 +2234,22 @@
 </tr>
 
 <tr><td>B31</td>
+<td id="spartan3-CLB-bit-MAIN[0][31]" title="MAIN[0][31]">
+<a href="#spartan3-CLB-SLICE[0]-G[0]">SLICE[0]: ! G bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][31]" title="MAIN[1][31]">
+<a href="#spartan3-CLB-SLICE[0]-CY0G[2]">SLICE[0]:  CY0G bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][31]" title="MAIN[2][31]">
+<a href="#spartan3-CLB-SLICE[1]-CY0G[2]">SLICE[1]:  CY0G bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][31]" title="MAIN[3][31]">
+<a href="#spartan3-CLB-SLICE[1]-G[0]">SLICE[1]: ! G bit 0</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[5][31]" title="MAIN[5][31]">
+<a href="#spartan3-CLB-SLICE[1]-inpinv-BY">SLICE[1]: invert BY</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1723,10 +2266,18 @@
 </tr>
 
 <tr><td>B30</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][30]" title="MAIN[0][30]">
+<a href="#spartan3-CLB-SLICE[0]-G[1]">SLICE[0]: ! G bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][30]" title="MAIN[1][30]">
+<a href="#spartan3-CLB-SLICE[0]-CY0G[1]">SLICE[0]:  CY0G bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][30]" title="MAIN[2][30]">
+<a href="#spartan3-CLB-SLICE[1]-CY0G[1]">SLICE[1]:  CY0G bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][30]" title="MAIN[3][30]">
+<a href="#spartan3-CLB-SLICE[1]-G[1]">SLICE[1]: ! G bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1745,10 +2296,18 @@
 </tr>
 
 <tr><td>B29</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][29]" title="MAIN[0][29]">
+<a href="#spartan3-CLB-SLICE[0]-G[2]">SLICE[0]: ! G bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][29]" title="MAIN[1][29]">
+<a href="#spartan3-CLB-SLICE[0]-CY0G[0]">SLICE[0]:  CY0G bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][29]" title="MAIN[2][29]">
+<a href="#spartan3-CLB-SLICE[1]-CY0G[0]">SLICE[1]:  CY0G bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][29]" title="MAIN[3][29]">
+<a href="#spartan3-CLB-SLICE[1]-G[2]">SLICE[1]: ! G bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1767,12 +2326,22 @@
 </tr>
 
 <tr><td>B28</td>
+<td id="spartan3-CLB-bit-MAIN[0][28]" title="MAIN[0][28]">
+<a href="#spartan3-CLB-SLICE[0]-G[3]">SLICE[0]: ! G bit 3</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][28]" title="MAIN[1][28]">
+<a href="#spartan3-CLB-SLICE[0]-GYMUX[1]">SLICE[0]:  GYMUX bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][28]" title="MAIN[2][28]">
+<a href="#spartan3-CLB-SLICE[1]-GYMUX[1]">SLICE[1]:  GYMUX bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][28]" title="MAIN[3][28]">
+<a href="#spartan3-CLB-SLICE[1]-G[3]">SLICE[1]: ! G bit 3</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[5][28]" title="MAIN[5][28]">
+<a href="#spartan3-CLB-SLICE[1]-inpinv-BX">SLICE[1]: invert BX</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1789,12 +2358,22 @@
 </tr>
 
 <tr><td>B27</td>
+<td id="spartan3-CLB-bit-MAIN[0][27]" title="MAIN[0][27]">
+<a href="#spartan3-CLB-SLICE[0]-G[4]">SLICE[0]: ! G bit 4</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][27]" title="MAIN[1][27]">
+<a href="#spartan3-CLB-SLICE[0]-DYMUX[0]">SLICE[0]:  DYMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][27]" title="MAIN[2][27]">
+<a href="#spartan3-CLB-SLICE[1]-DYMUX[0]">SLICE[1]:  DYMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][27]" title="MAIN[3][27]">
+<a href="#spartan3-CLB-SLICE[1]-G[4]">SLICE[1]: ! G bit 4</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[5][27]" title="MAIN[5][27]">
+<a href="#spartan3-CLB-SLICE[0]-inpinv-BY">SLICE[0]: invert BY</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1811,10 +2390,16 @@
 </tr>
 
 <tr><td>B26</td>
+<td id="spartan3-CLB-bit-MAIN[0][26]" title="MAIN[0][26]">
+<a href="#spartan3-CLB-SLICE[0]-G[5]">SLICE[0]: ! G bit 5</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][26]" title="MAIN[1][26]">
+<a href="#spartan3-CLB-SLICE[0]-DIG_MUX[0]">SLICE[0]:  DIG_MUX bit 0</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][26]" title="MAIN[3][26]">
+<a href="#spartan3-CLB-SLICE[1]-G[5]">SLICE[1]: ! G bit 5</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1833,10 +2418,18 @@
 </tr>
 
 <tr><td>B25</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][25]" title="MAIN[0][25]">
+<a href="#spartan3-CLB-SLICE[0]-G[6]">SLICE[0]: ! G bit 6</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][25]" title="MAIN[1][25]">
+<a href="#spartan3-CLB-SLICE[0]-GYMUX[0]">SLICE[0]:  GYMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][25]" title="MAIN[2][25]">
+<a href="#spartan3-CLB-SLICE[1]-GYMUX[0]">SLICE[1]:  GYMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][25]" title="MAIN[3][25]">
+<a href="#spartan3-CLB-SLICE[1]-G[6]">SLICE[1]: ! G bit 6</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1855,10 +2448,18 @@
 </tr>
 
 <tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][24]" title="MAIN[0][24]">
+<a href="#spartan3-CLB-SLICE[0]-G[7]">SLICE[0]: ! G bit 7</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][24]" title="MAIN[1][24]">
+<a href="#spartan3-CLB-SLICE[0]-FFY_SRVAL[0]">SLICE[0]: ! FFY_SRVAL bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][24]" title="MAIN[2][24]">
+<a href="#spartan3-CLB-SLICE[1]-FFY_SRVAL[0]">SLICE[1]: ! FFY_SRVAL bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][24]" title="MAIN[3][24]">
+<a href="#spartan3-CLB-SLICE[1]-G[7]">SLICE[1]: ! G bit 7</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1877,10 +2478,18 @@
 </tr>
 
 <tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][23]" title="MAIN[0][23]">
+<a href="#spartan3-CLB-SLICE[0]-G[8]">SLICE[0]: ! G bit 8</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][23]" title="MAIN[1][23]">
+<a href="#spartan3-CLB-SLICE[0]-FF_REV_ENABLE">SLICE[0]:  FF_REV_ENABLE</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][23]" title="MAIN[2][23]">
+<a href="#spartan3-CLB-SLICE[1]-FF_REV_ENABLE">SLICE[1]:  FF_REV_ENABLE</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][23]" title="MAIN[3][23]">
+<a href="#spartan3-CLB-SLICE[1]-G[8]">SLICE[1]: ! G bit 8</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1899,10 +2508,18 @@
 </tr>
 
 <tr><td>B22</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][22]" title="MAIN[0][22]">
+<a href="#spartan3-CLB-SLICE[0]-G[9]">SLICE[0]: ! G bit 9</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][22]" title="MAIN[1][22]">
+<a href="#spartan3-CLB-SLICE[0]-FF_LATCH">SLICE[0]:  FF_LATCH</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][22]" title="MAIN[2][22]">
+<a href="#spartan3-CLB-SLICE[1]-FF_LATCH">SLICE[1]:  FF_LATCH</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][22]" title="MAIN[3][22]">
+<a href="#spartan3-CLB-SLICE[1]-G[9]">SLICE[1]: ! G bit 9</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1921,10 +2538,18 @@
 </tr>
 
 <tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][21]" title="MAIN[0][21]">
+<a href="#spartan3-CLB-SLICE[0]-G[10]">SLICE[0]: ! G bit 10</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][21]" title="MAIN[1][21]">
+<a href="#spartan3-CLB-SLICE[0]-FFY_INIT[0]">SLICE[0]: ! FFY_INIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][21]" title="MAIN[2][21]">
+<a href="#spartan3-CLB-SLICE[1]-FFY_INIT[0]">SLICE[1]: ! FFY_INIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][21]" title="MAIN[3][21]">
+<a href="#spartan3-CLB-SLICE[1]-G[10]">SLICE[1]: ! G bit 10</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1943,10 +2568,16 @@
 </tr>
 
 <tr><td>B20</td>
+<td id="spartan3-CLB-bit-MAIN[0][20]" title="MAIN[0][20]">
+<a href="#spartan3-CLB-SLICE[0]-G[11]">SLICE[0]: ! G bit 11</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][20]" title="MAIN[1][20]">
+<a href="#spartan3-CLB-SLICE[0]-SLICEWE1USED">SLICE[0]:  SLICEWE1USED</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][20]" title="MAIN[3][20]">
+<a href="#spartan3-CLB-SLICE[1]-G[11]">SLICE[1]: ! G bit 11</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1965,10 +2596,18 @@
 </tr>
 
 <tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][19]" title="MAIN[0][19]">
+<a href="#spartan3-CLB-SLICE[0]-G[12]">SLICE[0]: ! G bit 12</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][19]" title="MAIN[1][19]">
+<a href="#spartan3-CLB-SLICE[0]-FF_SR_SYNC">SLICE[0]:  FF_SR_SYNC</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][19]" title="MAIN[2][19]">
+<a href="#spartan3-CLB-SLICE[1]-FF_SR_SYNC">SLICE[1]:  FF_SR_SYNC</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][19]" title="MAIN[3][19]">
+<a href="#spartan3-CLB-SLICE[1]-G[12]">SLICE[1]: ! G bit 12</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1987,10 +2626,18 @@
 </tr>
 
 <tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][18]" title="MAIN[0][18]">
+<a href="#spartan3-CLB-SLICE[0]-G[13]">SLICE[0]: ! G bit 13</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][18]" title="MAIN[1][18]">
+<a href="#spartan3-CLB-SLICE[0]-FFX_INIT[0]">SLICE[0]: ! FFX_INIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][18]" title="MAIN[2][18]">
+<a href="#spartan3-CLB-SLICE[1]-FFX_INIT[0]">SLICE[1]: ! FFX_INIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][18]" title="MAIN[3][18]">
+<a href="#spartan3-CLB-SLICE[1]-G[13]">SLICE[1]: ! G bit 13</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2009,10 +2656,18 @@
 </tr>
 
 <tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][17]" title="MAIN[0][17]">
+<a href="#spartan3-CLB-SLICE[0]-G[14]">SLICE[0]: ! G bit 14</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][17]" title="MAIN[1][17]">
+<a href="#spartan3-CLB-SLICE[0]-FF_SR_ENABLE">SLICE[0]: ! FF_SR_ENABLE</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][17]" title="MAIN[2][17]">
+<a href="#spartan3-CLB-SLICE[0]-SLICEWE0USED">SLICE[0]:  SLICEWE0USED</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][17]" title="MAIN[3][17]">
+<a href="#spartan3-CLB-SLICE[1]-G[14]">SLICE[1]: ! G bit 14</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2031,10 +2686,18 @@
 </tr>
 
 <tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][16]" title="MAIN[0][16]">
+<a href="#spartan3-CLB-SLICE[0]-G[15]">SLICE[0]: ! G bit 15</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][16]" title="MAIN[1][16]">
+<a href="#spartan3-CLB-SLICE[0]-FXMUX[1]">SLICE[0]:  FXMUX bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][16]" title="MAIN[2][16]">
+<a href="#spartan3-CLB-SLICE[1]-FXMUX[1]">SLICE[1]:  FXMUX bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][16]" title="MAIN[3][16]">
+<a href="#spartan3-CLB-SLICE[1]-G[15]">SLICE[1]: ! G bit 15</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2053,10 +2716,16 @@
 </tr>
 
 <tr><td>B15</td>
+<td id="spartan3-CLB-bit-MAIN[0][15]" title="MAIN[0][15]">
+<a href="#spartan3-CLB-SLICE[0]-F[0]">SLICE[0]: ! F bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][15]" title="MAIN[1][15]">
+<a href="#spartan3-CLB-SLICE[0]-DIF_MUX[0]">SLICE[0]:  DIF_MUX bit 0</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][15]" title="MAIN[3][15]">
+<a href="#spartan3-CLB-SLICE[1]-F[0]">SLICE[1]: ! F bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2075,12 +2744,22 @@
 </tr>
 
 <tr><td>B14</td>
+<td id="spartan3-CLB-bit-MAIN[0][14]" title="MAIN[0][14]">
+<a href="#spartan3-CLB-SLICE[0]-F[1]">SLICE[0]: ! F bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][14]" title="MAIN[1][14]">
+<a href="#spartan3-CLB-SLICE[0]-FFX_SRVAL[0]">SLICE[0]: ! FFX_SRVAL bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][14]" title="MAIN[2][14]">
+<a href="#spartan3-CLB-SLICE[1]-FFX_SRVAL[0]">SLICE[1]: ! FFX_SRVAL bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][14]" title="MAIN[3][14]">
+<a href="#spartan3-CLB-SLICE[1]-F[1]">SLICE[1]: ! F bit 1</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[5][14]" title="MAIN[5][14]">
+<a href="#spartan3-CLB-SLICE[0]-inpinv-BX">SLICE[0]: invert BX</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2097,10 +2776,16 @@
 </tr>
 
 <tr><td>B13</td>
+<td id="spartan3-CLB-bit-MAIN[0][13]" title="MAIN[0][13]">
+<a href="#spartan3-CLB-SLICE[0]-F[2]">SLICE[0]: ! F bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][13]" title="MAIN[1][13]">
+<a href="#spartan3-CLB-SLICE[0]-F_RAM_ENABLE">SLICE[0]: ! F_RAM_ENABLE</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][13]" title="MAIN[3][13]">
+<a href="#spartan3-CLB-SLICE[1]-F[2]">SLICE[1]: ! F bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2119,10 +2804,16 @@
 </tr>
 
 <tr><td>B12</td>
+<td id="spartan3-CLB-bit-MAIN[0][12]" title="MAIN[0][12]">
+<a href="#spartan3-CLB-SLICE[0]-F[3]">SLICE[0]: ! F bit 3</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][12]" title="MAIN[1][12]">
+<a href="#spartan3-CLB-SLICE[0]-G_RAM_ENABLE">SLICE[0]: ! G_RAM_ENABLE</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][12]" title="MAIN[3][12]">
+<a href="#spartan3-CLB-SLICE[1]-F[3]">SLICE[1]: ! F bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2141,10 +2832,18 @@
 </tr>
 
 <tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][11]" title="MAIN[0][11]">
+<a href="#spartan3-CLB-SLICE[0]-F[4]">SLICE[0]: ! F bit 4</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][11]" title="MAIN[1][11]">
+<a href="#spartan3-CLB-SLICE[0]-DXMUX[0]">SLICE[0]:  DXMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][11]" title="MAIN[2][11]">
+<a href="#spartan3-CLB-SLICE[1]-DXMUX[0]">SLICE[1]:  DXMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][11]" title="MAIN[3][11]">
+<a href="#spartan3-CLB-SLICE[1]-F[4]">SLICE[1]: ! F bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2163,10 +2862,18 @@
 </tr>
 
 <tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][10]" title="MAIN[0][10]">
+<a href="#spartan3-CLB-SLICE[0]-F[5]">SLICE[0]: ! F bit 5</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][10]" title="MAIN[1][10]">
+<a href="#spartan3-CLB-SLICE[0]-CY0F[1]">SLICE[0]:  CY0F bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][10]" title="MAIN[2][10]">
+<a href="#spartan3-CLB-SLICE[1]-CY0F[1]">SLICE[1]:  CY0F bit 1</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][10]" title="MAIN[3][10]">
+<a href="#spartan3-CLB-SLICE[1]-F[5]">SLICE[1]: ! F bit 5</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2185,10 +2892,18 @@
 </tr>
 
 <tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][9]" title="MAIN[0][9]">
+<a href="#spartan3-CLB-SLICE[0]-F[6]">SLICE[0]: ! F bit 6</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][9]" title="MAIN[1][9]">
+<a href="#spartan3-CLB-SLICE[0]-CY0F[0]">SLICE[0]:  CY0F bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][9]" title="MAIN[2][9]">
+<a href="#spartan3-CLB-SLICE[1]-CY0F[0]">SLICE[1]:  CY0F bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][9]" title="MAIN[3][9]">
+<a href="#spartan3-CLB-SLICE[1]-F[6]">SLICE[1]: ! F bit 6</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2207,10 +2922,16 @@
 </tr>
 
 <tr><td>B8</td>
+<td id="spartan3-CLB-bit-MAIN[0][8]" title="MAIN[0][8]">
+<a href="#spartan3-CLB-SLICE[0]-F[7]">SLICE[0]: ! F bit 7</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][8]" title="MAIN[1][8]">
+<a href="#spartan3-CLB-SLICE[0]-F_SHIFT_ENABLE">SLICE[0]: ! F_SHIFT_ENABLE</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][8]" title="MAIN[3][8]">
+<a href="#spartan3-CLB-SLICE[1]-F[7]">SLICE[1]: ! F bit 7</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2229,10 +2950,18 @@
 </tr>
 
 <tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][7]" title="MAIN[0][7]">
+<a href="#spartan3-CLB-SLICE[0]-F[8]">SLICE[0]: ! F bit 8</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][7]" title="MAIN[1][7]">
+<a href="#spartan3-CLB-SLICE[0]-CY0F[2]">SLICE[0]:  CY0F bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][7]" title="MAIN[2][7]">
+<a href="#spartan3-CLB-SLICE[1]-CY0F[2]">SLICE[1]:  CY0F bit 2</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][7]" title="MAIN[3][7]">
+<a href="#spartan3-CLB-SLICE[1]-F[8]">SLICE[1]: ! F bit 8</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2251,10 +2980,16 @@
 </tr>
 
 <tr><td>B6</td>
+<td id="spartan3-CLB-bit-MAIN[0][6]" title="MAIN[0][6]">
+<a href="#spartan3-CLB-SLICE[0]-F[9]">SLICE[0]: ! F bit 9</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][6]" title="MAIN[1][6]">
+<a href="#spartan3-CLB-SLICE[0]-G_SHIFT_ENABLE">SLICE[0]: ! G_SHIFT_ENABLE</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][6]" title="MAIN[3][6]">
+<a href="#spartan3-CLB-SLICE[1]-F[9]">SLICE[1]: ! F bit 9</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2273,10 +3008,16 @@
 </tr>
 
 <tr><td>B5</td>
+<td id="spartan3-CLB-bit-MAIN[0][5]" title="MAIN[0][5]">
+<a href="#spartan3-CLB-SLICE[0]-F[10]">SLICE[0]: ! F bit 10</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][5]" title="MAIN[1][5]">
+<a href="#spartan3-CLB-SLICE[0]-YBMUX[0]">SLICE[0]:  YBMUX bit 0</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][5]" title="MAIN[3][5]">
+<a href="#spartan3-CLB-SLICE[1]-F[10]">SLICE[1]: ! F bit 10</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2295,10 +3036,18 @@
 </tr>
 
 <tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][4]" title="MAIN[0][4]">
+<a href="#spartan3-CLB-SLICE[0]-F[11]">SLICE[0]: ! F bit 11</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][4]" title="MAIN[1][4]">
+<a href="#spartan3-CLB-SLICE[0]-CYINIT[0]">SLICE[0]:  CYINIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][4]" title="MAIN[2][4]">
+<a href="#spartan3-CLB-SLICE[1]-CYINIT[0]">SLICE[1]:  CYINIT bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][4]" title="MAIN[3][4]">
+<a href="#spartan3-CLB-SLICE[1]-F[11]">SLICE[1]: ! F bit 11</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2317,10 +3066,18 @@
 </tr>
 
 <tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][3]" title="MAIN[0][3]">
+<a href="#spartan3-CLB-SLICE[0]-F[12]">SLICE[0]: ! F bit 12</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][3]" title="MAIN[1][3]">
+<a href="#spartan3-CLB-SLICE[0]-CYSELG[0]">SLICE[0]:  CYSELG bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][3]" title="MAIN[2][3]">
+<a href="#spartan3-CLB-SLICE[1]-CYSELG[0]">SLICE[1]:  CYSELG bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][3]" title="MAIN[3][3]">
+<a href="#spartan3-CLB-SLICE[1]-F[12]">SLICE[1]: ! F bit 12</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2339,10 +3096,18 @@
 </tr>
 
 <tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[0][2]" title="MAIN[0][2]">
+<a href="#spartan3-CLB-SLICE[0]-F[13]">SLICE[0]: ! F bit 13</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][2]" title="MAIN[1][2]">
+<a href="#spartan3-CLB-SLICE[0]-FXMUX[0]">SLICE[0]:  FXMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[2][2]" title="MAIN[2][2]">
+<a href="#spartan3-CLB-SLICE[1]-FXMUX[0]">SLICE[1]:  FXMUX bit 0</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[3][2]" title="MAIN[3][2]">
+<a href="#spartan3-CLB-SLICE[1]-F[13]">SLICE[1]: ! F bit 13</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2361,10 +3126,16 @@
 </tr>
 
 <tr><td>B1</td>
+<td id="spartan3-CLB-bit-MAIN[0][1]" title="MAIN[0][1]">
+<a href="#spartan3-CLB-SLICE[0]-F[14]">SLICE[0]: ! F bit 14</a>
+</td>
+<td id="spartan3-CLB-bit-MAIN[1][1]" title="MAIN[1][1]">
+<a href="#spartan3-CLB-SLICE[0]-XBMUX[0]">SLICE[0]:  XBMUX bit 0</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CLB-bit-MAIN[3][1]" title="MAIN[3][1]">
+<a href="#spartan3-CLB-SLICE[1]-F[14]">SLICE[1]: ! F bit 14</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2383,2046 +3154,33 @@
 </tr>
 
 <tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan3 CLB rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="6">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B63</td>
-<td title="R0.F0.B63">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[0]</a>
-</td>
-<td title="R0.F1.B63">
-<a href="#tile-spartan3-CLB-SLICE[2]:CY0G">SLICE[2]:CY0G[1]</a>
-</td>
-<td title="R0.F2.B63">
-<a href="#tile-spartan3-CLB-SLICE[3]:CY0G">SLICE[3]:CY0G[1]</a>
-</td>
-<td title="R0.F3.B63">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[0]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B62</td>
-<td title="R0.F0.B62">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[1]</a>
-</td>
-<td title="R0.F1.B62">
-<a href="#tile-spartan3-CLB-SLICE[2]:CY0G">SLICE[2]:CY0G[2]</a>
-</td>
-<td title="R0.F2.B62">
-<a href="#tile-spartan3-CLB-SLICE[3]:CY0G">SLICE[3]:CY0G[2]</a>
-</td>
-<td title="R0.F3.B62">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[1]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B61</td>
-<td title="R0.F0.B61">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[2]</a>
-</td>
-<td title="R0.F1.B61">
-<a href="#tile-spartan3-CLB-SLICE[2]:CY0G">SLICE[2]:CY0G[0]</a>
-</td>
-<td title="R0.F2.B61">
-<a href="#tile-spartan3-CLB-SLICE[3]:CY0G">SLICE[3]:CY0G[0]</a>
-</td>
-<td title="R0.F3.B61">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[2]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B60</td>
-<td title="R0.F0.B60">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[3]</a>
-</td>
-<td title="R0.F1.B60">
-<a href="#tile-spartan3-CLB-SLICE[2]:GYMUX">SLICE[2]:GYMUX[1]</a>
-</td>
-<td title="R0.F2.B60">
-<a href="#tile-spartan3-CLB-SLICE[3]:GYMUX">SLICE[3]:GYMUX[1]</a>
-</td>
-<td title="R0.F3.B60">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[3]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B59</td>
-<td title="R0.F0.B59">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[4]</a>
-</td>
-<td title="R0.F1.B59">
-<a href="#tile-spartan3-CLB-SLICE[2]:DYMUX">SLICE[2]:DYMUX[0]</a>
-</td>
-<td title="R0.F2.B59">
-<a href="#tile-spartan3-CLB-SLICE[3]:DYMUX">SLICE[3]:DYMUX[0]</a>
-</td>
-<td title="R0.F3.B59">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[4]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B58</td>
-<td title="R0.F0.B58">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[5]</a>
-</td>
-<td title="R0.F1.B58">
-<a href="#tile-spartan3-CLB-SLICE[2]:DIG_MUX">SLICE[2]:DIG_MUX[0]</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B58">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[5]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B57</td>
-<td title="R0.F0.B57">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[6]</a>
-</td>
-<td title="R0.F1.B57">
-<a href="#tile-spartan3-CLB-SLICE[2]:GYMUX">SLICE[2]:GYMUX[0]</a>
-</td>
-<td title="R0.F2.B57">
-<a href="#tile-spartan3-CLB-SLICE[3]:GYMUX">SLICE[3]:GYMUX[0]</a>
-</td>
-<td title="R0.F3.B57">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[6]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B56</td>
-<td title="R0.F0.B56">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[7]</a>
-</td>
-<td title="R0.F1.B56">
-<a href="#tile-spartan3-CLB-SLICE[2]:FFY_SRVAL">~SLICE[2]:FFY_SRVAL</a>
-</td>
-<td title="R0.F2.B56">
-<a href="#tile-spartan3-CLB-SLICE[3]:FFY_SRVAL">~SLICE[3]:FFY_SRVAL</a>
-</td>
-<td title="R0.F3.B56">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[7]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B55</td>
-<td title="R0.F0.B55">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[8]</a>
-</td>
-<td title="R0.F1.B55">
-<a href="#tile-spartan3-CLB-SLICE[2]:FF_REV_ENABLE">SLICE[2]:FF_REV_ENABLE</a>
-</td>
-<td title="R0.F2.B55">
-<a href="#tile-spartan3-CLB-SLICE[3]:FF_REV_ENABLE">SLICE[3]:FF_REV_ENABLE</a>
-</td>
-<td title="R0.F3.B55">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[8]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B54</td>
-<td title="R0.F0.B54">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[9]</a>
-</td>
-<td title="R0.F1.B54">
-<a href="#tile-spartan3-CLB-SLICE[2]:FF_LATCH">SLICE[2]:FF_LATCH</a>
-</td>
-<td title="R0.F2.B54">
-<a href="#tile-spartan3-CLB-SLICE[3]:FF_LATCH">SLICE[3]:FF_LATCH</a>
-</td>
-<td title="R0.F3.B54">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[9]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B53</td>
-<td title="R0.F0.B53">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[10]</a>
-</td>
-<td title="R0.F1.B53">
-<a href="#tile-spartan3-CLB-SLICE[2]:FFY_INIT">~SLICE[2]:FFY_INIT</a>
-</td>
-<td title="R0.F2.B53">
-<a href="#tile-spartan3-CLB-SLICE[3]:FFY_INIT">~SLICE[3]:FFY_INIT</a>
-</td>
-<td title="R0.F3.B53">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[10]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B52</td>
-<td title="R0.F0.B52">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[11]</a>
-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F3.B52">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[11]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B51</td>
-<td title="R0.F0.B51">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[12]</a>
-</td>
-<td title="R0.F1.B51">
-<a href="#tile-spartan3-CLB-SLICE[2]:FF_SR_SYNC">SLICE[2]:FF_SR_SYNC</a>
-</td>
-<td title="R0.F2.B51">
-<a href="#tile-spartan3-CLB-SLICE[3]:FF_SR_SYNC">SLICE[3]:FF_SR_SYNC</a>
-</td>
-<td title="R0.F3.B51">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[12]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B50</td>
-<td title="R0.F0.B50">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[13]</a>
-</td>
-<td title="R0.F1.B50">
-<a href="#tile-spartan3-CLB-SLICE[2]:FFX_INIT">~SLICE[2]:FFX_INIT</a>
-</td>
-<td title="R0.F2.B50">
-<a href="#tile-spartan3-CLB-SLICE[3]:FFX_INIT">~SLICE[3]:FFX_INIT</a>
-</td>
-<td title="R0.F3.B50">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[13]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B49</td>
-<td title="R0.F0.B49">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[14]</a>
-</td>
-<td title="R0.F1.B49">
-<a href="#tile-spartan3-CLB-SLICE[2]:FF_SR_ENABLE">~SLICE[2]:FF_SR_ENABLE</a>
-</td>
-<td title="R0.F2.B49">
-<a href="#tile-spartan3-CLB-SLICE[2]:SLICEWE0USED">SLICE[2]:SLICEWE0USED</a>
-</td>
-<td title="R0.F3.B49">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[14]</a>
-</td>
-<td>-</td>
-<td title="R0.F5.B49">
-<a href="#tile-spartan3-CLB-SLICE[3]:INV.BY">SLICE[3]:INV.BY</a>
-</td>
-</tr>
-
-<tr><td>B48</td>
-<td title="R0.F0.B48">
-<a href="#tile-spartan3-CLB-SLICE[2]:G">~SLICE[2]:G[15]</a>
-</td>
-<td title="R0.F1.B48">
-<a href="#tile-spartan3-CLB-SLICE[2]:FXMUX">SLICE[2]:FXMUX[1]</a>
-</td>
-<td title="R0.F2.B48">
-<a href="#tile-spartan3-CLB-SLICE[3]:FXMUX">SLICE[3]:FXMUX[1]</a>
-</td>
-<td title="R0.F3.B48">
-<a href="#tile-spartan3-CLB-SLICE[3]:G">~SLICE[3]:G[15]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B47</td>
-<td title="R0.F0.B47">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[0]</a>
-</td>
-<td title="R0.F1.B47">
-<a href="#tile-spartan3-CLB-SLICE[2]:DIF_MUX">SLICE[2]:DIF_MUX[0]</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B47">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[0]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B46</td>
-<td title="R0.F0.B46">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[1]</a>
-</td>
-<td title="R0.F1.B46">
-<a href="#tile-spartan3-CLB-SLICE[2]:FFX_SRVAL">~SLICE[2]:FFX_SRVAL</a>
-</td>
-<td title="R0.F2.B46">
-<a href="#tile-spartan3-CLB-SLICE[3]:FFX_SRVAL">~SLICE[3]:FFX_SRVAL</a>
-</td>
-<td title="R0.F3.B46">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[1]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B45</td>
-<td title="R0.F0.B45">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[2]</a>
-</td>
-<td title="R0.F1.B45">
-<a href="#tile-spartan3-CLB-SLICE[2]:F_RAM">~SLICE[2]:F_RAM</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B45">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[2]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B44</td>
-<td title="R0.F0.B44">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[3]</a>
-</td>
-<td title="R0.F1.B44">
-<a href="#tile-spartan3-CLB-SLICE[2]:G_RAM">~SLICE[2]:G_RAM</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B44">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[3]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B43</td>
-<td title="R0.F0.B43">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[4]</a>
-</td>
-<td title="R0.F1.B43">
-<a href="#tile-spartan3-CLB-SLICE[2]:DXMUX">SLICE[2]:DXMUX[0]</a>
-</td>
-<td title="R0.F2.B43">
-<a href="#tile-spartan3-CLB-SLICE[3]:DXMUX">SLICE[3]:DXMUX[0]</a>
-</td>
-<td title="R0.F3.B43">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[4]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B42</td>
-<td title="R0.F0.B42">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[5]</a>
-</td>
-<td title="R0.F1.B42">
-<a href="#tile-spartan3-CLB-SLICE[2]:CY0F">SLICE[2]:CY0F[2]</a>
-</td>
-<td title="R0.F2.B42">
-<a href="#tile-spartan3-CLB-SLICE[3]:CY0F">SLICE[3]:CY0F[2]</a>
-</td>
-<td title="R0.F3.B42">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[5]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B41</td>
-<td title="R0.F0.B41">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[6]</a>
-</td>
-<td title="R0.F1.B41">
-<a href="#tile-spartan3-CLB-SLICE[2]:CY0F">SLICE[2]:CY0F[0]</a>
-</td>
-<td title="R0.F2.B41">
-<a href="#tile-spartan3-CLB-SLICE[3]:CY0F">SLICE[3]:CY0F[0]</a>
-</td>
-<td title="R0.F3.B41">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[6]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B40</td>
-<td title="R0.F0.B40">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[7]</a>
-</td>
-<td title="R0.F1.B40">
-<a href="#tile-spartan3-CLB-SLICE[2]:F_SHIFT">~SLICE[2]:F_SHIFT</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B40">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[7]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B39</td>
-<td title="R0.F0.B39">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[8]</a>
-</td>
-<td title="R0.F1.B39">
-<a href="#tile-spartan3-CLB-SLICE[2]:CY0F">SLICE[2]:CY0F[1]</a>
-</td>
-<td title="R0.F2.B39">
-<a href="#tile-spartan3-CLB-SLICE[3]:CY0F">SLICE[3]:CY0F[1]</a>
-</td>
-<td title="R0.F3.B39">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[8]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B38</td>
-<td title="R0.F0.B38">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[9]</a>
-</td>
-<td title="R0.F1.B38">
-<a href="#tile-spartan3-CLB-SLICE[2]:G_SHIFT">~SLICE[2]:G_SHIFT</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B38">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[9]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B37</td>
-<td title="R0.F0.B37">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[10]</a>
-</td>
-<td title="R0.F1.B37">
-<a href="#tile-spartan3-CLB-SLICE[2]:YBMUX">SLICE[2]:YBMUX[0]</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B37">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[10]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B36</td>
-<td title="R0.F0.B36">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[11]</a>
-</td>
-<td title="R0.F1.B36">
-<a href="#tile-spartan3-CLB-SLICE[2]:CYINIT">SLICE[2]:CYINIT[0]</a>
-</td>
-<td title="R0.F2.B36">
-<a href="#tile-spartan3-CLB-SLICE[3]:CYINIT">SLICE[3]:CYINIT[0]</a>
-</td>
-<td title="R0.F3.B36">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[11]</a>
-</td>
-<td>-</td>
-<td title="R0.F5.B36">
-<a href="#tile-spartan3-CLB-SLICE[3]:INV.BX">SLICE[3]:INV.BX</a>
-</td>
-</tr>
-
-<tr><td>B35</td>
-<td title="R0.F0.B35">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[12]</a>
-</td>
-<td title="R0.F1.B35">
-<a href="#tile-spartan3-CLB-SLICE[2]:CYSELG">SLICE[2]:CYSELG[0]</a>
-</td>
-<td title="R0.F2.B35">
-<a href="#tile-spartan3-CLB-SLICE[3]:CYSELG">SLICE[3]:CYSELG[0]</a>
-</td>
-<td title="R0.F3.B35">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[12]</a>
-</td>
-<td>-</td>
-<td title="R0.F5.B35">
-<a href="#tile-spartan3-CLB-SLICE[2]:INV.BY">SLICE[2]:INV.BY</a>
-</td>
-</tr>
-
-<tr><td>B34</td>
-<td title="R0.F0.B34">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[13]</a>
+<td id="spartan3-CLB-bit-MAIN[0][0]" title="MAIN[0][0]">
+<a href="#spartan3-CLB-SLICE[0]-F[15]">SLICE[0]: ! F bit 15</a>
 </td>
-<td title="R0.F1.B34">
-<a href="#tile-spartan3-CLB-SLICE[2]:FXMUX">SLICE[2]:FXMUX[0]</a>
+<td id="spartan3-CLB-bit-MAIN[1][0]" title="MAIN[1][0]">
+<a href="#spartan3-CLB-SLICE[0]-CYSELF[0]">SLICE[0]:  CYSELF bit 0</a>
 </td>
-<td title="R0.F2.B34">
-<a href="#tile-spartan3-CLB-SLICE[3]:FXMUX">SLICE[3]:FXMUX[0]</a>
+<td id="spartan3-CLB-bit-MAIN[2][0]" title="MAIN[2][0]">
+<a href="#spartan3-CLB-SLICE[1]-CYSELF[0]">SLICE[1]:  CYSELF bit 0</a>
 </td>
-<td title="R0.F3.B34">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[13]</a>
+<td id="spartan3-CLB-bit-MAIN[3][0]" title="MAIN[3][0]">
+<a href="#spartan3-CLB-SLICE[1]-F[15]">SLICE[1]: ! F bit 15</a>
 </td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-<tr><td>B33</td>
-<td title="R0.F0.B33">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[14]</a>
-</td>
-<td title="R0.F1.B33">
-<a href="#tile-spartan3-CLB-SLICE[2]:XBMUX">SLICE[2]:XBMUX[0]</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B33">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[14]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B32</td>
-<td title="R0.F0.B32">
-<a href="#tile-spartan3-CLB-SLICE[2]:F">~SLICE[2]:F[15]</a>
-</td>
-<td title="R0.F1.B32">
-<a href="#tile-spartan3-CLB-SLICE[2]:CYSELF">SLICE[2]:CYSELF[0]</a>
-</td>
-<td title="R0.F2.B32">
-<a href="#tile-spartan3-CLB-SLICE[3]:CYSELF">SLICE[3]:CYSELF[0]</a>
-</td>
-<td title="R0.F3.B32">
-<a href="#tile-spartan3-CLB-SLICE[3]:F">~SLICE[3]:F[15]</a>
-</td>
-<td>-</td>
-<td title="R0.F5.B32">
-<a href="#tile-spartan3-CLB-SLICE[2]:INV.BX">SLICE[2]:INV.BX</a>
-</td>
-</tr>
-
-<tr><td>B31</td>
-<td title="R0.F0.B31">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[0]</a>
-</td>
-<td title="R0.F1.B31">
-<a href="#tile-spartan3-CLB-SLICE[0]:CY0G">SLICE[0]:CY0G[1]</a>
-</td>
-<td title="R0.F2.B31">
-<a href="#tile-spartan3-CLB-SLICE[1]:CY0G">SLICE[1]:CY0G[1]</a>
-</td>
-<td title="R0.F3.B31">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[0]</a>
-</td>
-<td>-</td>
-<td title="R0.F5.B31">
-<a href="#tile-spartan3-CLB-SLICE[1]:INV.BY">SLICE[1]:INV.BY</a>
-</td>
-</tr>
-
-<tr><td>B30</td>
-<td title="R0.F0.B30">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[1]</a>
-</td>
-<td title="R0.F1.B30">
-<a href="#tile-spartan3-CLB-SLICE[0]:CY0G">SLICE[0]:CY0G[2]</a>
-</td>
-<td title="R0.F2.B30">
-<a href="#tile-spartan3-CLB-SLICE[1]:CY0G">SLICE[1]:CY0G[2]</a>
-</td>
-<td title="R0.F3.B30">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[1]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B29</td>
-<td title="R0.F0.B29">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[2]</a>
-</td>
-<td title="R0.F1.B29">
-<a href="#tile-spartan3-CLB-SLICE[0]:CY0G">SLICE[0]:CY0G[0]</a>
-</td>
-<td title="R0.F2.B29">
-<a href="#tile-spartan3-CLB-SLICE[1]:CY0G">SLICE[1]:CY0G[0]</a>
-</td>
-<td title="R0.F3.B29">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[2]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B28</td>
-<td title="R0.F0.B28">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[3]</a>
-</td>
-<td title="R0.F1.B28">
-<a href="#tile-spartan3-CLB-SLICE[0]:GYMUX">SLICE[0]:GYMUX[1]</a>
-</td>
-<td title="R0.F2.B28">
-<a href="#tile-spartan3-CLB-SLICE[1]:GYMUX">SLICE[1]:GYMUX[1]</a>
-</td>
-<td title="R0.F3.B28">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[3]</a>
-</td>
-<td>-</td>
-<td title="R0.F5.B28">
-<a href="#tile-spartan3-CLB-SLICE[1]:INV.BX">SLICE[1]:INV.BX</a>
-</td>
-</tr>
-
-<tr><td>B27</td>
-<td title="R0.F0.B27">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[4]</a>
-</td>
-<td title="R0.F1.B27">
-<a href="#tile-spartan3-CLB-SLICE[0]:DYMUX">SLICE[0]:DYMUX[0]</a>
-</td>
-<td title="R0.F2.B27">
-<a href="#tile-spartan3-CLB-SLICE[1]:DYMUX">SLICE[1]:DYMUX[0]</a>
-</td>
-<td title="R0.F3.B27">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[4]</a>
-</td>
-<td>-</td>
-<td title="R0.F5.B27">
-<a href="#tile-spartan3-CLB-SLICE[0]:INV.BY">SLICE[0]:INV.BY</a>
-</td>
-</tr>
-
-<tr><td>B26</td>
-<td title="R0.F0.B26">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[5]</a>
-</td>
-<td title="R0.F1.B26">
-<a href="#tile-spartan3-CLB-SLICE[0]:DIG_MUX">SLICE[0]:DIG_MUX[0]</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B26">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[5]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td title="R0.F0.B25">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[6]</a>
-</td>
-<td title="R0.F1.B25">
-<a href="#tile-spartan3-CLB-SLICE[0]:GYMUX">SLICE[0]:GYMUX[0]</a>
-</td>
-<td title="R0.F2.B25">
-<a href="#tile-spartan3-CLB-SLICE[1]:GYMUX">SLICE[1]:GYMUX[0]</a>
-</td>
-<td title="R0.F3.B25">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[6]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B24</td>
-<td title="R0.F0.B24">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[7]</a>
-</td>
-<td title="R0.F1.B24">
-<a href="#tile-spartan3-CLB-SLICE[0]:FFY_SRVAL">~SLICE[0]:FFY_SRVAL</a>
-</td>
-<td title="R0.F2.B24">
-<a href="#tile-spartan3-CLB-SLICE[1]:FFY_SRVAL">~SLICE[1]:FFY_SRVAL</a>
-</td>
-<td title="R0.F3.B24">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[7]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td title="R0.F0.B23">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[8]</a>
-</td>
-<td title="R0.F1.B23">
-<a href="#tile-spartan3-CLB-SLICE[0]:FF_REV_ENABLE">SLICE[0]:FF_REV_ENABLE</a>
-</td>
-<td title="R0.F2.B23">
-<a href="#tile-spartan3-CLB-SLICE[1]:FF_REV_ENABLE">SLICE[1]:FF_REV_ENABLE</a>
-</td>
-<td title="R0.F3.B23">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[8]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td title="R0.F0.B22">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[9]</a>
-</td>
-<td title="R0.F1.B22">
-<a href="#tile-spartan3-CLB-SLICE[0]:FF_LATCH">SLICE[0]:FF_LATCH</a>
-</td>
-<td title="R0.F2.B22">
-<a href="#tile-spartan3-CLB-SLICE[1]:FF_LATCH">SLICE[1]:FF_LATCH</a>
-</td>
-<td title="R0.F3.B22">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[9]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td title="R0.F0.B21">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[10]</a>
-</td>
-<td title="R0.F1.B21">
-<a href="#tile-spartan3-CLB-SLICE[0]:FFY_INIT">~SLICE[0]:FFY_INIT</a>
-</td>
-<td title="R0.F2.B21">
-<a href="#tile-spartan3-CLB-SLICE[1]:FFY_INIT">~SLICE[1]:FFY_INIT</a>
-</td>
-<td title="R0.F3.B21">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[10]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td title="R0.F0.B20">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[11]</a>
-</td>
-<td title="R0.F1.B20">
-<a href="#tile-spartan3-CLB-SLICE[0]:SLICEWE1USED">SLICE[0]:SLICEWE1USED</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B20">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[11]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td title="R0.F0.B19">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[12]</a>
-</td>
-<td title="R0.F1.B19">
-<a href="#tile-spartan3-CLB-SLICE[0]:FF_SR_SYNC">SLICE[0]:FF_SR_SYNC</a>
-</td>
-<td title="R0.F2.B19">
-<a href="#tile-spartan3-CLB-SLICE[1]:FF_SR_SYNC">SLICE[1]:FF_SR_SYNC</a>
-</td>
-<td title="R0.F3.B19">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[12]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td title="R0.F0.B18">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[13]</a>
-</td>
-<td title="R0.F1.B18">
-<a href="#tile-spartan3-CLB-SLICE[0]:FFX_INIT">~SLICE[0]:FFX_INIT</a>
-</td>
-<td title="R0.F2.B18">
-<a href="#tile-spartan3-CLB-SLICE[1]:FFX_INIT">~SLICE[1]:FFX_INIT</a>
-</td>
-<td title="R0.F3.B18">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[13]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td title="R0.F0.B17">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[14]</a>
-</td>
-<td title="R0.F1.B17">
-<a href="#tile-spartan3-CLB-SLICE[0]:FF_SR_ENABLE">~SLICE[0]:FF_SR_ENABLE</a>
-</td>
-<td title="R0.F2.B17">
-<a href="#tile-spartan3-CLB-SLICE[0]:SLICEWE0USED">SLICE[0]:SLICEWE0USED</a>
-</td>
-<td title="R0.F3.B17">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[14]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td title="R0.F0.B16">
-<a href="#tile-spartan3-CLB-SLICE[0]:G">~SLICE[0]:G[15]</a>
-</td>
-<td title="R0.F1.B16">
-<a href="#tile-spartan3-CLB-SLICE[0]:FXMUX">SLICE[0]:FXMUX[1]</a>
-</td>
-<td title="R0.F2.B16">
-<a href="#tile-spartan3-CLB-SLICE[1]:FXMUX">SLICE[1]:FXMUX[1]</a>
-</td>
-<td title="R0.F3.B16">
-<a href="#tile-spartan3-CLB-SLICE[1]:G">~SLICE[1]:G[15]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[0]</a>
-</td>
-<td title="R0.F1.B15">
-<a href="#tile-spartan3-CLB-SLICE[0]:DIF_MUX">SLICE[0]:DIF_MUX[0]</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B15">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[0]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[1]</a>
-</td>
-<td title="R0.F1.B14">
-<a href="#tile-spartan3-CLB-SLICE[0]:FFX_SRVAL">~SLICE[0]:FFX_SRVAL</a>
-</td>
-<td title="R0.F2.B14">
-<a href="#tile-spartan3-CLB-SLICE[1]:FFX_SRVAL">~SLICE[1]:FFX_SRVAL</a>
-</td>
-<td title="R0.F3.B14">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[1]</a>
-</td>
-<td>-</td>
-<td title="R0.F5.B14">
-<a href="#tile-spartan3-CLB-SLICE[0]:INV.BX">SLICE[0]:INV.BX</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[2]</a>
-</td>
-<td title="R0.F1.B13">
-<a href="#tile-spartan3-CLB-SLICE[0]:F_RAM">~SLICE[0]:F_RAM</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B13">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[2]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[3]</a>
-</td>
-<td title="R0.F1.B12">
-<a href="#tile-spartan3-CLB-SLICE[0]:G_RAM">~SLICE[0]:G_RAM</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B12">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[3]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[4]</a>
-</td>
-<td title="R0.F1.B11">
-<a href="#tile-spartan3-CLB-SLICE[0]:DXMUX">SLICE[0]:DXMUX[0]</a>
-</td>
-<td title="R0.F2.B11">
-<a href="#tile-spartan3-CLB-SLICE[1]:DXMUX">SLICE[1]:DXMUX[0]</a>
-</td>
-<td title="R0.F3.B11">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[4]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[5]</a>
-</td>
-<td title="R0.F1.B10">
-<a href="#tile-spartan3-CLB-SLICE[0]:CY0F">SLICE[0]:CY0F[2]</a>
-</td>
-<td title="R0.F2.B10">
-<a href="#tile-spartan3-CLB-SLICE[1]:CY0F">SLICE[1]:CY0F[2]</a>
-</td>
-<td title="R0.F3.B10">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[5]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[6]</a>
-</td>
-<td title="R0.F1.B9">
-<a href="#tile-spartan3-CLB-SLICE[0]:CY0F">SLICE[0]:CY0F[0]</a>
-</td>
-<td title="R0.F2.B9">
-<a href="#tile-spartan3-CLB-SLICE[1]:CY0F">SLICE[1]:CY0F[0]</a>
-</td>
-<td title="R0.F3.B9">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[6]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[7]</a>
-</td>
-<td title="R0.F1.B8">
-<a href="#tile-spartan3-CLB-SLICE[0]:F_SHIFT">~SLICE[0]:F_SHIFT</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B8">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[7]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[8]</a>
-</td>
-<td title="R0.F1.B7">
-<a href="#tile-spartan3-CLB-SLICE[0]:CY0F">SLICE[0]:CY0F[1]</a>
-</td>
-<td title="R0.F2.B7">
-<a href="#tile-spartan3-CLB-SLICE[1]:CY0F">SLICE[1]:CY0F[1]</a>
-</td>
-<td title="R0.F3.B7">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[8]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[9]</a>
-</td>
-<td title="R0.F1.B6">
-<a href="#tile-spartan3-CLB-SLICE[0]:G_SHIFT">~SLICE[0]:G_SHIFT</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B6">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[9]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[10]</a>
-</td>
-<td title="R0.F1.B5">
-<a href="#tile-spartan3-CLB-SLICE[0]:YBMUX">SLICE[0]:YBMUX[0]</a>
-</td>
-<td>-</td>
-<td title="R0.F3.B5">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[10]</a>
-</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[11]</a>
-</td>
-<td title="R0.F1.B4">
-<a href="#tile-spartan3-CLB-SLICE[0]:CYINIT">SLICE[0]:CYINIT[0]</a>
-</td>
-<td title="R0.F2.B4">
-<a href="#tile-spartan3-CLB-SLICE[1]:CYINIT">SLICE[1]:CYINIT[0]</a>
-</td>
-<td title="R0.F3.B4">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[11]</a>
-</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[12]</a>
-</td>
-<td title="R0.F1.B3">
-<a href="#tile-spartan3-CLB-SLICE[0]:CYSELG">SLICE[0]:CYSELG[0]</a>
-</td>
-<td title="R0.F2.B3">
-<a href="#tile-spartan3-CLB-SLICE[1]:CYSELG">SLICE[1]:CYSELG[0]</a>
-</td>
-<td title="R0.F3.B3">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[12]</a>
-</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[13]</a>
-</td>
-<td title="R0.F1.B2">
-<a href="#tile-spartan3-CLB-SLICE[0]:FXMUX">SLICE[0]:FXMUX[0]</a>
-</td>
-<td title="R0.F2.B2">
-<a href="#tile-spartan3-CLB-SLICE[1]:FXMUX">SLICE[1]:FXMUX[0]</a>
-</td>
-<td title="R0.F3.B2">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[13]</a>
-</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[14]</a>
-</td>
-<td title="R0.F1.B1">
-<a href="#tile-spartan3-CLB-SLICE[0]:XBMUX">SLICE[0]:XBMUX[0]</a>
-</td>
 <td>-</td>
-<td title="R0.F3.B1">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[14]</a>
-</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-CLB-SLICE[0]:F">~SLICE[0]:F[15]</a>
-</td>
-<td title="R0.F1.B0">
-<a href="#tile-spartan3-CLB-SLICE[0]:CYSELF">SLICE[0]:CYSELF[0]</a>
-</td>
-<td title="R0.F2.B0">
-<a href="#tile-spartan3-CLB-SLICE[1]:CYSELF">SLICE[1]:CYSELF[0]</a>
-</td>
-<td title="R0.F3.B0">
-<a href="#tile-spartan3-CLB-SLICE[1]:F">~SLICE[1]:F[15]</a>
-</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:CY0F">SLICE[0]:CY0F</th>
-<th>0.F1.B10</th>
-<th>0.F1.B7</th>
-<th>0.F1.B9</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:CY0F">SLICE[1]:CY0F</th>
-<th>0.F2.B10</th>
-<th>0.F2.B7</th>
-<th>0.F2.B9</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:CY0F">SLICE[2]:CY0F</th>
-<th>0.F1.B42</th>
-<th>0.F1.B39</th>
-<th>0.F1.B41</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:CY0F">SLICE[3]:CY0F</th>
-<th>0.F2.B42</th>
-<th>0.F2.B39</th>
-<th>0.F2.B41</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>BX</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>F2</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>F1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>PROD</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:CY0G">SLICE[0]:CY0G</th>
-<th>0.F1.B30</th>
-<th>0.F1.B31</th>
-<th>0.F1.B29</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:CY0G">SLICE[1]:CY0G</th>
-<th>0.F2.B30</th>
-<th>0.F2.B31</th>
-<th>0.F2.B29</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:CY0G">SLICE[2]:CY0G</th>
-<th>0.F1.B62</th>
-<th>0.F1.B63</th>
-<th>0.F1.B61</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:CY0G">SLICE[3]:CY0G</th>
-<th>0.F2.B62</th>
-<th>0.F2.B63</th>
-<th>0.F2.B61</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>BY</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>G2</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>G1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>PROD</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:CYINIT">SLICE[0]:CYINIT</th>
-<th>0.F1.B4</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:CYINIT">SLICE[1]:CYINIT</th>
-<th>0.F2.B4</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:CYINIT">SLICE[2]:CYINIT</th>
-<th>0.F1.B36</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:CYINIT">SLICE[3]:CYINIT</th>
-<th>0.F2.B36</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>BX</td>
-<td>0</td>
-</tr>
-
-<tr><td>CIN</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:CYSELF">SLICE[0]:CYSELF</th>
-<th>0.F1.B0</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:CYSELF">SLICE[1]:CYSELF</th>
-<th>0.F2.B0</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:CYSELF">SLICE[2]:CYSELF</th>
-<th>0.F1.B32</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:CYSELF">SLICE[3]:CYSELF</th>
-<th>0.F2.B32</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>F</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:CYSELG">SLICE[0]:CYSELG</th>
-<th>0.F1.B3</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:CYSELG">SLICE[1]:CYSELG</th>
-<th>0.F2.B3</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:CYSELG">SLICE[2]:CYSELG</th>
-<th>0.F1.B35</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:CYSELG">SLICE[3]:CYSELG</th>
-<th>0.F2.B35</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>G</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:DIF_MUX">SLICE[0]:DIF_MUX</th>
-<th>0.F1.B15</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:DIF_MUX">SLICE[2]:DIF_MUX</th>
-<th>0.F1.B47</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>ALT</td>
-<td>0</td>
-</tr>
-
-<tr><td>BX</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:DIG_MUX">SLICE[0]:DIG_MUX</th>
-<th>0.F1.B26</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:DIG_MUX">SLICE[2]:DIG_MUX</th>
-<th>0.F1.B58</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>ALT</td>
-<td>0</td>
-</tr>
-
-<tr><td>BY</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:DXMUX">SLICE[0]:DXMUX</th>
-<th>0.F1.B11</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:DXMUX">SLICE[1]:DXMUX</th>
-<th>0.F2.B11</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:DXMUX">SLICE[2]:DXMUX</th>
-<th>0.F1.B43</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:DXMUX">SLICE[3]:DXMUX</th>
-<th>0.F2.B43</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>BX</td>
-<td>0</td>
-</tr>
-
-<tr><td>X</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:DYMUX">SLICE[0]:DYMUX</th>
-<th>0.F1.B27</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:DYMUX">SLICE[1]:DYMUX</th>
-<th>0.F2.B27</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:DYMUX">SLICE[2]:DYMUX</th>
-<th>0.F1.B59</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:DYMUX">SLICE[3]:DYMUX</th>
-<th>0.F2.B59</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>BY</td>
-<td>0</td>
-</tr>
-
-<tr><td>Y</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:F">SLICE[0]:F</th>
-<th>0.F0.B0</th>
-<th>0.F0.B1</th>
-<th>0.F0.B2</th>
-<th>0.F0.B3</th>
-<th>0.F0.B4</th>
-<th>0.F0.B5</th>
-<th>0.F0.B6</th>
-<th>0.F0.B7</th>
-<th>0.F0.B8</th>
-<th>0.F0.B9</th>
-<th>0.F0.B10</th>
-<th>0.F0.B11</th>
-<th>0.F0.B12</th>
-<th>0.F0.B13</th>
-<th>0.F0.B14</th>
-<th>0.F0.B15</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:G">SLICE[0]:G</th>
-<th>0.F0.B16</th>
-<th>0.F0.B17</th>
-<th>0.F0.B18</th>
-<th>0.F0.B19</th>
-<th>0.F0.B20</th>
-<th>0.F0.B21</th>
-<th>0.F0.B22</th>
-<th>0.F0.B23</th>
-<th>0.F0.B24</th>
-<th>0.F0.B25</th>
-<th>0.F0.B26</th>
-<th>0.F0.B27</th>
-<th>0.F0.B28</th>
-<th>0.F0.B29</th>
-<th>0.F0.B30</th>
-<th>0.F0.B31</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:F">SLICE[1]:F</th>
-<th>0.F3.B0</th>
-<th>0.F3.B1</th>
-<th>0.F3.B2</th>
-<th>0.F3.B3</th>
-<th>0.F3.B4</th>
-<th>0.F3.B5</th>
-<th>0.F3.B6</th>
-<th>0.F3.B7</th>
-<th>0.F3.B8</th>
-<th>0.F3.B9</th>
-<th>0.F3.B10</th>
-<th>0.F3.B11</th>
-<th>0.F3.B12</th>
-<th>0.F3.B13</th>
-<th>0.F3.B14</th>
-<th>0.F3.B15</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:G">SLICE[1]:G</th>
-<th>0.F3.B16</th>
-<th>0.F3.B17</th>
-<th>0.F3.B18</th>
-<th>0.F3.B19</th>
-<th>0.F3.B20</th>
-<th>0.F3.B21</th>
-<th>0.F3.B22</th>
-<th>0.F3.B23</th>
-<th>0.F3.B24</th>
-<th>0.F3.B25</th>
-<th>0.F3.B26</th>
-<th>0.F3.B27</th>
-<th>0.F3.B28</th>
-<th>0.F3.B29</th>
-<th>0.F3.B30</th>
-<th>0.F3.B31</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:F">SLICE[2]:F</th>
-<th>0.F0.B32</th>
-<th>0.F0.B33</th>
-<th>0.F0.B34</th>
-<th>0.F0.B35</th>
-<th>0.F0.B36</th>
-<th>0.F0.B37</th>
-<th>0.F0.B38</th>
-<th>0.F0.B39</th>
-<th>0.F0.B40</th>
-<th>0.F0.B41</th>
-<th>0.F0.B42</th>
-<th>0.F0.B43</th>
-<th>0.F0.B44</th>
-<th>0.F0.B45</th>
-<th>0.F0.B46</th>
-<th>0.F0.B47</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:G">SLICE[2]:G</th>
-<th>0.F0.B48</th>
-<th>0.F0.B49</th>
-<th>0.F0.B50</th>
-<th>0.F0.B51</th>
-<th>0.F0.B52</th>
-<th>0.F0.B53</th>
-<th>0.F0.B54</th>
-<th>0.F0.B55</th>
-<th>0.F0.B56</th>
-<th>0.F0.B57</th>
-<th>0.F0.B58</th>
-<th>0.F0.B59</th>
-<th>0.F0.B60</th>
-<th>0.F0.B61</th>
-<th>0.F0.B62</th>
-<th>0.F0.B63</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:F">SLICE[3]:F</th>
-<th>0.F3.B32</th>
-<th>0.F3.B33</th>
-<th>0.F3.B34</th>
-<th>0.F3.B35</th>
-<th>0.F3.B36</th>
-<th>0.F3.B37</th>
-<th>0.F3.B38</th>
-<th>0.F3.B39</th>
-<th>0.F3.B40</th>
-<th>0.F3.B41</th>
-<th>0.F3.B42</th>
-<th>0.F3.B43</th>
-<th>0.F3.B44</th>
-<th>0.F3.B45</th>
-<th>0.F3.B46</th>
-<th>0.F3.B47</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:G">SLICE[3]:G</th>
-<th>0.F3.B48</th>
-<th>0.F3.B49</th>
-<th>0.F3.B50</th>
-<th>0.F3.B51</th>
-<th>0.F3.B52</th>
-<th>0.F3.B53</th>
-<th>0.F3.B54</th>
-<th>0.F3.B55</th>
-<th>0.F3.B56</th>
-<th>0.F3.B57</th>
-<th>0.F3.B58</th>
-<th>0.F3.B59</th>
-<th>0.F3.B60</th>
-<th>0.F3.B61</th>
-<th>0.F3.B62</th>
-<th>0.F3.B63</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[15]</td>
-<td>~[14]</td>
-<td>~[13]</td>
-<td>~[12]</td>
-<td>~[11]</td>
-<td>~[10]</td>
-<td>~[9]</td>
-<td>~[8]</td>
-<td>~[7]</td>
-<td>~[6]</td>
-<td>~[5]</td>
-<td>~[4]</td>
-<td>~[3]</td>
-<td>~[2]</td>
-<td>~[1]</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:FFX_INIT">SLICE[0]:FFX_INIT</th>
-<th>0.F1.B18</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:FFX_SRVAL">SLICE[0]:FFX_SRVAL</th>
-<th>0.F1.B14</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:FFY_INIT">SLICE[0]:FFY_INIT</th>
-<th>0.F1.B21</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:FFY_SRVAL">SLICE[0]:FFY_SRVAL</th>
-<th>0.F1.B24</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:FF_SR_ENABLE">SLICE[0]:FF_SR_ENABLE</th>
-<th>0.F1.B17</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:F_RAM">SLICE[0]:F_RAM</th>
-<th>0.F1.B13</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:F_SHIFT">SLICE[0]:F_SHIFT</th>
-<th>0.F1.B8</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:G_RAM">SLICE[0]:G_RAM</th>
-<th>0.F1.B12</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:G_SHIFT">SLICE[0]:G_SHIFT</th>
-<th>0.F1.B6</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:FFX_INIT">SLICE[1]:FFX_INIT</th>
-<th>0.F2.B18</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:FFX_SRVAL">SLICE[1]:FFX_SRVAL</th>
-<th>0.F2.B14</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:FFY_INIT">SLICE[1]:FFY_INIT</th>
-<th>0.F2.B21</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:FFY_SRVAL">SLICE[1]:FFY_SRVAL</th>
-<th>0.F2.B24</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:FFX_INIT">SLICE[2]:FFX_INIT</th>
-<th>0.F1.B50</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:FFX_SRVAL">SLICE[2]:FFX_SRVAL</th>
-<th>0.F1.B46</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:FFY_INIT">SLICE[2]:FFY_INIT</th>
-<th>0.F1.B53</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:FFY_SRVAL">SLICE[2]:FFY_SRVAL</th>
-<th>0.F1.B56</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:FF_SR_ENABLE">SLICE[2]:FF_SR_ENABLE</th>
-<th>0.F1.B49</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:F_RAM">SLICE[2]:F_RAM</th>
-<th>0.F1.B45</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:F_SHIFT">SLICE[2]:F_SHIFT</th>
-<th>0.F1.B40</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:G_RAM">SLICE[2]:G_RAM</th>
-<th>0.F1.B44</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:G_SHIFT">SLICE[2]:G_SHIFT</th>
-<th>0.F1.B38</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:FFX_INIT">SLICE[3]:FFX_INIT</th>
-<th>0.F2.B50</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:FFX_SRVAL">SLICE[3]:FFX_SRVAL</th>
-<th>0.F2.B46</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:FFY_INIT">SLICE[3]:FFY_INIT</th>
-<th>0.F2.B53</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:FFY_SRVAL">SLICE[3]:FFY_SRVAL</th>
-<th>0.F2.B56</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:FF_LATCH">SLICE[0]:FF_LATCH</th>
-<th>0.F1.B22</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:FF_REV_ENABLE">SLICE[0]:FF_REV_ENABLE</th>
-<th>0.F1.B23</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:FF_SR_SYNC">SLICE[0]:FF_SR_SYNC</th>
-<th>0.F1.B19</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:INV.BX">SLICE[0]:INV.BX</th>
-<th>0.F5.B14</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:INV.BY">SLICE[0]:INV.BY</th>
-<th>0.F5.B27</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:SLICEWE0USED">SLICE[0]:SLICEWE0USED</th>
-<th>0.F2.B17</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[0]:SLICEWE1USED">SLICE[0]:SLICEWE1USED</th>
-<th>0.F1.B20</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:FF_LATCH">SLICE[1]:FF_LATCH</th>
-<th>0.F2.B22</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:FF_REV_ENABLE">SLICE[1]:FF_REV_ENABLE</th>
-<th>0.F2.B23</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:FF_SR_SYNC">SLICE[1]:FF_SR_SYNC</th>
-<th>0.F2.B19</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:INV.BX">SLICE[1]:INV.BX</th>
-<th>0.F5.B28</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:INV.BY">SLICE[1]:INV.BY</th>
-<th>0.F5.B31</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:FF_LATCH">SLICE[2]:FF_LATCH</th>
-<th>0.F1.B54</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:FF_REV_ENABLE">SLICE[2]:FF_REV_ENABLE</th>
-<th>0.F1.B55</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:FF_SR_SYNC">SLICE[2]:FF_SR_SYNC</th>
-<th>0.F1.B51</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:INV.BX">SLICE[2]:INV.BX</th>
-<th>0.F5.B32</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:INV.BY">SLICE[2]:INV.BY</th>
-<th>0.F5.B35</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:SLICEWE0USED">SLICE[2]:SLICEWE0USED</th>
-<th>0.F2.B49</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:FF_LATCH">SLICE[3]:FF_LATCH</th>
-<th>0.F2.B54</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:FF_REV_ENABLE">SLICE[3]:FF_REV_ENABLE</th>
-<th>0.F2.B55</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:FF_SR_SYNC">SLICE[3]:FF_SR_SYNC</th>
-<th>0.F2.B51</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:INV.BX">SLICE[3]:INV.BX</th>
-<th>0.F5.B36</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:INV.BY">SLICE[3]:INV.BY</th>
-<th>0.F5.B49</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:FXMUX">SLICE[0]:FXMUX</th>
-<th>0.F1.B16</th>
-<th>0.F1.B2</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:FXMUX">SLICE[1]:FXMUX</th>
-<th>0.F2.B16</th>
-<th>0.F2.B2</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:FXMUX">SLICE[2]:FXMUX</th>
-<th>0.F1.B48</th>
-<th>0.F1.B34</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:FXMUX">SLICE[3]:FXMUX</th>
-<th>0.F2.B48</th>
-<th>0.F2.B34</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>F</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>F5</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>FXOR</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:GYMUX">SLICE[0]:GYMUX</th>
-<th>0.F1.B28</th>
-<th>0.F1.B25</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[1]:GYMUX">SLICE[1]:GYMUX</th>
-<th>0.F2.B28</th>
-<th>0.F2.B25</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:GYMUX">SLICE[2]:GYMUX</th>
-<th>0.F1.B60</th>
-<th>0.F1.B57</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[3]:GYMUX">SLICE[3]:GYMUX</th>
-<th>0.F2.B60</th>
-<th>0.F2.B57</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>G</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>FX</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GXOR</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:XBMUX">SLICE[0]:XBMUX</th>
-<th>0.F1.B1</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:XBMUX">SLICE[2]:XBMUX</th>
-<th>0.F1.B33</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>FCY</td>
-<td>0</td>
-</tr>
-
-<tr><td>FMC15</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CLB-SLICE[0]:YBMUX">SLICE[0]:YBMUX</th>
-<th>0.F1.B5</th>
-</tr>
-
-<tr><th id="tile-spartan3-CLB-SLICE[2]:YBMUX">SLICE[2]:YBMUX</th>
-<th>0.F1.B37</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>GCY</td>
-<td>0</td>
-</tr>
-
-<tr><td>GMC15</td>
-<td>1</td>
 </tr>
 
 </tbody>
@@ -4436,16 +3194,50 @@ non-inverted
 <p>This tile overlaps <code>IOI_*</code>.</p>
 <h2 id="tile-randor"><a class="header" href="#tile-randor">Tile RANDOR</a></h2>
 <p>Cells: 0</p>
-<h3 id="bel-randor"><a class="header" href="#bel-randor">Bel RANDOR</a></h3>
+<h3 id="bels-randor"><a class="header" href="#bels-randor">Bels RANDOR</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 RANDOR bel RANDOR</caption>
+<caption>spartan3 RANDOR bel RANDOR pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>RANDOR</th></tr>
 
 </thead>
 
 <tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 RANDOR bel RANDOR attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>RANDOR</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>MODE</td><td><a href="#spartan3-RANDOR-RANDOR-MODE">[enum: RANDOR_MODE]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 RANDOR enum RANDOR_MODE</caption>
+<thead>
+<tr id="spartan3-RANDOR-RANDOR-MODE"><th>RANDOR.MODE</th><td id="spartan3-RANDOR-RANDOR-MODE[0]"><a href="#spartan3-RANDOR-bit-MAIN[3][19]">MAIN[3][19]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>AND</td><td>1</td></tr>
+
+<tr><td>OR</td><td>0</td></tr>
+
 </tbody>
 
 </table>
@@ -5455,474 +4247,42 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan3 RANDOR rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F3.B19">
-<a href="#tile-spartan3-RANDOR-RANDOR:MODE">RANDOR:MODE[0]</a>
+<td id="spartan3-RANDOR-bit-MAIN[3][19]" title="MAIN[3][19]">
+<a href="#spartan3-RANDOR-RANDOR-MODE[0]">RANDOR:  MODE bit 0</a>
 </td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -5934,9 +4294,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -5948,9 +4338,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -5962,9 +4382,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -5976,9 +4426,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -5990,9 +4470,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -6004,9 +4514,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -6018,9 +4558,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -6032,9 +4602,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -6046,6 +4646,21 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B0</td>
@@ -6053,29 +4668,21 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-RANDOR-RANDOR:MODE">RANDOR:MODE</th>
-<th>0.F3.B19</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>OR</td>
-<td>0</td>
-</tr>
-
-<tr><td>AND</td>
-<td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>
@@ -6085,12 +4692,26 @@ non-inverted
 
 <h2 id="tile-randor_fc"><a class="header" href="#tile-randor_fc">Tile RANDOR_FC</a></h2>
 <p>Cells: 0</p>
-<h3 id="bel-randor-1"><a class="header" href="#bel-randor-1">Bel RANDOR</a></h3>
+<h3 id="bels-randor-1"><a class="header" href="#bels-randor-1">Bels RANDOR</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 RANDOR_FC bel RANDOR</caption>
+<caption>spartan3 RANDOR_FC bel RANDOR pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>RANDOR</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 RANDOR_FC bel RANDOR attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>RANDOR</th></tr>
 
 </thead>
 
@@ -7549,6 +6170,55 @@ non-inverted
 <p>This tile overlaps top-left interconnect tile.</p>
 <h2 id="tile-randor_init"><a class="header" href="#tile-randor_init">Tile RANDOR_INIT</a></h2>
 <p>Cells: 0</p>
+<h3 id="bels-randor_init"><a class="header" href="#bels-randor_init">Bels RANDOR_INIT</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 RANDOR_INIT bel RANDOR_INIT pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>RANDOR_INIT</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 RANDOR_INIT bel RANDOR_INIT attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>RANDOR_INIT</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>MODE</td><td><a href="#spartan3-RANDOR_INIT-RANDOR_INIT-MODE">[enum: RANDOR_MODE]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 RANDOR_INIT enum RANDOR_MODE</caption>
+<thead>
+<tr id="spartan3-RANDOR_INIT-RANDOR_INIT-MODE"><th>RANDOR_INIT.MODE</th><td id="spartan3-RANDOR_INIT-RANDOR_INIT-MODE[0]"><a href="#spartan3-RANDOR_INIT-bit-MAIN[0][0]">MAIN[0][0]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>AND</td><td>1</td></tr>
+
+<tr><td>OR</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
 <h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
@@ -8968,73 +7638,27 @@ non-inverted
 </tr>
 
 <tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan3 RANDOR_INIT rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-RANDOR_INIT-RANDOR_INIT:MODE">RANDOR_INIT:MODE[0]</a>
+<td id="spartan3-RANDOR_INIT-bit-MAIN[0][0]" title="MAIN[0][0]">
+<a href="#spartan3-RANDOR_INIT-RANDOR_INIT-MODE[0]">RANDOR_INIT:  MODE bit 0</a>
 </td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-RANDOR_INIT-RANDOR_INIT:MODE">RANDOR_INIT:MODE</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>OR</td>
-<td>0</td>
-</tr>
-
-<tr><td>AND</td>
-<td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>
@@ -9044,6 +7668,55 @@ non-inverted
 
 <h2 id="tile-randor_init_fc"><a class="header" href="#tile-randor_init_fc">Tile RANDOR_INIT_FC</a></h2>
 <p>Cells: 0</p>
+<h3 id="bels-randor_init-1"><a class="header" href="#bels-randor_init-1">Bels RANDOR_INIT</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 RANDOR_INIT_FC bel RANDOR_INIT pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>RANDOR_INIT</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 RANDOR_INIT_FC bel RANDOR_INIT attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>RANDOR_INIT</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>MODE</td><td><a href="#spartan3-RANDOR_INIT_FC-RANDOR_INIT-MODE">[enum: RANDOR_MODE]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 RANDOR_INIT_FC enum RANDOR_MODE</caption>
+<thead>
+<tr id="spartan3-RANDOR_INIT_FC-RANDOR_INIT-MODE"><th>RANDOR_INIT.MODE</th><td id="spartan3-RANDOR_INIT_FC-RANDOR_INIT-MODE[0]"><a href="#spartan3-RANDOR_INIT_FC-bit-MAIN[0][63]">MAIN[0][63]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>AND</td><td>1</td></tr>
+
+<tr><td>OR</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
 <h3 id="bitstream-5"><a class="header" href="#bitstream-5">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
@@ -9077,1711 +7750,1413 @@ non-inverted
 
 <tbody>
 <tr><td>B63</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B62</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B61</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B60</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B59</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B58</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B57</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B56</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B55</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B54</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B53</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B52</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B51</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B50</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B49</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B48</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B47</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B46</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B45</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B44</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B43</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B42</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B41</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B40</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B39</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B38</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B37</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B36</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B35</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B34</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B33</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B32</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B31</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B30</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B29</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B28</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B27</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B26</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan3 RANDOR_INIT_FC rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B63</td>
-<td title="R0.F0.B63">
-<a href="#tile-spartan3-RANDOR_INIT_FC-RANDOR_INIT:MODE">RANDOR_INIT:MODE[0]</a>
+<td id="spartan3-RANDOR_INIT_FC-bit-MAIN[0][63]" title="MAIN[0][63]">
+<a href="#spartan3-RANDOR_INIT_FC-RANDOR_INIT-MODE[0]">RANDOR_INIT:  MODE bit 0</a>
 </td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B61</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B59</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B57</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B55</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B53</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B51</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B49</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B47</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B45</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B43</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B41</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B39</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B37</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B35</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B33</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B31</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B29</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B27</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B25</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B23</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B21</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B19</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B17</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B15</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B13</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B11</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B9</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B7</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B5</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B3</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B1</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B0</td>
 <td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-RANDOR_INIT_FC-RANDOR_INIT:MODE">RANDOR_INIT:MODE</th>
-<th>0.F0.B63</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>OR</td>
-<td>0</td>
-</tr>
-
-<tr><td>AND</td>
-<td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>
