@@ -48,7 +48,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .global_mutex("VREF", "YES")
                     .prop(VirtexOtherIobInput(defs::bslots::GCLK_IO[i], "GTL".into()))
                     .global("UNUSEDPIN", "PULLNONE")
-                    .test_manual("IOATTRBOX", iostd)
+                    .test_manual_legacy("IOATTRBOX", iostd)
                     .mode("GCLKIOB")
                     .attr("IOATTRBOX", iostd)
                     .commit();
@@ -56,7 +56,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let idx = if tile.starts_with("CLK_S") { i } else { 2 + i };
             for val in ["11110", "11101", "11011", "10111", "01111"] {
                 bctx.mode("GCLKIOB")
-                    .test_manual("DELAY", val)
+                    .test_manual_legacy("DELAY", val)
                     .global(format!("GCLKDEL{idx}"), val)
                     .commit();
             }
@@ -84,7 +84,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     builder = builder.null_bits();
                 }
                 builder
-                    .test_manual(format!("BUF.GCLK_{lr}{i}"), "1")
+                    .test_manual_legacy(format!("BUF.GCLK_{lr}{i}"), "1")
                     .pip(format!("OUT_{lr}{i}"), format!("IN{i}"))
                     .commit();
             }
@@ -103,7 +103,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for i in 0..4 {
                     bctx.build()
                         .tile_mutex("GCLK_DIR", lr)
-                        .test_manual(format!("BUF.GCLK_{lr}{i}"), "1")
+                        .test_manual_legacy(format!("BUF.GCLK_{lr}{i}"), "1")
                         .pip(format!("OUT_{lr}{i}"), format!("IN{i}"))
                         .commit();
                 }
@@ -138,7 +138,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             // TODO null_bits
             bctx.build()
                 .null_bits()
-                .test_manual(format!("BUF.GCLK{i}"), "1")
+                .test_manual_legacy(format!("BUF.GCLK{i}"), "1")
                 .pip(format!("OUT{i}"), format!("IN{i}"))
                 .commit();
         }

@@ -52,7 +52,7 @@ pub fn add_fuzzers<'a>(
             .global_xy("PLLADV_*_USE_CALC", "NO")
             .related_tile_mutex_exclusive(HclkCmt, "ENABLE")
             .extra_tile_attr(HclkCmt, "HCLK_CMT", "DRP_MASK", "1")
-            .test_manual("ENABLE", "1")
+            .test_manual_legacy("ENABLE", "1")
             .mode("PLL_ADV")
             .commit();
         return;
@@ -65,7 +65,7 @@ pub fn add_fuzzers<'a>(
             bctx.build()
                 .related_tile_mutex_exclusive(HclkCmt, "ENABLE")
                 .extra_tile_attr(HclkCmt, "HCLK_CMT", "DRP_MASK", "1")
-                .test_manual("ENABLE", "1")
+                .test_manual_legacy("ENABLE", "1")
                 .mode(mode)
                 .commit();
 
@@ -91,7 +91,7 @@ pub fn add_fuzzers<'a>(
                     .mutex("MODE", "PIN")
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                     .mutex("PIN", pin)
-                    .test_manual(pin, "1")
+                    .test_manual_legacy(pin, "1")
                     .pin(pin)
                     .commit();
             }
@@ -100,14 +100,14 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "PIN")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .pin_from("CLKFB", PinFromKind::Bufg)
-                .test_manual("CLKFB_ENABLE", "1")
+                .test_manual_legacy("CLKFB_ENABLE", "1")
                 .pin("CLKFB")
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "PIN")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .pin_from("CLKIN", PinFromKind::Bufg)
-                .test_manual("CLKIN_ENABLE", "1")
+                .test_manual_legacy("CLKIN_ENABLE", "1")
                 .pin("CLKIN")
                 .commit();
             bctx.mode(mode)
@@ -116,7 +116,7 @@ pub fn add_fuzzers<'a>(
                 .pin("CLKIN")
                 .pin("CLKFB")
                 .pin_from("CLKFB", PinFromKind::Bufg)
-                .test_manual("CLKIN_IOB", "1")
+                .test_manual_legacy("CLKIN_IOB", "1")
                 .pin_from("CLKIN", PinFromKind::Bufg, PinFromKind::Iob)
                 .commit();
             bctx.mode(mode)
@@ -125,7 +125,7 @@ pub fn add_fuzzers<'a>(
                 .pin("CLKIN")
                 .pin("CLKFB")
                 .pin_from("CLKIN", PinFromKind::Bufg)
-                .test_manual("CLKFB_IOB", "1")
+                .test_manual_legacy("CLKFB_IOB", "1")
                 .pin_from("CLKFB", PinFromKind::Bufg, PinFromKind::Iob)
                 .commit();
 
@@ -324,7 +324,7 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .attr("DLL_FREQUENCY_MODE", "")
-                .test_multi_attr_hex("FACTORY_JF", 16);
+                .test_multi_attr_hex_legacy("FACTORY_JF", 16);
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
@@ -333,7 +333,7 @@ pub fn add_fuzzers<'a>(
                 bctx.mode(mode)
                     .mutex("MODE", "ATTR")
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                    .test_manual("CLKFX_MULTIPLY", format!("{val}"))
+                    .test_manual_legacy("CLKFX_MULTIPLY", format!("{val}"))
                     .attr("CLKFX_MULTIPLY", format!("{val}"))
                     .commit();
             }
@@ -354,7 +354,7 @@ pub fn add_fuzzers<'a>(
                         .mutex("MODE", "PIN")
                         .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                         .attr("DLL_FREQUENCY_MODE", dll_mode)
-                        .test_manual("CLKDV_DIVIDE", format!("{val}.{dll_mode}"))
+                        .test_manual_legacy("CLKDV_DIVIDE", format!("{val}.{dll_mode}"))
                         .attr("CLKDV_DIVIDE", val)
                         .commit();
                 }
@@ -413,7 +413,7 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .attr("CLKOUT_PHASE_SHIFT", "NONE")
-                .test_manual("PHASE_SHIFT", "-1")
+                .test_manual_legacy("PHASE_SHIFT", "-1")
                 .attr("PHASE_SHIFT", "-1")
                 .commit();
 
@@ -425,7 +425,7 @@ pub fn add_fuzzers<'a>(
                         .attr("CLK_FEEDBACK", "1X")
                         .mutex("MUX.CLK", format!("{pin}.HCLK{i}"))
                         .pip(opin, (defs::bslots::CMT, format!("HCLK{i}")))
-                        .test_manual(format!("MUX.{pin}"), format!("HCLK{i}"))
+                        .test_manual_legacy(format!("MUX.{pin}"), format!("HCLK{i}"))
                         .pip(pin, (defs::bslots::CMT, format!("HCLK{i}")))
                         .commit();
                 }
@@ -436,7 +436,7 @@ pub fn add_fuzzers<'a>(
                         .attr("CLK_FEEDBACK", "1X")
                         .mutex("MUX.CLK", format!("{pin}.GIOB{i}"))
                         .pip(opin, (defs::bslots::CMT, format!("GIOB{i}")))
-                        .test_manual(format!("MUX.{pin}"), format!("GIOB{i}"))
+                        .test_manual_legacy(format!("MUX.{pin}"), format!("GIOB{i}"))
                         .pip(pin, (defs::bslots::CMT, format!("GIOB{i}")))
                         .commit();
                 }
@@ -446,7 +446,7 @@ pub fn add_fuzzers<'a>(
                         .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                         .attr("CLK_FEEDBACK", "1X")
                         .mutex("MUX.CLK", format!("{pin}.CKINT{i}"))
-                        .test_manual(format!("MUX.{pin}"), format!("CKINT{i}"))
+                        .test_manual_legacy(format!("MUX.{pin}"), format!("CKINT{i}"))
                         .pip(pin, format!("CKINT{i}"))
                         .commit();
                 }
@@ -456,7 +456,7 @@ pub fn add_fuzzers<'a>(
                     .attr("CLK_FEEDBACK", "1X")
                     .bel_unused(defs::bslots::PLL)
                     .mutex("MUX.CLK", format!("{pin}.CLK_FROM_PLL"))
-                    .test_manual(format!("MUX.{pin}"), "CLK_FROM_PLL")
+                    .test_manual_legacy(format!("MUX.{pin}"), "CLK_FROM_PLL")
                     .pip(pin, (defs::bslots::PLL, format!("CLK_TO_DCM{i}")))
                     .commit();
             }
@@ -471,12 +471,12 @@ pub fn add_fuzzers<'a>(
                 let idx = i * 18 + idx;
                 bctx.build()
                     .mutex("MUX.CLK_TO_PLL", pin)
-                    .test_manual("MUX.CLK_TO_PLL", pin)
+                    .test_manual_legacy("MUX.CLK_TO_PLL", pin)
                     .pip("MUXED_CLK", (defs::bslots::CMT, format!("OUT{idx}")))
                     .commit();
                 bctx.build()
                     .mutex("MUX.SKEWCLKIN2", pin)
-                    .test_manual("MUX.SKEWCLKIN2", pin)
+                    .test_manual_legacy("MUX.SKEWCLKIN2", pin)
                     .pip("SKEWCLKIN2", (defs::bslots::CMT, format!("OUT{idx}_TEST")))
                     .commit();
             }
@@ -489,7 +489,7 @@ pub fn add_fuzzers<'a>(
             .global_xy("PLLADV_*_USE_CALC", "NO")
             .related_tile_mutex_exclusive(HclkCmt, "ENABLE")
             .extra_tile_attr(HclkCmt, "HCLK_CMT", "DRP_MASK", "1")
-            .test_manual("ENABLE", "1")
+            .test_manual_legacy("ENABLE", "1")
             .mode(mode)
             .commit();
 
@@ -685,7 +685,7 @@ pub fn add_fuzzers<'a>(
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                     .mutex("MODE", "CALC")
                     .global_xy("PLLADV_*_USE_CALC", "NO")
-                    .test_manual("TABLES", format!("{mult}.{bandwidth}"))
+                    .test_manual_legacy("TABLES", format!("{mult}.{bandwidth}"))
                     .attr_diff("CLKFBOUT_MULT", "0", format!("{mult}"))
                     .attr_diff("BANDWIDTH", "LOW", bandwidth)
                     .commit();
@@ -700,7 +700,7 @@ pub fn add_fuzzers<'a>(
                     .mutex("MODE", "CALC")
                     .mutex("MUX.CLK", format!("{pin}.HCLK{i}"))
                     .pip(opin, (defs::bslots::CMT, format!("HCLK{i}")))
-                    .test_manual(format!("MUX.{pin}"), format!("HCLK{i}"))
+                    .test_manual_legacy(format!("MUX.{pin}"), format!("HCLK{i}"))
                     .pip(pin, (defs::bslots::CMT, format!("HCLK{i}")))
                     .commit();
             }
@@ -711,7 +711,7 @@ pub fn add_fuzzers<'a>(
                     .mutex("MODE", "CALC")
                     .mutex("MUX.CLK", format!("{pin}.GIOB{i}"))
                     .pip(opin, (defs::bslots::CMT, format!("GIOB{i}")))
-                    .test_manual(format!("MUX.{pin}"), format!("GIOB{i}"))
+                    .test_manual_legacy(format!("MUX.{pin}"), format!("GIOB{i}"))
                     .pip(pin, (defs::bslots::CMT, format!("GIOB{i}")))
                     .commit();
             }
@@ -720,7 +720,7 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "CALC")
                 .mutex("MUX.CLK", format!("{pin}.CLKFBDCM"))
                 .pip(opin, "CLKFBDCM")
-                .test_manual(format!("MUX.{pin}"), "CLKFBDCM")
+                .test_manual_legacy(format!("MUX.{pin}"), "CLKFBDCM")
                 .pip(pin, "CLKFBDCM")
                 .commit();
         }
@@ -729,7 +729,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MODE", "CALC")
             .mutex("MUX.CLK", "CLKIN1.CKINT0")
             .pip("CLKFBIN", "CLKFBDCM")
-            .test_manual("MUX.CLKIN1", "CKINT0")
+            .test_manual_legacy("MUX.CLKIN1", "CKINT0")
             .pip("CLK_DCM_MUX", "CKINT0")
             .pip("CLKIN1", "CLK_DCM_MUX")
             .commit();
@@ -738,7 +738,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MODE", "CALC")
             .mutex("MUX.CLK", "CLKIN1.CLK_FROM_DCM0")
             .pip("CLKFBIN", "CLKFBDCM")
-            .test_manual("MUX.CLKIN1", "CLK_FROM_DCM0")
+            .test_manual_legacy("MUX.CLKIN1", "CLK_FROM_DCM0")
             .pip("CLK_DCM_MUX", (defs::bslots::DCM[0], "MUXED_CLK"))
             .pip("CLKIN1", "CLK_DCM_MUX")
             .commit();
@@ -747,7 +747,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MODE", "CALC")
             .mutex("MUX.CLK", "CLKIN1.CLK_FROM_DCM1")
             .pip("CLKFBIN", "CLKFBDCM")
-            .test_manual("MUX.CLKIN1", "CLK_FROM_DCM1")
+            .test_manual_legacy("MUX.CLKIN1", "CLK_FROM_DCM1")
             .pip("CLK_DCM_MUX", (defs::bslots::DCM[1], "MUXED_CLK"))
             .pip("CLKIN1", "CLK_DCM_MUX")
             .commit();
@@ -756,7 +756,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MODE", "CALC")
             .mutex("MUX.CLK", "CLKFBIN.CKINT1")
             .pip("CLKIN1", "CLKFBDCM")
-            .test_manual("MUX.CLKFBIN", "CKINT1")
+            .test_manual_legacy("MUX.CLKFBIN", "CKINT1")
             .pip("CLK_FB_FROM_DCM", "CKINT1")
             .pip("CLKFBIN", "CLK_FB_FROM_DCM")
             .commit();
@@ -765,7 +765,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MODE", "CALC")
             .mutex("MUX.CLK", "CLKFBIN.CLKFBOUT")
             .pip("CLKIN1", "CLKFBDCM")
-            .test_manual("MUX.CLKFBIN", "CLKFBOUT")
+            .test_manual_legacy("MUX.CLKFBIN", "CLKFBOUT")
             .pip("CLK_FB_FROM_DCM", (defs::bslots::CMT, "OUT11"))
             .pip("CLKFBIN", "CLK_FB_FROM_DCM")
             .commit();
@@ -775,7 +775,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MODE", "CALC")
             .mutex("MUX.CLK", "CLKIN2")
             .pip("CLKFBIN", (defs::bslots::CMT, "GIOB5"))
-            .test_manual("CLKINSEL_MODE", "DYNAMIC")
+            .test_manual_legacy("CLKINSEL_MODE", "DYNAMIC")
             .pip("CLKIN2", (defs::bslots::CMT, "GIOB5"))
             .commit();
 
@@ -784,7 +784,7 @@ pub fn add_fuzzers<'a>(
                 bctx.mode(mode)
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                     .mutex(format!("MUX.{opin}"), format!("CLKOUTDCM{i}"))
-                    .test_manual(format!("MUX.{opin}"), format!("CLKOUTDCM{i}"))
+                    .test_manual_legacy(format!("MUX.{opin}"), format!("CLKOUTDCM{i}"))
                     .pip(opin, format!("CLKOUTDCM{i}"))
                     .commit();
             }
@@ -792,7 +792,7 @@ pub fn add_fuzzers<'a>(
         bctx.mode(mode)
             .related_tile_mutex(HclkCmt, "ENABLE", "USE")
             .mutex("MUX.CLK_TO_DCM1", "CLKFBDCM")
-            .test_manual("MUX.CLK_TO_DCM1", "CLKFBDCM")
+            .test_manual_legacy("MUX.CLK_TO_DCM1", "CLKFBDCM")
             .pip("CLK_TO_DCM1", "CLKFBDCM_TEST")
             .commit();
     }
@@ -810,7 +810,7 @@ pub fn add_fuzzers<'a>(
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .bel_mode(defs::bslots::PLL, "PLL_ADV")
                 .mutex("MUX.OUT10", name)
-                .test_manual("MUX.OUT10", name)
+                .test_manual_legacy("MUX.OUT10", name)
                 .pip("OUT10", (bel, pin))
                 .commit();
         }

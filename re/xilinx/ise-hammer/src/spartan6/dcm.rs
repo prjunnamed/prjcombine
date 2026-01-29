@@ -65,48 +65,48 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("CMT", "PRESENT")
             .global_mutex_here("CMT_PRESENT")
             .prop(AllOtherDcms("CMT", "PRESENT_ANY_DCM", "1"))
-            .test_manual("PRESENT", "DCM")
+            .test_manual_legacy("PRESENT", "DCM")
             .mode("DCM")
             .commit();
         bctx.build()
             .global_mutex("CMT", "PRESENT")
             .global_mutex_here("CMT_PRESENT")
             .prop(AllOtherDcms("CMT", "PRESENT_ANY_DCM", "1"))
-            .test_manual("PRESENT", "DCM_CLKGEN")
+            .test_manual_legacy("PRESENT", "DCM_CLKGEN")
             .mode("DCM_CLKGEN")
             .commit();
 
         bctx.mode("DCM")
             .global_mutex("CMT", "CFG")
-            .test_manual("DLL_C", "")
+            .test_manual_legacy("DLL_C", "")
             .multi_global_xy("CFG_DLL_C_*", MultiValue::Bin, 32);
         bctx.mode("DCM")
             .global_mutex("CMT", "CFG")
-            .test_manual("DLL_S", "")
+            .test_manual_legacy("DLL_S", "")
             .multi_global_xy("CFG_DLL_S_*", MultiValue::Bin, 32);
         bctx.mode("DCM")
             .global_mutex("CMT", "CFG")
-            .test_manual("DFS_C", "")
+            .test_manual_legacy("DFS_C", "")
             .multi_global_xy("CFG_DFS_C_*", MultiValue::Bin, 3);
         bctx.mode("DCM")
             .global_mutex("CMT", "CFG")
-            .test_manual("DFS_S", "")
+            .test_manual_legacy("DFS_S", "")
             .multi_global_xy("CFG_DFS_S_*", MultiValue::Bin, 87);
         bctx.mode("DCM")
             .global_mutex("CMT", "CFG")
-            .test_manual("INTERFACE", "")
+            .test_manual_legacy("INTERFACE", "")
             .multi_global_xy("CFG_INTERFACE_*", MultiValue::Bin, 40);
         bctx.mode("DCM")
             .global_mutex("CMT", "CFG")
-            .test_manual("OPT_INV", "")
+            .test_manual_legacy("OPT_INV", "")
             .multi_global_xy("CFG_OPT_INV_*", MultiValue::Bin, 20);
         bctx.mode("DCM")
             .global_mutex("CMT", format!("CFG_DCM{i}"))
-            .test_manual("REG", "")
+            .test_manual_legacy("REG", "")
             .multi_global_xy("CFG_REG_*", MultiValue::Bin, 9);
         bctx.mode("DCM")
             .global_mutex("CMT", format!("CFG_DCM{i}"))
-            .test_manual("BG", "")
+            .test_manual_legacy("BG", "")
             .multi_global_xy("CFG_BG_*", MultiValue::Bin, 11);
 
         let obel_dcm = defs::bslots::DCM[i ^ 1];
@@ -128,7 +128,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         (bel_pll, format!("CLK_TO_DCM{i}")),
                         (bel_pll, "CLKOUTDCM0"),
                     )
-                    .test_manual(format!("MUX.{opin}"), val)
+                    .test_manual_legacy(format!("MUX.{opin}"), val)
                     .pip(opin, pin)
                     .commit();
             }
@@ -144,7 +144,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             (obel_dcm, opin),
                             (defs::bslots::CMT, format!("BUFIO2_{btlr}{j}")),
                         )
-                        .test_manual(format!("MUX.{opin}"), format!("BUFIO2_{btlr}{j}"))
+                        .test_manual_legacy(format!("MUX.{opin}"), format!("BUFIO2_{btlr}{j}"))
                         .pip(opin, (defs::bslots::CMT, format!("BUFIO2_{btlr}{j}")))
                         .commit();
                 }
@@ -157,7 +157,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .mutex("CLKIN_OUT", opin)
                     .mutex("CLKIN_IN", pin)
                     .tile_mutex("CLKIN_BEL", format!("DCM{i}"))
-                    .test_manual(format!("MUX.{opin}"), val)
+                    .test_manual_legacy(format!("MUX.{opin}"), val)
                     .pip(opin, pin)
                     .commit();
             }
@@ -173,7 +173,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             (obel_dcm, opin),
                             (defs::bslots::CMT, format!("BUFIO2FB_{btlr}{j}")),
                         )
-                        .test_manual(format!("MUX.{opin}"), format!("BUFIO2FB_{btlr}{j}"))
+                        .test_manual_legacy(format!("MUX.{opin}"), format!("BUFIO2FB_{btlr}{j}"))
                         .pip(opin, (defs::bslots::CMT, format!("BUFIO2FB_{btlr}{j}")))
                         .commit();
                 }
@@ -188,14 +188,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_mutex("CMT", "TEST")
                 .pin("CLKDV")
                 .mutex("CLK_TO_PLL", out)
-                .test_manual("MUX.CLK_TO_PLL", out)
+                .test_manual_legacy("MUX.CLK_TO_PLL", out)
                 .pip("CLK_TO_PLL", out)
                 .commit();
             bctx.mode("DCM")
                 .global_mutex("CMT", "TEST")
                 .pin("CLKDV")
                 .mutex("SKEWCLKIN2", out)
-                .test_manual("MUX.SKEWCLKIN2", out)
+                .test_manual_legacy("MUX.SKEWCLKIN2", out)
                 .pip("SKEWCLKIN2", format!("{out}_TEST"))
                 .commit();
         }
@@ -210,13 +210,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("DCM_CLKGEN")
                 .global_mutex("CMT", "TEST")
                 .pin(pin)
-                .test_manual(format!("{pin}INV.DCM_CLKGEN"), "0")
+                .test_manual_legacy(format!("{pin}INV.DCM_CLKGEN"), "0")
                 .attr(format!("{pin}INV"), pin)
                 .commit();
             bctx.mode("DCM_CLKGEN")
                 .global_mutex("CMT", "TEST")
                 .pin(pin)
-                .test_manual(format!("{pin}INV.DCM_CLKGEN"), "1")
+                .test_manual_legacy(format!("{pin}INV.DCM_CLKGEN"), "1")
                 .attr(format!("{pin}INV"), format!("{pin}_B"))
                 .commit();
         }
@@ -234,7 +234,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.mode("DCM")
                 .global_mutex("CMT", "TEST")
-                .test_manual(format!("PIN.{pin}"), "1")
+                .test_manual_legacy(format!("PIN.{pin}"), "1")
                 .pin(pin)
                 .pin_pips(pin)
                 .commit();
@@ -248,14 +248,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_mutex("CMT", "PINS")
                 .mutex("PIN", pin)
                 .no_pin("CLKFB")
-                .test_manual(pin, "1")
+                .test_manual_legacy(pin, "1")
                 .pin(pin)
                 .commit();
             bctx.mode("DCM")
                 .global_mutex("CMT", "PINS")
                 .mutex("PIN", pin)
                 .pin("CLKFB")
-                .test_manual(pin, "1.CLKFB")
+                .test_manual_legacy(pin, "1.CLKFB")
                 .pin(pin)
                 .commit();
             if pin != "CLKFX" && pin != "CLKFX180" && pin != "CONCUR" {
@@ -264,14 +264,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .mutex("PIN", format!("{pin}.CLKFX"))
                     .pin("CLKFX")
                     .pin("CLKFB")
-                    .test_manual(pin, "1.CLKFX")
+                    .test_manual_legacy(pin, "1.CLKFX")
                     .pin(pin)
                     .commit();
             }
         }
         bctx.mode("DCM")
             .global_mutex("CMT", "PINS")
-            .test_manual("CLKFB", "1")
+            .test_manual_legacy("CLKFB", "1")
             .pin("CLKFB")
             .commit();
         bctx.mode("DCM")
@@ -280,7 +280,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("CLKIN")
             .pin("CLKFB")
             .pin_from("CLKFB", PinFromKind::Bufg)
-            .test_manual("CLKIN_IOB", "1")
+            .test_manual_legacy("CLKIN_IOB", "1")
             .pin_from("CLKIN", PinFromKind::Bufg, PinFromKind::Iob)
             .commit();
         bctx.mode("DCM")
@@ -289,7 +289,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("CLKIN")
             .pin("CLKFB")
             .pin_from("CLKIN", PinFromKind::Bufg)
-            .test_manual("CLKFB_IOB", "1")
+            .test_manual_legacy("CLKFB_IOB", "1")
             .pin_from("CLKFB", PinFromKind::Bufg, PinFromKind::Iob)
             .commit();
 
@@ -297,21 +297,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("CMT", "PINS")
             .no_pin("PROGEN")
             .no_pin("PROGDATA")
-            .test_manual("PIN.PROGCLK", "1")
+            .test_manual_legacy("PIN.PROGCLK", "1")
             .pin("PROGCLK")
             .commit();
         bctx.mode("DCM_CLKGEN")
             .global_mutex("CMT", "PINS")
             .no_pin("PROGCLK")
             .no_pin("PROGDATA")
-            .test_manual("PIN.PROGEN", "1")
+            .test_manual_legacy("PIN.PROGEN", "1")
             .pin("PROGEN")
             .commit();
         bctx.mode("DCM_CLKGEN")
             .global_mutex("CMT", "PINS")
             .no_pin("PROGCLK")
             .no_pin("PROGEN")
-            .test_manual("PIN.PROGDATA", "1")
+            .test_manual_legacy("PIN.PROGDATA", "1")
             .pin("PROGDATA")
             .commit();
 
@@ -351,19 +351,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_enum("CLK_FEEDBACK", &["NONE", "1X", "2X"]);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
-            .test_manual("CLKFX_MULTIPLY", "")
+            .test_manual_legacy("CLKFX_MULTIPLY", "")
             .multi_attr("CLKFX_MULTIPLY", MultiValue::Dec(1), 8);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
-            .test_manual("CLKFX_DIVIDE", "")
+            .test_manual_legacy("CLKFX_DIVIDE", "")
             .multi_attr("CLKFX_DIVIDE", MultiValue::Dec(1), 8);
         bctx.mode("DCM_CLKGEN")
             .global_mutex("CMT", "USE")
-            .test_manual("CLKFX_MULTIPLY.CLKGEN", "")
+            .test_manual_legacy("CLKFX_MULTIPLY.CLKGEN", "")
             .multi_attr("CLKFX_MULTIPLY", MultiValue::Dec(1), 8);
         bctx.mode("DCM_CLKGEN")
             .global_mutex("CMT", "USE")
-            .test_manual("CLKFX_DIVIDE.CLKGEN", "")
+            .test_manual_legacy("CLKFX_DIVIDE.CLKGEN", "")
             .multi_attr("CLKFX_DIVIDE", MultiValue::Dec(1), 8);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
@@ -380,12 +380,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_multi_attr_dec("PHASE_SHIFT", 7);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
-            .test_manual("PHASE_SHIFT", "-1")
+            .test_manual_legacy("PHASE_SHIFT", "-1")
             .attr("PHASE_SHIFT", "-1")
             .commit();
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
-            .test_manual("PHASE_SHIFT", "-255")
+            .test_manual_legacy("PHASE_SHIFT", "-255")
             .attr("PHASE_SHIFT", "-255")
             .commit();
 
@@ -402,7 +402,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .global_mutex("CMT", "USE")
                     .attr("DLL_FREQUENCY_MODE", dll_mode)
                     .attr("CLKIN_PERIOD", "")
-                    .test_manual("CLKDV_DIVIDE", format!("{val}.{dll_mode}"))
+                    .test_manual_legacy("CLKDV_DIVIDE", format!("{val}.{dll_mode}"))
                     .attr("CLKDV_DIVIDE", val)
                     .commit();
             }
@@ -442,17 +442,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for i in 0..16 {
         bctx.build()
             .mutex(format!("MUX.CASC{i}"), "PASS")
-            .test_manual(format!("MUX.CASC{i}"), "PASS")
+            .test_manual_legacy(format!("MUX.CASC{i}"), "PASS")
             .pip(format!("CASC{i}_O"), format!("CASC{i}_I"))
             .commit();
         bctx.build()
             .mutex(format!("MUX.CASC{i}"), "HCLK")
-            .test_manual(format!("MUX.CASC{i}"), "HCLK")
+            .test_manual_legacy(format!("MUX.CASC{i}"), "HCLK")
             .pip(format!("CASC{i}_O"), format!("HCLK{i}_BUF"))
             .commit();
         bctx.build()
             .mutex(format!("MUX.HCLK{i}"), "CKINT")
-            .test_manual(format!("MUX.HCLK{i}"), "CKINT")
+            .test_manual_legacy(format!("MUX.HCLK{i}"), "CKINT")
             .pip(format!("HCLK{i}"), format!("HCLK{i}_CKINT"))
             .commit();
         for j in 0..2 {
@@ -463,7 +463,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             ] {
                 bctx.build()
                     .mutex(format!("MUX.HCLK{i}"), format!("DCM{j}_{out}"))
-                    .test_manual(format!("MUX.HCLK{i}"), format!("DCM{j}_{out}"))
+                    .test_manual_legacy(format!("MUX.HCLK{i}"), format!("DCM{j}_{out}"))
                     .pip(format!("HCLK{i}"), (bel_dcm, format!("{out}_OUT")))
                     .commit();
             }

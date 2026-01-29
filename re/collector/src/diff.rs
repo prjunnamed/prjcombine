@@ -166,6 +166,12 @@ impl Diff {
         }
     }
 
+    pub fn discard_polbits(&mut self, bits: &[PolTileBit]) {
+        for bit in bits {
+            self.bits.remove(&bit.bit);
+        }
+    }
+
     pub fn discard_bits_enum(&mut self, attr: &BelAttributeEnum) {
         self.discard_bits(&attr.bits);
     }
@@ -595,7 +601,7 @@ pub fn xlat_bitvec_sparse_u32(diffs: Vec<(u32, Diff)>) -> Vec<PolTileBit> {
     }
     let mut new_diffs = vec![];
     for (n, diff) in diffs {
-        let bits = BitVec::from_iter((0..width).map(|bidx| n >> bidx != 0));
+        let bits = BitVec::from_iter((0..width).map(|bidx| (n & 1 << bidx) != 0));
         new_diffs.push((bits, diff));
     }
     xlat_bitvec_sparse(new_diffs)

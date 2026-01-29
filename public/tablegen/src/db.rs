@@ -1,8 +1,9 @@
 use prjcombine_entity::{EntityBundleMap, EntityVec};
 use prjcombine_interconnect::db::{
     BelAttributeId, BelBidirId, BelClassId, BelInputId, BelOutputId, BelPadId, BelPinIndexing,
-    BelSlotId, CellSlotId, ConnectorClassId, ConnectorSlotId, EnumClassId, EnumValueId, IntDb,
-    RegionSlotId, TableFieldId, TableId, TableRowId, TileClassId, TileSlotId, WireSlotId,
+    BelSlotId, CellSlotId, ConnectorClassId, ConnectorSlotId, DeviceDataId, EnumClassId,
+    EnumValueId, IntDb, RegionSlotId, TableFieldId, TableId, TableRowId, TileClassId, TileSlotId,
+    WireSlotId,
 };
 use prjcombine_types::bsdata::BitRectId;
 use proc_macro::Ident;
@@ -40,4 +41,5 @@ pub struct AnnotatedDb {
     pub wire_id: EntityBundleMap<WireSlotId, Ident>,
     pub table_id: EntityVec<TableId, Ident>,
     pub table: EntityVec<TableId, AnnotatedTable>,
+    pub devdata_id: EntityVec<DeviceDataId, Ident>,
 }

@@ -184,7 +184,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for i in 0..32 {
             let mut bctx = ctx.bel(defs::bslots::BUFGCTRL[i]);
             bctx.build()
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("BUFGCTRL")
                 .commit();
             for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
@@ -202,13 +202,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for val in ["CKINT0", "CKINT1"] {
                     bctx.build()
                         .mutex(format!("MUX.I{j}"), val)
-                        .test_manual(format!("MUX.I{j}"), val)
+                        .test_manual_legacy(format!("MUX.I{j}"), val)
                         .pip(format!("I{j}MUX"), val)
                         .commit();
                 }
                 bctx.build()
                     .mutex(format!("MUX.I{j}"), "MUXBUS")
-                    .test_manual(format!("MUX.I{j}"), "MUXBUS")
+                    .test_manual_legacy(format!("MUX.I{j}"), "MUXBUS")
                     .pip(format!("I{j}MUX"), format!("MUXBUS{j}"))
                     .commit();
                 for k in 0..16 {
@@ -216,7 +216,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let val = format!("GFB{k}");
                     bctx.build()
                         .mutex(format!("MUX.I{j}"), &val)
-                        .test_manual(format!("MUX.I{j}"), val)
+                        .test_manual_legacy(format!("MUX.I{j}"), val)
                         .pip(format!("I{j}MUX"), (obel, "GFB"))
                         .commit();
                 }
@@ -231,18 +231,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         };
                         bctx.build()
                             .mutex(format!("MUX.I{j}"), &val)
-                            .test_manual(format!("MUX.I{j}"), &val)
+                            .test_manual_legacy(format!("MUX.I{j}"), &val)
                             .pip(format!("I{j}MUX"), (obel, pin))
                             .commit();
                     }
                 }
             }
             bctx.build()
-                .test_manual("I0_FABRIC_OUT", "1")
+                .test_manual_legacy("I0_FABRIC_OUT", "1")
                 .pin_pips("I0MUX")
                 .commit();
             bctx.build()
-                .test_manual("I1_FABRIC_OUT", "1")
+                .test_manual_legacy("I1_FABRIC_OUT", "1")
                 .pin_pips("I1MUX")
                 .commit();
         }
@@ -254,7 +254,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         continue;
                     }
                     bctx.build()
-                        .test_manual(format!("BUF.MGT_{lr}{i}"), "1")
+                        .test_manual_legacy(format!("BUF.MGT_{lr}{i}"), "1")
                         .pip(format!("MGT_O_{lr}{i}"), format!("MGT_I_{lr}{i}"))
                         .commit();
                 }
@@ -277,7 +277,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     (defs::bslots::IOCLK, format!("RCLK_I{i}")),
                     (defs::bslots::IOCLK, "VRCLK0"),
                 )
-                .test_manual(format!("BUF.RCLK{i}"), "1")
+                .test_manual_legacy(format!("BUF.RCLK{i}"), "1")
                 .pip(format!("RCLK_O{i}"), format!("RCLK_I{i}"))
                 .commit();
         }
@@ -291,7 +291,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     bctx.build()
                         .tile_mutex(format!("IN_HCLK_{lr}{i}"), format!("GCLK{j}"))
                         .tile_mutex(format!("OUT_GCLK{j}"), format!("HCLK_{lr}{i}"))
-                        .test_manual(format!("MUX.HCLK_{lr}{i}"), format!("GCLK{j}"))
+                        .test_manual_legacy(format!("MUX.HCLK_{lr}{i}"), format!("GCLK{j}"))
                         .pip(format!("HCLK_{lr}{i}"), format!("GCLK{j}"))
                         .commit();
                 }
@@ -322,7 +322,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     bctx.build()
                         .tile_mutex(&mux, format!("MGT_{lr}{j}"))
                         .tile_mutex(format!("MGT_{lr}{j}"), &mout)
-                        .test_manual(&mux, format!("MGT_{lr}{j}"))
+                        .test_manual_legacy(&mux, format!("MGT_{lr}{j}"))
                         .pip(&mout, format!("MGT_{lr}{j}"))
                         .commit();
                 }
@@ -332,7 +332,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     bctx.build()
                         .related_tile_mutex(HclkCmt, "ENABLE", "NOPE")
                         .tile_mutex(&mux, format!("CMT_CLK{j}"))
-                        .test_manual(&mux, format!("CMT_CLK{j}"))
+                        .test_manual_legacy(&mux, format!("CMT_CLK{j}"))
                         .pip(&mout, format!("CMT_CLK{j}"))
                         .commit();
                 }
@@ -341,21 +341,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for j in 0..10 {
                     bctx.build()
                         .tile_mutex(&mux, format!("GIOB{j}"))
-                        .test_manual(&mux, format!("GIOB{j}"))
+                        .test_manual_legacy(&mux, format!("GIOB{j}"))
                         .pip(&mout, format!("PAD_BUF{j}"))
                         .commit();
                 }
             }
             bctx.build()
                 .tile_mutex(&mux, "PASS")
-                .test_manual(&mux, "PASS")
+                .test_manual_legacy(&mux, "PASS")
                 .pip(&mout, &min)
                 .commit();
         }
         if bel == defs::bslots::CLK_IOB {
             for i in 0..10 {
                 bctx.build()
-                    .test_manual(format!("BUF.GIOB{i}"), "1")
+                    .test_manual_legacy(format!("BUF.GIOB{i}"), "1")
                     .pip(format!("GIOB{i}"), format!("PAD_BUF{i}"))
                     .commit();
             }
@@ -384,7 +384,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.test_manual("PRESENT", "1").mode("BUFIO").commit();
             bctx.mode("BUFIO")
                 .tile_mutex("BUFIO", format!("TEST_BUFIO{i}"))
-                .test_manual("ENABLE", "1")
+                .test_manual_legacy("ENABLE", "1")
                 .pin("O")
                 .commit();
         }
@@ -403,14 +403,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for pin in ["MGT0", "MGT1", "MGT2", "MGT3", "MGT4", "CKINT0", "CKINT1"] {
                 bctx.mode("BUFR")
                     .mutex("MUX.I", pin)
-                    .test_manual("MUX.I", pin)
+                    .test_manual_legacy("MUX.I", pin)
                     .pip("I", (defs::bslots::RCLK, pin))
                     .commit();
             }
             for j in 0..4 {
                 bctx.mode("BUFR")
                     .mutex("MUX.I", format!("BUFIO{j}"))
-                    .test_manual("MUX.I", format!("BUFIO{j}"))
+                    .test_manual_legacy("MUX.I", format!("BUFIO{j}"))
                     .pip("I", (PinFar, defs::bslots::BUFIO[j], "I"))
                     .commit();
             }
@@ -430,7 +430,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         (defs::bslots::IOCLK, format!("RCLK_I{i}")),
                         (defs::bslots::IOCLK, "VRCLK0"),
                     )
-                    .test_manual(format!("BUF.RCLK{i}"), "1")
+                    .test_manual_legacy(format!("BUF.RCLK{i}"), "1")
                     .pip(format!("RCLK_O{i}"), format!("RCLK_I{i}"))
                     .commit();
             }
@@ -461,7 +461,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .tile_mutex("RCLK_MODE", "TEST")
                             .mutex(format!("MUX.RCLK{i}"), inp)
                             .props(extras)
-                            .test_manual(format!("MUX.RCLK{i}"), inp)
+                            .test_manual_legacy(format!("MUX.RCLK{i}"), inp)
                             .pip(format!("RCLK_I{i}"), inp)
                             .commit();
                     }
@@ -473,7 +473,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for i in 0..10 {
                 bctx.build()
                     .mutex("MUX.REFCLK", format!("HCLK{i}"))
-                    .test_manual("MUX.REFCLK", format!("HCLK{i}"))
+                    .test_manual_legacy("MUX.REFCLK", format!("HCLK{i}"))
                     .pip("REFCLK", (defs::bslots::IOCLK, format!("HCLK_O{i}")))
                     .commit();
             }
@@ -481,12 +481,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("LEGIDELAY", "DISABLE")
                 .unused()
                 .prop(AllIodelay("DEFAULT", "DEFAULT_ONLY"))
-                .test_manual("MODE", "DEFAULT_ONLY")
+                .test_manual_legacy("MODE", "DEFAULT_ONLY")
                 .commit();
             bctx.build()
                 .global("LEGIDELAY", "DISABLE")
                 .prop(AllIodelay("FIXED", "FULL"))
-                .test_manual("MODE", "FULL")
+                .test_manual_legacy("MODE", "FULL")
                 .mode("IDELAYCTRL")
                 .commit();
         }
@@ -497,7 +497,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for i in 0..10 {
             bctx.build()
                 .global_mutex("HCLK_CMT", "TEST")
-                .test_manual(format!("BUF.HCLK{i}"), "1")
+                .test_manual_legacy(format!("BUF.HCLK{i}"), "1")
                 .pip(format!("HCLK_O{i}"), format!("HCLK_I{i}"))
                 .commit();
         }
@@ -505,7 +505,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for i in 0..10 {
             bctx.build()
                 .global_mutex("HCLK_CMT", "TEST")
-                .test_manual(format!("BUF.GIOB{i}"), "1")
+                .test_manual_legacy(format!("BUF.GIOB{i}"), "1")
                 .pip(format!("GIOB_O{i}"), format!("GIOB_I{i}"))
                 .commit();
         }
@@ -532,7 +532,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 // overzealous, but I don't care
                 .global_mutex_here("HCLK_MGT")
                 .maybe_prop(extra)
-                .test_manual(format!("BUF.MGT{i}"), "1")
+                .test_manual_legacy(format!("BUF.MGT{i}"), "1")
                 .pip(format!("MGT_O{i}"), format!("MGT_I{i}"))
                 .commit();
         }

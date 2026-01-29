@@ -64,7 +64,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mode = "DSP48E1";
         bctx.build()
             .bel_unused(bel_other)
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
         for &pin in DSP48E1_INVPINS {
@@ -77,14 +77,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .mutex(&name, "HARD0")
                 .attr("AREG", "0")
                 .attr("BREG", "0")
-                .test_manual(&name, "GND")
+                .test_manual_legacy(&name, "GND")
                 .pip(pin, (bel_tie, "HARD0"))
                 .commit();
             bctx.mode(mode)
                 .mutex(&name, "HARD1")
                 .attr("AREG", "0")
                 .attr("BREG", "0")
-                .test_manual(&name, "VCC")
+                .test_manual_legacy(&name, "VCC")
                 .pip(pin, (bel_tie, "HARD1"))
                 .commit();
         }
@@ -99,7 +99,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 ("2_2", "2", "2"),
             ] {
                 bctx.mode(mode)
-                    .test_manual(aname, vname)
+                    .test_manual_legacy(aname, vname)
                     .attr(attr, val)
                     .attr(attrcasc, valcasc)
                     .commit();
@@ -107,13 +107,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
         bctx.mode(mode)
             .pip("INMODE0", (bel_tie, "HARD0"))
-            .test_manual("AREG_ACASCREG", "1_1_INMODE0_GND")
+            .test_manual_legacy("AREG_ACASCREG", "1_1_INMODE0_GND")
             .attr("AREG", "1")
             .attr("ACASCREG", "1")
             .commit();
         bctx.mode(mode)
             .pip("INMODE4", (bel_tie, "HARD0"))
-            .test_manual("BREG_BCASCREG", "1_1_INMODE4_GND")
+            .test_manual_legacy("BREG_BCASCREG", "1_1_INMODE4_GND")
             .attr("BREG", "1")
             .attr("BCASCREG", "1")
             .commit();
@@ -159,8 +159,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "AUTORESET_PATDET",
             &["RESET_MATCH", "RESET_NOT_MATCH", "NO_RESET"],
         );
-        bctx.mode(mode).test_multi_attr_hex("PATTERN", 48);
-        bctx.mode(mode).test_multi_attr_hex("MASK", 48);
+        bctx.mode(mode).test_multi_attr_hex_legacy("PATTERN", 48);
+        bctx.mode(mode).test_multi_attr_hex_legacy("MASK", 48);
     }
 }
 

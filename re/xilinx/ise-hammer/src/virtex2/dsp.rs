@@ -1,114 +1,52 @@
+use prjcombine_entity::EntityBundleIndex;
+use prjcombine_interconnect::db::BelAttributeType;
 use prjcombine_re_hammer::Session;
-use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex2::defs::{bslots as bslots_s3, spartan3::tcls as tcls_s3};
+use prjcombine_virtex2::defs::{bcls, bslots, spartan3::tcls};
 
-use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Mode {
-    Spartan3ADsp,
-    Spartan6,
-}
-
-const DSP48A_INVPINS: &[&str] = &[
-    "CLK",
-    "CEA",
-    "CEB",
-    "CEC",
-    "CED",
-    "CEM",
-    "CEP",
-    "CEOPMODE",
-    "CECARRYIN",
-    "RSTA",
-    "RSTB",
-    "RSTC",
-    "RSTD",
-    "RSTM",
-    "RSTP",
-    "RSTOPMODE",
-    "RSTCARRYIN",
-];
+use crate::{
+    backend::IseBackend,
+    collector::CollectorCtx,
+    generic::fbuild::{FuzzBuilderBase, FuzzCtx},
+    virtex2::specials,
+};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mode = match backend.edev {
-        ExpandedDevice::Virtex2(_) => Mode::Spartan3ADsp,
-        ExpandedDevice::Spartan6(_) => Mode::Spartan6,
-        _ => unreachable!(),
-    };
-    let mut ctx = FuzzCtx::new(session, backend, "DSP");
-    let (bel_kind, slot) = match mode {
-        Mode::Spartan3ADsp => ("DSP48A", prjcombine_virtex2::defs::bslots::DSP),
-        Mode::Spartan6 => ("DSP48A1", prjcombine_spartan6::defs::bslots::DSP),
-    };
-    let mut bctx = ctx.bel(slot);
-    bctx.test_manual("PRESENT", "1").mode(bel_kind).commit();
-    for &pin in DSP48A_INVPINS {
-        bctx.mode(bel_kind).test_inv(pin);
+    let mut ctx = FuzzCtx::new_id(session, backend, tcls::DSP);
+    let mode = "DSP48A";
+    let mut bctx = ctx.bel(bslots::DSP);
+    bctx.build()
+        .null_bits()
+        .test_bel_special(specials::PRESENT)
+        .mode(mode)
+        .commit();
+    for (pids, _, _) in backend.edev.db.bel_classes[bcls::DSP].inputs.bundles() {
+        if let EntityBundleIndex::Single(pid) = pids {
+            bctx.mode(mode).test_bel_input_inv_auto(pid);
+        }
     }
-    for attr in [
-        "A0REG",
-        "A1REG",
-        "B0REG",
-        "B1REG",
-        "CREG",
-        "DREG",
-        "MREG",
-        "PREG",
-        "OPMODEREG",
-        "CARRYINREG",
-    ] {
-        bctx.mode(bel_kind).test_enum(attr, &["0", "1"]);
+    for (aid, aname, attr) in &backend.edev.db.bel_classes[bcls::DSP].attributes {
+        if attr.typ == BelAttributeType::Bool {
+            bctx.mode(mode)
+                .test_bel_attr_bool_rename(aname, aid, "0", "1");
+        } else {
+            bctx.mode(mode).test_bel_attr(aid);
+        }
     }
-    if mode == Mode::Spartan6 {
-        bctx.mode(bel_kind).test_enum("CARRYOUTREG", &["0", "1"]);
-    }
-    bctx.mode(bel_kind)
-        .test_enum("B_INPUT", &["DIRECT", "CASCADE"]);
-    bctx.mode(bel_kind)
-        .test_enum("CARRYINSEL", &["OPMODE5", "CARRYIN"]);
-    bctx.mode(bel_kind).test_enum("RSTTYPE", &["SYNC", "ASYNC"]);
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let mode = match ctx.edev {
-        ExpandedDevice::Virtex2(_) => Mode::Spartan3ADsp,
-        ExpandedDevice::Spartan6(_) => Mode::Spartan6,
-        _ => unreachable!(),
-    };
-
-    for &pin in DSP48A_INVPINS {
-        match mode {
-            Mode::Spartan3ADsp => ctx.collect_int_inv_legacy(
-                &[tcls_s3::INT_BRAM_S3ADSP; 4],
-                tcls_s3::DSP,
-                bslots_s3::DSP,
-                pin,
-                false,
-            ),
-            Mode::Spartan6 => ctx.collect_inv("DSP", "DSP", pin),
+    let tcid = tcls::DSP;
+    let bslot = bslots::DSP;
+    for (pids, _, _) in ctx.edev.db.bel_classes[bcls::DSP].inputs.bundles() {
+        if let EntityBundleIndex::Single(pid) = pids {
+            ctx.collect_bel_input_inv_int_bi(&[tcls::INT_BRAM_S3ADSP; 4], tcid, bslot, pid);
         }
     }
-    for attr in [
-        "A0REG",
-        "A1REG",
-        "B0REG",
-        "B1REG",
-        "CREG",
-        "DREG",
-        "MREG",
-        "PREG",
-        "OPMODEREG",
-        "CARRYINREG",
-    ] {
-        ctx.collect_enum_legacy("DSP", "DSP", attr, &["0", "1"]);
+    for (aid, _, attr) in &ctx.edev.db.bel_classes[bcls::DSP].attributes {
+        if attr.typ == BelAttributeType::Bool {
+            ctx.collect_bel_attr_bool_bi(tcid, bslot, aid);
+        } else {
+            ctx.collect_bel_attr(tcid, bslot, aid);
+        }
     }
-    if mode == Mode::Spartan6 {
-        ctx.collect_enum_legacy("DSP", "DSP", "CARRYOUTREG", &["0", "1"]);
-    }
-    ctx.collect_enum_legacy("DSP", "DSP", "B_INPUT", &["DIRECT", "CASCADE"]);
-    ctx.collect_enum_legacy("DSP", "DSP", "CARRYINSEL", &["OPMODE5", "CARRYIN"]);
-    ctx.collect_enum_legacy("DSP", "DSP", "RSTTYPE", &["SYNC", "ASYNC"]);
-    ctx.get_diff_legacy("DSP", "DSP", "PRESENT", "1")
-        .assert_empty();
 }

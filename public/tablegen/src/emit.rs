@@ -226,6 +226,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
     let mut ccls_uniform = true;
     let mut wire_uniform = true;
     let mut table_uniform = true;
+    let mut devdata_uniform = true;
     for db in &dbs[1..] {
         if db.db.enum_classes != dbs[0].db.enum_classes {
             enum_uniform = false;
@@ -233,7 +234,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         if db.db.bel_classes != dbs[0].db.bel_classes {
             bcls_uniform = false;
         }
-        if db.db.bel_slots != dbs[0].db.bel_slots {
+        if Vec::from_iter(db.db.bel_slots.keys()) != Vec::from_iter(dbs[0].db.bel_slots.keys()) {
             bslot_uniform = false;
         }
         if db.db.tile_slots != dbs[0].db.tile_slots {
@@ -256,6 +257,9 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         }
         if db.db.tables != dbs[0].db.tables {
             table_uniform = false;
+        }
+        if db.db.devdata != dbs[0].db.devdata {
+            devdata_uniform = false;
         }
     }
     let mut res = TokenStream::new();
@@ -444,6 +448,27 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
     } else {
         for (adb, stream) in dbs.iter().zip(variant_outs.iter_mut()) {
             emit_init(stream, &adb.db);
+        }
+    }
+
+    if devdata_uniform {
+        emit_mod(
+            &mut res,
+            to_ident("devdata"),
+            emit_ids("DeviceDataId", &dbs[0].devdata_id),
+        );
+        if dbs.len() != 1 {
+            for stream in &mut variant_outs {
+                stream.extend(TokenStream::from_str("pub use super::devdata;").unwrap());
+            }
+        }
+    } else {
+        for (adb, stream) in dbs.iter().zip(variant_outs.iter_mut()) {
+            emit_mod(
+                stream,
+                to_ident("devdata"),
+                emit_ids("DeviceDataId", &adb.devdata_id),
+            );
         }
     }
 

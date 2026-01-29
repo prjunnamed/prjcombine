@@ -4,7 +4,186 @@ target_defs! {
     variant virtex2;
     variant spartan3;
 
+    enum SLICE_CYINIT { BX, CIN }
+    enum SLICE_CY0F { CONST_0, CONST_1, BX, F1, F2, PROD }
+    enum SLICE_CY0G { CONST_0, CONST_1, BY, G1, G2, PROD }
+    enum SLICE_CYSELF { CONST_1, F }
+    enum SLICE_CYSELG { CONST_1, G }
+    enum SLICE_DIF_MUX { ALT, BX }
+    enum SLICE_DIG_MUX { ALT, BY }
+    enum SLICE_DXMUX { BX, X }
+    enum SLICE_DYMUX { BY, Y }
+    enum SLICE_FXMUX { F, F5, FXOR }
+    // SOPOUT is virtex2 only
+    enum SLICE_GYMUX { G, FX, GXOR, SOPOUT }
+    enum SLICE_XBMUX { FCY, FMC15 }
+    enum SLICE_YBMUX { GCY, GMC15 }
+    enum SLICE_SOPEXTSEL { CONST_0, SOPIN }
+    bel_class SLICE {
+        input F1, F2, F3, F4;
+        input G1, G2, G3, G4;
+        input BX, BY;
+        input CLK, SR, CE;
+        output X, Y;
+        output XQ, YQ;
+        output XB, YB;
+
+        attribute F, G: bitvec[16];
+
+        // SLICEM only
+        attribute DIF_MUX: SLICE_DIF_MUX;
+        attribute DIG_MUX: SLICE_DIG_MUX;
+        attribute F_RAM_ENABLE, G_RAM_ENABLE: bool;
+        attribute F_SHIFT_ENABLE, G_SHIFT_ENABLE: bool;
+        // SLICEM only
+        // TODO should these have better names?
+        attribute SLICEWE0USED: bool;
+        // spartan3 only, and only in SLICE[0]; SLICE[1] effectively borrows SLICE[0] value
+        attribute SLICEWE1USED: bool;
+        // virtex2 only
+        attribute BYOUTUSED: bool;
+
+        attribute CYINIT: SLICE_CYINIT;
+        attribute CY0F: SLICE_CY0F;
+        attribute CY0G: SLICE_CY0G;
+        attribute CYSELF: SLICE_CYSELF;
+        attribute CYSELG: SLICE_CYSELG;
+
+        attribute FFX_INIT, FFY_INIT: bitvec[1];
+        attribute FFX_SRVAL, FFY_SRVAL: bitvec[1];
+        attribute FF_LATCH: bool;
+        attribute FF_REV_ENABLE: bool;
+        attribute FF_SR_SYNC: bool;
+        // SLICEM only (effectively always enabled on SLICEL)
+        attribute FF_SR_ENABLE: bool;
+
+        attribute FXMUX: SLICE_FXMUX;
+        attribute GYMUX: SLICE_GYMUX;
+        attribute DXMUX: SLICE_DXMUX;
+        attribute DYMUX: SLICE_DYMUX;
+
+        // SLICEM only (effectively *CY on SLICEL)
+        attribute XBMUX: SLICE_XBMUX;
+        attribute YBMUX: SLICE_YBMUX;
+
+        // virtex2 only
+        attribute SOPEXTSEL: SLICE_SOPEXTSEL;
+    }
+
+    bel_class TBUF {
+        input I, T;
+        attribute OUT_A, OUT_B: bool;
+    }
+    bel_class TBUS {
+        output OUT;
+        attribute JOINER_E: bool;
+    }
+
+    // TODO: figure out just what the fuck this is
+    enum RANDOR_MODE { AND, OR }
+    bel_class RANDOR_INIT {
+        attribute MODE: RANDOR_MODE;
+    }
+    bel_class RANDOR {
+        attribute MODE: RANDOR_MODE;
+    }
+    bel_class RANDOR_OUT {
+        output O;
+    }
+
+    enum BRAM_DATA_WIDTH { _1, _2, _4, _9, _18, _36 }
+    enum BRAM_WRITE_MODE { WRITE_FIRST, READ_FIRST, NO_CHANGE }
+    enum BRAM_WW_VALUE { NONE, _0, _1 }
+    enum BRAM_RSTTYPE { SYNC, ASYNC }
+    bel_class BRAM {
+        input CLKA, CLKB;
+        input ENA, ENB;
+        input RSTA, RSTB;
+        // separate byte enables are spartan3a+ only; older devices only have [0] which controls all bits
+        input WEA[4], WEB[4];
+        // spartan3adsp only
+        input REGCEA, REGCEB;
+        input ADDRA[14], ADDRB[14];
+        input DIA[32], DIB[32];
+        input DIPA[4], DIPB[4];
+        output DOA[32], DOB[32];
+        output DOPA[4], DOPB[4];
+
+        attribute DATA: bitvec[0x4000];
+        attribute DATAP: bitvec[0x800];
+        // virtex2 only
+        attribute SAVEDATA: bitvec[64];
+        attribute INIT_A, INIT_B: bitvec[36];
+        attribute SRVAL_A, SRVAL_B: bitvec[36];
+        attribute DATA_WIDTH_A, DATA_WIDTH_B: BRAM_DATA_WIDTH;
+        attribute WRITE_MODE_A, WRITE_MODE_B: BRAM_WRITE_MODE;
+
+        // spartan3+ only
+        attribute WDEL_A, WDEL_B: bitvec[3];
+        attribute DDEL_A, DDEL_B: bitvec[2];
+        attribute WW_VALUE_A, WW_VALUE_B: BRAM_WW_VALUE;
+
+        // spartan3a+ only
+        // TODO: what *is* this really?
+        attribute ENABLE_A, ENABLE_B: bool;
+
+        // spartan3adsp only
+        attribute DOA_REG, DOB_REG: bool;
+        attribute RSTTYPE_A, RSTTYPE_B: BRAM_RSTTYPE;
+    }
+    device_data BRAM_WDEL_A, BRAM_WDEL_B: bitvec[3];
+    device_data BRAM_DDEL_A, BRAM_DDEL_B: bitvec[2];
+
+    enum MULT_B_INPUT { DIRECT, CASCADE }
+    bel_class MULT {
+        input A[18], B[18];
+        output P[36];
+        input CLK;
+        input CEP, RSTP;
+        // spartan3e+ only
+        input CEA, RSTA;
+        input CEB, RSTB;
+
+        attribute PREG: bool;
+        // spartan3e+ only
+        attribute AREG: bool;
+        attribute BREG: bool;
+        attribute B_INPUT: MULT_B_INPUT;
+        attribute PREG_CLKINVERSION: bool;
+    }
+
+    enum DSP_CARRYINSEL { CARRYIN, OPMODE5 }
+    bel_class DSP {
+        input A[18];
+        input B[18];
+        input C[48];
+        input D[18];
+        input OPMODE[8];
+        input CLK;
+        input CEA, CEB, CEC, CED, CEOPMODE, CECARRYIN, CEM, CEP;
+        input RSTA, RSTB, RSTC, RSTD, RSTOPMODE, RSTCARRYIN, RSTM, RSTP;
+        output P[48];
+
+        attribute B_INPUT: MULT_B_INPUT;
+        attribute CARRYINSEL: DSP_CARRYINSEL;
+        attribute A0REG: bool;
+        attribute A1REG: bool;
+        attribute B0REG: bool;
+        attribute B1REG: bool;
+        attribute CREG: bool;
+        attribute DREG: bool;
+        attribute MREG: bool;
+        attribute PREG: bool;
+        attribute OPMODEREG: bool;
+        attribute CARRYINREG: bool;
+        attribute RSTTYPE: BRAM_RSTTYPE;
+    }
+
     // TODO: enums and bel classes
+    // TODO: IOI, IOB
+    // TODO: DCM
+    // TODO: BUFGMUX, PCILOGICSE
+    // TODO: corner stuff
 
     bel_class PCILOGIC {
         input FI[4];
@@ -1012,6 +1191,10 @@ target_defs! {
         wire IMUX_BUFG_CLK[4]: mux;
         wire IMUX_BUFG_SEL[4]: mux;
         wire OUT_BUFG[4]: bel;
+
+        // spartan3a only
+        wire IMUX_MULT_A[18]: mux;
+        wire IMUX_MULT_B[18]: mux;
     }
 
     if variant virtex2 {
@@ -1103,9 +1286,9 @@ target_defs! {
     }
 
     tile_slot BEL {
-        bel_slot SLICE[4]: legacy;
-        bel_slot TBUF[2]: legacy;
-        bel_slot TBUS: legacy;
+        bel_slot SLICE[4]: SLICE;
+        bel_slot TBUF[2]: TBUF;
+        bel_slot TBUS: TBUS;
         tile_class CLB {
             cell CELL;
             bitrect MAIN: MAIN;
@@ -1126,8 +1309,9 @@ target_defs! {
             }
         }
 
-        bel_slot BRAM: legacy;
-        bel_slot MULT: legacy;
+        bel_slot BRAM: BRAM;
+        bel_slot MULT: MULT;
+        bel_slot MULT_INT: routing;
         if variant virtex2 {
             tile_class BRAM {
                 cell CELL[4];
@@ -1142,7 +1326,7 @@ target_defs! {
             }
         }
 
-        bel_slot DSP: legacy;
+        bel_slot DSP: DSP;
         bel_slot DSP_TESTMUX: routing;
         if variant spartan3 {
             tile_class DSP {
@@ -1258,7 +1442,7 @@ target_defs! {
 
         bel_slot DCMCONN_S3E: legacy;
         bel_slot BREFCLK_INT: legacy;
-        bel_slot RANDOR_OUT: legacy;
+        bel_slot RANDOR_OUT: RANDOR_OUT;
         bel_slot MISR: legacy;
     }
 
@@ -1648,7 +1832,8 @@ target_defs! {
     }
 
     tile_slot RANDOR {
-        bel_slot RANDOR: legacy;
+        bel_slot RANDOR: RANDOR;
+        bel_slot RANDOR_INIT: RANDOR_INIT;
         if variant spartan3 {
             tile_class RANDOR {
                 bitrect MAIN: MAIN;
@@ -1658,9 +1843,11 @@ target_defs! {
             }
             tile_class RANDOR_INIT {
                 bitrect MAIN: MAIN;
+                bel RANDOR_INIT;
             }
             tile_class RANDOR_INIT_FC {
                 bitrect MAIN: MAIN;
+                bel RANDOR_INIT;
             }
         }
     }

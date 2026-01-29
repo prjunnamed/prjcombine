@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     dir::{Dir, DirMap},
-    grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord},
+    grid::{BelCoord, CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord},
 };
 use prjcombine_types::bsdata::BitRectId;
 use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
@@ -9,7 +9,7 @@ use std::collections::{BTreeSet, HashMap};
 
 use crate::{
     chip::{Chip, DisabledPart, RegId},
-    defs,
+    defs::{self, bslots},
 };
 
 pub struct ExpandedDevice<'a> {
@@ -124,6 +124,26 @@ impl ExpandedDevice<'_> {
                     .values()
                     .map(|&cell| self.btile_main(cell.col, cell.row)),
             )
+        }
+    }
+
+    pub fn bel_carry_prev(&self, bcrd: BelCoord) -> Option<BelCoord> {
+        if bslots::SLICE.contains(bcrd.slot) {
+            todo!()
+        } else if bcrd.slot == bslots::DSP {
+            let mut bcrd = bcrd;
+            loop {
+                if let Some(cell) = self.cell_delta(bcrd.cell, 0, -4) {
+                    bcrd.cell = cell;
+                } else {
+                    return None;
+                }
+                if self.has_bel(bcrd) {
+                    return Some(bcrd);
+                }
+            }
+        } else {
+            panic!("not a carry-chain bel: {}", bcrd.to_string(self.db))
         }
     }
 }

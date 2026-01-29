@@ -128,7 +128,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
             for pin in bel_data.pins.keys() {
                 if pin.starts_with("LSSDSCANIN") {
-                    let item = ctx.item_int_inv(&[tcls::INT; 62], tcid, bslot, pin);
+                    let item = ctx.item_int_inv_legacy(&[tcls::INT; 62], tcid, bslot, pin);
                     diff.discard_bits(&[item.bit]);
                 }
             }

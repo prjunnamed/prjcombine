@@ -61,7 +61,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global_mutex("BRAM", "MULTI")
             .tile_mutex("MODE", "FULL")
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
         for pin in [
@@ -117,7 +117,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("MODE", "FULL")
                 .attr("DATA_WIDTH_A", "36")
                 .attr("DATA_WIDTH_B", "36")
-                .test_multi_attr_hex(attr, 36)
+                .test_multi_attr_hex_legacy(attr, 36)
         }
         for i in 0..0x40 {
             bctx.mode(mode)
@@ -125,14 +125,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("MODE", "FULL")
                 .attr("DATA_WIDTH_A", "18")
                 .attr("DATA_WIDTH_B", "18")
-                .test_manual(format!("INIT_{i:02X}.NARROW"), "")
+                .test_manual_legacy(format!("INIT_{i:02X}.NARROW"), "")
                 .multi_attr(format!("INIT_{i:02X}"), MultiValue::Hex(0), 256);
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "FULL")
                 .attr("DATA_WIDTH_A", "18")
                 .attr("DATA_WIDTH_B", "36")
-                .test_manual(format!("INIT_{i:02X}.WIDE"), "")
+                .test_manual_legacy(format!("INIT_{i:02X}.WIDE"), "")
                 .multi_attr(format!("INIT_{i:02X}"), MultiValue::Hex(0), 256);
         }
         for i in 0..8 {
@@ -141,14 +141,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("MODE", "FULL")
                 .attr("DATA_WIDTH_A", "18")
                 .attr("DATA_WIDTH_B", "18")
-                .test_manual(format!("INITP_{i:02X}.NARROW"), "")
+                .test_manual_legacy(format!("INITP_{i:02X}.NARROW"), "")
                 .multi_attr(format!("INITP_{i:02X}"), MultiValue::Hex(0), 256);
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "FULL")
                 .attr("DATA_WIDTH_A", "18")
                 .attr("DATA_WIDTH_B", "36")
-                .test_manual(format!("INITP_{i:02X}.WIDE"), "")
+                .test_manual_legacy(format!("INITP_{i:02X}.WIDE"), "")
                 .multi_attr(format!("INITP_{i:02X}"), MultiValue::Hex(0), 256);
         }
 
@@ -160,7 +160,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.mode(mode)
                 .global_mutex_here("BRAM")
-                .test_manual(attr, val)
+                .test_manual_legacy(attr, val)
                 .global(attr, val)
                 .commit();
         }
@@ -173,7 +173,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for val in ["0", "1", "11", "111"] {
                 bctx.mode(mode)
                     .global_mutex_here("BRAM")
-                    .test_manual(attr, val)
+                    .test_manual_legacy(attr, val)
                     .global(attr, val)
                     .commit();
             }
@@ -187,7 +187,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for val in ["0", "1", "10", "11", "100", "101", "110", "111"] {
                 bctx.mode(mode)
                     .global_mutex_here("BRAM")
-                    .test_manual(attr, val)
+                    .test_manual_legacy(attr, val)
                     .global(attr, val)
                     .commit();
             }
@@ -201,7 +201,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("BRAM", "MULTI")
             .tile_mutex("MODE", bel_name)
             .prop(ExtraBramFixup)
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
         for pin in [
@@ -267,20 +267,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("MODE", "HALF")
                 .attr("DATA_WIDTH_A", "18")
                 .attr("DATA_WIDTH_B", "18")
-                .test_multi_attr_hex(attr, 18);
+                .test_multi_attr_hex_legacy(attr, 18);
         }
         for i in 0..0x20 {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "HALF")
-                .test_manual(format!("INIT_{i:02X}"), "")
+                .test_manual_legacy(format!("INIT_{i:02X}"), "")
                 .multi_attr(format!("INIT_{i:02X}"), MultiValue::Hex(0), 256);
         }
         for i in 0..4 {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "HALF")
-                .test_manual(format!("INITP_{i:02X}"), "")
+                .test_manual_legacy(format!("INITP_{i:02X}"), "")
                 .multi_attr(format!("INITP_{i:02X}"), MultiValue::Hex(0), 256);
         }
         for (attr, val) in [
@@ -291,7 +291,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.mode(mode)
                 .global_mutex_here("BRAM")
-                .test_manual(attr, val)
+                .test_manual_legacy(attr, val)
                 .global(attr, val)
                 .commit();
         }

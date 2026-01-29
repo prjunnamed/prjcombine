@@ -211,6 +211,26 @@ impl Tokenizer {
         })
     }
 
+    fn attribute_type(&mut self) -> Result<ast::AttributeType> {
+        let typ_raw = self.ident()?;
+        Ok(match typ_raw.to_string().as_str() {
+            "bool" => ast::AttributeType::Bool,
+            "bitvec" => {
+                let mut inner = self.brackets()?;
+                let width = inner.usize()?;
+                inner.finish()?;
+                if let Some(mut inner) = self.try_brackets() {
+                    let depth = inner.usize()?;
+                    inner.finish()?;
+                    ast::AttributeType::BitVecArray(width, depth)
+                } else {
+                    ast::AttributeType::BitVec(width)
+                }
+            }
+            _ => ast::AttributeType::Enum(typ_raw),
+        })
+    }
+
     fn try_kw(&mut self, kw: &str) -> bool {
         if let Some(TokenTree::Ident(id)) = self.tokens.peek()
             && id.to_string() == kw
@@ -431,6 +451,12 @@ impl Item for ast::TopItem {
                 };
                 ast::TopItem::Table(parse_table(tokenizer, block)?)
             }
+            "device_data" => {
+                if block.is_some() {
+                    error_at(keyword.span(), "device_data does not accept a block")?;
+                }
+                ast::TopItem::DeviceData(parse_device_data(tokenizer)?)
+            }
             _ => error_at(keyword.span(), &format!("unknown item keyword: {keyword}"))?,
         })
     }
@@ -505,23 +531,7 @@ impl Item for ast::BelClassItem {
                 }
                 let names = tokenizer.list(Tokenizer::template_id)?;
                 tokenizer.punct(':')?;
-                let typ_raw = tokenizer.ident()?;
-                let typ = match typ_raw.to_string().as_str() {
-                    "bool" => ast::AttributeType::Bool,
-                    "bitvec" => {
-                        let mut inner = tokenizer.brackets()?;
-                        let width = inner.usize()?;
-                        inner.finish()?;
-                        if let Some(mut inner) = tokenizer.try_brackets() {
-                            let depth = inner.usize()?;
-                            inner.finish()?;
-                            ast::AttributeType::BitVecArray(width, depth)
-                        } else {
-                            ast::AttributeType::BitVec(width)
-                        }
-                    }
-                    _ => ast::AttributeType::Enum(typ_raw),
-                };
+                let typ = tokenizer.attribute_type()?;
                 tokenizer.finish()?;
                 ast::BelClassItem::Attribute(ast::BelClassAttribute { names, typ })
             }
@@ -991,17 +1001,7 @@ impl Item for ast::TableItem {
                 }
                 let names = tokenizer.list(Tokenizer::template_id)?;
                 tokenizer.punct(':')?;
-                let typ_raw = tokenizer.ident()?;
-                let typ = match typ_raw.to_string().as_str() {
-                    "bool" => ast::AttributeType::Bool,
-                    "bitvec" => {
-                        let mut inner = tokenizer.brackets()?;
-                        let width = inner.usize()?;
-                        inner.finish()?;
-                        ast::AttributeType::BitVec(width)
-                    }
-                    _ => ast::AttributeType::Enum(typ_raw),
-                };
+                let typ = tokenizer.attribute_type()?;
                 tokenizer.finish()?;
                 ast::TableItem::Field(ast::TableField { names, typ })
             }
@@ -1016,6 +1016,15 @@ impl Item for ast::TableItem {
             _ => error_at(keyword.span(), &format!("unknown item keyword: {keyword}"))?,
         })
     }
+}
+
+fn parse_device_data(mut tokenizer: Tokenizer) -> Result<ast::DeviceData> {
+    let names = tokenizer.list(Tokenizer::template_id)?;
+    tokenizer.punct(':')?;
+    let typ = tokenizer.attribute_type()?;
+    tokenizer.finish()?;
+
+    Ok(ast::DeviceData { names, typ })
 }
 
 // endregion:

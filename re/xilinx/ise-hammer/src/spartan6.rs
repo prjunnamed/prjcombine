@@ -1,9 +1,11 @@
 pub mod bram;
 pub mod clk;
 pub mod dcm;
+pub mod dsp;
 pub mod gt;
 pub mod io;
 pub mod mcb;
 pub mod misc;
 pub mod pcie;
 pub mod pll;
+mod specials;

@@ -102,7 +102,7 @@ pub fn add_fuzzers<'a>(
                 let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
                 bctx.build()
                     .global_mutex("PCILOGICSE", "NONE")
-                    .test_manual("PRESENT", "1")
+                    .test_manual_legacy("PRESENT", "1")
                     .mode("PCILOGICSE")
                     .commit();
             }
@@ -130,12 +130,12 @@ pub fn add_fuzzers<'a>(
                 if edev.chip.kind.is_virtex2() {
                     bctx.build()
                         .prop(StabilizeGclkc)
-                        .test_manual("PRESENT", "1")
+                        .test_manual_legacy("PRESENT", "1")
                         .mode("BUFGMUX")
                         .commit();
                 } else {
                     bctx.build()
-                        .test_manual("PRESENT", "1")
+                        .test_manual_legacy("PRESENT", "1")
                         .mode("BUFGMUX")
                         .commit();
                 }
@@ -155,25 +155,25 @@ pub fn add_fuzzers<'a>(
                 for &inp in inps {
                     bctx.build()
                         .mutex("MUX.CLK", inp)
-                        .test_manual("MUX.CLK", inp)
+                        .test_manual_legacy("MUX.CLK", inp)
                         .pip("CLK", inp)
                         .commit();
                 }
                 bctx.build()
                     .mutex("MUX.CLK", "INT")
-                    .test_manual("MUX.CLK", "INT")
+                    .test_manual_legacy("MUX.CLK", "INT")
                     .pip("CLK", (PinFar, "CLK"))
                     .commit();
             } else {
                 bctx.test_manual("PRESENT", "1").mode("BUFG").commit();
                 bctx.build()
                     .mutex("MUX.CLK", "CKI")
-                    .test_manual("MUX.CLK", "CKI")
+                    .test_manual_legacy("MUX.CLK", "CKI")
                     .pip("CLK", "CKI")
                     .commit();
                 bctx.build()
                     .mutex("MUX.CLK", "INT")
-                    .test_manual("MUX.CLK", "INT")
+                    .test_manual_legacy("MUX.CLK", "INT")
                     .pip("CLK", (PinFar, "CLK"))
                     .commit();
             }
@@ -191,7 +191,7 @@ pub fn add_fuzzers<'a>(
                 let mut bctx = ctx.bel(bel);
                 bctx.build()
                     .null_bits()
-                    .test_manual("PRESENT", "1")
+                    .test_manual_legacy("PRESENT", "1")
                     .mode("GLOBALSIG")
                     .commit();
                 for attr in ["DOWN1MUX", "UP1MUX", "DOWN2MUX", "UP2MUX"] {
@@ -212,7 +212,7 @@ pub fn add_fuzzers<'a>(
             let mut bctx = ctx.bel(bel);
             bctx.build()
                 .null_bits()
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("GLOBALSIG")
                 .commit();
             bctx.mode("GLOBALSIG")
@@ -244,27 +244,27 @@ pub fn add_fuzzers<'a>(
                 for inp in ["CKI", "DCM_OUT"] {
                     bctx.build()
                         .mutex("MUX.CLK", inp)
-                        .test_manual("MUX.CLK", inp)
+                        .test_manual_legacy("MUX.CLK", inp)
                         .pip("CLK", inp)
                         .commit();
                 }
                 bctx.build()
                     .mutex("MUX.CLK", "INT")
-                    .test_manual("MUX.CLK", "INT")
+                    .test_manual_legacy("MUX.CLK", "INT")
                     .pip("CLK", (PinFar, "CLK"))
                     .commit();
             }
             let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
             bctx.build()
                 .global_mutex("PCILOGICSE", "NONE")
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("PCILOGICSE")
                 .commit();
             if chip_kind.is_spartan3a() {
                 for val in ["LOW", "MED", "HIGH", "NILL"] {
                     bctx.mode("PCILOGICSE")
                         .global_mutex_here("PCILOGICSE")
-                        .test_manual("DELAY", val)
+                        .test_manual_legacy("DELAY", val)
                         .global("pci_ce_delay_left", val)
                         .global("pci_ce_delay_right", val)
                         .commit();
@@ -274,7 +274,7 @@ pub fn add_fuzzers<'a>(
             let mut bctx = ctx.bel(defs::bslots::GLOBALSIG_WE);
             bctx.build()
                 .null_bits()
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("GLOBALSIG")
                 .commit();
             bctx.mode("GLOBALSIG")
@@ -291,7 +291,7 @@ pub fn add_fuzzers<'a>(
             for bt in ["B", "T"] {
                 bctx.build()
                     .null_bits()
-                    .test_manual(format!("FWD_{bt}{i}"), "1")
+                    .test_manual_legacy(format!("FWD_{bt}{i}"), "1")
                     .pip(format!("OUT_{bt}{i}"), format!("IN_{bt}{i}"))
                     .commit();
             }
@@ -309,7 +309,7 @@ pub fn add_fuzzers<'a>(
                             bctx.build()
                                 .global_mutex("BUFG", "USE")
                                 .tile_mutex(&out_name, &inp_name)
-                                .test_manual(format!("MUX.OUT_{lr}{i}"), &inp_name)
+                                .test_manual_legacy(format!("MUX.OUT_{lr}{i}"), &inp_name)
                                 .pip(out_name.as_str(), inp_name.as_str())
                                 .commit();
                         }
@@ -334,7 +334,7 @@ pub fn add_fuzzers<'a>(
             for (out, inp) in [(out_l, in_l), (out_l, in_bt), (out_r, in_r), (out_r, in_bt)] {
                 bctx.build()
                     .tile_mutex(out, inp)
-                    .test_manual(format!("MUX.{out}"), inp)
+                    .test_manual_legacy(format!("MUX.{out}"), inp)
                     .pip(out, inp)
                     .commit();
             }
@@ -355,7 +355,7 @@ pub fn add_fuzzers<'a>(
         ] {
             bctx.build()
                 .null_bits()
-                .test_manual(out, inp)
+                .test_manual_legacy(out, inp)
                 .pip(out, inp)
                 .commit();
         }
@@ -371,7 +371,7 @@ pub fn add_fuzzers<'a>(
                         let inp_name = format!("IN_{lr}{i}");
                         bctx.build()
                             .tile_mutex(&out_name, &inp_name)
-                            .test_manual(format!("MUX.{out_name}"), &inp_name)
+                            .test_manual_legacy(format!("MUX.{out_name}"), &inp_name)
                             .pip(out_name.as_str(), inp_name.as_str())
                             .commit();
                     }
@@ -386,7 +386,7 @@ pub fn add_fuzzers<'a>(
                     let inp_name = format!("IN_CORE{i}");
                     bctx.build()
                         .global_mutex("MISR_CLOCK", "NONE")
-                        .test_manual(format!("BUF.{out_name}"), &inp_name)
+                        .test_manual_legacy(format!("BUF.{out_name}"), &inp_name)
                         .pip(out_name, inp_name)
                         .commit();
                 }
@@ -403,7 +403,7 @@ pub fn add_fuzzers<'a>(
                 bctx.build()
                     .tile_mutex(&out_name, &inp_name)
                     .null_bits()
-                    .test_manual(&out_name, &inp_name)
+                    .test_manual_legacy(&out_name, &inp_name)
                     .pip(out_name.as_str(), inp_name.as_str())
                     .commit();
             }
@@ -444,7 +444,7 @@ pub fn add_fuzzers<'a>(
                     bctx.build()
                         .global_mutex("MISR_CLOCK", "NONE")
                         .tile_mutex(&inp_name, &out_name)
-                        .test_manual(&out_name, &inp_name)
+                        .test_manual_legacy(&out_name, &inp_name)
                         .pip(out_name.as_str(), inp_name.as_str())
                         .commit();
                 }
@@ -458,7 +458,7 @@ pub fn add_fuzzers<'a>(
         let mut bctx = ctx.bel(slot);
         bctx.build()
             .null_bits()
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("GLOBALSIG")
             .commit();
         if chip_kind.is_virtex2() {
@@ -492,7 +492,7 @@ pub fn add_fuzzers<'a>(
                     builder = builder.null_bits();
                 }
                 builder
-                    .test_manual(format!("BUF.{out_name}"), "1")
+                    .test_manual_legacy(format!("BUF.{out_name}"), "1")
                     .pip(out_name, in_name)
                     .commit();
             }
@@ -501,7 +501,7 @@ pub fn add_fuzzers<'a>(
                 let in_name = format!("CLKPADBUS{i}");
                 bctx.build()
                     .null_bits()
-                    .test_manual(&out_name, "1")
+                    .test_manual_legacy(&out_name, "1")
                     .pip(out_name, in_name)
                     .commit();
             }
@@ -521,7 +521,7 @@ pub fn add_fuzzers<'a>(
                 bctx.build()
                     .null_bits()
                     .row_mutex_here("DCMCONN")
-                    .test_manual("O", "1")
+                    .test_manual_legacy("O", "1")
                     .pip("O", "I")
                     .commit();
             }
@@ -548,7 +548,7 @@ pub fn add_fuzzers<'a>(
                         .prop(IntMutex::new("PTE2OMUX".into()))
                         .global_mutex("PSCLK", "PTE2OMUX")
                         .mutex("OUT", pin_name.as_str())
-                        .test_manual(format!("MUX.PTE2OMUX[{i}]"), pin_name)
+                        .test_manual_legacy(format!("MUX.PTE2OMUX[{i}]"), pin_name)
                         .pip("OUT", pin_name.as_str())
                         .commit();
                 }
@@ -816,7 +816,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                         pin_name,
                     );
                     if matches!(&pin_name[..], "CLKFB" | "CLKIN" | "PSCLK") {
-                        diff.discard_bits(&[ctx.item_int_inv(&[tcid], tcid, bel_id, pin_name).bit]);
+                        diff.discard_bits(&[ctx
+                            .item_int_inv_legacy(&[tcid], tcid, bel_id, pin_name)
+                            .bit]);
                     }
                     diffs.push((pin_name.to_string(), diff));
                 }

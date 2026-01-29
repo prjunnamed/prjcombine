@@ -384,12 +384,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let bel_ologic = defs::bslots::OLOGIC[i];
         bctx.build()
             .bel_unused(bel_ologic)
-            .test_manual("PRESENT", "ILOGIC")
+            .test_manual_legacy("PRESENT", "ILOGIC")
             .mode("ILOGIC")
             .commit();
         bctx.build()
             .bel_unused(bel_ologic)
-            .test_manual("PRESENT", "ISERDES")
+            .test_manual_legacy("PRESENT", "ISERDES")
             .mode("ISERDES")
             .commit();
 
@@ -723,7 +723,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         bctx.build()
             .mutex("MUX.CLK", "CKINT")
-            .test_manual("MUX.CLK", "CKINT")
+            .test_manual_legacy("MUX.CLK", "CKINT")
             .pip("CLKMUX", "CLKMUX_INT")
             .commit();
         for ipin in [
@@ -732,7 +732,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.build()
                 .mutex("MUX.CLK", ipin)
-                .test_manual("MUX.CLK", ipin)
+                .test_manual_legacy("MUX.CLK", ipin)
                 .pip("CLKMUX", (defs::bslots::IOI, ipin))
                 .commit();
         }
@@ -742,12 +742,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let bel_ilogic = defs::bslots::ILOGIC[i];
         bctx.build()
             .bel_unused(bel_ilogic)
-            .test_manual("PRESENT", "OLOGIC")
+            .test_manual_legacy("PRESENT", "OLOGIC")
             .mode("OLOGIC")
             .commit();
         bctx.build()
             .bel_unused(bel_ilogic)
-            .test_manual("PRESENT", "OSERDES")
+            .test_manual_legacy("PRESENT", "OSERDES")
             .mode("OSERDES")
             .commit();
         bctx.mode("OLOGIC")
@@ -972,7 +972,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         bctx.build()
             .mutex("MUX.CLK", "CKINT")
-            .test_manual("MUX.CLK", "CKINT")
+            .test_manual_legacy("MUX.CLK", "CKINT")
             .pip("CLKMUX", "CLKMUX_INT")
             .commit();
         for ipin in [
@@ -981,7 +981,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.build()
                 .mutex("MUX.CLK", ipin)
-                .test_manual("MUX.CLK", ipin)
+                .test_manual_legacy("MUX.CLK", ipin)
                 .pip("CLKMUX", (defs::bslots::IOI, ipin))
                 .commit();
         }
@@ -993,21 +993,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global("DCIUPDATEMODE", "ASREQUIRED")
             .raw(Key::Package, &package.name)
             .prop(IsBonded(bel))
-            .test_manual("PRESENT", "IOB")
+            .test_manual_legacy("PRESENT", "IOB")
             .mode("IOB")
             .commit();
         bctx.build()
             .global("DCIUPDATEMODE", "CONTINUOUS")
             .raw(Key::Package, &package.name)
             .prop(IsBonded(bel))
-            .test_manual("PRESENT", "IOB.CONTINUOUS")
+            .test_manual_legacy("PRESENT", "IOB.CONTINUOUS")
             .mode("IOB")
             .commit();
         bctx.build()
             .global("DCIUPDATEMODE", "ASREQUIRED")
             .raw(Key::Package, &package.name)
             .prop(IsBonded(bel))
-            .test_manual("PRESENT", "IPAD")
+            .test_manual_legacy("PRESENT", "IPAD")
             .mode("IPAD")
             .commit();
         bctx.mode("IOB")
@@ -1019,7 +1019,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .mode("IOB")
             .pin("O")
             .attr("IOATTRBOX", "")
-            .test_manual("OUSED", "0")
+            .test_manual_legacy("OUSED", "0")
             .attr("DRIVE_0MA", "DRIVE_0MA")
             .attr("OUSED", "0")
             .commit();
@@ -1051,7 +1051,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .raw(Key::Package, &package.name)
                     .prop(IsBonded(bel))
                     .maybe_prop(dci_special)
-                    .test_manual("ISTD", std.name)
+                    .test_manual_legacy("ISTD", std.name)
                     .attr("INBUFUSED", "0")
                     .attr("DIFFI_INUSED", "0")
                     .attr("IOATTRBOX", std.name)
@@ -1067,7 +1067,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
                         .maybe_prop(dci_special)
-                        .test_manual("DIFF_TERM", std.name)
+                        .test_manual_legacy("DIFF_TERM", std.name)
                         .attr("DIFF_TERM", "TRUE")
                         .commit();
                 }
@@ -1079,7 +1079,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .prop(IsBonded(bel))
                     .maybe_prop(vref_special)
                     .maybe_prop(dci_special)
-                    .test_manual("ISTD", std.name)
+                    .test_manual_legacy("ISTD", std.name)
                     .attr("INBUFUSED", "0")
                     .attr("IOATTRBOX", std.name)
                     .commit();
@@ -1096,7 +1096,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
                         .prop(DiffOut(None))
-                        .test_manual("OSTD", std.name)
+                        .test_manual_legacy("OSTD", std.name)
                         .mode_diff("IOB", "IOBS")
                         .attr("IOATTRBOX", std.name)
                         .attr("OUTMUX", "1")
@@ -1111,7 +1111,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
                         .prop(DiffOut(Some(std.name)))
-                        .test_manual("OSTD", std.name)
+                        .test_manual_legacy("OSTD", std.name)
                         .mode_diff("IOB", "IOBM")
                         .attr("IOATTRBOX", std.name)
                         .attr_diff("DRIVE_0MA", "DRIVE_0MA", "")
@@ -1133,7 +1133,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .raw(Key::Package, &package.name)
                     .prop(IsBonded(bel))
                     .prop(Dci(std.name))
-                    .test_manual("OSTD", std.name)
+                    .test_manual_legacy("OSTD", std.name)
                     .attr("IOATTRBOX", std.name)
                     .attr_diff("DRIVE_0MA", "DRIVE_0MA", "")
                     .commit();
@@ -1145,7 +1145,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("INBUFUSED", "")
                             .attr("OPROGRAMMING", "")
                             .attr("OUSED", "0")
-                            .test_manual("OSTD", format!("{name}.{drive}.{slew}", name = std.name))
+                            .test_manual_legacy(
+                                "OSTD",
+                                format!("{name}.{drive}.{slew}", name = std.name),
+                            )
                             .attr("IOATTRBOX", std.name)
                             .attr_diff("DRIVE_0MA", "DRIVE_0MA", "")
                             .attr("DRIVEATTRBOX", drive)
@@ -1159,7 +1162,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("INBUFUSED", "")
                     .attr("OPROGRAMMING", "")
                     .attr("OUSED", "0")
-                    .test_manual("OSTD", std.name)
+                    .test_manual_legacy("OSTD", std.name)
                     .attr("IOATTRBOX", std.name)
                     .attr_diff("DRIVE_0MA", "DRIVE_0MA", "")
                     .commit();
@@ -1296,7 +1299,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::DCI);
         bctx.build()
             .global_mutex("GLOBAL_DCI", "NOPE")
-            .test_manual("TEST_ENABLE", "1")
+            .test_manual_legacy("TEST_ENABLE", "1")
             .mode("DCI")
             .commit();
     }

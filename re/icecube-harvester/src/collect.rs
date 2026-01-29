@@ -160,7 +160,11 @@ pub fn collect_iob(
     }
 }
 
-pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> CollectorData {
+pub fn collect(
+    edev: &ExpandedDevice,
+    dev_name: &str,
+    harvester: &Harvester<BitOwner>,
+) -> CollectorData {
     let mut data = CollectorData::default();
     let mut diffs = BTreeMap::new();
     for (key, bits) in &harvester.known_global {
@@ -172,7 +176,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
         };
         diffs.insert(key.clone(), vec![diff]);
     }
-    let mut collector = Collector::new(&mut diffs, &mut data, edev.db);
+    let mut collector = Collector::new(&mut diffs, &mut data, dev_name, edev.db);
 
     for (tcid, _, tcls) in &edev.db.tile_classes {
         if edev.tile_index[tcid].is_empty() {

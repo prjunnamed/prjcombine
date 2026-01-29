@@ -23975,6 +23975,63 @@ device xq6slx150l {
 }
 
 intdb {
+	enum BRAM_RSTTYPE {
+		SYNC,
+		ASYNC,
+	}
+
+	enum DSP_B_INPUT {
+		DIRECT,
+		CASCADE,
+	}
+
+	enum DSP_CARRYINSEL {
+		CARRYIN,
+		OPMODE5,
+	}
+
+	bel_class DSP {
+		input A[18];
+		input B[18];
+		input C[48];
+		input D[18];
+		input OPMODE[8];
+		input CLK;
+		input CEA;
+		input CEB;
+		input CEC;
+		input CED;
+		input CEOPMODE;
+		input CECARRYIN;
+		input CEM;
+		input CEP;
+		input RSTA;
+		input RSTB;
+		input RSTC;
+		input RSTD;
+		input RSTOPMODE;
+		input RSTCARRYIN;
+		input RSTM;
+		input RSTP;
+		output M[36];
+		output P[48];
+		output CARRYOUTF;
+		attribute B_INPUT: DSP_B_INPUT;
+		attribute CARRYINSEL: DSP_CARRYINSEL;
+		attribute A0REG: bool;
+		attribute A1REG: bool;
+		attribute B0REG: bool;
+		attribute B1REG: bool;
+		attribute CREG: bool;
+		attribute DREG: bool;
+		attribute MREG: bool;
+		attribute PREG: bool;
+		attribute OPMODEREG: bool;
+		attribute CARRYINREG: bool;
+		attribute CARRYOUTREG: bool;
+		attribute RSTTYPE: BRAM_RSTTYPE;
+	}
+
 	region_slot HCLK;
 	region_slot LEAF;
 	wire PULLUP: pullup;
@@ -32786,7 +32843,7 @@ intdb {
 		bel_slot BRAM_F: legacy;
 		bel_slot BRAM_H[0]: legacy;
 		bel_slot BRAM_H[1]: legacy;
-		bel_slot DSP: legacy;
+		bel_slot DSP: DSP;
 		bel_slot ILOGIC[0]: legacy;
 		bel_slot ILOGIC[1]: legacy;
 		bel_slot OLOGIC[0]: legacy;
@@ -33903,432 +33960,455 @@ intdb {
 			bitrect MAIN[3]: Vertical (24, rev 64);
 
 			bel DSP {
-				input A0 = CELL[2].IMUX_LOGICIN[19];
-				input A1 = CELL[2].IMUX_LOGICIN[29];
-				input A10 = CELL[3].IMUX_LOGICIN[26];
-				input A11 = CELL[3].IMUX_LOGICIN[30];
-				input A12 = CELL[3].IMUX_LOGICIN[1];
-				input A13 = CELL[3].IMUX_LOGICIN[19];
-				input A14 = CELL[3].IMUX_LOGICIN[29];
-				input A15 = CELL[3].IMUX_LOGICIN[52];
-				input A16 = CELL[3].IMUX_LOGICIN[14];
-				input A17 = CELL[3].IMUX_LOGICIN[8];
-				input A2 = CELL[2].IMUX_LOGICIN[52];
-				input A3 = CELL[2].IMUX_LOGICIN[39];
-				input A4 = CELL[2].IMUX_LOGICIN[8];
-				input A5 = CELL[3].IMUX_LOGICIN[15];
-				input A6 = CELL[3].IMUX_LOGICIN[7];
-				input A7 = CELL[3].IMUX_LOGICIN[16];
-				input A8 = CELL[3].IMUX_LOGICIN[23];
-				input A9 = CELL[3].IMUX_LOGICIN[44];
-				input B0 = CELL[0].IMUX_LOGICIN[42];
-				input B1 = CELL[0].IMUX_LOGICIN[38];
-				input B10 = CELL[1].IMUX_LOGICIN[57];
-				input B11 = CELL[1].IMUX_LOGICIN[55];
-				input B12 = CELL[1].IMUX_LOGICIN[1];
-				input B13 = CELL[1].IMUX_LOGICIN[27];
-				input B14 = CELL[1].IMUX_LOGICIN[52];
-				input B15 = CELL[1].IMUX_LOGICIN[39];
-				input B16 = CELL[2].IMUX_LOGICIN[36];
-				input B17 = CELL[2].IMUX_LOGICIN[47];
-				input B2 = CELL[0].IMUX_LOGICIN[34];
-				input B3 = CELL[0].IMUX_LOGICIN[44];
-				input B4 = CELL[0].IMUX_LOGICIN[30];
-				input B5 = CELL[0].IMUX_LOGICIN[58];
-				input B6 = CELL[0].IMUX_LOGICIN[29];
-				input B7 = CELL[0].IMUX_LOGICIN[37];
-				input B8 = CELL[0].IMUX_LOGICIN[31];
-				input B9 = CELL[1].IMUX_LOGICIN[34];
-				input C0 = CELL[0].IMUX_LOGICIN[15];
-				input C1 = CELL[0].IMUX_LOGICIN[62];
-				input C10 = CELL[0].IMUX_LOGICIN[32];
-				input C11 = CELL[0].IMUX_LOGICIN[14];
-				input C12 = CELL[1].IMUX_LOGICIN[15];
-				input C13 = CELL[1].IMUX_LOGICIN[36];
-				input C14 = CELL[1].IMUX_LOGICIN[47];
-				input C15 = CELL[1].IMUX_LOGICIN[17];
-				input C16 = CELL[1].IMUX_LOGICIN[48];
-				input C17 = CELL[1].IMUX_LOGICIN[44];
-				input C18 = CELL[1].IMUX_LOGICIN[26];
-				input C19 = CELL[1].IMUX_LOGICIN[41];
-				input C2 = CELL[0].IMUX_LOGICIN[20];
-				input C20 = CELL[1].IMUX_LOGICIN[58];
-				input C21 = CELL[1].IMUX_LOGICIN[19];
-				input C22 = CELL[1].IMUX_LOGICIN[32];
-				input C23 = CELL[1].IMUX_LOGICIN[9];
-				input C24 = CELL[2].IMUX_LOGICIN[16];
-				input C25 = CELL[2].IMUX_LOGICIN[20];
-				input C26 = CELL[2].IMUX_LOGICIN[23];
-				input C27 = CELL[2].IMUX_LOGICIN[48];
-				input C28 = CELL[2].IMUX_LOGICIN[4];
-				input C29 = CELL[2].IMUX_LOGICIN[26];
-				input C3 = CELL[0].IMUX_LOGICIN[17];
-				input C30 = CELL[2].IMUX_LOGICIN[10];
-				input C31 = CELL[2].IMUX_LOGICIN[3];
-				input C32 = CELL[2].IMUX_LOGICIN[27];
-				input C33 = CELL[2].IMUX_LOGICIN[59];
-				input C34 = CELL[2].IMUX_LOGICIN[14];
-				input C35 = CELL[2].IMUX_LOGICIN[31];
-				input C36 = CELL[3].IMUX_LOGICIN[36];
-				input C37 = CELL[3].IMUX_LOGICIN[47];
-				input C38 = CELL[3].IMUX_LOGICIN[17];
-				input C39 = CELL[3].IMUX_LOGICIN[57];
-				input C4 = CELL[0].IMUX_LOGICIN[23];
-				input C40 = CELL[3].IMUX_LOGICIN[4];
-				input C41 = CELL[3].IMUX_LOGICIN[55];
-				input C42 = CELL[3].IMUX_LOGICIN[10];
-				input C43 = CELL[3].IMUX_LOGICIN[3];
-				input C44 = CELL[3].IMUX_LOGICIN[27];
-				input C45 = CELL[3].IMUX_LOGICIN[32];
-				input C46 = CELL[3].IMUX_LOGICIN[39];
-				input C47 = CELL[3].IMUX_LOGICIN[37];
-				input C5 = CELL[0].IMUX_LOGICIN[4];
-				input C6 = CELL[0].IMUX_LOGICIN[55];
-				input C7 = CELL[0].IMUX_LOGICIN[41];
-				input C8 = CELL[0].IMUX_LOGICIN[3];
-				input C9 = CELL[0].IMUX_LOGICIN[28];
+				input A[0] = CELL[2].IMUX_LOGICIN[19];
+				input A[1] = CELL[2].IMUX_LOGICIN[29];
+				input A[2] = CELL[2].IMUX_LOGICIN[52];
+				input A[3] = CELL[2].IMUX_LOGICIN[39];
+				input A[4] = CELL[2].IMUX_LOGICIN[8];
+				input A[5] = CELL[3].IMUX_LOGICIN[15];
+				input A[6] = CELL[3].IMUX_LOGICIN[7];
+				input A[7] = CELL[3].IMUX_LOGICIN[16];
+				input A[8] = CELL[3].IMUX_LOGICIN[23];
+				input A[9] = CELL[3].IMUX_LOGICIN[44];
+				input A[10] = CELL[3].IMUX_LOGICIN[26];
+				input A[11] = CELL[3].IMUX_LOGICIN[30];
+				input A[12] = CELL[3].IMUX_LOGICIN[1];
+				input A[13] = CELL[3].IMUX_LOGICIN[19];
+				input A[14] = CELL[3].IMUX_LOGICIN[29];
+				input A[15] = CELL[3].IMUX_LOGICIN[52];
+				input A[16] = CELL[3].IMUX_LOGICIN[14];
+				input A[17] = CELL[3].IMUX_LOGICIN[8];
+				input B[0] = CELL[0].IMUX_LOGICIN[42];
+				input B[1] = CELL[0].IMUX_LOGICIN[38];
+				input B[2] = CELL[0].IMUX_LOGICIN[34];
+				input B[3] = CELL[0].IMUX_LOGICIN[44];
+				input B[4] = CELL[0].IMUX_LOGICIN[30];
+				input B[5] = CELL[0].IMUX_LOGICIN[58];
+				input B[6] = CELL[0].IMUX_LOGICIN[29];
+				input B[7] = CELL[0].IMUX_LOGICIN[37];
+				input B[8] = CELL[0].IMUX_LOGICIN[31];
+				input B[9] = CELL[1].IMUX_LOGICIN[34];
+				input B[10] = CELL[1].IMUX_LOGICIN[57];
+				input B[11] = CELL[1].IMUX_LOGICIN[55];
+				input B[12] = CELL[1].IMUX_LOGICIN[1];
+				input B[13] = CELL[1].IMUX_LOGICIN[27];
+				input B[14] = CELL[1].IMUX_LOGICIN[52];
+				input B[15] = CELL[1].IMUX_LOGICIN[39];
+				input B[16] = CELL[2].IMUX_LOGICIN[36];
+				input B[17] = CELL[2].IMUX_LOGICIN[47];
+				input C[0] = CELL[0].IMUX_LOGICIN[15];
+				input C[1] = CELL[0].IMUX_LOGICIN[62];
+				input C[2] = CELL[0].IMUX_LOGICIN[20];
+				input C[3] = CELL[0].IMUX_LOGICIN[17];
+				input C[4] = CELL[0].IMUX_LOGICIN[23];
+				input C[5] = CELL[0].IMUX_LOGICIN[4];
+				input C[6] = CELL[0].IMUX_LOGICIN[55];
+				input C[7] = CELL[0].IMUX_LOGICIN[41];
+				input C[8] = CELL[0].IMUX_LOGICIN[3];
+				input C[9] = CELL[0].IMUX_LOGICIN[28];
+				input C[10] = CELL[0].IMUX_LOGICIN[32];
+				input C[11] = CELL[0].IMUX_LOGICIN[14];
+				input C[12] = CELL[1].IMUX_LOGICIN[15];
+				input C[13] = CELL[1].IMUX_LOGICIN[36];
+				input C[14] = CELL[1].IMUX_LOGICIN[47];
+				input C[15] = CELL[1].IMUX_LOGICIN[17];
+				input C[16] = CELL[1].IMUX_LOGICIN[48];
+				input C[17] = CELL[1].IMUX_LOGICIN[44];
+				input C[18] = CELL[1].IMUX_LOGICIN[26];
+				input C[19] = CELL[1].IMUX_LOGICIN[41];
+				input C[20] = CELL[1].IMUX_LOGICIN[58];
+				input C[21] = CELL[1].IMUX_LOGICIN[19];
+				input C[22] = CELL[1].IMUX_LOGICIN[32];
+				input C[23] = CELL[1].IMUX_LOGICIN[9];
+				input C[24] = CELL[2].IMUX_LOGICIN[16];
+				input C[25] = CELL[2].IMUX_LOGICIN[20];
+				input C[26] = CELL[2].IMUX_LOGICIN[23];
+				input C[27] = CELL[2].IMUX_LOGICIN[48];
+				input C[28] = CELL[2].IMUX_LOGICIN[4];
+				input C[29] = CELL[2].IMUX_LOGICIN[26];
+				input C[30] = CELL[2].IMUX_LOGICIN[10];
+				input C[31] = CELL[2].IMUX_LOGICIN[3];
+				input C[32] = CELL[2].IMUX_LOGICIN[27];
+				input C[33] = CELL[2].IMUX_LOGICIN[59];
+				input C[34] = CELL[2].IMUX_LOGICIN[14];
+				input C[35] = CELL[2].IMUX_LOGICIN[31];
+				input C[36] = CELL[3].IMUX_LOGICIN[36];
+				input C[37] = CELL[3].IMUX_LOGICIN[47];
+				input C[38] = CELL[3].IMUX_LOGICIN[17];
+				input C[39] = CELL[3].IMUX_LOGICIN[57];
+				input C[40] = CELL[3].IMUX_LOGICIN[4];
+				input C[41] = CELL[3].IMUX_LOGICIN[55];
+				input C[42] = CELL[3].IMUX_LOGICIN[10];
+				input C[43] = CELL[3].IMUX_LOGICIN[3];
+				input C[44] = CELL[3].IMUX_LOGICIN[27];
+				input C[45] = CELL[3].IMUX_LOGICIN[32];
+				input C[46] = CELL[3].IMUX_LOGICIN[39];
+				input C[47] = CELL[3].IMUX_LOGICIN[37];
+				input D[0] = CELL[0].IMUX_LOGICIN[7];
+				input D[1] = CELL[0].IMUX_LOGICIN[47];
+				input D[2] = CELL[0].IMUX_LOGICIN[25];
+				input D[3] = CELL[0].IMUX_LOGICIN[57];
+				input D[4] = CELL[0].IMUX_LOGICIN[26];
+				input D[5] = CELL[0].IMUX_LOGICIN[1];
+				input D[6] = CELL[0].IMUX_LOGICIN[59];
+				input D[7] = CELL[0].IMUX_LOGICIN[39];
+				input D[8] = CELL[0].IMUX_LOGICIN[8];
+				input D[9] = CELL[1].IMUX_LOGICIN[45];
+				input D[10] = CELL[1].IMUX_LOGICIN[23];
+				input D[11] = CELL[1].IMUX_LOGICIN[4];
+				input D[12] = CELL[1].IMUX_LOGICIN[10];
+				input D[13] = CELL[1].IMUX_LOGICIN[28];
+				input D[14] = CELL[1].IMUX_LOGICIN[2];
+				input D[15] = CELL[1].IMUX_LOGICIN[14];
+				input D[16] = CELL[2].IMUX_LOGICIN[7];
+				input D[17] = CELL[2].IMUX_LOGICIN[12];
+				input OPMODE[0] = CELL[1].IMUX_LOGICIN[31];
+				input OPMODE[1] = CELL[1].IMUX_LOGICIN[8];
+				input OPMODE[2] = CELL[2].IMUX_LOGICIN[42];
+				input OPMODE[3] = CELL[2].IMUX_LOGICIN[15];
+				input OPMODE[4] = CELL[1].IMUX_LOGICIN[5];
+				input OPMODE[5] = CELL[2].IMUX_LOGICIN[62];
+				input OPMODE[6] = CELL[1].IMUX_LOGICIN[16];
+				input OPMODE[7] = CELL[2].IMUX_LOGICIN[24];
+				input CLK = ^CELL[2].IMUX_CLK[0] @MAIN[3][23][19];
+				input CEA = ^CELL[2].IMUX_LOGICIN[30] @MAIN[3][23][17];
+				input CEB = ^CELL[2].IMUX_LOGICIN[41] @MAIN[3][23][15];
+				input CEC = ^CELL[2].IMUX_LOGICIN[57] @MAIN[3][23][13];
+				input CED = ^CELL[2].IMUX_LOGICIN[17] @MAIN[3][22][14];
+				input CEOPMODE = ^CELL[2].IMUX_LOGICIN[55] @MAIN[3][23][12];
+				input CECARRYIN = ^CELL[2].IMUX_LOGICIN[34] @MAIN[3][22][15];
+				input CEM = ^CELL[2].IMUX_LOGICIN[58] @MAIN[3][23][18];
+				input CEP = ^CELL[2].IMUX_LOGICIN[44] @MAIN[3][22][20];
+				input RSTA = ^CELL[3].IMUX_SR[0] @MAIN[3][23][21];
+				input RSTB = ^CELL[3].IMUX_SR[1] @MAIN[3][23][20];
+				input RSTC = ^CELL[2].IMUX_SR[0] @MAIN[3][23][14];
+				input RSTD = ^CELL[0].IMUX_SR[0] @MAIN[3][22][18];
+				input RSTOPMODE = ^CELL[1].IMUX_SR[1] @MAIN[3][22][23];
+				input RSTCARRYIN = ^CELL[0].IMUX_SR[1] @MAIN[3][22][17];
+				input RSTM = ^CELL[2].IMUX_SR[1] @MAIN[3][22][21];
+				input RSTP = ^CELL[1].IMUX_SR[0] @MAIN[3][22][19];
+				output M[0] = CELL[0].OUT_BEL[12];
+				output M[1] = CELL[0].OUT_BEL[10];
+				output M[2] = CELL[0].OUT_BEL[17];
+				output M[3] = CELL[0].OUT_BEL[3];
+				output M[4] = CELL[0].OUT_BEL[8];
+				output M[5] = CELL[0].OUT_BEL[13];
+				output M[6] = CELL[0].OUT_BEL[6];
+				output M[7] = CELL[0].OUT_BEL[21];
+				output M[8] = CELL[0].OUT_BEL[23];
+				output M[9] = CELL[1].OUT_BEL[14];
+				output M[10] = CELL[1].OUT_BEL[19];
+				output M[11] = CELL[1].OUT_BEL[0];
+				output M[12] = CELL[1].OUT_BEL[5];
+				output M[13] = CELL[1].OUT_BEL[15];
+				output M[14] = CELL[1].OUT_BEL[3];
+				output M[15] = CELL[1].OUT_BEL[18];
+				output M[16] = CELL[1].OUT_BEL[20];
+				output M[17] = CELL[1].OUT_BEL[23];
+				output M[18] = CELL[2].OUT_BEL[2];
+				output M[19] = CELL[2].OUT_BEL[14];
+				output M[20] = CELL[2].OUT_BEL[12];
+				output M[21] = CELL[2].OUT_BEL[0];
+				output M[22] = CELL[2].OUT_BEL[15];
+				output M[23] = CELL[2].OUT_BEL[3];
+				output M[24] = CELL[2].OUT_BEL[20];
+				output M[25] = CELL[2].OUT_BEL[13];
+				output M[26] = CELL[2].OUT_BEL[23];
+				output M[27] = CELL[2].OUT_BEL[11];
+				output M[28] = CELL[3].OUT_BEL[19];
+				output M[29] = CELL[3].OUT_BEL[7];
+				output M[30] = CELL[3].OUT_BEL[10];
+				output M[31] = CELL[3].OUT_BEL[17];
+				output M[32] = CELL[3].OUT_BEL[8];
+				output M[33] = CELL[3].OUT_BEL[1];
+				output M[34] = CELL[3].OUT_BEL[4];
+				output M[35] = CELL[3].OUT_BEL[16];
+				output P[0] = CELL[0].OUT_BEL[14];
+				output P[1] = CELL[0].OUT_BEL[7];
+				output P[2] = CELL[0].OUT_BEL[0];
+				output P[3] = CELL[0].OUT_BEL[5];
+				output P[4] = CELL[0].OUT_BEL[22];
+				output P[5] = CELL[0].OUT_BEL[15];
+				output P[6] = CELL[0].OUT_BEL[1];
+				output P[7] = CELL[0].OUT_BEL[18];
+				output P[8] = CELL[0].OUT_BEL[20];
+				output P[9] = CELL[0].OUT_BEL[4];
+				output P[10] = CELL[0].OUT_BEL[16];
+				output P[11] = CELL[0].OUT_BEL[9];
+				output P[12] = CELL[1].OUT_BEL[2];
+				output P[13] = CELL[1].OUT_BEL[7];
+				output P[14] = CELL[1].OUT_BEL[12];
+				output P[15] = CELL[1].OUT_BEL[10];
+				output P[16] = CELL[1].OUT_BEL[17];
+				output P[17] = CELL[1].OUT_BEL[22];
+				output P[18] = CELL[1].OUT_BEL[8];
+				output P[19] = CELL[1].OUT_BEL[1];
+				output P[20] = CELL[1].OUT_BEL[13];
+				output P[21] = CELL[1].OUT_BEL[4];
+				output P[22] = CELL[1].OUT_BEL[16];
+				output P[23] = CELL[1].OUT_BEL[11];
+				output P[24] = CELL[2].OUT_BEL[7];
+				output P[25] = CELL[2].OUT_BEL[10];
+				output P[26] = CELL[2].OUT_BEL[17];
+				output P[27] = CELL[2].OUT_BEL[22];
+				output P[28] = CELL[2].OUT_BEL[8];
+				output P[29] = CELL[2].OUT_BEL[1];
+				output P[30] = CELL[2].OUT_BEL[18];
+				output P[31] = CELL[2].OUT_BEL[6];
+				output P[32] = CELL[2].OUT_BEL[4];
+				output P[33] = CELL[2].OUT_BEL[21];
+				output P[34] = CELL[2].OUT_BEL[9];
+				output P[35] = CELL[3].OUT_BEL[2];
+				output P[36] = CELL[3].OUT_BEL[12];
+				output P[37] = CELL[3].OUT_BEL[0];
+				output P[38] = CELL[3].OUT_BEL[5];
+				output P[39] = CELL[3].OUT_BEL[22];
+				output P[40] = CELL[3].OUT_BEL[15];
+				output P[41] = CELL[3].OUT_BEL[3];
+				output P[42] = CELL[3].OUT_BEL[18];
+				output P[43] = CELL[3].OUT_BEL[20];
+				output P[44] = CELL[3].OUT_BEL[6];
+				output P[45] = CELL[3].OUT_BEL[21];
+				output P[46] = CELL[3].OUT_BEL[23];
+				output P[47] = CELL[3].OUT_BEL[11];
 				output CARRYOUTF = CELL[3].OUT_BEL[9];
-				input CEA = CELL[2].IMUX_LOGICIN[30];
-				input CEB = CELL[2].IMUX_LOGICIN[41];
-				input CEC = CELL[2].IMUX_LOGICIN[57];
-				input CECARRYIN = CELL[2].IMUX_LOGICIN[34];
-				input CED = CELL[2].IMUX_LOGICIN[17];
-				input CEM = CELL[2].IMUX_LOGICIN[58];
-				input CEOPMODE = CELL[2].IMUX_LOGICIN[55];
-				input CEP = CELL[2].IMUX_LOGICIN[44];
-				input CLK = CELL[2].IMUX_CLK[0];
-				input D0 = CELL[0].IMUX_LOGICIN[7];
-				input D1 = CELL[0].IMUX_LOGICIN[47];
-				input D10 = CELL[1].IMUX_LOGICIN[23];
-				input D11 = CELL[1].IMUX_LOGICIN[4];
-				input D12 = CELL[1].IMUX_LOGICIN[10];
-				input D13 = CELL[1].IMUX_LOGICIN[28];
-				input D14 = CELL[1].IMUX_LOGICIN[2];
-				input D15 = CELL[1].IMUX_LOGICIN[14];
-				input D16 = CELL[2].IMUX_LOGICIN[7];
-				input D17 = CELL[2].IMUX_LOGICIN[12];
-				input D2 = CELL[0].IMUX_LOGICIN[25];
-				input D3 = CELL[0].IMUX_LOGICIN[57];
-				input D4 = CELL[0].IMUX_LOGICIN[26];
-				input D5 = CELL[0].IMUX_LOGICIN[1];
-				input D6 = CELL[0].IMUX_LOGICIN[59];
-				input D7 = CELL[0].IMUX_LOGICIN[39];
-				input D8 = CELL[0].IMUX_LOGICIN[8];
-				input D9 = CELL[1].IMUX_LOGICIN[45];
-				output M0 = CELL[0].OUT_BEL[12];
-				output M1 = CELL[0].OUT_BEL[10];
-				output M10 = CELL[1].OUT_BEL[19];
-				output M11 = CELL[1].OUT_BEL[0];
-				output M12 = CELL[1].OUT_BEL[5];
-				output M13 = CELL[1].OUT_BEL[15];
-				output M14 = CELL[1].OUT_BEL[3];
-				output M15 = CELL[1].OUT_BEL[18];
-				output M16 = CELL[1].OUT_BEL[20];
-				output M17 = CELL[1].OUT_BEL[23];
-				output M18 = CELL[2].OUT_BEL[2];
-				output M19 = CELL[2].OUT_BEL[14];
-				output M2 = CELL[0].OUT_BEL[17];
-				output M20 = CELL[2].OUT_BEL[12];
-				output M21 = CELL[2].OUT_BEL[0];
-				output M22 = CELL[2].OUT_BEL[15];
-				output M23 = CELL[2].OUT_BEL[3];
-				output M24 = CELL[2].OUT_BEL[20];
-				output M25 = CELL[2].OUT_BEL[13];
-				output M26 = CELL[2].OUT_BEL[23];
-				output M27 = CELL[2].OUT_BEL[11];
-				output M28 = CELL[3].OUT_BEL[19];
-				output M29 = CELL[3].OUT_BEL[7];
-				output M3 = CELL[0].OUT_BEL[3];
-				output M30 = CELL[3].OUT_BEL[10];
-				output M31 = CELL[3].OUT_BEL[17];
-				output M32 = CELL[3].OUT_BEL[8];
-				output M33 = CELL[3].OUT_BEL[1];
-				output M34 = CELL[3].OUT_BEL[4];
-				output M35 = CELL[3].OUT_BEL[16];
-				output M4 = CELL[0].OUT_BEL[8];
-				output M5 = CELL[0].OUT_BEL[13];
-				output M6 = CELL[0].OUT_BEL[6];
-				output M7 = CELL[0].OUT_BEL[21];
-				output M8 = CELL[0].OUT_BEL[23];
-				output M9 = CELL[1].OUT_BEL[14];
-				input OPMODE0 = CELL[1].IMUX_LOGICIN[31];
-				input OPMODE1 = CELL[1].IMUX_LOGICIN[8];
-				input OPMODE2 = CELL[2].IMUX_LOGICIN[42];
-				input OPMODE3 = CELL[2].IMUX_LOGICIN[15];
-				input OPMODE4 = CELL[1].IMUX_LOGICIN[5];
-				input OPMODE5 = CELL[2].IMUX_LOGICIN[62];
-				input OPMODE6 = CELL[1].IMUX_LOGICIN[16];
-				input OPMODE7 = CELL[2].IMUX_LOGICIN[24];
-				output P0 = CELL[0].OUT_BEL[14];
-				output P1 = CELL[0].OUT_BEL[7];
-				output P10 = CELL[0].OUT_BEL[16];
-				output P11 = CELL[0].OUT_BEL[9];
-				output P12 = CELL[1].OUT_BEL[2];
-				output P13 = CELL[1].OUT_BEL[7];
-				output P14 = CELL[1].OUT_BEL[12];
-				output P15 = CELL[1].OUT_BEL[10];
-				output P16 = CELL[1].OUT_BEL[17];
-				output P17 = CELL[1].OUT_BEL[22];
-				output P18 = CELL[1].OUT_BEL[8];
-				output P19 = CELL[1].OUT_BEL[1];
-				output P2 = CELL[0].OUT_BEL[0];
-				output P20 = CELL[1].OUT_BEL[13];
-				output P21 = CELL[1].OUT_BEL[4];
-				output P22 = CELL[1].OUT_BEL[16];
-				output P23 = CELL[1].OUT_BEL[11];
-				output P24 = CELL[2].OUT_BEL[7];
-				output P25 = CELL[2].OUT_BEL[10];
-				output P26 = CELL[2].OUT_BEL[17];
-				output P27 = CELL[2].OUT_BEL[22];
-				output P28 = CELL[2].OUT_BEL[8];
-				output P29 = CELL[2].OUT_BEL[1];
-				output P3 = CELL[0].OUT_BEL[5];
-				output P30 = CELL[2].OUT_BEL[18];
-				output P31 = CELL[2].OUT_BEL[6];
-				output P32 = CELL[2].OUT_BEL[4];
-				output P33 = CELL[2].OUT_BEL[21];
-				output P34 = CELL[2].OUT_BEL[9];
-				output P35 = CELL[3].OUT_BEL[2];
-				output P36 = CELL[3].OUT_BEL[12];
-				output P37 = CELL[3].OUT_BEL[0];
-				output P38 = CELL[3].OUT_BEL[5];
-				output P39 = CELL[3].OUT_BEL[22];
-				output P4 = CELL[0].OUT_BEL[22];
-				output P40 = CELL[3].OUT_BEL[15];
-				output P41 = CELL[3].OUT_BEL[3];
-				output P42 = CELL[3].OUT_BEL[18];
-				output P43 = CELL[3].OUT_BEL[20];
-				output P44 = CELL[3].OUT_BEL[6];
-				output P45 = CELL[3].OUT_BEL[21];
-				output P46 = CELL[3].OUT_BEL[23];
-				output P47 = CELL[3].OUT_BEL[11];
-				output P5 = CELL[0].OUT_BEL[15];
-				output P6 = CELL[0].OUT_BEL[1];
-				output P7 = CELL[0].OUT_BEL[18];
-				output P8 = CELL[0].OUT_BEL[20];
-				output P9 = CELL[0].OUT_BEL[4];
-				input RSTA = CELL[3].IMUX_SR[0];
-				input RSTB = CELL[3].IMUX_SR[1];
-				input RSTC = CELL[2].IMUX_SR[0];
-				input RSTCARRYIN = CELL[0].IMUX_SR[1];
-				input RSTD = CELL[0].IMUX_SR[0];
-				input RSTM = CELL[2].IMUX_SR[1];
-				input RSTOPMODE = CELL[1].IMUX_SR[1];
-				input RSTP = CELL[1].IMUX_SR[0];
+				attribute B_INPUT @[MAIN[3][22][3]] {
+					DIRECT = 0b0,
+					CASCADE = 0b1,
+				}
+				attribute CARRYINSEL @[MAIN[3][22][4]] {
+					CARRYIN = 0b0,
+					OPMODE5 = 0b1,
+				}
+				attribute A0REG @MAIN[3][23][4];
+				attribute A1REG @MAIN[2][23][61];
+				attribute B0REG @MAIN[3][23][5];
+				attribute B1REG @MAIN[3][23][3];
+				attribute CREG @MAIN[2][22][62];
+				attribute DREG @MAIN[3][22][0];
+				attribute MREG @MAIN[2][23][62];
+				attribute PREG @MAIN[3][22][5];
+				attribute OPMODEREG @MAIN[2][22][61];
+				attribute CARRYINREG @MAIN[3][22][13];
+				attribute CARRYOUTREG @MAIN[3][22][12];
+				attribute RSTTYPE @[MAIN[3][23][0]] {
+					SYNC = 0b0,
+					ASYNC = 0b1,
+				}
 			}
 
 			// wire CELL[0].IMUX_SR[0]             DSP.RSTD
 			// wire CELL[0].IMUX_SR[1]             DSP.RSTCARRYIN
-			// wire CELL[0].IMUX_LOGICIN[1]        DSP.D5
-			// wire CELL[0].IMUX_LOGICIN[3]        DSP.C8
-			// wire CELL[0].IMUX_LOGICIN[4]        DSP.C5
-			// wire CELL[0].IMUX_LOGICIN[7]        DSP.D0
-			// wire CELL[0].IMUX_LOGICIN[8]        DSP.D8
-			// wire CELL[0].IMUX_LOGICIN[14]       DSP.C11
-			// wire CELL[0].IMUX_LOGICIN[15]       DSP.C0
-			// wire CELL[0].IMUX_LOGICIN[17]       DSP.C3
-			// wire CELL[0].IMUX_LOGICIN[20]       DSP.C2
-			// wire CELL[0].IMUX_LOGICIN[23]       DSP.C4
-			// wire CELL[0].IMUX_LOGICIN[25]       DSP.D2
-			// wire CELL[0].IMUX_LOGICIN[26]       DSP.D4
-			// wire CELL[0].IMUX_LOGICIN[28]       DSP.C9
-			// wire CELL[0].IMUX_LOGICIN[29]       DSP.B6
-			// wire CELL[0].IMUX_LOGICIN[30]       DSP.B4
-			// wire CELL[0].IMUX_LOGICIN[31]       DSP.B8
-			// wire CELL[0].IMUX_LOGICIN[32]       DSP.C10
-			// wire CELL[0].IMUX_LOGICIN[34]       DSP.B2
-			// wire CELL[0].IMUX_LOGICIN[37]       DSP.B7
-			// wire CELL[0].IMUX_LOGICIN[38]       DSP.B1
-			// wire CELL[0].IMUX_LOGICIN[39]       DSP.D7
-			// wire CELL[0].IMUX_LOGICIN[41]       DSP.C7
-			// wire CELL[0].IMUX_LOGICIN[42]       DSP.B0
-			// wire CELL[0].IMUX_LOGICIN[44]       DSP.B3
-			// wire CELL[0].IMUX_LOGICIN[47]       DSP.D1
-			// wire CELL[0].IMUX_LOGICIN[55]       DSP.C6
-			// wire CELL[0].IMUX_LOGICIN[57]       DSP.D3
-			// wire CELL[0].IMUX_LOGICIN[58]       DSP.B5
-			// wire CELL[0].IMUX_LOGICIN[59]       DSP.D6
-			// wire CELL[0].IMUX_LOGICIN[62]       DSP.C1
-			// wire CELL[0].OUT_BEL[0]             DSP.P2
-			// wire CELL[0].OUT_BEL[1]             DSP.P6
-			// wire CELL[0].OUT_BEL[3]             DSP.M3
-			// wire CELL[0].OUT_BEL[4]             DSP.P9
-			// wire CELL[0].OUT_BEL[5]             DSP.P3
-			// wire CELL[0].OUT_BEL[6]             DSP.M6
-			// wire CELL[0].OUT_BEL[7]             DSP.P1
-			// wire CELL[0].OUT_BEL[8]             DSP.M4
-			// wire CELL[0].OUT_BEL[9]             DSP.P11
-			// wire CELL[0].OUT_BEL[10]            DSP.M1
-			// wire CELL[0].OUT_BEL[12]            DSP.M0
-			// wire CELL[0].OUT_BEL[13]            DSP.M5
-			// wire CELL[0].OUT_BEL[14]            DSP.P0
-			// wire CELL[0].OUT_BEL[15]            DSP.P5
-			// wire CELL[0].OUT_BEL[16]            DSP.P10
-			// wire CELL[0].OUT_BEL[17]            DSP.M2
-			// wire CELL[0].OUT_BEL[18]            DSP.P7
-			// wire CELL[0].OUT_BEL[20]            DSP.P8
-			// wire CELL[0].OUT_BEL[21]            DSP.M7
-			// wire CELL[0].OUT_BEL[22]            DSP.P4
-			// wire CELL[0].OUT_BEL[23]            DSP.M8
+			// wire CELL[0].IMUX_LOGICIN[1]        DSP.D[5]
+			// wire CELL[0].IMUX_LOGICIN[3]        DSP.C[8]
+			// wire CELL[0].IMUX_LOGICIN[4]        DSP.C[5]
+			// wire CELL[0].IMUX_LOGICIN[7]        DSP.D[0]
+			// wire CELL[0].IMUX_LOGICIN[8]        DSP.D[8]
+			// wire CELL[0].IMUX_LOGICIN[14]       DSP.C[11]
+			// wire CELL[0].IMUX_LOGICIN[15]       DSP.C[0]
+			// wire CELL[0].IMUX_LOGICIN[17]       DSP.C[3]
+			// wire CELL[0].IMUX_LOGICIN[20]       DSP.C[2]
+			// wire CELL[0].IMUX_LOGICIN[23]       DSP.C[4]
+			// wire CELL[0].IMUX_LOGICIN[25]       DSP.D[2]
+			// wire CELL[0].IMUX_LOGICIN[26]       DSP.D[4]
+			// wire CELL[0].IMUX_LOGICIN[28]       DSP.C[9]
+			// wire CELL[0].IMUX_LOGICIN[29]       DSP.B[6]
+			// wire CELL[0].IMUX_LOGICIN[30]       DSP.B[4]
+			// wire CELL[0].IMUX_LOGICIN[31]       DSP.B[8]
+			// wire CELL[0].IMUX_LOGICIN[32]       DSP.C[10]
+			// wire CELL[0].IMUX_LOGICIN[34]       DSP.B[2]
+			// wire CELL[0].IMUX_LOGICIN[37]       DSP.B[7]
+			// wire CELL[0].IMUX_LOGICIN[38]       DSP.B[1]
+			// wire CELL[0].IMUX_LOGICIN[39]       DSP.D[7]
+			// wire CELL[0].IMUX_LOGICIN[41]       DSP.C[7]
+			// wire CELL[0].IMUX_LOGICIN[42]       DSP.B[0]
+			// wire CELL[0].IMUX_LOGICIN[44]       DSP.B[3]
+			// wire CELL[0].IMUX_LOGICIN[47]       DSP.D[1]
+			// wire CELL[0].IMUX_LOGICIN[55]       DSP.C[6]
+			// wire CELL[0].IMUX_LOGICIN[57]       DSP.D[3]
+			// wire CELL[0].IMUX_LOGICIN[58]       DSP.B[5]
+			// wire CELL[0].IMUX_LOGICIN[59]       DSP.D[6]
+			// wire CELL[0].IMUX_LOGICIN[62]       DSP.C[1]
+			// wire CELL[0].OUT_BEL[0]             DSP.P[2]
+			// wire CELL[0].OUT_BEL[1]             DSP.P[6]
+			// wire CELL[0].OUT_BEL[3]             DSP.M[3]
+			// wire CELL[0].OUT_BEL[4]             DSP.P[9]
+			// wire CELL[0].OUT_BEL[5]             DSP.P[3]
+			// wire CELL[0].OUT_BEL[6]             DSP.M[6]
+			// wire CELL[0].OUT_BEL[7]             DSP.P[1]
+			// wire CELL[0].OUT_BEL[8]             DSP.M[4]
+			// wire CELL[0].OUT_BEL[9]             DSP.P[11]
+			// wire CELL[0].OUT_BEL[10]            DSP.M[1]
+			// wire CELL[0].OUT_BEL[12]            DSP.M[0]
+			// wire CELL[0].OUT_BEL[13]            DSP.M[5]
+			// wire CELL[0].OUT_BEL[14]            DSP.P[0]
+			// wire CELL[0].OUT_BEL[15]            DSP.P[5]
+			// wire CELL[0].OUT_BEL[16]            DSP.P[10]
+			// wire CELL[0].OUT_BEL[17]            DSP.M[2]
+			// wire CELL[0].OUT_BEL[18]            DSP.P[7]
+			// wire CELL[0].OUT_BEL[20]            DSP.P[8]
+			// wire CELL[0].OUT_BEL[21]            DSP.M[7]
+			// wire CELL[0].OUT_BEL[22]            DSP.P[4]
+			// wire CELL[0].OUT_BEL[23]            DSP.M[8]
 			// wire CELL[1].IMUX_SR[0]             DSP.RSTP
 			// wire CELL[1].IMUX_SR[1]             DSP.RSTOPMODE
-			// wire CELL[1].IMUX_LOGICIN[1]        DSP.B12
-			// wire CELL[1].IMUX_LOGICIN[2]        DSP.D14
-			// wire CELL[1].IMUX_LOGICIN[4]        DSP.D11
-			// wire CELL[1].IMUX_LOGICIN[5]        DSP.OPMODE4
-			// wire CELL[1].IMUX_LOGICIN[8]        DSP.OPMODE1
-			// wire CELL[1].IMUX_LOGICIN[9]        DSP.C23
-			// wire CELL[1].IMUX_LOGICIN[10]       DSP.D12
-			// wire CELL[1].IMUX_LOGICIN[14]       DSP.D15
-			// wire CELL[1].IMUX_LOGICIN[15]       DSP.C12
-			// wire CELL[1].IMUX_LOGICIN[16]       DSP.OPMODE6
-			// wire CELL[1].IMUX_LOGICIN[17]       DSP.C15
-			// wire CELL[1].IMUX_LOGICIN[19]       DSP.C21
-			// wire CELL[1].IMUX_LOGICIN[23]       DSP.D10
-			// wire CELL[1].IMUX_LOGICIN[26]       DSP.C18
-			// wire CELL[1].IMUX_LOGICIN[27]       DSP.B13
-			// wire CELL[1].IMUX_LOGICIN[28]       DSP.D13
-			// wire CELL[1].IMUX_LOGICIN[31]       DSP.OPMODE0
-			// wire CELL[1].IMUX_LOGICIN[32]       DSP.C22
-			// wire CELL[1].IMUX_LOGICIN[34]       DSP.B9
-			// wire CELL[1].IMUX_LOGICIN[36]       DSP.C13
-			// wire CELL[1].IMUX_LOGICIN[39]       DSP.B15
-			// wire CELL[1].IMUX_LOGICIN[41]       DSP.C19
-			// wire CELL[1].IMUX_LOGICIN[44]       DSP.C17
-			// wire CELL[1].IMUX_LOGICIN[45]       DSP.D9
-			// wire CELL[1].IMUX_LOGICIN[47]       DSP.C14
-			// wire CELL[1].IMUX_LOGICIN[48]       DSP.C16
-			// wire CELL[1].IMUX_LOGICIN[52]       DSP.B14
-			// wire CELL[1].IMUX_LOGICIN[55]       DSP.B11
-			// wire CELL[1].IMUX_LOGICIN[57]       DSP.B10
-			// wire CELL[1].IMUX_LOGICIN[58]       DSP.C20
-			// wire CELL[1].OUT_BEL[0]             DSP.M11
-			// wire CELL[1].OUT_BEL[1]             DSP.P19
-			// wire CELL[1].OUT_BEL[2]             DSP.P12
-			// wire CELL[1].OUT_BEL[3]             DSP.M14
-			// wire CELL[1].OUT_BEL[4]             DSP.P21
-			// wire CELL[1].OUT_BEL[5]             DSP.M12
-			// wire CELL[1].OUT_BEL[7]             DSP.P13
-			// wire CELL[1].OUT_BEL[8]             DSP.P18
-			// wire CELL[1].OUT_BEL[10]            DSP.P15
-			// wire CELL[1].OUT_BEL[11]            DSP.P23
-			// wire CELL[1].OUT_BEL[12]            DSP.P14
-			// wire CELL[1].OUT_BEL[13]            DSP.P20
-			// wire CELL[1].OUT_BEL[14]            DSP.M9
-			// wire CELL[1].OUT_BEL[15]            DSP.M13
-			// wire CELL[1].OUT_BEL[16]            DSP.P22
-			// wire CELL[1].OUT_BEL[17]            DSP.P16
-			// wire CELL[1].OUT_BEL[18]            DSP.M15
-			// wire CELL[1].OUT_BEL[19]            DSP.M10
-			// wire CELL[1].OUT_BEL[20]            DSP.M16
-			// wire CELL[1].OUT_BEL[22]            DSP.P17
-			// wire CELL[1].OUT_BEL[23]            DSP.M17
+			// wire CELL[1].IMUX_LOGICIN[1]        DSP.B[12]
+			// wire CELL[1].IMUX_LOGICIN[2]        DSP.D[14]
+			// wire CELL[1].IMUX_LOGICIN[4]        DSP.D[11]
+			// wire CELL[1].IMUX_LOGICIN[5]        DSP.OPMODE[4]
+			// wire CELL[1].IMUX_LOGICIN[8]        DSP.OPMODE[1]
+			// wire CELL[1].IMUX_LOGICIN[9]        DSP.C[23]
+			// wire CELL[1].IMUX_LOGICIN[10]       DSP.D[12]
+			// wire CELL[1].IMUX_LOGICIN[14]       DSP.D[15]
+			// wire CELL[1].IMUX_LOGICIN[15]       DSP.C[12]
+			// wire CELL[1].IMUX_LOGICIN[16]       DSP.OPMODE[6]
+			// wire CELL[1].IMUX_LOGICIN[17]       DSP.C[15]
+			// wire CELL[1].IMUX_LOGICIN[19]       DSP.C[21]
+			// wire CELL[1].IMUX_LOGICIN[23]       DSP.D[10]
+			// wire CELL[1].IMUX_LOGICIN[26]       DSP.C[18]
+			// wire CELL[1].IMUX_LOGICIN[27]       DSP.B[13]
+			// wire CELL[1].IMUX_LOGICIN[28]       DSP.D[13]
+			// wire CELL[1].IMUX_LOGICIN[31]       DSP.OPMODE[0]
+			// wire CELL[1].IMUX_LOGICIN[32]       DSP.C[22]
+			// wire CELL[1].IMUX_LOGICIN[34]       DSP.B[9]
+			// wire CELL[1].IMUX_LOGICIN[36]       DSP.C[13]
+			// wire CELL[1].IMUX_LOGICIN[39]       DSP.B[15]
+			// wire CELL[1].IMUX_LOGICIN[41]       DSP.C[19]
+			// wire CELL[1].IMUX_LOGICIN[44]       DSP.C[17]
+			// wire CELL[1].IMUX_LOGICIN[45]       DSP.D[9]
+			// wire CELL[1].IMUX_LOGICIN[47]       DSP.C[14]
+			// wire CELL[1].IMUX_LOGICIN[48]       DSP.C[16]
+			// wire CELL[1].IMUX_LOGICIN[52]       DSP.B[14]
+			// wire CELL[1].IMUX_LOGICIN[55]       DSP.B[11]
+			// wire CELL[1].IMUX_LOGICIN[57]       DSP.B[10]
+			// wire CELL[1].IMUX_LOGICIN[58]       DSP.C[20]
+			// wire CELL[1].OUT_BEL[0]             DSP.M[11]
+			// wire CELL[1].OUT_BEL[1]             DSP.P[19]
+			// wire CELL[1].OUT_BEL[2]             DSP.P[12]
+			// wire CELL[1].OUT_BEL[3]             DSP.M[14]
+			// wire CELL[1].OUT_BEL[4]             DSP.P[21]
+			// wire CELL[1].OUT_BEL[5]             DSP.M[12]
+			// wire CELL[1].OUT_BEL[7]             DSP.P[13]
+			// wire CELL[1].OUT_BEL[8]             DSP.P[18]
+			// wire CELL[1].OUT_BEL[10]            DSP.P[15]
+			// wire CELL[1].OUT_BEL[11]            DSP.P[23]
+			// wire CELL[1].OUT_BEL[12]            DSP.P[14]
+			// wire CELL[1].OUT_BEL[13]            DSP.P[20]
+			// wire CELL[1].OUT_BEL[14]            DSP.M[9]
+			// wire CELL[1].OUT_BEL[15]            DSP.M[13]
+			// wire CELL[1].OUT_BEL[16]            DSP.P[22]
+			// wire CELL[1].OUT_BEL[17]            DSP.P[16]
+			// wire CELL[1].OUT_BEL[18]            DSP.M[15]
+			// wire CELL[1].OUT_BEL[19]            DSP.M[10]
+			// wire CELL[1].OUT_BEL[20]            DSP.M[16]
+			// wire CELL[1].OUT_BEL[22]            DSP.P[17]
+			// wire CELL[1].OUT_BEL[23]            DSP.M[17]
 			// wire CELL[2].IMUX_CLK[0]            DSP.CLK
 			// wire CELL[2].IMUX_SR[0]             DSP.RSTC
 			// wire CELL[2].IMUX_SR[1]             DSP.RSTM
-			// wire CELL[2].IMUX_LOGICIN[3]        DSP.C31
-			// wire CELL[2].IMUX_LOGICIN[4]        DSP.C28
-			// wire CELL[2].IMUX_LOGICIN[7]        DSP.D16
-			// wire CELL[2].IMUX_LOGICIN[8]        DSP.A4
-			// wire CELL[2].IMUX_LOGICIN[10]       DSP.C30
-			// wire CELL[2].IMUX_LOGICIN[12]       DSP.D17
-			// wire CELL[2].IMUX_LOGICIN[14]       DSP.C34
-			// wire CELL[2].IMUX_LOGICIN[15]       DSP.OPMODE3
-			// wire CELL[2].IMUX_LOGICIN[16]       DSP.C24
+			// wire CELL[2].IMUX_LOGICIN[3]        DSP.C[31]
+			// wire CELL[2].IMUX_LOGICIN[4]        DSP.C[28]
+			// wire CELL[2].IMUX_LOGICIN[7]        DSP.D[16]
+			// wire CELL[2].IMUX_LOGICIN[8]        DSP.A[4]
+			// wire CELL[2].IMUX_LOGICIN[10]       DSP.C[30]
+			// wire CELL[2].IMUX_LOGICIN[12]       DSP.D[17]
+			// wire CELL[2].IMUX_LOGICIN[14]       DSP.C[34]
+			// wire CELL[2].IMUX_LOGICIN[15]       DSP.OPMODE[3]
+			// wire CELL[2].IMUX_LOGICIN[16]       DSP.C[24]
 			// wire CELL[2].IMUX_LOGICIN[17]       DSP.CED
-			// wire CELL[2].IMUX_LOGICIN[19]       DSP.A0
-			// wire CELL[2].IMUX_LOGICIN[20]       DSP.C25
-			// wire CELL[2].IMUX_LOGICIN[23]       DSP.C26
-			// wire CELL[2].IMUX_LOGICIN[24]       DSP.OPMODE7
-			// wire CELL[2].IMUX_LOGICIN[26]       DSP.C29
-			// wire CELL[2].IMUX_LOGICIN[27]       DSP.C32
-			// wire CELL[2].IMUX_LOGICIN[29]       DSP.A1
+			// wire CELL[2].IMUX_LOGICIN[19]       DSP.A[0]
+			// wire CELL[2].IMUX_LOGICIN[20]       DSP.C[25]
+			// wire CELL[2].IMUX_LOGICIN[23]       DSP.C[26]
+			// wire CELL[2].IMUX_LOGICIN[24]       DSP.OPMODE[7]
+			// wire CELL[2].IMUX_LOGICIN[26]       DSP.C[29]
+			// wire CELL[2].IMUX_LOGICIN[27]       DSP.C[32]
+			// wire CELL[2].IMUX_LOGICIN[29]       DSP.A[1]
 			// wire CELL[2].IMUX_LOGICIN[30]       DSP.CEA
-			// wire CELL[2].IMUX_LOGICIN[31]       DSP.C35
+			// wire CELL[2].IMUX_LOGICIN[31]       DSP.C[35]
 			// wire CELL[2].IMUX_LOGICIN[34]       DSP.CECARRYIN
-			// wire CELL[2].IMUX_LOGICIN[36]       DSP.B16
-			// wire CELL[2].IMUX_LOGICIN[39]       DSP.A3
+			// wire CELL[2].IMUX_LOGICIN[36]       DSP.B[16]
+			// wire CELL[2].IMUX_LOGICIN[39]       DSP.A[3]
 			// wire CELL[2].IMUX_LOGICIN[41]       DSP.CEB
-			// wire CELL[2].IMUX_LOGICIN[42]       DSP.OPMODE2
+			// wire CELL[2].IMUX_LOGICIN[42]       DSP.OPMODE[2]
 			// wire CELL[2].IMUX_LOGICIN[44]       DSP.CEP
-			// wire CELL[2].IMUX_LOGICIN[47]       DSP.B17
-			// wire CELL[2].IMUX_LOGICIN[48]       DSP.C27
-			// wire CELL[2].IMUX_LOGICIN[52]       DSP.A2
+			// wire CELL[2].IMUX_LOGICIN[47]       DSP.B[17]
+			// wire CELL[2].IMUX_LOGICIN[48]       DSP.C[27]
+			// wire CELL[2].IMUX_LOGICIN[52]       DSP.A[2]
 			// wire CELL[2].IMUX_LOGICIN[55]       DSP.CEOPMODE
 			// wire CELL[2].IMUX_LOGICIN[57]       DSP.CEC
 			// wire CELL[2].IMUX_LOGICIN[58]       DSP.CEM
-			// wire CELL[2].IMUX_LOGICIN[59]       DSP.C33
-			// wire CELL[2].IMUX_LOGICIN[62]       DSP.OPMODE5
-			// wire CELL[2].OUT_BEL[0]             DSP.M21
-			// wire CELL[2].OUT_BEL[1]             DSP.P29
-			// wire CELL[2].OUT_BEL[2]             DSP.M18
-			// wire CELL[2].OUT_BEL[3]             DSP.M23
-			// wire CELL[2].OUT_BEL[4]             DSP.P32
-			// wire CELL[2].OUT_BEL[6]             DSP.P31
-			// wire CELL[2].OUT_BEL[7]             DSP.P24
-			// wire CELL[2].OUT_BEL[8]             DSP.P28
-			// wire CELL[2].OUT_BEL[9]             DSP.P34
-			// wire CELL[2].OUT_BEL[10]            DSP.P25
-			// wire CELL[2].OUT_BEL[11]            DSP.M27
-			// wire CELL[2].OUT_BEL[12]            DSP.M20
-			// wire CELL[2].OUT_BEL[13]            DSP.M25
-			// wire CELL[2].OUT_BEL[14]            DSP.M19
-			// wire CELL[2].OUT_BEL[15]            DSP.M22
-			// wire CELL[2].OUT_BEL[17]            DSP.P26
-			// wire CELL[2].OUT_BEL[18]            DSP.P30
-			// wire CELL[2].OUT_BEL[20]            DSP.M24
-			// wire CELL[2].OUT_BEL[21]            DSP.P33
-			// wire CELL[2].OUT_BEL[22]            DSP.P27
-			// wire CELL[2].OUT_BEL[23]            DSP.M26
+			// wire CELL[2].IMUX_LOGICIN[59]       DSP.C[33]
+			// wire CELL[2].IMUX_LOGICIN[62]       DSP.OPMODE[5]
+			// wire CELL[2].OUT_BEL[0]             DSP.M[21]
+			// wire CELL[2].OUT_BEL[1]             DSP.P[29]
+			// wire CELL[2].OUT_BEL[2]             DSP.M[18]
+			// wire CELL[2].OUT_BEL[3]             DSP.M[23]
+			// wire CELL[2].OUT_BEL[4]             DSP.P[32]
+			// wire CELL[2].OUT_BEL[6]             DSP.P[31]
+			// wire CELL[2].OUT_BEL[7]             DSP.P[24]
+			// wire CELL[2].OUT_BEL[8]             DSP.P[28]
+			// wire CELL[2].OUT_BEL[9]             DSP.P[34]
+			// wire CELL[2].OUT_BEL[10]            DSP.P[25]
+			// wire CELL[2].OUT_BEL[11]            DSP.M[27]
+			// wire CELL[2].OUT_BEL[12]            DSP.M[20]
+			// wire CELL[2].OUT_BEL[13]            DSP.M[25]
+			// wire CELL[2].OUT_BEL[14]            DSP.M[19]
+			// wire CELL[2].OUT_BEL[15]            DSP.M[22]
+			// wire CELL[2].OUT_BEL[17]            DSP.P[26]
+			// wire CELL[2].OUT_BEL[18]            DSP.P[30]
+			// wire CELL[2].OUT_BEL[20]            DSP.M[24]
+			// wire CELL[2].OUT_BEL[21]            DSP.P[33]
+			// wire CELL[2].OUT_BEL[22]            DSP.P[27]
+			// wire CELL[2].OUT_BEL[23]            DSP.M[26]
 			// wire CELL[3].IMUX_SR[0]             DSP.RSTA
 			// wire CELL[3].IMUX_SR[1]             DSP.RSTB
-			// wire CELL[3].IMUX_LOGICIN[1]        DSP.A12
-			// wire CELL[3].IMUX_LOGICIN[3]        DSP.C43
-			// wire CELL[3].IMUX_LOGICIN[4]        DSP.C40
-			// wire CELL[3].IMUX_LOGICIN[7]        DSP.A6
-			// wire CELL[3].IMUX_LOGICIN[8]        DSP.A17
-			// wire CELL[3].IMUX_LOGICIN[10]       DSP.C42
-			// wire CELL[3].IMUX_LOGICIN[14]       DSP.A16
-			// wire CELL[3].IMUX_LOGICIN[15]       DSP.A5
-			// wire CELL[3].IMUX_LOGICIN[16]       DSP.A7
-			// wire CELL[3].IMUX_LOGICIN[17]       DSP.C38
-			// wire CELL[3].IMUX_LOGICIN[19]       DSP.A13
-			// wire CELL[3].IMUX_LOGICIN[23]       DSP.A8
-			// wire CELL[3].IMUX_LOGICIN[26]       DSP.A10
-			// wire CELL[3].IMUX_LOGICIN[27]       DSP.C44
-			// wire CELL[3].IMUX_LOGICIN[29]       DSP.A14
-			// wire CELL[3].IMUX_LOGICIN[30]       DSP.A11
-			// wire CELL[3].IMUX_LOGICIN[32]       DSP.C45
-			// wire CELL[3].IMUX_LOGICIN[36]       DSP.C36
-			// wire CELL[3].IMUX_LOGICIN[37]       DSP.C47
-			// wire CELL[3].IMUX_LOGICIN[39]       DSP.C46
-			// wire CELL[3].IMUX_LOGICIN[44]       DSP.A9
-			// wire CELL[3].IMUX_LOGICIN[47]       DSP.C37
-			// wire CELL[3].IMUX_LOGICIN[52]       DSP.A15
-			// wire CELL[3].IMUX_LOGICIN[55]       DSP.C41
-			// wire CELL[3].IMUX_LOGICIN[57]       DSP.C39
-			// wire CELL[3].OUT_BEL[0]             DSP.P37
-			// wire CELL[3].OUT_BEL[1]             DSP.M33
-			// wire CELL[3].OUT_BEL[2]             DSP.P35
-			// wire CELL[3].OUT_BEL[3]             DSP.P41
-			// wire CELL[3].OUT_BEL[4]             DSP.M34
-			// wire CELL[3].OUT_BEL[5]             DSP.P38
-			// wire CELL[3].OUT_BEL[6]             DSP.P44
-			// wire CELL[3].OUT_BEL[7]             DSP.M29
-			// wire CELL[3].OUT_BEL[8]             DSP.M32
+			// wire CELL[3].IMUX_LOGICIN[1]        DSP.A[12]
+			// wire CELL[3].IMUX_LOGICIN[3]        DSP.C[43]
+			// wire CELL[3].IMUX_LOGICIN[4]        DSP.C[40]
+			// wire CELL[3].IMUX_LOGICIN[7]        DSP.A[6]
+			// wire CELL[3].IMUX_LOGICIN[8]        DSP.A[17]
+			// wire CELL[3].IMUX_LOGICIN[10]       DSP.C[42]
+			// wire CELL[3].IMUX_LOGICIN[14]       DSP.A[16]
+			// wire CELL[3].IMUX_LOGICIN[15]       DSP.A[5]
+			// wire CELL[3].IMUX_LOGICIN[16]       DSP.A[7]
+			// wire CELL[3].IMUX_LOGICIN[17]       DSP.C[38]
+			// wire CELL[3].IMUX_LOGICIN[19]       DSP.A[13]
+			// wire CELL[3].IMUX_LOGICIN[23]       DSP.A[8]
+			// wire CELL[3].IMUX_LOGICIN[26]       DSP.A[10]
+			// wire CELL[3].IMUX_LOGICIN[27]       DSP.C[44]
+			// wire CELL[3].IMUX_LOGICIN[29]       DSP.A[14]
+			// wire CELL[3].IMUX_LOGICIN[30]       DSP.A[11]
+			// wire CELL[3].IMUX_LOGICIN[32]       DSP.C[45]
+			// wire CELL[3].IMUX_LOGICIN[36]       DSP.C[36]
+			// wire CELL[3].IMUX_LOGICIN[37]       DSP.C[47]
+			// wire CELL[3].IMUX_LOGICIN[39]       DSP.C[46]
+			// wire CELL[3].IMUX_LOGICIN[44]       DSP.A[9]
+			// wire CELL[3].IMUX_LOGICIN[47]       DSP.C[37]
+			// wire CELL[3].IMUX_LOGICIN[52]       DSP.A[15]
+			// wire CELL[3].IMUX_LOGICIN[55]       DSP.C[41]
+			// wire CELL[3].IMUX_LOGICIN[57]       DSP.C[39]
+			// wire CELL[3].OUT_BEL[0]             DSP.P[37]
+			// wire CELL[3].OUT_BEL[1]             DSP.M[33]
+			// wire CELL[3].OUT_BEL[2]             DSP.P[35]
+			// wire CELL[3].OUT_BEL[3]             DSP.P[41]
+			// wire CELL[3].OUT_BEL[4]             DSP.M[34]
+			// wire CELL[3].OUT_BEL[5]             DSP.P[38]
+			// wire CELL[3].OUT_BEL[6]             DSP.P[44]
+			// wire CELL[3].OUT_BEL[7]             DSP.M[29]
+			// wire CELL[3].OUT_BEL[8]             DSP.M[32]
 			// wire CELL[3].OUT_BEL[9]             DSP.CARRYOUTF
-			// wire CELL[3].OUT_BEL[10]            DSP.M30
-			// wire CELL[3].OUT_BEL[11]            DSP.P47
-			// wire CELL[3].OUT_BEL[12]            DSP.P36
-			// wire CELL[3].OUT_BEL[15]            DSP.P40
-			// wire CELL[3].OUT_BEL[16]            DSP.M35
-			// wire CELL[3].OUT_BEL[17]            DSP.M31
-			// wire CELL[3].OUT_BEL[18]            DSP.P42
-			// wire CELL[3].OUT_BEL[19]            DSP.M28
-			// wire CELL[3].OUT_BEL[20]            DSP.P43
-			// wire CELL[3].OUT_BEL[21]            DSP.P45
-			// wire CELL[3].OUT_BEL[22]            DSP.P39
-			// wire CELL[3].OUT_BEL[23]            DSP.P46
+			// wire CELL[3].OUT_BEL[10]            DSP.M[30]
+			// wire CELL[3].OUT_BEL[11]            DSP.P[47]
+			// wire CELL[3].OUT_BEL[12]            DSP.P[36]
+			// wire CELL[3].OUT_BEL[15]            DSP.P[40]
+			// wire CELL[3].OUT_BEL[16]            DSP.M[35]
+			// wire CELL[3].OUT_BEL[17]            DSP.M[31]
+			// wire CELL[3].OUT_BEL[18]            DSP.P[42]
+			// wire CELL[3].OUT_BEL[19]            DSP.M[28]
+			// wire CELL[3].OUT_BEL[20]            DSP.P[43]
+			// wire CELL[3].OUT_BEL[21]            DSP.P[45]
+			// wire CELL[3].OUT_BEL[22]            DSP.P[39]
+			// wire CELL[3].OUT_BEL[23]            DSP.P[46]
 		}
 
 		tile_class IOI_WE {
@@ -47019,68 +47099,6 @@ bstile DCM_BUFPLL_BUF_S_MID {
 	DCM_BUFPLL_BUF_S_MID:PLL0_CLKOUT1: R0.F3.B1 inv 0
 	DCM_BUFPLL_BUF_S_MID:PLL1_CLKOUT0: R0.F3.B4 inv 0
 	DCM_BUFPLL_BUF_S_MID:PLL1_CLKOUT1: R0.F3.B5 inv 0
-}
-
-bstile DSP {
-	DSP:A0REG: R3.F23.B4
-		0: 0
-		1: 1
-	DSP:A1REG: R2.F23.B61
-		0: 0
-		1: 1
-	DSP:B0REG: R3.F23.B5
-		0: 0
-		1: 1
-	DSP:B1REG: R3.F23.B3
-		0: 0
-		1: 1
-	DSP:B_INPUT: R3.F22.B3
-		1: CASCADE
-		0: DIRECT
-	DSP:CARRYINREG: R3.F22.B13
-		0: 0
-		1: 1
-	DSP:CARRYINSEL: R3.F22.B4
-		0: CARRYIN
-		1: OPMODE5
-	DSP:CARRYOUTREG: R3.F22.B12
-		0: 0
-		1: 1
-	DSP:CREG: R2.F22.B62
-		0: 0
-		1: 1
-	DSP:DREG: R3.F22.B0
-		0: 0
-		1: 1
-	DSP:INV.CEA: R3.F23.B17 inv 0
-	DSP:INV.CEB: R3.F23.B15 inv 0
-	DSP:INV.CEC: R3.F23.B13 inv 0
-	DSP:INV.CECARRYIN: R3.F22.B15 inv 0
-	DSP:INV.CED: R3.F22.B14 inv 0
-	DSP:INV.CEM: R3.F23.B18 inv 0
-	DSP:INV.CEOPMODE: R3.F23.B12 inv 0
-	DSP:INV.CEP: R3.F22.B20 inv 0
-	DSP:INV.CLK: R3.F23.B19 inv 0
-	DSP:INV.RSTA: R3.F23.B21 inv 0
-	DSP:INV.RSTB: R3.F23.B20 inv 0
-	DSP:INV.RSTC: R3.F23.B14 inv 0
-	DSP:INV.RSTCARRYIN: R3.F22.B17 inv 0
-	DSP:INV.RSTD: R3.F22.B18 inv 0
-	DSP:INV.RSTM: R3.F22.B21 inv 0
-	DSP:INV.RSTOPMODE: R3.F22.B23 inv 0
-	DSP:INV.RSTP: R3.F22.B19 inv 0
-	DSP:MREG: R2.F23.B62
-		0: 0
-		1: 1
-	DSP:OPMODEREG: R2.F22.B61
-		0: 0
-		1: 1
-	DSP:PREG: R3.F22.B5
-		0: 0
-		1: 1
-	DSP:RSTTYPE: R3.F23.B0
-		1: ASYNC
-		0: SYNC
 }
 
 bstile GTP {

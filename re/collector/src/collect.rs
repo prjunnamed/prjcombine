@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, hash_map};
 
 use prjcombine_interconnect::db::{
     BelAttribute, BelAttributeEnum, BelAttributeId, BelAttributeType, BelInputId, BelKind,
-    BelSlotId, ConnectorSlotId, EnumValueId, IntDb, PolTileWireCoord, TableFieldId, TableId,
-    TableRowId, TableValue, TileClassId, TileWireCoord,
+    BelSlotId, ConnectorSlotId, DeviceDataId, EnumValueId, IntDb, PolTileWireCoord, TableFieldId,
+    TableId, TableRowId, TableValue, TileClassId, TileWireCoord,
 };
 use prjcombine_types::{
     bitvec::BitVec,
@@ -22,6 +22,7 @@ use crate::{
 pub struct Collector<'a, 'b> {
     pub diffs: &'a mut BTreeMap<DiffKey, Vec<Diff>>,
     pub intdb: &'b IntDb,
+    pub dev_name: &'b str,
     pub data: &'a mut CollectorData,
 }
 
@@ -29,9 +30,15 @@ impl<'a, 'b> Collector<'a, 'b> {
     pub fn new(
         diffs: &'a mut BTreeMap<DiffKey, Vec<Diff>>,
         data: &'a mut CollectorData,
+        dev_name: &'b str,
         intdb: &'b IntDb,
     ) -> Self {
-        Self { diffs, intdb, data }
+        Self {
+            diffs,
+            intdb,
+            dev_name,
+            data,
+        }
     }
 }
 
@@ -120,6 +127,16 @@ impl Collector<'_, '_> {
         spec: SpecialId,
     ) -> Diff {
         self.get_diff_raw(&DiffKey::BelAttrSpecial(tcid, bslot, attr, spec))
+    }
+
+    pub fn get_diff_attr_bool(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        val: bool,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelAttrEnumBool(tcid, bslot, attr, val))
     }
 
     pub fn get_diff_bel_special(
@@ -345,6 +362,20 @@ impl Collector<'_, '_> {
             hash_map::Entry::Vacant(e) => {
                 e.insert(val);
             }
+        }
+    }
+
+    pub fn insert_devdata_bitvec(&mut self, ddid: DeviceDataId, val: BitVec) {
+        let val = TableValue::BitVec(val);
+        let devdata = self
+            .data
+            .device_data
+            .entry(self.dev_name.to_string())
+            .or_default();
+        if devdata.contains_id(ddid) {
+            assert_eq!(devdata[ddid], val);
+        } else {
+            devdata.insert(ddid, val);
         }
     }
 }

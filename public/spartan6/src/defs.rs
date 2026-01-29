@@ -1,6 +1,42 @@
 use prjcombine_tablegen::target_defs;
 
 target_defs! {
+
+    enum BRAM_RSTTYPE { SYNC, ASYNC }
+
+    enum DSP_B_INPUT { DIRECT, CASCADE }
+    enum DSP_CARRYINSEL { CARRYIN, OPMODE5 }
+    bel_class DSP {
+        input A[18];
+        input B[18];
+        input C[48];
+        input D[18];
+        input OPMODE[8];
+        input CLK;
+        input CEA, CEB, CEC, CED, CEOPMODE, CECARRYIN, CEM, CEP;
+        input RSTA, RSTB, RSTC, RSTD, RSTOPMODE, RSTCARRYIN, RSTM, RSTP;
+        output M[36];
+        output P[48];
+        output CARRYOUTF;
+
+        attribute B_INPUT: DSP_B_INPUT;
+        attribute CARRYINSEL: DSP_CARRYINSEL;
+        attribute A0REG: bool;
+        attribute A1REG: bool;
+        attribute B0REG: bool;
+        attribute B1REG: bool;
+        attribute CREG: bool;
+        attribute DREG: bool;
+        attribute MREG: bool;
+        attribute PREG: bool;
+        attribute OPMODEREG: bool;
+        attribute CARRYINREG: bool;
+        attribute CARRYOUTREG: bool;
+        attribute RSTTYPE: BRAM_RSTTYPE;
+    }
+
+    // TODO: enums, bel slots
+
     region_slot HCLK;
     region_slot LEAF;
 
@@ -179,7 +215,7 @@ target_defs! {
             bitrect DATA: BRAM_DATA;
         }
 
-        bel_slot DSP: legacy;
+        bel_slot DSP: DSP;
         tile_class DSP {
             cell CELL[4];
             bitrect MAIN[4]: DSP;

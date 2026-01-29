@@ -349,7 +349,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .global("GLUTMASK", "NO")
                     .bel_unused(bel_other)
                     .has_related(Delta::new(0, 0, "IOB"))
-                    .test_manual("MODE", mode)
+                    .test_manual_legacy("MODE", mode)
                     .mode(mode)
                     .commit();
             }
@@ -405,7 +405,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .has_related(Delta::new(0, 0, "IOB"))
                 .pin("CE0")
                 .attr("IFFTYPE", "#FF")
-                .test_manual("IFF_CE_ENABLE", "0")
+                .test_manual_legacy("IFF_CE_ENABLE", "0")
                 .pin_pips("CE0")
                 .commit();
 
@@ -424,20 +424,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("ILOGIC2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .mutex("MUX.SR", "INT")
-                .test_manual("MUX.SR", "INT")
+                .test_manual_legacy("MUX.SR", "INT")
                 .pip("SR", "SR_INT")
                 .commit();
             bctx.mode("ILOGIC2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .mutex("MUX.SR", "OLOGIC_SR")
-                .test_manual("MUX.SR", "OLOGIC_SR")
+                .test_manual_legacy("MUX.SR", "OLOGIC_SR")
                 .pip("SR", (PinFar, bel_ologic, "SR"))
                 .commit();
 
             bctx.build()
                 .has_related(Delta::new(0, 0, "IOB"))
                 .tile_mutex("CLK", "TEST_LOGIC")
-                .test_manual("MUX.CLK", format!("ICLK{i}"))
+                .test_manual_legacy("MUX.CLK", format!("ICLK{i}"))
                 .pip("CLK0", (bel_ioiclk, "CLK0_ILOGIC"))
                 .commit();
             bctx.mode("ISERDES2")
@@ -446,7 +446,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .bel_mode(bel_other, "ISERDES2")
                 .pin("D")
                 .bel_pin(bel_other, "D")
-                .test_manual("ENABLE.IOCE", "1")
+                .test_manual_legacy("ENABLE.IOCE", "1")
                 .pip("IOCE", (bel_ioiclk, "IOCE0"))
                 .commit();
             bctx.build()
@@ -454,13 +454,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("CLK", "TEST_LOGIC")
                 .unused()
                 .bel_unused(bel_other)
-                .test_manual("ENABLE", "1")
+                .test_manual_legacy("ENABLE", "1")
                 .pip("IOCE", (bel_ioiclk, "IOCE0"))
                 .commit();
             if i == 0 {
                 bctx.build()
                     .has_related(Delta::new(0, 0, "IOB"))
-                    .test_manual("MUX.D", "OTHER_IOB_I")
+                    .test_manual_legacy("MUX.D", "OTHER_IOB_I")
                     .pip("D_MUX", (bel_other, "IOB_I"))
                     .commit();
             }
@@ -476,7 +476,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .global("ENABLEMISR", "N")
                     .tile_mutex("CLK", "TEST_LOGIC")
                     .global("GLUTMASK", "NO")
-                    .test_manual("MODE", mode)
+                    .test_manual_legacy("MODE", mode)
                     .mode(mode)
                     .commit();
             }
@@ -486,7 +486,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("MISRRESET", "Y")
                 .tile_mutex("CLK", "TEST_LOGIC")
                 .global("GLUTMASK", "NO")
-                .test_manual("MODE", "OLOGIC2.MISR_RESET")
+                .test_manual_legacy("MODE", "OLOGIC2.MISR_RESET")
                 .mode("OLOGIC2")
                 .commit();
             bctx.mode("OLOGIC2")
@@ -524,47 +524,47 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("OLOGIC2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .mutex("MUX.SR", "INT")
-                .test_manual("MUX.SR", "INT")
+                .test_manual_legacy("MUX.SR", "INT")
                 .pin_pips("SR")
                 .commit();
             bctx.mode("OLOGIC2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .mutex("MUX.REV", "INT")
-                .test_manual("MUX.REV", "INT")
+                .test_manual_legacy("MUX.REV", "INT")
                 .pin_pips("REV")
                 .commit();
             bctx.mode("OLOGIC2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .mutex("MUX.OCE", "INT")
                 .attr("OUTFFTYPE", "#FF")
-                .test_manual("MUX.OCE", "INT")
+                .test_manual_legacy("MUX.OCE", "INT")
                 .pin_pips("OCE")
                 .commit();
             bctx.mode("OLOGIC2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .mutex("MUX.OCE", "PCI_CE")
                 .attr("OUTFFTYPE", "#FF")
-                .test_manual("MUX.OCE", "PCI_CE")
+                .test_manual_legacy("MUX.OCE", "PCI_CE")
                 .pip("OCE", (bel_ioi, "PCI_CE"))
                 .commit();
             bctx.mode("OLOGIC2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .mutex("MUX.TCE", "INT")
                 .attr("TFFTYPE", "#FF")
-                .test_manual("MUX.TCE", "INT")
+                .test_manual_legacy("MUX.TCE", "INT")
                 .pin_pips("TCE")
                 .commit();
             bctx.mode("OSERDES2")
                 .global_mutex("DRPSDO", "NOPE")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .mutex("MUX.TRAIN", "MCB")
-                .test_manual("MUX.TRAIN", "MCB")
+                .test_manual_legacy("MUX.TRAIN", "MCB")
                 .pip("TRAIN", (bel_ioi, "MCB_DRPTRAIN"))
                 .commit();
             bctx.mode("OSERDES2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .mutex("MUX.TRAIN", "INT")
-                .test_manual("MUX.TRAIN", "INT")
+                .test_manual_legacy("MUX.TRAIN", "INT")
                 .pin_pips("TRAIN")
                 .commit();
             bctx.mode("OSERDES2")
@@ -574,7 +574,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .has_related(Delta::new(0, 0, "IOB"))
                 .global_mutex("DRPSDO", "USE")
                 .pip((bel_iodelay, "CE"), (bel_ioi, "MCB_DRPSDO"))
-                .test_manual("MUX.D", "MCB")
+                .test_manual_legacy("MUX.D", "MCB")
                 .pip("D1", "MCB_D1")
                 .commit();
             bctx.mode("OLOGIC2")
@@ -641,20 +641,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .has_related(Delta::new(0, 0, "IOB"))
                 .tile_mutex("CLK", "TEST_LOGIC")
-                .test_manual("MUX.CLK", format!("OCLK{i}"))
+                .test_manual_legacy("MUX.CLK", format!("OCLK{i}"))
                 .pip("CLK0", (bel_ioiclk, "CLK0_OLOGIC"))
                 .commit();
             bctx.mode("OSERDES2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .tile_mutex("CLK", "TEST_LOGIC")
-                .test_manual("ENABLE.IOCE", "1")
+                .test_manual_legacy("ENABLE.IOCE", "1")
                 .pip("IOCE", (bel_ioiclk, "IOCE1"))
                 .commit();
             bctx.build()
                 .has_related(Delta::new(0, 0, "IOB"))
                 .tile_mutex("CLK", "TEST_LOGIC")
                 .unused()
-                .test_manual("ENABLE", "1")
+                .test_manual_legacy("ENABLE", "1")
                 .pip("IOCE", (bel_ioiclk, "IOCE1"))
                 .commit();
         }
@@ -673,7 +673,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .global("IOI_TESTNCOUNTER", "NO")
                     .global("IOIENFFSCAN_DRP", "NO")
                     .bel_unused(bel_other)
-                    .test_manual("MODE", mode)
+                    .test_manual_legacy("MODE", mode)
                     .mode(mode)
                     .commit();
             }
@@ -684,7 +684,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("IOI_TESTNCOUNTER", "NO")
                 .global("IOIENFFSCAN_DRP", "NO")
                 .bel_unused(bel_other)
-                .test_manual("MODE", "IODELAY2.TEST_PCOUNTER")
+                .test_manual_legacy("MODE", "IODELAY2.TEST_PCOUNTER")
                 .mode("IODELAY2")
                 .commit();
             bctx.build()
@@ -694,7 +694,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("IOI_TESTNCOUNTER", "YES")
                 .global("IOIENFFSCAN_DRP", "NO")
                 .bel_unused(bel_other)
-                .test_manual("MODE", "IODELAY2.TEST_NCOUNTER")
+                .test_manual_legacy("MODE", "IODELAY2.TEST_NCOUNTER")
                 .mode("IODELAY2")
                 .commit();
             bctx.build()
@@ -704,7 +704,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("IOI_TESTNCOUNTER", "NO")
                 .global("IOIENFFSCAN_DRP", "YES")
                 .bel_unused(bel_other)
-                .test_manual("MODE", "IODRP2.IOIENFFSCAN_DRP")
+                .test_manual_legacy("MODE", "IODRP2.IOIENFFSCAN_DRP")
                 .mode("IODRP2")
                 .commit();
 
@@ -728,7 +728,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("IODELAY2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .pin("CIN")
-                .test_manual("ENABLE.CIN", "1")
+                .test_manual_legacy("ENABLE.CIN", "1")
                 .pin_pips("CIN")
                 .commit();
 
@@ -775,7 +775,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
             bctx.mode("IODELAY2")
                 .has_related(Delta::new(0, 0, "IOB"))
-                .test_manual("ENABLE.ODATAIN", "1")
+                .test_manual_legacy("ENABLE.ODATAIN", "1")
                 .pip("ODATAIN", (bel_ologic, "OQ"))
                 .commit();
 
@@ -784,7 +784,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("CLK", "IODELAY")
                 .mutex("MUX.IOCLK", "ILOGIC_CLK")
                 .pip((bel_ilogic, "CLK0"), (bel_ioiclk, "CLK0_ILOGIC"))
-                .test_manual("MUX.IOCLK", "ILOGIC_CLK")
+                .test_manual_legacy("MUX.IOCLK", "ILOGIC_CLK")
                 .pip("IOCLK0", (bel_ioiclk, "CLK0_ILOGIC"))
                 .commit();
             bctx.mode("IODELAY2")
@@ -792,7 +792,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("CLK", "IODELAY")
                 .mutex("MUX.IOCLK", "OLOGIC_CLK")
                 .pip((bel_ologic, "CLK0"), (bel_ioiclk, "CLK0_OLOGIC"))
-                .test_manual("MUX.IOCLK", "OLOGIC_CLK")
+                .test_manual_legacy("MUX.IOCLK", "OLOGIC_CLK")
                 .pip("IOCLK0", (bel_ioiclk, "CLK0_OLOGIC"))
                 .commit();
 
@@ -819,7 +819,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .has_related(Delta::new(0, 0, "IOB"))
                     .mutex(format!("MUX.CLK{j}"), pin)
                     .tile_mutex("CLK", "TEST_INTER")
-                    .test_manual(format!("MUX.CLK{j}"), pin)
+                    .test_manual_legacy(format!("MUX.CLK{j}"), pin)
                     .pip(format!("CLK{j}INTER"), pin)
                     .commit();
             }
@@ -837,7 +837,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .has_related(Delta::new(0, 0, "IOB"))
                     .mutex(format!("MUX.CLK{j}"), pin)
                     .tile_mutex("CLK", "TEST_INTER")
-                    .test_manual(format!("MUX.CLK{j}"), pin)
+                    .test_manual_legacy(format!("MUX.CLK{j}"), pin)
                     .pip(format!("CLK{j}INTER"), (bel_ioi, pin))
                     .commit();
             }
@@ -850,7 +850,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .bel_mode(bel_ilogic, "ISERDES2")
                     .bel_attr(bel_ilogic, "DATA_RATE", "SDR")
                     .bel_pin(bel_ilogic, "CLK0")
-                    .test_manual(format!("INV.CLK{j}"), "1")
+                    .test_manual_legacy(format!("INV.CLK{j}"), "1")
                     .bel_attr(bel_ilogic, "CLK0INV", "CLK0_B")
                     .commit();
             }
@@ -863,7 +863,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .bel_mode(bel_ilogic, "ISERDES2")
                     .bel_attr(bel_ilogic, "DATA_RATE", "SDR")
                     .bel_pin(bel_ilogic, "CLK0")
-                    .test_manual("MUX.ICLK", format!("CLK{j}"))
+                    .test_manual_legacy("MUX.ICLK", format!("CLK{j}"))
                     .pip("CLK0_ILOGIC", format!("CLK{j}INTER"))
                     .commit();
                 bctx.build()
@@ -874,7 +874,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .bel_mode(bel_ologic, "OSERDES2")
                     .bel_attr(bel_ologic, "DATA_RATE_OQ", "SDR")
                     .bel_pin(bel_ologic, "CLK0")
-                    .test_manual("MUX.OCLK", format!("CLK{j}"))
+                    .test_manual_legacy("MUX.OCLK", format!("CLK{j}"))
                     .pip("CLK0_OLOGIC", format!("CLK{j}INTER"))
                     .commit();
             }
@@ -886,7 +886,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .bel_mode(bel_ilogic, "ISERDES2")
                 .bel_attr(bel_ilogic, "DATA_RATE", "DDR")
                 .bel_pin(bel_ilogic, "CLK0")
-                .test_manual("MUX.ICLK", "DDR")
+                .test_manual_legacy("MUX.ICLK", "DDR")
                 .pip("CLK0_ILOGIC", "CLK0INTER")
                 .commit();
             bctx.build()
@@ -897,7 +897,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .bel_mode(bel_ologic, "OSERDES2")
                 .bel_attr(bel_ologic, "DATA_RATE_OQ", "DDR")
                 .bel_pin(bel_ologic, "CLK0")
-                .test_manual("MUX.OCLK", "DDR")
+                .test_manual_legacy("MUX.OCLK", "DDR")
                 .pip("CLK0_OLOGIC", "CLK0INTER")
                 .commit();
             bctx.build()
@@ -909,7 +909,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .bel_attr(bel_ilogic, "IFFTYPE", "DDR")
                 .bel_attr(bel_ilogic, "DDR_ALIGNMENT", "")
                 .bel_pin(bel_ilogic, "CLK0")
-                .test_manual("MUX.ICLK", "DDR.ILOGIC")
+                .test_manual_legacy("MUX.ICLK", "DDR.ILOGIC")
                 .pip("CLK0_ILOGIC", "CLK0INTER")
                 .commit();
             bctx.build()
@@ -921,7 +921,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .bel_attr(bel_ilogic, "IFFTYPE", "DDR")
                 .bel_attr(bel_ilogic, "DDR_ALIGNMENT", "C0")
                 .bel_pin(bel_ilogic, "CLK0")
-                .test_manual("MUX.ICLK", "DDR.ILOGIC.C0")
+                .test_manual_legacy("MUX.ICLK", "DDR.ILOGIC.C0")
                 .pip("CLK0_ILOGIC", "CLK0INTER")
                 .pip("CLK1", "CLK1INTER")
                 .commit();
@@ -934,7 +934,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .bel_attr(bel_ilogic, "IFFTYPE", "DDR")
                 .bel_attr(bel_ilogic, "DDR_ALIGNMENT", "C0")
                 .bel_pin(bel_ilogic, "CLK0")
-                .test_manual("MUX.ICLK", "DDR.ILOGIC.C1")
+                .test_manual_legacy("MUX.ICLK", "DDR.ILOGIC.C1")
                 .pip("CLK0_ILOGIC", "CLK1INTER")
                 .pip("CLK1", "CLK0INTER")
                 .commit();
@@ -949,7 +949,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .bel_attr(bel_ologic, "ODDR_ALIGNMENT", "")
                 .bel_attr(bel_ologic, "TDDR_ALIGNMENT", "")
                 .bel_pin(bel_ologic, "CLK0")
-                .test_manual("MUX.OCLK", "DDR.OLOGIC")
+                .test_manual_legacy("MUX.OCLK", "DDR.OLOGIC")
                 .pip("CLK0_OLOGIC", "CLK0INTER")
                 .commit();
             for j in 0..2 {
@@ -958,7 +958,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .has_related(Delta::new(0, 0, "IOB"))
                         .tile_mutex("CLK", ["TEST_ICE", "TEST_OCE"][j])
                         .mutex(["MUX.ICE", "MUX.OCE"][j], pin)
-                        .test_manual(["MUX.ICE", "MUX.OCE"][j], pin)
+                        .test_manual_legacy(["MUX.ICE", "MUX.OCE"][j], pin)
                         .pip(format!("IOCE{j}"), (bel_ioi, pin))
                         .commit();
                 }
@@ -973,7 +973,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_mutex("DRPSDO", "TEST")
                 .global("MEM_PLL_POL_SEL", "INVERTED")
                 .global("MEM_PLL_DIV_EN", "DISABLED")
-                .test_manual("DRPSDO", "1")
+                .test_manual_legacy("DRPSDO", "1")
                 .pip((bel_iodelay, "CE"), "MCB_DRPSDO")
                 .commit();
             bctx.build()
@@ -982,7 +982,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_mutex("DRPSDO", "TEST")
                 .global("MEM_PLL_POL_SEL", "INVERTED")
                 .global("MEM_PLL_DIV_EN", "ENABLED")
-                .test_manual("DRPSDO", "1.DIV_EN")
+                .test_manual_legacy("DRPSDO", "1.DIV_EN")
                 .pip((bel_iodelay, "CE"), "MCB_DRPSDO")
                 .commit();
             bctx.build()
@@ -991,7 +991,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_mutex("DRPSDO", "TEST")
                 .global("MEM_PLL_POL_SEL", "NOTINVERTED")
                 .global("MEM_PLL_DIV_EN", "DISABLED")
-                .test_manual("DRPSDO", "1.NOTINV")
+                .test_manual_legacy("DRPSDO", "1.NOTINV")
                 .pip((bel_iodelay, "CE"), "MCB_DRPSDO")
                 .commit();
         }
@@ -1005,7 +1005,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("DRPSDO", "TEST")
             .global("MEM_PLL_POL_SEL", "INVERTED")
             .global("MEM_PLL_DIV_EN", "DISABLED")
-            .test_manual("DRPSDO", "1")
+            .test_manual_legacy("DRPSDO", "1")
             .pip((PinFar, "IOIDRPSDO"), "IOIDRPSDO")
             .commit();
         bctx.build()
@@ -1015,7 +1015,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("DRPSDO", "TEST")
             .global("MEM_PLL_POL_SEL", "INVERTED")
             .global("MEM_PLL_DIV_EN", "ENABLED")
-            .test_manual("DRPSDO", "1")
+            .test_manual_legacy("DRPSDO", "1")
             .pip((PinFar, "IOIDRPSDO"), "IOIDRPSDO")
             .commit();
         bctx.build()
@@ -1025,7 +1025,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("DRPSDO", "TEST")
             .global("MEM_PLL_POL_SEL", "NOTINVERTED")
             .global("MEM_PLL_DIV_EN", "DISABLED")
-            .test_manual("DRPSDO", "1")
+            .test_manual_legacy("DRPSDO", "1")
             .pip((PinFar, "IOIDRPSDO"), "IOIDRPSDO")
             .commit();
     }
@@ -1038,7 +1038,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("IOB", "SHARED")
             .global_mutex("VREF", "NO")
             .bel_mode(bel_other, "IOB")
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("IOB")
             .commit();
         if i == 0 {
@@ -1057,7 +1057,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .bel_attr(bel_other, "IMUX", "I")
                 .bel_attr(bel_other, "BYPASS_MUX", "I")
                 .bel_attr(bel_other, "ISTANDARD", "HSTL_I_18")
-                .test_manual("PRESENT", "NOTVREF")
+                .test_manual_legacy("PRESENT", "NOTVREF")
                 .mode("IOB")
                 .commit();
         }
@@ -1107,7 +1107,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("IOB")
             .global_mutex("IOB", "SHARED")
             .mutex("MODE", "OUSED")
-            .test_manual("OUTPUT_ENABLE", "0")
+            .test_manual_legacy("OUTPUT_ENABLE", "0")
             .attr("TUSED", "0")
             .attr("OUSED", "0")
             .attr("DRIVE_0MA", "DRIVE_0MA")
@@ -1132,7 +1132,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global("GLUTMASK", "YES")
             .global_mutex_here("IOB")
             .extra_tile_attr_fixed(cnr_lr, "MISC", "GLUTMASK_IOB", "1")
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("IOB")
             .commit();
 
@@ -1147,7 +1147,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("IMUX", "I")
             .attr("BYPASS_MUX", "I")
             .extra_tile_attr_fixed(cnr_ul, "MISC", "VREF_LV", "1")
-            .test_manual("VREF_LV", "1")
+            .test_manual_legacy("VREF_LV", "1")
             .attr_diff("ISTANDARD", "SSTL3_I", "SSTL18_I")
             .commit();
 
@@ -1169,7 +1169,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("OUSED", "0")
                 .attr("OSTANDARD", "SSTL2_I")
                 .extra_tile_attr_fixed(banks[bank], format!("OCT_CAL{bank}"), "INTERNAL_VREF", "1")
-                .test_manual("ISTD", "SSTL2_I:3.3:WE")
+                .test_manual_legacy("ISTD", "SSTL2_I:3.3:WE")
                 .pin("I")
                 .attr("IMUX", "I")
                 .attr("BYPASS_MUX", "I")
@@ -1218,7 +1218,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 Delta::new(0, 0, ioi),
                                 BelUnused::new(bel_ologic),
                             ))
-                            .test_manual("ISTD", format!("{sn}:{vccaux}:{kind}", sn = std.name))
+                            .test_manual_legacy(
+                                "ISTD",
+                                format!("{sn}:{vccaux}:{kind}", sn = std.name),
+                            )
                             .attr("ISTANDARD", std.name)
                             .commit();
                         if has_diff_term {
@@ -1240,7 +1243,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     Delta::new(0, 0, ioi),
                                     BelUnused::new(bel_ologic),
                                 ))
-                                .test_manual("DIFF_TERM", "1")
+                                .test_manual_legacy("DIFF_TERM", "1")
                                 .attr_diff("DIFF_TERM", "FALSE", "TRUE")
                                 .commit();
                         }
@@ -1271,7 +1274,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         "IN_TERM",
                                         "1",
                                     )
-                                    .test_manual(
+                                    .test_manual_legacy(
                                         "IN_TERM",
                                         format!("{sn}:{vccaux}:{kind}:{term}", sn = std.name),
                                     )
@@ -1303,7 +1306,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 Delta::new(0, 0, ioi),
                                 BelUnused::new(bel_ologic),
                             ))
-                            .test_manual("ISTD", format!("{sn}:{vccaux}:{kind}", sn = std.name))
+                            .test_manual_legacy(
+                                "ISTD",
+                                format!("{sn}:{vccaux}:{kind}", sn = std.name),
+                            )
                             .attr("ISTANDARD", std.name)
                             .commit();
                         for term in ["UNTUNED_SPLIT_25", "UNTUNED_SPLIT_50", "UNTUNED_SPLIT_75"] {
@@ -1331,7 +1337,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     "IN_TERM",
                                     "1",
                                 )
-                                .test_manual(
+                                .test_manual_legacy(
                                     "IN_TERM",
                                     format!("{sn}:{vccaux}:{kind}:{term}", sn = std.name),
                                 )
@@ -1354,7 +1360,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 Delta::new(0, 0, ioi),
                                 BelUnused::new(bel_ologic),
                             ))
-                            .test_manual("ISTD", format!("{sn}:{vccaux}:{kind}", sn = std.name))
+                            .test_manual_legacy(
+                                "ISTD",
+                                format!("{sn}:{vccaux}:{kind}", sn = std.name),
+                            )
                             .attr("ISTANDARD", std.name)
                             .commit();
                         if std.name.starts_with("LVCMOS")
@@ -1385,7 +1394,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         "IN_TERM",
                                         "1",
                                     )
-                                    .test_manual(
+                                    .test_manual_legacy(
                                         "IN_TERM",
                                         format!("{sn}:{vccaux}:{kind}:{term}", sn = std.name),
                                     )
@@ -1433,7 +1442,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .pin("T")
                                 .pin("O")
                                 .extra_tile_attr_fixed(corner, "BANK", "LVDSBIAS_0", std.name)
-                                .test_manual("OSTD", format!("{sn}:{vccaux}:GROUP0", sn = std.name))
+                                .test_manual_legacy(
+                                    "OSTD",
+                                    format!("{sn}:{vccaux}:GROUP0", sn = std.name),
+                                )
                                 .mode_diff("IOB", ["IOBS", "IOBM"][i])
                                 .attr("OUTMUX", ["0", ""][i])
                                 .attr_diff("DRIVE_0MA", "DRIVE_0MA", "")
@@ -1500,7 +1512,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .pin("T")
                                 .pin("O")
                                 .extra_tile_attr_fixed(corner, "BANK", "LVDSBIAS_1", std.name)
-                                .test_manual("OSTD", format!("{sn}:{vccaux}:GROUP1", sn = std.name))
+                                .test_manual_legacy(
+                                    "OSTD",
+                                    format!("{sn}:{vccaux}:GROUP1", sn = std.name),
+                                )
                                 .mode_diff("IOB", ["IOBS", "IOBM"][i])
                                 .attr("OUTMUX", ["0", ""][i])
                                 .attr_diff("DRIVE_0MA", "DRIVE_0MA", "")
@@ -1538,7 +1553,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .attr("PULLTYPE", "")
                                     .pin("T")
                                     .pin("O")
-                                    .test_manual("OSTD", val)
+                                    .test_manual_legacy("OSTD", val)
                                     .attr_diff("DRIVE_0MA", "DRIVE_0MA", "")
                                     .attr("OSTANDARD", std.name)
                                     .attr("DRIVEATTRBOX", drive)
@@ -1580,7 +1595,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .attr("PULLTYPE", "")
                                     .pin("T")
                                     .pin("O")
-                                    .test_manual("OSTD", val)
+                                    .test_manual_legacy("OSTD", val)
                                     .attr_diff("DRIVE_0MA", "DRIVE_0MA", "")
                                     .attr("OSTANDARD", std.name)
                                     .attr("OUT_TERM", term)

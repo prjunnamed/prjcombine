@@ -22422,6 +22422,128 @@ device xqr4vfx140 {
 }
 
 intdb {
+	enum SLICE_V4_CYINIT {
+		BX,
+		CIN,
+	}
+
+	enum SLICE_V4_CY0F {
+		CONST_0,
+		CONST_1,
+		BX,
+		F3,
+		F2,
+		PROD,
+	}
+
+	enum SLICE_V4_CY0G {
+		CONST_0,
+		CONST_1,
+		BY,
+		G3,
+		G2,
+		PROD,
+	}
+
+	enum SLICE_V4_DIF_MUX {
+		ALT,
+		BX,
+	}
+
+	enum SLICE_V4_DIG_MUX {
+		ALT,
+		BY,
+	}
+
+	enum SLICE_V4_DXMUX {
+		X,
+		BX,
+		F5,
+		FXOR,
+		XB,
+	}
+
+	enum SLICE_V4_DYMUX {
+		Y,
+		BY,
+		FX,
+		GXOR,
+		YB,
+	}
+
+	enum SLICE_V4_FXMUX {
+		F5,
+		FXOR,
+	}
+
+	enum SLICE_V4_GYMUX {
+		FX,
+		GXOR,
+	}
+
+	enum SLICE_V4_XBMUX {
+		FCY,
+		FMC15,
+	}
+
+	enum SLICE_V4_YBMUX {
+		GCY,
+		GMC15,
+	}
+
+	bel_class SLICE_V4 {
+		input F1;
+		input F2;
+		input F3;
+		input F4;
+		input G1;
+		input G2;
+		input G3;
+		input G4;
+		input BX;
+		input BY;
+		input CLK;
+		input SR;
+		input CE;
+		output X;
+		output Y;
+		output XQ;
+		output YQ;
+		output XB;
+		output YB;
+		output XMUX;
+		output YMUX;
+		attribute F: bitvec[16];
+		attribute G: bitvec[16];
+		attribute DIF_MUX: SLICE_V4_DIF_MUX;
+		attribute DIG_MUX: SLICE_V4_DIG_MUX;
+		attribute F_RAM_ENABLE: bool;
+		attribute G_RAM_ENABLE: bool;
+		attribute F_SHIFT_ENABLE: bool;
+		attribute G_SHIFT_ENABLE: bool;
+		attribute F_SLICEWE0USED: bool;
+		attribute G_SLICEWE0USED: bool;
+		attribute F_SLICEWE1USED: bool;
+		attribute G_SLICEWE1USED: bool;
+		attribute CYINIT: SLICE_V4_CYINIT;
+		attribute CY0F: SLICE_V4_CY0F;
+		attribute CY0G: SLICE_V4_CY0G;
+		attribute FFX_INIT: bitvec[1];
+		attribute FFY_INIT: bitvec[1];
+		attribute FFX_SRVAL: bitvec[1];
+		attribute FFY_SRVAL: bitvec[1];
+		attribute FF_LATCH: bool;
+		attribute FF_REV_ENABLE: bool;
+		attribute FF_SR_SYNC: bool;
+		attribute FF_SR_ENABLE: bool;
+		attribute FXMUX: SLICE_V4_FXMUX;
+		attribute GYMUX: SLICE_V4_GYMUX;
+		attribute DXMUX: SLICE_V4_DXMUX;
+		attribute DYMUX: SLICE_V4_DYMUX;
+		attribute XBMUX: SLICE_V4_XBMUX;
+		attribute YBMUX: SLICE_V4_YBMUX;
+	}
+
 	region_slot HCLK;
 	region_slot LEAF;
 	wire PULLUP: pullup;
@@ -27059,10 +27181,10 @@ intdb {
 	}
 
 	tile_slot BEL {
-		bel_slot SLICE[0]: legacy;
-		bel_slot SLICE[1]: legacy;
-		bel_slot SLICE[2]: legacy;
-		bel_slot SLICE[3]: legacy;
+		bel_slot SLICE[0]: SLICE_V4;
+		bel_slot SLICE[1]: SLICE_V4;
+		bel_slot SLICE[2]: SLICE_V4;
+		bel_slot SLICE[3]: SLICE_V4;
 		bel_slot BRAM: legacy;
 		bel_slot FIFO: legacy;
 		bel_slot BRAM_F: legacy;
@@ -27440,10 +27562,6 @@ intdb {
 			bitrect MAIN: Vertical (22, rev 80);
 
 			bel SLICE[0] {
-				input BX = IMUX_BYP[0];
-				input BY = IMUX_BYP[4];
-				input CE = IMUX_CE_OPTINV[0];
-				input CLK = IMUX_CLK_OPTINV[0];
 				input F1 = IMUX_IMUX[11];
 				input F2 = IMUX_IMUX[10];
 				input F3 = IMUX_IMUX[9];
@@ -27452,22 +27570,98 @@ intdb {
 				input G2 = IMUX_IMUX[2];
 				input G3 = IMUX_IMUX[1];
 				input G4 = IMUX_IMUX[0];
+				input BX = ^IMUX_BYP[0] @!MAIN[18][19];
+				input BY = ^IMUX_BYP[4] @!MAIN[18][22];
+				input CLK = IMUX_CLK_OPTINV[0];
 				input SR = IMUX_SR_OPTINV[0];
+				input CE = IMUX_CE_OPTINV[0];
 				output X = OUT_BEST[0];
-				output XB = OUT_HALF0[4];
-				output XMUX = OUT_HALF0[0];
-				output XQ = OUT_SEC[0];
 				output Y = OUT_BEST[4];
-				output YB = OUT_HALF0[6];
-				output YMUX = OUT_HALF0[2];
+				output XQ = OUT_SEC[0];
 				output YQ = OUT_SEC[4];
+				output XB = OUT_HALF0[4];
+				output YB = OUT_HALF0[6];
+				output XMUX = OUT_HALF0[0];
+				output YMUX = OUT_HALF0[2];
+				attribute F @[MAIN[21][0], MAIN[21][1], MAIN[21][2], MAIN[21][3], MAIN[21][4], MAIN[21][5], MAIN[21][6], MAIN[21][7], MAIN[21][8], MAIN[21][9], MAIN[21][10], MAIN[21][11], MAIN[21][12], MAIN[21][13], MAIN[21][14], MAIN[21][15]];
+				attribute G @[MAIN[21][23], MAIN[21][24], MAIN[21][25], MAIN[21][26], MAIN[21][27], MAIN[21][28], MAIN[21][29], MAIN[21][30], MAIN[21][31], MAIN[21][32], MAIN[21][33], MAIN[21][34], MAIN[21][35], MAIN[21][36], MAIN[21][37], MAIN[21][38]];
+				attribute DIF_MUX @[MAIN[20][2]] {
+					ALT = 0b0,
+					BX = 0b1,
+				}
+				attribute DIG_MUX @[MAIN[20][35]] {
+					ALT = 0b0,
+					BY = 0b1,
+				}
+				attribute F_RAM_ENABLE @MAIN[20][8];
+				attribute G_RAM_ENABLE @MAIN[20][7];
+				attribute F_SHIFT_ENABLE @MAIN[20][37];
+				attribute G_SHIFT_ENABLE @MAIN[20][36];
+				attribute F_SLICEWE0USED @MAIN[20][9];
+				attribute G_SLICEWE0USED @MAIN[21][20];
+				attribute F_SLICEWE1USED @MAIN[20][11];
+				attribute G_SLICEWE1USED @MAIN[21][19];
+				attribute CYINIT @[MAIN[21][17]] {
+					BX = 0b0,
+					CIN = 0b1,
+				}
+				attribute CY0F @[MAIN[20][18], MAIN[20][17], MAIN[20][16]] {
+					CONST_0 = 0b001,
+					CONST_1 = 0b000,
+					BX = 0b110,
+					F3 = 0b011,
+					F2 = 0b010,
+					PROD = 0b100,
+				}
+				attribute CY0G @[MAIN[20][21], MAIN[20][20], MAIN[20][23]] {
+					CONST_0 = 0b001,
+					CONST_1 = 0b000,
+					BY = 0b110,
+					G3 = 0b011,
+					G2 = 0b010,
+					PROD = 0b100,
+				}
+				attribute FFX_INIT @[!MAIN[20][6]];
+				attribute FFY_INIT @[!MAIN[20][34]];
+				attribute FFX_SRVAL @[!MAIN[20][0]];
+				attribute FFY_SRVAL @[!MAIN[20][30]];
+				attribute FF_LATCH @MAIN[20][10];
+				attribute FF_REV_ENABLE @MAIN[20][27];
+				attribute FF_SR_SYNC @MAIN[20][26];
+				attribute FF_SR_ENABLE @!MAIN[20][38];
+				attribute FXMUX @[MAIN[20][14]] {
+					F5 = 0b0,
+					FXOR = 0b1,
+				}
+				attribute GYMUX @[MAIN[20][19]] {
+					FX = 0b0,
+					GXOR = 0b1,
+				}
+				attribute DXMUX @[MAIN[18][2], MAIN[18][7], MAIN[18][0], MAIN[18][9], MAIN[20][3]] {
+					X = 0b00000,
+					BX = 0b00011,
+					F5 = 0b00101,
+					FXOR = 0b01001,
+					XB = 0b10001,
+				}
+				attribute DYMUX @[MAIN[18][15], MAIN[18][14], MAIN[18][5], MAIN[18][8], MAIN[20][31]] {
+					Y = 0b00000,
+					BY = 0b00011,
+					FX = 0b00101,
+					GXOR = 0b01001,
+					YB = 0b10001,
+				}
+				attribute XBMUX @[MAIN[21][18]] {
+					FCY = 0b0,
+					FMC15 = 0b1,
+				}
+				attribute YBMUX @[MAIN[21][21]] {
+					GCY = 0b0,
+					GMC15 = 0b1,
+				}
 			}
 
 			bel SLICE[1] {
-				input BX = IMUX_BYP[5];
-				input BY = IMUX_BYP[1];
-				input CE = IMUX_CE_OPTINV[1];
-				input CLK = IMUX_CLK_OPTINV[1];
 				input F1 = IMUX_IMUX[15];
 				input F2 = IMUX_IMUX[14];
 				input F3 = IMUX_IMUX[13];
@@ -27476,22 +27670,73 @@ intdb {
 				input G2 = IMUX_IMUX[6];
 				input G3 = IMUX_IMUX[5];
 				input G4 = IMUX_IMUX[4];
+				input BX = ^IMUX_BYP[5] @!MAIN[18][61];
+				input BY = ^IMUX_BYP[1] @!MAIN[18][58];
+				input CLK = IMUX_CLK_OPTINV[1];
 				input SR = IMUX_SR_OPTINV[1];
+				input CE = IMUX_CE_OPTINV[1];
 				output X = OUT_BEST[1];
-				output XB = OUT_HALF0[5];
-				output XMUX = OUT_HALF0[1];
-				output XQ = OUT_SEC[1];
 				output Y = OUT_BEST[5];
-				output YB = OUT_HALF0[7];
-				output YMUX = OUT_HALF0[3];
+				output XQ = OUT_SEC[1];
 				output YQ = OUT_SEC[5];
+				output XB = OUT_HALF0[5];
+				output YB = OUT_HALF0[7];
+				output XMUX = OUT_HALF0[1];
+				output YMUX = OUT_HALF0[3];
+				attribute F @[MAIN[19][0], MAIN[19][1], MAIN[19][2], MAIN[19][3], MAIN[19][4], MAIN[19][5], MAIN[19][6], MAIN[19][7], MAIN[19][8], MAIN[19][9], MAIN[19][10], MAIN[19][11], MAIN[19][12], MAIN[19][13], MAIN[19][14], MAIN[19][15]];
+				attribute G @[MAIN[19][23], MAIN[19][24], MAIN[19][25], MAIN[19][26], MAIN[19][27], MAIN[19][28], MAIN[19][29], MAIN[19][30], MAIN[19][31], MAIN[19][32], MAIN[19][33], MAIN[19][34], MAIN[19][35], MAIN[19][36], MAIN[19][37], MAIN[19][38]];
+				attribute CYINIT @[MAIN[19][16]] {
+					BX = 0b0,
+					CIN = 0b1,
+				}
+				attribute CY0F @[MAIN[19][18], MAIN[19][17], MAIN[20][15]] {
+					CONST_0 = 0b001,
+					CONST_1 = 0b000,
+					BX = 0b110,
+					F3 = 0b011,
+					F2 = 0b010,
+					PROD = 0b100,
+				}
+				attribute CY0G @[MAIN[19][21], MAIN[20][24], MAIN[19][22]] {
+					CONST_0 = 0b001,
+					CONST_1 = 0b000,
+					BY = 0b110,
+					G3 = 0b011,
+					G2 = 0b010,
+					PROD = 0b100,
+				}
+				attribute FFX_INIT @[!MAIN[20][5]];
+				attribute FFY_INIT @[!MAIN[20][33]];
+				attribute FFX_SRVAL @[!MAIN[20][1]];
+				attribute FFY_SRVAL @[!MAIN[20][29]];
+				attribute FF_LATCH @MAIN[20][22];
+				attribute FF_REV_ENABLE @MAIN[20][28];
+				attribute FF_SR_SYNC @MAIN[20][25];
+				attribute FXMUX @[MAIN[20][13]] {
+					F5 = 0b0,
+					FXOR = 0b1,
+				}
+				attribute GYMUX @[MAIN[19][20]] {
+					FX = 0b0,
+					GXOR = 0b1,
+				}
+				attribute DXMUX @[MAIN[18][12], MAIN[18][13], MAIN[18][11], MAIN[18][10], MAIN[20][4]] {
+					X = 0b00000,
+					BX = 0b00011,
+					F5 = 0b00101,
+					FXOR = 0b01001,
+					XB = 0b10001,
+				}
+				attribute DYMUX @[MAIN[18][43], MAIN[18][40], MAIN[18][42], MAIN[18][41], MAIN[20][32]] {
+					Y = 0b00000,
+					BY = 0b00011,
+					FX = 0b00101,
+					GXOR = 0b01001,
+					YB = 0b10001,
+				}
 			}
 
 			bel SLICE[2] {
-				input BX = IMUX_BYP[2];
-				input BY = IMUX_BYP[6];
-				input CE = IMUX_CE_OPTINV[2];
-				input CLK = IMUX_CLK_OPTINV[2];
 				input F1 = IMUX_IMUX[24];
 				input F2 = IMUX_IMUX[25];
 				input F3 = IMUX_IMUX[26];
@@ -27500,22 +27745,98 @@ intdb {
 				input G2 = IMUX_IMUX[17];
 				input G3 = IMUX_IMUX[18];
 				input G4 = IMUX_IMUX[19];
+				input BX = ^IMUX_BYP[2] @!MAIN[18][18];
+				input BY = ^IMUX_BYP[6] @!MAIN[18][21];
+				input CLK = IMUX_CLK_OPTINV[2];
 				input SR = IMUX_SR_OPTINV[2];
+				input CE = IMUX_CE_OPTINV[2];
 				output X = OUT_BEST[2];
-				output XB = OUT_HALF1[4];
-				output XMUX = OUT_HALF1[0];
-				output XQ = OUT_SEC[2];
 				output Y = OUT_BEST[6];
-				output YB = OUT_HALF1[6];
-				output YMUX = OUT_HALF1[2];
+				output XQ = OUT_SEC[2];
 				output YQ = OUT_SEC[6];
+				output XB = OUT_HALF1[4];
+				output YB = OUT_HALF1[6];
+				output XMUX = OUT_HALF1[0];
+				output YMUX = OUT_HALF1[2];
+				attribute F @[MAIN[21][40], MAIN[21][41], MAIN[21][42], MAIN[21][43], MAIN[21][44], MAIN[21][45], MAIN[21][46], MAIN[21][47], MAIN[21][48], MAIN[21][49], MAIN[21][50], MAIN[21][51], MAIN[21][52], MAIN[21][53], MAIN[21][54], MAIN[21][55]];
+				attribute G @[MAIN[21][63], MAIN[21][64], MAIN[21][65], MAIN[21][66], MAIN[21][67], MAIN[21][68], MAIN[21][69], MAIN[21][70], MAIN[21][71], MAIN[21][72], MAIN[21][73], MAIN[21][74], MAIN[21][75], MAIN[21][76], MAIN[21][77], MAIN[21][78]];
+				attribute DIF_MUX @[MAIN[20][39]] {
+					ALT = 0b0,
+					BX = 0b1,
+				}
+				attribute DIG_MUX @[MAIN[20][76]] {
+					ALT = 0b0,
+					BY = 0b1,
+				}
+				attribute F_RAM_ENABLE @MAIN[20][48];
+				attribute G_RAM_ENABLE @MAIN[20][40];
+				attribute F_SHIFT_ENABLE @MAIN[20][78];
+				attribute G_SHIFT_ENABLE @MAIN[20][77];
+				attribute F_SLICEWE0USED @MAIN[20][49];
+				attribute G_SLICEWE0USED @MAIN[21][60];
+				attribute F_SLICEWE1USED @MAIN[20][47];
+				attribute G_SLICEWE1USED @MAIN[21][59];
+				attribute CYINIT @[MAIN[21][57]] {
+					BX = 0b0,
+					CIN = 0b1,
+				}
+				attribute CY0F @[MAIN[20][58], MAIN[20][57], MAIN[20][56]] {
+					CONST_0 = 0b001,
+					CONST_1 = 0b000,
+					BX = 0b110,
+					F3 = 0b011,
+					F2 = 0b010,
+					PROD = 0b100,
+				}
+				attribute CY0G @[MAIN[20][61], MAIN[20][60], MAIN[20][63]] {
+					CONST_0 = 0b001,
+					CONST_1 = 0b000,
+					BY = 0b110,
+					G3 = 0b011,
+					G2 = 0b010,
+					PROD = 0b100,
+				}
+				attribute FFX_INIT @[!MAIN[20][46]];
+				attribute FFY_INIT @[!MAIN[20][74]];
+				attribute FFX_SRVAL @[!MAIN[20][42]];
+				attribute FFY_SRVAL @[!MAIN[20][70]];
+				attribute FF_LATCH @MAIN[20][50];
+				attribute FF_REV_ENABLE @MAIN[20][67];
+				attribute FF_SR_SYNC @MAIN[20][66];
+				attribute FF_SR_ENABLE @!MAIN[20][79];
+				attribute FXMUX @[MAIN[20][54]] {
+					F5 = 0b0,
+					FXOR = 0b1,
+				}
+				attribute GYMUX @[MAIN[20][59]] {
+					FX = 0b0,
+					GXOR = 0b1,
+				}
+				attribute DXMUX @[MAIN[18][70], MAIN[18][71], MAIN[18][68], MAIN[18][72], MAIN[20][43]] {
+					X = 0b00000,
+					BX = 0b00011,
+					F5 = 0b00101,
+					FXOR = 0b01001,
+					XB = 0b10001,
+				}
+				attribute DYMUX @[MAIN[18][69], MAIN[18][67], MAIN[18][74], MAIN[18][77], MAIN[20][71]] {
+					Y = 0b00000,
+					BY = 0b00011,
+					FX = 0b00101,
+					GXOR = 0b01001,
+					YB = 0b10001,
+				}
+				attribute XBMUX @[MAIN[21][58]] {
+					FCY = 0b0,
+					FMC15 = 0b1,
+				}
+				attribute YBMUX @[MAIN[21][61]] {
+					GCY = 0b0,
+					GMC15 = 0b1,
+				}
 			}
 
 			bel SLICE[3] {
-				input BX = IMUX_BYP[7];
-				input BY = IMUX_BYP[3];
-				input CE = IMUX_CE_OPTINV[3];
-				input CLK = IMUX_CLK_OPTINV[3];
 				input F1 = IMUX_IMUX[28];
 				input F2 = IMUX_IMUX[29];
 				input F3 = IMUX_IMUX[30];
@@ -27524,15 +27845,70 @@ intdb {
 				input G2 = IMUX_IMUX[21];
 				input G3 = IMUX_IMUX[22];
 				input G4 = IMUX_IMUX[23];
+				input BX = ^IMUX_BYP[7] @!MAIN[18][60];
+				input BY = ^IMUX_BYP[3] @!MAIN[18][57];
+				input CLK = IMUX_CLK_OPTINV[3];
 				input SR = IMUX_SR_OPTINV[3];
+				input CE = IMUX_CE_OPTINV[3];
 				output X = OUT_BEST[3];
-				output XB = OUT_HALF1[5];
-				output XMUX = OUT_HALF1[1];
-				output XQ = OUT_SEC[3];
 				output Y = OUT_BEST[7];
-				output YB = OUT_HALF1[7];
-				output YMUX = OUT_HALF1[3];
+				output XQ = OUT_SEC[3];
 				output YQ = OUT_SEC[7];
+				output XB = OUT_HALF1[5];
+				output YB = OUT_HALF1[7];
+				output XMUX = OUT_HALF1[1];
+				output YMUX = OUT_HALF1[3];
+				attribute F @[MAIN[19][40], MAIN[19][41], MAIN[19][42], MAIN[19][43], MAIN[19][44], MAIN[19][45], MAIN[19][46], MAIN[19][47], MAIN[19][48], MAIN[19][49], MAIN[19][50], MAIN[19][51], MAIN[19][52], MAIN[19][53], MAIN[19][54], MAIN[19][55]];
+				attribute G @[MAIN[19][63], MAIN[19][64], MAIN[19][65], MAIN[19][66], MAIN[19][67], MAIN[19][68], MAIN[19][69], MAIN[19][70], MAIN[19][71], MAIN[19][72], MAIN[19][73], MAIN[19][74], MAIN[19][75], MAIN[19][76], MAIN[19][77], MAIN[19][78]];
+				attribute CYINIT @[MAIN[19][56]] {
+					BX = 0b0,
+					CIN = 0b1,
+				}
+				attribute CY0F @[MAIN[19][58], MAIN[19][57], MAIN[20][55]] {
+					CONST_0 = 0b001,
+					CONST_1 = 0b000,
+					BX = 0b110,
+					F3 = 0b011,
+					F2 = 0b010,
+					PROD = 0b100,
+				}
+				attribute CY0G @[MAIN[19][61], MAIN[20][64], MAIN[19][62]] {
+					CONST_0 = 0b001,
+					CONST_1 = 0b000,
+					BY = 0b110,
+					G3 = 0b011,
+					G2 = 0b010,
+					PROD = 0b100,
+				}
+				attribute FFX_INIT @[!MAIN[20][45]];
+				attribute FFY_INIT @[!MAIN[20][73]];
+				attribute FFX_SRVAL @[!MAIN[20][41]];
+				attribute FFY_SRVAL @[!MAIN[20][69]];
+				attribute FF_LATCH @MAIN[20][62];
+				attribute FF_REV_ENABLE @MAIN[20][68];
+				attribute FF_SR_SYNC @MAIN[20][65];
+				attribute FXMUX @[MAIN[20][53]] {
+					F5 = 0b0,
+					FXOR = 0b1,
+				}
+				attribute GYMUX @[MAIN[19][60]] {
+					FX = 0b0,
+					GXOR = 0b1,
+				}
+				attribute DXMUX @[MAIN[18][45], MAIN[18][44], MAIN[18][47], MAIN[18][46], MAIN[20][44]] {
+					X = 0b00000,
+					BX = 0b00011,
+					F5 = 0b00101,
+					FXOR = 0b01001,
+					XB = 0b10001,
+				}
+				attribute DYMUX @[MAIN[18][65], MAIN[18][79], MAIN[18][64], MAIN[18][66], MAIN[20][72]] {
+					Y = 0b00000,
+					BY = 0b00011,
+					FX = 0b00101,
+					GXOR = 0b01001,
+					YB = 0b10001,
+				}
 			}
 
 			// wire IMUX_SR_OPTINV[0]              SLICE[0].SR
@@ -43917,235 +44293,6 @@ bstile CFG {
 	STARTUP:GTS_SYNC: R7.F18.B79 inv 0
 	STARTUP:GWE_SYNC: R8.F18.B70 inv 0
 	STARTUP:USRCCLK_ENABLE: R6.F18.B5 inv 0
-}
-
-bstile CLB {
-	SLICE[0]:CY0F: R0.F20.B17 R0.F20.B18 R0.F20.B16
-		001: 0
-		000: 1
-		110: BX
-		100: F2
-		101: F3
-		010: PROD
-	SLICE[0]:CY0G: R0.F20.B20 R0.F20.B21 R0.F20.B23
-		001: 0
-		000: 1
-		110: BY
-		100: G2
-		101: G3
-		010: PROD
-	SLICE[0]:CYINIT: R0.F21.B17
-		0: BX
-		1: CIN
-	SLICE[0]:DIF_MUX: R0.F20.B2
-		0: ALT
-		1: BX
-	SLICE[0]:DIG_MUX: R0.F20.B35
-		0: ALT
-		1: BY
-	SLICE[0]:DXMUX: R0.F18.B9 R0.F18.B7 R0.F18.B2 R0.F18.B0 R0.F20.B3
-		10001: BX
-		00011: F5
-		01001: FXOR
-		00000: X
-		00101: XB
-	SLICE[0]:DYMUX: R0.F18.B8 R0.F18.B14 R0.F18.B15 R0.F18.B5 R0.F20.B31
-		10001: BY
-		00011: FX
-		01001: GXOR
-		00000: Y
-		00101: YB
-	SLICE[0]:F: R0.F21.B0 R0.F21.B1 R0.F21.B2 R0.F21.B3 R0.F21.B4 R0.F21.B5 R0.F21.B6 R0.F21.B7 R0.F21.B8 R0.F21.B9 R0.F21.B10 R0.F21.B11 R0.F21.B12 R0.F21.B13 R0.F21.B14 R0.F21.B15 inv 0000000000000000
-	SLICE[0]:FFX_INIT: R0.F20.B6 inv 1
-	SLICE[0]:FFX_SRVAL: R0.F20.B0 inv 1
-	SLICE[0]:FFY_INIT: R0.F20.B34 inv 1
-	SLICE[0]:FFY_SRVAL: R0.F20.B30 inv 1
-	SLICE[0]:FF_LATCH: R0.F20.B10 inv 0
-	SLICE[0]:FF_REV_ENABLE: R0.F20.B27 inv 0
-	SLICE[0]:FF_SR_ENABLE: R0.F20.B38 inv 1
-	SLICE[0]:FF_SR_SYNC: R0.F20.B26 inv 0
-	SLICE[0]:FXMUX: R0.F20.B14
-		0: F5
-		1: FXOR
-	SLICE[0]:F_RAM: R0.F20.B8 inv 0
-	SLICE[0]:F_SHIFT: R0.F20.B37 inv 0
-	SLICE[0]:F_SLICEWE0USED: R0.F20.B9 inv 0
-	SLICE[0]:F_SLICEWE1USED: R0.F20.B11 inv 0
-	SLICE[0]:G: R0.F21.B23 R0.F21.B24 R0.F21.B25 R0.F21.B26 R0.F21.B27 R0.F21.B28 R0.F21.B29 R0.F21.B30 R0.F21.B31 R0.F21.B32 R0.F21.B33 R0.F21.B34 R0.F21.B35 R0.F21.B36 R0.F21.B37 R0.F21.B38 inv 0000000000000000
-	SLICE[0]:GYMUX: R0.F20.B19
-		0: FX
-		1: GXOR
-	SLICE[0]:G_RAM: R0.F20.B7 inv 0
-	SLICE[0]:G_SHIFT: R0.F20.B36 inv 0
-	SLICE[0]:G_SLICEWE0USED: R0.F21.B20 inv 0
-	SLICE[0]:G_SLICEWE1USED: R0.F21.B19 inv 0
-	SLICE[0]:INV.BX: R0.F18.B19 inv 1
-	SLICE[0]:INV.BY: R0.F18.B22 inv 1
-	SLICE[0]:XBMUX: R0.F21.B18
-		0: FCY
-		1: FMC15
-	SLICE[0]:YBMUX: R0.F21.B21
-		0: GCY
-		1: GMC15
-	SLICE[1]:CY0F: R0.F19.B17 R0.F19.B18 R0.F20.B15
-		001: 0
-		000: 1
-		110: BX
-		100: F2
-		101: F3
-		010: PROD
-	SLICE[1]:CY0G: R0.F20.B24 R0.F19.B21 R0.F19.B22
-		001: 0
-		000: 1
-		110: BY
-		100: G2
-		101: G3
-		010: PROD
-	SLICE[1]:CYINIT: R0.F19.B16
-		0: BX
-		1: CIN
-	SLICE[1]:DXMUX: R0.F18.B10 R0.F18.B13 R0.F18.B12 R0.F18.B11 R0.F20.B4
-		10001: BX
-		00011: F5
-		01001: FXOR
-		00000: X
-		00101: XB
-	SLICE[1]:DYMUX: R0.F18.B41 R0.F18.B40 R0.F18.B43 R0.F18.B42 R0.F20.B32
-		10001: BY
-		00011: FX
-		01001: GXOR
-		00000: Y
-		00101: YB
-	SLICE[1]:F: R0.F19.B0 R0.F19.B1 R0.F19.B2 R0.F19.B3 R0.F19.B4 R0.F19.B5 R0.F19.B6 R0.F19.B7 R0.F19.B8 R0.F19.B9 R0.F19.B10 R0.F19.B11 R0.F19.B12 R0.F19.B13 R0.F19.B14 R0.F19.B15 inv 0000000000000000
-	SLICE[1]:FFX_INIT: R0.F20.B5 inv 1
-	SLICE[1]:FFX_SRVAL: R0.F20.B1 inv 1
-	SLICE[1]:FFY_INIT: R0.F20.B33 inv 1
-	SLICE[1]:FFY_SRVAL: R0.F20.B29 inv 1
-	SLICE[1]:FF_LATCH: R0.F20.B22 inv 0
-	SLICE[1]:FF_REV_ENABLE: R0.F20.B28 inv 0
-	SLICE[1]:FF_SR_SYNC: R0.F20.B25 inv 0
-	SLICE[1]:FXMUX: R0.F20.B13
-		0: F5
-		1: FXOR
-	SLICE[1]:G: R0.F19.B23 R0.F19.B24 R0.F19.B25 R0.F19.B26 R0.F19.B27 R0.F19.B28 R0.F19.B29 R0.F19.B30 R0.F19.B31 R0.F19.B32 R0.F19.B33 R0.F19.B34 R0.F19.B35 R0.F19.B36 R0.F19.B37 R0.F19.B38 inv 0000000000000000
-	SLICE[1]:GYMUX: R0.F19.B20
-		0: FX
-		1: GXOR
-	SLICE[1]:INV.BX: R0.F18.B61 inv 1
-	SLICE[1]:INV.BY: R0.F18.B58 inv 1
-	SLICE[2]:CY0F: R0.F20.B57 R0.F20.B58 R0.F20.B56
-		001: 0
-		000: 1
-		110: BX
-		100: F2
-		101: F3
-		010: PROD
-	SLICE[2]:CY0G: R0.F20.B60 R0.F20.B61 R0.F20.B63
-		001: 0
-		000: 1
-		110: BY
-		100: G2
-		101: G3
-		010: PROD
-	SLICE[2]:CYINIT: R0.F21.B57
-		0: BX
-		1: CIN
-	SLICE[2]:DIF_MUX: R0.F20.B39
-		0: ALT
-		1: BX
-	SLICE[2]:DIG_MUX: R0.F20.B76
-		0: ALT
-		1: BY
-	SLICE[2]:DXMUX: R0.F18.B72 R0.F18.B71 R0.F18.B70 R0.F18.B68 R0.F20.B43
-		10001: BX
-		00011: F5
-		01001: FXOR
-		00000: X
-		00101: XB
-	SLICE[2]:DYMUX: R0.F18.B77 R0.F18.B67 R0.F18.B69 R0.F18.B74 R0.F20.B71
-		10001: BY
-		00011: FX
-		01001: GXOR
-		00000: Y
-		00101: YB
-	SLICE[2]:F: R0.F21.B40 R0.F21.B41 R0.F21.B42 R0.F21.B43 R0.F21.B44 R0.F21.B45 R0.F21.B46 R0.F21.B47 R0.F21.B48 R0.F21.B49 R0.F21.B50 R0.F21.B51 R0.F21.B52 R0.F21.B53 R0.F21.B54 R0.F21.B55 inv 0000000000000000
-	SLICE[2]:FFX_INIT: R0.F20.B46 inv 1
-	SLICE[2]:FFX_SRVAL: R0.F20.B42 inv 1
-	SLICE[2]:FFY_INIT: R0.F20.B74 inv 1
-	SLICE[2]:FFY_SRVAL: R0.F20.B70 inv 1
-	SLICE[2]:FF_LATCH: R0.F20.B50 inv 0
-	SLICE[2]:FF_REV_ENABLE: R0.F20.B67 inv 0
-	SLICE[2]:FF_SR_ENABLE: R0.F20.B79 inv 1
-	SLICE[2]:FF_SR_SYNC: R0.F20.B66 inv 0
-	SLICE[2]:FXMUX: R0.F20.B54
-		0: F5
-		1: FXOR
-	SLICE[2]:F_RAM: R0.F20.B48 inv 0
-	SLICE[2]:F_SHIFT: R0.F20.B78 inv 0
-	SLICE[2]:F_SLICEWE0USED: R0.F20.B49 inv 0
-	SLICE[2]:F_SLICEWE1USED: R0.F20.B47 inv 0
-	SLICE[2]:G: R0.F21.B63 R0.F21.B64 R0.F21.B65 R0.F21.B66 R0.F21.B67 R0.F21.B68 R0.F21.B69 R0.F21.B70 R0.F21.B71 R0.F21.B72 R0.F21.B73 R0.F21.B74 R0.F21.B75 R0.F21.B76 R0.F21.B77 R0.F21.B78 inv 0000000000000000
-	SLICE[2]:GYMUX: R0.F20.B59
-		0: FX
-		1: GXOR
-	SLICE[2]:G_RAM: R0.F20.B40 inv 0
-	SLICE[2]:G_SHIFT: R0.F20.B77 inv 0
-	SLICE[2]:G_SLICEWE0USED: R0.F21.B60 inv 0
-	SLICE[2]:G_SLICEWE1USED: R0.F21.B59 inv 0
-	SLICE[2]:INV.BX: R0.F18.B18 inv 1
-	SLICE[2]:INV.BY: R0.F18.B21 inv 1
-	SLICE[2]:XBMUX: R0.F21.B58
-		0: FCY
-		1: FMC15
-	SLICE[2]:YBMUX: R0.F21.B61
-		0: GCY
-		1: GMC15
-	SLICE[3]:CY0F: R0.F19.B57 R0.F19.B58 R0.F20.B55
-		001: 0
-		000: 1
-		110: BX
-		100: F2
-		101: F3
-		010: PROD
-	SLICE[3]:CY0G: R0.F20.B64 R0.F19.B61 R0.F19.B62
-		001: 0
-		000: 1
-		110: BY
-		100: G2
-		101: G3
-		010: PROD
-	SLICE[3]:CYINIT: R0.F19.B56
-		0: BX
-		1: CIN
-	SLICE[3]:DXMUX: R0.F18.B46 R0.F18.B44 R0.F18.B45 R0.F18.B47 R0.F20.B44
-		10001: BX
-		00011: F5
-		01001: FXOR
-		00000: X
-		00101: XB
-	SLICE[3]:DYMUX: R0.F18.B66 R0.F18.B79 R0.F18.B65 R0.F18.B64 R0.F20.B72
-		10001: BY
-		00011: FX
-		01001: GXOR
-		00000: Y
-		00101: YB
-	SLICE[3]:F: R0.F19.B40 R0.F19.B41 R0.F19.B42 R0.F19.B43 R0.F19.B44 R0.F19.B45 R0.F19.B46 R0.F19.B47 R0.F19.B48 R0.F19.B49 R0.F19.B50 R0.F19.B51 R0.F19.B52 R0.F19.B53 R0.F19.B54 R0.F19.B55 inv 0000000000000000
-	SLICE[3]:FFX_INIT: R0.F20.B45 inv 1
-	SLICE[3]:FFX_SRVAL: R0.F20.B41 inv 1
-	SLICE[3]:FFY_INIT: R0.F20.B73 inv 1
-	SLICE[3]:FFY_SRVAL: R0.F20.B69 inv 1
-	SLICE[3]:FF_LATCH: R0.F20.B62 inv 0
-	SLICE[3]:FF_REV_ENABLE: R0.F20.B68 inv 0
-	SLICE[3]:FF_SR_SYNC: R0.F20.B65 inv 0
-	SLICE[3]:FXMUX: R0.F20.B53
-		0: F5
-		1: FXOR
-	SLICE[3]:G: R0.F19.B63 R0.F19.B64 R0.F19.B65 R0.F19.B66 R0.F19.B67 R0.F19.B68 R0.F19.B69 R0.F19.B70 R0.F19.B71 R0.F19.B72 R0.F19.B73 R0.F19.B74 R0.F19.B75 R0.F19.B76 R0.F19.B77 R0.F19.B78 inv 0000000000000000
-	SLICE[3]:GYMUX: R0.F19.B60
-		0: FX
-		1: GXOR
-	SLICE[3]:INV.BX: R0.F18.B60 inv 1
-	SLICE[3]:INV.BY: R0.F18.B57 inv 1
 }
 
 bstile CLK_BUFG {

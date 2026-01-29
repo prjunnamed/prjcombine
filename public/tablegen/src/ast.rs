@@ -13,6 +13,7 @@ pub enum TopItem {
     ConnectorSlot(ConnectorSlot),
     Wire(Wire),
     Table(Table),
+    DeviceData(DeviceData),
     ForLoop(ForLoop<TopItem>),
     If(If<TopItem>),
 }
@@ -286,6 +287,12 @@ pub enum TableItem {
 
 #[derive(Debug)]
 pub struct TableField {
+    pub names: Vec<TemplateId>,
+    pub typ: AttributeType,
+}
+
+#[derive(Debug)]
+pub struct DeviceData {
     pub names: Vec<TemplateId>,
     pub typ: AttributeType,
 }

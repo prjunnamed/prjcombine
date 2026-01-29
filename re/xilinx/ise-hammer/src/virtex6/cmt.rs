@@ -68,7 +68,7 @@ pub fn add_fuzzers<'a>(
             for pin in ["BUFH_TEST_L", "BUFH_TEST_R"] {
                 bctx.build()
                     .mutex("MUX.I", pin)
-                    .test_manual("MUX.I", pin)
+                    .test_manual_legacy("MUX.I", pin)
                     .pip("I", (defs::bslots::CMT, pin))
                     .commit();
             }
@@ -82,14 +82,14 @@ pub fn add_fuzzers<'a>(
                             (bel_other, "I"),
                             (defs::bslots::CMT, format!("CCIO{j}_{ilr}")),
                         )
-                        .test_manual("MUX.I", format!("CCIO{j}_{ilr}"))
+                        .test_manual_legacy("MUX.I", format!("CCIO{j}_{ilr}"))
                         .pip("I", (defs::bslots::CMT, format!("CCIO{j}_{ilr}")))
                         .commit();
                     if i == 0 && lr == 'L' {
                         bctx.build()
                             .tile_mutex("CCIO", "TEST")
                             .mutex("MUX.I", format!("CCIO{j}_{ilr}"))
-                            .test_manual("MUX.I", format!("CCIO{j}_{ilr}.EXCL"))
+                            .test_manual_legacy("MUX.I", format!("CCIO{j}_{ilr}.EXCL"))
                             .pip("I", (defs::bslots::CMT, format!("CCIO{j}_{ilr}")))
                             .commit();
                     }
@@ -101,7 +101,7 @@ pub fn add_fuzzers<'a>(
                     .mutex("MUX.I", format!("GCLK{j}"))
                     .bel_mutex(bel_other, "MUX.I", format!("GCLK{j}"))
                     .pip((bel_other, "I"), (defs::bslots::CMT, format!("GCLK{j}")))
-                    .test_manual("MUX.I", format!("GCLK{j}"))
+                    .test_manual_legacy("MUX.I", format!("GCLK{j}"))
                     .pip("I", (defs::bslots::CMT, format!("GCLK{j}")))
                     .commit();
             }
@@ -127,7 +127,7 @@ pub fn add_fuzzers<'a>(
                 {
                     bctx.build()
                         .mutex("MUX.I", format!("MMCM{j}_{pin}"))
-                        .test_manual("MUX.I", format!("MMCM{j}_{pin}"))
+                        .test_manual_legacy("MUX.I", format!("MMCM{j}_{pin}"))
                         .pip("I", (defs::bslots::CMT, format!("MMCM{j}_OUT{k}")))
                         .commit();
                 }
@@ -141,14 +141,14 @@ pub fn add_fuzzers<'a>(
                         (bel_other, "I"),
                         (defs::bslots::CMT, format!("BUFHCE_{lr}_{pin}")),
                     )
-                    .test_manual("MUX.I", pin)
+                    .test_manual_legacy("MUX.I", pin)
                     .pip("I", (defs::bslots::CMT, format!("BUFHCE_{lr}_{pin}")))
                     .commit();
                 if i == 0 {
                     bctx.build()
                         .tile_mutex("BUFHCE_CKINT", "TEST")
                         .mutex("MUX.I", pin)
-                        .test_manual("MUX.I", format!("{pin}.EXCL"))
+                        .test_manual_legacy("MUX.I", format!("{pin}.EXCL"))
                         .pip("I", (defs::bslots::CMT, format!("BUFHCE_{lr}_{pin}")))
                         .commit();
                 }
@@ -163,7 +163,7 @@ pub fn add_fuzzers<'a>(
 
         bctx.build()
             .global_xy("MMCMADV_*_USE_CALC", "NO")
-            .test_manual("ENABLE", "1")
+            .test_manual_legacy("ENABLE", "1")
             .mode(mode)
             .commit();
 
@@ -357,7 +357,7 @@ pub fn add_fuzzers<'a>(
                 bctx.mode(mode)
                     .mutex("MODE", "CALC")
                     .global_xy("MMCMADV_*_USE_CALC", "NO")
-                    .test_manual("TABLES", format!("{mult}.{bandwidth}"))
+                    .test_manual_legacy("TABLES", format!("{mult}.{bandwidth}"))
                     .attr("CLKFBOUT_MULT_F", format!("{mult}"))
                     .attr("BANDWIDTH", bandwidth)
                     .commit();
@@ -382,7 +382,7 @@ pub fn add_fuzzers<'a>(
                         (defs::bslots::CMT, format!("MMCM{oi}_{pin}_IO")),
                         (defs::bslots::CMT, format!("GIO{j}")),
                     )
-                    .test_manual(format!("MUX.{pin}_IO"), format!("GIO{j}"))
+                    .test_manual_legacy(format!("MUX.{pin}_IO"), format!("GIO{j}"))
                     .pip(
                         (defs::bslots::CMT, format!("MMCM{i}_{pin}_IO")),
                         (defs::bslots::CMT, format!("GIO{j}")),
@@ -399,7 +399,7 @@ pub fn add_fuzzers<'a>(
                             (defs::bslots::CMT, format!("MMCM{oi}_{pin}_IO")),
                             (defs::bslots::CMT, format!("CCIO{j}_{lr}")),
                         )
-                        .test_manual(format!("MUX.{pin}_IO"), format!("CCIO{j}_{lr}"))
+                        .test_manual_legacy(format!("MUX.{pin}_IO"), format!("CCIO{j}_{lr}"))
                         .pip(
                             (defs::bslots::CMT, format!("MMCM{i}_{pin}_IO")),
                             (defs::bslots::CMT, format!("CCIO{j}_{lr}")),
@@ -419,7 +419,7 @@ pub fn add_fuzzers<'a>(
                             (defs::bslots::CMT, format!("MMCM{oi}_{pin}_MGT")),
                             (defs::bslots::CMT, format!("MGT{j}_{lr}")),
                         )
-                        .test_manual(format!("MUX.{pin}_MGT"), format!("MGT{j}_{lr}"))
+                        .test_manual_legacy(format!("MUX.{pin}_MGT"), format!("MGT{j}_{lr}"))
                         .pip(
                             (defs::bslots::CMT, format!("MMCM{i}_{pin}_MGT")),
                             (defs::bslots::CMT, format!("MGT{j}_{lr}")),
@@ -429,7 +429,10 @@ pub fn add_fuzzers<'a>(
                         bctx.build()
                             .row_mutex("MGT", "TEST")
                             .mutex(format!("MUX.{pin}_MGT"), format!("MGT{j}_{lr}"))
-                            .test_manual(format!("MUX.{pin}_MGT"), format!("MGT{j}_{lr}.EXCL"))
+                            .test_manual_legacy(
+                                format!("MUX.{pin}_MGT"),
+                                format!("MGT{j}_{lr}.EXCL"),
+                            )
                             .pip(
                                 (defs::bslots::CMT, format!("MMCM{i}_{pin}_MGT")),
                                 (defs::bslots::CMT, format!("MGT{j}_{lr}")),
@@ -443,7 +446,7 @@ pub fn add_fuzzers<'a>(
             for lr in ['L', 'R'] {
                 bctx.build()
                     .mutex(format!("MUX.{pin}_HCLK"), format!("{pin}_HCLK_{lr}"))
-                    .test_manual(format!("MUX.{pin}_HCLK"), format!("{pin}_HCLK_{lr}"))
+                    .test_manual_legacy(format!("MUX.{pin}_HCLK"), format!("{pin}_HCLK_{lr}"))
                     .pip(
                         (defs::bslots::CMT, format!("MMCM{i}_{pin}_HCLK")),
                         (defs::bslots::CMT, format!("MMCM{i}_{pin}_HCLK_{lr}")),
@@ -462,7 +465,7 @@ pub fn add_fuzzers<'a>(
                             (defs::bslots::CMT, format!("MMCM{oi}_{pin}_HCLK_{lr}")),
                             (defs::bslots::CMT, format!("HCLK{j}_{lr}_I")),
                         )
-                        .test_manual(format!("MUX.{pin}_HCLK_{lr}"), format!("HCLK{j}_{lr}"))
+                        .test_manual_legacy(format!("MUX.{pin}_HCLK_{lr}"), format!("HCLK{j}_{lr}"))
                         .pip(
                             (defs::bslots::CMT, format!("MMCM{i}_{pin}_HCLK_{lr}")),
                             (defs::bslots::CMT, format!("HCLK{j}_{lr}_I")),
@@ -482,7 +485,7 @@ pub fn add_fuzzers<'a>(
                             (defs::bslots::CMT, format!("MMCM{oi}_{pin}_HCLK_{lr}")),
                             (defs::bslots::CMT, format!("RCLK{j}_{lr}_I")),
                         )
-                        .test_manual(format!("MUX.{pin}_HCLK_{lr}"), format!("RCLK{j}_{lr}"))
+                        .test_manual_legacy(format!("MUX.{pin}_HCLK_{lr}"), format!("RCLK{j}_{lr}"))
                         .pip(
                             (defs::bslots::CMT, format!("MMCM{i}_{pin}_HCLK_{lr}")),
                             (defs::bslots::CMT, format!("RCLK{j}_{lr}_I")),
@@ -501,14 +504,14 @@ pub fn add_fuzzers<'a>(
         ] {
             bctx.build()
                 .mutex("MUX.CLKIN1", pin)
-                .test_manual("MUX.CLKIN1", pin)
+                .test_manual_legacy("MUX.CLKIN1", pin)
                 .pip("CLKIN1", pin)
                 .commit();
         }
         for pin in ["CLKIN2_HCLK", "CLKIN2_IO", "CLKIN2_MGT", "CLKIN2_CKINT"] {
             bctx.build()
                 .mutex("MUX.CLKIN2", pin)
-                .test_manual("MUX.CLKIN2", pin)
+                .test_manual_legacy("MUX.CLKIN2", pin)
                 .pip("CLKIN2", pin)
                 .commit();
         }
@@ -522,7 +525,7 @@ pub fn add_fuzzers<'a>(
             let ipin = if pin == "CLKFBOUT" { "CLKFB" } else { pin };
             bctx.build()
                 .mutex("MUX.CLKFBIN", pin)
-                .test_manual("MUX.CLKFBIN", pin)
+                .test_manual_legacy("MUX.CLKFBIN", pin)
                 .pip("CLKFBIN", ipin)
                 .commit();
         }
@@ -531,7 +534,7 @@ pub fn add_fuzzers<'a>(
         ] {
             bctx.build()
                 .mutex("MUX.CASC_OUT", pin)
-                .test_manual("MUX.CASC_OUT", pin)
+                .test_manual_legacy("MUX.CASC_OUT", pin)
                 .pip("CASC_OUT", pin)
                 .commit();
         }
@@ -541,7 +544,7 @@ pub fn add_fuzzers<'a>(
                 for k in 0..4 {
                     bctx.build()
                         .tile_mutex(format!("MUX.PERF{j}"), format!("MMCM{i}.{which}.CLKOUT{k}"))
-                        .test_manual(format!("MUX.PERF{j}.{which}"), format!("CLKOUT{k}"))
+                        .test_manual_legacy(format!("MUX.PERF{j}.{which}"), format!("CLKOUT{k}"))
                         .pip(format!("PERF{j}"), format!("CLKOUT{k}"))
                         .pip(format!("PERF{jj}_{which}"), format!("PERF{j}"))
                         .commit();
@@ -553,7 +556,7 @@ pub fn add_fuzzers<'a>(
         let mut bctx = ctx.bel(defs::bslots::PPR_FRAME);
         bctx.build()
             .null_bits()
-            .test_manual("ENABLE", "1")
+            .test_manual_legacy("ENABLE", "1")
             .mode("PPR_FRAME")
             .commit();
     }
@@ -567,7 +570,7 @@ pub fn add_fuzzers<'a>(
                 .mutex(format!("GCLK{i}_TEST"), "BUF")
                 .bel_mutex(bel_bufhce, "MUX.I", format!("GCLK{i}"))
                 .pip((bel_bufhce, "I"), format!("GCLK{i}"))
-                .test_manual(format!("BUF.GCLK{i}_TEST"), "1")
+                .test_manual_legacy(format!("BUF.GCLK{i}_TEST"), "1")
                 .pip(format!("GCLK{i}_NOINV"), format!("GCLK{i}"))
                 .commit();
             bctx.build()
@@ -575,14 +578,14 @@ pub fn add_fuzzers<'a>(
                 .mutex(format!("GCLK{i}_TEST"), "INV")
                 .bel_mutex(bel_bufhce, "MUX.I", format!("GCLK{i}"))
                 .pip((bel_bufhce, "I"), format!("GCLK{i}"))
-                .test_manual(format!("INV.GCLK{i}_TEST"), "1")
+                .test_manual_legacy(format!("INV.GCLK{i}_TEST"), "1")
                 .pip(format!("GCLK{i}_INV"), format!("GCLK{i}"))
                 .commit();
         }
         for lr in ['L', 'R'] {
             bctx.build()
                 .mutex(format!("BUFH_TEST_{lr}"), "BUF")
-                .test_manual(format!("BUF.BUFH_TEST_{lr}"), "1")
+                .test_manual_legacy(format!("BUF.BUFH_TEST_{lr}"), "1")
                 .pip(
                     format!("BUFH_TEST_{lr}_NOINV"),
                     format!("BUFH_TEST_{lr}_PRE"),
@@ -590,7 +593,7 @@ pub fn add_fuzzers<'a>(
                 .commit();
             bctx.build()
                 .mutex(format!("BUFH_TEST_{lr}"), "INV")
-                .test_manual(format!("INV.BUFH_TEST_{lr}"), "1")
+                .test_manual_legacy(format!("INV.BUFH_TEST_{lr}"), "1")
                 .pip(format!("BUFH_TEST_{lr}_INV"), format!("BUFH_TEST_{lr}_PRE"))
                 .commit();
             for i in 0..12 {
@@ -604,7 +607,7 @@ pub fn add_fuzzers<'a>(
                         format!("HCLK{i}_L"),
                     )
                     .pip(format!("MMCM0_CLKIN1_HCLK_{lr}"), format!("HCLK{i}_{lr}_I"))
-                    .test_manual(format!("MUX.BUFH_TEST_{lr}"), format!("HCLK{i}_{lr}"))
+                    .test_manual_legacy(format!("MUX.BUFH_TEST_{lr}"), format!("HCLK{i}_{lr}"))
                     .pip(format!("BUFH_TEST_{lr}_PRE"), format!("HCLK{i}_{lr}_I"))
                     .commit();
             }
@@ -619,7 +622,7 @@ pub fn add_fuzzers<'a>(
                         format!("RCLK{i}_L"),
                     )
                     .pip(format!("MMCM0_CLKIN1_HCLK_{lr}"), format!("RCLK{i}_{lr}_I"))
-                    .test_manual(format!("MUX.BUFH_TEST_{lr}"), format!("RCLK{i}_{lr}"))
+                    .test_manual_legacy(format!("MUX.BUFH_TEST_{lr}"), format!("RCLK{i}_{lr}"))
                     .pip(format!("BUFH_TEST_{lr}_PRE"), format!("RCLK{i}_{lr}_I"))
                     .commit();
             }
@@ -628,7 +631,7 @@ pub fn add_fuzzers<'a>(
                     .global_mutex("HCLK", "TEST")
                     .row_mutex("BUFH_TEST", "NOPE")
                     .mutex(format!("MUX.BUFH_TEST_{lr}"), format!("HCLK{i}_{lr}"))
-                    .test_manual(format!("MUX.BUFH_TEST_{lr}"), format!("HCLK{i}_{lr}.EXCL"))
+                    .test_manual_legacy(format!("MUX.BUFH_TEST_{lr}"), format!("HCLK{i}_{lr}.EXCL"))
                     .pip(format!("BUFH_TEST_{lr}_PRE"), format!("HCLK{i}_{lr}_I"))
                     .commit();
             }
@@ -643,7 +646,7 @@ pub fn add_fuzzers<'a>(
                         format!("ENABLE.RCLK{i}"),
                         "1",
                     )
-                    .test_manual(format!("MUX.BUFH_TEST_{lr}"), format!("RCLK{i}_{lr}.EXCL"))
+                    .test_manual_legacy(format!("MUX.BUFH_TEST_{lr}"), format!("RCLK{i}_{lr}.EXCL"))
                     .pip(format!("BUFH_TEST_{lr}_PRE"), format!("RCLK{i}_{lr}_I"))
                     .commit();
             }
@@ -652,18 +655,18 @@ pub fn add_fuzzers<'a>(
             let oi = i ^ 1;
             bctx.build()
                 .mutex(format!("MUX.CASCO{i}"), "CASCI")
-                .test_manual(format!("MUX.CASCO{i}"), "CASCI")
+                .test_manual_legacy(format!("MUX.CASCO{i}"), "CASCI")
                 .pip(format!("CASCO{i}"), format!("CASCI{i}"))
                 .commit();
             bctx.build()
                 .mutex(format!("MUX.CASCO{i}"), "GCLK_TEST")
-                .test_manual(format!("MUX.CASCO{i}"), "GCLK_TEST")
+                .test_manual_legacy(format!("MUX.CASCO{i}"), "GCLK_TEST")
                 .pip(format!("CASCO{i}"), format!("GCLK{i}_TEST"))
                 .commit();
             for lr in ['L', 'R'] {
                 bctx.build()
                     .mutex(format!("MUX.CASCO{i}"), format!("BUFH_TEST_{lr}"))
-                    .test_manual(format!("MUX.CASCO{i}"), format!("BUFH_TEST_{lr}"))
+                    .test_manual_legacy(format!("MUX.CASCO{i}"), format!("BUFH_TEST_{lr}"))
                     .pip(format!("CASCO{i}"), format!("BUFH_TEST_{lr}"))
                     .commit();
                 for j in 0..4 {
@@ -672,7 +675,7 @@ pub fn add_fuzzers<'a>(
                         .mutex(format!("MUX.CASCO{i}"), format!("CCIO{j}_{lr}"))
                         .mutex(format!("MUX.CASCO{oi}"), format!("CCIO{j}_{lr}"))
                         .pip(format!("CASCO{oi}"), format!("CCIO{j}_{lr}"))
-                        .test_manual(format!("MUX.CASCO{i}"), format!("CCIO{j}_{lr}"))
+                        .test_manual_legacy(format!("MUX.CASCO{i}"), format!("CCIO{j}_{lr}"))
                         .pip(format!("CASCO{i}"), format!("CCIO{j}_{lr}"))
                         .commit();
                 }
@@ -682,7 +685,7 @@ pub fn add_fuzzers<'a>(
                         .mutex(format!("MUX.CASCO{i}"), format!("MGT{j}_{lr}"))
                         .mutex(format!("MUX.CASCO{oi}"), format!("MGT{j}_{lr}"))
                         .pip(format!("CASCO{oi}"), format!("MGT{j}_{lr}"))
-                        .test_manual(format!("MUX.CASCO{i}"), format!("MGT{j}_{lr}"))
+                        .test_manual_legacy(format!("MUX.CASCO{i}"), format!("MGT{j}_{lr}"))
                         .pip(format!("CASCO{i}"), format!("MGT{j}_{lr}"))
                         .commit();
                 }
@@ -692,7 +695,7 @@ pub fn add_fuzzers<'a>(
                         .mutex(format!("MUX.CASCO{i}"), format!("RCLK{j}_{lr}"))
                         .mutex(format!("MUX.CASCO{oi}"), format!("RCLK{j}_{lr}"))
                         .pip(format!("CASCO{oi}"), format!("RCLK{j}_{lr}_I"))
-                        .test_manual(format!("MUX.CASCO{i}"), format!("RCLK{j}_{lr}"))
+                        .test_manual_legacy(format!("MUX.CASCO{i}"), format!("RCLK{j}_{lr}"))
                         .pip(format!("CASCO{i}"), format!("RCLK{j}_{lr}_I"))
                         .commit();
                 }
@@ -719,7 +722,7 @@ pub fn add_fuzzers<'a>(
                 {
                     bctx.build()
                         .mutex(format!("MUX.CASCO{i}"), format!("MMCM{j}_{pin}"))
-                        .test_manual(format!("MUX.CASCO{i}"), format!("MMCM{j}_{pin}"))
+                        .test_manual_legacy(format!("MUX.CASCO{i}"), format!("MMCM{j}_{pin}"))
                         .pip(format!("CASCO{i}"), format!("MMCM{j}_OUT{k}"))
                         .commit();
                 }

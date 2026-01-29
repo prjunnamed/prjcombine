@@ -112,7 +112,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         self.insert_int_inv_wire(int_tiles, wire, bit);
     }
 
-    pub fn item_int_inv(
+    pub fn item_int_inv_legacy(
         &self,
         int_tiles: &[TileClassId],
         tcid: TileClassId,
@@ -128,6 +128,28 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let pin = &bel.pins[pin];
         assert_eq!(pin.wires.len(), 1);
         let wire = *pin.wires.first().unwrap();
+        let int_tcid = int_tiles[wire.cell.to_idx()];
+        let mut bit = self.sb_inv(int_tcid, TileWireCoord::new_idx(0, wire.wire));
+        bit.bit.rect = BitRectId::from_idx(wire.cell.to_idx());
+        bit
+    }
+
+    pub fn item_int_inv(
+        &self,
+        int_tiles: &[TileClassId],
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        pin: BelInputId,
+    ) -> PolTileBit {
+        let intdb = self.edev.db;
+        let tcls = &intdb[tcid];
+        let bel = &tcls.bels[bslot];
+        let BelInfo::Bel(bel) = bel else {
+            unreachable!()
+        };
+        let BelInput::Fixed(wire) = bel.inputs[pin] else {
+            unreachable!()
+        };
         let int_tcid = int_tiles[wire.cell.to_idx()];
         let mut bit = self.sb_inv(int_tcid, TileWireCoord::new_idx(0, wire.wire));
         bit.bit.rect = BitRectId::from_idx(wire.cell.to_idx());
@@ -155,16 +177,14 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         self.insert_int_inv_legacy(int_tiles, tcid, bslot, pin, item.as_bit());
     }
 
-    pub fn collect_bel_input_inv_int_bi(
+    pub fn insert_bel_input_inv_int(
         &mut self,
         int_tiles: &[TileClassId],
         tcid: TileClassId,
         bslot: BelSlotId,
         pin: BelInputId,
+        mut bit: PolTileBit,
     ) {
-        let diff0 = self.get_diff_bel_input_inv(tcid, bslot, pin, false);
-        let diff1 = self.get_diff_bel_input_inv(tcid, bslot, pin, true);
-        let mut bit = xlat_bit_bi(diff0, diff1);
         let intdb = self.edev.db;
         let tcls = &intdb[tcid];
         let bel = &tcls.bels[bslot];
@@ -176,5 +196,18 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         };
         bit.inv ^= wire.inv;
         self.insert_int_inv_wire(int_tiles, wire.tw, bit);
+    }
+
+    pub fn collect_bel_input_inv_int_bi(
+        &mut self,
+        int_tiles: &[TileClassId],
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        pin: BelInputId,
+    ) {
+        let diff0 = self.get_diff_bel_input_inv(tcid, bslot, pin, false);
+        let diff1 = self.get_diff_bel_input_inv(tcid, bslot, pin, true);
+        let bit = xlat_bit_bi(diff0, diff1);
+        self.insert_bel_input_inv_int(int_tiles, tcid, bslot, pin, bit);
     }
 }

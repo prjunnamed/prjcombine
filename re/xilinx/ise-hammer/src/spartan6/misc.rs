@@ -157,31 +157,31 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for attr in ["GTS_SYNC", "GSR_SYNC"] {
             for val in ["NO", "YES"] {
                 bctx.mode("STARTUP")
-                    .test_manual(attr, val)
+                    .test_manual_legacy(attr, val)
                     .global(attr, val)
                     .commit();
             }
         }
         bctx.mode("STARTUP")
             .no_pin("GSR")
-            .test_manual("PIN.GTS", "1")
+            .test_manual_legacy("PIN.GTS", "1")
             .pin("GTS")
             .commit();
         bctx.mode("STARTUP")
             .no_pin("GTS")
-            .test_manual("PIN.GSR", "1")
+            .test_manual_legacy("PIN.GSR", "1")
             .pin("GSR")
             .commit();
         bctx.mode("STARTUP")
-            .test_manual("PIN.CFGCLK", "1")
+            .test_manual_legacy("PIN.CFGCLK", "1")
             .pin("CFGCLK")
             .commit();
         bctx.mode("STARTUP")
-            .test_manual("PIN.CFGMCLK", "1")
+            .test_manual_legacy("PIN.CFGMCLK", "1")
             .pin("CFGMCLK")
             .commit();
         bctx.mode("STARTUP")
-            .test_manual("PIN.KEYCLEARB", "1")
+            .test_manual_legacy("PIN.KEYCLEARB", "1")
             .pin("KEYCLEARB")
             .commit();
         for val in ["CCLK", "USERCLK", "JTAGCLK"] {
@@ -189,7 +189,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pin("CLK")
                 .extra_tile_reg_attr(Reg::Cor1, "REG.COR1", "STARTUP", "STARTUPCLK", val)
                 .null_bits()
-                .test_manual("STARTUPCLK", val)
+                .test_manual_legacy("STARTUPCLK", val)
                 .global("STARTUPCLK", val)
                 .commit();
         }

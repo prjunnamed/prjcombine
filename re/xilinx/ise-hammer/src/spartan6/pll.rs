@@ -26,7 +26,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .global_mutex("CMT", "PRESENT_PLL")
         .global_mutex_here("CMT_PRESENT")
         .extra_tiles_attr_by_bel(defs::bslots::DCM[0], "CMT", "PRESENT_ANY_PLL", "1")
-        .test_manual("PRESENT", "PLL")
+        .test_manual_legacy("PRESENT", "PLL")
         .mode(mode)
         .global_xy("PLLADV_*_USE_CALC", "NO")
         .commit();
@@ -214,7 +214,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .global_mutex("CMT", "CALC")
                 .global_xy("PLLADV_*_USE_CALC", "NO")
-                .test_manual("TABLES", format!("{mult}.{bandwidth}"))
+                .test_manual_legacy("TABLES", format!("{mult}.{bandwidth}"))
                 .attr_diff("CLKFBOUT_MULT", "0", format!("{mult}"))
                 .attr_diff("BANDWIDTH", "LOW", bandwidth)
                 .commit();
@@ -239,7 +239,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("CMT", format!("TEST_{opin}"))
             .mutex("CLKIN_IN", ipin)
             .pip((PinFar, "CLKFBIN"), "CLKFBIN_CKINT0")
-            .test_manual(format!("MUX.{opin}"), val)
+            .test_manual_legacy(format!("MUX.{opin}"), val)
             .pip((PinFar, opin), ipin)
             .commit();
     }
@@ -258,7 +258,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     (obel_dcm0, "CLKIN"),
                     (obel_dcm_cmt, format!("BUFIO2_{btlr}{j}")),
                 )
-                .test_manual(format!("MUX.{opin}"), format!("BUFIO2_{btlr}{j}"))
+                .test_manual_legacy(format!("MUX.{opin}"), format!("BUFIO2_{btlr}{j}"))
                 .pip((PinFar, opin), (bel_cmt, format!("BUFIO2_{btlr}{j}")))
                 .commit();
         }
@@ -270,7 +270,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .mutex("CLKIN_IN", "CLKIN1_CKINT0")
         .pip((PinFar, "CLKFBIN"), "CLKFBIN_CKINT0")
         .pip((PinFar, "CLKIN2"), "CLKIN2_CKINT0")
-        .test_manual("CLKINSEL_MODE", "DYNAMIC")
+        .test_manual_legacy("CLKINSEL_MODE", "DYNAMIC")
         .pip((PinFar, "CLKIN1"), "CLKIN1_CKINT0")
         .commit();
 
@@ -285,7 +285,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("CMT", "TEST_CLKFBIN")
             .mutex("CLKIN_IN", pin)
             .pip((PinFar, "CLKIN1"), "CLKIN1_CKINT0")
-            .test_manual("MUX.CLKFBIN", val)
+            .test_manual_legacy("MUX.CLKFBIN", val)
             .pip((PinFar, "CLKFBIN"), pin)
             .commit();
     }
@@ -293,7 +293,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .global_mutex("CMT", "TEST_CLKFBIN")
         .mutex("CLKIN_IN", "CLKFBOUT")
         .pip((PinFar, "CLKIN1"), "CLKIN1_CKINT0")
-        .test_manual("MUX.CLKFBIN", "CLKFBOUT")
+        .test_manual_legacy("MUX.CLKFBIN", "CLKFBOUT")
         .pip((PinFar, "CLKFBIN"), (PinFar, "CLKFBOUT"))
         .commit();
     for btlr in ["BT", "LR"] {
@@ -308,7 +308,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     (obel_dcm0, "CLKFB"),
                     (obel_dcm_cmt, format!("BUFIO2FB_{btlr}{j}")),
                 )
-                .test_manual("MUX.CLKFBIN", format!("BUFIO2FB_{btlr}{j}"))
+                .test_manual_legacy("MUX.CLKFBIN", format!("BUFIO2FB_{btlr}{j}"))
                 .pip(
                     (PinFar, "CLKFBIN"),
                     (bel_cmt, format!("BUFIO2FB_{btlr}{j}")),
@@ -340,7 +340,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     "BUF.CLK_FROM_PLL",
                     "1",
                 )
-                .test_manual(format!("MUX.CLK_TO_DCM{i}"), inp)
+                .test_manual_legacy(format!("MUX.CLK_TO_DCM{i}"), inp)
                 .pip(format!("CLK_TO_DCM{i}"), ipin)
                 .commit();
         }
@@ -378,7 +378,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 (obel_dcm1, "CLKFB_CKINT0"),
             )
             .related_tile_mutex(relation_dcm.clone(), "CLKIN_BEL", "PLL")
-            .test_manual("MUX.TEST_CLK", inp)
+            .test_manual_legacy("MUX.TEST_CLK", inp)
             .pip("TEST_CLK", format!("{inp}_TEST"))
             .commit();
     }
@@ -387,17 +387,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for i in 0..16 {
         bctx.build()
             .mutex(format!("MUX.CASC{i}"), "PASS")
-            .test_manual(format!("MUX.CASC{i}"), "PASS")
+            .test_manual_legacy(format!("MUX.CASC{i}"), "PASS")
             .pip(format!("CASC{i}_O"), format!("CASC{i}_I"))
             .commit();
         bctx.build()
             .mutex(format!("MUX.CASC{i}"), "HCLK")
-            .test_manual(format!("MUX.CASC{i}"), "HCLK")
+            .test_manual_legacy(format!("MUX.CASC{i}"), "HCLK")
             .pip(format!("CASC{i}_O"), format!("HCLK{i}_BUF"))
             .commit();
         bctx.build()
             .mutex(format!("MUX.HCLK{i}"), "CKINT")
-            .test_manual(format!("MUX.HCLK{i}"), "CKINT")
+            .test_manual_legacy(format!("MUX.HCLK{i}"), "CKINT")
             .pip(format!("HCLK{i}"), format!("HCLK{i}_CKINT"))
             .commit();
         let bel_pll = defs::bslots::PLL;
@@ -413,14 +413,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .global_mutex("CMT", "MUX_PLL_HCLK")
                 .mutex(format!("MUX.HCLK{i}"), format!("PLL_{out}"))
-                .test_manual(format!("MUX.HCLK{i}"), format!("PLL_{out}"))
+                .test_manual_legacy(format!("MUX.HCLK{i}"), format!("PLL_{out}"))
                 .pip(format!("HCLK{i}"), (bel_pll, out))
                 .commit();
         }
         bctx.build()
             .global_mutex("CMT", "MUX_PLL_HCLK")
             .mutex(format!("MUX.HCLK{i}"), "PLL_CLKFBOUT")
-            .test_manual(format!("MUX.HCLK{i}"), "PLL_CLKFBOUT")
+            .test_manual_legacy(format!("MUX.HCLK{i}"), "PLL_CLKFBOUT")
             .pip(format!("HCLK{i}"), (PinFar, bel_pll, "CLKFBOUT"))
             .commit();
     }

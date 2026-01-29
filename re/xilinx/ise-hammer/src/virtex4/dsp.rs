@@ -41,7 +41,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mode = "DSP48";
         bctx.build()
             .bel_unused(bel_other)
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
         for &pin in DSP48_INVPINS {

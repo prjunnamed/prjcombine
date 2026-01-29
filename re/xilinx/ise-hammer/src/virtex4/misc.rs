@@ -88,7 +88,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let obel = defs::bslots::ICAP[i ^ 1];
             bctx.build()
                 .bel_unused(obel)
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("ICAP")
                 .commit();
             bctx.mode("ICAP").test_inv("CLK");
@@ -103,7 +103,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let mut bctx = ctx.bel(defs::bslots::PMV_CFG[0]);
             bctx.build()
                 .null_bits()
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("PMV")
                 .commit();
         }
@@ -124,16 +124,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
             bctx.mode("STARTUP")
                 .no_pin("GSR")
-                .test_manual("PIN.GTS", "1")
+                .test_manual_legacy("PIN.GTS", "1")
                 .pin("GTS")
                 .commit();
             bctx.mode("STARTUP")
                 .no_pin("GTS")
-                .test_manual("PIN.GSR", "1")
+                .test_manual_legacy("PIN.GSR", "1")
                 .pin("GSR")
                 .commit();
             bctx.mode("STARTUP")
-                .test_manual("PIN.USRCCLKO", "1")
+                .test_manual_legacy("PIN.USRCCLKO", "1")
                 .pin("USRCCLKO")
                 .commit();
             for attr in ["GSR_SYNC", "GWE_SYNC", "GTS_SYNC"] {
@@ -146,7 +146,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("CLK")
                     .null_bits()
                     .extra_tile_reg(Reg::Cor0, "REG.COR", "STARTUP")
-                    .test_manual("STARTUPCLK", val)
+                    .test_manual_legacy("STARTUPCLK", val)
                     .global("STARTUPCLK", val)
                     .commit();
             }
@@ -161,7 +161,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let mut bctx = ctx.bel(defs::bslots::FRAME_ECC);
             bctx.build()
                 .null_bits()
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("FRAME_ECC")
                 .commit();
         }
@@ -186,7 +186,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let mut bctx = ctx.bel(defs::bslots::USR_ACCESS);
             bctx.build()
                 .null_bits()
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("USR_ACCESS")
                 .commit();
         }
@@ -291,7 +291,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
         for i in 0x40..0x70 {
             bctx.mode(mode)
-                .test_multi_attr_hex(format!("INIT_{i:02X}"), 16);
+                .test_multi_attr_hex_legacy(format!("INIT_{i:02X}"), 16);
         }
         bctx.mode(mode)
             .global_mutex("MONITOR_GLOBAL", "NONE")
@@ -328,20 +328,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .global_mutex_here("MONITOR_GLOBAL")
                 .attr("MONITOR_MODE", "ADC")
-                .test_manual(attr, "")
+                .test_manual_legacy(attr, "")
                 .multi_global(format!("ADC_{attr}"), MultiValue::Bin, len);
         }
         for out in ["CONVST", "CONVST_TEST"] {
             bctx.build()
                 .mutex("CONVST_OUT", out)
                 .mutex("CONVST_IN", "INT_CLK")
-                .test_manual(out, "INT_CLK")
+                .test_manual_legacy(out, "INT_CLK")
                 .pip(out, "CONVST_INT_CLK")
                 .commit();
             bctx.build()
                 .mutex("CONVST_OUT", out)
                 .mutex("CONVST_IN", "INT_IMUX")
-                .test_manual(out, "INT_IMUX")
+                .test_manual_legacy(out, "INT_IMUX")
                 .pip(out, "CONVST_INT_IMUX")
                 .commit();
             for i in 0..16 {
@@ -359,7 +359,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         (defs::bslots::HCLK_DCM, format!("GIOB_O_U{i}")),
                         (defs::bslots::HCLK_DCM, format!("GIOB_I{i}")),
                     )
-                    .test_manual(out, format!("GIOB{i}"))
+                    .test_manual_legacy(out, format!("GIOB{i}"))
                     .pip(out, format!("GIOB{i}"))
                     .commit();
             }
@@ -594,7 +594,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff,
             ctx.get_diff_legacy(tile, bel, "CONVST_TEST", "INT_CLK")
         );
-        let item = ctx.item_int_inv(&[tcls::INT; 8], tcid, bslot, "CONVST_INT_CLK");
+        let item = ctx.item_int_inv_legacy(&[tcls::INT; 8], tcid, bslot, "CONVST_INT_CLK");
         diff.apply_bit_diff(item, false, true);
         diffs.push(("INT_CLK".to_string(), diff));
         for i in 0..16 {

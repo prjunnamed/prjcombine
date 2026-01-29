@@ -448,7 +448,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 ],
             );
             bctx.mode("ISERDESE2")
-                .test_manual("INTERFACE_TYPE", "MEMORY_DDR3_V6")
+                .test_manual_legacy("INTERFACE_TYPE", "MEMORY_DDR3_V6")
                 .attr("INTERFACE_TYPE", "MEMORY_DDR3")
                 .attr("DDR3_V6", "TRUE")
                 .commit();
@@ -551,7 +551,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("ZHOLD_IFF", "TRUE")
                         .attr("IFFTYPE", "#FF")
                         .pin("Q1")
-                        .test_manual("ZHOLD_IFF_INV", val)
+                        .test_manual_legacy("ZHOLD_IFF_INV", val)
                         .attr("IFFDELMUXE3", "2")
                         .attr("IFFMUX", "1")
                         .attr("ZHOLD_IFF_INV", val)
@@ -578,24 +578,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.build()
                     .mutex("MUX.CLK", pin)
                     .pip("CLKB", pin)
-                    .test_manual("MUX.CLK", pin)
+                    .test_manual_legacy("MUX.CLK", pin)
                     .pip("CLK", pin)
                     .commit();
                 bctx.build()
                     .mutex("MUX.CLK", pin)
-                    .test_manual("MUX.CLKB", pin)
+                    .test_manual_legacy("MUX.CLKB", pin)
                     .pip("CLKB", pin)
                     .commit();
             }
             bctx.build()
                 .mutex("MUX.CLK", "PHASER_OCLK")
                 .pip("CLKB", (bel_ologic, "PHASER_OCLK"))
-                .test_manual("MUX.CLK", "PHASER_OCLK")
+                .test_manual_legacy("MUX.CLK", "PHASER_OCLK")
                 .pip("CLK", (bel_ologic, "PHASER_OCLK"))
                 .commit();
             bctx.build()
                 .mutex("MUX.CLK", "PHASER_OCLK")
-                .test_manual("MUX.CLKB", "PHASER_OCLK")
+                .test_manual_legacy("MUX.CLKB", "PHASER_OCLK")
                 .pip("CLKB", (bel_ologic, "PHASER_OCLK"))
                 .commit();
             for (src, num) in [("HCLK", 6), ("RCLK", 4), ("IOCLK", 4)] {
@@ -603,12 +603,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     bctx.build()
                         .mutex("MUX.CLK", format!("{src}{i}"))
                         .pip("CLKB", (defs::bslots::IOI, format!("{src}{i}")))
-                        .test_manual("MUX.CLK", format!("{src}{i}"))
+                        .test_manual_legacy("MUX.CLK", format!("{src}{i}"))
                         .pip("CLK", (defs::bslots::IOI, format!("{src}{i}")))
                         .commit();
                     bctx.build()
                         .mutex("MUX.CLK", format!("{src}{i}"))
-                        .test_manual("MUX.CLKB", format!("{src}{i}"))
+                        .test_manual_legacy("MUX.CLKB", format!("{src}{i}"))
                         .pip("CLKB", (defs::bslots::IOI, format!("{src}{i}")))
                         .commit();
                 }
@@ -616,12 +616,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
             bctx.build()
                 .mutex("MUX.CLKDIVP", "CLKDIV")
-                .test_manual("MUX.CLKDIVP", "CLKDIV")
+                .test_manual_legacy("MUX.CLKDIVP", "CLKDIV")
                 .pin_pips("CLKDIVP")
                 .commit();
             bctx.build()
                 .mutex("MUX.CLKDIVP", "PHASER")
-                .test_manual("MUX.CLKDIVP", "PHASER")
+                .test_manual_legacy("MUX.CLKDIVP", "PHASER")
                 .pip("CLKDIVP", "PHASER_ICLKDIV")
                 .commit();
         }
@@ -698,7 +698,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pin("TQ")
                 .test_enum("TFFTYPE", &["#FF", "#LATCH", "DDR"]);
             bctx.mode("OLOGICE2")
-                .test_manual("OMUX", "D1")
+                .test_manual_legacy("OMUX", "D1")
                 .attr("OQUSED", "0")
                 .attr("O1USED", "0")
                 .attr("D1INV", "D1")
@@ -746,34 +746,34 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .mutex("MUX.CLK", "CKINT")
                 .pip("CLKM", "CLK_CKINT")
-                .test_manual("MUX.CLK", "CKINT")
+                .test_manual_legacy("MUX.CLK", "CKINT")
                 .pip("CLK_MUX", "CLK_CKINT")
                 .commit();
             bctx.build()
                 .mutex("MUX.CLK", "CKINT")
-                .test_manual("MUX.CLKB", "CKINT")
+                .test_manual_legacy("MUX.CLKB", "CKINT")
                 .pip("CLKM", "CLK_CKINT")
                 .commit();
             bctx.build()
                 .mutex("MUX.CLK", "PHASER_OCLK")
                 .pip("CLKM", "PHASER_OCLK")
-                .test_manual("MUX.CLK", "PHASER_OCLK")
+                .test_manual_legacy("MUX.CLK", "PHASER_OCLK")
                 .pip("CLK_MUX", "PHASER_OCLK")
                 .commit();
             bctx.build()
                 .mutex("MUX.CLK", "PHASER_OCLK")
-                .test_manual("MUX.CLKB", "PHASER_OCLK")
+                .test_manual_legacy("MUX.CLKB", "PHASER_OCLK")
                 .pip("CLKM", "PHASER_OCLK")
                 .commit();
             bctx.build()
                 .mutex("MUX.CLK", "PHASER_OCLK90")
                 .pip("CLKM", "PHASER_OCLK")
-                .test_manual("MUX.CLK", "PHASER_OCLK90")
+                .test_manual_legacy("MUX.CLK", "PHASER_OCLK90")
                 .pip("CLK_MUX", "PHASER_OCLK90")
                 .commit();
             bctx.build()
                 .mutex("MUX.CLK", "PHASER_OCLK90.BOTH")
-                .test_manual("MUX.CLK", "PHASER_OCLK90.BOTH")
+                .test_manual_legacy("MUX.CLK", "PHASER_OCLK90.BOTH")
                 .pip("CLK_MUX", "PHASER_OCLK90")
                 .commit();
             for (src, num) in [("HCLK", 6), ("RCLK", 4), ("IOCLK", 4)] {
@@ -781,12 +781,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     bctx.build()
                         .mutex("MUX.CLK", format!("{src}{i}"))
                         .pip("CLKM", (defs::bslots::IOI, format!("{src}{i}")))
-                        .test_manual("MUX.CLK", format!("{src}{i}"))
+                        .test_manual_legacy("MUX.CLK", format!("{src}{i}"))
                         .pip("CLK_MUX", (defs::bslots::IOI, format!("{src}{i}")))
                         .commit();
                     bctx.build()
                         .mutex("MUX.CLK", format!("{src}{i}"))
-                        .test_manual("MUX.CLKB", format!("{src}{i}"))
+                        .test_manual_legacy("MUX.CLKB", format!("{src}{i}"))
                         .pip("CLKM", (defs::bslots::IOI, format!("{src}{i}")))
                         .commit();
                 }
@@ -795,23 +795,23 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .mutex("MUX.CLKDIV", "PHASER_OCLKDIV")
                 .pip("CLKDIVB", "PHASER_OCLKDIV")
-                .test_manual("MUX.CLKDIV", "PHASER_OCLKDIV")
+                .test_manual_legacy("MUX.CLKDIV", "PHASER_OCLKDIV")
                 .pip("CLKDIV", "PHASER_OCLKDIV")
                 .commit();
             bctx.build()
                 .mutex("MUX.CLKDIV", "PHASER_OCLKDIV")
-                .test_manual("MUX.CLKDIVB", "PHASER_OCLKDIV")
+                .test_manual_legacy("MUX.CLKDIVB", "PHASER_OCLKDIV")
                 .pip("CLKDIVB", "PHASER_OCLKDIV")
                 .commit();
             bctx.build()
                 .mutex("MUX.CLKDIV", "CKINT")
                 .pip("CLKDIVB", "CLKDIV_CKINT")
-                .test_manual("MUX.CLKDIV", "CKINT")
+                .test_manual_legacy("MUX.CLKDIV", "CKINT")
                 .pip("CLKDIV", "CLKDIV_CKINT")
                 .commit();
             bctx.build()
                 .mutex("MUX.CLKDIV", "CKINT")
-                .test_manual("MUX.CLKDIVB", "CKINT")
+                .test_manual_legacy("MUX.CLKDIVB", "CKINT")
                 .pip("CLKDIVB", "CLKDIV_CKINT")
                 .commit();
             for (src, num) in [("HCLK", 6), ("RCLK", 4)] {
@@ -819,12 +819,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     bctx.build()
                         .mutex("MUX.CLKDIV", format!("{src}{i}"))
                         .pip("CLKDIVB", (defs::bslots::IOI, format!("{src}{i}")))
-                        .test_manual("MUX.CLKDIV", format!("{src}{i}"))
+                        .test_manual_legacy("MUX.CLKDIV", format!("{src}{i}"))
                         .pip("CLKDIV", (defs::bslots::IOI, format!("{src}{i}")))
                         .commit();
                     bctx.build()
                         .mutex("MUX.CLKDIV", format!("{src}{i}"))
-                        .test_manual("MUX.CLKDIVB", format!("{src}{i}"))
+                        .test_manual_legacy("MUX.CLKDIVB", format!("{src}{i}"))
                         .pip("CLKDIVB", (defs::bslots::IOI, format!("{src}{i}")))
                         .commit();
                 }
@@ -832,12 +832,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .mutex("MUX.CLKDIV", "HCLK0.F")
                 .pip("CLKDIVFB", (defs::bslots::IOI, "HCLK0"))
-                .test_manual("MUX.CLKDIV", "HCLK0.F")
+                .test_manual_legacy("MUX.CLKDIV", "HCLK0.F")
                 .pip("CLKDIVF", (defs::bslots::IOI, "HCLK0"))
                 .commit();
             bctx.build()
                 .mutex("MUX.CLKDIV", "HCLK0.F")
-                .test_manual("MUX.CLKDIVB", "HCLK0.F")
+                .test_manual_legacy("MUX.CLKDIVB", "HCLK0.F")
                 .pip("CLKDIVFB", (defs::bslots::IOI, "HCLK0"))
                 .commit();
         }
@@ -868,7 +868,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let bel_ologic = defs::bslots::OLOGIC[i];
             bctx.build()
                 .props(setup_idelayctrl.clone())
-                .test_manual("ENABLE", "1")
+                .test_manual_legacy("ENABLE", "1")
                 .mode("IDELAYE2")
                 .commit();
             for pin in ["C", "IDATAIN", "DATAIN"] {
@@ -898,7 +898,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_enum("DELAY_SRC", &["DATAIN", "IDATAIN"]);
             bctx.build()
                 .attr("DELAY_SRC", "")
-                .test_manual("DELAY_SRC", "OFB")
+                .test_manual_legacy("DELAY_SRC", "OFB")
                 .pip("IDATAIN", (bel_ologic, "OFB"))
                 .commit();
             bctx.mode("IDELAYE2")
@@ -917,7 +917,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let mut bctx = ctx.bel(defs::bslots::ODELAY[i]);
                 bctx.build()
                     .props(setup_idelayctrl.clone())
-                    .test_manual("PRESENT", "1")
+                    .test_manual_legacy("PRESENT", "1")
                     .mode("ODELAYE2")
                     .commit();
                 for pin in ["C", "ODATAIN"] {
@@ -969,14 +969,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .global("DCIUPDATEMODE", "ASREQUIRED")
                     .raw(Key::Package, &package.name)
                     .prop(IsBonded(bel))
-                    .test_manual("PRESENT", "IOB")
+                    .test_manual_legacy("PRESENT", "IOB")
                     .mode("IOB18")
                     .commit();
                 bctx.build()
                     .global("DCIUPDATEMODE", "QUIET")
                     .raw(Key::Package, &package.name)
                     .prop(IsBonded(bel))
-                    .test_manual("PRESENT", "IOB.QUIET")
+                    .test_manual_legacy("PRESENT", "IOB.QUIET")
                     .mode("IOB18")
                     .commit();
                 if num_io == 2 {
@@ -984,7 +984,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .global("DCIUPDATEMODE", "ASREQUIRED")
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
-                        .test_manual("PRESENT", "IPAD")
+                        .test_manual_legacy("PRESENT", "IPAD")
                         .mode("IPAD")
                         .commit();
                 }
@@ -997,7 +997,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
                         .mutex("PULL_DYNAMIC", pin)
-                        .test_manual("PULL_DYNAMIC", "1")
+                        .test_manual_legacy("PULL_DYNAMIC", "1")
                         .pin_pips(pin)
                         .commit();
                 }
@@ -1062,7 +1062,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .bel_mode(bel_other, "IOB")
                                     .bel_pin(bel_other, "PADOUT")
                                     .bel_attr(bel_other, "OUSED", "")
-                                    .test_manual("ISTD", format!("{sn}.{suffix}", sn = std.name))
+                                    .test_manual_legacy(
+                                        "ISTD",
+                                        format!("{sn}.{suffix}", sn = std.name),
+                                    )
                                     .attr("IUSED", "0")
                                     .attr("DIFFI_INUSED", "0")
                                     .attr("ISTANDARD", std.name)
@@ -1111,7 +1114,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .bel_attr(bel_other, "OUSED", "")
                                     .bel_attr(bel_other, "PADOUTUSED", "0")
                                     .bel_attr(bel_other, "ISTANDARD", std.name)
-                                    .test_manual("DIFF_TERM", std.name)
+                                    .test_manual_legacy("DIFF_TERM", std.name)
                                     .attr_diff("DIFF_TERM", "FALSE", "TRUE")
                                     .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
                                     .commit();
@@ -1136,7 +1139,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .bel_attr(bel_other, "OUSED", "")
                                     .bel_attr(bel_other, "PADOUTUSED", "0")
                                     .bel_attr(bel_other, "ISTANDARD", std.name)
-                                    .test_manual("DIFF_TERM_DYNAMIC", std.name)
+                                    .test_manual_legacy("DIFF_TERM_DYNAMIC", std.name)
                                     .attr_diff("DIFF_TERM", "FALSE", "TRUE")
                                     .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
                                     .pin_pips("DIFF_TERM_INT_EN")
@@ -1155,7 +1158,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .prop(IsBonded(bel))
                                 .maybe_prop(vref_special)
                                 .maybe_prop(dci_special)
-                                .test_manual("ISTD", format!("{sn}.{suffix}", sn = std.name))
+                                .test_manual_legacy("ISTD", format!("{sn}.{suffix}", sn = std.name))
                                 .attr("IUSED", "0")
                                 .attr("ISTANDARD", std.name)
                                 .attr("IBUF_LOW_PWR", lp)
@@ -1223,7 +1226,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .bel_attr(bel_other, "OPROGRAMMING", "")
                                 .bel_attr(bel_other, "OSTANDARD", "")
                                 .bel_attr(bel_other, "OUSED", "")
-                                .test_manual("OSTD", std.name)
+                                .test_manual_legacy("OSTD", std.name)
                                 .mode_diff("IOB18", "IOB18M")
                                 .pin("O")
                                 .attr("OUSED", "0")
@@ -1254,7 +1257,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         .maybe_prop(dci_special)
                                         .bel_attr(bel_other, "OPROGRAMMING", "")
                                         .bel_mode(defs::bslots::OLOGIC[0], "OLOGICE2")
-                                        .test_manual(
+                                        .test_manual_legacy(
                                             "OSTD",
                                             format!("{name}.{slew}", name = std.name),
                                         )
@@ -1294,7 +1297,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         .bel_attr(bel_other, "IUSED", "")
                                         .bel_attr(bel_other, "OPROGRAMMING", "")
                                         .bel_mode(defs::bslots::OLOGIC[0], "OLOGICE2")
-                                        .test_manual(
+                                        .test_manual_legacy(
                                             "OSTD",
                                             format!("{name}.{slew}", name = std.name),
                                         )
@@ -1327,7 +1330,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .prop(IsBonded(bel))
                                 .prop(Vref(true))
                                 .maybe_prop(dci_special)
-                                .test_manual("OSTD", format!("{name}.{slew}", name = std.name))
+                                .test_manual_legacy(
+                                    "OSTD",
+                                    format!("{name}.{slew}", name = std.name),
+                                )
                                 .attr("OUSED", "0")
                                 .attr("IUSED", "0")
                                 .attr("OSTANDARD", std.name)
@@ -1369,7 +1375,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .raw(Key::Package, &package.name)
                                     .prop(IsBonded(bel))
                                     .maybe_prop(dci_special)
-                                    .test_manual("OSTD", val)
+                                    .test_manual_legacy("OSTD", val)
                                     .attr("OUSED", "0")
                                     .attr("OSTANDARD", std.name)
                                     .attr("DRIVE", drive)
@@ -1398,7 +1404,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .raw(Key::Package, &package.name)
                             .prop(IsBonded(bel))
                             .prop(VrefInternal("HCLK_IO_HP", vref))
-                            .test_manual("ISTD", format!("{std}.LP"))
+                            .test_manual_legacy("ISTD", format!("{std}.LP"))
                             .attr("IUSED", "0")
                             .attr("ISTANDARD", std)
                             .attr("IBUF_LOW_PWR", "TRUE")
@@ -1410,14 +1416,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .mutex("OUTPUT_DELAY", "0")
                     .bel_mode(bel_odelay, "ODELAYE2")
                     .bel_mode(bel_ologic, "OLOGICE2")
-                    .test_manual("OUTPUT_DELAY", "0")
+                    .test_manual_legacy("OUTPUT_DELAY", "0")
                     .pip((bel_ologic, "IOB_O"), (bel_ologic, "OQ"))
                     .commit();
                 bctx.build()
                     .mutex("OUTPUT_DELAY", "1")
                     .bel_mode(bel_odelay, "ODELAYE2")
                     .bel_mode(bel_ologic, "OLOGICE2")
-                    .test_manual("OUTPUT_DELAY", "1")
+                    .test_manual_legacy("OUTPUT_DELAY", "1")
                     .pip((bel_ologic, "IOB_O"), (bel_odelay, "DATAOUT"))
                     .commit();
             }
@@ -1434,14 +1440,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.build()
                     .raw(Key::Package, &package.name)
                     .prop(IsBonded(bel))
-                    .test_manual("PRESENT", "IOB")
+                    .test_manual_legacy("PRESENT", "IOB")
                     .mode("IOB33")
                     .commit();
                 if num_io == 2 {
                     bctx.build()
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
-                        .test_manual("PRESENT", "IPAD")
+                        .test_manual_legacy("PRESENT", "IPAD")
                         .mode("IPAD")
                         .commit();
                 }
@@ -1454,7 +1460,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
                         .mutex("PULL_DYNAMIC", pin)
-                        .test_manual("PULL_DYNAMIC", "1")
+                        .test_manual_legacy("PULL_DYNAMIC", "1")
                         .pin_pips(pin)
                         .commit();
                 }
@@ -1616,7 +1622,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .bel_mode(bel_other, "IOB")
                                     .bel_pin(bel_other, "PADOUT")
                                     .bel_attr(bel_other, "OUSED", "")
-                                    .test_manual("ISTD", format!("{sn}.{suffix}", sn = std.name))
+                                    .test_manual_legacy(
+                                        "ISTD",
+                                        format!("{sn}.{suffix}", sn = std.name),
+                                    )
                                     .attr("IUSED", "0")
                                     .attr("DIFFI_INUSED", "0")
                                     .attr("ISTANDARD", std.name)
@@ -1663,7 +1672,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .bel_attr(bel_other, "OUSED", "")
                                     .bel_attr(bel_other, "PADOUTUSED", "0")
                                     .bel_attr(bel_other, "ISTANDARD", std.name)
-                                    .test_manual("DIFF_TERM", std.name)
+                                    .test_manual_legacy("DIFF_TERM", std.name)
                                     .attr_diff("DIFF_TERM", "FALSE", "TRUE")
                                     .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
                                     .commit();
@@ -1683,7 +1692,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .bel_attr(bel_other, "OUSED", "")
                                     .bel_attr(bel_other, "PADOUTUSED", "0")
                                     .bel_attr(bel_other, "ISTANDARD", std.name)
-                                    .test_manual("DIFF_TERM_DYNAMIC", std.name)
+                                    .test_manual_legacy("DIFF_TERM_DYNAMIC", std.name)
                                     .attr_diff("DIFF_TERM", "FALSE", "TRUE")
                                     .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
                                     .pin_pips("DIFF_TERM_INT_EN")
@@ -1700,7 +1709,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .raw(Key::Package, &package.name)
                                 .prop(IsBonded(bel))
                                 .maybe_prop(vref_special)
-                                .test_manual("ISTD", format!("{sn}.{suffix}", sn = std.name))
+                                .test_manual_legacy("ISTD", format!("{sn}.{suffix}", sn = std.name))
                                 .attr("IUSED", "0")
                                 .attr("ISTANDARD", std.name)
                                 .attr("IBUF_LOW_PWR", lp)
@@ -1737,7 +1746,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .bel_attr(bel_other, "OPROGRAMMING", "")
                                 .bel_attr(bel_other, "OSTANDARD", "")
                                 .bel_attr(bel_other, "OUSED", "")
-                                .test_manual("OSTD", std.name)
+                                .test_manual_legacy("OSTD", std.name)
                                 .mode_diff("IOB33", "IOB33M")
                                 .pin("O")
                                 .attr("OUSED", "0")
@@ -1827,7 +1836,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .bel_attr(bel_other, "OPROGRAMMING", "")
                                     .bel_attr(bel_other, "OSTANDARD", "")
                                     .bel_attr(bel_other, "OUSED", "")
-                                    .test_manual("OSTD", format!("{}.ALT", std.name))
+                                    .test_manual_legacy("OSTD", format!("{}.ALT", std.name))
                                     .mode_diff("IOB33", "IOB33M")
                                     .pin("O")
                                     .attr("OUSED", "0")
@@ -1864,7 +1873,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .bel_attr(bel_other, "IUSED", "")
                                     .bel_attr(bel_other, "OPROGRAMMING", "")
                                     .bel_mode(defs::bslots::OLOGIC[0], "OLOGICE2")
-                                    .test_manual("OSTD", val)
+                                    .test_manual_legacy("OSTD", val)
                                     .mode_diff("IOB33", "IOB33M")
                                     .pin("O")
                                     .attr("OUSED", "0")
@@ -1908,7 +1917,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .attr("OPROGRAMMING", "")
                                     .raw(Key::Package, &package.name)
                                     .prop(IsBonded(bel))
-                                    .test_manual("OSTD", val)
+                                    .test_manual_legacy("OSTD", val)
                                     .attr("OUSED", "0")
                                     .attr("OSTANDARD", std.name)
                                     .attr("DRIVE", drive)
@@ -1934,7 +1943,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .raw(Key::Package, &package.name)
                             .prop(IsBonded(bel))
                             .prop(VrefInternal("HCLK_IO_HR", vref))
-                            .test_manual("ISTD", format!("{std}.LP"))
+                            .test_manual_legacy("ISTD", format!("{std}.LP"))
                             .attr("IUSED", "0")
                             .attr("ISTANDARD", std)
                             .attr("IBUF_LOW_PWR", "TRUE")
@@ -1968,7 +1977,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         );
                     }
                     builder
-                        .test_manual("OSTD", "LVCMOS18.4.SLOW.EXCL")
+                        .test_manual_legacy("OSTD", "LVCMOS18.4.SLOW.EXCL")
                         .attr("OUSED", "0")
                         .attr("OSTANDARD", "LVCMOS18")
                         .attr("DRIVE", "4")
@@ -1998,19 +2007,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global("DCIUPDATEMODE", "ASREQUIRED")
             .global_mutex("GLOBAL_DCI", "NOPE")
-            .test_manual("TEST_ENABLE", "1")
+            .test_manual_legacy("TEST_ENABLE", "1")
             .mode("DCI")
             .commit();
         bctx.build()
             .global("DCIUPDATEMODE", "QUIET")
             .global_mutex("GLOBAL_DCI", "NOPE")
-            .test_manual("TEST_ENABLE", "QUIET")
+            .test_manual_legacy("TEST_ENABLE", "QUIET")
             .mode("DCI")
             .commit();
         bctx.build()
             .global("DCIUPDATEMODE", "ASREQUIRED")
             .global_mutex("GLOBAL_DCI", "NOPE")
-            .test_manual("DYNAMIC_ENABLE", "1")
+            .test_manual_legacy("DYNAMIC_ENABLE", "1")
             .mode("DCI")
             .pin_pips("INT_DCI_EN")
             .commit();

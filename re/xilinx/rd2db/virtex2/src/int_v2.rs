@@ -1780,8 +1780,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             &int_xy,
             "BRAM",
             &[
-                builder.bel_xy(bslots::BRAM, "RAMB16", 0, 0),
-                builder.bel_xy(bslots::MULT, "MULT18X18", 0, 0),
+                builder
+                    .bel_xy(bslots::BRAM, "RAMB16", 0, 0)
+                    .pin_rename("SSRA", "RSTA")
+                    .pin_rename("SSRB", "RSTB")
+                    .pin_rename("WEA", "WEA0")
+                    .pin_rename("WEB", "WEB0"),
+                builder
+                    .bel_xy(bslots::MULT, "MULT18X18", 0, 0)
+                    .pin_rename("CE", "CEP")
+                    .pin_rename("RST", "RSTP"),
             ],
             false,
         );

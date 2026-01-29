@@ -1,4 +1,6 @@
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
+
+use prjcombine_virtex2::defs::devdata;
 
 use crate::{
     DocgenContext,
@@ -6,7 +8,7 @@ use crate::{
         FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_bstiles,
         gen_devdata_table, gen_misc_table,
     },
-    interconnect::gen_intdb,
+    interconnect::{gen_devdata, gen_intdb},
 };
 
 pub fn gen_virtex2(ctx: &mut DocgenContext) {
@@ -37,6 +39,11 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
         gen_bstiles(ctx, kind, &db.bsdata, orientation);
         let mut misc_used = HashSet::new();
         let mut devdata_used = HashSet::new();
+        let mut devdata = BTreeMap::new();
+        for device in &db.devices {
+            devdata.insert(device.name.as_str(), &device.data);
+        }
+
         match kind {
             "virtex2" => {
                 gen_misc_table(
@@ -321,20 +328,6 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                     &part_names,
                     &mut devdata_used,
                     "spartan3",
-                    "bram-opts",
-                    &[
-                        "BRAM:DDEL_A_DEFAULT",
-                        "BRAM:DDEL_B_DEFAULT",
-                        "BRAM:WDEL_A_DEFAULT",
-                        "BRAM:WDEL_B_DEFAULT",
-                    ],
-                );
-                gen_devdata_table(
-                    ctx,
-                    &db.bsdata,
-                    &part_names,
-                    &mut devdata_used,
-                    "spartan3",
                     "pcilogicse-opts",
                     &["PCILOGICSE:DELAY_DEFAULT"],
                 );
@@ -355,6 +348,19 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                     "spartan3",
                     "config-data",
                     &["MISC:SEND_VGG_DEFAULT", "MISC:VGG_SENDMAX_DEFAULT"],
+                );
+                gen_devdata(
+                    ctx,
+                    kind,
+                    &db.int,
+                    "bram-opts",
+                    &devdata,
+                    &[
+                        devdata::BRAM_DDEL_A,
+                        devdata::BRAM_DDEL_B,
+                        devdata::BRAM_WDEL_A,
+                        devdata::BRAM_WDEL_B,
+                    ],
                 );
             }
             _ => unreachable!(),

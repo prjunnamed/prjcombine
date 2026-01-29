@@ -24,7 +24,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
 
@@ -63,7 +63,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("READ_WIDTH_A", "36")
                 .attr("READ_WIDTH_B", "36")
                 .attr("RAM_MODE", "TDP")
-                .test_multi_attr_hex(attr, 36);
+                .test_multi_attr_hex_legacy(attr, 36);
         }
         for i in 0..0x80 {
             bctx.mode(mode)
@@ -72,7 +72,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("READ_WIDTH_A", "36")
                 .attr("READ_WIDTH_B", "36")
                 .attr("RAM_MODE", "TDP")
-                .test_multi_attr_hex(format!("INIT_{i:02X}"), 256);
+                .test_multi_attr_hex_legacy(format!("INIT_{i:02X}"), 256);
         }
         for i in 0..0x10 {
             bctx.mode(mode)
@@ -81,7 +81,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("READ_WIDTH_A", "36")
                 .attr("READ_WIDTH_B", "36")
                 .attr("RAM_MODE", "TDP")
-                .test_multi_attr_hex(format!("INITP_{i:02X}"), 256);
+                .test_multi_attr_hex_legacy(format!("INITP_{i:02X}"), 256);
         }
         bctx.mode(mode)
             .global_mutex("BRAM_OPT", "NONE")
@@ -179,21 +179,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for opt in ["BYPASS_RSR", "SWAP_CFGPORT"] {
             bctx.mode(mode)
                 .global_mutex_here("BRAM_OPT")
-                .test_manual(opt, "ENABLED")
+                .test_manual_legacy(opt, "ENABLED")
                 .global(opt, "ENABLED")
                 .commit();
         }
         for opt in ["EN_TSTBRAMRST", "DIS_TSTFIFORST"] {
             bctx.mode(mode)
                 .global_mutex_here("BRAM_OPT")
-                .test_manual(opt, "1")
+                .test_manual_legacy(opt, "1")
                 .global(opt, "1")
                 .commit();
         }
         for val in ["NO_WW", "WW0", "WW1"] {
             bctx.mode(mode)
                 .global_mutex_here("BRAM_OPT")
-                .test_manual("WEAK_WRITE", val)
+                .test_manual_legacy("WEAK_WRITE", val)
                 .global("WEAK_WRITE", val)
                 .commit();
         }
@@ -201,7 +201,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for opt in ["TRD_DLY_L", "TRD_DLY_U"] {
                 bctx.mode(mode)
                     .global_mutex_here("BRAM_OPT")
-                    .test_manual(opt, val)
+                    .test_manual_legacy(opt, val)
                     .global(opt, val)
                     .commit();
             }
@@ -212,7 +212,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for opt in ["TWR_DLY_L", "TWR_DLY_U"] {
                     bctx.mode(mode)
                         .global_mutex_here("BRAM_OPT")
-                        .test_manual(opt, val)
+                        .test_manual_legacy(opt, val)
                         .global(opt, val)
                         .commit();
                 }
@@ -221,7 +221,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for opt in ["EN_TSTREFBL", "EN_TSTRSRW"] {
                     bctx.mode(mode)
                         .global_mutex_here("BRAM_OPT")
-                        .test_manual(opt, val)
+                        .test_manual_legacy(opt, val)
                         .global(opt, val)
                         .commit();
                 }
@@ -229,7 +229,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for val in ["0", "1"] {
                 bctx.mode(mode)
                     .global_mutex_here("BRAM_OPT")
-                    .test_manual("EN_TSTBLCLAMP", val)
+                    .test_manual_legacy("EN_TSTBLCLAMP", val)
                     .global("EN_TSTBLCLAMP", val)
                     .commit();
             }
@@ -241,7 +241,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for opt in ["TWR_DLY_A_L", "TWR_DLY_A_U", "TWR_DLY_B_L", "TWR_DLY_B_U"] {
                     bctx.mode(mode)
                         .global_mutex_here("BRAM_OPT")
-                        .test_manual(opt, val)
+                        .test_manual_legacy(opt, val)
                         .global(opt, val)
                         .commit();
                 }
@@ -261,7 +261,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 ] {
                     bctx.mode(mode)
                         .global_mutex_here("BRAM_OPT")
-                        .test_manual(opt, val)
+                        .test_manual_legacy(opt, val)
                         .global(opt, val)
                         .commit();
                 }
@@ -270,7 +270,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for opt in ["DIS_TSTBLCLAMP", "TST_SSRLAT_WF"] {
                     bctx.mode(mode)
                         .global_mutex_here("BRAM_OPT")
-                        .test_manual(opt, val)
+                        .test_manual_legacy(opt, val)
                         .global(opt, val)
                         .commit();
                 }
@@ -279,7 +279,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for val in ["NO", "YES"] {
                 bctx.mode(mode)
                     .global_mutex_here("BRAM_OPT")
-                    .test_manual("EN_TSTBLCLAMP_RD", val)
+                    .test_manual_legacy("EN_TSTBLCLAMP_RD", val)
                     .global("EN_TSTBLCLAMP_RD", val)
                     .commit();
             }
@@ -295,7 +295,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 ] {
                     bctx.mode(mode)
                         .global_mutex_here("BRAM_OPT")
-                        .test_manual(opt, val)
+                        .test_manual_legacy(opt, val)
                         .global(opt, val)
                         .commit();
                 }
@@ -308,7 +308,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
             .force_bel_name("FIFO_F")
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
 
@@ -334,7 +334,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("MODE", "FULL")
                 .attr("DATA_WIDTH", "72")
                 .attr("FIFO_MODE", "FIFO36_72")
-                .test_multi_attr_hex(attr, 72);
+                .test_multi_attr_hex_legacy(attr, 72);
         }
 
         bctx.mode(mode)
@@ -357,13 +357,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
             .attr("EN_SYN", "TRUE")
-            .test_multi_attr_hex("ALMOST_FULL_OFFSET", 13);
+            .test_multi_attr_hex_legacy("ALMOST_FULL_OFFSET", 13);
         bctx.mode(mode)
             .force_bel_name("FIFO_F")
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
             .attr("EN_SYN", "TRUE")
-            .test_multi_attr_hex("ALMOST_EMPTY_OFFSET", 13);
+            .test_multi_attr_hex_legacy("ALMOST_EMPTY_OFFSET", 13);
 
         bctx.mode(mode)
             .force_bel_name("FIFO_F")
@@ -436,7 +436,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .force_bel_name("FIFO_F")
                 .global_mutex_here("BRAM_OPT")
-                .test_manual(opt, "ENABLED")
+                .test_manual_legacy(opt, "ENABLED")
                 .global(opt, "ENABLED")
                 .commit();
         }
@@ -447,7 +447,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "HALF")
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
 
@@ -476,7 +476,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("READ_WIDTH_A", "18")
                 .attr("READ_WIDTH_B", "18")
                 .attr("RAM_MODE", "TDP")
-                .test_multi_attr_hex(attr, 18);
+                .test_multi_attr_hex_legacy(attr, 18);
         }
         for i in 0..0x40 {
             bctx.mode(mode)
@@ -485,7 +485,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("READ_WIDTH_A", "18")
                 .attr("READ_WIDTH_B", "18")
                 .attr("RAM_MODE", "TDP")
-                .test_multi_attr_hex(format!("INIT_{i:02X}"), 256);
+                .test_multi_attr_hex_legacy(format!("INIT_{i:02X}"), 256);
         }
         for i in 0..8 {
             bctx.mode(mode)
@@ -494,7 +494,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("READ_WIDTH_A", "18")
                 .attr("READ_WIDTH_B", "18")
                 .attr("RAM_MODE", "TDP")
-                .test_multi_attr_hex(format!("INITP_{i:02X}"), 256);
+                .test_multi_attr_hex_legacy(format!("INITP_{i:02X}"), 256);
         }
 
         bctx.mode(mode)
@@ -593,7 +593,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .force_bel_name("FIFO_H[0]")
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode(mode)
                 .commit();
 
@@ -612,7 +612,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .tile_mutex("MODE", "HALF")
                     .attr("DATA_WIDTH", "36")
                     .attr("FIFO_MODE", "FIFO18_36")
-                    .test_multi_attr_hex(attr, 36);
+                    .test_multi_attr_hex_legacy(attr, 36);
             }
 
             bctx.mode(mode)
@@ -636,13 +636,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
                 .attr("EN_SYN", "TRUE")
-                .test_multi_attr_hex("ALMOST_FULL_OFFSET", 13);
+                .test_multi_attr_hex_legacy("ALMOST_FULL_OFFSET", 13);
             bctx.mode(mode)
                 .force_bel_name("FIFO_H[0]")
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
                 .attr("EN_SYN", "TRUE")
-                .test_multi_attr_hex("ALMOST_EMPTY_OFFSET", 13);
+                .test_multi_attr_hex_legacy("ALMOST_EMPTY_OFFSET", 13);
 
             bctx.mode(mode)
                 .force_bel_name("FIFO_H[0]")
@@ -708,13 +708,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .mutex(format!("MUX.ADDR{ab}{ul}{i}"), val)
                             .mutex(format!("MUX.ADDR{ab}{lu}{i}"), val)
                             .pip(format!("ADDR{abrw}ADDR{lu}{i}"), &spin)
-                            .test_manual(format!("MUX.ADDR{ab}{ul}{i}"), val)
+                            .test_manual_legacy(format!("MUX.ADDR{ab}{ul}{i}"), val)
                             .pip(format!("ADDR{abrw}ADDR{ul}{i}"), spin)
                             .commit();
                     }
                     bctx.build()
                         .mutex(format!("MUX.ADDR{ab}{ul}{i}"), "INT")
-                        .test_manual(format!("MUX.ADDR{ab}{ul}{i}"), "INT")
+                        .test_manual_legacy(format!("MUX.ADDR{ab}{ul}{i}"), "INT")
                         .pip(
                             format!("ADDR{abrw}ADDR{ul}{i}"),
                             format!("IMUX_ADDR{abrw}ADDR{ul}{i}"),
@@ -724,7 +724,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.build()
                     .global_mutex("BRAM_ADDR_CASCADE", "TEST")
                     .tile_mutex(format!("CASCADE_OUT{ab}"), format!("{i}"))
-                    .test_manual(format!("CASCADE_OUT.ADDR{ab}{i}"), "1")
+                    .test_manual_legacy(format!("CASCADE_OUT.ADDR{ab}{i}"), "1")
                     .pip(
                         format!("CASCOUT_ADDR{abrw}ADDRU{i}"),
                         format!("ADDR{abrw}ADDRU{i}"),

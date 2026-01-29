@@ -131,7 +131,7 @@ pub fn add_fuzzers<'a>(
         let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
         bctx.build()
             .no_global("PCI_CE_DELAY_LEFT")
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("PCILOGICSE")
             .commit();
         return;
@@ -148,12 +148,12 @@ pub fn add_fuzzers<'a>(
             let gclk_o_u = format!("GCLK{i}_O_U");
             bctx.build()
                 .has_related(HclkInt(DirV::S))
-                .test_manual(&gclk_o_d, "1")
+                .test_manual_legacy(&gclk_o_d, "1")
                 .pip(&gclk_o_d, &gclk_i)
                 .commit();
             bctx.build()
                 .has_related(HclkInt(DirV::N))
-                .test_manual(&gclk_o_u, "1")
+                .test_manual_legacy(&gclk_o_u, "1")
                 .pip(&gclk_o_u, &gclk_i)
                 .commit();
         }
@@ -163,12 +163,12 @@ pub fn add_fuzzers<'a>(
         for i in 0..16 {
             bctx.build()
                 .null_bits()
-                .test_manual(format!("GCLK{i}_M"), "1")
+                .test_manual_legacy(format!("GCLK{i}_M"), "1")
                 .pip(format!("GCLK{i}_M"), format!("GCLK{i}_I"))
                 .commit();
             bctx.build()
                 .null_bits()
-                .test_manual(format!("GCLK{i}_O"), "1")
+                .test_manual_legacy(format!("GCLK{i}_O"), "1")
                 .pip(format!("GCLK{i}_O"), format!("GCLK{i}_M"))
                 .commit();
         }
@@ -181,28 +181,28 @@ pub fn add_fuzzers<'a>(
                 let obel = defs::bslots::HCLK_ROW;
                 bctx.build()
                     .mutex("I", "BUFG")
-                    .test_manual("I", "BUFG")
+                    .test_manual_legacy("I", "BUFG")
                     .pip((PinFar, "I"), (obel, format!("BUFG{i}")))
                     .commit();
                 bctx.build()
                     .mutex("I", "CMT")
                     .prop(HclkHasCmt)
-                    .test_manual("I", "CMT")
+                    .test_manual_legacy("I", "CMT")
                     .pip((PinFar, "I"), (obel, format!("CMT{i}")))
                     .commit();
                 bctx.build()
                     .null_bits()
-                    .test_manual("PRESENT", "1")
+                    .test_manual_legacy("PRESENT", "1")
                     .mode("BUFH")
                     .commit();
                 bctx.build()
                     .null_bits()
-                    .test_manual("OUTPUT", "1")
+                    .test_manual_legacy("OUTPUT", "1")
                     .pip((PinFar, "O"), "O")
                     .commit();
                 bctx.build()
                     .null_bits()
-                    .test_manual("INPUT", "1")
+                    .test_manual_legacy("INPUT", "1")
                     .pip("I", (PinFar, "I"))
                     .commit();
             }
@@ -214,12 +214,12 @@ pub fn add_fuzzers<'a>(
         for i in 0..16 {
             bctx.build()
                 .null_bits()
-                .test_manual(format!("GCLK{i}_M"), "1")
+                .test_manual_legacy(format!("GCLK{i}_M"), "1")
                 .pip(format!("GCLK{i}_M"), format!("GCLK{i}_I"))
                 .commit();
             bctx.build()
                 .null_bits()
-                .test_manual(format!("GCLK{i}_O"), "1")
+                .test_manual_legacy(format!("GCLK{i}_O"), "1")
                 .pip(format!("GCLK{i}_O"), format!("GCLK{i}_M"))
                 .commit();
         }
@@ -245,7 +245,7 @@ pub fn add_fuzzers<'a>(
             ] {
                 bctx.build()
                     .tile_mutex(format!("IMUX{i}"), &inp)
-                    .test_manual(format!("IMUX{i}"), &inp)
+                    .test_manual_legacy(format!("IMUX{i}"), &inp)
                     .pip(format!("MUX{i}"), inp)
                     .commit();
             }
@@ -301,7 +301,7 @@ pub fn add_fuzzers<'a>(
                     ));
                 }
 
-                builder.test_manual(out, inp).pip(out, inp).commit();
+                builder.test_manual_legacy(out, inp).pip(out, inp).commit();
             }
         }
         for out in [
@@ -328,7 +328,7 @@ pub fn add_fuzzers<'a>(
                 }
                 bctx.build()
                     .tile_mutex(out, inp)
-                    .test_manual(out, inp)
+                    .test_manual_legacy(out, inp)
                     .pip(out, inp)
                     .commit();
             }
@@ -343,7 +343,7 @@ pub fn add_fuzzers<'a>(
             for out in ["CLKOUT0", "CLKOUT1", "LOCKED"] {
                 for ud in ['U', 'D'] {
                     bctx.build()
-                        .test_manual(format!("PLL{i}_{out}_{ud}"), "1")
+                        .test_manual_legacy(format!("PLL{i}_{out}_{ud}"), "1")
                         .pip(format!("{out}_{ud}"), out)
                         .commit();
                 }
@@ -400,12 +400,12 @@ pub fn add_fuzzers<'a>(
                     }
 
                     builder
-                        .test_manual(format!("{src}_{wire}"), "1")
+                        .test_manual_legacy(format!("{src}_{wire}"), "1")
                         .pip(format!("{src}_{wire}_O"), format!("{src}_{wire}_I"))
                         .commit();
                 }
                 bctx.build()
-                    .test_manual(format!("{src}_LOCKED"), "1")
+                    .test_manual_legacy(format!("{src}_LOCKED"), "1")
                     .pip(format!("{src}_LOCKED_O"), format!("{src}_LOCKED_I"))
                     .commit();
             }
@@ -437,7 +437,7 @@ pub fn add_fuzzers<'a>(
                     .attr("POS_EDGE", "")
                     .attr("NEG_EDGE", "")
                     .attr("R_EDGE", "")
-                    .test_manual("DIVIDE.2CLK", val)
+                    .test_manual_legacy("DIVIDE.2CLK", val)
                     .attr("DIVIDE", val)
                     .commit();
             }
@@ -481,7 +481,7 @@ pub fn add_fuzzers<'a>(
                 let obel = defs::bslots::BUFIO2_INS;
                 bctx.mode("BUFIO2")
                     .mutex("I", val)
-                    .test_manual("I", val)
+                    .test_manual_legacy("I", val)
                     .pin("I")
                     .pip("I", (obel, &pin))
                     .commit();
@@ -504,7 +504,7 @@ pub fn add_fuzzers<'a>(
                 let obel = defs::bslots::BUFIO2_INS;
                 bctx.mode("BUFIO2_2CLK")
                     .mutex("IB", val)
-                    .test_manual("IB", val)
+                    .test_manual_legacy("IB", val)
                     .pin("IB")
                     .pip("IB", (obel, &pin))
                     .commit();
@@ -512,20 +512,20 @@ pub fn add_fuzzers<'a>(
 
             bctx.mode("BUFIO2")
                 .global_mutex("IOCLK_OUT", "TEST")
-                .test_manual("IOCLK_ENABLE", "1")
+                .test_manual_legacy("IOCLK_ENABLE", "1")
                 .pin("IOCLK")
                 .pip((PinFar, "IOCLK"), "IOCLK")
                 .commit();
             bctx.mode("BUFIO2")
                 .global_mutex("BUFIO2_CMT_OUT", "TEST_BUFIO2")
-                .test_manual("CMT_ENABLE", "1")
+                .test_manual_legacy("CMT_ENABLE", "1")
                 .pin("DIVCLK")
                 .pip((PinFar, "DIVCLK"), "DIVCLK")
                 .pip("CMT", (PinFar, "DIVCLK"))
                 .commit();
             bctx.mode("BUFIO2")
                 .mutex("CKPIN", "DIVCLK")
-                .test_manual("CKPIN", "DIVCLK")
+                .test_manual_legacy("CKPIN", "DIVCLK")
                 .pin("DIVCLK")
                 .pip((PinFar, "DIVCLK"), "DIVCLK")
                 .pip("CKPIN", (PinFar, "DIVCLK"))
@@ -533,13 +533,13 @@ pub fn add_fuzzers<'a>(
             let obel = defs::bslots::BUFIO2_CKPIN;
             bctx.build()
                 .mutex("CKPIN", "CLKPIN")
-                .test_manual("CKPIN", "CLKPIN")
+                .test_manual_legacy("CKPIN", "CLKPIN")
                 .pip((obel, format!("CKPIN{i}")), (obel, format!("CLKPIN{i}")))
                 .commit();
             let obel_tie = defs::bslots::TIEOFF_REG;
             bctx.build()
                 .mutex("CKPIN", "VCC")
-                .test_manual("CKPIN", "VCC")
+                .test_manual_legacy("CKPIN", "VCC")
                 .pip("CKPIN", (obel_tie, "HARD1"))
                 .commit();
 
@@ -562,7 +562,7 @@ pub fn add_fuzzers<'a>(
             ] {
                 bctx.mode("BUFIO2FB")
                     .mutex("I", val)
-                    .test_manual("I", val)
+                    .test_manual_legacy("I", val)
                     .pin("I")
                     .attr("INVERT_INPUTS", "FALSE")
                     .pip("I", (obel, &pin))
@@ -570,7 +570,7 @@ pub fn add_fuzzers<'a>(
             }
             bctx.mode("BUFIO2FB")
                 .mutex("I", "CFB_INVERT")
-                .test_manual("I", "CFB_INVERT")
+                .test_manual_legacy("I", "CFB_INVERT")
                 .pin("I")
                 .attr("INVERT_INPUTS", "TRUE")
                 .pip("I", (obel, format!("CFB0_{i}")))
@@ -578,7 +578,7 @@ pub fn add_fuzzers<'a>(
 
             bctx.mode("BUFIO2FB")
                 .global_mutex("BUFIO2_CMT_OUT", "TEST_BUFIO2FB")
-                .test_manual("CMT_ENABLE", "1")
+                .test_manual_legacy("CMT_ENABLE", "1")
                 .pin("O")
                 .pip("CMT", "O")
                 .commit();
@@ -587,7 +587,7 @@ pub fn add_fuzzers<'a>(
             let mut bctx = ctx.bel(defs::bslots::BUFPLL[i]);
             bctx.build()
                 .tile_mutex("BUFPLL", "PLAIN")
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("BUFPLL")
                 .commit();
             bctx.mode("BUFPLL")
@@ -612,7 +612,7 @@ pub fn add_fuzzers<'a>(
                 .tile_mutex("BUFPLL", format!("SINGLE{i}"))
                 .global_mutex("PLLCLK", "TEST")
                 .attr("ENABLE_SYNC", "FALSE")
-                .test_manual("ENABLE_NONE_SYNC", "1")
+                .test_manual_legacy("ENABLE_NONE_SYNC", "1")
                 .pin("IOCLK")
                 .pip((obel_out, format!("PLLCLK{i}")), "IOCLK")
                 .commit();
@@ -633,7 +633,7 @@ pub fn add_fuzzers<'a>(
                         },
                     ),
                 )
-                .test_manual("ENABLE_BOTH_SYNC", "1")
+                .test_manual_legacy("ENABLE_BOTH_SYNC", "1")
                 .pin("IOCLK")
                 .pip((obel_out, format!("PLLCLK{i}")), "IOCLK")
                 .commit();
@@ -649,7 +649,7 @@ pub fn add_fuzzers<'a>(
                         .attr("ENABLE_SYNC", "FALSE")
                         .pin("PLLIN")
                         .pip((obel, "PLLIN"), (obel_ins, format!("PLLIN{i}")))
-                        .test_manual("PLLIN", format!("PLLIN{i}"))
+                        .test_manual_legacy("PLLIN", format!("PLLIN{i}"))
                         .pip("PLLIN", (obel_ins, format!("PLLIN{i}")))
                         .commit();
                 }
@@ -657,7 +657,7 @@ pub fn add_fuzzers<'a>(
                     bctx.mode("BUFPLL")
                         .tile_mutex("BUFPLL", "PLAIN")
                         .mutex("LOCKED", format!("LOCKED{i}"))
-                        .test_manual("LOCKED", format!("LOCKED{i}"))
+                        .test_manual_legacy("LOCKED", format!("LOCKED{i}"))
                         .pin("LOCKED")
                         .pip("LOCKED", (obel_ins, format!("LOCKED{i}")))
                         .commit();
@@ -666,7 +666,7 @@ pub fn add_fuzzers<'a>(
 
             bctx.mode("BUFPLL")
                 .tile_mutex("BUFPLL", format!("SINGLE_{i}"))
-                .test_manual("ENABLE", "1")
+                .test_manual_legacy("ENABLE", "1")
                 .pin("IOCLK")
                 .pip((obel_out, format!("PLLCLK{i}")), "IOCLK")
                 .commit();
@@ -675,7 +675,7 @@ pub fn add_fuzzers<'a>(
             let mut bctx = ctx.bel(defs::bslots::BUFPLL_MCB);
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB")
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("BUFPLL_MCB")
                 .commit();
             bctx.build()
@@ -693,7 +693,7 @@ pub fn add_fuzzers<'a>(
                     .tile_mutex("BUFPLL", "MCB")
                     .mutex("PLLIN", "GCLK")
                     .mode("BUFPLL_MCB")
-                    .test_manual("PLLIN", "GCLK")
+                    .test_manual_legacy("PLLIN", "GCLK")
                     .pin("PLLIN0")
                     .pin("PLLIN1")
                     .pip("PLLIN0", (obel, "PLLIN0_GCLK"))
@@ -703,7 +703,7 @@ pub fn add_fuzzers<'a>(
                     .tile_mutex("BUFPLL", "MCB")
                     .mutex("PLLIN", "CMT")
                     .mode("BUFPLL_MCB")
-                    .test_manual("PLLIN", "CMT")
+                    .test_manual_legacy("PLLIN", "CMT")
                     .pin("PLLIN0")
                     .pin("PLLIN1")
                     .pip("PLLIN0", (obel, "PLLIN0_CMT"))
@@ -715,14 +715,14 @@ pub fn add_fuzzers<'a>(
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB_OUT0")
                 .mode("BUFPLL_MCB")
-                .test_manual("ENABLE.0", "1")
+                .test_manual_legacy("ENABLE.0", "1")
                 .pin("IOCLK0")
                 .pip((obel, "PLLCLK0"), "IOCLK0")
                 .commit();
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB_OUT1")
                 .mode("BUFPLL_MCB")
-                .test_manual("ENABLE.1", "1")
+                .test_manual_legacy("ENABLE.1", "1")
                 .pin("IOCLK1")
                 .pip((obel, "PLLCLK1"), "IOCLK1")
                 .commit();
@@ -754,13 +754,13 @@ pub fn add_fuzzers<'a>(
         let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
         bctx.build()
             .no_global("PCI_CE_DELAY_LEFT")
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("PCILOGICSE")
             .commit();
         for val in 2..=31 {
             bctx.build()
                 .global("PCI_CE_DELAY_LEFT", format!("TAP{val}"))
-                .test_manual("PRESENT", format!("TAP{val}"))
+                .test_manual_legacy("PRESENT", format!("TAP{val}"))
                 .mode("PCILOGICSE")
                 .commit();
         }
@@ -775,7 +775,7 @@ pub fn add_fuzzers<'a>(
             let mut bctx = ctx.bel(bel);
             bctx.build()
                 .null_bits()
-                .test_manual("BUF", "1")
+                .test_manual_legacy("BUF", "1")
                 .pip("PCI_CE_O", "PCI_CE_I")
                 .commit();
         }

@@ -79,7 +79,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_enum("CAPMUX", &["0", "1", "CAP", "CAP_B"]);
         bctx.mode("CAPTURE")
             .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "CAPTURE", "ONESHOT", "1")
-            .test_manual("ONESHOT", "1")
+            .test_manual_legacy("ONESHOT", "1")
             .attr("ONESHOT_ATTR", "ONE_SHOT")
             .commit();
     }
@@ -126,7 +126,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("STARTUP")
             .no_pin("GTS")
             .no_pin("GWE")
-            .test_manual("GSR", "1")
+            .test_manual_legacy("GSR", "1")
             .prop(WireMutexExclusive::new(wire_gwe))
             .prop(WireMutexExclusive::new(wire_gts))
             .prop(WireMutexExclusive::new(wire_gsr))
@@ -136,7 +136,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("STARTUP")
             .no_pin("GSR")
             .no_pin("GWE")
-            .test_manual("GTS", "1")
+            .test_manual_legacy("GTS", "1")
             .prop(WireMutexExclusive::new(wire_gwe))
             .prop(WireMutexExclusive::new(wire_gts))
             .prop(WireMutexExclusive::new(wire_gsr))
@@ -146,7 +146,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("STARTUP")
             .no_pin("GTS")
             .no_pin("GSR")
-            .test_manual("GWE", "1")
+            .test_manual_legacy("GWE", "1")
             .prop(WireMutexExclusive::new(wire_gwe))
             .prop(WireMutexExclusive::new(wire_gts))
             .prop(WireMutexExclusive::new(wire_gsr))
@@ -168,7 +168,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("STARTUP")
                 .pin("CLK")
                 .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "STARTUPCLK", val)
-                .test_manual("STARTUPCLK", val)
+                .test_manual_legacy("STARTUPCLK", val)
                 .global("STARTUPCLK", val)
                 .commit();
         }

@@ -1059,7 +1059,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("T1")
                         .pin("T")
                         .pin("I")
-                        .test_manual("OMUX", val)
+                        .test_manual_legacy("OMUX", val)
                         .attr_diff("OMUX", "OFFDDR", val)
                         .commit();
                 } else if edev.chip.kind == ChipKind::Spartan3E {
@@ -1084,7 +1084,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("T1")
                         .pin("T")
                         .pin("I")
-                        .test_manual("OMUX", val)
+                        .test_manual_legacy("OMUX", val)
                         .attr_diff("OMUX", "OFFDDR", val)
                         .commit();
                     if idx != 2 {
@@ -1141,7 +1141,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("T1")
                         .pin("T")
                         .pin("I")
-                        .test_manual("OMUX", val)
+                        .test_manual_legacy("OMUX", val)
                         .attr_diff("OMUX", "OFFDDR", val)
                         .commit();
                     if idx != 2 {
@@ -1339,7 +1339,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("IDDRIN1")
                     .pin("IDDRIN2")
                     .pin("I")
-                    .test_manual("IDDRIN_MUX", "2")
+                    .test_manual_legacy("IDDRIN_MUX", "2")
                     .attr("IDDRIN_MUX", "2")
                     .attr("IFFDMUX", "1")
                     .commit();
@@ -1524,7 +1524,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IDDRIN_MUX", "2")
                         .attr("SEL_MUX", "0")
                         .pin("I")
-                        .test_manual("DELAY_ADJ_ATTRBOX", "VARIABLE")
+                        .test_manual_legacy("DELAY_ADJ_ATTRBOX", "VARIABLE")
                         .attr_diff("DELAY_ADJ_ATTRBOX", "FIXED", "VARIABLE")
                         .commit();
                 }
@@ -1591,7 +1591,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("IOATTRBOX", "LVCMOS33")
                     .attr("DRIVE_0MA", "DRIVE_0MA")
                     .pin("O1")
-                    .test_manual("MISR_ENABLE", "1")
+                    .test_manual_legacy("MISR_ENABLE", "1")
                     .attr("MISRATTRBOX", "ENABLE_MISR")
                     .commit();
                 if edev.chip.kind.is_spartan3a() {
@@ -1609,7 +1609,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DRIVE_0MA", "DRIVE_0MA")
                         .attr("MISRATTRBOX", "ENABLE_MISR")
                         .pin("O1")
-                        .test_manual("MISR_ENABLE_OTCLK1", "1")
+                        .test_manual_legacy("MISR_ENABLE_OTCLK1", "1")
                         .attr("MISR_CLK_SELECT", "OTCLK1")
                         .commit();
                     bctx.mode("IOB")
@@ -1626,7 +1626,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DRIVE_0MA", "DRIVE_0MA")
                         .attr("MISRATTRBOX", "ENABLE_MISR")
                         .pin("O1")
-                        .test_manual("MISR_ENABLE_OTCLK2", "1")
+                        .test_manual_legacy("MISR_ENABLE_OTCLK2", "1")
                         .attr("MISR_CLK_SELECT", "OTCLK2")
                         .commit();
                 } else {
@@ -1644,7 +1644,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IOATTRBOX", "LVCMOS33")
                         .attr("DRIVE_0MA", "DRIVE_0MA")
                         .pin("O1")
-                        .test_manual("MISR_ENABLE_RESET", "1")
+                        .test_manual_legacy("MISR_ENABLE_RESET", "1")
                         .attr("MISRATTRBOX", "ENABLE_MISR")
                         .commit();
                     bctx.mode("IOB")
@@ -1661,7 +1661,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IOATTRBOX", "LVCMOS33")
                         .attr("DRIVE_0MA", "DRIVE_0MA")
                         .pin("O1")
-                        .test_manual("MISR_ENABLE_OTCLK1", "1")
+                        .test_manual_legacy("MISR_ENABLE_OTCLK1", "1")
                         .attr("MISRATTRBOX", "ENABLE_MISR")
                         .commit();
                     bctx.mode("IOB")
@@ -1678,7 +1678,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IOATTRBOX", "LVCMOS33")
                         .attr("DRIVE_0MA", "DRIVE_0MA")
                         .pin("O1")
-                        .test_manual("MISR_ENABLE_OTCLK2", "1")
+                        .test_manual_legacy("MISR_ENABLE_OTCLK2", "1")
                         .attr("MISRATTRBOX", "ENABLE_MISR")
                         .commit();
                 }
@@ -1734,14 +1734,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.build()
                     .global_mutex("VREF", "NO")
                     .global_mutex("DCI", "NO")
-                    .test_manual("PRESENT", "IOB")
+                    .test_manual_legacy("PRESENT", "IOB")
                     .mode("IOB")
                     .iob_commit(iob);
             }
             if edev.chip.kind.is_spartan3ea() {
                 bctx.build()
                     .global_mutex("VREF", "NO")
-                    .test_manual("PRESENT", "IBUF")
+                    .test_manual_legacy("PRESENT", "IBUF")
                     .mode("IBUF")
                     .iob_commit(iob);
             }
@@ -1749,12 +1749,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode(ibuf_mode)
                     .attr("IMUX", "1")
                     .pin("I")
-                    .test_manual("PULL", val)
+                    .test_manual_legacy("PULL", val)
                     .attr("PULL", val)
                     .iob_commit(iob);
             }
             bctx.mode(ibuf_mode)
-                .test_manual("GTSATTRBOX", "DISABLE_GTS")
+                .test_manual_legacy("GTSATTRBOX", "DISABLE_GTS")
                 .attr("GTSATTRBOX", "DISABLE_GTS")
                 .iob_commit(iob);
             if edev.chip.kind.is_spartan3a() && iob.kind != IobKind::Ibuf {
@@ -1766,7 +1766,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     "3STATE_KEEPER",
                 ] {
                     bctx.mode("IOB")
-                        .test_manual("SUSPEND", val)
+                        .test_manual_legacy("SUSPEND", val)
                         .attr("SUSPEND", val)
                         .iob_commit(iob);
                 }
@@ -1783,7 +1783,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IFF1", "#FF")
                         .attr("IDDRIN_MUX", "2")
                         .pin("I")
-                        .test_manual("IBUF_DELAY_VALUE", val)
+                        .test_manual_legacy("IBUF_DELAY_VALUE", val)
                         .attr_diff("IBUF_DELAY_VALUE", "DLY0", val)
                         .iob_commit(iob);
                 }
@@ -1797,7 +1797,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IFF1", "#FF")
                         .attr("IDDRIN_MUX", "2")
                         .pin("I")
-                        .test_manual("IFD_DELAY_VALUE", val)
+                        .test_manual_legacy("IFD_DELAY_VALUE", val)
                         .attr_diff("IFD_DELAY_VALUE", "DLY0", val)
                         .iob_commit(iob);
                 }
@@ -1816,7 +1816,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DELAY_ADJ_ATTRBOX", "FIXED")
                         .attr("SEL_MUX", "0")
                         .pin("I")
-                        .test_manual("IBUF_DELAY_VALUE", val)
+                        .test_manual_legacy("IBUF_DELAY_VALUE", val)
                         .attr_diff("IBUF_DELAY_VALUE", "DLY16", val)
                         .iob_commit(iob);
                 }
@@ -1832,7 +1832,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DELAY_ADJ_ATTRBOX", "FIXED")
                         .attr("SEL_MUX", "0")
                         .pin("I")
-                        .test_manual("IFD_DELAY_VALUE", val)
+                        .test_manual_legacy("IFD_DELAY_VALUE", val)
                         .attr_diff("IFD_DELAY_VALUE", "DLY8", val)
                         .iob_commit(iob);
                 }
@@ -1845,7 +1845,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("IDDRIN_MUX", "2")
                     .attr("SEL_MUX", "0")
                     .pin("I")
-                    .test_manual("DELAY_ADJ_ATTRBOX", "VARIABLE")
+                    .test_manual_legacy("DELAY_ADJ_ATTRBOX", "VARIABLE")
                     .attr_diff("DELAY_ADJ_ATTRBOX", "FIXED", "VARIABLE")
                     .iob_commit(iob);
             }
@@ -1910,7 +1910,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             builder = builder.prop_box(special.clone());
                         }
                         builder
-                            .test_manual(attr, std.name)
+                            .test_manual_legacy(attr, std.name)
                             .mode_diff(ibuf_mode, mode)
                             .attr("IOATTRBOX", std.name)
                             .attr("IBUF_DELAY_VALUE", "DLY0")
@@ -1939,7 +1939,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         }
 
                         builder
-                            .test_manual(attr, std.name)
+                            .test_manual_legacy(attr, std.name)
                             .mode_diff(ibuf_mode, mode)
                             .attr("IOATTRBOX", std.name)
                             .attr("IMUX", "1")
@@ -1963,7 +1963,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             builder = builder.prop_box(special.clone());
                         }
                         builder
-                            .test_manual("ISTD.COMP", std.name)
+                            .test_manual_legacy("ISTD.COMP", std.name)
                             .mode_diff(ibuf_mode, mode)
                             .attr("IOATTRBOX", std.name)
                             .attr("PADOUT_USED", "0")
@@ -1997,7 +1997,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             "OMUX"
                         },
                     )
-                    .test_manual("SEL_MUX", "OMUX")
+                    .test_manual_legacy("SEL_MUX", "OMUX")
                     .attr("IBUF_DELAY_VALUE", "DLY0")
                     .attr("DELAY_ADJ_ATTRBOX", "FIXED")
                     .attr("SEL_MUX", "1")
@@ -2017,7 +2017,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("O1")
                     .pin("T1")
                     .pin("T")
-                    .test_manual("SEL_MUX", "TMUX")
+                    .test_manual_legacy("SEL_MUX", "TMUX")
                     .attr("IBUF_DELAY_VALUE", "DLY0")
                     .attr("DELAY_ADJ_ATTRBOX", "FIXED")
                     .attr("SEL_MUX", "2")
@@ -2031,7 +2031,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .global_mutex("VREF", "YES")
                     .prop(IsVref(iob.bel))
                     .prop(OtherIobInput(iob.bel, "SSTL2_I".to_string()))
-                    .test_manual("PRESENT", "NOTVREF")
+                    .test_manual_legacy("PRESENT", "NOTVREF")
                     .mode(ibuf_mode)
                     .iob_commit(iob);
             }
@@ -2047,7 +2047,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 builder
                     .prop(IsVr(iob.bel))
                     .prop(OtherIobInput(iob.bel, "GTL_DCI".to_string()))
-                    .test_manual("PRESENT", "NOTVR")
+                    .test_manual_legacy("PRESENT", "NOTVR")
                     .mode(ibuf_mode)
                     .iob_commit(iob);
             }
@@ -2078,7 +2078,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("SEL_MUX", "0")
                         .attr("IMUX", "1")
                         .pin("I")
-                        .test_manual("DIFF_TERM", "1")
+                        .test_manual_legacy("DIFF_TERM", "1")
                         .attr_diff("DIFF_TERM", "FALSE", "TRUE")
                         .iob_commit(iob);
                 } else {
@@ -2091,7 +2091,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IOATTRBOX", "LVDS_25")
                         .attr("IMUX", "1")
                         .pin("I")
-                        .test_manual("DIFF_TERM", "1")
+                        .test_manual_legacy("DIFF_TERM", "1")
                         .attr_diff("DIFF_TERM", "FALSE", "TRUE")
                         .iob_commit(iob);
                 }
@@ -2105,7 +2105,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("IOATTRBOX", "LVDS_25")
                     .attr("PADOUT_USED", "0")
                     .pin("PADOUT")
-                    .test_manual("DIFF_TERM.COMP", "1")
+                    .test_manual_legacy("DIFF_TERM.COMP", "1")
                     .attr_diff("DIFF_TERM", "FALSE", "TRUE")
                     .iob_commit(iob);
             }
@@ -2119,7 +2119,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("IFFDMUX", "#OFF")
                     // noop relation — mind the iob_commit at the end.
                     .extra_tile_attr(NoopRelation, format!("IOI[{ioi}]"), "OUTPUT_ENABLE", "1")
-                    .test_manual("OUTPUT_ENABLE", "1")
+                    .test_manual_legacy("OUTPUT_ENABLE", "1")
                     .attr("IOATTRBOX", "LVCMOS33")
                     .attr("OMUX", "O1")
                     .attr("O1INV", "O1")
@@ -2230,7 +2230,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .attr("OMUX", "O1")
                                     .attr("O1INV", "O1")
                                     .pin("O1")
-                                    .test_manual("OSTD", name)
+                                    .test_manual_legacy("OSTD", name)
                                     .mode_diff("IOB", mode)
                                     .attr_diff("IOATTRBOX", "LVCMOS33", std.name)
                                     .attr_diff("DRIVE_0MA", "DRIVE_0MA", "")
@@ -2280,7 +2280,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .bel_attr(iob_n.bel, "IFFDMUX", "#OFF")
                             .bel_attr(iob_n.bel, "OMUX", "#OFF")
                             .pin("O1")
-                            .test_manual("DIFFO", std.name)
+                            .test_manual_legacy("DIFFO", std.name)
                             .mode_diff("IOB", mode_p)
                             .bel_mode_diff(iob_n.bel, "IOB", mode_n)
                             .attr_diff("IOATTRBOX", "LVCMOS33", std.name)
@@ -2334,7 +2334,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .bel_attr(iob_n.bel, "IFFDMUX", "#OFF")
                                 .bel_attr(iob_n.bel, "OMUX", "#OFF")
                                 .pin("O1")
-                                .test_manual("DIFFO.ALT", std.name)
+                                .test_manual_legacy("DIFFO.ALT", std.name)
                                 .mode_diff("IOB", mode_p)
                                 .bel_mode_diff(iob_n.bel, "IOB", mode_n)
                                 .attr_diff("IOATTRBOX", "LVCMOS33", std.name)
@@ -2383,7 +2383,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("OMUX", "O1")
                             .attr("O1INV", "O1")
                             .pin("O1")
-                            .test_manual("DCIUPDATEMODE", val)
+                            .test_manual_legacy("DCIUPDATEMODE", val)
                             .attr_diff("IOATTRBOX", "LVCMOS33", "LVDCI_33")
                             .attr_diff("DRIVE_0MA", "DRIVE_0MA", "")
                             .iob_commit(iob);
@@ -2396,7 +2396,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("OMUX", "O1")
                         .attr("O1INV", "O1")
                         .pin("O1")
-                        .test_manual("OPROGRAMMING", "")
+                        .test_manual_legacy("OPROGRAMMING", "")
                         .prop(FuzzBelMultiAttr::new(
                             iob.bel,
                             "OPROGRAMMING".into(),

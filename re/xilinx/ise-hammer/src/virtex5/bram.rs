@@ -19,47 +19,47 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
     bctx.build()
         .global_mutex("BRAM_OPT", "NONE")
-        .test_manual("PRESENT", "RAMBFIFO36")
+        .test_manual_legacy("PRESENT", "RAMBFIFO36")
         .mode("RAMBFIFO36")
         .commit();
     bctx.build()
         .global_mutex("BRAM_OPT", "NONE")
-        .test_manual("PRESENT", "RAMB18X2")
+        .test_manual_legacy("PRESENT", "RAMB18X2")
         .mode("RAMB18X2")
         .commit();
     bctx.build()
         .global_mutex("BRAM_OPT", "NONE")
-        .test_manual("PRESENT", "RAMB18X2SDP")
+        .test_manual_legacy("PRESENT", "RAMB18X2SDP")
         .mode("RAMB18X2SDP")
         .commit();
     bctx.build()
         .global_mutex("BRAM_OPT", "NONE")
-        .test_manual("PRESENT", "RAMBFIFO18")
+        .test_manual_legacy("PRESENT", "RAMBFIFO18")
         .mode("RAMBFIFO18")
         .commit();
     bctx.build()
         .global_mutex("BRAM_OPT", "NONE")
-        .test_manual("PRESENT", "RAMBFIFO18_36")
+        .test_manual_legacy("PRESENT", "RAMBFIFO18_36")
         .mode("RAMBFIFO18_36")
         .commit();
     bctx.build()
         .global_mutex("BRAM_OPT", "NONE")
-        .test_manual("PRESENT", "RAMB36_EXP")
+        .test_manual_legacy("PRESENT", "RAMB36_EXP")
         .mode("RAMB36_EXP")
         .commit();
     bctx.build()
         .global_mutex("BRAM_OPT", "NONE")
-        .test_manual("PRESENT", "RAMB36SDP_EXP")
+        .test_manual_legacy("PRESENT", "RAMB36SDP_EXP")
         .mode("RAMB36SDP_EXP")
         .commit();
     bctx.build()
         .global_mutex("BRAM_OPT", "NONE")
-        .test_manual("PRESENT", "FIFO36_EXP")
+        .test_manual_legacy("PRESENT", "FIFO36_EXP")
         .mode("FIFO36_EXP")
         .commit();
     bctx.build()
         .global_mutex("BRAM_OPT", "NONE")
-        .test_manual("PRESENT", "FIFO36_72_EXP")
+        .test_manual_legacy("PRESENT", "FIFO36_72_EXP")
         .mode("FIFO36_72_EXP")
         .commit();
 
@@ -73,7 +73,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global_mutex("BRAM_OPT", opt)
             .global(opt, "ENABLED")
-            .test_manual("PRESENT", format!("FIFO36_EXP.{opt}"))
+            .test_manual_legacy("PRESENT", format!("FIFO36_EXP.{opt}"))
             .mode("FIFO36_EXP")
             .commit();
     }
@@ -81,7 +81,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global_mutex("BRAM_OPT", "WEAK_WRITE")
             .global("WEAK_WRITE", val)
-            .test_manual("PRESENT", format!("FIFO36_EXP.WEAK_WRITE.{val}"))
+            .test_manual_legacy("PRESENT", format!("FIFO36_EXP.WEAK_WRITE.{val}"))
             .mode("FIFO36_EXP")
             .commit();
     }
@@ -89,7 +89,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global_mutex("BRAM_OPT", "TRD_DLY")
             .global("TRD_DLY", val)
-            .test_manual("PRESENT", format!("FIFO36_EXP.TRD_DLY.{val}"))
+            .test_manual_legacy("PRESENT", format!("FIFO36_EXP.TRD_DLY.{val}"))
             .mode("FIFO36_EXP")
             .commit();
     }
@@ -97,7 +97,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global_mutex("BRAM_OPT", "TWR_DLY")
             .global("TWR_DLY", val)
-            .test_manual("PRESENT", format!("FIFO36_EXP.TWR_DLY.{val}"))
+            .test_manual_legacy("PRESENT", format!("FIFO36_EXP.TWR_DLY.{val}"))
             .mode("FIFO36_EXP")
             .commit();
     }
@@ -105,7 +105,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global_mutex("BRAM_OPT", "TSCRUB_DLY")
             .global("TSCRUB_DLY", val)
-            .test_manual("PRESENT", format!("FIFO36_EXP.TSCRUB_DLY.{val}"))
+            .test_manual_legacy("PRESENT", format!("FIFO36_EXP.TSCRUB_DLY.{val}"))
             .mode("FIFO36_EXP")
             .commit();
     }
@@ -203,11 +203,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         if mode != "RAMBFIFO36" {
             bctx.mode(mode)
                 .attr("EN_SYN", "TRUE")
-                .test_manual(format!("ALMOST_FULL_OFFSET.{mode}"), "")
+                .test_manual_legacy(format!("ALMOST_FULL_OFFSET.{mode}"), "")
                 .multi_attr("ALMOST_FULL_OFFSET", MultiValue::Hex(0), 13);
             bctx.mode(mode)
                 .attr("EN_SYN", "TRUE")
-                .test_manual(format!("ALMOST_EMPTY_OFFSET.{mode}"), "")
+                .test_manual_legacy(format!("ALMOST_EMPTY_OFFSET.{mode}"), "")
                 .multi_attr("ALMOST_EMPTY_OFFSET", MultiValue::Hex(0), 13);
         }
     }
@@ -259,14 +259,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for ab in ['A', 'B'] {
         for ul in ['U', 'L'] {
             bctx.mode("RAMBFIFO36")
-                .test_manual(format!("READ_WIDTH_{ab}_{ul}.RAMBFIFO36"), "36")
+                .test_manual_legacy(format!("READ_WIDTH_{ab}_{ul}.RAMBFIFO36"), "36")
                 .attr(format!("READ_WIDTH_{ab}_{ul}"), "36")
                 .attr(format!("DO{ab}_REG_{ul}"), "0")
                 .attr(format!("INIT_{ab}_{ul}"), "0")
                 .attr(format!("SRVAL_{ab}_{ul}"), "0")
                 .commit();
             bctx.mode("RAMBFIFO36")
-                .test_manual(format!("WRITE_WIDTH_{ab}_{ul}.RAMBFIFO36"), "36")
+                .test_manual_legacy(format!("WRITE_WIDTH_{ab}_{ul}.RAMBFIFO36"), "36")
                 .attr(format!("WRITE_WIDTH_{ab}_{ul}"), "36")
                 .commit();
             bctx.mode("RAMB18X2")
@@ -356,26 +356,26 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode("RAMBFIFO36")
                     .attr("IS_FIFO", "FALSE")
                     .attr(format!("READ_WIDTH_{ab}_{ul}"), "18")
-                    .test_manual(format!("{attr}_{ab}_{ul}.RAMBFIFO36"), "")
+                    .test_manual_legacy(format!("{attr}_{ab}_{ul}.RAMBFIFO36"), "")
                     .multi_attr(format!("{attr}_{ab}_{ul}"), MultiValue::Hex(0), 18);
                 bctx.mode("RAMB18X2")
                     .attr(format!("READ_WIDTH_{ab}_{ul}"), "18")
-                    .test_manual(format!("{attr}_{ab}_{ul}.RAMB18X2"), "")
+                    .test_manual_legacy(format!("{attr}_{ab}_{ul}.RAMB18X2"), "")
                     .multi_attr(format!("{attr}_{ab}_{ul}"), MultiValue::Hex(0), 18);
             }
             bctx.mode("RAMB36_EXP")
                 .attr(format!("READ_WIDTH_{ab}"), "36")
-                .test_manual(format!("{attr}_{ab}.RAMB36_EXP"), "")
+                .test_manual_legacy(format!("{attr}_{ab}.RAMB36_EXP"), "")
                 .multi_attr(format!("{attr}_{ab}"), MultiValue::Hex(0), 36);
         }
         for ul in ['U', 'L'] {
             bctx.mode("RAMB18X2SDP")
                 .attr(format!("DO_REG_{ul}"), "0")
-                .test_manual(format!("{attr}_{ul}.RAMB18X2SDP"), "")
+                .test_manual_legacy(format!("{attr}_{ul}.RAMB18X2SDP"), "")
                 .multi_attr(format!("{attr}_{ul}"), MultiValue::Hex(0), 36);
         }
         bctx.mode("RAMB36SDP_EXP")
-            .test_manual(format!("{attr}.RAMB36SDP_EXP"), "")
+            .test_manual_legacy(format!("{attr}.RAMB36SDP_EXP"), "")
             .multi_attr(attr, MultiValue::Hex(0), 72);
     }
 
@@ -392,7 +392,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         if mode == "RAMB18X2SDP" { "1" } else { "" },
                     )
                     .attr("IS_FIFO", if mode == "RAMBFIFO36" { "FALSE" } else { "" })
-                    .test_manual(format!("INIT_{i:02X}_{ul}.{mode}"), "")
+                    .test_manual_legacy(format!("INIT_{i:02X}_{ul}.{mode}"), "")
                     .multi_attr(format!("INIT_{i:02X}_{ul}"), MultiValue::Hex(0), 256);
             }
             for i in 0..8 {
@@ -406,7 +406,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         if mode == "RAMB18X2SDP" { "1" } else { "" },
                     )
                     .attr("IS_FIFO", if mode == "RAMBFIFO36" { "FALSE" } else { "" })
-                    .test_manual(format!("INITP_{i:02X}_{ul}.{mode}"), "")
+                    .test_manual_legacy(format!("INITP_{i:02X}_{ul}.{mode}"), "")
                     .multi_attr(format!("INITP_{i:02X}_{ul}"), MultiValue::Hex(0), 256);
             }
         }
@@ -416,14 +416,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .attr("DOA_REG", if mode == "RAMBFIFO18_36" { "" } else { "1" })
                 .attr("DO_REG_U", if mode == "RAMBFIFO18_36" { "1" } else { "" })
-                .test_manual(format!("INIT_{i:02X}.{mode}"), "")
+                .test_manual_legacy(format!("INIT_{i:02X}.{mode}"), "")
                 .multi_attr(format!("INIT_{i:02X}"), MultiValue::Hex(0), 256);
         }
         for i in 0..8 {
             bctx.mode(mode)
                 .attr("DOA_REG", if mode == "RAMBFIFO18_36" { "" } else { "1" })
                 .attr("DO_REG_U", if mode == "RAMBFIFO18_36" { "1" } else { "" })
-                .test_manual(format!("INITP_{i:02X}.{mode}"), "")
+                .test_manual_legacy(format!("INITP_{i:02X}.{mode}"), "")
                 .multi_attr(format!("INITP_{i:02X}"), MultiValue::Hex(0), 256);
         }
     }
@@ -434,7 +434,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     "READ_WIDTH_A",
                     if mode == "RAMB36SDP_EXP" { "" } else { "36" },
                 )
-                .test_manual(format!("INIT_{i:02X}.{mode}"), "")
+                .test_manual_legacy(format!("INIT_{i:02X}.{mode}"), "")
                 .multi_attr(format!("INIT_{i:02X}"), MultiValue::Hex(0), 256);
         }
         for i in 0..0x10 {
@@ -443,7 +443,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     "READ_WIDTH_A",
                     if mode == "RAMB36SDP_EXP" { "" } else { "36" },
                 )
-                .test_manual(format!("INITP_{i:02X}.{mode}"), "")
+                .test_manual_legacy(format!("INITP_{i:02X}.{mode}"), "")
                 .multi_attr(format!("INITP_{i:02X}"), MultiValue::Hex(0), 256);
         }
     }

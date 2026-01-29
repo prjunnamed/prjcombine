@@ -19,7 +19,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global_mutex("BRAM", "NOPE")
             .bel_unused(bslots::FIFO)
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
         for pin in [
@@ -81,24 +81,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_mutex("BRAM", "NOPE")
                 .attr("READ_WIDTH_A", "36")
                 .attr("READ_WIDTH_B", "36")
-                .test_multi_attr_hex(attr, 36);
+                .test_multi_attr_hex_legacy(attr, 36);
         }
         for i in 0..0x40 {
             let attr = format!("INIT_{i:02X}");
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .test_multi_attr_hex(attr, 256);
+                .test_multi_attr_hex_legacy(attr, 256);
         }
         for i in 0..0x8 {
             let attr = format!("INITP_{i:02X}");
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .test_multi_attr_hex(attr, 256);
+                .test_multi_attr_hex_legacy(attr, 256);
         }
         for val in ["0", "1"] {
             bctx.mode(mode)
                 .global_mutex_here("BRAM")
-                .test_manual("Ibram_ww_value", val)
+                .test_manual_legacy("Ibram_ww_value", val)
                 .global("Ibram_ww_value", val)
                 .commit();
         }
@@ -109,7 +109,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global_mutex("BRAM", "NOPE")
             .bel_unused(bslots::BRAM)
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
         for pin in ["RDCLK", "WRCLK", "RDEN", "WREN", "RST"] {
@@ -134,26 +134,26 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("BRAM", "NOPE")
             .bel_unused(bslots::BRAM)
             .attr("FIRST_WORD_FALL_THROUGH", "FALSE")
-            .test_manual("ALMOST_FULL_OFFSET:NFWFT", "")
+            .test_manual_legacy("ALMOST_FULL_OFFSET:NFWFT", "")
             .multi_attr("ALMOST_FULL_OFFSET", MultiValue::Hex(0), 12);
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
             .bel_unused(bslots::BRAM)
             .attr("FIRST_WORD_FALL_THROUGH", "FALSE")
-            .test_manual("ALMOST_EMPTY_OFFSET:NFWFT", "")
+            .test_manual_legacy("ALMOST_EMPTY_OFFSET:NFWFT", "")
             .multi_attr("ALMOST_EMPTY_OFFSET", MultiValue::Hex(1), 12);
 
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
             .bel_unused(bslots::BRAM)
             .attr("FIRST_WORD_FALL_THROUGH", "TRUE")
-            .test_manual("ALMOST_FULL_OFFSET:FWFT", "")
+            .test_manual_legacy("ALMOST_FULL_OFFSET:FWFT", "")
             .multi_attr("ALMOST_FULL_OFFSET", MultiValue::Hex(0), 12);
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
             .bel_unused(bslots::BRAM)
             .attr("FIRST_WORD_FALL_THROUGH", "TRUE")
-            .test_manual("ALMOST_EMPTY_OFFSET:FWFT", "")
+            .test_manual_legacy("ALMOST_EMPTY_OFFSET:FWFT", "")
             .multi_attr("ALMOST_EMPTY_OFFSET", MultiValue::Hex(2), 12);
     }
 }

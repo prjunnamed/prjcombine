@@ -394,6 +394,22 @@ impl Context {
         })
     }
 
+    fn eval_attribute_type(&self, typ: &ast::AttributeType) -> Result<BelAttributeType> {
+        Ok(match *typ {
+            ast::AttributeType::Bool => BelAttributeType::Bool,
+            ast::AttributeType::BitVec(width) => BelAttributeType::BitVec(width),
+            ast::AttributeType::BitVecArray(width, depth) => {
+                BelAttributeType::BitVecArray(width, depth)
+            }
+            ast::AttributeType::Enum(ref ident) => {
+                let Some((eid, _)) = self.db.db.enum_classes.get(&ident.to_string()) else {
+                    error_at(ident.span(), "undefined enum")?
+                };
+                BelAttributeType::Enum(eid)
+            }
+        })
+    }
+
     fn eval_bel_class(&mut self, bcls: BelClassId, item: &ast::BelClassItem) -> Result<()> {
         match item {
             ast::BelClassItem::Input(pin) => {
@@ -543,19 +559,7 @@ impl Context {
                 }
             }
             ast::BelClassItem::Attribute(attr) => {
-                let typ = match attr.typ {
-                    ast::AttributeType::Bool => BelAttributeType::Bool,
-                    ast::AttributeType::BitVec(width) => BelAttributeType::BitVec(width),
-                    ast::AttributeType::BitVecArray(width, depth) => {
-                        BelAttributeType::BitVecArray(width, depth)
-                    }
-                    ast::AttributeType::Enum(ref ident) => {
-                        let Some((eid, _)) = self.db.db.enum_classes.get(&ident.to_string()) else {
-                            error_at(ident.span(), "undefined enum")?
-                        };
-                        BelAttributeType::Enum(eid)
-                    }
-                };
+                let typ = self.eval_attribute_type(&attr.typ)?;
                 let attribute = BelClassAttribute { typ };
                 for name in &attr.names {
                     let ident = self.eval_templ_id(name)?;
@@ -1113,19 +1117,7 @@ impl Context {
     fn eval_table(&mut self, tid: TableId, item: &ast::TableItem) -> Result<()> {
         match item {
             ast::TableItem::Field(field) => {
-                let typ = match field.typ {
-                    ast::AttributeType::Bool => BelAttributeType::Bool,
-                    ast::AttributeType::BitVec(width) => BelAttributeType::BitVec(width),
-                    ast::AttributeType::BitVecArray(width, depth) => {
-                        BelAttributeType::BitVecArray(width, depth)
-                    }
-                    ast::AttributeType::Enum(ref ident) => {
-                        let Some((eid, _)) = self.db.db.enum_classes.get(&ident.to_string()) else {
-                            error_at(ident.span(), "undefined enum")?
-                        };
-                        BelAttributeType::Enum(eid)
-                    }
-                };
+                let typ = self.eval_attribute_type(&field.typ)?;
                 for name in &field.names {
                     let ident = self.eval_templ_id(name)?;
                     let (_, prev) = self.db.db.tables[tid].fields.insert(ident.to_string(), typ);
@@ -1287,6 +1279,7 @@ impl Context {
             }
             ast::TopItem::Wire(_) => (),
             ast::TopItem::Table(_) => (),
+            ast::TopItem::DeviceData(_) => (),
             ast::TopItem::ForLoop(for_loop) => {
                 self.eval_for(for_loop, |ctx, subitem| ctx.eval_top_ph1(subitem))?
             }
@@ -1381,6 +1374,17 @@ impl Context {
                     self.eval_table(tid, item)?;
                 }
             }
+            ast::TopItem::DeviceData(devdata) => {
+                let typ = self.eval_attribute_type(&devdata.typ)?;
+                for name in &devdata.names {
+                    let ident = self.eval_templ_id(name)?;
+                    let (_, prev) = self.db.db.devdata.insert(ident.to_string(), typ);
+                    if prev.is_some() {
+                        error_at(ident.span(), "device data redefined")?
+                    }
+                    self.db.devdata_id.push(ident.clone());
+                }
+            }
             ast::TopItem::ForLoop(for_loop) => {
                 self.eval_for(for_loop, |ctx, subitem| ctx.eval_top(subitem))?
             }
@@ -1412,6 +1416,7 @@ fn eval_variant(variant: Option<Ident>, items: &[ast::TopItem]) -> Result<Annota
             tcls_bitrect_id: Default::default(),
             table_id: Default::default(),
             table: Default::default(),
+            devdata_id: Default::default(),
         },
         for_vars: Default::default(),
         bitrect_geoms: Default::default(),

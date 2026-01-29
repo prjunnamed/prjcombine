@@ -21,7 +21,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mode = "MCB";
     bctx.build()
         .global_mutex("MCB", "TEST")
-        .test_manual("PRESENT", "1")
+        .test_manual_legacy("PRESENT", "1")
         .mode(mode)
         .commit();
     for pin in [
@@ -116,13 +116,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .test_multi_attr_dec("MEM_REFI_VAL", 12);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_multi_attr_hex("CAL_BA", 3);
+        .test_multi_attr_hex_legacy("CAL_BA", 3);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_multi_attr_hex("CAL_CA", 12);
+        .test_multi_attr_hex_legacy("CAL_CA", 12);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_multi_attr_hex("CAL_RA", 15);
+        .test_multi_attr_hex_legacy("CAL_RA", 15);
     for i in 0..12 {
         bctx.mode(mode)
             .global_mutex("MCB", "TEST")
@@ -247,7 +247,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex_here("MCB")
             .global_mutex("DRPSDO", "NOPE")
-            .test_manual("MEM_PLL_DIV_EN", val)
+            .test_manual_legacy("MEM_PLL_DIV_EN", val)
             .global("MEM_PLL_DIV_EN", val)
             .commit();
     }
@@ -255,7 +255,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex_here("MCB")
             .global_mutex("DRPSDO", "NOPE")
-            .test_manual("MEM_PLL_POL_SEL", val)
+            .test_manual_legacy("MEM_PLL_POL_SEL", val)
             .global("MEM_PLL_POL_SEL", val)
             .commit();
     }

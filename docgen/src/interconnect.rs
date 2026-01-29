@@ -5,11 +5,12 @@ use std::{
 
 use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
-use prjcombine_entity::{EntityBundleItemIndex, EntityId};
+use prjcombine_entity::{EntityBundleItemIndex, EntityId, EntityPartVec};
 use prjcombine_interconnect::db::{
     BelAttribute, BelAttributeId, BelAttributeType, BelClassId, BelInfo, BelInput, BelInputId,
-    BelKind, BelSlotId, ConnectorSlotId, ConnectorWire, IntDb, PinDir, PolTileWireCoord, SwitchBox,
-    SwitchBoxItem, TableId, TableValue, TileClass, TileClassId, TileWireCoord, WireKind,
+    BelKind, BelSlotId, ConnectorSlotId, ConnectorWire, DeviceDataId, IntDb, PinDir,
+    PolTileWireCoord, SwitchBox, SwitchBoxItem, TableId, TableValue, TileClass, TileClassId,
+    TileWireCoord, WireKind,
 };
 use prjcombine_types::{
     bitvec::BitVec,
@@ -1797,4 +1798,63 @@ pub fn gen_intdb(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb) {
     for id in intdb.tables.ids() {
         gen_table(ctx, dbname, intdb, id);
     }
+}
+
+pub fn gen_devdata(
+    ctx: &mut DocgenContext,
+    dbname: &str,
+    intdb: &IntDb,
+    name: &str,
+    data: &BTreeMap<&str, &EntityPartVec<DeviceDataId, TableValue>>,
+    ids: &[DeviceDataId],
+) {
+    let mut buf = String::new();
+
+    writeln!(buf, r#"## Device data {name}"#).unwrap();
+    writeln!(buf).unwrap();
+    writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+    writeln!(buf, r#"<caption>{dbname} device data {name}</caption>"#).unwrap();
+    writeln!(buf, r#"<thead>"#).unwrap();
+    writeln!(buf, r#"<tr><th>Device</th>"#).unwrap();
+    for &ddid in ids {
+        let fname = intdb.devdata.key(ddid);
+        writeln!(buf, r#"<th>{fname}</th>"#).unwrap();
+    }
+    writeln!(buf, r#"</tr>"#).unwrap();
+    writeln!(buf, r#"</thead>"#).unwrap();
+    writeln!(buf, r#"<tbody>"#).unwrap();
+
+    for (&devname, &row) in data {
+        writeln!(buf, r#"<tr><td>{devname}</td>"#).unwrap();
+        for &ddid in ids {
+            let typ = intdb.devdata[ddid];
+            if let Some(value) = row.get(ddid) {
+                match value {
+                    TableValue::BitVec(bv) => {
+                        writeln!(buf, r#"<td>0b{bv}</td>"#).unwrap();
+                    }
+                    TableValue::Enum(vid) => {
+                        let BelAttributeType::Enum(ecid) = typ else {
+                            unreachable!()
+                        };
+                        writeln!(
+                            buf,
+                            r#"<td>{val}</td>"#,
+                            val = intdb.enum_classes[ecid].values[*vid]
+                        )
+                        .unwrap();
+                    }
+                }
+            } else {
+                writeln!(buf, r#"<td>-</td>"#).unwrap();
+            }
+        }
+        writeln!(buf, r#"</tr>"#).unwrap();
+    }
+
+    writeln!(buf, r#"</tbody>"#).unwrap();
+    writeln!(buf, r#"</table></div>"#).unwrap();
+    writeln!(buf).unwrap();
+
+    ctx.items.insert(format!("devdata-{dbname}-{name}"), buf);
 }

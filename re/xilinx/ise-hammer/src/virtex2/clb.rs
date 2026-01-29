@@ -2,32 +2,24 @@ use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem},
     grid::TileCoord,
 };
-use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, FeatureId},
-    legacy::{xlat_bit_legacy, xlat_enum_legacy},
-};
+use prjcombine_re_collector::diff::{Diff, DiffKey, xlat_bit};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex2::defs::{
-    bslots as bslots_v2, spartan3::tcls as tcls_s3, tslots as tslots_v2, virtex2::tcls as tcls_v2,
+use prjcombine_virtex2::{
+    chip::ChipKind,
+    defs::{bcls, bslots, enums, spartan3::tcls as tcls_s3, tslots, virtex2::tcls as tcls_v2},
 };
 
 use crate::{
-    backend::IseBackend,
+    backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::DynProp,
     },
+    virtex2::specials,
 };
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Mode {
-    Virtex2,
-    Spartan3,
-    Virtex4,
-}
 
 #[derive(Clone, Debug)]
 struct RandorInit;
@@ -50,20 +42,20 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RandorInit {
             return None;
         }
         if tcrd.col == edev.chip.col_w() + 1 {
-            let tcrd = tcrd.delta(-1, 0).tile(tslots_v2::RANDOR);
+            let tcrd = tcrd.delta(-1, 0).tile(tslots::RANDOR);
             let tile = &backend.edev[tcrd];
-            let tcls = backend.edev.db.tile_classes.key(tile.class);
-            let DiffKey::Legacy(first_feature_id) =
-                fuzzer.info.features.first().unwrap().key.clone()
+            let DiffKey::BelAttrValue(_, bslots::RANDOR, bcls::RANDOR::MODE, val) =
+                fuzzer.info.features.first().unwrap().key
             else {
                 unreachable!()
             };
             fuzzer.info.features.push(FuzzerFeature {
-                key: DiffKey::Legacy(FeatureId {
-                    tile: tcls.into(),
-                    bel: "RANDOR_INIT".into(),
-                    ..first_feature_id
-                }),
+                key: DiffKey::BelAttrValue(
+                    tile.class,
+                    bslots::RANDOR_INIT,
+                    bcls::RANDOR_INIT::MODE,
+                    val,
+                ),
                 rects: backend.edev.tile_bits(tcrd),
             });
             Some((fuzzer, false))
@@ -74,182 +66,147 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RandorInit {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mode = match backend.edev {
-        ExpandedDevice::Virtex2(edev) => {
-            if edev.chip.kind.is_virtex2() {
-                Mode::Virtex2
-            } else {
-                Mode::Spartan3
-            }
-        }
-        ExpandedDevice::Virtex4(_) => Mode::Virtex4,
-        _ => unreachable!(),
+    let ExpandedDevice::Virtex2(edev) = backend.edev else {
+        unreachable!()
     };
 
-    let (bk_l, bk_m) = if mode == Mode::Virtex2 {
+    let (bk_l, bk_m) = if edev.chip.kind.is_virtex2() {
         ("SLICE", "SLICE")
     } else {
         ("SLICEL", "SLICEM")
     };
-    let mut ctx = FuzzCtx::new(session, backend, "CLB");
-    let slots = match mode {
-        Mode::Virtex2 | Mode::Spartan3 => Vec::from_iter(bslots_v2::SLICE),
-        Mode::Virtex4 => Vec::from_iter(prjcombine_virtex4::defs::bslots::SLICE),
-    };
+    let mut ctx = FuzzCtx::new_id(
+        session,
+        backend,
+        if edev.chip.kind.is_virtex2() {
+            tcls_v2::CLB
+        } else {
+            tcls_s3::CLB
+        },
+    );
     for i in 0..4 {
-        let mut bctx = ctx.bel(slots[i]);
-        let is_m = match mode {
-            Mode::Virtex2 => true,
-            Mode::Spartan3 | Mode::Virtex4 => matches!(i, 0 | 2),
-        };
+        let mut bctx = ctx.bel(bslots::SLICE[i]);
+        let is_m = edev.chip.kind.is_virtex2() || matches!(i, 0 | 2);
 
         // inverters
-        bctx.mode(bk_l).attr("FFX", "#FF").pin("XQ").test_inv("CE");
-        bctx.mode(bk_l).attr("FFX", "#FF").pin("XQ").test_inv("CLK");
+        bctx.mode(bk_l)
+            .attr("FFX", "#FF")
+            .pin("XQ")
+            .test_bel_input_inv_auto(bcls::SLICE::CE);
+        bctx.mode(bk_l)
+            .attr("FFX", "#FF")
+            .pin("XQ")
+            .test_bel_input_inv_auto(bcls::SLICE::CLK);
         bctx.mode(bk_l)
             .attr("FFX", "#FF")
             .attr("FFY", "#FF")
-            .attr("SRFFMUX", if mode == Mode::Virtex2 { "0" } else { "" })
+            .attr(
+                "SRFFMUX",
+                if edev.chip.kind.is_virtex2() { "0" } else { "" },
+            )
             .pin("XQ")
             .pin("YQ")
-            .test_inv("SR");
+            .test_bel_input_inv_auto(bcls::SLICE::SR);
         bctx.mode(bk_l)
             .attr("FFX", "#FF")
             .attr("XUSED", "0")
-            .attr("DXMUX", if mode == Mode::Virtex4 { "BX" } else { "0" })
+            .attr("DXMUX", "0")
             .pin("X")
             .pin("XQ")
-            .test_inv("BX");
+            .test_bel_input_inv_auto(bcls::SLICE::BX);
         bctx.mode(bk_l)
             .attr("FFY", "#FF")
             .attr("YUSED", "0")
-            .attr("DYMUX", if mode == Mode::Virtex4 { "BY" } else { "0" })
+            .attr("DYMUX", "0")
             .pin("Y")
             .pin("YQ")
-            .test_inv("BY");
+            .test_bel_input_inv_auto(bcls::SLICE::BY);
 
         // LUT
-        for attr in ["F", "G"] {
-            bctx.mode(bk_l).test_multi_attr_lut(attr, 16);
+        for attr in [bcls::SLICE::F, bcls::SLICE::G] {
+            bctx.mode(bk_l).test_bel_attr_multi(attr, MultiValue::Lut);
         }
 
         // carry chain
-        if mode != Mode::Virtex4 {
-            bctx.mode(bk_l)
-                .attr("BXINV", "BX")
-                .attr("CYSELF", "1")
-                .attr("CYSELG", "1")
-                .attr("COUTUSED", "0")
-                .pin("CIN")
-                .pin("BX")
-                .pin("COUT")
-                .test_enum("CYINIT", &["CIN", "BX"]);
-            bctx.mode(bk_l)
-                .attr("F", "#LUT:0")
-                .attr("CY0F", "0")
-                .attr("CYINIT", "BX")
-                .attr("BXINV", "BX")
-                .attr("CYSELG", "1")
-                .attr("COUTUSED", "0")
-                .pin("BX")
-                .pin("COUT")
-                .test_enum("CYSELF", &["F", "1"]);
-            bctx.mode(bk_l)
-                .attr("G", "#LUT:0")
-                .attr("CY0G", "0")
-                .attr("CYINIT", "BX")
-                .attr("BXINV", "BX")
-                .attr("CYSELF", "1")
-                .attr("COUTUSED", "0")
-                .pin("BX")
-                .pin("COUT")
-                .test_enum("CYSELG", &["G", "1"]);
-            bctx.mode(bk_l)
-                .attr("CYINIT", "BX")
-                .attr("BXINV", "BX")
-                .attr("FXMUX", "FXOR")
-                .attr("F", "#LUT:0")
-                .attr("XUSED", "0")
-                .attr("CYSELF", "F")
-                .attr("CYSELG", "1")
-                .attr("COUTUSED", "0")
-                .pin("F1")
-                .pin("F2")
-                .pin("BX")
-                .pin("X")
-                .pin("COUT")
-                .test_enum("CY0F", &["BX", "F2", "F1", "PROD", "0", "1"]);
-            bctx.mode(bk_l)
-                .attr("CYINIT", "BX")
-                .attr("BXINV", "BX")
-                .attr("BYINV", "BY")
-                .attr("GYMUX", "GXOR")
-                .attr("G", "#LUT:0")
-                .attr("YUSED", "0")
-                .attr("CYSELF", "1")
-                .attr("CYSELG", "G")
-                .attr("COUTUSED", "0")
-                .pin("G1")
-                .pin("G2")
-                .pin("BX")
-                .pin("BY")
-                .pin("Y")
-                .pin("COUT")
-                .test_enum("CY0G", &["BY", "G2", "G1", "PROD", "0", "1"]);
-        } else {
-            bctx.mode(bk_l)
-                .attr("BXINV", "BX_B")
-                .attr("F", "#LUT:0")
-                .attr("G", "#LUT:0")
-                .attr("COUTUSED", "0")
-                .pin("CIN")
-                .pin("BX")
-                .pin("COUT")
-                .test_enum("CYINIT", &["CIN", "BX"]);
-            bctx.mode(bk_l)
-                .attr("CYINIT", "BX")
-                .attr("BXINV", "BX_B")
-                .attr("FXMUX", "FXOR")
-                .attr("F", "#LUT:0")
-                .attr("G", "#LUT:0")
-                .attr("XMUXUSED", "0")
-                .attr("COUTUSED", "0")
-                .pin("F3")
-                .pin("F2")
-                .pin("BX")
-                .pin("XMUX")
-                .pin("COUT")
-                .test_enum("CY0F", &["0", "1", "F3", "PROD", "F2", "BX"]);
-            bctx.mode(bk_l)
-                .attr("CYINIT", "BX")
-                .attr("BXINV", "BX_B")
-                .attr("BYINV", "BY_B")
-                .attr("GYMUX", "GXOR")
-                .attr("F", "#LUT:0")
-                .attr("G", "#LUT:0")
-                .attr("YMUXUSED", "0")
-                .attr("COUTUSED", "0")
-                .pin("G3")
-                .pin("G2")
-                .pin("BX")
-                .pin("BY")
-                .pin("YMUX")
-                .pin("COUT")
-                .test_enum("CY0G", &["0", "1", "G3", "PROD", "G2", "BY"]);
-        }
+        bctx.mode(bk_l)
+            .attr("BXINV", "BX")
+            .attr("CYSELF", "1")
+            .attr("CYSELG", "1")
+            .attr("COUTUSED", "0")
+            .pin("CIN")
+            .pin("BX")
+            .pin("COUT")
+            .test_bel_attr(bcls::SLICE::CYINIT);
+        bctx.mode(bk_l)
+            .attr("F", "#LUT:0")
+            .attr("CY0F", "0")
+            .attr("CYINIT", "BX")
+            .attr("BXINV", "BX")
+            .attr("CYSELG", "1")
+            .attr("COUTUSED", "0")
+            .pin("BX")
+            .pin("COUT")
+            .test_bel_attr(bcls::SLICE::CYSELF);
+        bctx.mode(bk_l)
+            .attr("G", "#LUT:0")
+            .attr("CY0G", "0")
+            .attr("CYINIT", "BX")
+            .attr("BXINV", "BX")
+            .attr("CYSELF", "1")
+            .attr("COUTUSED", "0")
+            .pin("BX")
+            .pin("COUT")
+            .test_bel_attr(bcls::SLICE::CYSELG);
+        bctx.mode(bk_l)
+            .attr("CYINIT", "BX")
+            .attr("BXINV", "BX")
+            .attr("FXMUX", "FXOR")
+            .attr("F", "#LUT:0")
+            .attr("XUSED", "0")
+            .attr("CYSELF", "F")
+            .attr("CYSELG", "1")
+            .attr("COUTUSED", "0")
+            .pin("F1")
+            .pin("F2")
+            .pin("BX")
+            .pin("X")
+            .pin("COUT")
+            .test_bel_attr(bcls::SLICE::CY0F);
+        bctx.mode(bk_l)
+            .attr("CYINIT", "BX")
+            .attr("BXINV", "BX")
+            .attr("BYINV", "BY")
+            .attr("GYMUX", "GXOR")
+            .attr("G", "#LUT:0")
+            .attr("YUSED", "0")
+            .attr("CYSELF", "1")
+            .attr("CYSELG", "G")
+            .attr("COUTUSED", "0")
+            .pin("G1")
+            .pin("G2")
+            .pin("BX")
+            .pin("BY")
+            .pin("Y")
+            .pin("COUT")
+            .test_bel_attr(bcls::SLICE::CY0G);
 
         // various muxes
-        if mode != Mode::Virtex4 {
-            bctx.mode(bk_l)
-                .attr("F", "#LUT:0")
-                .attr("CYSELF", "1")
-                .attr("CYINIT", "BX")
-                .attr("BXINV", "BX")
-                .attr("XUSED", "0")
-                .pin("X")
-                .pin("BX")
-                .test_enum("FXMUX", &["F", "F5", "FXOR"]);
-            if mode == Mode::Virtex2 {
+        bctx.mode(bk_l)
+            .attr("F", "#LUT:0")
+            .attr("CYSELF", "1")
+            .attr("CYINIT", "BX")
+            .attr("BXINV", "BX")
+            .attr("XUSED", "0")
+            .pin("X")
+            .pin("BX")
+            .test_bel_attr(bcls::SLICE::FXMUX);
+        if edev.chip.kind.is_virtex2() {
+            for (val, vname) in [
+                (enums::SLICE_GYMUX::G, "G"),
+                (enums::SLICE_GYMUX::FX, "FX"),
+                (enums::SLICE_GYMUX::GXOR, "GXOR"),
+                (enums::SLICE_GYMUX::SOPOUT, "SOPEXT"),
+            ] {
                 bctx.mode(bk_l)
                     .attr("G", "#LUT:0")
                     .attr("CYSELF", "1")
@@ -261,27 +218,43 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("SOPOUTUSED", "0")
                     .pin("Y")
                     .pin("BX")
-                    .test_enum("GYMUX", &["G", "FX", "GXOR", "SOPEXT"]);
+                    .test_bel_attr_val(bcls::SLICE::GYMUX, val)
+                    .attr("GYMUX", vname)
+                    .commit();
+            }
+            for (val, vname) in [(enums::SLICE_DXMUX::BX, "0"), (enums::SLICE_DXMUX::X, "1")] {
                 bctx.mode(bk_l)
                     .attr("FFX", "#FF")
                     .attr("BXINV", "BX")
                     .pin("DX")
                     .pin("XQ")
                     .pin("BX")
-                    .test_enum("DXMUX", &["0", "1"]);
+                    .test_bel_attr_val(bcls::SLICE::DXMUX, val)
+                    .attr("DXMUX", vname)
+                    .commit();
+            }
+            for (val, vname) in [(enums::SLICE_DYMUX::BY, "0"), (enums::SLICE_DYMUX::Y, "1")] {
                 bctx.mode(bk_l)
                     .attr("FFY", "#FF")
                     .attr("BYINV", "BY")
                     .pin("DY")
                     .pin("YQ")
                     .pin("BY")
-                    .test_enum("DYMUX", &["0", "1"]);
-                bctx.mode(bk_l)
-                    .attr("SOPOUTUSED", "0")
-                    .pin("SOPIN")
-                    .pin("SOPOUT")
-                    .test_enum("SOPEXTSEL", &["SOPIN", "0"]);
-            } else {
+                    .test_bel_attr_val(bcls::SLICE::DYMUX, val)
+                    .attr("DYMUX", vname)
+                    .commit();
+            }
+            bctx.mode(bk_l)
+                .attr("SOPOUTUSED", "0")
+                .pin("SOPIN")
+                .pin("SOPOUT")
+                .test_bel_attr(bcls::SLICE::SOPEXTSEL);
+        } else {
+            for (val, vname) in [
+                (enums::SLICE_GYMUX::G, "G"),
+                (enums::SLICE_GYMUX::FX, "FX"),
+                (enums::SLICE_GYMUX::GXOR, "GXOR"),
+            ] {
                 bctx.mode(bk_l)
                     .attr("G", "#LUT:0")
                     .attr("CYSELF", "1")
@@ -291,7 +264,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("YUSED", "0")
                     .pin("Y")
                     .pin("BX")
-                    .test_enum("GYMUX", &["G", "FX", "GXOR"]);
+                    .test_bel_attr_val(bcls::SLICE::GYMUX, val)
+                    .attr("GYMUX", vname)
+                    .commit();
+            }
+            for (val, vname) in [(enums::SLICE_DXMUX::BX, "0"), (enums::SLICE_DXMUX::X, "1")] {
                 bctx.mode(bk_l)
                     .attr("F", "#LUT:0")
                     .attr("XUSED", "0")
@@ -301,7 +278,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("X")
                     .pin("XQ")
                     .pin("BX")
-                    .test_enum("DXMUX", &["0", "1"]);
+                    .test_bel_attr_val(bcls::SLICE::DXMUX, val)
+                    .attr("DXMUX", vname)
+                    .commit();
+            }
+            for (val, vname) in [(enums::SLICE_DYMUX::BY, "0"), (enums::SLICE_DYMUX::Y, "1")] {
                 bctx.mode(bk_l)
                     .attr("G", "#LUT:0")
                     .attr("YUSED", "0")
@@ -311,240 +292,200 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("Y")
                     .pin("YQ")
                     .pin("BY")
-                    .test_enum("DYMUX", &["0", "1"]);
-            }
-        } else {
-            bctx.mode(bk_l)
-                .attr("F", "#LUT:0")
-                .attr("CYINIT", "BX")
-                .attr("BXINV", "BX_B")
-                .attr("XMUXUSED", "0")
-                .pin("X")
-                .pin("XMUX")
-                .pin("BX")
-                .test_enum("FXMUX", &["F5", "FXOR"]);
-            bctx.mode(bk_l)
-                .attr("F", "#LUT:0")
-                .attr("G", "#LUT:0")
-                .attr("CYINIT", "BX")
-                .attr("BXINV", "BX_B")
-                .attr("BYINV", "BY_B")
-                .attr("YMUXUSED", "0")
-                .pin("X")
-                .pin("Y")
-                .pin("FXINA")
-                .pin("FXINB")
-                .pin("YMUX")
-                .pin("BX")
-                .pin("BY")
-                .test_enum("GYMUX", &["FX", "GXOR"]);
-            for val in ["BX", "X", "XMUX", "XB"] {
-                bctx.mode(bk_l)
-                    .attr("F", "#LUT:0")
-                    .attr("FFX", "#FF")
-                    .attr("BXINV", "BX_B")
-                    .attr("FXMUX", "F5")
-                    .attr("XUSED", "0")
-                    .attr("XBUSED", "0")
-                    .attr("XMUXUSED", "0")
-                    .pin("BX")
-                    .pin("X")
-                    .pin("XB")
-                    .pin("XMUX")
-                    .pin("XQ")
-                    .test_manual("DXMUX.F5", val)
-                    .attr("DXMUX", val)
-                    .commit();
-                bctx.mode(bk_l)
-                    .attr("F", "#LUT:0")
-                    .attr("FFX", "#FF")
-                    .attr("BXINV", "BX_B")
-                    .attr("FXMUX", "FXOR")
-                    .attr("XUSED", "0")
-                    .attr("XBUSED", "0")
-                    .attr("XMUXUSED", "0")
-                    .pin("BX")
-                    .pin("X")
-                    .pin("XB")
-                    .pin("XMUX")
-                    .pin("XQ")
-                    .test_manual("DXMUX.FXOR", val)
-                    .attr("DXMUX", val)
-                    .commit();
-            }
-            for val in ["BY", "Y", "YMUX", "YB"] {
-                bctx.mode(bk_l)
-                    .attr("G", "#LUT:0")
-                    .attr("FFY", "#FF")
-                    .attr("BYINV", "BY_B")
-                    .attr("GYMUX", "FX")
-                    .attr("YUSED", "0")
-                    .attr("YBUSED", "0")
-                    .attr("YMUXUSED", "0")
-                    .pin("BY")
-                    .pin("Y")
-                    .pin("YB")
-                    .pin("YMUX")
-                    .pin("YQ")
-                    .test_manual("DYMUX.FX", val)
-                    .attr("DYMUX", val)
-                    .commit();
-                bctx.mode(bk_l)
-                    .attr("G", "#LUT:0")
-                    .attr("FFY", "#FF")
-                    .attr("BYINV", "BY_B")
-                    .attr("GYMUX", "GXOR")
-                    .attr("YUSED", "0")
-                    .attr("YBUSED", "0")
-                    .attr("YMUXUSED", "0")
-                    .pin("BY")
-                    .pin("Y")
-                    .pin("YB")
-                    .pin("YMUX")
-                    .pin("YQ")
-                    .test_manual("DYMUX.GXOR", val)
-                    .attr("DYMUX", val)
+                    .test_bel_attr_val(bcls::SLICE::DYMUX, val)
+                    .attr("DYMUX", vname)
                     .commit();
             }
         }
 
         // LUT: memory mode
         if is_m {
+            for (val, vname) in [
+                (enums::SLICE_DIF_MUX::BX, "BX"),
+                (enums::SLICE_DIF_MUX::ALT, "ALTDIF"),
+                (enums::SLICE_DIF_MUX::ALT, "SHIFTIN"),
+            ] {
+                bctx.mode(bk_m)
+                    .attr("F", "#RAM:0")
+                    .attr("FXMUX", "F")
+                    .attr("XUSED", "0")
+                    .attr("BXINV", "BX")
+                    .pin("X")
+                    .pin("BX")
+                    .pin("SHIFTIN")
+                    .test_bel_attr_val(bcls::SLICE::DIF_MUX, val)
+                    .attr("DIF_MUX", vname)
+                    .commit();
+            }
+            for (val, vname) in [
+                (enums::SLICE_DIG_MUX::BY, "BY"),
+                (enums::SLICE_DIG_MUX::ALT, "ALTDIG"),
+                (enums::SLICE_DIG_MUX::ALT, "SHIFTIN"),
+            ] {
+                bctx.mode(bk_m)
+                    .attr("G", "#RAM:0")
+                    .attr("GYMUX", "G")
+                    .attr("YUSED", "0")
+                    .attr("BYINV", "BY")
+                    .pin("Y")
+                    .pin("BY")
+                    .pin("SHIFTIN")
+                    .test_bel_attr_val(bcls::SLICE::DIG_MUX, val)
+                    .attr("DIG_MUX", vname)
+                    .commit();
+            }
+            for (val, vname) in [
+                (enums::SLICE_XBMUX::FMC15, "0"),
+                (enums::SLICE_XBMUX::FCY, "1"),
+            ] {
+                bctx.mode(bk_m)
+                    .attr("F", "#RAM:0")
+                    .pin("XB")
+                    .test_bel_attr_val(bcls::SLICE::XBMUX, val)
+                    .attr("XBMUX", vname)
+                    .commit();
+            }
+            for (val, vname) in [
+                (enums::SLICE_YBMUX::GMC15, "0"),
+                (enums::SLICE_YBMUX::GCY, "1"),
+            ] {
+                bctx.mode(bk_m)
+                    .attr("G", "#RAM:0")
+                    .attr("YBUSED", "0")
+                    .pin("YB")
+                    .test_bel_attr_val(bcls::SLICE::YBMUX, val)
+                    .attr("YBMUX", vname)
+                    .commit();
+            }
             bctx.mode(bk_m)
-                .attr("F", "#RAM:0")
-                .attr("FXMUX", if mode == Mode::Virtex4 { "" } else { "F" })
                 .attr("XUSED", "0")
-                .attr("BXINV", if mode == Mode::Virtex4 { "BX_B" } else { "BX" })
-                .pin("X")
-                .pin("BX")
-                .pin("SHIFTIN")
-                .test_enum("DIF_MUX", &["ALTDIF", "BX", "SHIFTIN"]);
-            bctx.mode(bk_m)
-                .attr("G", "#RAM:0")
-                .attr("GYMUX", if mode == Mode::Virtex4 { "" } else { "G" })
-                .attr("YUSED", "0")
-                .attr("BYINV", if mode == Mode::Virtex4 { "BY_B" } else { "BY" })
-                .pin("Y")
-                .pin("BY")
-                .pin("SHIFTIN")
-                .test_enum("DIG_MUX", &["ALTDIG", "BY", "SHIFTIN"]);
-            bctx.mode(bk_m)
-                .attr("F", "#RAM:0")
-                .pin("XB")
-                .test_enum("XBMUX", &["0", "1"]);
-            bctx.mode(bk_m)
-                .attr("G", "#RAM:0")
-                .attr("YBUSED", "0")
-                .pin("YB")
-                .test_enum("YBMUX", &["0", "1"]);
-            bctx.mode(bk_m)
-                .attr("XUSED", "0")
-                .attr("FXMUX", if mode == Mode::Virtex4 { "" } else { "F" })
+                .attr("FXMUX", "F")
                 .attr("G", "#LUT:0")
                 .attr("F_ATTR", "DUAL_PORT")
                 .pin("X")
-                .test_manual("F", "#RAM:0")
+                .test_bel_attr_bits(bcls::SLICE::F_RAM_ENABLE)
                 .attr_diff("F", "#LUT:0", "#RAM:0")
                 .commit();
             bctx.mode(bk_m)
                 .attr("YUSED", "0")
-                .attr("GYMUX", if mode == Mode::Virtex4 { "" } else { "G" })
+                .attr("GYMUX", "G")
                 .attr("F", "#LUT:0")
                 .attr("G_ATTR", "DUAL_PORT")
                 .pin("Y")
-                .test_manual("G", "#RAM:0")
+                .test_bel_attr_bits(bcls::SLICE::G_RAM_ENABLE)
                 .attr_diff("G", "#LUT:0", "#RAM:0")
                 .commit();
             bctx.mode(bk_m)
                 .attr("F", "#RAM:0")
                 .attr("XUSED", "0")
-                .attr("FXMUX", if mode == Mode::Virtex4 { "" } else { "F" })
+                .attr("FXMUX", "F")
                 .pin("X")
-                .test_enum("F_ATTR", &["DUAL_PORT", "SHIFT_REG"]);
+                .test_bel_attr_bool_rename(
+                    "F_ATTR",
+                    bcls::SLICE::F_SHIFT_ENABLE,
+                    "DUAL_PORT",
+                    "SHIFT_REG",
+                );
             bctx.mode(bk_m)
                 .attr("G", "#RAM:0")
                 .attr("YUSED", "0")
-                .attr("GYMUX", if mode == Mode::Virtex4 { "" } else { "G" })
+                .attr("GYMUX", "G")
                 .pin("Y")
-                .test_enum("G_ATTR", &["DUAL_PORT", "SHIFT_REG"]);
-            match mode {
-                Mode::Virtex2 => {
-                    for (pin, pinused) in [
-                        ("SLICEWE0", "SLICEWE0USED"),
-                        ("SLICEWE1", "SLICEWE1USED"),
-                        ("SLICEWE2", "SLICEWE2USED"),
-                    ] {
-                        bctx.mode(bk_m)
-                            .attr("F", "#RAM:0")
-                            .attr("FXMUX", "F")
-                            .attr("XUSED", "0")
-                            .attr("BXINV", "BX")
-                            .pin("X")
-                            .pin("BX")
-                            .pin(pin)
-                            .test_enum(pinused, &["0"]);
-                    }
+                .test_bel_attr_bool_rename(
+                    "G_ATTR",
+                    bcls::SLICE::G_SHIFT_ENABLE,
+                    "DUAL_PORT",
+                    "SHIFT_REG",
+                );
+            if edev.chip.kind.is_virtex2() {
+                bctx.mode(bk_m)
+                    .attr("F", "#RAM:0")
+                    .attr("FXMUX", "F")
+                    .attr("XUSED", "0")
+                    .attr("BXINV", "BX")
+                    .pin("X")
+                    .pin("BX")
+                    .pin("SLICEWE0")
+                    .test_bel_attr_bits(bcls::SLICE::SLICEWE0USED)
+                    .attr("SLICEWE0USED", "0")
+                    .commit();
+                for (spec, pin, pinused) in [
+                    (specials::SLICE_SLICEWE1USED, "SLICEWE1", "SLICEWE1USED"),
+                    (specials::SLICE_SLICEWE2USED, "SLICEWE2", "SLICEWE2USED"),
+                ] {
                     bctx.mode(bk_m)
+                        .null_bits()
+                        .attr("F", "#RAM:0")
+                        .attr("FXMUX", "F")
+                        .attr("XUSED", "0")
                         .attr("BXINV", "BX")
+                        .pin("X")
                         .pin("BX")
-                        .pin("BXOUT")
-                        .test_enum("BXOUTUSED", &["0"]);
+                        .pin(pin)
+                        .test_bel_special(spec)
+                        .attr(pinused, "0")
+                        .commit();
                 }
-                Mode::Spartan3 => {
-                    for pinused in ["SLICEWE0USED", "SLICEWE1USED"] {
-                        bctx.mode(bk_m)
-                            .attr("F", "#RAM:0")
-                            .attr("FXMUX", "F")
-                            .attr("XUSED", "0")
-                            .attr("BXINV", "BX")
-                            .pin("X")
-                            .pin("BX")
-                            .pin("SLICEWE1")
-                            .test_enum(pinused, &["0"]);
-                    }
+                bctx.mode(bk_m)
+                    .null_bits()
+                    .attr("BXINV", "BX")
+                    .pin("BX")
+                    .pin("BXOUT")
+                    .test_bel_special(specials::SLICE_BXOUTUSED)
+                    .attr("BXOUTUSED", "0")
+                    .commit();
+                bctx.mode(bk_m)
+                    .attr("BYINV", "BY")
+                    .attr("BYINVOUTUSED", "")
+                    .pin("BY")
+                    .pin("BYOUT")
+                    .test_bel_attr_bits(bcls::SLICE::BYOUTUSED)
+                    .attr("BYOUTUSED", "0")
+                    .commit();
+                bctx.mode(bk_m)
+                    .attr("BYINV", "BY")
+                    .attr("BYOUTUSED", "")
+                    .pin("BY")
+                    .pin("BYOUT")
+                    .test_bel_attr_bits(bcls::SLICE::BYOUTUSED)
+                    .attr("BYINVOUTUSED", "0")
+                    .commit();
+            } else {
+                for (attr, aname) in [
+                    (bcls::SLICE::SLICEWE0USED, "SLICEWE0USED"),
+                    (bcls::SLICE::SLICEWE1USED, "SLICEWE1USED"),
+                ] {
+                    bctx.mode(bk_m)
+                        .attr("F", "#RAM:0")
+                        .attr("FXMUX", "F")
+                        .attr("XUSED", "0")
+                        .attr("BXINV", "BX")
+                        .pin("X")
+                        .pin("BX")
+                        .pin("SLICEWE1")
+                        .test_bel_attr_bits(attr)
+                        .attr(aname, "0")
+                        .commit();
                 }
-                Mode::Virtex4 => {
-                    for (pinused, pinused_f, pinused_g) in [
-                        ("SLICEWE0USED", "SLICEWE0USED.F", "SLICEWE0USED.G"),
-                        ("SLICEWE1USED", "SLICEWE1USED.F", "SLICEWE1USED.G"),
-                    ] {
-                        bctx.mode(bk_m)
-                            .attr("F", "#RAM:0")
-                            .attr("G", "")
-                            .attr("XUSED", "0")
-                            .attr("BXINV", "BX_B")
-                            .pin("X")
-                            .pin("BX")
-                            .pin("SLICEWE1")
-                            .test_manual(pinused_f, "0")
-                            .attr(pinused, "0")
-                            .commit();
-                        bctx.mode(bk_m)
-                            .attr("F", "")
-                            .attr("G", "#RAM:0")
-                            .attr("YUSED", "0")
-                            .attr("BXINV", "BX_B")
-                            .pin("Y")
-                            .pin("BX")
-                            .pin("SLICEWE1")
-                            .test_manual(pinused_g, "0")
-                            .attr(pinused, "0")
-                            .commit();
-                    }
-                }
+                bctx.mode(bk_m)
+                    .null_bits()
+                    .attr("BYINV", "BY")
+                    .attr("BYINVOUTUSED", "")
+                    .pin("BY")
+                    .pin("BYOUT")
+                    .test_bel_special(specials::SLICE_BYOUTUSED)
+                    .attr("BYOUTUSED", "0")
+                    .commit();
+                bctx.mode(bk_m)
+                    .null_bits()
+                    .attr("BYINV", "BY")
+                    .attr("BYOUTUSED", "")
+                    .pin("BY")
+                    .pin("BYOUT")
+                    .test_bel_special(specials::SLICE_BYINVOUTUSED)
+                    .attr("BYINVOUTUSED", "0")
+                    .commit();
             }
-            bctx.mode(bk_m)
-                .attr("BYINV", if mode == Mode::Virtex4 { "BY_B" } else { "BY" })
-                .attr("BYINVOUTUSED", "")
-                .pin("BY")
-                .pin("BYOUT")
-                .test_enum("BYOUTUSED", &["0"]);
-            bctx.mode(bk_m)
-                .attr("BYINV", if mode == Mode::Virtex4 { "BY_B" } else { "BY" })
-                .attr("BYOUTUSED", "")
-                .pin("BY")
-                .pin("BYOUT")
-                .test_enum("BYINVOUTUSED", &["0"]);
         }
 
         // FF
@@ -555,7 +496,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("FFY", "")
             .attr("CEINV", "CE_B")
             .attr("FFX_INIT_ATTR", "INIT1")
-            .test_enum("FFX", &["#FF", "#LATCH"]);
+            .test_bel_attr_bool_rename("FFX", bcls::SLICE::FF_LATCH, "#FF", "#LATCH");
         bctx.mode(bk_l)
             .pin("BY")
             .pin("YQ")
@@ -563,437 +504,218 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("FFX", "")
             .attr("CEINV", "CE_B")
             .attr("FFY_INIT_ATTR", "INIT1")
-            .test_enum("FFY", &["#FF", "#LATCH"]);
+            .test_bel_attr_bool_rename("FFY", bcls::SLICE::FF_LATCH, "#FF", "#LATCH");
         bctx.mode(bk_l)
             .pin("XQ")
             .attr("FFX", "#FF")
-            .test_enum("SYNC_ATTR", &["SYNC", "ASYNC"]);
+            .test_bel_attr_bool_rename("SYNC_ATTR", bcls::SLICE::FF_SR_SYNC, "ASYNC", "SYNC");
         bctx.mode(bk_l)
             .pin("XQ")
             .attr("FFX_INIT_ATTR", "INIT1")
             .attr("FFX", "#FF")
-            .test_enum("FFX_SR_ATTR", &["SRLOW", "SRHIGH"]);
+            .test_bel_attr_bool_rename("FFX_SR_ATTR", bcls::SLICE::FFX_SRVAL, "SRLOW", "SRHIGH");
         bctx.mode(bk_l)
             .pin("YQ")
             .attr("FFY_INIT_ATTR", "INIT1")
             .attr("FFY", "#FF")
-            .test_enum("FFY_SR_ATTR", &["SRLOW", "SRHIGH"]);
+            .test_bel_attr_bool_rename("FFY_SR_ATTR", bcls::SLICE::FFY_SRVAL, "SRLOW", "SRHIGH");
         bctx.mode(bk_l)
             .pin("XQ")
             .attr("FFX", "#FF")
-            .test_enum("FFX_INIT_ATTR", &["INIT0", "INIT1"]);
+            .test_bel_attr_bool_rename("FFX_INIT_ATTR", bcls::SLICE::FFX_INIT, "INIT0", "INIT1");
         bctx.mode(bk_l)
             .pin("YQ")
             .attr("FFY", "#FF")
-            .test_enum("FFY_INIT_ATTR", &["INIT0", "INIT1"]);
+            .test_bel_attr_bool_rename("FFY_INIT_ATTR", bcls::SLICE::FFY_INIT, "INIT0", "INIT1");
         bctx.mode(bk_l)
             .attr("FFX", "#FF")
-            .attr("BYINV", if mode == Mode::Virtex4 { "BY_B" } else { "BY" })
+            .attr("BYINV", "BY")
             .pin("XQ")
             .pin("BY")
-            .test_enum("REVUSED", &["0"]);
+            .test_bel_attr_bits(bcls::SLICE::FF_REV_ENABLE)
+            .attr("REVUSED", "0")
+            .commit();
     }
-    if mode == Mode::Spartan3 {
-        let ExpandedDevice::Virtex2(edev) = backend.edev else {
-            unreachable!()
-        };
-        let mut ctx = FuzzCtx::new(
+    if !edev.chip.kind.is_virtex2() {
+        let mut ctx = FuzzCtx::new_id(
             session,
             backend,
-            if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
-                "RANDOR_FC"
+            if edev.chip.kind == ChipKind::FpgaCore {
+                tcls_s3::RANDOR_FC
             } else {
-                "RANDOR"
+                tcls_s3::RANDOR
             },
         );
-        let mut bctx = ctx.bel(bslots_v2::RANDOR);
-        bctx.mode("RESERVED_ANDOR")
-            .pin("O")
-            .prop(RandorInit)
-            .test_enum("ANDORMUX", &["0", "1"]);
+        let mut bctx = ctx.bel(bslots::RANDOR);
+        for (val, vname) in [
+            (enums::RANDOR_MODE::AND, "1"),
+            (enums::RANDOR_MODE::OR, "0"),
+        ] {
+            bctx.mode("RESERVED_ANDOR")
+                .pin("O")
+                .prop(RandorInit)
+                .test_bel_attr_val(bcls::RANDOR::MODE, val)
+                .attr("ANDORMUX", vname)
+                .commit();
+        }
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let mode = match ctx.edev {
-        ExpandedDevice::Virtex2(edev) => {
-            if edev.chip.kind.is_virtex2() {
-                Mode::Virtex2
-            } else {
-                Mode::Spartan3
-            }
-        }
-        ExpandedDevice::Virtex4(_) => Mode::Virtex4,
-        _ => unreachable!(),
+    let ExpandedDevice::Virtex2(edev) = ctx.edev else {
+        unreachable!()
     };
 
-    let tcid = ctx.edev.db.get_tile_class("CLB");
-    for (idx, bel) in ["SLICE[0]", "SLICE[1]", "SLICE[2]", "SLICE[3]"]
-        .into_iter()
-        .enumerate()
-    {
-        let bslot = ctx.edev.db.bel_slots.get(bel).unwrap().0;
-        ctx.collect_bitvec_legacy("CLB", bel, "F", "#LUT");
-        ctx.collect_bitvec_legacy("CLB", bel, "G", "#LUT");
-
-        // carry
-        ctx.collect_enum_legacy("CLB", bel, "CYINIT", &["CIN", "BX"]);
-        if mode != Mode::Virtex4 {
-            ctx.collect_enum_legacy("CLB", bel, "CYSELF", &["F", "1"]);
-            ctx.collect_enum_legacy("CLB", bel, "CYSELG", &["G", "1"]);
-            ctx.collect_enum_legacy("CLB", bel, "CY0F", &["BX", "F2", "F1", "0", "1", "PROD"]);
-            ctx.collect_enum_legacy("CLB", bel, "CY0G", &["BY", "G2", "G1", "0", "1", "PROD"]);
-        } else {
-            ctx.collect_enum_legacy("CLB", bel, "CY0F", &["1", "0", "PROD", "F2", "F3", "BX"]);
-            ctx.collect_enum_legacy("CLB", bel, "CY0G", &["1", "0", "PROD", "G2", "G3", "BY"]);
-        }
+    let tcid = if edev.chip.kind.is_virtex2() {
+        tcls_v2::CLB
+    } else {
+        tcls_s3::CLB
+    };
+    for (idx, bslot) in bslots::SLICE.into_iter().enumerate() {
+        ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::F);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::G);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::CYINIT);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::CYSELF);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::CYSELG);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::CY0F);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::CY0G);
 
         // LUT RAM
-        let is_m = mode == Mode::Virtex2 || matches!(idx, 0 | 2);
+        let is_m = edev.chip.kind.is_virtex2() || matches!(idx, 0 | 2);
         if is_m {
-            ctx.get_diff_legacy("CLB", bel, "F_ATTR", "DUAL_PORT")
+            ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE::F_SHIFT_ENABLE, false)
                 .assert_empty();
-            ctx.get_diff_legacy("CLB", bel, "G_ATTR", "DUAL_PORT")
+            ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE::G_SHIFT_ENABLE, false)
                 .assert_empty();
-            let f_ram = ctx.get_diff_legacy("CLB", bel, "F", "#RAM:0");
-            let g_ram = ctx.get_diff_legacy("CLB", bel, "G", "#RAM:0");
+            let f_ram = ctx.get_diff_attr_bit(tcid, bslot, bcls::SLICE::F_RAM_ENABLE, 0);
+            let g_ram = ctx.get_diff_attr_bit(tcid, bslot, bcls::SLICE::G_RAM_ENABLE, 0);
             let (f_ram, g_ram, ram) = Diff::split(f_ram, g_ram);
-            ctx.insert("CLB", bel, "FF_SR_ENABLE", xlat_bit_legacy(!ram));
-            let f_shift_d = ctx.get_diff_legacy("CLB", bel, "F_ATTR", "SHIFT_REG");
-            let g_shift_d = ctx.get_diff_legacy("CLB", bel, "G_ATTR", "SHIFT_REG");
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::SLICE::FF_SR_ENABLE, xlat_bit(!ram));
+            let f_shift_d = ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE::F_SHIFT_ENABLE, true);
+            let g_shift_d = ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE::G_SHIFT_ENABLE, true);
             let f_shift = f_ram.combine(&f_shift_d);
             let g_shift = g_ram.combine(&g_shift_d);
-            ctx.insert("CLB", bel, "F_RAM", xlat_bit_legacy(f_ram));
-            ctx.insert("CLB", bel, "G_RAM", xlat_bit_legacy(g_ram));
-            ctx.insert("CLB", bel, "F_SHIFT", xlat_bit_legacy(f_shift));
-            ctx.insert("CLB", bel, "G_SHIFT", xlat_bit_legacy(g_shift));
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::SLICE::F_RAM_ENABLE, xlat_bit(f_ram));
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::SLICE::G_RAM_ENABLE, xlat_bit(g_ram));
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::SLICE::F_SHIFT_ENABLE, xlat_bit(f_shift));
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::SLICE::G_SHIFT_ENABLE, xlat_bit(g_shift));
 
-            let dif_bx = ctx.get_diff_legacy("CLB", bel, "DIF_MUX", "BX");
-            let dif_alt = ctx.get_diff_legacy("CLB", bel, "DIF_MUX", "ALTDIF");
-            assert_eq!(
-                dif_alt,
-                ctx.get_diff_legacy("CLB", bel, "DIF_MUX", "SHIFTIN")
-            );
-            ctx.insert(
-                "CLB",
-                bel,
-                "DIF_MUX",
-                xlat_enum_legacy(vec![("BX", dif_bx), ("ALT", dif_alt)]),
-            );
+            ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::DIF_MUX);
+            ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::DIG_MUX);
 
-            let dig_by = ctx.get_diff_legacy("CLB", bel, "DIG_MUX", "BY");
-            let dig_alt = ctx.get_diff_legacy("CLB", bel, "DIG_MUX", "ALTDIG");
-            assert_eq!(
-                dig_alt,
-                ctx.get_diff_legacy("CLB", bel, "DIG_MUX", "SHIFTIN")
-            );
-            ctx.insert(
-                "CLB",
-                bel,
-                "DIG_MUX",
-                xlat_enum_legacy(vec![("BY", dig_by), ("ALT", dig_alt)]),
-            );
-
-            match mode {
-                Mode::Virtex2 => {
-                    ctx.get_diff_legacy("CLB", bel, "BXOUTUSED", "0")
-                        .assert_empty();
-                    ctx.get_diff_legacy("CLB", bel, "SLICEWE1USED", "0")
-                        .assert_empty();
-                    ctx.get_diff_legacy("CLB", bel, "SLICEWE2USED", "0")
-                        .assert_empty();
-                    let slicewe0used = ctx.get_diff_legacy("CLB", bel, "SLICEWE0USED", "0");
-                    let byoutused = ctx.get_diff_legacy("CLB", bel, "BYOUTUSED", "0");
-                    assert_eq!(
-                        byoutused,
-                        ctx.get_diff_legacy("CLB", bel, "BYINVOUTUSED", "0")
-                    );
-                    // TODO should these have better names?
-                    ctx.insert("CLB", bel, "SLICEWE0USED", xlat_bit_legacy(slicewe0used));
-                    ctx.insert("CLB", bel, "BYOUTUSED", xlat_bit_legacy(byoutused));
-                }
-                Mode::Spartan3 => {
-                    ctx.get_diff_legacy("CLB", bel, "BYOUTUSED", "0")
-                        .assert_empty();
-                    ctx.get_diff_legacy("CLB", bel, "BYINVOUTUSED", "0")
-                        .assert_empty();
-                    let slicewe0used = ctx.get_diff_legacy("CLB", bel, "SLICEWE0USED", "0");
-                    let slicewe1used = ctx.get_diff_legacy("CLB", bel, "SLICEWE1USED", "0");
-                    ctx.insert("CLB", bel, "SLICEWE0USED", xlat_bit_legacy(slicewe0used));
-                    if idx == 0 {
-                        ctx.insert("CLB", bel, "SLICEWE1USED", xlat_bit_legacy(slicewe1used));
-                    } else {
-                        slicewe1used.assert_empty();
-                    }
-                }
-                Mode::Virtex4 => {
-                    ctx.get_diff_legacy("CLB", bel, "BYOUTUSED", "0")
-                        .assert_empty();
-                    ctx.get_diff_legacy("CLB", bel, "BYINVOUTUSED", "0")
-                        .assert_empty();
-                    let f_slicewe0used = ctx.get_diff_legacy("CLB", bel, "SLICEWE0USED.F", "0");
-                    let f_slicewe1used = ctx.get_diff_legacy("CLB", bel, "SLICEWE1USED.F", "0");
-                    let g_slicewe0used = ctx.get_diff_legacy("CLB", bel, "SLICEWE0USED.G", "0");
-                    let g_slicewe1used = ctx.get_diff_legacy("CLB", bel, "SLICEWE1USED.G", "0");
-                    ctx.insert(
-                        "CLB",
-                        bel,
-                        "F_SLICEWE0USED",
-                        xlat_bit_legacy(f_slicewe0used),
-                    );
-                    ctx.insert(
-                        "CLB",
-                        bel,
-                        "F_SLICEWE1USED",
-                        xlat_bit_legacy(f_slicewe1used),
-                    );
-                    ctx.insert(
-                        "CLB",
-                        bel,
-                        "G_SLICEWE0USED",
-                        xlat_bit_legacy(g_slicewe0used),
-                    );
-                    ctx.insert(
-                        "CLB",
-                        bel,
-                        "G_SLICEWE1USED",
-                        xlat_bit_legacy(g_slicewe1used),
-                    );
+            ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::SLICEWE0USED);
+            if edev.chip.kind.is_virtex2() {
+                ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::BYOUTUSED);
+            } else {
+                if idx == 0 {
+                    ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::SLICEWE1USED);
+                } else {
+                    let slicewe1used =
+                        ctx.get_diff_attr_bit(tcid, bslot, bcls::SLICE::SLICEWE1USED, 0);
+                    slicewe1used.assert_empty();
                 }
             }
         }
 
         // muxes
-        match mode {
-            Mode::Virtex2 => {
-                ctx.collect_enum_legacy("CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
-                let gymux_g = ctx.get_diff_legacy("CLB", bel, "GYMUX", "G");
-                let gymux_fx = ctx.get_diff_legacy("CLB", bel, "GYMUX", "FX");
-                let gymux_gxor = ctx.get_diff_legacy("CLB", bel, "GYMUX", "GXOR");
-                let gymux_sopout = ctx.get_diff_legacy("CLB", bel, "GYMUX", "SOPEXT");
-                ctx.insert(
-                    "CLB",
-                    bel,
-                    "GYMUX",
-                    xlat_enum_legacy(vec![
-                        ("G", gymux_g),
-                        ("FX", gymux_fx),
-                        ("SOPOUT", gymux_sopout),
-                        ("GXOR", gymux_gxor),
-                    ]),
-                );
-                ctx.collect_enum_legacy("CLB", bel, "SOPEXTSEL", &["SOPIN", "0"]);
-            }
-            Mode::Spartan3 => {
-                ctx.collect_enum_legacy("CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
-                ctx.collect_enum_legacy("CLB", bel, "GYMUX", &["G", "FX", "GXOR"]);
-            }
-            Mode::Virtex4 => {
-                ctx.collect_enum_legacy("CLB", bel, "FXMUX", &["F5", "FXOR"]);
-                ctx.collect_enum_legacy("CLB", bel, "GYMUX", &["FX", "GXOR"]);
-            }
-        }
-        if mode != Mode::Virtex4 {
-            let dx_bx = ctx.get_diff_legacy("CLB", bel, "DXMUX", "0");
-            let dx_x = ctx.get_diff_legacy("CLB", bel, "DXMUX", "1");
-            ctx.insert(
-                "CLB",
-                bel,
-                "DXMUX",
-                xlat_enum_legacy(vec![("BX", dx_bx), ("X", dx_x)]),
-            );
-            let dy_by = ctx.get_diff_legacy("CLB", bel, "DYMUX", "0");
-            let dy_y = ctx.get_diff_legacy("CLB", bel, "DYMUX", "1");
-            ctx.insert(
-                "CLB",
-                bel,
-                "DYMUX",
-                xlat_enum_legacy(vec![("BY", dy_by), ("Y", dy_y)]),
-            );
+        if edev.chip.kind.is_virtex2() {
+            ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::FXMUX);
+            ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::GYMUX);
+            ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::SOPEXTSEL);
         } else {
-            let dxmux_bx = ctx.get_diff_legacy("CLB", bel, "DXMUX.F5", "BX");
-            let dxmux_x = ctx.get_diff_legacy("CLB", bel, "DXMUX.F5", "X");
-            let dxmux_xb = ctx.get_diff_legacy("CLB", bel, "DXMUX.F5", "XB");
-            let dxmux_f5 = ctx.get_diff_legacy("CLB", bel, "DXMUX.F5", "XMUX");
-            assert_eq!(
-                dxmux_bx,
-                ctx.get_diff_legacy("CLB", bel, "DXMUX.FXOR", "BX")
-            );
-            assert_eq!(dxmux_x, ctx.get_diff_legacy("CLB", bel, "DXMUX.FXOR", "X"));
-            assert_eq!(
-                dxmux_xb,
-                ctx.get_diff_legacy("CLB", bel, "DXMUX.FXOR", "XB")
-            );
-            let dxmux_fxor = ctx.get_diff_legacy("CLB", bel, "DXMUX.FXOR", "XMUX");
-            ctx.insert(
-                "CLB",
-                bel,
-                "DXMUX",
-                xlat_enum_legacy(vec![
-                    ("X", dxmux_x),
-                    ("F5", dxmux_f5),
-                    ("XB", dxmux_xb),
-                    ("FXOR", dxmux_fxor),
-                    ("BX", dxmux_bx),
-                ]),
-            );
-
-            let dymux_by = ctx.get_diff_legacy("CLB", bel, "DYMUX.FX", "BY");
-            let dymux_y = ctx.get_diff_legacy("CLB", bel, "DYMUX.FX", "Y");
-            let dymux_yb = ctx.get_diff_legacy("CLB", bel, "DYMUX.FX", "YB");
-            let dymux_fx = ctx.get_diff_legacy("CLB", bel, "DYMUX.FX", "YMUX");
-            assert_eq!(
-                dymux_by,
-                ctx.get_diff_legacy("CLB", bel, "DYMUX.GXOR", "BY")
-            );
-            assert_eq!(dymux_y, ctx.get_diff_legacy("CLB", bel, "DYMUX.GXOR", "Y"));
-            assert_eq!(
-                dymux_yb,
-                ctx.get_diff_legacy("CLB", bel, "DYMUX.GXOR", "YB")
-            );
-            let dymux_gxor = ctx.get_diff_legacy("CLB", bel, "DYMUX.GXOR", "YMUX");
-            ctx.insert(
-                "CLB",
-                bel,
-                "DYMUX",
-                xlat_enum_legacy(vec![
-                    ("Y", dymux_y),
-                    ("FX", dymux_fx),
-                    ("YB", dymux_yb),
-                    ("GXOR", dymux_gxor),
-                    ("BY", dymux_by),
-                ]),
+            ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::FXMUX);
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                bcls::SLICE::GYMUX,
+                &[
+                    enums::SLICE_GYMUX::G,
+                    enums::SLICE_GYMUX::FX,
+                    enums::SLICE_GYMUX::GXOR,
+                ],
             );
         }
+        ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::DXMUX);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::DYMUX);
         if is_m {
-            let xbmux_shiftout = ctx.get_diff_legacy("CLB", bel, "XBMUX", "0");
-            let xbmux_cout = ctx.get_diff_legacy("CLB", bel, "XBMUX", "1");
-            ctx.insert(
-                "CLB",
-                bel,
-                "XBMUX",
-                xlat_enum_legacy(vec![("FMC15", xbmux_shiftout), ("FCY", xbmux_cout)]),
-            );
-
-            let ybmux_shiftout = ctx.get_diff_legacy("CLB", bel, "YBMUX", "0");
-            let ybmux_cout = ctx.get_diff_legacy("CLB", bel, "YBMUX", "1");
-            ctx.insert(
-                "CLB",
-                bel,
-                "YBMUX",
-                xlat_enum_legacy(vec![("GMC15", ybmux_shiftout), ("GCY", ybmux_cout)]),
-            );
+            ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::XBMUX);
+            ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::YBMUX);
         }
 
         // FFs
-        let item = ctx.extract_bit_bi_legacy("CLB", bel, "SYNC_ATTR", "ASYNC", "SYNC");
-        ctx.insert("CLB", bel, "FF_SR_SYNC", item);
-
-        let ff_latch = ctx.get_diff_legacy("CLB", bel, "FFX", "#LATCH");
-        assert_eq!(ff_latch, ctx.get_diff_legacy("CLB", bel, "FFY", "#LATCH"));
-        ctx.get_diff_legacy("CLB", bel, "FFX", "#FF").assert_empty();
-        ctx.get_diff_legacy("CLB", bel, "FFY", "#FF").assert_empty();
-        ctx.insert("CLB", bel, "FF_LATCH", xlat_bit_legacy(ff_latch));
-
-        let item = ctx.extract_bit_legacy("CLB", bel, "REVUSED", "0");
-        ctx.insert("CLB", bel, "FF_REV_ENABLE", item);
-
-        let item = ctx.extract_bit_bi_legacy("CLB", bel, "FFX_SR_ATTR", "SRLOW", "SRHIGH");
-        ctx.insert("CLB", bel, "FFX_SRVAL", item);
-        let item = ctx.extract_bit_bi_legacy("CLB", bel, "FFY_SR_ATTR", "SRLOW", "SRHIGH");
-        ctx.insert("CLB", bel, "FFY_SRVAL", item);
-
-        let item = ctx.extract_bit_bi_legacy("CLB", bel, "FFX_INIT_ATTR", "INIT0", "INIT1");
-        ctx.insert("CLB", bel, "FFX_INIT", item);
-        let item = ctx.extract_bit_bi_legacy("CLB", bel, "FFY_INIT_ATTR", "INIT0", "INIT1");
-        ctx.insert("CLB", bel, "FFY_INIT", item);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FF_SR_SYNC);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FF_LATCH);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::FF_REV_ENABLE);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FFX_SRVAL);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FFY_SRVAL);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FFX_INIT);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FFY_INIT);
 
         // inverts
-        let int = if mode == Mode::Virtex4 {
-            prjcombine_virtex4::defs::virtex4::tcls::INT
-        } else if let ExpandedDevice::Virtex2(edev) = ctx.edev {
-            if edev.chip.kind.is_virtex2() {
-                tcls_v2::INT_CLB
-            } else if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
-                tcls_s3::INT_CLB_FC
-            } else {
-                tcls_s3::INT_CLB
-            }
-        } else {
-            unreachable!()
-        };
-        ctx.collect_int_inv_legacy(&[int], tcid, bslot, "CLK", false);
-        ctx.collect_int_inv_legacy(&[int], tcid, bslot, "SR", false);
-        ctx.collect_int_inv_legacy(&[int], tcid, bslot, "CE", false);
-        ctx.collect_inv("CLB", bel, "BX");
-        ctx.collect_inv("CLB", bel, "BY");
-    }
-    if mode == Mode::Spartan3 {
-        let ExpandedDevice::Virtex2(edev) = ctx.edev else {
-            unreachable!()
-        };
-        let tile = if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
-            "RANDOR_FC"
-        } else {
-            "RANDOR"
-        };
-        let bel = "RANDOR";
-        if edev.chip.kind.is_spartan3a()
-            || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore
-        {
-            ctx.get_diff_legacy(tile, bel, "ANDORMUX", "0")
-                .assert_empty();
-            ctx.get_diff_legacy(tile, bel, "ANDORMUX", "1")
-                .assert_empty();
-        } else {
-            let item = xlat_enum_legacy(vec![
-                ("OR", ctx.get_diff_legacy(tile, bel, "ANDORMUX", "0")),
-                ("AND", ctx.get_diff_legacy(tile, bel, "ANDORMUX", "1")),
-            ]);
-            ctx.insert(tile, bel, "MODE", item);
-        }
-        let tile = if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
-            "RANDOR_INIT_FC"
-        } else {
-            "RANDOR_INIT"
-        };
-        let bel = "RANDOR_INIT";
-        let item = xlat_enum_legacy(vec![
-            ("OR", ctx.get_diff_legacy(tile, bel, "ANDORMUX", "0")),
-            ("AND", ctx.get_diff_legacy(tile, bel, "ANDORMUX", "1")),
-        ]);
-        ctx.insert(tile, bel, "MODE", item);
-    }
-    if let ExpandedDevice::Virtex2(edev) = ctx.edev {
-        let int_clb = if edev.chip.kind.is_virtex2() {
+        let int = if edev.chip.kind.is_virtex2() {
             tcls_v2::INT_CLB
-        } else if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
+        } else if edev.chip.kind == ChipKind::FpgaCore {
             tcls_s3::INT_CLB_FC
         } else {
             tcls_s3::INT_CLB
         };
-        for (tcid, _, tcls) in &ctx.edev.db.tile_classes {
-            if tcid == int_clb {
-                continue;
-            }
-            if !ctx.has_tile_id(tcid) {
-                continue;
-            }
-            if !tcls.bels.contains_id(bslots_v2::INT) {
-                continue;
-            }
-            let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots_v2::INT] else {
+        ctx.collect_bel_input_inv_int_bi(&[int], tcid, bslot, bcls::SLICE::CLK);
+        ctx.collect_bel_input_inv_int_bi(&[int], tcid, bslot, bcls::SLICE::SR);
+        ctx.collect_bel_input_inv_int_bi(&[int], tcid, bslot, bcls::SLICE::CE);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::SLICE::BX);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::SLICE::BY);
+    }
+    if !edev.chip.kind.is_virtex2() {
+        let tcid = if edev.chip.kind == ChipKind::FpgaCore {
+            tcls_s3::RANDOR_FC
+        } else {
+            tcls_s3::RANDOR
+        };
+        let bslot = bslots::RANDOR;
+        if edev.chip.kind.is_spartan3a() || edev.chip.kind == ChipKind::FpgaCore {
+            ctx.get_diff_attr_val(tcid, bslot, bcls::RANDOR::MODE, enums::RANDOR_MODE::AND)
+                .assert_empty();
+            ctx.get_diff_attr_val(tcid, bslot, bcls::RANDOR::MODE, enums::RANDOR_MODE::OR)
+                .assert_empty();
+        } else {
+            ctx.collect_bel_attr(tcid, bslot, bcls::RANDOR::MODE);
+        }
+        let tcid = if edev.chip.kind == ChipKind::FpgaCore {
+            tcls_s3::RANDOR_INIT_FC
+        } else {
+            tcls_s3::RANDOR_INIT
+        };
+        let bslot = bslots::RANDOR_INIT;
+        ctx.collect_bel_attr(tcid, bslot, bcls::RANDOR_INIT::MODE);
+    }
+    let int_clb = if edev.chip.kind.is_virtex2() {
+        tcls_v2::INT_CLB
+    } else if edev.chip.kind == ChipKind::FpgaCore {
+        tcls_s3::INT_CLB_FC
+    } else {
+        tcls_s3::INT_CLB
+    };
+    for (tcid, _, tcls) in &ctx.edev.db.tile_classes {
+        if tcid == int_clb {
+            continue;
+        }
+        if !ctx.has_tile_id(tcid) {
+            continue;
+        }
+        if !tcls.bels.contains_id(bslots::INT) {
+            continue;
+        }
+        let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots::INT] else {
+            continue;
+        };
+        for item in &sb.items {
+            let SwitchBoxItem::ProgInv(inv) = item else {
                 continue;
             };
-            for item in &sb.items {
-                let SwitchBoxItem::ProgInv(inv) = item else {
-                    continue;
-                };
-                let Some(&bit) = ctx.data.sb_inv.get(&(int_clb, inv.dst)) else {
-                    continue;
-                };
-                ctx.insert_inv(tcid, inv.dst, bit);
-            }
+            let Some(&bit) = ctx.data.sb_inv.get(&(int_clb, inv.dst)) else {
+                continue;
+            };
+            ctx.insert_inv(tcid, inv.dst, bit);
         }
     }
 }

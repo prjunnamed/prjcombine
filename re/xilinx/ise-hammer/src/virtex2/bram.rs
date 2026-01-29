@@ -1,23 +1,23 @@
 use prjcombine_entity::EntityId;
-use prjcombine_re_collector::{
-    diff::{Diff, xlat_bit},
-    legacy::{
-        extract_bitvec_val_legacy, extract_bitvec_val_part_legacy, xlat_bit_legacy,
-        xlat_bitvec_legacy, xlat_enum_legacy,
-    },
+use prjcombine_re_collector::diff::{
+    Diff, SpecialId, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide_bi,
+    xlat_bitvec, xlat_enum_attr,
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bits;
 use prjcombine_virtex2::{
-    chip::ChipKind, defs, defs::bslots, defs::spartan3::tcls as tcls_s3,
-    defs::virtex2::tcls as tcls_v2,
+    chip::ChipKind,
+    defs::{
+        self, bcls, bslots, devdata, enums, spartan3::tcls as tcls_s3, virtex2::tcls as tcls_v2,
+    },
 };
 
 use crate::{
-    backend::IseBackend,
+    backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
     generic::fbuild::{FuzzBuilderBase, FuzzBuilderBel, FuzzCtx},
+    virtex2::specials,
 };
 
 pub fn add_fuzzers<'a>(
@@ -25,11 +25,11 @@ pub fn add_fuzzers<'a>(
     backend: &'a IseBackend<'a>,
     devdata_only: bool,
 ) {
-    let grid_kind = match backend.edev {
+    let chip_kind = match backend.edev {
         ExpandedDevice::Virtex2(edev) => edev.chip.kind,
         _ => unreachable!(),
     };
-    let tcid = match grid_kind {
+    let tcid = match chip_kind {
         ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => tcls_v2::BRAM,
         ChipKind::Spartan3 => tcls_s3::BRAM_S3,
         ChipKind::FpgaCore => unreachable!(),
@@ -39,16 +39,16 @@ pub fn add_fuzzers<'a>(
     };
     let mut ctx = FuzzCtx::new_id(session, backend, tcid);
     let mut bctx = ctx.bel(defs::bslots::BRAM);
-    let mode = match grid_kind {
+    let mode = match chip_kind {
         ChipKind::Spartan3ADsp => "RAMB16BWER",
         ChipKind::Spartan3A => "RAMB16BWE",
         _ => "RAMB16",
     };
-    let test_present = |builder: FuzzBuilderBel, val: &str| match grid_kind {
+    let test_present = |builder: FuzzBuilderBel, spec: SpecialId| match chip_kind {
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
             builder
-                .global_mutex("BRAM_OPTS", val)
-                .test_manual("PRESENT", val)
+                .global_mutex("BRAM_OPTS", spec)
+                .test_bel_special(spec)
                 .mode(mode)
                 .attr("DATA_WIDTH_A", "36")
                 .attr("DATA_WIDTH_B", "36")
@@ -60,8 +60,8 @@ pub fn add_fuzzers<'a>(
         }
         _ => {
             builder
-                .global_mutex("BRAM_OPTS", val)
-                .test_manual("PRESENT", val)
+                .global_mutex("BRAM_OPTS", spec)
+                .test_bel_special(spec)
                 .mode(mode)
                 .attr("PORTA_ATTR", "512X36")
                 .attr("PORTB_ATTR", "512X36")
@@ -73,8 +73,8 @@ pub fn add_fuzzers<'a>(
         }
     };
     if devdata_only {
-        if !grid_kind.is_virtex2() {
-            test_present(bctx.build(), "BASE");
+        if !chip_kind.is_virtex2() {
+            test_present(bctx.build(), specials::PRESENT);
             test_present(
                 bctx.build()
                     .global("Ibram_ddel0", "0")
@@ -82,218 +82,302 @@ pub fn add_fuzzers<'a>(
                     .global("Ibram_wdel0", "0")
                     .global("Ibram_wdel1", "0")
                     .global("Ibram_wdel2", "0"),
-                "ALL_0",
+                specials::BRAM_PRESENT_ALL_0,
             );
         }
         return;
     }
-    match grid_kind {
+    match chip_kind {
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
             for pin in [
-                "CLKA", "CLKB", "ENA", "ENB", "WEA0", "WEA1", "WEA2", "WEA3", "WEB0", "WEB1",
-                "WEB2", "WEB3",
-            ] {
+                bcls::BRAM::CLKA,
+                bcls::BRAM::CLKB,
+                bcls::BRAM::ENA,
+                bcls::BRAM::ENB,
+            ]
+            .into_iter()
+            .chain(bcls::BRAM::WEA)
+            .chain(bcls::BRAM::WEB)
+            {
                 bctx.mode(mode)
                     .attr("DATA_WIDTH_A", "36")
                     .attr("DATA_WIDTH_B", "36")
-                    .test_inv(pin);
+                    .test_bel_input_inv_auto(pin);
             }
-            if grid_kind == ChipKind::Spartan3ADsp {
-                for pin in ["RSTA", "RSTB", "REGCEA", "REGCEB"] {
+            if chip_kind == ChipKind::Spartan3ADsp {
+                for pin in [
+                    bcls::BRAM::RSTA,
+                    bcls::BRAM::RSTB,
+                    bcls::BRAM::REGCEA,
+                    bcls::BRAM::REGCEB,
+                ] {
                     bctx.mode(mode)
                         .attr("DATA_WIDTH_A", "36")
                         .attr("DATA_WIDTH_B", "36")
-                        .test_inv(pin);
+                        .test_bel_input_inv_auto(pin);
                 }
             } else {
-                for pin in ["SSRA", "SSRB"] {
+                for (pin, pname) in [(bcls::BRAM::RSTA, "SSRA"), (bcls::BRAM::RSTB, "SSRB")] {
                     bctx.mode(mode)
                         .attr("DATA_WIDTH_A", "36")
                         .attr("DATA_WIDTH_B", "36")
-                        .test_inv(pin);
+                        .pin(pname)
+                        .test_bel_input_inv_enum(
+                            format!("{pname}INV"),
+                            pin,
+                            pname,
+                            format!("{pname}_B"),
+                        );
                 }
             }
-            for attr in ["DATA_WIDTH_A", "DATA_WIDTH_B"] {
+            for attr in [bcls::BRAM::DATA_WIDTH_A, bcls::BRAM::DATA_WIDTH_B] {
                 bctx.mode(mode)
                     .attr("INIT_A", "0")
                     .attr("INIT_B", "0")
                     .attr("SRVAL_A", "0")
                     .attr("SRVAL_B", "0")
-                    .test_enum(attr, &["0", "1", "2", "4", "9", "18", "36"]);
+                    .test_bel_attr(attr);
+                let aname = backend.edev.db.bel_classes[bcls::BRAM].attributes.key(attr);
+                bctx.mode(mode)
+                    .null_bits()
+                    .attr("INIT_A", "0")
+                    .attr("INIT_B", "0")
+                    .attr("SRVAL_A", "0")
+                    .attr("SRVAL_B", "0")
+                    .test_bel_attr_special(attr, specials::BRAM_DATA_WIDTH_0)
+                    .attr(aname, "0")
+                    .commit();
             }
-            for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
+            for attr in [bcls::BRAM::WRITE_MODE_A, bcls::BRAM::WRITE_MODE_B] {
                 bctx.mode(mode)
                     .attr("DATA_WIDTH_A", "36")
                     .attr("DATA_WIDTH_B", "36")
-                    .test_enum(attr, &["NO_CHANGE", "READ_FIRST", "WRITE_FIRST"]);
+                    .test_bel_attr(attr);
             }
-            if grid_kind == ChipKind::Spartan3ADsp {
-                bctx.mode(mode).test_enum("RSTTYPE", &["SYNC", "ASYNC"]);
-                bctx.mode(mode).test_enum("DOA_REG", &["0", "1"]);
-                bctx.mode(mode).test_enum("DOB_REG", &["0", "1"]);
+            if chip_kind == ChipKind::Spartan3ADsp {
+                bctx.mode(mode)
+                    .test_bel_attr_rename("RSTTYPE", bcls::BRAM::RSTTYPE_A);
+                bctx.mode(mode)
+                    .test_bel_attr_bool(bcls::BRAM::DOA_REG, "0", "1");
+                bctx.mode(mode)
+                    .test_bel_attr_bool(bcls::BRAM::DOB_REG, "0", "1");
             }
-            for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
+            for attr in [
+                bcls::BRAM::INIT_A,
+                bcls::BRAM::INIT_B,
+                bcls::BRAM::SRVAL_A,
+                bcls::BRAM::SRVAL_B,
+            ] {
                 bctx.mode(mode)
                     .attr("DATA_WIDTH_A", "36")
                     .attr("DATA_WIDTH_B", "36")
-                    .test_multi_attr_hex(attr, 36);
+                    .test_bel_attr_multi(attr, MultiValue::Hex(0));
             }
             for i in 0..0x40 {
                 let attr = format!("INIT_{i:02X}");
                 bctx.mode(mode)
                     .attr("DATA_WIDTH_A", "36")
                     .attr("DATA_WIDTH_B", "36")
-                    .test_multi_attr_hex(attr, 256);
+                    .test_bel_attr_bits_base(bcls::BRAM::DATA, i * 0x100)
+                    .multi_attr(attr, MultiValue::Hex(0), 0x100);
             }
             for i in 0..0x8 {
                 let attr = format!("INITP_{i:02X}");
                 bctx.mode(mode)
                     .attr("DATA_WIDTH_A", "36")
                     .attr("DATA_WIDTH_B", "36")
-                    .test_multi_attr_hex(attr, 256);
+                    .test_bel_attr_bits_base(bcls::BRAM::DATAP, i * 0x100)
+                    .multi_attr(attr, MultiValue::Hex(0), 0x100);
             }
         }
         _ => {
-            for pin in ["CLKA", "CLKB", "SSRA", "SSRB", "WEA", "WEB", "ENA", "ENB"] {
+            for (pin, pname) in [
+                (bcls::BRAM::CLKA, "CLKA"),
+                (bcls::BRAM::CLKB, "CLKB"),
+                (bcls::BRAM::RSTA, "SSRA"),
+                (bcls::BRAM::RSTB, "SSRB"),
+                (bcls::BRAM::WEA[0], "WEA"),
+                (bcls::BRAM::WEB[0], "WEB"),
+                (bcls::BRAM::ENA, "ENA"),
+                (bcls::BRAM::ENB, "ENB"),
+            ] {
                 bctx.mode(mode)
                     .attr("PORTA_ATTR", "512X36")
                     .attr("PORTB_ATTR", "512X36")
-                    .test_inv(pin);
-            }
-            for attr in ["PORTA_ATTR", "PORTB_ATTR"] {
-                bctx.mode(mode)
-                    .attr("INIT_A", "0")
-                    .attr("INIT_B", "0")
-                    .attr("SRVAL_A", "0")
-                    .attr("SRVAL_B", "0")
-                    .test_enum(
-                        attr,
-                        &["16384X1", "8192X2", "4096X4", "2048X9", "1024X18", "512X36"],
+                    .pin(pname)
+                    .test_bel_input_inv_enum(
+                        format!("{pname}INV"),
+                        pin,
+                        pname,
+                        format!("{pname}_B"),
                     );
             }
-            for attr in ["WRITEMODEA", "WRITEMODEB"] {
-                bctx.mode(mode)
-                    .attr("PORTA_ATTR", "512X36")
-                    .attr("PORTB_ATTR", "512X36")
-                    .test_enum(attr, &["NO_CHANGE", "READ_FIRST", "WRITE_FIRST"]);
+            for (attr, aname) in [
+                (bcls::BRAM::DATA_WIDTH_A, "PORTA_ATTR"),
+                (bcls::BRAM::DATA_WIDTH_B, "PORTB_ATTR"),
+            ] {
+                for (val, vname) in [
+                    (enums::BRAM_DATA_WIDTH::_1, "16384X1"),
+                    (enums::BRAM_DATA_WIDTH::_2, "8192X2"),
+                    (enums::BRAM_DATA_WIDTH::_4, "4096X4"),
+                    (enums::BRAM_DATA_WIDTH::_9, "2048X9"),
+                    (enums::BRAM_DATA_WIDTH::_18, "1024X18"),
+                    (enums::BRAM_DATA_WIDTH::_36, "512X36"),
+                ] {
+                    bctx.mode(mode)
+                        .attr("INIT_A", "0")
+                        .attr("INIT_B", "0")
+                        .attr("SRVAL_A", "0")
+                        .attr("SRVAL_B", "0")
+                        .test_bel_attr_val(attr, val)
+                        .attr(aname, vname)
+                        .commit();
+                }
             }
-            if grid_kind.is_virtex2() {
+            for (attr, aname) in [
+                (bcls::BRAM::WRITE_MODE_A, "WRITEMODEA"),
+                (bcls::BRAM::WRITE_MODE_B, "WRITEMODEB"),
+            ] {
                 bctx.mode(mode)
                     .attr("PORTA_ATTR", "512X36")
                     .attr("PORTB_ATTR", "512X36")
-                    .test_enum("SAVEDATA", &["FALSE", "TRUE"]);
+                    .test_bel_attr_rename(aname, attr);
             }
-            for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
+            if chip_kind.is_virtex2() {
                 bctx.mode(mode)
                     .attr("PORTA_ATTR", "512X36")
                     .attr("PORTB_ATTR", "512X36")
-                    .test_multi_attr_hex(attr, 36);
+                    .test_bel_attr_bool(bcls::BRAM::SAVEDATA, "FALSE", "TRUE");
+            }
+            for attr in [
+                bcls::BRAM::INIT_A,
+                bcls::BRAM::INIT_B,
+                bcls::BRAM::SRVAL_A,
+                bcls::BRAM::SRVAL_B,
+            ] {
+                bctx.mode(mode)
+                    .attr("PORTA_ATTR", "512X36")
+                    .attr("PORTB_ATTR", "512X36")
+                    .test_bel_attr_multi(attr, MultiValue::Hex(0));
             }
             for i in 0..0x40 {
                 let attr = format!("INIT_{i:02x}");
                 bctx.mode(mode)
                     .attr("PORTA_ATTR", "512X36")
                     .attr("PORTB_ATTR", "512X36")
-                    .test_multi_attr_hex(attr, 256);
+                    .test_bel_attr_bits_base(bcls::BRAM::DATA, i * 0x100)
+                    .multi_attr(attr, MultiValue::Hex(0), 0x100);
             }
             for i in 0..0x8 {
                 let attr = format!("INITP_{i:02x}");
                 bctx.mode(mode)
                     .attr("PORTA_ATTR", "512X36")
                     .attr("PORTB_ATTR", "512X36")
-                    .test_multi_attr_hex(attr, 256);
+                    .test_bel_attr_bits_base(bcls::BRAM::DATAP, i * 0x100)
+                    .multi_attr(attr, MultiValue::Hex(0), 0x100);
             }
         }
     }
-    test_present(bctx.build(), "BASE");
-    if !grid_kind.is_virtex2() {
+    test_present(bctx.build(), specials::PRESENT);
+    if !chip_kind.is_virtex2() {
         test_present(
             bctx.build()
                 .global("Ibram_ddel0", "0")
                 .global("Ibram_ddel1", "0"),
-            "DDEL_00",
+            specials::BRAM_DDEL_00,
         );
         test_present(
             bctx.build()
                 .global("Ibram_ddel0", "1")
                 .global("Ibram_ddel1", "0"),
-            "DDEL_01",
+            specials::BRAM_DDEL_01,
         );
         test_present(
             bctx.build()
                 .global("Ibram_ddel0", "0")
                 .global("Ibram_ddel1", "1"),
-            "DDEL_10",
+            specials::BRAM_DDEL_10,
         );
         test_present(
             bctx.build()
                 .global("Ibram_wdel0", "0")
                 .global("Ibram_wdel1", "0")
                 .global("Ibram_wdel2", "0"),
-            "WDEL_000",
+            specials::BRAM_WDEL_000,
         );
         test_present(
             bctx.build()
                 .global("Ibram_wdel0", "1")
                 .global("Ibram_wdel1", "0")
                 .global("Ibram_wdel2", "0"),
-            "WDEL_001",
+            specials::BRAM_WDEL_001,
         );
         test_present(
             bctx.build()
                 .global("Ibram_wdel0", "0")
                 .global("Ibram_wdel1", "1")
                 .global("Ibram_wdel2", "0"),
-            "WDEL_010",
+            specials::BRAM_WDEL_010,
         );
         test_present(
             bctx.build()
                 .global("Ibram_wdel0", "0")
                 .global("Ibram_wdel1", "0")
                 .global("Ibram_wdel2", "1"),
-            "WDEL_100",
+            specials::BRAM_WDEL_100,
         );
-        test_present(bctx.build().global("Ibram_ww_value", "0"), "WW_VALUE_0");
-        test_present(bctx.build().global("Ibram_ww_value", "1"), "WW_VALUE_1");
+        test_present(
+            bctx.build().global("Ibram_ww_value", "0"),
+            specials::BRAM_WW_VALUE_0,
+        );
+        test_present(
+            bctx.build().global("Ibram_ww_value", "1"),
+            specials::BRAM_WW_VALUE_1,
+        );
     }
-    if grid_kind != ChipKind::Spartan3ADsp {
+    if chip_kind != ChipKind::Spartan3ADsp {
         // mult
         let mut bctx = ctx.bel(defs::bslots::MULT);
-        let mode = if matches!(grid_kind, ChipKind::Spartan3E | ChipKind::Spartan3A) {
+        let mode = if matches!(chip_kind, ChipKind::Spartan3E | ChipKind::Spartan3A) {
             "MULT18X18SIO"
         } else {
             "MULT18X18"
         };
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
-        if !matches!(grid_kind, ChipKind::Spartan3E | ChipKind::Spartan3A) {
-            for pin in ["CLK", "RST", "CE"] {
-                bctx.mode(mode).test_inv(pin);
+        bctx.build()
+            .test_bel_special(specials::PRESENT)
+            .mode(mode)
+            .commit();
+        if !matches!(chip_kind, ChipKind::Spartan3E | ChipKind::Spartan3A) {
+            bctx.mode(mode).test_bel_input_inv_auto(bcls::MULT::CLK);
+            for (pin, pname) in [(bcls::MULT::RSTP, "RST"), (bcls::MULT::CEP, "CE")] {
+                bctx.mode(mode).pin(pname).test_bel_input_inv_enum(
+                    format!("{pname}INV"),
+                    pin,
+                    pname,
+                    format!("{pname}_B"),
+                );
             }
         } else {
-            for pin in ["CLK", "RSTA", "RSTB", "RSTP", "CEA", "CEB", "CEP"] {
-                bctx.mode(mode).test_inv(pin);
+            for pin in [
+                bcls::MULT::CLK,
+                bcls::MULT::RSTP,
+                bcls::MULT::CEP,
+                bcls::MULT::RSTA,
+                bcls::MULT::CEA,
+                bcls::MULT::RSTB,
+                bcls::MULT::CEB,
+            ] {
+                bctx.mode(mode).test_bel_input_inv_auto(pin);
             }
-            bctx.mode(mode).test_enum("AREG", &["0", "1"]);
-            bctx.mode(mode).test_enum("BREG", &["0", "1"]);
-            bctx.mode(mode).test_enum("PREG", &["0", "1"]);
-            bctx.mode(mode).test_enum("PREG_CLKINVERSION", &["0", "1"]);
-            bctx.mode(mode).test_enum("B_INPUT", &["DIRECT", "CASCADE"]);
-            if grid_kind == ChipKind::Spartan3A {
-                for ab in ['A', 'B'] {
-                    for i in 0..18 {
-                        let name = format!("MUX.{ab}{i}");
-                        let bram_pin = if i < 16 {
-                            format!("DO{ab}{i}")
-                        } else {
-                            format!("DOP{ab}{ii}", ii = i - 16)
-                        };
-                        let mult_pin = format!("{ab}{i}");
-                        bctx.test_manual(name, "BRAM")
-                            .pip(mult_pin, (defs::bslots::BRAM, bram_pin))
-                            .commit();
-                    }
-                }
+            for attr in [
+                bcls::MULT::AREG,
+                bcls::MULT::BREG,
+                bcls::MULT::PREG,
+                bcls::MULT::PREG_CLKINVERSION,
+            ] {
+                bctx.mode(mode).test_bel_attr_bool(attr, "0", "1");
             }
+            bctx.mode(mode).test_bel_attr(bcls::MULT::B_INPUT);
         }
     }
 }
@@ -324,337 +408,288 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ChipKind::Spartan3A => tcls_s3::BRAM_S3A,
         ChipKind::Spartan3ADsp => tcls_s3::BRAM_S3ADSP,
     };
-    let tile = ctx.edev.db.tile_classes.key(tcid);
+    let bslot = bslots::BRAM;
     fn filter_ab(diff: Diff) -> (Diff, Diff) {
-        (
-            Diff {
-                bits: diff
-                    .bits
-                    .iter()
-                    .filter(|&(&a, _)| a.rect.to_idx() < 2)
-                    .map(|(&a, &b)| (a, b))
-                    .collect(),
-            },
-            Diff {
-                bits: diff
-                    .bits
-                    .iter()
-                    .filter(|&(&a, _)| a.rect.to_idx() >= 2)
-                    .map(|(&a, &b)| (a, b))
-                    .collect(),
-            },
-        )
+        let mut a = diff;
+        let b = a.split_bits_by(|bit| bit.rect.to_idx() >= 2);
+        (a, b)
     }
     if devdata_only {
         if !chip_kind.is_virtex2() {
-            let present_base = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "BASE");
-            let all_0 = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "ALL_0");
+            let present_base = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
+            let all_0 = ctx.get_diff_bel_special(tcid, bslot, specials::BRAM_PRESENT_ALL_0);
             let mut diff = present_base.combine(&!all_0);
-            let adef = extract_bitvec_val_part_legacy(
-                ctx.item(tile, "BRAM", "DDEL_A"),
+            let adef = extract_bitvec_val_part(
+                ctx.bel_attr_bitvec(tcid, bslot, bcls::BRAM::DDEL_A),
                 &bits![0, 0],
                 &mut diff,
             );
-            ctx.insert_device_data("BRAM:DDEL_A_DEFAULT", adef);
+            ctx.insert_devdata_bitvec(devdata::BRAM_DDEL_A, adef);
             if chip_kind != ChipKind::Spartan3 {
-                let bdef = extract_bitvec_val_part_legacy(
-                    ctx.item(tile, "BRAM", "DDEL_B"),
+                let bdef = extract_bitvec_val_part(
+                    ctx.bel_attr_bitvec(tcid, bslot, bcls::BRAM::DDEL_B),
                     &bits![0, 0],
                     &mut diff,
                 );
-                ctx.insert_device_data("BRAM:DDEL_B_DEFAULT", bdef);
+                ctx.insert_devdata_bitvec(devdata::BRAM_DDEL_B, bdef);
             }
 
-            let adef = extract_bitvec_val_part_legacy(
-                ctx.item(tile, "BRAM", "WDEL_A"),
+            let adef = extract_bitvec_val_part(
+                ctx.bel_attr_bitvec(tcid, bslot, bcls::BRAM::WDEL_A),
                 &bits![0, 0, 0],
                 &mut diff,
             );
-            ctx.insert_device_data("BRAM:WDEL_A_DEFAULT", adef);
+            ctx.insert_devdata_bitvec(devdata::BRAM_WDEL_A, adef);
             if chip_kind != ChipKind::Spartan3 {
-                let bdef = extract_bitvec_val_part_legacy(
-                    ctx.item(tile, "BRAM", "WDEL_B"),
+                let bdef = extract_bitvec_val_part(
+                    ctx.bel_attr_bitvec(tcid, bslot, bcls::BRAM::WDEL_B),
                     &bits![0, 0, 0],
                     &mut diff,
                 );
-                ctx.insert_device_data("BRAM:WDEL_B_DEFAULT", bdef);
+                ctx.insert_devdata_bitvec(devdata::BRAM_WDEL_B, bdef);
             }
             diff.assert_empty();
         }
         return;
     }
-    let present_base = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "BASE");
+    let present_base = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
     let mut present = present_base.clone();
     if !chip_kind.is_virtex2() {
-        let diff_base = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "DDEL_00");
+        let diff_base = ctx.get_diff_bel_special(tcid, bslot, specials::BRAM_DDEL_00);
         let diff0 = ctx
-            .get_diff_legacy(tile, "BRAM", "PRESENT", "DDEL_01")
+            .get_diff_bel_special(tcid, bslot, specials::BRAM_DDEL_01)
             .combine(&!&diff_base);
         let diff1 = ctx
-            .get_diff_legacy(tile, "BRAM", "PRESENT", "DDEL_10")
+            .get_diff_bel_special(tcid, bslot, specials::BRAM_DDEL_10)
             .combine(&!&diff_base);
         let diff_def = present_base.combine(&!diff_base);
         let (a0, b0) = filter_ab(diff0);
         let (a1, b1) = filter_ab(diff1);
         let (adef, bdef) = filter_ab(diff_def);
-        let ddel_a = xlat_bitvec_legacy(vec![a0, a1]);
-        let adef = extract_bitvec_val_legacy(&ddel_a, &bits![0, 0], adef);
-        ctx.insert(tile, "BRAM", "DDEL_A", ddel_a);
-        ctx.insert_device_data("BRAM:DDEL_A_DEFAULT", adef);
-        present.discard_bits_legacy(ctx.item(tile, "BRAM", "DDEL_A"));
+        let ddel_a = xlat_bitvec(vec![a0, a1]);
+        let adef = extract_bitvec_val(&ddel_a, &bits![0, 0], adef);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::BRAM::DDEL_A, ddel_a);
+        ctx.insert_devdata_bitvec(devdata::BRAM_DDEL_A, adef);
+        present.discard_polbits(ctx.bel_attr_bitvec(tcid, bslot, bcls::BRAM::DDEL_A));
         if chip_kind == ChipKind::Spartan3 {
             b0.assert_empty();
             b1.assert_empty();
             bdef.assert_empty();
         } else {
-            let ddel_b = xlat_bitvec_legacy(vec![b0, b1]);
-            let bdef = extract_bitvec_val_legacy(&ddel_b, &bits![0, 0], bdef);
-            ctx.insert(tile, "BRAM", "DDEL_B", ddel_b);
-            ctx.insert_device_data("BRAM:DDEL_B_DEFAULT", bdef);
-            present.discard_bits_legacy(ctx.item(tile, "BRAM", "DDEL_B"));
+            let ddel_b = xlat_bitvec(vec![b0, b1]);
+            let bdef = extract_bitvec_val(&ddel_b, &bits![0, 0], bdef);
+            ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::BRAM::DDEL_B, ddel_b);
+            ctx.insert_devdata_bitvec(devdata::BRAM_DDEL_B, bdef);
+            present.discard_polbits(ctx.bel_attr_bitvec(tcid, bslot, bcls::BRAM::DDEL_B));
         }
 
-        let diff_base = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "WDEL_000");
+        let diff_base = ctx.get_diff_bel_special(tcid, bslot, specials::BRAM_WDEL_000);
         let diff0 = ctx
-            .get_diff_legacy(tile, "BRAM", "PRESENT", "WDEL_001")
+            .get_diff_bel_special(tcid, bslot, specials::BRAM_WDEL_001)
             .combine(&!&diff_base);
         let diff1 = ctx
-            .get_diff_legacy(tile, "BRAM", "PRESENT", "WDEL_010")
+            .get_diff_bel_special(tcid, bslot, specials::BRAM_WDEL_010)
             .combine(&!&diff_base);
         let diff2 = ctx
-            .get_diff_legacy(tile, "BRAM", "PRESENT", "WDEL_100")
+            .get_diff_bel_special(tcid, bslot, specials::BRAM_WDEL_100)
             .combine(&!&diff_base);
         let diff_def = present_base.combine(&!diff_base);
         let (a0, b0) = filter_ab(diff0);
         let (a1, b1) = filter_ab(diff1);
         let (a2, b2) = filter_ab(diff2);
         let (adef, bdef) = filter_ab(diff_def);
-        let wdel_a = xlat_bitvec_legacy(vec![a0, a1, a2]);
-        let adef = extract_bitvec_val_legacy(&wdel_a, &bits![0, 0, 0], adef);
-        ctx.insert_device_data("BRAM:WDEL_A_DEFAULT", adef);
-        ctx.insert(tile, "BRAM", "WDEL_A", wdel_a);
-        present.discard_bits_legacy(ctx.item(tile, "BRAM", "WDEL_A"));
+        let wdel_a = xlat_bitvec(vec![a0, a1, a2]);
+        let adef = extract_bitvec_val(&wdel_a, &bits![0, 0, 0], adef);
+        ctx.insert_devdata_bitvec(devdata::BRAM_WDEL_A, adef);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::BRAM::WDEL_A, wdel_a);
+        present.discard_polbits(ctx.bel_attr_bitvec(tcid, bslot, bcls::BRAM::WDEL_A));
         if chip_kind == ChipKind::Spartan3 {
             b0.assert_empty();
             b1.assert_empty();
             b2.assert_empty();
             bdef.assert_empty();
         } else {
-            let wdel_b = xlat_bitvec_legacy(vec![b0, b1, b2]);
-            let bdef = extract_bitvec_val_legacy(&wdel_b, &bits![0, 0, 0], bdef);
-            ctx.insert(tile, "BRAM", "WDEL_B", wdel_b);
-            ctx.insert_device_data("BRAM:WDEL_B_DEFAULT", bdef);
-            present.discard_bits_legacy(ctx.item(tile, "BRAM", "WDEL_B"));
+            let wdel_b = xlat_bitvec(vec![b0, b1, b2]);
+            let bdef = extract_bitvec_val(&wdel_b, &bits![0, 0, 0], bdef);
+            ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::BRAM::WDEL_B, wdel_b);
+            ctx.insert_devdata_bitvec(devdata::BRAM_WDEL_B, bdef);
+            present.discard_polbits(ctx.bel_attr_bitvec(tcid, bslot, bcls::BRAM::WDEL_B));
         }
 
         let diff0 = ctx
-            .get_diff_legacy(tile, "BRAM", "PRESENT", "WW_VALUE_0")
+            .get_diff_bel_special(tcid, bslot, specials::BRAM_WW_VALUE_0)
             .combine(&!&present_base);
         let diff1 = ctx
-            .get_diff_legacy(tile, "BRAM", "PRESENT", "WW_VALUE_1")
+            .get_diff_bel_special(tcid, bslot, specials::BRAM_WW_VALUE_1)
             .combine(&!&present_base);
         let (a0, b0) = filter_ab(diff0);
         let (a1, b1) = filter_ab(diff1);
-        ctx.insert(
-            tile,
-            "BRAM",
-            "WW_VALUE_A",
-            xlat_enum_legacy(vec![("NONE", Diff::default()), ("0", a0), ("1", a1)]),
+        ctx.insert_bel_attr_raw(
+            tcid,
+            bslot,
+            bcls::BRAM::WW_VALUE_A,
+            xlat_enum_attr(vec![
+                (enums::BRAM_WW_VALUE::NONE, Diff::default()),
+                (enums::BRAM_WW_VALUE::_0, a0),
+                (enums::BRAM_WW_VALUE::_1, a1),
+            ]),
         );
-        ctx.insert(
-            tile,
-            "BRAM",
-            "WW_VALUE_B",
-            xlat_enum_legacy(vec![("NONE", Diff::default()), ("0", b0), ("1", b1)]),
+        ctx.insert_bel_attr_raw(
+            tcid,
+            bslot,
+            bcls::BRAM::WW_VALUE_B,
+            xlat_enum_attr(vec![
+                (enums::BRAM_WW_VALUE::NONE, Diff::default()),
+                (enums::BRAM_WW_VALUE::_0, b0),
+                (enums::BRAM_WW_VALUE::_1, b1),
+            ]),
         );
     }
 
-    let mut diffs_data = vec![];
-    let mut diffs_datap = vec![];
-    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "CLKA", false);
-    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "CLKB", false);
-    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "ENA", false);
-    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "ENB", false);
-    present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, "ENA").bit]);
-    present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, "ENB").bit]);
+    ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, bcls::BRAM::CLKA);
+    ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, bcls::BRAM::CLKB);
+    ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, bcls::BRAM::ENA);
+    ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, bcls::BRAM::ENB);
+    ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, bcls::BRAM::RSTA);
+    ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, bcls::BRAM::RSTB);
+    for pin in [
+        bcls::BRAM::ENA,
+        bcls::BRAM::ENB,
+        bcls::BRAM::RSTA,
+        bcls::BRAM::RSTB,
+    ] {
+        present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslot, pin).bit]);
+    }
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM::DATA_WIDTH_A);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM::DATA_WIDTH_B);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM::INIT_A);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM::INIT_B);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM::SRVAL_A);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM::SRVAL_B);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM::WRITE_MODE_A);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM::WRITE_MODE_B);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM::DATA);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM::DATAP);
+
     match chip_kind {
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
-            for pin in [
-                "WEA0", "WEB0", "WEA1", "WEB1", "WEA2", "WEB2", "WEA3", "WEB3",
-            ] {
-                ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, pin, false);
-                present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, pin).bit]);
-            }
-            for i in 0..0x40 {
-                diffs_data.extend(ctx.get_diffs_legacy(tile, "BRAM", format!("INIT_{i:02X}"), ""));
-            }
-            for i in 0..0x08 {
-                diffs_datap.extend(ctx.get_diffs_legacy(
-                    tile,
-                    "BRAM",
-                    format!("INITP_{i:02X}"),
-                    "",
-                ));
-            }
-            for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
-                ctx.collect_enum_legacy(
-                    tile,
-                    "BRAM",
-                    attr,
-                    &["NO_CHANGE", "READ_FIRST", "WRITE_FIRST"],
-                );
-            }
-            for attr in ["DATA_WIDTH_A", "DATA_WIDTH_B"] {
-                ctx.get_diff_legacy(tile, "BRAM", attr, "0").assert_empty();
-                ctx.collect_enum_legacy(tile, "BRAM", attr, &["1", "2", "4", "9", "18", "36"]);
+            for pin in bcls::BRAM::WEA.into_iter().chain(bcls::BRAM::WEB) {
+                ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, pin);
+                present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslot, pin).bit]);
             }
             if chip_kind == ChipKind::Spartan3ADsp {
-                for pin in ["RSTA", "RSTB", "REGCEA", "REGCEB"] {
-                    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, pin, false);
-                    present
-                        .discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, pin).bit]);
+                for pin in [bcls::BRAM::REGCEA, bcls::BRAM::REGCEB] {
+                    ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, pin);
+                    present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslot, pin).bit]);
                 }
 
-                ctx.collect_enum_legacy(tile, "BRAM", "DOA_REG", &["0", "1"]);
-                ctx.collect_enum_legacy(tile, "BRAM", "DOB_REG", &["0", "1"]);
-                ctx.collect_enum_legacy(tile, "BRAM", "RSTTYPE", &["ASYNC", "SYNC"]);
-            } else {
-                for pin in ["SSRA", "SSRB"] {
-                    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, pin, false);
+                ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::BRAM::DOA_REG);
+                ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::BRAM::DOB_REG);
+                let mut diffs_a = vec![];
+                let mut diffs_b = vec![];
+                for val in ctx.edev.db.enum_classes[enums::BRAM_RSTTYPE].values.ids() {
+                    let diff = ctx.get_diff_attr_val(tcid, bslot, bcls::BRAM::RSTTYPE_A, val);
+                    let (diff_a, diff_b) = filter_ab(diff);
+                    diffs_a.push((val, diff_a));
+                    diffs_b.push((val, diff_b));
                 }
+                ctx.insert_bel_attr_raw(
+                    tcid,
+                    bslot,
+                    bcls::BRAM::RSTTYPE_A,
+                    xlat_enum_attr(diffs_a),
+                );
+                ctx.insert_bel_attr_raw(
+                    tcid,
+                    bslot,
+                    bcls::BRAM::RSTTYPE_B,
+                    xlat_enum_attr(diffs_b),
+                );
             }
         }
         _ => {
-            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "WEA", false);
-            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "WEB", false);
-            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "SSRA", false);
-            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "SSRB", false);
-            for pin in ["WEA", "WEB", "SSRA", "SSRB"] {
-                present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, pin).bit]);
-            }
-            for i in 0..0x40 {
-                diffs_data.extend(ctx.get_diffs_legacy(tile, "BRAM", format!("INIT_{i:02x}"), ""));
-            }
-            for i in 0..0x08 {
-                diffs_datap.extend(ctx.get_diffs_legacy(
-                    tile,
-                    "BRAM",
-                    format!("INITP_{i:02x}"),
-                    "",
-                ));
-            }
-            for (dattr, sattr) in [
-                ("WRITE_MODE_A", "WRITEMODEA"),
-                ("WRITE_MODE_B", "WRITEMODEB"),
-            ] {
-                let diffs = ["NO_CHANGE", "READ_FIRST", "WRITE_FIRST"]
-                    .into_iter()
-                    .map(|val| (val, ctx.get_diff_legacy(tile, "BRAM", sattr, val)))
-                    .collect();
-                ctx.insert(tile, "BRAM", dattr, xlat_enum_legacy(diffs));
-            }
-            for (dattr, sattr) in [
-                ("DATA_WIDTH_A", "PORTA_ATTR"),
-                ("DATA_WIDTH_B", "PORTB_ATTR"),
-            ] {
-                let diffs = [
-                    ("1", "16384X1"),
-                    ("2", "8192X2"),
-                    ("4", "4096X4"),
-                    ("9", "2048X9"),
-                    ("18", "1024X18"),
-                    ("36", "512X36"),
-                ]
-                .into_iter()
-                .map(|(dval, sval)| (dval, ctx.get_diff_legacy(tile, "BRAM", sattr, sval)))
-                .collect();
-                ctx.insert(tile, "BRAM", dattr, xlat_enum_legacy(diffs));
+            for pin in [bcls::BRAM::WEA[0], bcls::BRAM::WEB[0]] {
+                ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, pin);
+                present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslot, pin).bit]);
             }
             if chip_kind.is_virtex2() {
-                ctx.get_diff_legacy(tile, "BRAM", "SAVEDATA", "FALSE")
-                    .assert_empty();
-                let diff = ctx.get_diff_legacy(tile, "BRAM", "SAVEDATA", "TRUE");
-                let mut bits: Vec<_> = diff.bits.into_iter().collect();
-                bits.sort();
-                ctx.insert(
-                    tile,
-                    "BRAM",
-                    "SAVEDATA",
-                    xlat_bitvec_legacy(
-                        bits.into_iter()
-                            .map(|(k, v)| Diff {
-                                bits: [(k, v)].into_iter().collect(),
-                            })
-                            .collect(),
-                    ),
-                )
+                let diff0 = ctx.get_diff_attr_bool(tcid, bslot, bcls::BRAM::SAVEDATA, false);
+                let diff1 = ctx.get_diff_attr_bool(tcid, bslot, bcls::BRAM::SAVEDATA, true);
+                let bits = xlat_bit_wide_bi(diff0, diff1);
+                ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::BRAM::SAVEDATA, bits);
             }
         }
     }
-    ctx.insert(tile, "BRAM", "DATA", xlat_bitvec_legacy(diffs_data));
-    ctx.insert(tile, "BRAM", "DATAP", xlat_bitvec_legacy(diffs_datap));
-    ctx.collect_bitvec_legacy(tile, "BRAM", "INIT_A", "");
-    ctx.collect_bitvec_legacy(tile, "BRAM", "INIT_B", "");
-    ctx.collect_bitvec_legacy(tile, "BRAM", "SRVAL_A", "");
-    ctx.collect_bitvec_legacy(tile, "BRAM", "SRVAL_B", "");
-    present.discard_bits_legacy(ctx.item(tile, "BRAM", "DATA_WIDTH_A"));
-    present.discard_bits_legacy(ctx.item(tile, "BRAM", "DATA_WIDTH_B"));
+    present.discard_bits(
+        &ctx.bel_attr_enum(tcid, bslot, bcls::BRAM::DATA_WIDTH_A)
+            .bits,
+    );
+    present.discard_bits(
+        &ctx.bel_attr_enum(tcid, bslot, bcls::BRAM::DATA_WIDTH_B)
+            .bits,
+    );
     if chip_kind.is_spartan3a() {
-        ctx.insert(
-            tile,
-            "BRAM",
-            "UNK_PRESENT",
-            xlat_enum_legacy(vec![("0", Diff::default()), ("1", present)]),
-        );
+        let (diff_a, diff_b) = filter_ab(present);
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::BRAM::ENABLE_A, xlat_bit(diff_a));
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::BRAM::ENABLE_B, xlat_bit(diff_b));
     } else {
         present.assert_empty();
     }
 
     if chip_kind != ChipKind::Spartan3ADsp {
-        let mut present = ctx.get_diff_legacy(tile, "MULT", "PRESENT", "1");
+        let bslot = bslots::MULT;
+        let mut present = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
         if chip_kind.is_virtex2() || chip_kind == ChipKind::Spartan3 {
-            let f_clk = ctx.get_diff_legacy(tile, "MULT", "CLKINV", "CLK");
-            let f_clk_b = ctx.get_diff_legacy(tile, "MULT", "CLKINV", "CLK_B");
+            let f_clk = ctx.get_diff_bel_input_inv(tcid, bslot, bcls::MULT::CLK, false);
+            let f_clk_b = ctx.get_diff_bel_input_inv(tcid, bslot, bcls::MULT::CLK, true);
             let (f_clk, f_clk_b, f_reg) = Diff::split(f_clk, f_clk_b);
             f_clk.assert_empty();
-            ctx.insert(tile, "MULT", "REG", xlat_bit_legacy(f_reg));
-            ctx.insert_int_inv_legacy(int_tiles, tcid, bslots::MULT, "CLK", xlat_bit(f_clk_b));
-            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::MULT, "CE", false);
-            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::MULT, "RST", false);
-            present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::MULT, "CE").bit]);
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::MULT::PREG, xlat_bit(f_reg));
+            ctx.insert_bel_input_inv_int(
+                int_tiles,
+                tcid,
+                bslot,
+                bcls::MULT::CLK,
+                xlat_bit(f_clk_b),
+            );
+            ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, bcls::MULT::CEP);
+            ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, bcls::MULT::RSTP);
+            present.discard_bits(&[ctx
+                .item_int_inv(int_tiles, tcid, bslot, bcls::MULT::CEP)
+                .bit]);
         } else {
-            for pin in ["CLK", "CEA", "CEB", "CEP", "RSTA", "RSTB", "RSTP"] {
-                ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::MULT, pin, false);
+            for pin in [
+                bcls::MULT::CLK,
+                bcls::MULT::RSTP,
+                bcls::MULT::CEP,
+                bcls::MULT::RSTA,
+                bcls::MULT::CEA,
+                bcls::MULT::RSTB,
+                bcls::MULT::CEB,
+            ] {
+                ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, pin);
             }
-            ctx.collect_enum_legacy(tile, "MULT", "AREG", &["0", "1"]);
-            ctx.collect_enum_legacy(tile, "MULT", "BREG", &["0", "1"]);
-            ctx.collect_enum_legacy(tile, "MULT", "PREG", &["0", "1"]);
-            ctx.collect_enum_legacy(tile, "MULT", "B_INPUT", &["DIRECT", "CASCADE"]);
-            ctx.get_diff_legacy(tile, "MULT", "PREG_CLKINVERSION", "0")
-                .assert_empty();
-            let item = xlat_bitvec_legacy(vec![ctx.get_diff_legacy(
-                tile,
-                "MULT",
-                "PREG_CLKINVERSION",
-                "1",
-            )]);
-            ctx.insert(tile, "MULT", "PREG_CLKINVERSION", item);
-            present.discard_bits_legacy(ctx.item(tile, "MULT", "PREG_CLKINVERSION"));
-            present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::MULT, "CEA").bit]);
-            present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::MULT, "CEB").bit]);
-            present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::MULT, "CEP").bit]);
-            if chip_kind == ChipKind::Spartan3A {
-                for ab in ['A', 'B'] {
-                    for i in 0..18 {
-                        let name = &*format!("MUX.{ab}{i}");
-                        let item = xlat_enum_legacy(vec![
-                            ("INT", Diff::default()),
-                            ("BRAM", ctx.get_diff_legacy(tile, "MULT", name, "BRAM")),
-                        ]);
-                        ctx.insert(tile, "MULT", name, item);
-                    }
-                }
+            for attr in [
+                bcls::MULT::AREG,
+                bcls::MULT::BREG,
+                bcls::MULT::PREG,
+                bcls::MULT::PREG_CLKINVERSION,
+            ] {
+                ctx.collect_bel_attr_bool_bi(tcid, bslot, attr);
             }
+            ctx.collect_bel_attr(tcid, bslot, bcls::MULT::B_INPUT);
+            present.discard_bits(&[ctx
+                .bel_attr_bit(tcid, bslot, bcls::MULT::PREG_CLKINVERSION)
+                .bit]);
+            present.discard_bits(&[ctx
+                .item_int_inv(int_tiles, tcid, bslot, bcls::MULT::CEA)
+                .bit]);
+            present.discard_bits(&[ctx
+                .item_int_inv(int_tiles, tcid, bslot, bcls::MULT::CEB)
+                .bit]);
+            present.discard_bits(&[ctx
+                .item_int_inv(int_tiles, tcid, bslot, bcls::MULT::CEP)
+                .bit]);
         }
         present.assert_empty();
     }

@@ -2,6 +2,7 @@ use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ExpandedGrid, RowId, TileCoord, WireCoord,
 };
+use prjcombine_re_collector::diff::SpecialId;
 use prjcombine_re_fpga_hammer::{FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_toolchain::Toolchain;
@@ -76,6 +77,7 @@ pub enum Value<'a> {
     PinFrom(PinFromKind),
     FromPin(&'a str, String),
     Bel(BelCoord),
+    Special(SpecialId),
 }
 
 impl From<Option<core::convert::Infallible>> for Value<'_> {
@@ -117,6 +119,12 @@ impl From<bool> for Value<'_> {
 impl From<u32> for Value<'_> {
     fn from(value: u32) -> Self {
         Self::U32(value)
+    }
+}
+
+impl From<SpecialId> for Value<'_> {
+    fn from(value: SpecialId) -> Self {
+        Self::Special(value)
     }
 }
 

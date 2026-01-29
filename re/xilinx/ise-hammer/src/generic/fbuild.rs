@@ -181,7 +181,7 @@ pub trait FuzzBuilderBase<'b>: Sized {
         self.raw(Key::GlobalOpt(opt.into()), None)
     }
 
-    fn global_mutex(self, key: impl Into<String>, val: impl Into<String>) -> Self {
+    fn global_mutex(self, key: impl Into<String>, val: impl Into<Value<'b>>) -> Self {
         self.raw(Key::GlobalMutex(key.into()), val.into())
     }
 
@@ -557,7 +557,7 @@ impl<'b> FuzzCtxBel<'_, 'b> {
         attr: impl AsRef<str>,
         val: impl AsRef<str>,
     ) -> FuzzBuilderBelTestManual<'sm, 'b> {
-        self.build().test_manual(attr, val)
+        self.build().test_manual_legacy(attr, val)
     }
 }
 
@@ -701,7 +701,10 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let attr = attr.as_ref();
         for val in vals {
             let val = val.as_ref();
-            self.clone().test_manual(attr, val).attr(attr, val).commit();
+            self.clone()
+                .test_manual_legacy(attr, val)
+                .attr(attr, val)
+                .commit();
         }
     }
 
@@ -716,7 +719,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         for val in vals {
             let val = val.as_ref();
             self.clone()
-                .test_manual(format!("{attr}.{suffix}"), val)
+                .test_manual_legacy(format!("{attr}.{suffix}"), val)
                 .attr(attr, val)
                 .commit();
         }
@@ -740,31 +743,31 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
     pub fn test_multi_attr_bin(self, attr: impl Into<String>, width: usize) {
         let attr = attr.into();
         let prop = FuzzBelMultiAttr::new(self.bel, attr.clone(), MultiValue::Bin, width);
-        self.test_manual(attr, "").prop(prop).commit();
+        self.test_manual_legacy(attr, "").prop(prop).commit();
     }
 
     pub fn test_multi_attr_dec(self, attr: impl Into<String>, width: usize) {
         let attr = attr.into();
         let prop = FuzzBelMultiAttr::new(self.bel, attr.clone(), MultiValue::Dec(0), width);
-        self.test_manual(attr, "").prop(prop).commit();
+        self.test_manual_legacy(attr, "").prop(prop).commit();
     }
 
     pub fn test_multi_attr_dec_delta(self, attr: impl Into<String>, width: usize, delta: i32) {
         let attr = attr.into();
         let prop = FuzzBelMultiAttr::new(self.bel, attr.clone(), MultiValue::Dec(delta), width);
-        self.test_manual(attr, "").prop(prop).commit();
+        self.test_manual_legacy(attr, "").prop(prop).commit();
     }
 
-    pub fn test_multi_attr_hex(self, attr: impl Into<String>, width: usize) {
+    pub fn test_multi_attr_hex_legacy(self, attr: impl Into<String>, width: usize) {
         let attr = attr.into();
         let prop = FuzzBelMultiAttr::new(self.bel, attr.clone(), MultiValue::Hex(0), width);
-        self.test_manual(attr, "").prop(prop).commit();
+        self.test_manual_legacy(attr, "").prop(prop).commit();
     }
 
     pub fn test_multi_attr_lut(self, attr: impl Into<String>, width: usize) {
         let attr = attr.into();
         let prop = FuzzBelMultiAttr::new(self.bel, attr.clone(), MultiValue::Lut, width);
-        self.test_manual(attr, "#LUT").prop(prop).commit();
+        self.test_manual_legacy(attr, "#LUT").prop(prop).commit();
     }
 
     pub fn test_bel_attr_multi(self, attr: BelAttributeId, value: MultiValue) {
@@ -795,7 +798,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         }
     }
 
-    pub fn test_manual(
+    pub fn test_manual_legacy(
         self,
         attr: impl AsRef<str>,
         val: impl AsRef<str>,
@@ -847,6 +850,15 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
 
     pub fn test_bel_attr_bits(self, attr: BelAttributeId) -> FuzzBuilderBelTestManual<'sm, 'b> {
         let key = DiffKey::BelAttrBit(self.tile_class, self.bel, attr, 0);
+        self.test_raw(key)
+    }
+
+    pub fn test_bel_attr_bits_base(
+        self,
+        attr: BelAttributeId,
+        base: usize,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelAttrBit(self.tile_class, self.bel, attr, base);
         self.test_raw(key)
     }
 
@@ -923,6 +935,19 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
             .commit();
     }
 
+    pub fn test_bel_attr_bool(
+        &mut self,
+        attr: BelAttributeId,
+        val0: impl Into<String>,
+        val1: impl Into<String>,
+    ) {
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let name = self.backend.edev.db[bcid].attributes.key(attr);
+        self.test_bel_attr_bool_rename(name, attr, val0, val1);
+    }
+
     pub fn test_global_attr_bool_rename(
         &mut self,
         opt: impl Into<String>,
@@ -968,7 +993,13 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         };
         let ecls = &self.backend.edev.db[ecid];
         for (vid, val) in &ecls.values {
-            let val = val.strip_prefix('_').unwrap_or(&val[..]);
+            let mut val = val.strip_prefix('_').unwrap_or(&val[..]);
+            if val == "CONST_0" {
+                val = "0";
+            }
+            if val == "CONST_1" {
+                val = "1";
+            }
             self.clone()
                 .test_bel_attr_val(attr, vid)
                 .attr(rattr, val)

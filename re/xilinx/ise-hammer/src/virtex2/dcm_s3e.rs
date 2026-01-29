@@ -32,7 +32,7 @@ pub fn add_fuzzers<'a>(
         let mut bctx = ctx.bel(bslots::DCM);
         bctx.build()
             .global_mutex("DCM", "ENABLE")
-            .test_manual("ENABLE", "1")
+            .test_manual_legacy("ENABLE", "1")
             .mode("DCM")
             .commit();
         return;
@@ -77,7 +77,10 @@ pub fn add_fuzzers<'a>(
         if let Some((_, ref vreg)) = vreg {
             builder = builder.extra_tile_attr(vreg.clone(), "DCM_VREG", "ENABLE", "1");
         }
-        builder.test_manual("ENABLE", "1").mode(mode).commit();
+        builder
+            .test_manual_legacy("ENABLE", "1")
+            .mode(mode)
+            .commit();
 
         if vreg.is_none() {
             bctx.build()
@@ -86,7 +89,7 @@ pub fn add_fuzzers<'a>(
                 .global("VBG_SEL1", "0")
                 .global("VBG_SEL2", "0")
                 .global("VBG_SEL3", "0")
-                .test_manual("ENABLE", "OPT_BASE")
+                .test_manual_legacy("ENABLE", "OPT_BASE")
                 .mode(mode)
                 .commit();
             for opt in ["VBG_SEL0", "VBG_SEL1", "VBG_SEL2", "VBG_SEL3"] {
@@ -96,7 +99,7 @@ pub fn add_fuzzers<'a>(
                     .global("VBG_SEL1", if opt == "VBG_SEL1" { "1" } else { "0" })
                     .global("VBG_SEL2", if opt == "VBG_SEL2" { "1" } else { "0" })
                     .global("VBG_SEL3", if opt == "VBG_SEL3" { "1" } else { "0" })
-                    .test_manual("ENABLE", opt)
+                    .test_manual_legacy("ENABLE", opt)
                     .mode(mode)
                     .commit();
             }
@@ -105,33 +108,33 @@ pub fn add_fuzzers<'a>(
         bctx.build()
             .global_mutex("DCM", "CFG")
             .mode(mode)
-            .test_manual("DLL_C", "")
+            .test_manual_legacy("DLL_C", "")
             .multi_global_xy("CFG_DLL_C_*", MultiValue::Bin, 32);
         bctx.build()
             .global_mutex("DCM", "CFG")
             .mode(mode)
-            .test_manual("DLL_S", "")
+            .test_manual_legacy("DLL_S", "")
             .multi_global_xy("CFG_DLL_S_*", MultiValue::Bin, 32);
         bctx.build()
             .global_mutex("DCM", "CFG")
             .mode(mode)
-            .test_manual("DFS_C", "")
+            .test_manual_legacy("DFS_C", "")
             .multi_global_xy("CFG_DFS_C_*", MultiValue::Bin, 12);
         bctx.build()
             .global_mutex("DCM", "CFG")
             .mode(mode)
-            .test_manual("DFS_S", "")
+            .test_manual_legacy("DFS_S", "")
             .multi_global_xy("CFG_DFS_S_*", MultiValue::Bin, 76);
         bctx.build()
             .global_mutex("DCM", "CFG")
             .mode(mode)
-            .test_manual("INTERFACE", "")
+            .test_manual_legacy("INTERFACE", "")
             .multi_global_xy("CFG_INTERFACE_*", MultiValue::Bin, 16);
         if vreg.is_none() {
             bctx.build()
                 .global_mutex("DCM", "CFG")
                 .mode(mode)
-                .test_manual("VREG", "")
+                .test_manual_legacy("VREG", "")
                 .multi_global_xy("CFG_REG_*", MultiValue::Bin, 36);
         }
         for pin in [
@@ -169,14 +172,14 @@ pub fn add_fuzzers<'a>(
                 .global_mutex("DCM", "PINS")
                 .mutex("PIN", pin)
                 .no_pin("CLKFB")
-                .test_manual(pin, "1")
+                .test_manual_legacy(pin, "1")
                 .pin(pin)
                 .commit();
             bctx.mode(mode)
                 .global_mutex("DCM", "PINS")
                 .mutex("PIN", pin)
                 .pin("CLKFB")
-                .test_manual(pin, "1.CLKFB")
+                .test_manual_legacy(pin, "1.CLKFB")
                 .pin(pin)
                 .commit();
             if pin != "CLKFX" && pin != "CLKFX180" && pin != "CONCUR" {
@@ -185,14 +188,14 @@ pub fn add_fuzzers<'a>(
                     .mutex("PIN", format!("{pin}.CLKFX"))
                     .pin("CLKFX")
                     .pin("CLKFB")
-                    .test_manual(pin, "1.CLKFX")
+                    .test_manual_legacy(pin, "1.CLKFX")
                     .pin(pin)
                     .commit();
             }
         }
         bctx.mode(mode)
             .global_mutex("DCM", "PINS")
-            .test_manual("CLKFB", "1")
+            .test_manual_legacy("CLKFB", "1")
             .pin("CLKFB")
             .commit();
         bctx.mode(mode)
@@ -200,7 +203,7 @@ pub fn add_fuzzers<'a>(
             .pin("CLKIN")
             .pin("CLKFB")
             .pin_from("CLKFB", PinFromKind::Bufg)
-            .test_manual("CLKIN_IOB", "1")
+            .test_manual_legacy("CLKIN_IOB", "1")
             .pin_from("CLKIN", PinFromKind::Bufg, PinFromKind::Iob)
             .commit();
         bctx.mode(mode)
@@ -208,7 +211,7 @@ pub fn add_fuzzers<'a>(
             .pin("CLKIN")
             .pin("CLKFB")
             .pin_from("CLKIN", PinFromKind::Bufg)
-            .test_manual("CLKFB_IOB", "1")
+            .test_manual_legacy("CLKFB_IOB", "1")
             .pin_from("CLKFB", PinFromKind::Bufg, PinFromKind::Iob)
             .commit();
 
@@ -238,24 +241,24 @@ pub fn add_fuzzers<'a>(
             .test_enum("CLK_FEEDBACK", &["1X", "2X"]);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_manual("CLKFX_MULTIPLY", "")
+            .test_manual_legacy("CLKFX_MULTIPLY", "")
             .multi_attr("CLKFX_MULTIPLY", MultiValue::Dec(1), 8);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_manual("CLKFX_DIVIDE", "")
+            .test_manual_legacy("CLKFX_DIVIDE", "")
             .multi_attr("CLKFX_DIVIDE", MultiValue::Dec(1), 8);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
             .pin("CLK0")
             .no_pin("CLKFB")
-            .test_manual("VERY_HIGH_FREQUENCY", "1")
+            .test_manual_legacy("VERY_HIGH_FREQUENCY", "1")
             .attr("VERY_HIGH_FREQUENCY", "VERY_HIGH_FREQUENCY")
             .commit();
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
             .pin("CLK0")
             .pin("CLKFB")
-            .test_manual("VERY_HIGH_FREQUENCY", "1.CLKFB")
+            .test_manual_legacy("VERY_HIGH_FREQUENCY", "1.CLKFB")
             .attr("VERY_HIGH_FREQUENCY", "VERY_HIGH_FREQUENCY")
             .commit();
 
@@ -268,12 +271,12 @@ pub fn add_fuzzers<'a>(
             .test_multi_attr_dec("PHASE_SHIFT", 7);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_manual("PHASE_SHIFT", "-1")
+            .test_manual_legacy("PHASE_SHIFT", "-1")
             .attr("PHASE_SHIFT", "-1")
             .commit();
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_manual("PHASE_SHIFT", "-255")
+            .test_manual_legacy("PHASE_SHIFT", "-255")
             .attr("PHASE_SHIFT", "-255")
             .commit();
 
@@ -289,7 +292,7 @@ pub fn add_fuzzers<'a>(
                     .global_mutex("DCM", "USE")
                     .attr("DLL_FREQUENCY_MODE", dll_mode)
                     .attr("X_CLKIN_PERIOD", "")
-                    .test_manual("CLKDV_DIVIDE", format!("{val}.{dll_mode}"))
+                    .test_manual_legacy("CLKDV_DIVIDE", format!("{val}.{dll_mode}"))
                     .attr("CLKDV_DIVIDE", val)
                     .commit();
             }
@@ -309,7 +312,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode(mode)
                 .global_mutex("DCM", "USE_VREG")
                 .pin("CLK0")
-                .test_manual("X_CLKIN_PERIOD", "201.0")
+                .test_manual_legacy("X_CLKIN_PERIOD", "201.0")
                 .attr("X_CLKIN_PERIOD", "201.0")
                 .commit();
         }
@@ -321,7 +324,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode(mode)
                 .null_bits()
                 .global_mutex("DCM", "USE")
-                .test_manual(pin, "1")
+                .test_manual_legacy(pin, "1")
                 .pin(pin)
                 .commit();
         }

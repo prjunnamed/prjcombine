@@ -1,8 +1,8 @@
 use std::{error::Error, fs::File, path::Path};
 
 use bincode::{Decode, Encode};
-use prjcombine_entity::{EntityMap, EntityVec};
-use prjcombine_interconnect::db::IntDb;
+use prjcombine_entity::{EntityMap, EntityPartVec, EntityVec};
+use prjcombine_interconnect::db::{DeviceDataId, IntDb, TableValue};
 use prjcombine_types::{
     bsdata::BsData,
     db::{BondId, ChipId, DevBondId, DevSpeedId, DeviceCombo, DumpFlags},
@@ -17,6 +17,7 @@ pub struct Device {
     pub bonds: EntityMap<DevBondId, String, BondId>,
     pub speeds: EntityVec<DevSpeedId, String>,
     pub combos: Vec<DeviceCombo>,
+    pub data: EntityPartVec<DeviceDataId, TableValue>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
@@ -110,6 +111,14 @@ impl Database {
                         "\tcombo {pkg} {speed};",
                         pkg = dev.bonds.key(combo.devbond),
                         speed = dev.speeds[combo.speed]
+                    )?;
+                }
+                for (ddid, value) in &dev.data {
+                    writeln!(
+                        o,
+                        "\tdevice_data {ddname} = {value};",
+                        ddname = self.int.devdata.key(ddid),
+                        value = self.int.dump_value(self.int.devdata[ddid], value)
                     )?;
                 }
                 writeln!(o, "}}")?;

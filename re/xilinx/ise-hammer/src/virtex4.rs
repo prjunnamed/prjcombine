@@ -1,5 +1,6 @@
 pub mod bram;
 pub mod ccm;
+pub mod clb;
 pub mod clk;
 pub mod dcm;
 pub mod dsp;
@@ -7,3 +8,4 @@ pub mod gt;
 pub mod io;
 pub mod misc;
 pub mod ppc;
+mod specials;

@@ -361,7 +361,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mode = "GTHE1_QUAD";
     bctx.build()
         .extra_tile_attr(Delta::new(0, 0, "HCLK"), "HCLK", "DRP_MASK_BOTH", "GTH")
-        .test_manual("ENABLE", "1")
+        .test_manual_legacy("ENABLE", "1")
         .mode(mode)
         .commit();
     for &pin in GTH_INVPINS {
@@ -374,14 +374,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode).test_multi_attr_bin(attr, width);
     }
     for &(attr, width) in GTH_HEX_ATTRS {
-        bctx.mode(mode).test_multi_attr_hex(attr, width);
+        bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
     }
 
     for pin in ["GREFCLK", "REFCLK_IN", "REFCLK_SOUTH", "REFCLK_NORTH"] {
         bctx.mode(mode)
             .mutex("MUX.REFCLK", pin)
             .attr("PLL_CFG2", "")
-            .test_manual("MUX.REFCLK", pin)
+            .test_manual_legacy("MUX.REFCLK", pin)
             .pip((PinFar, "REFCLK"), pin)
             .commit();
     }
@@ -389,7 +389,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut bctx = ctx.bel(defs::bslots::BUFDS[0]);
     bctx.build()
         .null_bits()
-        .test_manual("ENABLE", "1")
+        .test_manual_legacy("ENABLE", "1")
         .mode("IBUFDS_GTHE1")
         .commit();
 }

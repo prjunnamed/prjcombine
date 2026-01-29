@@ -362,7 +362,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 },
                 "GTX",
             )
-            .test_manual("GTX_CFG_PWRUP", "1")
+            .test_manual_legacy("GTX_CFG_PWRUP", "1")
             .mode(mode)
             .commit();
         for &pin in GTX_INVPINS {
@@ -385,7 +385,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_bin(attr, width);
         }
         for &(attr, width) in GTX_HEX_ATTRS {
-            bctx.mode(mode).test_multi_attr_hex(attr, width);
+            bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
 
         let bel_hclk_gtx = defs::bslots::HCLK_GTX;
@@ -432,43 +432,43 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("PERFCLK", "USE")
                 .mutex("RXPLLREFSEL", val)
                 .pip((bel_hclk_gtx, "PERFCLK"), (bel_hclk_gtx, "PERF0"))
-                .test_manual("RXPLLREFSEL_STATIC", val)
+                .test_manual_legacy("RXPLLREFSEL_STATIC", val)
                 .pip(orx, pin)
                 .commit();
             bctx.build()
                 .tile_mutex("PERFCLK", "USE")
                 .mutex("TXPLLREFSEL", val)
                 .pip((bel_hclk_gtx, "PERFCLK"), (bel_hclk_gtx, "PERF0"))
-                .test_manual("TXPLLREFSEL_STATIC", val)
+                .test_manual_legacy("TXPLLREFSEL_STATIC", val)
                 .pip(otx, pin)
                 .commit();
         }
         bctx.mode(mode)
             .mutex("RXPLLREFSEL", "CAS_CLK")
             .mutex("TXPLLREFSEL", "CAS_CLK")
-            .test_manual("PMA_CAS_CLK_EN", "TRUE")
+            .test_manual_legacy("PMA_CAS_CLK_EN", "TRUE")
             .attr("PMA_CAS_CLK_EN", "TRUE")
             .commit();
         bctx.build()
             .mutex("RXPLLREFSEL", "GREFCLK")
-            .test_manual("RXPLLREFSEL_STATIC", "GREFCLK")
+            .test_manual_legacy("RXPLLREFSEL_STATIC", "GREFCLK")
             .pip("GREFCLKRX", (PinFar, "GREFCLKRX"))
             .commit();
         bctx.build()
             .mutex("TXPLLREFSEL", "GREFCLK")
-            .test_manual("TXPLLREFSEL_STATIC", "GREFCLK")
+            .test_manual_legacy("TXPLLREFSEL_STATIC", "GREFCLK")
             .pip("GREFCLKTX", (PinFar, "GREFCLKTX"))
             .commit();
         bctx.build()
             .mutex("RXPLLREFSEL", "MODE")
             .pip("GREFCLKRX", (PinFar, "GREFCLKRX"))
-            .test_manual("RXPLLREFSEL_MODE", "DYNAMIC")
+            .test_manual_legacy("RXPLLREFSEL_MODE", "DYNAMIC")
             .pip("MGTREFCLKRX0", "MGTREFCLKOUT0")
             .commit();
         bctx.build()
             .mutex("TXPLLREFSEL", "MODE")
             .pip("GREFCLKTX", (PinFar, "GREFCLKTX"))
-            .test_manual("TXPLLREFSEL_MODE", "DYNAMIC")
+            .test_manual_legacy("TXPLLREFSEL_MODE", "DYNAMIC")
             .pip("MGTREFCLKTX0", "MGTREFCLKOUT0")
             .commit();
     }
@@ -485,7 +485,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.mode(mode)
                 .mutex("MUX.HCLK_OUT", val)
-                .test_manual("MUX.HCLK_OUT", val)
+                .test_manual_legacy("MUX.HCLK_OUT", val)
                 .pip("HCLK_OUT", pin)
                 .commit();
         }
@@ -494,7 +494,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for i in 0..4 {
         bctx.build()
             .tile_mutex("PERFCLK", format!("PERF{i}"))
-            .test_manual("MUX.PERFCLK", format!("PERF{i}"))
+            .test_manual_legacy("MUX.PERFCLK", format!("PERF{i}"))
             .pip("PERFCLK", format!("PERF{i}"))
             .commit();
     }
@@ -502,7 +502,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for j in 0..2 {
             bctx.build()
                 .mutex(format!("MUX.SOUTHREFCLKOUT{i}"), format!("MGTREFCLKIN{j}"))
-                .test_manual(format!("MUX.SOUTHREFCLKOUT{i}"), format!("MGTREFCLKIN{j}"))
+                .test_manual_legacy(format!("MUX.SOUTHREFCLKOUT{i}"), format!("MGTREFCLKIN{j}"))
                 .pip(format!("SOUTHREFCLKOUT{i}"), format!("MGTREFCLKIN{j}"))
                 .commit();
         }
@@ -511,7 +511,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 format!("MUX.SOUTHREFCLKOUT{i}"),
                 format!("SOUTHREFCLKIN{i}"),
             )
-            .test_manual(
+            .test_manual_legacy(
                 format!("MUX.SOUTHREFCLKOUT{i}"),
                 format!("SOUTHREFCLKIN{i}"),
             )
@@ -520,7 +520,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for j in 0..2 {
             bctx.build()
                 .mutex(format!("MUX.NORTHREFCLKOUT{i}"), format!("MGTREFCLKOUT{j}"))
-                .test_manual(format!("MUX.NORTHREFCLKOUT{i}"), format!("MGTREFCLKOUT{j}"))
+                .test_manual_legacy(format!("MUX.NORTHREFCLKOUT{i}"), format!("MGTREFCLKOUT{j}"))
                 .pip(format!("NORTHREFCLKOUT{i}"), format!("MGTREFCLKOUT{j}"))
                 .commit();
         }
@@ -529,7 +529,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 format!("MUX.NORTHREFCLKOUT{i}"),
                 format!("NORTHREFCLKIN{i}"),
             )
-            .test_manual(
+            .test_manual_legacy(
                 format!("MUX.NORTHREFCLKOUT{i}"),
                 format!("NORTHREFCLKIN{i}"),
             )

@@ -256,7 +256,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
     bctx.build()
         .global("GLUTMASK", "NO")
-        .test_manual("PRESENT", "1")
+        .test_manual_legacy("PRESENT", "1")
         .mode(mode)
         .commit();
 
@@ -292,9 +292,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
     for &(attr, width) in GTP_HEX_ATTRS {
         bctx.mode(mode)
-            .test_multi_attr_hex(format!("{attr}_0"), width);
+            .test_multi_attr_hex_legacy(format!("{attr}_0"), width);
         bctx.mode(mode)
-            .test_multi_attr_hex(format!("{attr}_1"), width);
+            .test_multi_attr_hex_legacy(format!("{attr}_1"), width);
     }
 
     bctx.mode(mode)
@@ -302,14 +302,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     bctx.mode(mode)
         .test_enum("CLK_OUT_GTP_SEL_1", &["TXOUTCLK1", "REFCLKPLL1"]);
 
-    bctx.mode(mode).test_multi_attr_hex("PMA_COM_CFG_EAST", 36);
-    bctx.mode(mode).test_multi_attr_hex("PMA_COM_CFG_WEST", 36);
+    bctx.mode(mode)
+        .test_multi_attr_hex_legacy("PMA_COM_CFG_EAST", 36);
+    bctx.mode(mode)
+        .test_multi_attr_hex_legacy("PMA_COM_CFG_WEST", 36);
 
     for i in 0..2 {
         for pin in ["PLLCLK0", "PLLCLK1", "CLKINEAST", "CLKINWEST"] {
             bctx.build()
                 .mutex(format!("REFSELPLL{i}"), pin)
-                .test_manual(format!("REFSELPLL{i}"), pin)
+                .test_manual_legacy(format!("REFSELPLL{i}"), pin)
                 .pip(format!("{pin}{i}"), pin)
                 .commit();
         }
@@ -319,14 +321,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.build()
                 .mutex(format!("REFSELPLL{i}"), pin)
-                .test_manual(format!("REFSELPLL{i}"), pin)
+                .test_manual_legacy(format!("REFSELPLL{i}"), pin)
                 .pip(format!("{pin}{i}"), (obel, "O"))
                 .commit();
         }
         for pin in ["GCLK0", "GCLK1"] {
             bctx.build()
                 .mutex(format!("REFSELPLL{i}"), pin)
-                .test_manual(format!("REFSELPLL{i}"), pin)
+                .test_manual_legacy(format!("REFSELPLL{i}"), pin)
                 .pin_pips(format!("{pin}{i}"))
                 .commit();
         }
@@ -336,14 +338,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .mutex("MUX.CLKOUT_EW", pin)
             .prop(DeviceSide(DirH::W))
-            .test_manual("MUX.CLKOUT_EAST", pin)
+            .test_manual_legacy("MUX.CLKOUT_EAST", pin)
             .pip("CLKOUT_EW", pin)
             .commit();
         if matches!(edev.chip.gts, Gts::Double(..) | Gts::Quad(..)) {
             bctx.build()
                 .mutex("MUX.CLKOUT_EW", pin)
                 .prop(DeviceSide(DirH::E))
-                .test_manual("MUX.CLKOUT_WEST", pin)
+                .test_manual_legacy("MUX.CLKOUT_WEST", pin)
                 .pip("CLKOUT_EW", pin)
                 .commit();
         }

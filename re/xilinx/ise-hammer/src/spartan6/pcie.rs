@@ -65,7 +65,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ("PM_DATA7", 8),
         ("VC0_RX_RAM_LIMIT", 12),
     ] {
-        bctx.mode(mode).test_multi_attr_hex(attr, width);
+        bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
     }
     for (attr, width) in [
         ("DEV_CAP_ENDPOINT_L0S_LATENCY", 3),

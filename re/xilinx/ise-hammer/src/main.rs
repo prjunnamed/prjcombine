@@ -178,7 +178,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
             if !opts.skip_core {
                 generic::int::add_fuzzers(&mut hammer, &backend);
                 if edev.chip.kind.is_virtex2() {
-                    virtex::tbus::add_fuzzers(&mut hammer, &backend);
+                    virtex2::tbus::add_fuzzers(&mut hammer, &backend);
                 }
                 virtex2::clb::add_fuzzers(&mut hammer, &backend);
                 if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
@@ -241,7 +241,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
                 generic::int::add_fuzzers(&mut hammer, &backend);
                 virtex5::clb::add_fuzzers(&mut hammer, &backend);
                 spartan6::bram::add_fuzzers(&mut hammer, &backend);
-                virtex2::dsp::add_fuzzers(&mut hammer, &backend);
+                spartan6::dsp::add_fuzzers(&mut hammer, &backend);
             }
             if !opts.skip_clk {
                 spartan6::clk::add_fuzzers(&mut hammer, &backend, false);
@@ -272,7 +272,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
             prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                 if !opts.skip_core {
                     generic::int::add_fuzzers(&mut hammer, &backend);
-                    virtex2::clb::add_fuzzers(&mut hammer, &backend);
+                    virtex4::clb::add_fuzzers(&mut hammer, &backend);
                     virtex4::bram::add_fuzzers(&mut hammer, &backend);
                     virtex4::dsp::add_fuzzers(&mut hammer, &backend);
                 }
@@ -422,7 +422,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
         device: part,
         edev: &gedev,
         db,
-        collector: Collector::new(&mut diffs, data, gedev.db),
+        collector: Collector::new(&mut diffs, data, &part.name, gedev.db),
         empty_bs: &empty_bs,
     };
     match gedev {
@@ -457,7 +457,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
             if !opts.skip_core {
                 generic::int::collect_fuzzers(&mut ctx);
                 if edev.chip.kind.is_virtex2() {
-                    virtex::tbus::collect_fuzzers(&mut ctx);
+                    virtex2::tbus::collect_fuzzers(&mut ctx);
                 }
                 virtex2::clb::collect_fuzzers(&mut ctx);
                 if edev.chip.kind != prjcombine_virtex2::chip::ChipKind::FpgaCore {
@@ -520,7 +520,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
                 generic::int::collect_fuzzers(&mut ctx);
                 virtex5::clb::collect_fuzzers(&mut ctx);
                 spartan6::bram::collect_fuzzers(&mut ctx);
-                virtex2::dsp::collect_fuzzers(&mut ctx);
+                spartan6::dsp::collect_fuzzers(&mut ctx);
             }
             if !opts.skip_clk {
                 spartan6::clk::collect_fuzzers(&mut ctx, false);
@@ -551,7 +551,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
             prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                 if !opts.skip_core {
                     generic::int::collect_fuzzers(&mut ctx);
-                    virtex2::clb::collect_fuzzers(&mut ctx);
+                    virtex4::clb::collect_fuzzers(&mut ctx);
                     virtex4::bram::collect_fuzzers(&mut ctx);
                     virtex4::dsp::collect_fuzzers(&mut ctx);
                 }

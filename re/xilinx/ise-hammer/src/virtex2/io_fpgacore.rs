@@ -87,17 +87,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .prop(IobExtra::new(Dir::E))
             .prop(IobExtra::new(Dir::S))
             .prop(IobExtra::new(Dir::N))
-            .test_manual("ENABLE_O2IPADPATH", "1")
+            .test_manual_legacy("ENABLE_O2IPADPATH", "1")
             .attr("ENABLE_O2IPADPATH", "ENABLE_O2IPADPATH")
             .commit();
         bctx.mode(mode)
             .attr("ENABLE_O2IQPATH", "")
-            .test_manual("ENABLE_O2IPATH", "1")
+            .test_manual_legacy("ENABLE_O2IPATH", "1")
             .attr("ENABLE_O2IPATH", "ENABLE_O2IPATH")
             .commit();
         bctx.mode(mode)
             .attr("ENABLE_O2IPATH", "")
-            .test_manual("ENABLE_O2IQPATH", "1")
+            .test_manual_legacy("ENABLE_O2IQPATH", "1")
             .attr("ENABLE_O2IQPATH", "ENABLE_O2IQPATH")
             .commit();
         bctx.mode(mode)
@@ -157,7 +157,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .prop(IobExtra::new(Dir::E))
             .prop(IobExtra::new(Dir::S))
             .prop(IobExtra::new(Dir::N))
-            .test_manual("ENABLE_MISR", "TRUE")
+            .test_manual_legacy("ENABLE_MISR", "TRUE")
             .attr_diff("ENABLE_MISR", "FALSE", "TRUE")
             .commit();
         for pin in ["CLK", "CE", "SR", "REV", "O"] {

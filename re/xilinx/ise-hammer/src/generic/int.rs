@@ -1,6 +1,6 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{BelInfo, ProgDelay, SwitchBoxItem, TileWireCoord, WireSlotId},
+    db::{BelInfo, BelInput, ProgDelay, SwitchBoxItem, TileWireCoord, WireSlotId},
     grid::TileCoord,
 };
 use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_enum_raw};
@@ -125,11 +125,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                         assert!(intdb.wires.key(wire_oi).contains("OPTINV"));
                         let mut found = false;
                         for bel in bram_tcls.bels.values() {
-                            let BelInfo::Legacy(bel) = bel else {
+                            let BelInfo::Bel(bel) = bel else {
                                 unreachable!()
                             };
-                            for pin in bel.pins.values() {
-                                if pin.wires.contains(&TileWireCoord::new_idx(idx, wire_oi)) {
+                            for &inp in bel.inputs.values() {
+                                let wire = match inp {
+                                    BelInput::Fixed(ptwc) => ptwc.tw,
+                                    BelInput::Invertible(twc, _) => twc,
+                                };
+                                if wire == TileWireCoord::new_idx(idx, wire_oi) {
                                     found = true;
                                     break;
                                 }
@@ -814,10 +818,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if !ctx.has_tile_id(tcid) {
             continue;
         }
-        for (_bslot, bel) in &tcls.bels {
+        for (bslot, bel) in &tcls.bels {
             let BelInfo::SwitchBox(sb) = bel else {
                 continue;
             };
+            let mut is_empty_ok = false;
+            if matches!(ctx.edev, ExpandedDevice::Virtex2(_))
+                && bslot == prjcombine_virtex2::defs::bslots::MULT_INT
+            {
+                is_empty_ok = true;
+            }
             for item in &sb.items {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
@@ -845,6 +855,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if diff.bits.is_empty() {
                                 if intdb.wires.key(mux.dst.wire).starts_with("IMUX")
                                     && !intdb[src.wire].is_tie()
+                                    && !is_empty_ok
                                 {
                                     if tcname.starts_with("INT_IOI_S3")
                                         && out_name.starts_with("IMUX_DATA")
@@ -860,9 +871,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                             mux_name = mux.dst.to_string(intdb, &intdb[tcid]),
                                             in_name = src.to_string(intdb, &intdb[tcid])
                                         );
+                                        got_empty = true;
                                     }
+                                } else {
+                                    got_empty = true;
                                 }
-                                got_empty = true;
                             }
                             if diff_fucked {
                                 let ExpandedDevice::Virtex2(edev) = ctx.edev else {

@@ -117,7 +117,7 @@ pub fn add_fuzzers<'a>(
     if !devdata_only {
         bctx.build()
             .no_global("PPCCLKDLY")
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
 
@@ -132,11 +132,11 @@ pub fn add_fuzzers<'a>(
         for &(attr, width) in PPC_HEX_ATTRS {
             bctx.mode(mode)
                 .no_global("PPCCLKDLY")
-                .test_multi_attr_hex(attr, width);
+                .test_multi_attr_hex_legacy(attr, width);
         }
         bctx.mode(mode)
             .attr("CLOCK_DELAY", "TRUE")
-            .test_manual("CLOCK_DELAY", "")
+            .test_manual_legacy("CLOCK_DELAY", "")
             .multi_global("PPCCLKDLY", MultiValue::Bin, 5);
         bctx.mode(mode)
             .no_global("PPCCLKDLY")

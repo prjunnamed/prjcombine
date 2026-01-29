@@ -410,7 +410,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_bin(attr, width);
         }
         for &(attr, width) in GT11_HEX_ATTRS {
-            bctx.mode(mode).test_multi_attr_hex(attr, width);
+            bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
         for &attr in GT11_SHARED_BOOL_ATTRS {
             bctx.mode(mode)
@@ -431,21 +431,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for &(attr, width) in GT11_SHARED_HEX_ATTRS {
             bctx.mode(mode)
                 .tile_mutex(attr, &bel)
-                .test_multi_attr_hex(attr, width);
+                .test_multi_attr_hex_legacy(attr, width);
         }
 
         bctx.mode(mode)
             .attr("MCOMMA_32B_VALUE", "")
-            .test_multi_attr_hex("MCOMMA_10B_VALUE", 10);
+            .test_multi_attr_hex_legacy("MCOMMA_10B_VALUE", 10);
         bctx.mode(mode)
             .attr("MCOMMA_10B_VALUE", "")
-            .test_multi_attr_hex("MCOMMA_32B_VALUE", 32);
+            .test_multi_attr_hex_legacy("MCOMMA_32B_VALUE", 32);
         bctx.mode(mode)
             .attr("PCOMMA_32B_VALUE", "")
-            .test_multi_attr_hex("PCOMMA_10B_VALUE", 10);
+            .test_multi_attr_hex_legacy("PCOMMA_10B_VALUE", 10);
         bctx.mode(mode)
             .attr("PCOMMA_10B_VALUE", "")
-            .test_multi_attr_hex("PCOMMA_32B_VALUE", 32);
+            .test_multi_attr_hex_legacy("PCOMMA_32B_VALUE", 32);
 
         let hclk_delta = match i {
             0 => 8,
@@ -476,7 +476,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         format!("BUF.HCLK{i}"),
                         "1",
                     )
-                    .test_manual(format!("MUX.{pin}"), format!("HCLK{i}"))
+                    .test_manual_legacy(format!("MUX.{pin}"), format!("HCLK{i}"))
                     .pip(pin, format!("HCLK{i}"))
                     .commit();
             }
@@ -500,7 +500,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         format!("BUF.MGT{i}.MGT"),
                         "1".into(),
                     ))
-                    .test_manual(format!("MUX.MGT{i}"), inp)
+                    .test_manual_legacy(format!("MUX.MGT{i}"), inp)
                     .pip(format!("MGT{i}"), inp)
                     .commit();
             }
@@ -509,7 +509,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .tile_mutex("SYNCLK", &bel)
                 .mutex("SYNCLK_OUT", format!("SYNCLK{i}"))
-                .test_manual("MUX.SYNCLK_OUT", format!("SYNCLK{i}"))
+                .test_manual_legacy("MUX.SYNCLK_OUT", format!("SYNCLK{i}"))
                 .pip("SYNCLK_OUT", format!("SYNCLK{i}_OUT"))
                 .commit();
         }
@@ -525,7 +525,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .tile_mutex("FWDCLK_MUX_BEL", &bel)
                     .tile_mutex("FWDCLK_MUX", format!("MUX.FWDCLK{i}_OUT"))
                     .mutex(format!("MUX.FWDCLK{i}_OUT"), format!("FWDCLK{j}"))
-                    .test_manual(format!("MUX.FWDCLK{i}_OUT"), format!("FWDCLK{j}"))
+                    .test_manual_legacy(format!("MUX.FWDCLK{i}_OUT"), format!("FWDCLK{j}"))
                     .pip(
                         (obel_clk, format!("FWDCLK{i}{ab}_OUT")),
                         (obel_clk, format!("{ns}FWDCLK{j}")),
@@ -543,7 +543,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.build()
                     .global_mutex("MGT_FWDCLK_BUF", "DRIVE")
                     .tile_mutex(format!("MUX.{ab}.FWDCLK{i}"), pin)
-                    .test_manual(format!("MUX.FWDCLK{i}"), pin)
+                    .test_manual_legacy(format!("MUX.FWDCLK{i}"), pin)
                     .pip((obel_clk, format!("{ns}FWDCLK{i}")), (obel_clk, pin))
                     .commit();
             }
@@ -555,7 +555,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     (obel_clk, format!("{sn}FWDCLK{i}")),
                     (obel_clk, "RXPCSHCLKOUTA"),
                 )
-                .test_manual(format!("MUX.FWDCLK{i}"), format!("{ba}_FWDCLK{i}"))
+                .test_manual_legacy(format!("MUX.FWDCLK{i}"), format!("{ba}_FWDCLK{i}"))
                 .pip(
                     (obel_clk, format!("{ns}FWDCLK{i}")),
                     (obel_clk, format!("{sn}FWDCLK{i}")),
@@ -573,14 +573,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for inp in ["REFCLKA", "REFCLKB"] {
         bctx.build()
             .mutex("REFCLK", inp)
-            .test_manual("MUX.REFCLK", inp)
+            .test_manual_legacy("MUX.REFCLK", inp)
             .pip("REFCLK", inp)
             .commit();
     }
     for inp in ["PMACLKA", "PMACLKB"] {
         bctx.build()
             .mutex("PMACLK", inp)
-            .test_manual("MUX.PMACLK", inp)
+            .test_manual_legacy("MUX.PMACLK", inp)
             .pip("PMACLK", inp)
             .commit();
     }
@@ -595,7 +595,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 format!("SYNCLK{i}OUT"),
             )
             .related_tile_mutex(Delta::new(0, -32, "MGT"), "SYNCLK", "USE")
-            .test_manual(format!("SYNCLK{i}"), "BUF_UP")
+            .test_manual_legacy(format!("SYNCLK{i}"), "BUF_UP")
             .pip(format!("SYNCLK{i}_N"), format!("SYNCLK{i}_S"))
             .commit();
         bctx.build()
@@ -607,13 +607,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 format!("SYNCLK{i}OUT"),
             )
             .related_tile_mutex(Delta::new(0, 32, "MGT"), "SYNCLK", "USE")
-            .test_manual(format!("SYNCLK{i}"), "BUF_DOWN")
+            .test_manual_legacy(format!("SYNCLK{i}"), "BUF_DOWN")
             .pip(format!("SYNCLK{i}_S"), format!("SYNCLK{i}_N"))
             .commit();
         bctx.mode(mode)
             .global_mutex("SYNCLK_BUF_DIR", "UP")
             .tile_mutex("SYNCLK", format!("SYNCLK{i}_DRIVE_UP"))
-            .test_manual(format!("SYNCLK{i}"), "DRIVE_UP")
+            .test_manual_legacy(format!("SYNCLK{i}"), "DRIVE_UP")
             .attr(format!("SYNCLK{i}OUTEN"), "ENABLE")
             .pin(format!("SYNCLK{i}OUT"))
             .pip(format!("SYNCLK{i}_N"), format!("SYNCLK{i}OUT"))
@@ -621,7 +621,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex("SYNCLK_BUF_DIR", "DOWN")
             .tile_mutex("SYNCLK", format!("SYNCLK{i}_DRIVE_DOWN"))
-            .test_manual(format!("SYNCLK{i}"), "DRIVE_DOWN")
+            .test_manual_legacy(format!("SYNCLK{i}"), "DRIVE_DOWN")
             .attr(format!("SYNCLK{i}OUTEN"), "ENABLE")
             .pin(format!("SYNCLK{i}OUT"))
             .pip(format!("SYNCLK{i}_S"), format!("SYNCLK{i}OUT"))
@@ -629,7 +629,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex_here("SYNCLK_BUF_DIR")
             .tile_mutex("SYNCLK", format!("SYNCLK{i}_DRIVE_BOTH"))
-            .test_manual(format!("SYNCLK{i}"), "DRIVE_BOTH")
+            .test_manual_legacy(format!("SYNCLK{i}"), "DRIVE_BOTH")
             .attr(format!("SYNCLK{i}OUTEN"), "ENABLE")
             .pin(format!("SYNCLK{i}OUT"))
             .pip(format!("SYNCLK{i}_N"), format!("SYNCLK{i}OUT"))
@@ -694,7 +694,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "DWE",
         ] {
             present.apply_bit_diff(
-                ctx.item_int_inv(&[tcls::INT; 32], tcid, bslot, pin),
+                ctx.item_int_inv_legacy(&[tcls::INT; 32], tcid, bslot, pin),
                 false,
                 true,
             );

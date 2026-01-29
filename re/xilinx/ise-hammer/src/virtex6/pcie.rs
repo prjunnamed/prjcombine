@@ -265,14 +265,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
     bctx.build()
         .extra_tile_attr(Delta::new(3, 20, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
-        .test_manual("PRESENT", "1")
+        .test_manual_legacy("PRESENT", "1")
         .mode(mode)
         .commit();
     for &attr in PCIE_BOOL_ATTRS {
         bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
     }
     for &(attr, width) in PCIE_HEX_ATTRS {
-        bctx.mode(mode).test_multi_attr_hex(attr, width);
+        bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
     }
     for &(attr, width) in PCIE_DEC_ATTRS {
         bctx.mode(mode).test_multi_attr_dec(attr, width);

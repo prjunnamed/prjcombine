@@ -17,7 +17,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mode = "DSP48E";
         bctx.build()
             .bel_unused(bel_other)
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode(mode)
             .commit();
         for &pin in DSP48E_INVPINS {
@@ -34,7 +34,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 ("2_2", "2", "2"),
             ] {
                 bctx.mode(mode)
-                    .test_manual(aname, vname)
+                    .test_manual_legacy(aname, vname)
                     .attr(attr, val)
                     .attr(attrcasc, valcasc)
                     .commit();
@@ -99,8 +99,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_enum("LFSR_EN_SET", &["SET", "DONT_SET"]);
         }
         bctx.mode(mode).test_enum("LFSR_EN_SETVAL", &["1", "0"]);
-        bctx.mode(mode).test_multi_attr_hex("PATTERN", 48);
-        bctx.mode(mode).test_multi_attr_hex("MASK", 48);
+        bctx.mode(mode).test_multi_attr_hex_legacy("PATTERN", 48);
+        bctx.mode(mode).test_multi_attr_hex_legacy("MASK", 48);
     }
 }
 

@@ -226,11 +226,11 @@ impl State {
         fuzzers: Vec<FuzzerId>,
     ) -> Result<(), Vec<FuzzerId>> {
         if diffs.len() != 1
-            && let DiffKey::BelAttrBit(tcid, bslot, attr, 0) = key
+            && let DiffKey::BelAttrBit(tcid, bslot, attr, base) = key
         {
             for (idx, diff) in diffs.into_iter().enumerate() {
                 self.insert_diff(
-                    DiffKey::BelAttrBit(tcid, bslot, attr, idx),
+                    DiffKey::BelAttrBit(tcid, bslot, attr, base + idx),
                     vec![diff],
                     fuzzers.clone(),
                 )?;
@@ -238,11 +238,11 @@ impl State {
             return Ok(());
         }
         if diffs.len() != 1
-            && let DiffKey::BelSpecialBit(tcid, bslot, spec, 0) = key
+            && let DiffKey::BelSpecialBit(tcid, bslot, spec, base) = key
         {
             for (idx, diff) in diffs.into_iter().enumerate() {
                 self.insert_diff(
-                    DiffKey::BelSpecialBit(tcid, bslot, spec, idx),
+                    DiffKey::BelSpecialBit(tcid, bslot, spec, base + idx),
                     vec![diff],
                     fuzzers.clone(),
                 )?;

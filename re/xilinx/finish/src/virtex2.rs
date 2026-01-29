@@ -153,6 +153,7 @@ pub fn finish(geom: GeomDb, mut bitdb: CollectorData) -> Database {
             bonds: dev_bonds,
             speeds,
             combos,
+            data: bitdb.device_data.remove(name).unwrap_or_default(),
         };
         parts.push(part);
     }

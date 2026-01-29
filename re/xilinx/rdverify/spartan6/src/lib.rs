@@ -1,5 +1,5 @@
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::db::{BelInfo, TileWireCoord};
+use prjcombine_interconnect::{db::TileWireCoord, grid::BelCoord};
 use prjcombine_re_xilinx_naming_spartan6::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{LegacyBelContext, RawWireCoord, SitePinDir, Verifier};
@@ -30,28 +30,25 @@ fn verify_sliceml(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     vrf.claim_net(&[bel.wire("COUT")]);
 }
 
-fn verify_dsp(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_dsp(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let carry: Vec<_> = (0..18)
         .map(|x| (format!("BCOUT{x}"), format!("BCIN{x}")))
         .chain((0..48).map(|x| (format!("PCOUT{x}"), format!("PCIN{x}"))))
         .chain([("CARRYOUT".to_string(), "CARRYIN".to_string())])
         .collect();
-    let mut pins = vec![];
+    let mut bel = vrf.verify_bel(bcrd).kind("DSP48A1");
     for (o, i) in &carry {
-        pins.push((&**o, SitePinDir::Out));
-        pins.push((&**i, SitePinDir::In));
+        bel = bel.extra_in(i).extra_out(o);
+        bel.claim_net(&[bel.wire(o)]);
+        bel.claim_net(&[bel.wire(i)]);
     }
-    vrf.verify_legacy_bel(bel, "DSP48A1", &pins, &[]);
-    for (o, i) in &carry {
-        vrf.claim_net(&[bel.wire(o)]);
-        vrf.claim_net(&[bel.wire(i)]);
-    }
-    if let Some(obel) = vrf.find_bel_walk(bel, 0, -4, defs::bslots::DSP) {
+    if let Some(obel) = endev.edev.bel_carry_prev(bcrd) {
         for (o, i) in &carry {
-            vrf.verify_net(&[bel.wire(i), obel.wire_far(o)]);
-            vrf.claim_pip(obel.wire_far(o), obel.wire(o));
+            bel.verify_net(&[bel.wire(i), bel.bel_wire_far(obel, o)]);
+            bel.claim_pip(bel.bel_wire_far(obel, o), bel.bel_wire(obel, o));
         }
     }
+    bel.commit();
 }
 
 fn verify_ilogic(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
@@ -2920,23 +2917,39 @@ fn verify_opad(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     vrf.claim_net(&[bel.wire("I")]);
 }
 
-fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
-    let slot_name = endev.edev.db.bel_slots.key(bel.slot);
-    match bel.slot {
-        _ if bel.slot == defs::bslots::SLICE[0] => verify_sliceml(vrf, bel),
-        _ if bel.slot == defs::bslots::SLICE[1] => vrf.verify_legacy_bel(bel, "SLICEX", &[], &[]),
-        defs::bslots::BRAM_F => vrf.verify_legacy_bel(bel, "RAMB16BWER", &[], &[]),
-        _ if defs::bslots::BRAM_H.contains(bel.slot) => {
-            vrf.verify_legacy_bel(bel, "RAMB8BWER", &[], &[])
+fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let slot_name = endev.edev.db.bel_slots.key(bcrd.slot);
+    match bcrd.slot {
+        bslots::INT | bslots::INTF_INT | bslots::INTF_TESTMUX | bslots::REG_INT => (),
+        _ if bcrd.slot == defs::bslots::SLICE[0] => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_sliceml(vrf, bel);
         }
-        defs::bslots::DSP => verify_dsp(vrf, bel),
-        defs::bslots::PCIE => vrf.verify_legacy_bel(bel, "PCIE_A1", &[], &[]),
+        _ if bcrd.slot == defs::bslots::SLICE[1] => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            vrf.verify_legacy_bel(bel, "SLICEX", &[], &[]);
+        }
+        defs::bslots::BRAM_F => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            vrf.verify_legacy_bel(bel, "RAMB16BWER", &[], &[]);
+        }
+        _ if defs::bslots::BRAM_H.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            vrf.verify_legacy_bel(bel, "RAMB8BWER", &[], &[]);
+        }
+        defs::bslots::DSP => verify_dsp(endev, vrf, bcrd),
+        defs::bslots::PCIE => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            vrf.verify_legacy_bel(bel, "PCIE_A1", &[], &[]);
+        }
 
-        _ if defs::bslots::OCT_CAL.contains(bel.slot) => {
-            vrf.verify_legacy_bel(bel, "OCT_CALIBRATE", &[], &[])
+        _ if defs::bslots::OCT_CAL.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            vrf.verify_legacy_bel(bel, "OCT_CALIBRATE", &[], &[]);
         }
-        _ if defs::bslots::BSCAN.contains(bel.slot) => {
-            vrf.verify_legacy_bel(bel, "BSCAN", &[], &[])
+        _ if defs::bslots::BSCAN.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            vrf.verify_legacy_bel(bel, "BSCAN", &[], &[]);
         }
         defs::bslots::PMV
         | defs::bslots::DNA_PORT
@@ -2945,69 +2958,219 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelCo
         | defs::bslots::SUSPEND_SYNC
         | defs::bslots::POST_CRC_INTERNAL
         | defs::bslots::STARTUP
-        | defs::bslots::SLAVE_SPI => vrf.verify_legacy_bel(bel, slot_name, &[], &[]),
-
-        _ if defs::bslots::ILOGIC.contains(bel.slot) => verify_ilogic(vrf, bel),
-        _ if defs::bslots::OLOGIC.contains(bel.slot) => verify_ologic(vrf, bel),
-        _ if defs::bslots::IODELAY.contains(bel.slot) => verify_iodelay(vrf, bel),
-        _ if defs::bslots::IOICLK.contains(bel.slot) => verify_ioiclk(vrf, bel),
-        defs::bslots::IOI => verify_ioi(endev, vrf, bel),
-        _ if defs::bslots::IOB.contains(bel.slot) => verify_iob(vrf, bel),
-        _ if slot_name.starts_with("TIEOFF") => verify_tieoff(vrf, bel),
-        defs::bslots::CLKPIN_BUF => verify_clkpin_buf(vrf, bel),
-
-        defs::bslots::PCILOGICSE => verify_pcilogicse(endev, vrf, bel),
-        defs::bslots::MCB => verify_mcb(endev, vrf, bel),
-        _ if slot_name.starts_with("MCB_TIE") => verify_mcb_tie(endev, vrf, bel),
-
-        defs::bslots::IOI_CLK_SN => verify_btioi_clk(endev, vrf, bel),
-        defs::bslots::IOI_CLK_WE => verify_lrioi_clk(endev, vrf, bel),
-        defs::bslots::IOI_CLK_WE_TERM => verify_lrioi_clk_term(endev, vrf, bel),
-        defs::bslots::PCI_CE_TRUNK_BUF => verify_pci_ce_trunk_buf(endev, vrf, bel),
-        defs::bslots::PCI_CE_SPLIT => verify_pci_ce_split(endev, vrf, bel),
-        defs::bslots::PCI_CE_V_BUF => verify_pci_ce_v_buf(endev, vrf, bel),
-        defs::bslots::PCI_CE_H_BUF => verify_pci_ce_h_buf(endev, vrf, bel),
-
-        _ if defs::bslots::BUFH_W.contains(bel.slot) || defs::bslots::BUFH_E.contains(bel.slot) => {
-            verify_bufh(endev, vrf, bel)
+        | defs::bslots::SLAVE_SPI => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            vrf.verify_legacy_bel(bel, slot_name, &[], &[]);
         }
-        defs::bslots::HCLK_V_MIDBUF => verify_hclk_v_midbuf(endev, vrf, bel),
-        defs::bslots::HCLK_ROW => verify_hclk_row(endev, vrf, bel),
-        defs::bslots::HCLK_H_MIDBUF => verify_hclk_h_midbuf(endev, vrf, bel),
-        defs::bslots::HCLK => verify_hclk(endev, vrf, bel),
-        _ if defs::bslots::BUFGMUX.contains(bel.slot) => verify_bufgmux(vrf, bel),
-        defs::bslots::CLKC => verify_clkc(endev, vrf, bel),
 
-        defs::bslots::CKPIN_V_MIDBUF => verify_ckpin_v_midbuf(endev, vrf, bel),
-        defs::bslots::CKPIN_H_MIDBUF => verify_ckpin_h_midbuf(endev, vrf, bel),
+        _ if defs::bslots::ILOGIC.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_ilogic(vrf, bel);
+        }
+        _ if defs::bslots::OLOGIC.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_ologic(vrf, bel);
+        }
+        _ if defs::bslots::IODELAY.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_iodelay(vrf, bel);
+        }
+        _ if defs::bslots::IOICLK.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_ioiclk(vrf, bel);
+        }
+        defs::bslots::IOI => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_ioi(endev, vrf, bel);
+        }
+        _ if defs::bslots::IOB.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_iob(vrf, bel);
+        }
+        _ if slot_name.starts_with("TIEOFF") => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_tieoff(vrf, bel)
+        }
+        defs::bslots::CLKPIN_BUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_clkpin_buf(vrf, bel);
+        }
 
-        defs::bslots::BUFIO2_INS => verify_bufio2_ins(endev, vrf, bel),
-        defs::bslots::BUFIO2_CKPIN => verify_bufio2_ckpin(vrf, bel),
-        _ if defs::bslots::BUFIO2.contains(bel.slot) => verify_bufio2(endev, vrf, bel),
-        _ if defs::bslots::BUFIO2FB.contains(bel.slot) => verify_bufio2fb(vrf, bel),
+        defs::bslots::PCILOGICSE => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_pcilogicse(endev, vrf, bel);
+        }
+        defs::bslots::MCB => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_mcb(endev, vrf, bel);
+        }
+        _ if slot_name.starts_with("MCB_TIE") => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_mcb_tie(endev, vrf, bel);
+        }
 
-        _ if defs::bslots::BUFPLL.contains(bel.slot) => verify_bufpll(endev, vrf, bel),
-        defs::bslots::BUFPLL_MCB => verify_bufpll_mcb(endev, vrf, bel),
-        defs::bslots::BUFPLL_OUT => verify_bufpll_out(vrf, bel),
-        defs::bslots::BUFPLL_BUF => verify_bufpll_buf(vrf, bel),
-        defs::bslots::BUFPLL_INS_WE => verify_bufpll_ins_lr(endev, vrf, bel),
-        defs::bslots::BUFPLL_INS_SN => verify_bufpll_ins_bt(endev, vrf, bel),
+        defs::bslots::IOI_CLK_SN => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_btioi_clk(endev, vrf, bel);
+        }
+        defs::bslots::IOI_CLK_WE => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_lrioi_clk(endev, vrf, bel);
+        }
+        defs::bslots::IOI_CLK_WE_TERM => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_lrioi_clk_term(endev, vrf, bel);
+        }
+        defs::bslots::PCI_CE_TRUNK_BUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_pci_ce_trunk_buf(endev, vrf, bel);
+        }
+        defs::bslots::PCI_CE_SPLIT => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_pci_ce_split(endev, vrf, bel);
+        }
+        defs::bslots::PCI_CE_V_BUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_pci_ce_v_buf(endev, vrf, bel);
+        }
+        defs::bslots::PCI_CE_H_BUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_pci_ce_h_buf(endev, vrf, bel);
+        }
 
-        _ if defs::bslots::DCM.contains(bel.slot) => verify_dcm(vrf, bel),
-        defs::bslots::CMT => verify_cmt(endev, vrf, bel),
-        defs::bslots::PLL => verify_pll(vrf, bel),
-        defs::bslots::PLL_BUFPLL => verify_pll_bufpll(vrf, bel),
-        _ if slot_name.starts_with("DCM_BUFPLL_BUF") => verify_dcm_bufpll_buf(endev, vrf, bel),
-        defs::bslots::CLKC_BUFPLL => verify_clkc_bufpll(vrf, bel),
+        _ if defs::bslots::BUFH_W.contains(bcrd.slot)
+            || defs::bslots::BUFH_E.contains(bcrd.slot) =>
+        {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufh(endev, vrf, bel);
+        }
+        defs::bslots::HCLK_V_MIDBUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_hclk_v_midbuf(endev, vrf, bel);
+        }
+        defs::bslots::HCLK_ROW => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_hclk_row(endev, vrf, bel);
+        }
+        defs::bslots::HCLK_H_MIDBUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_hclk_h_midbuf(endev, vrf, bel);
+        }
+        defs::bslots::HCLK => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_hclk(endev, vrf, bel);
+        }
+        _ if defs::bslots::BUFGMUX.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufgmux(vrf, bel);
+        }
+        defs::bslots::CLKC => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_clkc(endev, vrf, bel);
+        }
 
-        defs::bslots::GTP => verify_gtp(endev, vrf, bel),
-        _ if slot_name.starts_with("BUFDS") => verify_bufds(vrf, bel),
-        _ if slot_name.starts_with("IPAD") => verify_ipad(vrf, bel),
-        _ if slot_name.starts_with("OPAD") => verify_opad(vrf, bel),
-        defs::bslots::GTP_BUF => verify_gtp_buf(endev, vrf, bel),
-        defs::bslots::GTP_H_BUF => verify_gtp_h_buf(endev, vrf, bel),
+        defs::bslots::CKPIN_V_MIDBUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_ckpin_v_midbuf(endev, vrf, bel);
+        }
+        defs::bslots::CKPIN_H_MIDBUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_ckpin_h_midbuf(endev, vrf, bel);
+        }
 
-        _ => println!("MEOW {} {:?}", bel.slot, bel.name),
+        defs::bslots::BUFIO2_INS => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufio2_ins(endev, vrf, bel);
+        }
+        defs::bslots::BUFIO2_CKPIN => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufio2_ckpin(vrf, bel);
+        }
+        _ if defs::bslots::BUFIO2.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufio2(endev, vrf, bel);
+        }
+        _ if defs::bslots::BUFIO2FB.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufio2fb(vrf, bel);
+        }
+
+        _ if defs::bslots::BUFPLL.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufpll(endev, vrf, bel);
+        }
+        defs::bslots::BUFPLL_MCB => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufpll_mcb(endev, vrf, bel);
+        }
+        defs::bslots::BUFPLL_OUT => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufpll_out(vrf, bel);
+        }
+        defs::bslots::BUFPLL_BUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufpll_buf(vrf, bel);
+        }
+        defs::bslots::BUFPLL_INS_WE => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufpll_ins_lr(endev, vrf, bel);
+        }
+        defs::bslots::BUFPLL_INS_SN => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufpll_ins_bt(endev, vrf, bel);
+        }
+
+        _ if defs::bslots::DCM.contains(bcrd.slot) => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_dcm(vrf, bel);
+        }
+        defs::bslots::CMT => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_cmt(endev, vrf, bel);
+        }
+        defs::bslots::PLL => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_pll(vrf, bel);
+        }
+        defs::bslots::PLL_BUFPLL => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_pll_bufpll(vrf, bel);
+        }
+        _ if slot_name.starts_with("DCM_BUFPLL_BUF") => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_dcm_bufpll_buf(endev, vrf, bel);
+        }
+        defs::bslots::CLKC_BUFPLL => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_clkc_bufpll(vrf, bel);
+        }
+
+        defs::bslots::GTP => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_gtp(endev, vrf, bel);
+        }
+        _ if slot_name.starts_with("BUFDS") => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_bufds(vrf, bel);
+        }
+        _ if slot_name.starts_with("IPAD") => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_ipad(vrf, bel);
+        }
+        _ if slot_name.starts_with("OPAD") => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_opad(vrf, bel);
+        }
+        defs::bslots::GTP_BUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_gtp_buf(endev, vrf, bel);
+        }
+        defs::bslots::GTP_H_BUF => {
+            let bel = &vrf.get_legacy_bel(bcrd);
+            verify_gtp_h_buf(endev, vrf, bel);
+        }
+
+        _ => println!("MEOW {}", bcrd.to_string(endev.edev.db)),
     }
 }
 
@@ -3140,11 +3303,8 @@ pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
     vrf.handle_int();
     for (tcrd, tile) in endev.ngrid.egrid.tiles() {
         let tcls = &endev.ngrid.egrid.db[tile.class];
-        for (slot, bel) in &tcls.bels {
-            if let BelInfo::Legacy(_) = bel {
-                let ctx = vrf.get_legacy_bel(tcrd.bel(slot));
-                verify_bel(endev, &mut vrf, &ctx);
-            }
+        for slot in tcls.bels.ids() {
+            verify_bel(endev, &mut vrf, tcrd.bel(slot));
         }
     }
     verify_extra(endev, &mut vrf);

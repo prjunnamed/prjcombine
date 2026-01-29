@@ -72,7 +72,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::ICAP[0]);
         bctx.build()
             .bel_mode(defs::bslots::ICAP[1], "ICAP")
-            .test_manual("ENABLE", "1")
+            .test_manual_legacy("ENABLE", "1")
             .mode("ICAP")
             .commit();
         bctx.mode("ICAP")
@@ -89,7 +89,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::PMV_CFG[i]);
         bctx.build()
             .null_bits()
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("PMV")
             .commit();
     }
@@ -98,7 +98,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::STARTUP);
         bctx.build()
             .null_bits()
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("STARTUP")
             .commit();
         for val in ["CCLK", "USERCLK", "JTAGCLK"] {
@@ -106,27 +106,27 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .null_bits()
                 .extra_tile_reg(Reg::Cor0, "REG.COR", "STARTUP")
                 .pin("CLK")
-                .test_manual("STARTUPCLK", val)
+                .test_manual_legacy("STARTUPCLK", val)
                 .global("STARTUPCLK", val)
                 .commit();
         }
         bctx.mode("STARTUP")
             .no_pin("GSR")
-            .test_manual("PIN.GTS", "1")
+            .test_manual_legacy("PIN.GTS", "1")
             .pin("GTS")
             .commit();
         bctx.mode("STARTUP")
             .no_pin("GTS")
-            .test_manual("PIN.GSR", "1")
+            .test_manual_legacy("PIN.GSR", "1")
             .pin("GSR")
             .commit();
         bctx.mode("STARTUP")
-            .test_manual("PIN.USRCCLKO", "1")
+            .test_manual_legacy("PIN.USRCCLKO", "1")
             .pin("USRCCLKO")
             .commit();
         bctx.mode("STARTUP")
             .global("ENCRYPT", "YES")
-            .test_manual("PIN.KEYCLEARB", "1")
+            .test_manual_legacy("PIN.KEYCLEARB", "1")
             .pin("KEYCLEARB")
             .commit();
         for attr in ["GSR_SYNC", "GTS_SYNC"] {
@@ -144,7 +144,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .null_bits()
             .extra_tile_reg(Reg::Ctl0, "REG.CTL", "FRAME_ECC")
             .no_global("GLUTMASK_B")
-            .test_manual("ENABLE", "1")
+            .test_manual_legacy("ENABLE", "1")
             .mode("FRAME_ECC")
             .commit();
         bctx.mode("FRAME_ECC")
@@ -162,7 +162,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::CAPTURE);
         bctx.build()
             .null_bits()
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("CAPTURE")
             .commit();
         bctx.mode("CAPTURE")
@@ -175,7 +175,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::USR_ACCESS);
         bctx.build()
             .null_bits()
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("USR_ACCESS")
             .commit();
     }
@@ -184,7 +184,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::EFUSE_USR);
         bctx.build()
             .null_bits()
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("EFUSE_USR")
             .commit();
     }
@@ -206,14 +206,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .null_bits()
             .extra_tile_attr(Delta::new(0, 20, "HCLK"), "HCLK", "DRP_MASK_SYSMON", "1")
-            .test_manual("ENABLE", "1")
+            .test_manual_legacy("ENABLE", "1")
             .mode("SYSMON")
             .commit();
         bctx.mode("SYSMON").test_inv("DCLK");
         bctx.mode("SYSMON").test_inv("CONVSTCLK");
         for i in 0x40..0x58 {
             bctx.mode("SYSMON")
-                .test_multi_attr_hex(format!("INIT_{i:02X}"), 16);
+                .test_multi_attr_hex_legacy(format!("INIT_{i:02X}"), 16);
         }
         for attr in [
             "SYSMON_TEST_A",
@@ -222,11 +222,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "SYSMON_TEST_D",
             "SYSMON_TEST_E",
         ] {
-            bctx.mode("SYSMON").test_multi_attr_hex(attr, 16);
+            bctx.mode("SYSMON").test_multi_attr_hex_legacy(attr, 16);
         }
         bctx.build()
             .attr("SYSMON_TEST_E", "")
-            .test_manual("JTAG_SYSMON", "DISABLE")
+            .test_manual_legacy("JTAG_SYSMON", "DISABLE")
             .global("JTAG_SYSMON", "DISABLE")
             .commit();
     }

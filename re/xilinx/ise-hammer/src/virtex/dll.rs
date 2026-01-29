@@ -137,7 +137,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .extra_tile_attr_fixed(cnr_tl, "MISC", "DLL_ENABLE", "1")
             .global_mutex_here("DLL")
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("DLL")
             .commit();
         bctx.mode("DLL")
@@ -146,7 +146,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_enum("RSTMUX", &["0", "1", "RST", "RST_B"]);
         bctx.mode("DLL")
             .global_mutex("DLL", "USE")
-            .test_manual("HIGH_FREQUENCY", "1")
+            .test_manual_legacy("HIGH_FREQUENCY", "1")
             .attr("HIGH_FREQ_ATTR", "HIGH_FREQUENCY")
             .commit();
         bctx.mode("DLL")
@@ -170,13 +170,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("DLL")
                 .global_mutex("DLL", "USE")
                 .attr("HIGH_FREQ_ATTR", "")
-                .test_manual("DIVIDE_ATTR", format!("{i}_5.LOW"))
+                .test_manual_legacy("DIVIDE_ATTR", format!("{i}_5.LOW"))
                 .attr("DIVIDE_ATTR", format!("{i}_5"))
                 .commit();
             bctx.mode("DLL")
                 .global_mutex("DLL", "USE")
                 .attr("HIGH_FREQ_ATTR", "HIGH_FREQUENCY")
-                .test_manual("DIVIDE_ATTR", format!("{i}_5.HIGH"))
+                .test_manual_legacy("DIVIDE_ATTR", format!("{i}_5.HIGH"))
                 .attr("DIVIDE_ATTR", format!("{i}_5"))
                 .commit();
         }
@@ -201,7 +201,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .global_mutex("DLL", "USE")
                     .prop(PinWireMutexShared(defs::bslots::DLL, "CLKIN"))
                     .prop(PinWireMutexShared(defs::bslots::DLL, "CLKFB"))
-                    .test_manual(attr, val)
+                    .test_manual_legacy(attr, val)
                     .prop(FuzzGlobalDll(defs::bslots::DLL, opt, val))
                     .commit();
             }
@@ -210,7 +210,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for val in ["NO", "YES"] {
                 bctx.mode("DLL")
                     .global_mutex("DLL", "USE")
-                    .test_manual(attr, val)
+                    .test_manual_legacy(attr, val)
                     .prop(FuzzGlobalDll(defs::bslots::DLL, opt, val))
                     .commit();
             }
@@ -223,7 +223,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .prop(DeviceSide(DirH::W))
                     .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BL", "1")
                     .null_bits()
-                    .test_manual("STARTUP_ATTR", "STARTUP_WAIT")
+                    .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                     .attr("STARTUP_ATTR", "STARTUP_WAIT")
                     .commit();
 
@@ -232,7 +232,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .prop(DeviceSide(DirH::E))
                     .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BR", "1")
                     .null_bits()
-                    .test_manual("STARTUP_ATTR", "STARTUP_WAIT")
+                    .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                     .attr("STARTUP_ATTR", "STARTUP_WAIT")
                     .commit();
             } else {
@@ -241,7 +241,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .prop(DeviceSide(DirH::W))
                     .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TL", "1")
                     .null_bits()
-                    .test_manual("STARTUP_ATTR", "STARTUP_WAIT")
+                    .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                     .attr("STARTUP_ATTR", "STARTUP_WAIT")
                     .commit();
                 bctx.mode("DLL")
@@ -249,7 +249,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .prop(DeviceSide(DirH::E))
                     .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TR", "1")
                     .null_bits()
-                    .test_manual("STARTUP_ATTR", "STARTUP_WAIT")
+                    .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                     .attr("STARTUP_ATTR", "STARTUP_WAIT")
                     .commit();
             }

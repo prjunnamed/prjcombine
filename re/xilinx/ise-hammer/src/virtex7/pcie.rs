@@ -660,7 +660,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         // always appears in left column even when DRP is in right column — bug or intentional?
         bctx.mode(mode)
             .extra_tile_attr(PcieHclkPair, "HCLK", "DRP_MASK_PCIE", "1")
-            .test_manual("DRP_MASK", "1")
+            .test_manual_legacy("DRP_MASK", "1")
             .pin("DRPWE")
             .commit();
 
@@ -668,7 +668,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
         }
         for &(attr, width) in PCIE_HEX_ATTRS {
-            bctx.mode(mode).test_multi_attr_hex(attr, width);
+            bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
         for &(attr, width) in PCIE_DEC_ATTRS {
             bctx.mode(mode).test_multi_attr_dec(attr, width);
@@ -682,14 +682,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .extra_tile_attr(Delta::new(3, 0, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
             .extra_tile_attr(Delta::new(3, 50, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
-            .test_manual("DRP_MASK", "1")
+            .test_manual_legacy("DRP_MASK", "1")
             .pin("DRPWE")
             .commit();
         for &attr in PCIE3_BOOL_ATTRS {
             bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
         }
         for &(attr, width) in PCIE3_HEX_ATTRS {
-            bctx.mode(mode).test_multi_attr_hex(attr, width);
+            bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
         for &(attr, width) in PCIE3_DEC_ATTRS {
             bctx.mode(mode).test_multi_attr_dec(attr, width);

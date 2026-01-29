@@ -6,6 +6,62 @@ target_defs! {
     variant virtex6;
     variant virtex7;
 
+    enum SLICE_V4_CYINIT { BX, CIN }
+    enum SLICE_V4_CY0F { CONST_0, CONST_1, BX, F3, F2, PROD }
+    enum SLICE_V4_CY0G { CONST_0, CONST_1, BY, G3, G2, PROD }
+    enum SLICE_V4_DIF_MUX { ALT, BX }
+    enum SLICE_V4_DIG_MUX { ALT, BY }
+    enum SLICE_V4_DXMUX { X, BX, F5, FXOR, XB }
+    enum SLICE_V4_DYMUX { Y, BY, FX, GXOR, YB }
+    enum SLICE_V4_FXMUX { F5, FXOR }
+    enum SLICE_V4_GYMUX { FX, GXOR }
+    enum SLICE_V4_XBMUX { FCY, FMC15 }
+    enum SLICE_V4_YBMUX { GCY, GMC15 }
+    bel_class SLICE_V4 {
+        input F1, F2, F3, F4;
+        input G1, G2, G3, G4;
+        input BX, BY;
+        input CLK, SR, CE;
+        output X, Y;
+        output XQ, YQ;
+        output XB, YB;
+        output XMUX, YMUX;
+
+        attribute F, G: bitvec[16];
+
+        // SLICEM only
+        attribute DIF_MUX: SLICE_V4_DIF_MUX;
+        attribute DIG_MUX: SLICE_V4_DIG_MUX;
+        attribute F_RAM_ENABLE, G_RAM_ENABLE: bool;
+        attribute F_SHIFT_ENABLE, G_SHIFT_ENABLE: bool;
+        // SLICEM only
+        attribute F_SLICEWE0USED, G_SLICEWE0USED: bool;
+        attribute F_SLICEWE1USED, G_SLICEWE1USED: bool;
+
+        attribute CYINIT: SLICE_V4_CYINIT;
+        attribute CY0F: SLICE_V4_CY0F;
+        attribute CY0G: SLICE_V4_CY0G;
+
+        attribute FFX_INIT, FFY_INIT: bitvec[1];
+        attribute FFX_SRVAL, FFY_SRVAL: bitvec[1];
+        attribute FF_LATCH: bool;
+        attribute FF_REV_ENABLE: bool;
+        attribute FF_SR_SYNC: bool;
+        // SLICEM only (effectively always enabled on SLICEL)
+        attribute FF_SR_ENABLE: bool;
+
+        attribute FXMUX: SLICE_V4_FXMUX;
+        attribute GYMUX: SLICE_V4_GYMUX;
+        attribute DXMUX: SLICE_V4_DXMUX;
+        attribute DYMUX: SLICE_V4_DYMUX;
+
+        // SLICEM only (effectively *CY on SLICEL)
+        attribute XBMUX: SLICE_V4_XBMUX;
+        attribute YBMUX: SLICE_V4_YBMUX;
+    }
+
+    // TODO: enums, bel slots
+
     region_slot HCLK;
     region_slot LEAF;
 
@@ -750,7 +806,11 @@ target_defs! {
     }
 
     tile_slot BEL {
-        bel_slot SLICE[4]: legacy;
+        if variant virtex4 {
+            bel_slot SLICE[4]: SLICE_V4;
+        } else {
+            bel_slot SLICE[4]: legacy;
+        }
         if variant virtex4 {
             tile_class CLB {
                 cell CELL;

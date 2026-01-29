@@ -2525,7 +2525,7 @@ impl PartContext<'_> {
 
         let edev = self.chip.expand_grid(&self.intdb);
 
-        let cdata = collect(&edev, &harvester);
+        let cdata = collect(&edev, self.parts[0].name, &harvester);
 
         cdata.insert_into(&mut self.intdb, true);
 

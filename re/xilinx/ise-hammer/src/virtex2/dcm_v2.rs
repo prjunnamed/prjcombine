@@ -106,7 +106,10 @@ pub fn add_fuzzers<'a>(
         if edev.chip.kind == ChipKind::Spartan3 {
             builder = builder.prop(DcmCornerEnable(DirHV::SW, true));
         }
-        builder.test_manual("ENABLE", "1").mode(mode).commit();
+        builder
+            .test_manual_legacy("ENABLE", "1")
+            .mode(mode)
+            .commit();
         return;
     }
 
@@ -139,7 +142,10 @@ pub fn add_fuzzers<'a>(
     for &prop in &props {
         builder = builder.prop(prop);
     }
-    builder.test_manual("ENABLE", "1").mode(mode).commit();
+    builder
+        .test_manual_legacy("ENABLE", "1")
+        .mode(mode)
+        .commit();
     let mut builder = bctx
         .build()
         .global_mutex("DCM_OPT", "YES")
@@ -152,7 +158,7 @@ pub fn add_fuzzers<'a>(
         builder = builder.prop(prop);
     }
     builder
-        .test_manual("ENABLE", "OPT_BASE")
+        .test_manual_legacy("ENABLE", "OPT_BASE")
         .mode(mode)
         .commit();
 
@@ -168,7 +174,10 @@ pub fn add_fuzzers<'a>(
         for &prop in &props {
             builder = builder.prop(prop);
         }
-        builder.test_manual("ENABLE", opt).mode(mode).commit();
+        builder
+            .test_manual_legacy("ENABLE", opt)
+            .mode(mode)
+            .commit();
     }
 
     for pin in ["RST", "PSCLK", "PSEN", "PSINCDEC", "DSSEN"] {
@@ -210,14 +219,14 @@ pub fn add_fuzzers<'a>(
             .mutex("MODE", "PINS")
             .mutex("PIN", pin)
             .no_pin("CLKFB")
-            .test_manual(pin, "1")
+            .test_manual_legacy(pin, "1")
             .pin(pin)
             .commit();
         bctx.mode(mode)
             .mutex("MODE", "PINS")
             .mutex("PIN", pin)
             .pin("CLKFB")
-            .test_manual(pin, "1.CLKFB")
+            .test_manual_legacy(pin, "1.CLKFB")
             .pin(pin)
             .commit();
         if pin != "CLKFX" && pin != "CLKFX180" && pin != "CONCUR" {
@@ -226,14 +235,14 @@ pub fn add_fuzzers<'a>(
                 .mutex("PIN", format!("{pin}.CLKFX"))
                 .pin("CLKFX")
                 .pin("CLKFB")
-                .test_manual(pin, "1.CLKFX")
+                .test_manual_legacy(pin, "1.CLKFX")
                 .pin(pin)
                 .commit();
         }
     }
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_manual("CLKFB", "1")
+        .test_manual_legacy("CLKFB", "1")
         .pin("CLKFB")
         .commit();
     bctx.mode(mode)
@@ -241,7 +250,7 @@ pub fn add_fuzzers<'a>(
         .pin("CLKIN")
         .pin("CLKFB")
         .pin_from("CLKFB", PinFromKind::Bufg)
-        .test_manual("CLKIN_IOB", "1")
+        .test_manual_legacy("CLKIN_IOB", "1")
         .pin_from("CLKIN", PinFromKind::Bufg, PinFromKind::Iob)
         .commit();
     bctx.mode(mode)
@@ -249,7 +258,7 @@ pub fn add_fuzzers<'a>(
         .pin("CLKIN")
         .pin("CLKFB")
         .pin_from("CLKIN", PinFromKind::Bufg)
-        .test_manual("CLKFB_IOB", "1")
+        .test_manual_legacy("CLKFB_IOB", "1")
         .pin_from("CLKFB", PinFromKind::Bufg, PinFromKind::Iob)
         .commit();
     for pin in [
@@ -257,7 +266,7 @@ pub fn add_fuzzers<'a>(
     ] {
         bctx.mode(mode)
             .mutex("MODE", "SIMPLE")
-            .test_manual(pin, "1")
+            .test_manual_legacy(pin, "1")
             .pin(pin)
             .commit();
     }
@@ -291,7 +300,7 @@ pub fn add_fuzzers<'a>(
     );
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_manual("DESKEW_ADJUST", "")
+        .test_manual_legacy("DESKEW_ADJUST", "")
         .multi_attr("DESKEW_ADJUST", MultiValue::Dec(0), 4);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
@@ -320,40 +329,40 @@ pub fn add_fuzzers<'a>(
         .mutex("MODE", "SIMPLE")
         .attr("PHASE_SHIFT", "-1")
         .pin("CLK0")
-        .test_manual("CLKOUT_PHASE_SHIFT", "FIXED.NEG")
+        .test_manual_legacy("CLKOUT_PHASE_SHIFT", "FIXED.NEG")
         .attr("CLKOUT_PHASE_SHIFT", "FIXED")
         .commit();
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
         .attr("PHASE_SHIFT", "-1")
         .pin("CLK0")
-        .test_manual("CLKOUT_PHASE_SHIFT", "VARIABLE.NEG")
+        .test_manual_legacy("CLKOUT_PHASE_SHIFT", "VARIABLE.NEG")
         .attr("CLKOUT_PHASE_SHIFT", "VARIABLE")
         .commit();
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_manual("CLKFX_MULTIPLY", "")
+        .test_manual_legacy("CLKFX_MULTIPLY", "")
         .multi_attr("CLKFX_MULTIPLY", MultiValue::Dec(1), 12);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_manual("CLKFX_DIVIDE", "")
+        .test_manual_legacy("CLKFX_DIVIDE", "")
         .multi_attr("CLKFX_DIVIDE", MultiValue::Dec(1), 12);
 
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
         .attr("CLKOUT_PHASE_SHIFT", "FIXED")
-        .test_manual("PHASE_SHIFT", "")
+        .test_manual_legacy("PHASE_SHIFT", "")
         .multi_attr("PHASE_SHIFT", MultiValue::Dec(0), 8);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
         .attr("CLKOUT_PHASE_SHIFT", "FIXED")
-        .test_manual("PHASE_SHIFT", "-255.FIXED")
+        .test_manual_legacy("PHASE_SHIFT", "-255.FIXED")
         .attr("PHASE_SHIFT", "-255")
         .commit();
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
         .attr("CLKOUT_PHASE_SHIFT", "VARIABLE")
-        .test_manual("PHASE_SHIFT", "-255.VARIABLE")
+        .test_manual_legacy("PHASE_SHIFT", "-255.VARIABLE")
         .attr("PHASE_SHIFT", "-255")
         .commit();
 
@@ -368,7 +377,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode(mode)
                 .mutex("MODE", "SIMPLE")
                 .attr("DLL_FREQUENCY_MODE", dll_mode)
-                .test_manual("CLKDV_DIVIDE", format!("{val}.{dll_mode}"))
+                .test_manual_legacy("CLKDV_DIVIDE", format!("{val}.{dll_mode}"))
                 .attr("CLKDV_DIVIDE", val)
                 .commit();
         }
@@ -379,183 +388,183 @@ pub fn add_fuzzers<'a>(
         .no_global("TESTOSC")
         .pin("STATUS1")
         .pin("STATUS7")
-        .test_manual("DLLC", "")
+        .test_manual_legacy("DLLC", "")
         .multi_attr("LL_HEX_DLLC", MultiValue::Hex(0), 32);
     bctx.mode(mode)
         .mutex("MODE", "LL_DLLS")
-        .test_manual("DLLS", "")
+        .test_manual_legacy("DLLS", "")
         .multi_attr("LL_HEX_DLLS", MultiValue::Hex(0), 32);
     bctx.mode(mode)
         .mutex("MODE", "LL_DFS")
-        .test_manual("DFS", "")
+        .test_manual_legacy("DFS", "")
         .multi_attr("LL_HEX_DFS", MultiValue::Hex(0), 32);
     bctx.mode(mode)
         .mutex("MODE", "LL_COM")
-        .test_manual("COM", "")
+        .test_manual_legacy("COM", "")
         .multi_attr("LL_HEX_COM", MultiValue::Hex(0), 32);
     bctx.mode(mode)
         .mutex("MODE", "LL_MISC")
-        .test_manual("MISC", "")
+        .test_manual_legacy("MISC", "")
         .multi_attr("LL_HEX_MISC", MultiValue::Hex(0), 32);
     for val in ["0", "1", "2", "3"] {
         bctx.mode(mode)
             .mutex("MODE", "GLOBALS")
-            .test_manual("COIN_WINDOW", val)
+            .test_manual_legacy("COIN_WINDOW", val)
             .global_xy("COINWINDOW_*", val)
             .commit();
         bctx.mode(mode)
             .mutex("MODE", "GLOBALS")
-            .test_manual("SEL_PL_DLY", val)
+            .test_manual_legacy("SEL_PL_DLY", val)
             .global_xy("SELPLDLY_*", val)
             .commit();
     }
     for val in ["0", "1"] {
         bctx.mode(mode)
             .mutex("MODE", "GLOBALS")
-            .test_manual("EN_OSC_COARSE", val)
+            .test_manual_legacy("EN_OSC_COARSE", val)
             .global_xy("ENOSCCOARSE_*", val)
             .commit();
         bctx.mode(mode)
             .mutex("MODE", "GLOBALS")
             .global_xy("NONSTOP_*", "0")
-            .test_manual("EN_DUMMY_OSC", val)
+            .test_manual_legacy("EN_DUMMY_OSC", val)
             .global_xy("ENDUMMYOSC_*", val)
             .commit();
         bctx.mode(mode)
             .mutex("MODE", "GLOBALS")
-            .test_manual("PL_CENTERED", val)
+            .test_manual_legacy("PL_CENTERED", val)
             .global_xy("PLCENTERED_*", val)
             .commit();
         bctx.mode(mode)
             .mutex("MODE", "GLOBALS")
             .global_xy("ENDUMMYOSC_*", "0")
-            .test_manual("NON_STOP", val)
+            .test_manual_legacy("NON_STOP", val)
             .global_xy("NONSTOP_*", val)
             .commit();
         bctx.mode(mode)
             .mutex("MODE", "GLOBALS")
             .mutex("ZD2", "PLAIN")
-            .test_manual("ZD2_BY1", val)
+            .test_manual_legacy("ZD2_BY1", val)
             .global_xy("ZD2_BY1_*", val)
             .commit();
         if edev.chip.kind.is_virtex2() {
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("PS_CENTERED", val)
+                .test_manual_legacy("PS_CENTERED", val)
                 .global_xy("CENTERED_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
                 .mutex("ZD2", "HF")
-                .test_manual("ZD2_HF_BY1", val)
+                .test_manual_legacy("ZD2_HF_BY1", val)
                 .global_xy("ZD2_HF_BY1_*", val)
                 .commit();
         }
         if edev.chip.kind != ChipKind::Virtex2 {
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("ZD1_BY1", val)
+                .test_manual_legacy("ZD1_BY1", val)
                 .global_xy("ZD1_BY1_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("RESET_PS_SEL", val)
+                .test_manual_legacy("RESET_PS_SEL", val)
                 .global_xy("RESETPS_SEL_*", val)
                 .commit();
         }
         if edev.chip.kind == ChipKind::Spartan3 {
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("SPLY_IDC0", val)
+                .test_manual_legacy("SPLY_IDC0", val)
                 .global_xy("SPLY_IDC0_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("SPLY_IDC1", val)
+                .test_manual_legacy("SPLY_IDC1", val)
                 .global_xy("SPLY_IDC1_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("EXTENDED_FLUSH_TIME", val)
+                .test_manual_legacy("EXTENDED_FLUSH_TIME", val)
                 .global_xy("EXTENDEDFLUSHTIME_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("EXTENDED_HALT_TIME", val)
+                .test_manual_legacy("EXTENDED_HALT_TIME", val)
                 .global_xy("EXTENDEDHALTTIME_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("EXTENDED_RUN_TIME", val)
+                .test_manual_legacy("EXTENDED_RUN_TIME", val)
                 .global_xy("EXTENDEDRUNTIME_*", val)
                 .commit();
             for i in 0..=8 {
                 bctx.mode(mode)
                     .mutex("MODE", "GLOBALS")
-                    .test_manual(format!("CFG_DLL_PS{i}"), val)
+                    .test_manual_legacy(format!("CFG_DLL_PS{i}"), val)
                     .global_xy(format!("CFG_DLL_PS{i}_*"), val)
                     .commit();
             }
             for i in 0..=2 {
                 bctx.mode(mode)
                     .mutex("MODE", "GLOBALS")
-                    .test_manual(format!("CFG_DLL_LP{i}"), val)
+                    .test_manual_legacy(format!("CFG_DLL_LP{i}"), val)
                     .global_xy(format!("CFG_DLL_LP{i}_*"), val)
                     .commit();
             }
             for i in 0..=1 {
                 bctx.mode(mode)
                     .mutex("MODE", "GLOBALS")
-                    .test_manual(format!("SEL_HSYNC_B{i}"), val)
+                    .test_manual_legacy(format!("SEL_HSYNC_B{i}"), val)
                     .global_xy(format!("SELHSYNC_B{i}_*"), val)
                     .commit();
             }
             for i in 0..=1 {
                 bctx.mode(mode)
                     .mutex("MODE", "GLOBALS")
-                    .test_manual(format!("LPON_B_DFS{i}"), val)
+                    .test_manual_legacy(format!("LPON_B_DFS{i}"), val)
                     .global_xy(format!("LPON_B_DFS{i}_*"), val)
                     .commit();
             }
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("EN_PWCTL", val)
+                .test_manual_legacy("EN_PWCTL", val)
                 .global_xy("ENPWCTL_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("M1D1", val)
+                .test_manual_legacy("M1D1", val)
                 .global_xy("M1D1_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("MIS1", val)
+                .test_manual_legacy("MIS1", val)
                 .global_xy("MIS1_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("EN_RELRST_B", val)
+                .test_manual_legacy("EN_RELRST_B", val)
                 .global_xy("ENRELRST_B_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("EN_OLD_OSCCTL", val)
+                .test_manual_legacy("EN_OLD_OSCCTL", val)
                 .global_xy("ENOLDOSCCTL_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("TRIM_LP_B", val)
+                .test_manual_legacy("TRIM_LP_B", val)
                 .global_xy("TRIM_LP_B_*", val)
                 .commit();
             bctx.mode(mode)
                 .mutex("MODE", "GLOBALS")
-                .test_manual("INVERT_ZD1_CUSTOM", val)
+                .test_manual_legacy("INVERT_ZD1_CUSTOM", val)
                 .global_xy("INVERT_ZD1_CUSTOM_*", val)
                 .commit();
             for i in 0..=4 {
                 bctx.mode(mode)
                     .mutex("MODE", "GLOBALS")
-                    .test_manual(format!("VREG_PROBE{i}"), val)
+                    .test_manual_legacy(format!("VREG_PROBE{i}"), val)
                     .global_xy(format!("VREG_PROBE{i}_*"), val)
                     .commit();
             }

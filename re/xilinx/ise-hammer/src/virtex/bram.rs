@@ -45,7 +45,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .attr("PORTA_ATTR", "256X16")
                 .attr("PORTB_ATTR", "256X16")
-                .test_multi_attr_hex(attr, 256);
+                .test_multi_attr_hex_legacy(attr, 256);
         }
     }
 }

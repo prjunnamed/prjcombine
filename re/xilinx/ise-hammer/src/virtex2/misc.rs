@@ -318,13 +318,13 @@ pub fn add_fuzzers<'a>(
 
         let mut bctx = ctx.bel(defs::bslots::PMV);
         bctx.build()
-            .test_manual("PRESENT", "1")
+            .test_manual_legacy("PRESENT", "1")
             .mode("PMV")
             .commit();
         if edev.chip.kind.is_spartan3a() {
             let mut bctx = ctx.bel(defs::bslots::DNA_PORT);
             bctx.build()
-                .test_manual("PRESENT", "1")
+                .test_manual_legacy("PRESENT", "1")
                 .mode("DNA_PORT")
                 .commit();
         }
@@ -373,7 +373,7 @@ pub fn add_fuzzers<'a>(
             }
             for val in ["NO", "YES"] {
                 bctx.mode("STARTUP")
-                    .test_manual(attr, val)
+                    .test_manual_legacy(attr, val)
                     .global(attr, val)
                     .commit();
             }
@@ -387,7 +387,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode("STARTUP")
                 .null_bits()
                 .extra_tile_reg_attr(reg, reg_name, "STARTUP", "MULTIBOOT_ENABLE", "1")
-                .test_manual("MULTIBOOT_ENABLE", "1")
+                .test_manual_legacy("MULTIBOOT_ENABLE", "1")
                 .pin("MBT")
                 .commit();
         }
@@ -396,7 +396,7 @@ pub fn add_fuzzers<'a>(
                 .null_bits()
                 .extra_tile_reg_attr(reg, reg_name, "STARTUP", "STARTUPCLK", val)
                 .pin("CLK")
-                .test_manual("STARTUPCLK", val)
+                .test_manual_legacy("STARTUPCLK", val)
                 .global("STARTUPCLK", val)
                 .commit();
         }
@@ -416,7 +416,7 @@ pub fn add_fuzzers<'a>(
                 bctx.mode("CAPTURE")
                     .null_bits()
                     .extra_tile_reg_attr(Reg::Cor2, "REG.COR2.S3A", "CAPTURE", "ONESHOT", val)
-                    .test_manual("ONESHOT", val)
+                    .test_manual_legacy("ONESHOT", val)
                     .attr("ONESHOT", val)
                     .commit();
             }
@@ -424,7 +424,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode("CAPTURE")
                 .null_bits()
                 .extra_tile_reg_attr(Reg::Cor0, reg_cor, "CAPTURE", "ONESHOT_ATTR", "ONE_SHOT")
-                .test_manual("ONESHOT_ATTR", "ONE_SHOT")
+                .test_manual_legacy("ONESHOT_ATTR", "ONE_SHOT")
                 .attr("ONESHOT_ATTR", "ONE_SHOT")
                 .commit();
         }
@@ -434,13 +434,13 @@ pub fn add_fuzzers<'a>(
             bctx.build()
                 .null_bits()
                 .extra_tile_reg_attr(Reg::Ctl0, "REG.CTL.S3A", "ICAP", "ENABLE", "1")
-                .test_manual("ENABLE", "1")
+                .test_manual_legacy("ENABLE", "1")
                 .mode("ICAP")
                 .commit();
         } else if edev.chip.kind == ChipKind::Spartan3E {
             bctx.build()
                 .null_bits()
-                .test_manual("ENABLE", "1")
+                .test_manual_legacy("ENABLE", "1")
                 .mode("ICAP")
                 .commit();
         } else {
@@ -469,7 +469,7 @@ pub fn add_fuzzers<'a>(
             let mut bctx = ctx.bel(defs::bslots::SPI_ACCESS);
             bctx.build()
                 .extra_tile(IntRelation, "SPI_ACCESS")
-                .test_manual("ENABLE", "1")
+                .test_manual_legacy("ENABLE", "1")
                 .mode("SPI_ACCESS")
                 .commit();
         }
@@ -490,18 +490,20 @@ pub fn add_fuzzers<'a>(
         }
         let mut bctx = ctx.bel(defs::bslots::BSCAN);
         bctx.test_manual("PRESENT", "1").mode("BSCAN").commit();
-        bctx.build()
-            .test_manual("USERID", "")
-            .multi_global("USERID", MultiValue::HexPrefix, 32);
+        bctx.build().test_manual_legacy("USERID", "").multi_global(
+            "USERID",
+            MultiValue::HexPrefix,
+            32,
+        );
         bctx.mode("BSCAN")
             .no_pin("TDO2")
-            .test_manual("TDO1", "1")
+            .test_manual_legacy("TDO1", "1")
             .pin("TDO1")
             .pin_int_pips("TDO1")
             .commit();
         bctx.mode("BSCAN")
             .no_pin("TDO1")
-            .test_manual("TDO2", "1")
+            .test_manual_legacy("TDO2", "1")
             .pin("TDO2")
             .pin_int_pips("TDO2")
             .commit();
@@ -638,7 +640,7 @@ pub fn add_fuzzers<'a>(
                             .global_mutex("DIFF", "BANK")
                             .global_mutex("VREF", "NO")
                             .global_mutex("DCI", "YES")
-                            .test_manual("LVDSBIAS", std.name)
+                            .test_manual_legacy("LVDSBIAS", std.name)
                             .raw_diff(Key::SiteMode(site), None, "DIFFM")
                             .raw_diff(Key::SiteAttr(site, "OMUX".into()), None, "O1")
                             .raw_diff(Key::SiteAttr(site, "O1INV".into()), None, "O1")
@@ -665,7 +667,7 @@ pub fn add_fuzzers<'a>(
                             .raw(Key::SiteMode(site_vrn), None)
                             .raw(Key::SiteAttr(site, "IMUX".into()), "1")
                             .raw(Key::SitePin(site, "I".into()), true)
-                            .test_manual("DCI_TERM", std.name)
+                            .test_manual_legacy("DCI_TERM", std.name)
                             .raw_diff(Key::SiteMode(site), "IOB", "IOB")
                             .raw_diff(Key::SiteAttr(site, "IOATTRBOX".into()), "GTL", std.name)
                             .commit();
@@ -686,7 +688,7 @@ pub fn add_fuzzers<'a>(
                             .raw(Key::SiteMode(site_vrp), None)
                             .raw(Key::SiteMode(site_vrn), None)
                             .global("DCIUPDATEMODE", val)
-                            .test_manual("DCI_OUT", val)
+                            .test_manual_legacy("DCI_OUT", val)
                             .raw_diff(Key::SiteMode(site), None, "IOB")
                             .raw_diff(Key::SiteAttr(site, "OMUX".into()), None, "O1")
                             .raw_diff(Key::SiteAttr(site, "O1INV".into()), None, "O1")
@@ -707,7 +709,7 @@ pub fn add_fuzzers<'a>(
                         .raw(Key::SitePin(site_other, "O1".into()), true)
                         .raw(Key::SiteMode(site_vrp), None)
                         .raw(Key::SiteMode(site_vrn), None)
-                        .test_manual("DCI_OUT", "1")
+                        .test_manual_legacy("DCI_OUT", "1")
                         .raw_diff(Key::SiteMode(site), None, "IOB")
                         .raw_diff(Key::SiteAttr(site, "OMUX".into()), None, "O1")
                         .raw_diff(Key::SiteAttr(site, "O1INV".into()), None, "O1")
@@ -729,7 +731,7 @@ pub fn add_fuzzers<'a>(
                         builder = builder.global("FREEZEDCI", "NO");
                     }
                     builder
-                        .test_manual("DCI_OUT_ALONE", "1")
+                        .test_manual_legacy("DCI_OUT_ALONE", "1")
                         .raw_diff(Key::SiteMode(site), None, "IOB")
                         .raw_diff(Key::SiteAttr(site, "OMUX".into()), None, "O1")
                         .raw_diff(Key::SiteAttr(site, "O1INV".into()), None, "O1")
@@ -755,7 +757,7 @@ pub fn add_fuzzers<'a>(
                         builder = builder.raw(Key::SiteMode(site_alt_vrn), None);
                     }
                     builder
-                        .test_manual("DCI_OUT_ALONE", "1")
+                        .test_manual_legacy("DCI_OUT_ALONE", "1")
                         .raw_diff(Key::SiteMode(site), None, "IOB")
                         .raw_diff(Key::SiteAttr(site, "OMUX".into()), None, "O1")
                         .raw_diff(Key::SiteAttr(site, "O1INV".into()), None, "O1")
@@ -766,14 +768,14 @@ pub fn add_fuzzers<'a>(
                 if edev.chip.kind == ChipKind::Spartan3 {
                     bctx.build()
                         .global_mutex("DCI", "PRESENT")
-                        .test_manual("PRESENT", "1")
+                        .test_manual_legacy("PRESENT", "1")
                         .mode("DCI")
                         .commit();
                     bctx.build()
                         .global_mutex("DCI", "PRESENT")
                         .global_mutex("DCI_SELECT", bel_name)
                         .mode("DCI")
-                        .test_manual("SELECT", "1")
+                        .test_manual_legacy("SELECT", "1")
                         .pip((PinFar, "DATA"), "DATA")
                         .commit();
                     for i in 0..13 {
@@ -781,27 +783,27 @@ pub fn add_fuzzers<'a>(
                         let gname = format!("LVDSBIAS_OPT{i}_{bank}");
                         bctx.build()
                             .global_mutex("DIFF", "MANUAL")
-                            .test_manual(name, "1")
+                            .test_manual_legacy(name, "1")
                             .global_diff(gname, "0", "1")
                             .commit();
                     }
                 } else {
                     bctx.build()
                         .global_mutex("DCI", "PRESENT")
-                        .test_manual("PRESENT", "1")
+                        .test_manual_legacy("PRESENT", "1")
                         .mode("DCI")
                         .commit();
                     bctx.build()
                         .global_mutex("DCI", "PRESENT_TEST")
                         .global("TESTDCI", "YES")
-                        .test_manual("PRESENT", "TEST")
+                        .test_manual_legacy("PRESENT", "TEST")
                         .mode("DCI")
                         .commit();
                 }
                 // ???
                 bctx.mode("DCI")
                     .global_mutex("DCI", "PRESENT")
-                    .test_manual("FORCE_DONE_HIGH", "#OFF")
+                    .test_manual_legacy("FORCE_DONE_HIGH", "#OFF")
                     .attr("FORCE_DONE_HIGH", "#OFF")
                     .commit();
             }
@@ -1649,7 +1651,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         let bslot = bslots::SPI_ACCESS;
         ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
         let mut diff = ctx.get_diff_legacy(int_tile, bel, "ENABLE", "1");
-        diff.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslot, "MOSI").bit]);
+        diff.discard_bits(&[ctx.item_int_inv_legacy(int_tiles, tcid, bslot, "MOSI").bit]);
         diff.assert_empty();
     }
 

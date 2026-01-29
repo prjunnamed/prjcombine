@@ -7,10 +7,11 @@ use std::{
 };
 
 use bincode::{Decode, Encode};
+use prjcombine_entity::EntityPartVec;
 use prjcombine_interconnect::db::{
-    BelAttribute, BelAttributeId, BelInfo, BelInput, BelInputId, BelSlotId, ConnectorSlotId, IntDb,
-    PolTileWireCoord, SwitchBoxItem, TableFieldId, TableId, TableRowId, TableValue, TileClassId,
-    TileWireCoord,
+    BelAttribute, BelAttributeId, BelInfo, BelInput, BelInputId, BelSlotId, ConnectorSlotId,
+    DeviceDataId, IntDb, PolTileWireCoord, SwitchBoxItem, TableFieldId, TableId, TableRowId,
+    TableValue, TileClassId, TileWireCoord,
 };
 use prjcombine_types::bsdata::{BsData, EnumData, PolTileBit};
 
@@ -28,6 +29,7 @@ pub struct CollectorData {
     pub sb_enable: HashMap<(TileClassId, TileWireCoord), Vec<PolTileBit>>,
     pub tmux_group: HashMap<(TileClassId, BelSlotId), EnumData<Option<usize>>>,
     pub table_data: HashMap<(TableId, TableRowId, TableFieldId), TableValue>,
+    pub device_data: HashMap<String, EntityPartVec<DeviceDataId, TableValue>>,
     pub bsdata: BsData,
 }
 
@@ -355,6 +357,7 @@ impl CollectorData {
         merge_hashmap(&mut self.sb_enable, other.sb_enable);
         merge_hashmap(&mut self.tmux_group, other.tmux_group);
         merge_hashmap(&mut self.table_data, other.table_data);
+        merge_hashmap(&mut self.device_data, other.device_data);
         for (tile, tile_data) in other.bsdata.tiles {
             let tile_dst = self.bsdata.tiles.entry(tile).or_default();
             for (key, item) in tile_data.items {
