@@ -547,11 +547,11 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 </thead>
 
 <tbody>
-<tr><td>INT</td><td>INT_CLB, INT_IOI, INT_IOI_CLK_S, INT_IOI_CLK_N, INT_BRAM, INT_DCM_V2, INT_DCM_V2P, INT_CNR, INT_PPC, INT_GT_CLKPAD</td><td>INT, RLL, PTE2OMUX[0], PTE2OMUX[1], PTE2OMUX[2], PTE2OMUX[3]</td></tr>
+<tr><td>INT</td><td>INT_CLB, INT_IOI, INT_IOI_CLK_S, INT_IOI_CLK_N, INT_BRAM, INT_DCM_V2, INT_DCM_V2P, INT_CNR, INT_PPC, INT_GT_CLKPAD</td><td>INT, PTE2OMUX</td></tr>
 
 <tr><td>INTF</td><td>INTF_GT_S0, INTF_GT_S123, INTF_GT_S_CLKPAD, INTF_GT_N0, INTF_GT_N123, INTF_GT_N_CLKPAD, INTF_PPC</td><td>INTF_TESTMUX</td></tr>
 
-<tr><td>BEL</td><td>CLB, IOI, IOI_CLK_S, IOI_CLK_N, BRAM, DCM_V2, DCM_V2P, GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N, PPC_W, PPC_E, CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td><td>SLICE[0], SLICE[1], SLICE[2], SLICE[3], TBUF[0], TBUF[1], TBUS, IOI[0], IOI[1], IOI[2], IOI[3], IBUF[0], IBUF[1], IBUF[2], IBUF[3], OBUF[0], OBUF[1], OBUF[2], OBUF[3], BRAM, MULT, MULT_INT, DSP, DSP_TESTMUX, DCM, GT, GT10, PPC405, DCI[0], DCI[1], DCIRESET[0], DCIRESET[1], STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, DCMCONN_S3E, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
+<tr><td>BEL</td><td>CLB, IOI, IOI_CLK_S, IOI_CLK_N, BRAM, DCM_V2, DCM_V2P, GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N, PPC_W, PPC_E, CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td><td>SLICE[0], SLICE[1], SLICE[2], SLICE[3], TBUF[0], TBUF[1], TBUS, IOI[0], IOI[1], IOI[2], IOI[3], IBUF[0], IBUF[1], IBUF[2], IBUF[3], OBUF[0], OBUF[1], OBUF[2], OBUF[3], BRAM, MULT, MULT_INT, DSP, DSP_TESTMUX, DCM, DCM_INT, GT, GT10, PPC405, DCI[0], DCI[1], DCIRESET[0], DCIRESET[1], STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
 
 <tr><td>TERM_H</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E, LLH</td></tr>
 
@@ -559,13 +559,11 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>IOB</td><td>IOB_V2_SW2, IOB_V2_SE2, IOB_V2_NW2, IOB_V2_NE2, IOB_V2_WS2, IOB_V2_WN2, IOB_V2_ES2, IOB_V2_EN2, IOB_V2P_SW2, IOB_V2P_SE2, IOB_V2P_SE2_CLK, IOB_V2P_SW1, IOB_V2P_SW1_ALT, IOB_V2P_SE1, IOB_V2P_SE1_ALT, IOB_V2P_NW2, IOB_V2P_NE2, IOB_V2P_NE2_CLK, IOB_V2P_NW1, IOB_V2P_NW1_ALT, IOB_V2P_NE1, IOB_V2P_NE1_ALT, IOB_V2P_WS2, IOB_V2P_WN2, IOB_V2P_ES2, IOB_V2P_EN2</td><td></td></tr>
 
-<tr><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX, CLKC, DCMCONN_S, DCMCONN_N, PCI_W, PCI_E</td><td>CLK_INT, BUFGMUX[0], BUFGMUX[1], BUFGMUX[2], BUFGMUX[3], BUFGMUX[4], BUFGMUX[5], BUFGMUX[6], BUFGMUX[7], PCILOGIC, PCILOGICSE, VCC, GLOBALSIG_S[0], GLOBALSIG_S[1], GLOBALSIG_N[0], GLOBALSIG_N[1], GLOBALSIG_WE, BREFCLK, DCMCONN, GLOBALSIG_DSP, CLKC, CLKC_50A, CLKQC</td></tr>
+<tr><td>CLK</td><td>CLK_S, CLK_N, DCMCONN_S, DCMCONN_N, PCI_W, PCI_E</td><td>CLK_INT, BUFGMUX[0], BUFGMUX[1], BUFGMUX[2], BUFGMUX[3], BUFGMUX[4], BUFGMUX[5], BUFGMUX[6], BUFGMUX[7], PCILOGIC, PCILOGICSE, GLOBALSIG_BUFG[0], GLOBALSIG_BUFG[1], DCMCONN</td></tr>
 
 <tr><td>HROW</td><td>HROW, HROW_S, HROW_N</td><td>HROW</td></tr>
 
-<tr><td>HCLK</td><td>HCLK</td><td>HCLK, GLOBALSIG</td></tr>
-
-<tr><td>PCI_CE</td><td></td><td>PCI_CE_W, PCI_CE_E, PCI_CE_S, PCI_CE_N, PCI_CE_CNR</td></tr>
+<tr><td>HCLK</td><td>HCLK</td><td>HCLK, GLOBALSIG_HCLK</td></tr>
 
 <tr><td>RANDOR</td><td></td><td>RANDOR, RANDOR_INIT</td></tr>
 
@@ -586,15 +584,7 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <tbody>
 <tr><td>INT</td><td>routing</td><td>INT</td><td>INT_CLB, INT_IOI, INT_IOI_CLK_S, INT_IOI_CLK_N, INT_BRAM, INT_DCM_V2, INT_DCM_V2P, INT_CNR, INT_PPC, INT_GT_CLKPAD</td></tr>
 
-<tr><td>RLL</td><td>legacy</td><td>INT</td><td>INT_CLB, INT_IOI, INT_IOI_CLK_S, INT_IOI_CLK_N, INT_BRAM, INT_DCM_V2, INT_DCM_V2P, INT_CNR, INT_PPC, INT_GT_CLKPAD</td></tr>
-
-<tr><td>PTE2OMUX[0]</td><td>legacy</td><td>INT</td><td></td></tr>
-
-<tr><td>PTE2OMUX[1]</td><td>legacy</td><td>INT</td><td></td></tr>
-
-<tr><td>PTE2OMUX[2]</td><td>legacy</td><td>INT</td><td></td></tr>
-
-<tr><td>PTE2OMUX[3]</td><td>legacy</td><td>INT</td><td></td></tr>
+<tr><td>PTE2OMUX</td><td>routing</td><td>INT</td><td></td></tr>
 
 <tr><td>INTF_TESTMUX</td><td>routing</td><td>INTF</td><td>INTF_GT_S0, INTF_GT_S123, INTF_GT_S_CLKPAD, INTF_GT_N0, INTF_GT_N123, INTF_GT_N_CLKPAD, INTF_PPC</td></tr>
 
@@ -648,6 +638,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>DCM</td><td>legacy</td><td>BEL</td><td>DCM_V2, DCM_V2P</td></tr>
 
+<tr><td>DCM_INT</td><td>routing</td><td>BEL</td><td></td></tr>
+
 <tr><td>GT</td><td>GT</td><td>BEL</td><td>GIGABIT_S, GIGABIT_N</td></tr>
 
 <tr><td>GT10</td><td>GT10</td><td>BEL</td><td>GIGABIT10_S, GIGABIT10_N</td></tr>
@@ -678,8 +670,6 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>JTAGPPC</td><td>legacy</td><td>BEL</td><td>CNR_NE_V2P</td></tr>
 
-<tr><td>DCMCONN_S3E</td><td>legacy</td><td>BEL</td><td></td></tr>
-
 <tr><td>BREFCLK_INT</td><td>legacy</td><td>BEL</td><td>IOI_CLK_S, IOI_CLK_N</td></tr>
 
 <tr><td>RANDOR_OUT</td><td>RANDOR_OUT</td><td>BEL</td><td></td></tr>
@@ -706,67 +696,39 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>LLV</td><td>routing</td><td>TERM_V</td><td></td></tr>
 
-<tr><td>CLK_INT</td><td>routing</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>CLK_INT</td><td>routing</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFGMUX[0]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>BUFGMUX[0]</td><td>BUFGMUX</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFGMUX[1]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>BUFGMUX[1]</td><td>BUFGMUX</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFGMUX[2]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>BUFGMUX[2]</td><td>BUFGMUX</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFGMUX[3]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>BUFGMUX[3]</td><td>BUFGMUX</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFGMUX[4]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>BUFGMUX[4]</td><td>BUFGMUX</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFGMUX[5]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>BUFGMUX[5]</td><td>BUFGMUX</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFGMUX[6]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>BUFGMUX[6]</td><td>BUFGMUX</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFGMUX[7]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>BUFGMUX[7]</td><td>BUFGMUX</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
 <tr><td>PCILOGIC</td><td>PCILOGIC</td><td>CLK</td><td>PCI_W, PCI_E</td></tr>
 
-<tr><td>PCILOGICSE</td><td>legacy</td><td>CLK</td><td></td></tr>
+<tr><td>PCILOGICSE</td><td>PCILOGICSE</td><td>CLK</td><td></td></tr>
 
-<tr><td>VCC</td><td>legacy</td><td>CLK</td><td></td></tr>
+<tr><td>GLOBALSIG_BUFG[0]</td><td>GLOBALSIG_BUFG</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>GLOBALSIG_S[0]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX</td></tr>
+<tr><td>GLOBALSIG_BUFG[1]</td><td>GLOBALSIG_BUFG</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>GLOBALSIG_S[1]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX</td></tr>
+<tr><td>DCMCONN</td><td>routing</td><td>CLK</td><td>DCMCONN_S, DCMCONN_N</td></tr>
 
-<tr><td>GLOBALSIG_N[0]</td><td>legacy</td><td>CLK</td><td>CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>HROW</td><td>routing</td><td>HROW</td><td>HROW, HROW_S, HROW_N</td></tr>
 
-<tr><td>GLOBALSIG_N[1]</td><td>legacy</td><td>CLK</td><td>CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
+<tr><td>HCLK</td><td>routing</td><td>HCLK</td><td>HCLK</td></tr>
 
-<tr><td>GLOBALSIG_WE</td><td>legacy</td><td>CLK</td><td></td></tr>
-
-<tr><td>BREFCLK</td><td>legacy</td><td>CLK</td><td>CLK_S_V2P, CLK_N_V2P</td></tr>
-
-<tr><td>DCMCONN</td><td>legacy</td><td>CLK</td><td>DCMCONN_S, DCMCONN_N</td></tr>
-
-<tr><td>GLOBALSIG_DSP</td><td>legacy</td><td>CLK</td><td></td></tr>
-
-<tr><td>CLKC</td><td>legacy</td><td>CLK</td><td>CLKC</td></tr>
-
-<tr><td>CLKC_50A</td><td>legacy</td><td>CLK</td><td></td></tr>
-
-<tr><td>CLKQC</td><td>legacy</td><td>CLK</td><td></td></tr>
-
-<tr><td>HROW</td><td>legacy</td><td>HROW</td><td>HROW, HROW_S, HROW_N</td></tr>
-
-<tr><td>HCLK</td><td>legacy</td><td>HCLK</td><td>HCLK</td></tr>
-
-<tr><td>GLOBALSIG</td><td>legacy</td><td>HCLK</td><td>HCLK</td></tr>
-
-<tr><td>PCI_CE_W</td><td>legacy</td><td>PCI_CE</td><td></td></tr>
-
-<tr><td>PCI_CE_E</td><td>legacy</td><td>PCI_CE</td><td></td></tr>
-
-<tr><td>PCI_CE_S</td><td>legacy</td><td>PCI_CE</td><td></td></tr>
-
-<tr><td>PCI_CE_N</td><td>legacy</td><td>PCI_CE</td><td></td></tr>
-
-<tr><td>PCI_CE_CNR</td><td>legacy</td><td>PCI_CE</td><td></td></tr>
+<tr><td>GLOBALSIG_HCLK</td><td>GLOBALSIG_HCLK_V2</td><td>HCLK</td><td>HCLK</td></tr>
 
 <tr><td>RANDOR</td><td>RANDOR</td><td>RANDOR</td><td></td></tr>
 
@@ -810,9 +772,15 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 </thead>
 
 <tbody>
-<tr><td>HCLK</td><td></td></tr>
+<tr><td>GLOBAL</td><td>GCLK_S[0], GCLK_S[1], GCLK_S[2], GCLK_S[3], GCLK_S[4], GCLK_S[5], GCLK_S[6], GCLK_S[7], GCLK_N[0], GCLK_N[1], GCLK_N[2], GCLK_N[3], GCLK_N[4], GCLK_N[5], GCLK_N[6], GCLK_N[7]</td></tr>
+
+<tr><td>HCLK</td><td>GCLK_ROW[0], GCLK_ROW[1], GCLK_ROW[2], GCLK_ROW[3], GCLK_ROW[4], GCLK_ROW[5], GCLK_ROW[6], GCLK_ROW[7]</td></tr>
 
 <tr><td>LEAF</td><td>GCLK[0], GCLK[1], GCLK[2], GCLK[3], GCLK[4], GCLK[5], GCLK[6], GCLK[7]</td></tr>
+
+<tr><td>DCM_CLKPAD</td><td>DCM_CLKPAD[0], DCM_CLKPAD[1], DCM_CLKPAD[2], DCM_CLKPAD[3], DCM_CLKPAD[4], DCM_CLKPAD[5], DCM_CLKPAD[6], DCM_CLKPAD[7]</td></tr>
+
+<tr><td>DCM_BUS</td><td>DCM_BUS[0], DCM_BUS[1], DCM_BUS[2], DCM_BUS[3], DCM_BUS[4], DCM_BUS[5], DCM_BUS[6], DCM_BUS[7]</td></tr>
 
 </tbody>
 
@@ -832,6 +800,54 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <tbody>
 <tr><td>PULLUP</td><td>pullup</td></tr>
 
+<tr><td>GCLK_S[0]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_S[1]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_S[2]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_S[3]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_S[4]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_S[5]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_S[6]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_S[7]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_N[0]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_N[1]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_N[2]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_N[3]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_N[4]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_N[5]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_N[6]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_N[7]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_ROW[0]</td><td>regional HCLK</td></tr>
+
+<tr><td>GCLK_ROW[1]</td><td>regional HCLK</td></tr>
+
+<tr><td>GCLK_ROW[2]</td><td>regional HCLK</td></tr>
+
+<tr><td>GCLK_ROW[3]</td><td>regional HCLK</td></tr>
+
+<tr><td>GCLK_ROW[4]</td><td>regional HCLK</td></tr>
+
+<tr><td>GCLK_ROW[5]</td><td>regional HCLK</td></tr>
+
+<tr><td>GCLK_ROW[6]</td><td>regional HCLK</td></tr>
+
+<tr><td>GCLK_ROW[7]</td><td>regional HCLK</td></tr>
+
 <tr><td>GCLK[0]</td><td>regional LEAF</td></tr>
 
 <tr><td>GCLK[1]</td><td>regional LEAF</td></tr>
@@ -848,21 +864,45 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>GCLK[7]</td><td>regional LEAF</td></tr>
 
-<tr><td>DCM_CLKPAD[0]</td><td>bel</td></tr>
+<tr><td>OUT_CLKPAD[0]</td><td>bel</td></tr>
 
-<tr><td>DCM_CLKPAD[1]</td><td>bel</td></tr>
+<tr><td>OUT_CLKPAD[1]</td><td>bel</td></tr>
 
-<tr><td>DCM_CLKPAD[2]</td><td>bel</td></tr>
+<tr><td>OUT_CLKPAD[2]</td><td>bel</td></tr>
 
-<tr><td>DCM_CLKPAD[3]</td><td>bel</td></tr>
+<tr><td>OUT_CLKPAD[3]</td><td>bel</td></tr>
 
-<tr><td>DCM_CLKPAD[4]</td><td>bel</td></tr>
+<tr><td>DCM_CLKPAD[0]</td><td>regional DCM_CLKPAD</td></tr>
 
-<tr><td>DCM_CLKPAD[5]</td><td>bel</td></tr>
+<tr><td>DCM_CLKPAD[1]</td><td>regional DCM_CLKPAD</td></tr>
 
-<tr><td>DCM_CLKPAD[6]</td><td>bel</td></tr>
+<tr><td>DCM_CLKPAD[2]</td><td>regional DCM_CLKPAD</td></tr>
 
-<tr><td>DCM_CLKPAD[7]</td><td>bel</td></tr>
+<tr><td>DCM_CLKPAD[3]</td><td>regional DCM_CLKPAD</td></tr>
+
+<tr><td>DCM_CLKPAD[4]</td><td>regional DCM_CLKPAD</td></tr>
+
+<tr><td>DCM_CLKPAD[5]</td><td>regional DCM_CLKPAD</td></tr>
+
+<tr><td>DCM_CLKPAD[6]</td><td>regional DCM_CLKPAD</td></tr>
+
+<tr><td>DCM_CLKPAD[7]</td><td>regional DCM_CLKPAD</td></tr>
+
+<tr><td>DCM_BUS[0]</td><td>regional DCM_BUS</td></tr>
+
+<tr><td>DCM_BUS[1]</td><td>regional DCM_BUS</td></tr>
+
+<tr><td>DCM_BUS[2]</td><td>regional DCM_BUS</td></tr>
+
+<tr><td>DCM_BUS[3]</td><td>regional DCM_BUS</td></tr>
+
+<tr><td>DCM_BUS[4]</td><td>regional DCM_BUS</td></tr>
+
+<tr><td>DCM_BUS[5]</td><td>regional DCM_BUS</td></tr>
+
+<tr><td>DCM_BUS[6]</td><td>regional DCM_BUS</td></tr>
+
+<tr><td>DCM_BUS[7]</td><td>regional DCM_BUS</td></tr>
 
 <tr><td>OMUX[0]</td><td>mux</td></tr>
 
@@ -2714,6 +2754,22 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>OUT_PCI[1]</td><td>bel</td></tr>
 
+<tr><td>IMUX_BUFG_CLK_INT[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG_CLK_INT[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG_CLK_INT[2]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG_CLK_INT[3]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG_CLK_INT[4]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG_CLK_INT[5]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG_CLK_INT[6]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG_CLK_INT[7]</td><td>mux</td></tr>
+
 <tr><td>IMUX_BUFG_CLK[0]</td><td>mux</td></tr>
 
 <tr><td>IMUX_BUFG_CLK[1]</td><td>mux</td></tr>
@@ -2745,22 +2801,6 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <tr><td>IMUX_BUFG_SEL[6]</td><td>mux</td></tr>
 
 <tr><td>IMUX_BUFG_SEL[7]</td><td>mux</td></tr>
-
-<tr><td>OUT_BUFG[0]</td><td>bel</td></tr>
-
-<tr><td>OUT_BUFG[1]</td><td>bel</td></tr>
-
-<tr><td>OUT_BUFG[2]</td><td>bel</td></tr>
-
-<tr><td>OUT_BUFG[3]</td><td>bel</td></tr>
-
-<tr><td>OUT_BUFG[4]</td><td>bel</td></tr>
-
-<tr><td>OUT_BUFG[5]</td><td>bel</td></tr>
-
-<tr><td>OUT_BUFG[6]</td><td>bel</td></tr>
-
-<tr><td>OUT_BUFG[7]</td><td>bel</td></tr>
 
 </tbody>
 

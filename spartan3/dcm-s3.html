@@ -3722,62 +3722,27 @@ non-inverted
 
 <h2 id="tile-dcmconn_s"><a class="header" href="#tile-dcmconn_s">Tile DCMCONN_S</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-dcmconn"><a class="header" href="#bel-dcmconn">Bel DCMCONN</a></h3>
+<h3 id="switchbox-dcmconn"><a class="header" href="#switchbox-dcmconn">Switchbox DCMCONN</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 DCMCONN_S bel DCMCONN</caption>
+<caption>spartan3 DCMCONN_S switchbox DCMCONN</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>CLKPAD0</td><td>output</td><td>DCM_CLKPAD[0]</td></tr>
+<tr><td rowspan="1">DCM_BUS[0]</td><td>OMUX[0]</td><td>fixed buffer</td>
+</tr>
 
-<tr><td>CLKPAD1</td><td>output</td><td>DCM_CLKPAD[1]</td></tr>
+<tr><td rowspan="1">DCM_BUS[1]</td><td>OMUX[3]</td><td>fixed buffer</td>
+</tr>
 
-<tr><td>CLKPAD2</td><td>output</td><td>DCM_CLKPAD[2]</td></tr>
+<tr><td rowspan="1">DCM_BUS[2]</td><td>OMUX[4]</td><td>fixed buffer</td>
+</tr>
 
-<tr><td>CLKPAD3</td><td>output</td><td>DCM_CLKPAD[3]</td></tr>
-
-<tr><td>OUT0</td><td>input</td><td>OMUX[0]</td></tr>
-
-<tr><td>OUT1</td><td>input</td><td>OMUX[3]</td></tr>
-
-<tr><td>OUT2</td><td>input</td><td>OMUX[4]</td></tr>
-
-<tr><td>OUT3</td><td>input</td><td>OMUX[5]</td></tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 DCMCONN_S bel wires</caption>
-<thead>
-<tr><th>Wire</th><th>Pins</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td>DCM_CLKPAD[0]</td><td>DCMCONN.CLKPAD0</td></tr>
-
-<tr><td>DCM_CLKPAD[1]</td><td>DCMCONN.CLKPAD1</td></tr>
-
-<tr><td>DCM_CLKPAD[2]</td><td>DCMCONN.CLKPAD2</td></tr>
-
-<tr><td>DCM_CLKPAD[3]</td><td>DCMCONN.CLKPAD3</td></tr>
-
-<tr><td>OMUX[0]</td><td>DCMCONN.OUT0</td></tr>
-
-<tr><td>OMUX[3]</td><td>DCMCONN.OUT1</td></tr>
-
-<tr><td>OMUX[4]</td><td>DCMCONN.OUT2</td></tr>
-
-<tr><td>OMUX[5]</td><td>DCMCONN.OUT3</td></tr>
+<tr><td rowspan="1">DCM_BUS[3]</td><td>OMUX[5]</td><td>fixed buffer</td>
+</tr>
 
 </tbody>
 
@@ -3786,62 +3751,27 @@ non-inverted
 
 <h2 id="tile-dcmconn_n"><a class="header" href="#tile-dcmconn_n">Tile DCMCONN_N</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-dcmconn-1"><a class="header" href="#bel-dcmconn-1">Bel DCMCONN</a></h3>
+<h3 id="switchbox-dcmconn-1"><a class="header" href="#switchbox-dcmconn-1">Switchbox DCMCONN</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 DCMCONN_N bel DCMCONN</caption>
+<caption>spartan3 DCMCONN_N switchbox DCMCONN</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>CLKPAD0</td><td>output</td><td>DCM_CLKPAD[0]</td></tr>
+<tr><td rowspan="1">DCM_BUS[0]</td><td>OMUX[10]</td><td>fixed buffer</td>
+</tr>
 
-<tr><td>CLKPAD1</td><td>output</td><td>DCM_CLKPAD[1]</td></tr>
+<tr><td rowspan="1">DCM_BUS[1]</td><td>OMUX[11]</td><td>fixed buffer</td>
+</tr>
 
-<tr><td>CLKPAD2</td><td>output</td><td>DCM_CLKPAD[2]</td></tr>
+<tr><td rowspan="1">DCM_BUS[2]</td><td>OMUX[12]</td><td>fixed buffer</td>
+</tr>
 
-<tr><td>CLKPAD3</td><td>output</td><td>DCM_CLKPAD[3]</td></tr>
-
-<tr><td>OUT0</td><td>input</td><td>OMUX[10]</td></tr>
-
-<tr><td>OUT1</td><td>input</td><td>OMUX[11]</td></tr>
-
-<tr><td>OUT2</td><td>input</td><td>OMUX[12]</td></tr>
-
-<tr><td>OUT3</td><td>input</td><td>OMUX[15]</td></tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 DCMCONN_N bel wires</caption>
-<thead>
-<tr><th>Wire</th><th>Pins</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td>DCM_CLKPAD[0]</td><td>DCMCONN.CLKPAD0</td></tr>
-
-<tr><td>DCM_CLKPAD[1]</td><td>DCMCONN.CLKPAD1</td></tr>
-
-<tr><td>DCM_CLKPAD[2]</td><td>DCMCONN.CLKPAD2</td></tr>
-
-<tr><td>DCM_CLKPAD[3]</td><td>DCMCONN.CLKPAD3</td></tr>
-
-<tr><td>OMUX[10]</td><td>DCMCONN.OUT0</td></tr>
-
-<tr><td>OMUX[11]</td><td>DCMCONN.OUT1</td></tr>
-
-<tr><td>OMUX[12]</td><td>DCMCONN.OUT2</td></tr>
-
-<tr><td>OMUX[15]</td><td>DCMCONN.OUT3</td></tr>
+<tr><td rowspan="1">DCM_BUS[3]</td><td>OMUX[15]</td><td>fixed buffer</td>
+</tr>
 
 </tbody>
 
