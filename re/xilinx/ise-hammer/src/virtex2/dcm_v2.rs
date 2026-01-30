@@ -273,26 +273,26 @@ pub fn add_fuzzers<'a>(
 
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_enum("DLL_FREQUENCY_MODE", &["LOW", "HIGH"]);
+        .test_enum_legacy("DLL_FREQUENCY_MODE", &["LOW", "HIGH"]);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_enum("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
+        .test_enum_legacy("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
         .global("GTS_CYCLE", "1")
         .global("DONE_CYCLE", "1")
         .global("LCK_CYCLE", "NOWAIT")
-        .test_enum("STARTUP_WAIT", &["STARTUP_WAIT"]);
+        .test_enum_legacy("STARTUP_WAIT", &["STARTUP_WAIT"]);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_enum("DUTY_CYCLE_CORRECTION", &["FALSE", "TRUE"]);
-    bctx.mode(mode).mutex("MODE", "SIMPLE").test_enum(
+        .test_enum_legacy("DUTY_CYCLE_CORRECTION", &["FALSE", "TRUE"]);
+    bctx.mode(mode).mutex("MODE", "SIMPLE").test_enum_legacy(
         "FACTORY_JF1",
         &[
             "0X80", "0XC0", "0XE0", "0XF0", "0XF8", "0XFC", "0XFE", "0XFF",
         ],
     );
-    bctx.mode(mode).mutex("MODE", "SIMPLE").test_enum(
+    bctx.mode(mode).mutex("MODE", "SIMPLE").test_enum_legacy(
         "FACTORY_JF2",
         &[
             "0X80", "0XC0", "0XE0", "0XF0", "0XF8", "0XFC", "0XFE", "0XFF",
@@ -304,27 +304,27 @@ pub fn add_fuzzers<'a>(
         .multi_attr("DESKEW_ADJUST", MultiValue::Dec(0), 4);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_enum("CLKIN_DIVIDE_BY_2", &["CLKIN_DIVIDE_BY_2"]);
+        .test_enum_legacy("CLKIN_DIVIDE_BY_2", &["CLKIN_DIVIDE_BY_2"]);
     bctx.mode(mode)
         .attr("DUTY_CYCLE_CORRECTION", "#OFF")
         .mutex("MODE", "SIMPLE")
         .pin("CLK0")
-        .test_enum("VERY_HIGH_FREQUENCY", &["VERY_HIGH_FREQUENCY"]);
+        .test_enum_legacy("VERY_HIGH_FREQUENCY", &["VERY_HIGH_FREQUENCY"]);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
         .attr("CLKOUT_PHASE_SHIFT", "NONE")
-        .test_enum(
+        .test_enum_legacy(
             "DSS_MODE",
             &["NONE", "SPREAD_2", "SPREAD_4", "SPREAD_6", "SPREAD_8"],
         );
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_enum("CLK_FEEDBACK", &["1X", "2X"]);
+        .test_enum_legacy("CLK_FEEDBACK", &["1X", "2X"]);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
         .attr("PHASE_SHIFT", "1")
         .pin("CLK0")
-        .test_enum("CLKOUT_PHASE_SHIFT", &["NONE", "FIXED", "VARIABLE"]);
+        .test_enum_legacy("CLKOUT_PHASE_SHIFT", &["NONE", "FIXED", "VARIABLE"]);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
         .attr("PHASE_SHIFT", "-1")
@@ -366,7 +366,7 @@ pub fn add_fuzzers<'a>(
         .attr("PHASE_SHIFT", "-255")
         .commit();
 
-    bctx.mode(mode).mutex("MODE", "SIMPLE").test_enum(
+    bctx.mode(mode).mutex("MODE", "SIMPLE").test_enum_legacy(
         "CLKDV_DIVIDE",
         &[
             "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",

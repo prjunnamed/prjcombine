@@ -83,7 +83,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         } else {
             "EMAC"
         };
-        bctx.test_manual("PRESENT", "1")
+        bctx.test_manual_legacy("PRESENT", "1")
             .prop(ForceBitRects)
             .mode(mode)
             .commit();
@@ -107,7 +107,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         if slot == bslots::PPC {
             bctx.mode(mode)
                 .null_bits()
-                .test_enum("PLB_SYNC_MODE", &["SYNCBYPASS", "SYNCACTIVE"]);
+                .test_enum_legacy("PLB_SYNC_MODE", &["SYNCBYPASS", "SYNCACTIVE"]);
         }
     }
 }

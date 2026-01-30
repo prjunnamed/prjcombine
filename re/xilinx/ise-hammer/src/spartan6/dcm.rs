@@ -315,22 +315,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("PROGDATA")
             .commit();
 
-        bctx.mode("DCM").global_mutex("CMT", "TEST").test_enum(
+        bctx.mode("DCM").global_mutex("CMT", "TEST").test_enum_legacy(
             "DSS_MODE",
             &["NONE", "SPREAD_2", "SPREAD_4", "SPREAD_6", "SPREAD_8"],
         );
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
-            .test_enum("DLL_FREQUENCY_MODE", &["LOW", "HIGH"]);
+            .test_enum_legacy("DLL_FREQUENCY_MODE", &["LOW", "HIGH"]);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
-            .test_enum("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
+            .test_enum_legacy("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
             .global("GTS_CYCLE", "1")
             .global("DONE_CYCLE", "1")
             .global("LCK_CYCLE", "NOWAIT")
-            .test_enum("STARTUP_WAIT", &["FALSE", "TRUE"]);
+            .test_enum_legacy("STARTUP_WAIT", &["FALSE", "TRUE"]);
         bctx.mode("DCM_CLKGEN")
             .global_mutex("CMT", "USE")
             .global("GTS_CYCLE", "1")
@@ -339,16 +339,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_enum_suffix("STARTUP_WAIT", "CLKGEN", &["FALSE", "TRUE"]);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
-            .test_enum("DUTY_CYCLE_CORRECTION", &["FALSE", "TRUE"]);
+            .test_enum_legacy("DUTY_CYCLE_CORRECTION", &["FALSE", "TRUE"]);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
             .test_multi_attr_dec("DESKEW_ADJUST", 4);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
-            .test_enum("CLKIN_DIVIDE_BY_2", &["FALSE", "TRUE"]);
+            .test_enum_legacy("CLKIN_DIVIDE_BY_2", &["FALSE", "TRUE"]);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
-            .test_enum("CLK_FEEDBACK", &["NONE", "1X", "2X"]);
+            .test_enum_legacy("CLK_FEEDBACK", &["NONE", "1X", "2X"]);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
             .test_manual_legacy("CLKFX_MULTIPLY", "")
@@ -369,12 +369,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("CMT", "USE")
             .pin("CLK0")
             .no_pin("CLKFB")
-            .test_enum("VERY_HIGH_FREQUENCY", &["FALSE", "TRUE"]);
+            .test_enum_legacy("VERY_HIGH_FREQUENCY", &["FALSE", "TRUE"]);
 
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
             .pin("CLK0")
-            .test_enum("CLKOUT_PHASE_SHIFT", &["NONE", "FIXED", "VARIABLE"]);
+            .test_enum_legacy("CLKOUT_PHASE_SHIFT", &["NONE", "FIXED", "VARIABLE"]);
         bctx.mode("DCM")
             .global_mutex("CMT", "USE")
             .test_multi_attr_dec("PHASE_SHIFT", 7);
@@ -389,7 +389,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("PHASE_SHIFT", "-255")
             .commit();
 
-        bctx.mode("DCM").global_mutex("CMT", "USE").test_enum(
+        bctx.mode("DCM").global_mutex("CMT", "USE").test_enum_legacy(
             "CLKDV_DIVIDE",
             &[
                 "2.0", "3.0", "4.0", "5.0", "6.0", "7.0", "8.0", "9.0", "10.0", "11.0", "12.0",
@@ -410,20 +410,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         bctx.mode("DCM_CLKGEN")
             .global_mutex("CMT", "USE")
-            .test_enum("CLKFXDV_DIVIDE", &["2", "4", "8", "16", "32"]);
+            .test_enum_legacy("CLKFXDV_DIVIDE", &["2", "4", "8", "16", "32"]);
         bctx.mode("DCM_CLKGEN")
             .global_mutex("CMT", "USE")
-            .test_enum("DFS_BANDWIDTH", &["LOW", "HIGH", "OPTIMIZED"]);
+            .test_enum_legacy("DFS_BANDWIDTH", &["LOW", "HIGH", "OPTIMIZED"]);
         bctx.mode("DCM_CLKGEN")
             .global_mutex("CMT", "USE")
-            .test_enum("PROG_MD_BANDWIDTH", &["LOW", "HIGH", "OPTIMIZED"]);
+            .test_enum_legacy("PROG_MD_BANDWIDTH", &["LOW", "HIGH", "OPTIMIZED"]);
 
         bctx.mode("DCM_CLKGEN")
             .global_mutex("CMT", "USE")
             .no_pin("PROGCLK")
             .no_pin("PROGEN")
             .no_pin("PROGDATA")
-            .test_enum(
+            .test_enum_legacy(
                 "SPREAD_SPECTRUM",
                 &[
                     "NONE",

@@ -143,7 +143,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("DLL")
             .global_mutex("DLL", "USE")
             .pin("RST")
-            .test_enum("RSTMUX", &["0", "1", "RST", "RST_B"]);
+            .test_enum_legacy("RSTMUX", &["0", "1", "RST", "RST_B"]);
         bctx.mode("DLL")
             .global_mutex("DLL", "USE")
             .test_manual_legacy("HIGH_FREQUENCY", "1")
@@ -151,16 +151,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
         bctx.mode("DLL")
             .global_mutex("DLL", "USE")
-            .test_enum("DUTY_ATTR", &["FALSE", "TRUE"]);
+            .test_enum_legacy("DUTY_ATTR", &["FALSE", "TRUE"]);
         for attr in ["JF_ZD1_ATTR", "JF_ZD2_ATTR"] {
-            bctx.mode("DLL").global_mutex("DLL", "USE").test_enum(
+            bctx.mode("DLL").global_mutex("DLL", "USE").test_enum_legacy(
                 attr,
                 &[
                     "0X80", "0XC0", "0XE0", "0XF0", "0XF8", "0XFC", "0XFE", "0XFF",
                 ],
             );
         }
-        bctx.mode("DLL").global_mutex("DLL", "USE").test_enum(
+        bctx.mode("DLL").global_mutex("DLL", "USE").test_enum_legacy(
             "DIVIDE_ATTR",
             &[
                 "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",

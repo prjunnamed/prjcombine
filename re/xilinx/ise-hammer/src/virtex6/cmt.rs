@@ -52,7 +52,7 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "COMP")
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
                 .attr("HROW_DLY_SET", "000")
-                .test_enum("COMPENSATION", &["ZHOLD"]);
+                .test_enum_legacy("COMPENSATION", &["ZHOLD"]);
         }
         return;
     }
@@ -61,9 +61,9 @@ pub fn add_fuzzers<'a>(
             let bel_other = slots[if i < 6 { i + 6 } else { i - 6 }];
             let mut bctx = ctx.bel(slots[i]);
             let mode = "BUFHCE";
-            bctx.test_manual("ENABLE", "1").mode(mode).commit();
+            bctx.test_manual_legacy("ENABLE", "1").mode(mode).commit();
             bctx.mode(mode).test_inv("CE");
-            bctx.mode(mode).test_enum("INIT_OUT", &["0", "1"]);
+            bctx.mode(mode).test_enum_legacy("INIT_OUT", &["0", "1"]);
 
             for pin in ["BUFH_TEST_L", "BUFH_TEST_R"] {
                 bctx.build()
@@ -197,7 +197,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode(mode)
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
                 .mutex("MODE", "TEST")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         bctx.mode(mode)
             .global_xy("MMCMADV_*_USE_CALC", "NO")
@@ -205,12 +205,12 @@ pub fn add_fuzzers<'a>(
             .attr("CLKOUT6_EN", "TRUE")
             .attr("CLKOUT4_USE_FINE_PS", "")
             .attr("CLKOUT4_MX", "")
-            .test_enum("CLKOUT4_CASCADE", &["FALSE", "TRUE"]);
+            .test_enum_legacy("CLKOUT4_CASCADE", &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .global_xy("MMCMADV_*_USE_CALC", "NO")
             .mutex("MODE", "TEST")
             .attr("STARTUP_WAIT", "FALSE")
-            .test_enum("GTS_WAIT", &["FALSE", "TRUE"]);
+            .test_enum_legacy("GTS_WAIT", &["FALSE", "TRUE"]);
         for attr in [
             "CLKOUT0_USE_FINE_PS",
             "CLKOUT1_USE_FINE_PS",
@@ -233,7 +233,7 @@ pub fn add_fuzzers<'a>(
                 .attr("CLKOUT5_MX", "")
                 .attr("CLKOUT6_MX", "")
                 .attr("INTERP_EN", "00000000")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for attr in ["CLKOUT0_FRAC_EN", "CLKFBOUT_FRAC_EN"] {
             bctx.mode(mode)
@@ -242,7 +242,7 @@ pub fn add_fuzzers<'a>(
                 .attr("CLKOUT5_EN", "TRUE")
                 .attr("CLKOUT6_EN", "TRUE")
                 .attr("INTERP_EN", "00000000")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
 
         for (attr, width) in [
@@ -367,7 +367,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MODE", "COMP")
             .global_xy("MMCMADV_*_USE_CALC", "NO")
             .attr("HROW_DLY_SET", "000")
-            .test_enum(
+            .test_enum_legacy(
                 "COMPENSATION",
                 &["ZHOLD", "EXTERNAL", "INTERNAL", "BUF_IN", "CASCADE"],
             );

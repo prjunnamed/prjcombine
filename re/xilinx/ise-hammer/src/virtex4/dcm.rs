@@ -112,13 +112,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     bctx.mode(mode).test_multi_attr_dec("BGM_SDLY", 3);
     bctx.mode(mode).test_multi_attr_dec("BGM_VSDLY", 3);
     bctx.mode(mode).test_multi_attr_dec("BGM_SAMPLE_LEN", 3);
-    bctx.mode(mode).test_enum(
+    bctx.mode(mode).test_enum_legacy(
         "BGM_MODE",
         &["BG_SNAPSHOT", "ABS_FREQ_SNAPSHOT", "ABS_FREQ_REF"],
     );
     bctx.mode(mode)
-        .test_enum("BGM_CONFIG_REF_SEL", &["DCLK", "CLKIN"]);
-    bctx.mode(mode).test_enum(
+        .test_enum_legacy("BGM_CONFIG_REF_SEL", &["DCLK", "CLKIN"]);
+    bctx.mode(mode).test_enum_legacy(
         "BGM_VADJ",
         &[
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
@@ -130,18 +130,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .test_multi_attr_dec_delta("BGM_DIVIDE", 6, 1);
 
     bctx.mode(mode)
-        .test_enum("DCM_CLKDV_CLKFX_ALIGNMENT", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DCM_CLKDV_CLKFX_ALIGNMENT", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DCM_LOCK_HIGH", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DCM_LOCK_HIGH", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DCM_VREG_ENABLE", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DCM_VREG_ENABLE", &["FALSE", "TRUE"]);
     bctx.mode(mode)
         .no_pin("CLKFB")
-        .test_enum("DCM_EXT_FB_EN", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DCM_EXT_FB_EN", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DCM_UNUSED_TAPS_POWERDOWN", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DCM_UNUSED_TAPS_POWERDOWN", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DCM_PERFORMANCE_MODE", &["MAX_SPEED", "MAX_RANGE"]);
+        .test_enum_legacy("DCM_PERFORMANCE_MODE", &["MAX_SPEED", "MAX_RANGE"]);
     for val in [
         "VDD",
         "VBG_DLL",
@@ -165,13 +165,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .global("GTS_CYCLE", "1")
         .global("DONE_CYCLE", "1")
         .global("LCK_CYCLE", "NOWAIT")
-        .test_enum("STARTUP_WAIT", &["FALSE", "TRUE"]);
+        .test_enum_legacy("STARTUP_WAIT", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("CLKIN_DIVIDE_BY_2", &["FALSE", "TRUE"]);
-    bctx.mode(mode).test_enum("PMCD_SYNC", &["FALSE", "TRUE"]);
+        .test_enum_legacy("CLKIN_DIVIDE_BY_2", &["FALSE", "TRUE"]);
+    bctx.mode(mode).test_enum_legacy("PMCD_SYNC", &["FALSE", "TRUE"]);
     bctx.mode(mode)
         .no_pin("CLKFB")
-        .test_enum("CLK_FEEDBACK", &["NONE", "1X", "2X"]);
+        .test_enum_legacy("CLK_FEEDBACK", &["NONE", "1X", "2X"]);
     for val in ["NONE", "1X", "2X"] {
         bctx.mode(mode)
             .pin("CLKFB")
@@ -189,7 +189,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .no_pin("CLK2X")
         .no_pin("CLK2X180")
         .no_pin("CLKDV")
-        .test_enum(
+        .test_enum_legacy(
             "CLKOUT_PHASE_SHIFT",
             &[
                 "NONE",
@@ -253,29 +253,29 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .commit();
 
     bctx.mode(mode)
-        .test_enum("DLL_FREQUENCY_MODE", &["LOW", "HIGH", "HIGH_SER"]);
+        .test_enum_legacy("DLL_FREQUENCY_MODE", &["LOW", "HIGH", "HIGH_SER"]);
     bctx.mode(mode)
         .attr("CLKOUT_PHASE_SHIFT", "NONE")
-        .test_enum(
+        .test_enum_legacy(
             "DLL_PHASE_SHIFT_CALIBRATION",
             &["AUTO_DPS", "CONFIG", "MASK", "AUTO_ZD2"],
         );
     bctx.mode(mode)
-        .test_enum("DLL_CONTROL_CLOCK_SPEED", &["QUARTER", "HALF"]);
+        .test_enum_legacy("DLL_CONTROL_CLOCK_SPEED", &["QUARTER", "HALF"]);
     bctx.mode(mode)
-        .test_enum("DLL_PHASE_DETECTOR_MODE", &["LEVEL", "ENHANCED"]);
+        .test_enum_legacy("DLL_PHASE_DETECTOR_MODE", &["LEVEL", "ENHANCED"]);
     bctx.mode(mode)
-        .test_enum("DLL_PHASE_DETECTOR_AUTO_RESET", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DLL_PHASE_DETECTOR_AUTO_RESET", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DLL_PERIOD_LOCK_BY1", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DLL_PERIOD_LOCK_BY1", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DLL_DESKEW_LOCK_BY1", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DLL_DESKEW_LOCK_BY1", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DLL_PHASE_SHIFT_LOCK_BY1", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DLL_PHASE_SHIFT_LOCK_BY1", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DLL_CTL_SEL_CLKIN_DIV2", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DLL_CTL_SEL_CLKIN_DIV2", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DUTY_CYCLE_CORRECTION", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DUTY_CYCLE_CORRECTION", &["FALSE", "TRUE"]);
     bctx.mode(mode).test_multi_attr_dec("DLL_PD_DLY_SEL", 3);
     bctx.mode(mode).test_multi_attr_dec("DLL_DEAD_TIME", 8);
     bctx.mode(mode).test_multi_attr_dec("DLL_LIVE_TIME", 8);
@@ -291,7 +291,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     bctx.mode(mode)
         .attr("DLL_FREQUENCY_MODE", "")
         .test_multi_attr_hex_legacy("FACTORY_JF", 16);
-    bctx.mode(mode).test_enum(
+    bctx.mode(mode).test_enum_legacy(
         "CLKDV_DIVIDE",
         &[
             "2.0", "3.0", "4.0", "5.0", "6.0", "7.0", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0",
@@ -310,48 +310,48 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     bctx.mode(mode)
-        .test_enum("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
+        .test_enum_legacy("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
     bctx.mode(mode)
-        .test_enum("DFS_EN_RELRST", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DFS_EN_RELRST", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DFS_NON_STOP", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DFS_NON_STOP", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DFS_EXTEND_RUN_TIME", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DFS_EXTEND_RUN_TIME", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DFS_EXTEND_HALT_TIME", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DFS_EXTEND_HALT_TIME", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DFS_EXTEND_FLUSH_TIME", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DFS_EXTEND_FLUSH_TIME", &["FALSE", "TRUE"]);
     bctx.mode(mode)
         .attr("DFS_OSCILLATOR_MODE", "")
-        .test_enum("DFS_EARLY_LOCK", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DFS_EARLY_LOCK", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DFS_SKIP_FINE", &["FALSE", "TRUE"]);
+        .test_enum_legacy("DFS_SKIP_FINE", &["FALSE", "TRUE"]);
     bctx.mode(mode)
-        .test_enum("DFS_COARSE_SEL", &["LEVEL", "LEGACY"]);
+        .test_enum_legacy("DFS_COARSE_SEL", &["LEVEL", "LEGACY"]);
     bctx.mode(mode)
-        .test_enum("DFS_TP_SEL", &["LEVEL", "LEGACY"]);
+        .test_enum_legacy("DFS_TP_SEL", &["LEVEL", "LEGACY"]);
     bctx.mode(mode)
-        .test_enum("DFS_FINE_SEL", &["LEVEL", "LEGACY"]);
-    bctx.mode(mode).test_enum(
+        .test_enum_legacy("DFS_FINE_SEL", &["LEVEL", "LEGACY"]);
+    bctx.mode(mode).test_enum_legacy(
         "DFS_AVE_FREQ_GAIN",
         &["0.125", "0.25", "0.5", "1.0", "2.0", "4.0", "8.0"],
     );
-    bctx.mode(mode).test_enum(
+    bctx.mode(mode).test_enum_legacy(
         "DFS_AVE_FREQ_SAMPLE_INTERVAL",
         &["1", "2", "3", "4", "5", "6", "7"],
     );
-    bctx.mode(mode).test_enum(
+    bctx.mode(mode).test_enum_legacy(
         "DFS_AVE_FREQ_ADJ_INTERVAL",
         &[
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
         ],
     );
-    bctx.mode(mode).test_enum("DFS_TRACKMODE", &["0", "1"]);
+    bctx.mode(mode).test_enum_legacy("DFS_TRACKMODE", &["0", "1"]);
     bctx.mode(mode)
         .mutex("PIN", "NONE")
         .pin("CLK0")
         .pin("CLKFX")
-        .test_enum(
+        .test_enum_legacy(
             "DFS_OSCILLATOR_MODE",
             &["PHASE_FREQ_LOCK", "FREQ_LOCK", "AVE_FREQ_LOCK"],
         );

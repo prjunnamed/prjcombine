@@ -51,12 +51,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).bel_unused(bel_other).test_inv(pin);
         }
         for attr in ["AREG", "BREG"] {
-            bctx.mode(mode).test_enum(attr, &["0", "1", "2"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["0", "1", "2"]);
         }
         bctx.mode(mode)
             .bel_mode(bel_other, mode)
             .bel_attr(bel_other, "CREG", "")
-            .test_enum("CREG", &["0", "1"]);
+            .test_enum_legacy("CREG", &["0", "1"]);
         for attr in [
             "MREG",
             "PREG",
@@ -65,9 +65,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "CARRYINSELREG",
             "SUBTRACTREG",
         ] {
-            bctx.mode(mode).test_enum(attr, &["0", "1"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["0", "1"]);
         }
-        bctx.mode(mode).test_enum("B_INPUT", &["DIRECT", "CASCADE"]);
+        bctx.mode(mode).test_enum_legacy("B_INPUT", &["DIRECT", "CASCADE"]);
     }
 }
 

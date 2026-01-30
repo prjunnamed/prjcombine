@@ -393,15 +393,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let bel = format!("GT11[{i}]");
         let mut bctx = ctx.bel(defs::bslots::GT11[i]);
         let mode = "GT11";
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GT11_INVPINS {
             bctx.mode(mode).test_inv(pin);
         }
         for &attr in GT11_BOOL_ATTRS {
-            bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for &(attr, vals) in GT11_ENUM_ATTRS {
-            bctx.mode(mode).test_enum(attr, vals);
+            bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, width) in GT11_DEC_ATTRS {
             bctx.mode(mode).test_multi_attr_dec(attr, width);
@@ -415,14 +415,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for &attr in GT11_SHARED_BOOL_ATTRS {
             bctx.mode(mode)
                 .tile_mutex(attr, &bel)
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         bctx.mode(mode)
             .tile_mutex("TXABPMACLKSEL", &bel)
-            .test_enum("TXABPMACLKSEL", &["REFCLK1", "REFCLK2", "GREFCLK"]);
+            .test_enum_legacy("TXABPMACLKSEL", &["REFCLK1", "REFCLK2", "GREFCLK"]);
         bctx.mode(mode)
             .tile_mutex("TXPLLNDIVSEL", &bel)
-            .test_enum("TXPLLNDIVSEL", &["8", "10", "16", "20", "32", "40"]);
+            .test_enum_legacy("TXPLLNDIVSEL", &["8", "10", "16", "20", "32", "40"]);
         for &(attr, width) in GT11_SHARED_BIN_ATTRS {
             bctx.mode(mode)
                 .tile_mutex(attr, &bel)
@@ -565,8 +565,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
     let mut bctx = ctx.bel(defs::bslots::GT11CLK);
     let mode = "GT11CLK";
-    bctx.test_manual("PRESENT", "1").mode(mode).commit();
-    bctx.mode(mode).test_enum(
+    bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
+    bctx.mode(mode).test_enum_legacy(
         "REFCLKSEL",
         &["REFCLK", "RXBCLK", "MGTCLK", "SYNCLK1IN", "SYNCLK2IN"],
     );

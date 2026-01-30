@@ -217,28 +217,28 @@ pub fn add_fuzzers<'a>(
 
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_enum("DLL_FREQUENCY_MODE", &["LOW", "HIGH"]);
+            .test_enum_legacy("DLL_FREQUENCY_MODE", &["LOW", "HIGH"]);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_enum("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
+            .test_enum_legacy("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
             .global("GTS_CYCLE", "1")
             .global("DONE_CYCLE", "1")
             .global("LCK_CYCLE", "NOWAIT")
-            .test_enum("STARTUP_WAIT", &["STARTUP_WAIT"]);
+            .test_enum_legacy("STARTUP_WAIT", &["STARTUP_WAIT"]);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_enum("DUTY_CYCLE_CORRECTION", &["FALSE", "TRUE"]);
+            .test_enum_legacy("DUTY_CYCLE_CORRECTION", &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
             .test_multi_attr_dec("DESKEW_ADJUST", 4);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_enum("CLKIN_DIVIDE_BY_2", &["CLKIN_DIVIDE_BY_2"]);
+            .test_enum_legacy("CLKIN_DIVIDE_BY_2", &["CLKIN_DIVIDE_BY_2"]);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_enum("CLK_FEEDBACK", &["1X", "2X"]);
+            .test_enum_legacy("CLK_FEEDBACK", &["1X", "2X"]);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
             .test_manual_legacy("CLKFX_MULTIPLY", "")
@@ -265,7 +265,7 @@ pub fn add_fuzzers<'a>(
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
             .pin("CLK0")
-            .test_enum("CLKOUT_PHASE_SHIFT", &["NONE", "FIXED", "VARIABLE"]);
+            .test_enum_legacy("CLKOUT_PHASE_SHIFT", &["NONE", "FIXED", "VARIABLE"]);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
             .test_multi_attr_dec("PHASE_SHIFT", 7);
@@ -280,7 +280,7 @@ pub fn add_fuzzers<'a>(
             .attr("PHASE_SHIFT", "-255")
             .commit();
 
-        bctx.mode(mode).global_mutex("DCM", "USE").test_enum(
+        bctx.mode(mode).global_mutex("DCM", "USE").test_enum_legacy(
             "CLKDV_DIVIDE",
             &[
                 "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
@@ -304,7 +304,7 @@ pub fn add_fuzzers<'a>(
             .attr("CLKFX_DIVIDE", "")
             .pin("CLK0")
             .no_pin("CLKFX")
-            .test_enum(
+            .test_enum_legacy(
                 "X_CLKIN_PERIOD",
                 &["1.0", "4.99", "5.0", "24.99", "25.0", "200.99"],
             );
@@ -331,14 +331,14 @@ pub fn add_fuzzers<'a>(
         bctx.mode(mode)
             .null_bits()
             .global_mutex("DCM", "USE")
-            .test_enum(
+            .test_enum_legacy(
                 "DSS_MODE",
                 &["NONE", "SPREAD_2", "SPREAD_4", "SPREAD_6", "SPREAD_8"],
             );
         bctx.mode(mode)
             .null_bits()
             .global_mutex("DCM", "USE")
-            .test_enum(
+            .test_enum_legacy(
                 "FACTORY_JF1",
                 &[
                     "0X80", "0XC0", "0XE0", "0XF0", "0XF8", "0XFC", "0XFE", "0XFF",
@@ -347,7 +347,7 @@ pub fn add_fuzzers<'a>(
         bctx.mode(mode)
             .null_bits()
             .global_mutex("DCM", "USE")
-            .test_enum(
+            .test_enum_legacy(
                 "FACTORY_JF2",
                 &[
                     "0X80", "0XC0", "0XE0", "0XF0", "0XF8", "0XFC", "0XFE", "0XFF",

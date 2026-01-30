@@ -190,7 +190,7 @@ pub fn add_fuzzers<'a>(
                     .global("GTS_CYCLE", "1")
                     .global("DONE_CYCLE", "1")
                     .global("LCK_CYCLE", "NOWAIT")
-                    .test_enum(attr, &["FALSE", "TRUE"]);
+                    .test_enum_legacy(attr, &["FALSE", "TRUE"]);
             }
 
             for attr in [
@@ -201,7 +201,7 @@ pub fn add_fuzzers<'a>(
                 bctx.mode(mode)
                     .mutex("MODE", "ATTR")
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                    .test_enum(attr, &["PASS", "DELAY_LINE"]);
+                    .test_enum_legacy(attr, &["PASS", "DELAY_LINE"]);
             }
             bctx.mode(mode)
                 .mutex("MODE", "PIN")
@@ -210,47 +210,47 @@ pub fn add_fuzzers<'a>(
                 .pin("CLKFB")
                 .pin_from("CLKIN", PinFromKind::Iob)
                 .pin_from("CLKFB", PinFromKind::Bufg)
-                .test_enum("DCM_CLKIN_IODLY_MUXINSEL", &["PASS", "DELAY_LINE"]);
+                .test_enum_legacy("DCM_CLKIN_IODLY_MUXINSEL", &["PASS", "DELAY_LINE"]);
 
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .test_enum("DCM_CLKLOST_EN", &["DISABLE", "ENABLE"]);
+                .test_enum_legacy("DCM_CLKLOST_EN", &["DISABLE", "ENABLE"]);
 
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .test_enum(
+                .test_enum_legacy(
                     "DFS_AVE_FREQ_SAMPLE_INTERVAL",
                     &["1", "2", "3", "4", "5", "6", "7"],
                 );
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .test_enum(
+                .test_enum_legacy(
                     "DFS_AVE_FREQ_GAIN",
                     &["0.125", "0.25", "0.5", "1.0", "2.0", "4.0", "8.0"],
                 );
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .test_enum("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
+                .test_enum_legacy("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .test_enum("DLL_FREQUENCY_MODE", &["LOW", "HIGH"]);
+                .test_enum_legacy("DLL_FREQUENCY_MODE", &["LOW", "HIGH"]);
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .attr("DLL_FREQUENCY_MODE", "")
-                .test_enum(
+                .test_enum_legacy(
                     "DLL_PHASE_SHIFT_CALIBRATION",
                     &["MASK", "CONFIG", "AUTO_ZD2", "AUTO_DPS"],
                 );
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .test_enum(
+                .test_enum_legacy(
                     "DLL_SYNTH_CLOCK_SPEED",
                     &["VDD", "QUARTER", "HALF", "NORMAL"],
                 );
@@ -259,21 +259,21 @@ pub fn add_fuzzers<'a>(
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .attr("DFS_EARLY_LOCK", "")
                 .attr("DFS_HARDSYNC_B", "")
-                .test_enum("DFS_OSCILLATOR_MODE", &["PHASE_FREQ_LOCK", "AVE_FREQ_LOCK"]);
+                .test_enum_legacy("DFS_OSCILLATOR_MODE", &["PHASE_FREQ_LOCK", "AVE_FREQ_LOCK"]);
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .attr("DCM_VBG_PD", "")
                 .attr("DCM_VBG_SEL", "")
                 .attr("DCM_PERFORMANCE_MODE", "")
-                .test_enum("DCM_VREF_SOURCE", &["VDD", "VBG_DLL", "VBG"]);
+                .test_enum_legacy("DCM_VREF_SOURCE", &["VDD", "VBG_DLL", "VBG"]);
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .attr("DCM_VBG_PD", "")
                 .attr("DCM_VBG_SEL", "")
                 .attr("DCM_VREF_SOURCE", "VBG_DLL")
-                .test_enum("DCM_PERFORMANCE_MODE", &["MAX_SPEED", "MAX_RANGE"]);
+                .test_enum_legacy("DCM_PERFORMANCE_MODE", &["MAX_SPEED", "MAX_RANGE"]);
 
             for (attr, width) in [
                 ("DCM_COMMON_MSB_SEL", 2),
@@ -341,7 +341,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode(mode)
                 .mutex("MODE", "PIN")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .test_enum(
+                .test_enum_legacy(
                     "CLKDV_DIVIDE",
                     &[
                         "2.0", "3.0", "4.0", "5.0", "6.0", "7.0", "8.0", "9.0", "10.0", "11.0",
@@ -372,7 +372,7 @@ pub fn add_fuzzers<'a>(
                 .no_pin("CLK2X")
                 .no_pin("CLK2X180")
                 .no_pin("CLKDV")
-                .test_enum(
+                .test_enum_legacy(
                     "CLKOUT_PHASE_SHIFT",
                     &[
                         "NONE",
@@ -573,7 +573,7 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "TEST")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .global_xy("PLLADV_*_USE_CALC", "NO")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for (attr, width) in [
             ("PLL_UNLOCK_CNT", 4),
@@ -667,7 +667,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MODE", "COMP")
             .related_tile_mutex(HclkCmt, "ENABLE", "USE")
             .global_xy("PLLADV_*_USE_CALC", "YES")
-            .test_enum(
+            .test_enum_legacy(
                 "COMPENSATION",
                 &[
                     "SOURCE_SYNCHRONOUS",

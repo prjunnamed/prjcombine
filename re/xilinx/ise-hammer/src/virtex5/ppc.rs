@@ -127,7 +127,7 @@ pub fn add_fuzzers<'a>(
         for &attr in PPC_BOOL_ATTRS {
             bctx.mode(mode)
                 .no_global("PPCCLKDLY")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for &(attr, width) in PPC_HEX_ATTRS {
             bctx.mode(mode)
@@ -140,11 +140,11 @@ pub fn add_fuzzers<'a>(
             .multi_global("PPCCLKDLY", MultiValue::Bin, 5);
         bctx.mode(mode)
             .no_global("PPCCLKDLY")
-            .test_enum("CLOCK_DELAY", &["FALSE", "TRUE"]);
+            .test_enum_legacy("CLOCK_DELAY", &["FALSE", "TRUE"]);
     } else {
         bctx.mode(mode)
             .no_global("PPCCLKDLY")
-            .test_enum("CLOCK_DELAY", &["FALSE"]);
+            .test_enum_legacy("CLOCK_DELAY", &["FALSE"]);
     }
 }
 

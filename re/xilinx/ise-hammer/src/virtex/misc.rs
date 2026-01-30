@@ -25,13 +25,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for tile in ["PCI_W", "PCI_E"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         let mut bctx = ctx.bel(defs::bslots::PCILOGIC);
-        bctx.test_manual("PRESENT", "1").mode("PCILOGIC").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("PCILOGIC").commit();
         bctx.mode("PCILOGIC")
             .pin("I1")
-            .test_enum("I1MUX", &["0", "1", "I1", "I1_B"]);
+            .test_enum_legacy("I1MUX", &["0", "1", "I1", "I1_B"]);
         bctx.mode("PCILOGIC")
             .pin("I2")
-            .test_enum("I2MUX", &["0", "1", "I2", "I2_B"]);
+            .test_enum_legacy("I2MUX", &["0", "1", "I2", "I2_B"]);
     }
     let mut ctx = FuzzCtx::new_null(session, backend);
     for val in ["00", "01", "10", "11"] {
@@ -70,13 +70,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
 
         let mut bctx = ctx.bel(defs::bslots::CAPTURE);
-        bctx.test_manual("PRESENT", "1").mode("CAPTURE").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("CAPTURE").commit();
         bctx.mode("CAPTURE")
             .pin("CLK")
-            .test_enum("CLKINV", &["0", "1"]);
+            .test_enum_legacy("CLKINV", &["0", "1"]);
         bctx.mode("CAPTURE")
             .pin("CAP")
-            .test_enum("CAPMUX", &["0", "1", "CAP", "CAP_B"]);
+            .test_enum_legacy("CAPMUX", &["0", "1", "CAP", "CAP_B"]);
         bctx.mode("CAPTURE")
             .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "CAPTURE", "ONESHOT", "1")
             .test_manual_legacy("ONESHOT", "1")
@@ -107,19 +107,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
 
         let mut bctx = ctx.bel(defs::bslots::STARTUP);
-        bctx.test_manual("PRESENT", "1").mode("STARTUP").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("STARTUP").commit();
         bctx.mode("STARTUP")
             .pin("CLK")
-            .test_enum("CLKINV", &["0", "1"]);
+            .test_enum_legacy("CLKINV", &["0", "1"]);
         bctx.mode("STARTUP")
             .pin("GWE")
-            .test_enum("GWEMUX", &["0", "1", "GWE", "GWE_B"]);
+            .test_enum_legacy("GWEMUX", &["0", "1", "GWE", "GWE_B"]);
         bctx.mode("STARTUP")
             .pin("GTS")
-            .test_enum("GTSMUX", &["0", "1", "GTS", "GTS_B"]);
+            .test_enum_legacy("GTSMUX", &["0", "1", "GTS", "GTS_B"]);
         bctx.mode("STARTUP")
             .pin("GSR")
-            .test_enum("GSRMUX", &["0", "1", "GSR", "GSR_B"]);
+            .test_enum_legacy("GSRMUX", &["0", "1", "GSR", "GSR_B"]);
         let wire_gwe = TileWireCoord::new_idx(0, wires::IMUX_STARTUP_GWE);
         let wire_gts = TileWireCoord::new_idx(0, wires::IMUX_STARTUP_GTS);
         let wire_gsr = TileWireCoord::new_idx(0, wires::IMUX_STARTUP_GSR);
@@ -154,13 +154,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("GWEMUX", "GWE")
             .commit();
         for val in ["NO", "YES"] {
-            bctx.test_manual("GWE_SYNC", val)
+            bctx.test_manual_legacy("GWE_SYNC", val)
                 .global("GWE_SYNC", val)
                 .commit();
-            bctx.test_manual("GTS_SYNC", val)
+            bctx.test_manual_legacy("GTS_SYNC", val)
                 .global("GTS_SYNC", val)
                 .commit();
-            bctx.test_manual("GSR_SYNC", val)
+            bctx.test_manual_legacy("GSR_SYNC", val)
                 .global("GSR_SYNC", val)
                 .commit();
         }
@@ -174,14 +174,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
 
         let mut bctx = ctx.bel(defs::bslots::BSCAN);
-        bctx.test_manual("PRESENT", "1").mode("BSCAN").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("BSCAN").commit();
         bctx.mode("BSCAN")
             .pin("TDO1")
-            .test_enum("TDO1MUX", &["0", "1", "TDO1", "TDO1_B"]);
+            .test_enum_legacy("TDO1MUX", &["0", "1", "TDO1", "TDO1_B"]);
         bctx.mode("BSCAN")
             .pin("TDO2")
-            .test_enum("TDO2MUX", &["0", "1", "TDO2", "TDO2_B"]);
-        bctx.test_manual("USERID", "")
+            .test_enum_legacy("TDO2MUX", &["0", "1", "TDO2", "TDO2_B"]);
+        bctx.test_manual_legacy("USERID", "")
             .multi_global("USERID", MultiValue::HexPrefix, 32);
     }
 

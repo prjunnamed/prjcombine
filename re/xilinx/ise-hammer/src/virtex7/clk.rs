@@ -304,17 +304,17 @@ pub fn add_fuzzers<'a>(
         let mut ctx = FuzzCtx::new(session, backend, "CLK_BUFG");
         for i in 0..16 {
             let mut bctx = ctx.bel(defs::bslots::BUFGCTRL[i]);
-            bctx.test_manual("ENABLE", "1").mode("BUFGCTRL").commit();
+            bctx.test_manual_legacy("ENABLE", "1").mode("BUFGCTRL").commit();
             for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
                 bctx.mode("BUFGCTRL").test_inv(pin);
             }
             bctx.mode("BUFGCTRL")
-                .test_enum("PRESELECT_I0", &["FALSE", "TRUE"]);
+                .test_enum_legacy("PRESELECT_I0", &["FALSE", "TRUE"]);
             bctx.mode("BUFGCTRL")
-                .test_enum("PRESELECT_I1", &["FALSE", "TRUE"]);
+                .test_enum_legacy("PRESELECT_I1", &["FALSE", "TRUE"]);
             bctx.mode("BUFGCTRL")
-                .test_enum("CREATE_EDGE", &["FALSE", "TRUE"]);
-            bctx.mode("BUFGCTRL").test_enum("INIT_OUT", &["0", "1"]);
+                .test_enum_legacy("CREATE_EDGE", &["FALSE", "TRUE"]);
+            bctx.mode("BUFGCTRL").test_enum_legacy("INIT_OUT", &["0", "1"]);
             bctx.build()
                 .tile_mutex("FB", "TEST")
                 .test_manual_legacy("ENABLE.FB", "1")
@@ -418,13 +418,13 @@ pub fn add_fuzzers<'a>(
         let mut ctx = FuzzCtx::new(session, backend, "CLK_HROW");
         for i in 0..32 {
             let mut bctx = ctx.bel(defs::bslots::GCLK_TEST_BUF_HROW_GCLK[i]);
-            bctx.test_manual("ENABLE", "1")
+            bctx.test_manual_legacy("ENABLE", "1")
                 .mode("GCLK_TEST_BUF")
                 .commit();
             bctx.mode("GCLK_TEST_BUF")
-                .test_enum("GCLK_TEST_ENABLE", &["FALSE", "TRUE"]);
+                .test_enum_legacy("GCLK_TEST_ENABLE", &["FALSE", "TRUE"]);
             bctx.mode("GCLK_TEST_BUF")
-                .test_enum("INVERT_INPUT", &["FALSE", "TRUE"]);
+                .test_enum_legacy("INVERT_INPUT", &["FALSE", "TRUE"]);
         }
         for (lr, bufhce, gclk_test_buf) in [
             (
@@ -440,10 +440,10 @@ pub fn add_fuzzers<'a>(
         ] {
             for i in 0..12 {
                 let mut bctx = ctx.bel(bufhce[i]);
-                bctx.test_manual("ENABLE", "1").mode("BUFHCE").commit();
+                bctx.test_manual_legacy("ENABLE", "1").mode("BUFHCE").commit();
                 bctx.mode("BUFHCE").test_inv("CE");
-                bctx.mode("BUFHCE").test_enum("INIT_OUT", &["0", "1"]);
-                bctx.mode("BUFHCE").test_enum("CE_TYPE", &["SYNC", "ASYNC"]);
+                bctx.mode("BUFHCE").test_enum_legacy("INIT_OUT", &["0", "1"]);
+                bctx.mode("BUFHCE").test_enum_legacy("CE_TYPE", &["SYNC", "ASYNC"]);
 
                 let ckints = if (lr == 'R' && i < 6) || (lr == 'L' && i >= 6) {
                     0..2
@@ -499,13 +499,13 @@ pub fn add_fuzzers<'a>(
                 }
             }
             let mut bctx = ctx.bel(gclk_test_buf);
-            bctx.test_manual("ENABLE", "1")
+            bctx.test_manual_legacy("ENABLE", "1")
                 .mode("GCLK_TEST_BUF")
                 .commit();
             bctx.mode("GCLK_TEST_BUF")
-                .test_enum("GCLK_TEST_ENABLE", &["FALSE", "TRUE"]);
+                .test_enum_legacy("GCLK_TEST_ENABLE", &["FALSE", "TRUE"]);
             bctx.mode("GCLK_TEST_BUF")
-                .test_enum("INVERT_INPUT", &["FALSE", "TRUE"]);
+                .test_enum_legacy("INVERT_INPUT", &["FALSE", "TRUE"]);
             for j in 0..14 {
                 bctx.build()
                     .tile_mutex(format!("HIN{j}_{lr}"), "TEST")
@@ -696,13 +696,13 @@ pub fn add_fuzzers<'a>(
         ] {
             for i in 0..16 {
                 let mut bctx = ctx.bel(slots[i]);
-                bctx.test_manual("ENABLE", "1")
+                bctx.test_manual_legacy("ENABLE", "1")
                     .mode("GCLK_TEST_BUF")
                     .commit();
                 bctx.mode("GCLK_TEST_BUF")
-                    .test_enum("GCLK_TEST_ENABLE", &["FALSE", "TRUE"]);
+                    .test_enum_legacy("GCLK_TEST_ENABLE", &["FALSE", "TRUE"]);
                 bctx.mode("GCLK_TEST_BUF")
-                    .test_enum("INVERT_INPUT", &["FALSE", "TRUE"]);
+                    .test_enum_legacy("INVERT_INPUT", &["FALSE", "TRUE"]);
             }
         }
     }
@@ -711,9 +711,9 @@ pub fn add_fuzzers<'a>(
             let mut ctx = FuzzCtx::new(session, backend, tile);
             for i in 0..4 {
                 let mut bctx = ctx.bel(defs::bslots::BUFIO[i]);
-                bctx.test_manual("ENABLE", "1").mode("BUFIO").commit();
+                bctx.test_manual_legacy("ENABLE", "1").mode("BUFIO").commit();
                 bctx.mode("BUFIO")
-                    .test_enum("DELAY_BYPASS", &["FALSE", "TRUE"]);
+                    .test_enum_legacy("DELAY_BYPASS", &["FALSE", "TRUE"]);
                 bctx.build()
                     .mutex("MUX.I", "CCIO")
                     .related_tile_mutex(ColPair("CMT"), "CCIO", "USE_IO")
@@ -753,11 +753,11 @@ pub fn add_fuzzers<'a>(
             }
             for i in 0..4 {
                 let mut bctx = ctx.bel(defs::bslots::BUFR[i]);
-                bctx.test_manual("ENABLE", "1")
+                bctx.test_manual_legacy("ENABLE", "1")
                     .mode("BUFR")
                     .attr("BUFR_DIVIDE", "BYPASS")
                     .commit();
-                bctx.mode("BUFR").test_enum(
+                bctx.mode("BUFR").test_enum_legacy(
                     "BUFR_DIVIDE",
                     &["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"],
                 );
@@ -788,9 +788,9 @@ pub fn add_fuzzers<'a>(
                             .commit();
                     }
                 }
-                bctx.test_manual("PRESENT", "1").mode("IDELAYCTRL").commit();
+                bctx.test_manual_legacy("PRESENT", "1").mode("IDELAYCTRL").commit();
                 bctx.mode("IDELAYCTRL")
-                    .test_enum("HIGH_PERFORMANCE_MODE", &["FALSE", "TRUE"]);
+                    .test_enum_legacy("HIGH_PERFORMANCE_MODE", &["FALSE", "TRUE"]);
                 bctx.mode("IDELAYCTRL")
                     .tile_mutex("IDELAYCTRL", "TEST")
                     .test_manual_legacy("MODE", "DEFAULT")

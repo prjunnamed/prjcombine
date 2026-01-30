@@ -243,8 +243,12 @@ impl<'a> Backend for IseBackend<'a> {
                 site_to_tile.insert(name.to_string(), ntile.names[ntile.tie_rt].to_string());
             }
             for (id, names) in &ntile.bels {
+                let Some(bel_naming) = self.ngrid.db.tile_class_namings[ntile.naming].bels.get(id)
+                else {
+                    continue;
+                };
                 for (idx, name) in names.iter().enumerate() {
-                    let rt = self.ngrid.db.tile_class_namings[ntile.naming].bels[id].tiles[idx];
+                    let rt = bel_naming.tiles[idx];
                     site_to_tile.insert(name.to_string(), ntile.names[rt].to_string());
                 }
             }

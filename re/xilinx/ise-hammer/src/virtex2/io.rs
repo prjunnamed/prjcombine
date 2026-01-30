@@ -930,42 +930,42 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("OSR_USED", "0")
                 .attr("SRINV", "SR_B")
                 .pin("SR")
-                .test_enum("ISR_USED", &["0"]);
+                .test_enum_legacy("ISR_USED", &["0"]);
             bctx.mode(mode)
                 .attr("IFF1", "#FF")
                 .attr("OFF1", "#FF")
                 .attr("ISR_USED", "0")
                 .attr("SRINV", "SR_B")
                 .pin("SR")
-                .test_enum("OSR_USED", &["0"]);
+                .test_enum_legacy("OSR_USED", &["0"]);
             bctx.mode(mode)
                 .attr("IFF1", "#FF")
                 .attr("TFF1", "#FF")
                 .attr("ISR_USED", "0")
                 .attr("SRINV", "SR_B")
                 .pin("SR")
-                .test_enum("TSR_USED", &["0"]);
+                .test_enum_legacy("TSR_USED", &["0"]);
             bctx.mode(mode)
                 .attr("IFF1", "#FF")
                 .attr("OFF1", "#FF")
                 .attr("OREV_USED", "0")
                 .attr("REVINV", "REV_B")
                 .pin("REV")
-                .test_enum("IREV_USED", &["0"]);
+                .test_enum_legacy("IREV_USED", &["0"]);
             bctx.mode(mode)
                 .attr("IFF1", "#FF")
                 .attr("OFF1", "#FF")
                 .attr("IREV_USED", "0")
                 .attr("REVINV", "REV_B")
                 .pin("REV")
-                .test_enum("OREV_USED", &["0"]);
+                .test_enum_legacy("OREV_USED", &["0"]);
             bctx.mode(mode)
                 .attr("IFF1", "#FF")
                 .attr("TFF1", "#FF")
                 .attr("IREV_USED", "0")
                 .attr("REVINV", "REV_B")
                 .pin("REV")
-                .test_enum("TREV_USED", &["0"]);
+                .test_enum_legacy("TREV_USED", &["0"]);
 
             // CE
             bctx.mode(mode).attr("IFF1", "#FF").test_inv("ICE");
@@ -980,7 +980,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("OCEINV", "#OFF")
                     .pin("OCE")
                     .pin("PCI_CE")
-                    .test_enum("PCICE_MUX", &["OCE", "PCICE"]);
+                    .test_enum_legacy("PCICE_MUX", &["OCE", "PCICE"]);
             } else {
                 bctx.mode(mode).attr("OFF1", "#FF").test_inv("OCE");
             }
@@ -1037,7 +1037,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pin("T1")
                 .pin("T2")
                 .pin("T")
-                .test_enum("TMUX", &["T1", "T2", "TFF1", "TFF2", "TFFDDR"]);
+                .test_enum_legacy("TMUX", &["T1", "T2", "TFF1", "TFF2", "TFFDDR"]);
             // hack to avoid dragging IOB into it.
             for val in ["O1", "O2", "OFF1", "OFF2", "OFFDDR"] {
                 if !edev.chip.kind.is_spartan3ea() {
@@ -1102,7 +1102,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("O1INV", "#OFF")
                             .pin("ODDRIN1")
                             .pin("I")
-                            .test_enum("O1_DDRMUX", &["0", "1"]);
+                            .test_enum_legacy("O1_DDRMUX", &["0", "1"]);
                         bctx.mode(mode)
                             .bel_unused(obel)
                             .attr("OFF1", "#FF")
@@ -1116,7 +1116,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("O2INV", "#OFF")
                             .pin("ODDRIN2")
                             .pin("I")
-                            .test_enum("O2_DDRMUX", &["0", "1"]);
+                            .test_enum_legacy("O2_DDRMUX", &["0", "1"]);
                     }
                 } else {
                     bctx.mode(mode)
@@ -1161,7 +1161,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("DELAY_ADJ_ATTRBOX", "FIXED")
                             .pin("ODDRIN1")
                             .pin("I")
-                            .test_enum("O1_DDRMUX", &["0", "1"]);
+                            .test_enum_legacy("O1_DDRMUX", &["0", "1"]);
                         bctx.mode(mode)
                             .bel_unused(obel)
                             .attr("OFF1", "#FF")
@@ -1177,7 +1177,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("DELAY_ADJ_ATTRBOX", "FIXED")
                             .pin("ODDRIN2")
                             .pin("I")
-                            .test_enum("O2_DDRMUX", &["0", "1"]);
+                            .test_enum_legacy("O2_DDRMUX", &["0", "1"]);
                     }
                 }
             }
@@ -1189,13 +1189,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("OCEINV", "OCE_B")
                     .attr("OFF1_INIT_ATTR", "INIT1")
                     .pin("OCE")
-                    .test_enum("OFF1", &["#FF", "#LATCH"]);
+                    .test_enum_legacy("OFF1", &["#FF", "#LATCH"]);
                 bctx.mode(mode)
                     .attr("OFF1", "#OFF")
                     .attr("OCEINV", "OCE_B")
                     .attr("OFF2_INIT_ATTR", "INIT1")
                     .pin("OCE")
-                    .test_enum("OFF2", &["#FF", "#LATCH"]);
+                    .test_enum_legacy("OFF2", &["#FF", "#LATCH"]);
             } else {
                 bctx.mode(mode)
                     .attr("OFF2", "#OFF")
@@ -1203,79 +1203,79 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("PCICE_MUX", "OCE")
                     .attr("OFF1_INIT_ATTR", "INIT1")
                     .pin("OCE")
-                    .test_enum("OFF1", &["#FF", "#LATCH"]);
+                    .test_enum_legacy("OFF1", &["#FF", "#LATCH"]);
                 bctx.mode(mode)
                     .attr("OFF1", "#OFF")
                     .attr("OCEINV", "OCE_B")
                     .attr("PCICE_MUX", "OCE")
                     .attr("OFF2_INIT_ATTR", "INIT1")
                     .pin("OCE")
-                    .test_enum("OFF2", &["#FF", "#LATCH"]);
+                    .test_enum_legacy("OFF2", &["#FF", "#LATCH"]);
             }
             bctx.mode(mode)
                 .attr("TFF2", "#OFF")
                 .attr("TCEINV", "TCE_B")
                 .attr("TFF1_INIT_ATTR", "INIT1")
                 .pin("TCE")
-                .test_enum("TFF1", &["#FF", "#LATCH"]);
+                .test_enum_legacy("TFF1", &["#FF", "#LATCH"]);
             bctx.mode(mode)
                 .attr("TFF1", "#OFF")
                 .attr("TCEINV", "TCE_B")
                 .attr("TFF2_INIT_ATTR", "INIT1")
                 .pin("TCE")
-                .test_enum("TFF2", &["#FF", "#LATCH"]);
+                .test_enum_legacy("TFF2", &["#FF", "#LATCH"]);
             bctx.mode(mode)
                 .attr("OFF1", "#FF")
                 .attr("OFF1_INIT_ATTR", "INIT0")
-                .test_enum("OFF1_SR_ATTR", &["SRLOW", "SRHIGH"]);
+                .test_enum_legacy("OFF1_SR_ATTR", &["SRLOW", "SRHIGH"]);
             bctx.mode(mode)
                 .attr("OFF2", "#FF")
                 .attr("OFF2_INIT_ATTR", "INIT0")
-                .test_enum("OFF2_SR_ATTR", &["SRLOW", "SRHIGH"]);
+                .test_enum_legacy("OFF2_SR_ATTR", &["SRLOW", "SRHIGH"]);
             bctx.mode(mode)
                 .attr("TFF1", "#FF")
                 .attr("TFF1_INIT_ATTR", "INIT0")
-                .test_enum("TFF1_SR_ATTR", &["SRLOW", "SRHIGH"]);
+                .test_enum_legacy("TFF1_SR_ATTR", &["SRLOW", "SRHIGH"]);
             bctx.mode(mode)
                 .attr("TFF2", "#FF")
                 .attr("TFF2_INIT_ATTR", "INIT0")
-                .test_enum("TFF2_SR_ATTR", &["SRLOW", "SRHIGH"]);
+                .test_enum_legacy("TFF2_SR_ATTR", &["SRLOW", "SRHIGH"]);
             bctx.mode(mode)
                 .attr("OFF1", "#FF")
                 .attr("OFF2", "#FF")
                 .attr("OFF1_SR_ATTR", "SRHIGH")
                 .attr("OFF2_SR_ATTR", "SRHIGH")
                 .attr("OFF2_INIT_ATTR", "#OFF")
-                .test_enum("OFF1_INIT_ATTR", &["INIT0", "INIT1"]);
+                .test_enum_legacy("OFF1_INIT_ATTR", &["INIT0", "INIT1"]);
             bctx.mode(mode)
                 .attr("OFF1", "#FF")
                 .attr("OFF2", "#FF")
                 .attr("OFF1_SR_ATTR", "SRHIGH")
                 .attr("OFF2_SR_ATTR", "SRHIGH")
                 .attr("OFF1_INIT_ATTR", "#OFF")
-                .test_enum("OFF2_INIT_ATTR", &["INIT0", "INIT1"]);
+                .test_enum_legacy("OFF2_INIT_ATTR", &["INIT0", "INIT1"]);
             bctx.mode(mode)
                 .attr("TFF1", "#FF")
                 .attr("TFF2", "#FF")
                 .attr("TFF1_SR_ATTR", "SRHIGH")
                 .attr("TFF2_SR_ATTR", "SRHIGH")
                 .attr("TFF2_INIT_ATTR", "#OFF")
-                .test_enum("TFF1_INIT_ATTR", &["INIT0", "INIT1"]);
+                .test_enum_legacy("TFF1_INIT_ATTR", &["INIT0", "INIT1"]);
             bctx.mode(mode)
                 .attr("TFF1", "#FF")
                 .attr("TFF2", "#FF")
                 .attr("TFF1_SR_ATTR", "SRHIGH")
                 .attr("TFF2_SR_ATTR", "SRHIGH")
                 .attr("TFF1_INIT_ATTR", "#OFF")
-                .test_enum("TFF2_INIT_ATTR", &["INIT0", "INIT1"]);
+                .test_enum_legacy("TFF2_INIT_ATTR", &["INIT0", "INIT1"]);
             bctx.mode(mode)
                 .attr("OFF1", "#FF")
                 .attr("OFF2", "#FF")
-                .test_enum("OFFATTRBOX", &["SYNC", "ASYNC"]);
+                .test_enum_legacy("OFFATTRBOX", &["SYNC", "ASYNC"]);
             bctx.mode(mode)
                 .attr("TFF1", "#FF")
                 .attr("TFF2", "#FF")
-                .test_enum("TFFATTRBOX", &["SYNC", "ASYNC"]);
+                .test_enum_legacy("TFFATTRBOX", &["SYNC", "ASYNC"]);
 
             // Input flops
             bctx.mode(mode)
@@ -1283,33 +1283,33 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("ICEINV", "ICE_B")
                 .attr("IFF1_INIT_ATTR", "INIT1")
                 .pin("ICE")
-                .test_enum("IFF1", &["#FF", "#LATCH"]);
+                .test_enum_legacy("IFF1", &["#FF", "#LATCH"]);
             bctx.mode(mode)
                 .attr("IFF1", "#OFF")
                 .attr("ICEINV", "ICE_B")
                 .attr("IFF2_INIT_ATTR", "INIT1")
                 .pin("ICE")
-                .test_enum("IFF2", &["#FF", "#LATCH"]);
+                .test_enum_legacy("IFF2", &["#FF", "#LATCH"]);
             bctx.mode(mode)
                 .attr("IFF1", "#FF")
                 .attr("IFF1_INIT_ATTR", "INIT0")
-                .test_enum("IFF1_SR_ATTR", &["SRLOW", "SRHIGH"]);
+                .test_enum_legacy("IFF1_SR_ATTR", &["SRLOW", "SRHIGH"]);
             bctx.mode(mode)
                 .attr("IFF2", "#FF")
                 .attr("IFF2_INIT_ATTR", "INIT0")
-                .test_enum("IFF2_SR_ATTR", &["SRLOW", "SRHIGH"]);
+                .test_enum_legacy("IFF2_SR_ATTR", &["SRLOW", "SRHIGH"]);
             bctx.mode(mode)
                 .attr("IFF1", "#FF")
                 .attr("IFF1_SR_ATTR", "SRHIGH")
-                .test_enum("IFF1_INIT_ATTR", &["INIT0", "INIT1"]);
+                .test_enum_legacy("IFF1_INIT_ATTR", &["INIT0", "INIT1"]);
             bctx.mode(mode)
                 .attr("IFF2", "#FF")
                 .attr("IFF2_SR_ATTR", "SRHIGH")
-                .test_enum("IFF2_INIT_ATTR", &["INIT0", "INIT1"]);
+                .test_enum_legacy("IFF2_INIT_ATTR", &["INIT0", "INIT1"]);
             bctx.mode(mode)
                 .attr("IFF1", "#FF")
                 .attr("IFF2", "#FF")
-                .test_enum("IFFATTRBOX", &["SYNC", "ASYNC"]);
+                .test_enum_legacy("IFFATTRBOX", &["SYNC", "ASYNC"]);
 
             // Input path.
             if edev.chip.kind == ChipKind::Spartan3E {
@@ -1320,7 +1320,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("IDDRIN1")
                     .pin("IDDRIN2")
                     .pin("I")
-                    .test_enum("IDDRIN_MUX", &["0", "1", "2"]);
+                    .test_enum_legacy("IDDRIN_MUX", &["0", "1", "2"]);
             } else if edev.chip.kind.is_spartan3a() {
                 bctx.mode(mode)
                     .attr("IFF1", "#FF")
@@ -1330,7 +1330,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("IDDRIN1")
                     .pin("IDDRIN2")
                     .pin("I")
-                    .test_enum("IDDRIN_MUX", &["0", "1"]);
+                    .test_enum_legacy("IDDRIN_MUX", &["0", "1"]);
                 bctx.mode(mode)
                     .attr("IFF1", "#FF")
                     .attr("IMUX", "1")
@@ -1353,14 +1353,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IFFDMUX", "1")
                         .attr("IFF1", "#FF")
                         .pin("I")
-                        .test_enum("IDELMUX", &["0", "1"]);
+                        .test_enum_legacy("IDELMUX", &["0", "1"]);
                     bctx.mode(mode)
                         .attr("IDELMUX", "0")
                         .attr("IMUX", "1")
                         .attr("IFFDMUX", "1")
                         .attr("IFF1", "#FF")
                         .pin("I")
-                        .test_enum("IFFDELMUX", &["0", "1"]);
+                        .test_enum_legacy("IFFDELMUX", &["0", "1"]);
                     bctx.mode(mode)
                         .attr("TSMUX", "1")
                         .attr("IDELMUX", "1")
@@ -1375,7 +1375,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("O1")
                         .pin("T1")
                         .pin("I")
-                        .test_enum("IMUX", &["0", "1"]);
+                        .test_enum_legacy("IMUX", &["0", "1"]);
                     bctx.mode(mode)
                         .attr("TSMUX", "1")
                         .attr("IDELMUX", "1")
@@ -1390,7 +1390,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("O1")
                         .pin("T1")
                         .pin("I")
-                        .test_enum("IFFDMUX", &["0", "1"]);
+                        .test_enum_legacy("IFFDMUX", &["0", "1"]);
                 } else {
                     bctx.mode(mode)
                         .attr("IFFDELMUX", "0")
@@ -1401,7 +1401,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IBUF_DELAY_VALUE", "DLY4")
                         .attr("PRE_DELAY_MUX", "0")
                         .pin("I")
-                        .test_enum("IDELMUX", &["0", "1"]);
+                        .test_enum_legacy("IDELMUX", &["0", "1"]);
                     bctx.mode(mode)
                         .attr("IDELMUX", "0")
                         .attr("IMUX", "1")
@@ -1411,7 +1411,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IBUF_DELAY_VALUE", "DLY4")
                         .attr("PRE_DELAY_MUX", "0")
                         .pin("I")
-                        .test_enum("IFFDELMUX", &["0", "1"]);
+                        .test_enum_legacy("IFFDELMUX", &["0", "1"]);
                     bctx.mode(mode)
                         .attr("TSMUX", "1")
                         .attr("IDELMUX", "1")
@@ -1427,7 +1427,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("O1")
                         .pin("T1")
                         .pin("I")
-                        .test_enum("IMUX", &["0", "1"]);
+                        .test_enum_legacy("IMUX", &["0", "1"]);
                     bctx.mode(mode)
                         .attr("TSMUX", "1")
                         .attr("IDELMUX", "1")
@@ -1443,7 +1443,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("O1")
                         .pin("T1")
                         .pin("I")
-                        .test_enum("IFFDMUX", &["0", "1"]);
+                        .test_enum_legacy("IFFDMUX", &["0", "1"]);
                 }
                 bctx.mode(mode)
                     .attr("IFFDMUX", "1")
@@ -1458,7 +1458,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("O1")
                     .pin("I")
                     .pin("T")
-                    .test_enum("TSMUX", &["0", "1"]);
+                    .test_enum_legacy("TSMUX", &["0", "1"]);
             } else {
                 if tcid != tcls_s3::IOI_S3A_WE {
                     bctx.mode(mode)
@@ -1470,7 +1470,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DELAY_ADJ_ATTRBOX", "FIXED")
                         .attr("SEL_MUX", "0")
                         .pin("I")
-                        .test_enum("IBUF_DELAY_VALUE", &["DLY0", "DLY16"]);
+                        .test_enum_legacy("IBUF_DELAY_VALUE", &["DLY0", "DLY16"]);
                     bctx.mode(mode)
                         .attr("IBUF_DELAY_VALUE", "DLY0")
                         .attr("IMUX", "1")
@@ -1480,7 +1480,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DELAY_ADJ_ATTRBOX", "FIXED")
                         .attr("SEL_MUX", "0")
                         .pin("I")
-                        .test_enum("IFD_DELAY_VALUE", &["DLY0", "DLY8"]);
+                        .test_enum_legacy("IFD_DELAY_VALUE", &["DLY0", "DLY8"]);
                 } else {
                     bctx.mode(mode)
                         .attr("IFD_DELAY_VALUE", "DLY0")
@@ -1491,7 +1491,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DELAY_ADJ_ATTRBOX", "FIXED")
                         .attr("SEL_MUX", "0")
                         .pin("I")
-                        .test_enum(
+                        .test_enum_legacy(
                             "IBUF_DELAY_VALUE",
                             &[
                                 "DLY0", "DLY1", "DLY2", "DLY3", "DLY4", "DLY5", "DLY6", "DLY7",
@@ -1508,7 +1508,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DELAY_ADJ_ATTRBOX", "FIXED")
                         .attr("SEL_MUX", "0")
                         .pin("I")
-                        .test_enum(
+                        .test_enum_legacy(
                             "IFD_DELAY_VALUE",
                             &[
                                 "DLY0", "DLY1", "DLY2", "DLY3", "DLY4", "DLY5", "DLY6", "DLY7",
@@ -1543,7 +1543,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("O1")
                     .pin("T1")
                     .pin("I")
-                    .test_enum("IMUX", &["0", "1"]);
+                    .test_enum_legacy("IMUX", &["0", "1"]);
                 bctx.mode(mode)
                     .attr("TSMUX", "1")
                     .attr("IFF1", "#FF")
@@ -1559,7 +1559,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("O1")
                     .pin("T1")
                     .pin("I")
-                    .test_enum("IFFDMUX", &["0", "1"]);
+                    .test_enum_legacy("IFFDMUX", &["0", "1"]);
                 bctx.mode(mode)
                     .attr("IFFDMUX", "1")
                     .attr("TMUX", "T1")
@@ -1574,7 +1574,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("O1")
                     .pin("I")
                     .pin("T")
-                    .test_enum("TSMUX", &["0", "1"]);
+                    .test_enum_legacy("TSMUX", &["0", "1"]);
             }
             if edev.chip.kind.is_spartan3ea() {
                 bctx.mode("IOB")
@@ -2406,16 +2406,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .iob_commit(iob);
                 }
             }
-            if let Some((brefclk, bufg)) = has_any_brefclk(edev, tcid, iob.index) {
-                let bufg_bel_id = defs::bslots::BUFGMUX[bufg];
-                let brefclk_bel_id = defs::bslots::BREFCLK;
-                let brefclk_pin = ["BREFCLK", "BREFCLK2"][brefclk];
+            if let Some((brefclk, _bufg)) = has_any_brefclk(edev, tcid, iob.index) {
+                let brefclk_bel_id = defs::bslots::GLOBALSIG_BUFG[brefclk];
 
-                bctx.test_manual("BREFCLK_ENABLE", "1")
+                bctx.test_manual_legacy("BREFCLK_ENABLE", "1")
                     .related_pip(
                         IobBrefclkClkBT,
-                        (brefclk_bel_id, brefclk_pin),
-                        (PinFar, bufg_bel_id, "CKI"),
+                        (brefclk_bel_id, "BREFCLK_O"),
+                        (brefclk_bel_id, "BREFCLK_I"),
                     )
                     .iob_commit(iob);
             }
@@ -2429,7 +2427,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 0
             }];
             let mut bctx = ctx.bel(defs::bslots::BREFCLK_INT);
-            bctx.test_manual("ENABLE", "1")
+            bctx.test_manual_legacy("ENABLE", "1")
                 .related_pip(
                     IobRelation(CellSlotId::from_idx(1)),
                     (bel_id, "BREFCLK"),

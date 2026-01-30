@@ -1,5 +1,3 @@
-#![allow(clippy::unnecessary_unwrap)]
-
 use prjcombine_entity::{EntityBitVec, EntityBundleItemIndex, EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::{
     BelBidirId, BelInfo, BelInput, BelInputId, BelKind, BelOutputId, BelPinIndexing, BelSlotId,
@@ -160,6 +158,12 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
         self.vrf.verify_net(tiles);
     }
 
+    #[track_caller]
+    pub fn pip(&self, pin: &str, idx: usize) -> (RawWireCoord<'a>, RawWireCoord<'a>) {
+        let pip = &self.naming.pins[pin].pips[idx];
+        name_pip(&self.crds, pip)
+    }
+
     pub fn claim_pip(&mut self, wt: RawWireCoord, wf: RawWireCoord) {
         self.vrf.claim_pip(wt, wf);
     }
@@ -267,16 +271,16 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
                 wire: Some(&n.name),
             });
         }
-        for (pin, name) in self.extra_ins {
-            let wire = Some(self.naming.pins[&name].name.as_ref());
+        for (pin, name) in &self.extra_ins {
+            let wire = Some(self.naming.pins[name].name.as_ref());
             pins.push(SitePin {
                 dir: SitePinDir::In,
                 pin: pin.into(),
                 wire,
             });
         }
-        for (pin, name) in self.extra_outs {
-            let wire = Some(self.naming.pins[&name].name.as_ref());
+        for (pin, name) in &self.extra_outs {
+            let wire = Some(self.naming.pins[name].name.as_ref());
             pins.push(SitePin {
                 dir: SitePinDir::Out,
                 pin: pin.into(),
@@ -284,7 +288,7 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
             });
         }
         if let Some(name) = self.vrf.ngrid.get_bel_name_sub(self.bcrd, self.sub) {
-            let crd = self.vrf.bel_rcrd(self.bcrd);
+            let crd = self.crd();
             self.vrf.claim_site(crd, name, &self.kind, &pins);
         } else {
             println!(
@@ -317,6 +321,8 @@ pub struct Verifier<'a> {
     pub grid: &'a ExpandedGrid<'a>,
     pub ngrid: &'a ExpandedGridNaming<'a>,
     pub tile_lut: HashMap<String, Coord>,
+    node_merge: HashMap<NodeOrWire, NodeOrWire>,
+    wire_aliases: HashMap<WireCoord, WireCoord>,
     wire_slot_aliases: HashMap<WireSlotId, WireSlotId>,
     intf_int_aliases: HashMap<WireCoord, WireCoord>,
     force_bel_pin: HashMap<(TileClassId, BelSlotId, &'static str), TileWireCoord>,
@@ -384,6 +390,8 @@ impl<'a> Verifier<'a> {
             grid: ngrid.egrid,
             ngrid,
             tile_lut: rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect(),
+            node_merge: HashMap::new(),
+            wire_aliases: HashMap::new(),
             wire_slot_aliases: HashMap::new(),
             intf_int_aliases: HashMap::new(),
             force_bel_pin: Default::default(),
@@ -436,6 +444,33 @@ impl<'a> Verifier<'a> {
             skip_bel_pins: HashSet::new(),
             skip_sb: HashSet::new(),
         }
+    }
+
+    pub fn merge_node(&mut self, rw_f: RawWireCoord, rw_t: RawWireCoord) {
+        let cnw_f = self.rd.lookup_wire(rw_f.crd, rw_f.wire).unwrap();
+        let cnw_t = self.rd.lookup_wire(rw_t.crd, rw_t.wire).unwrap();
+        self.claim_raw_node(cnw_f, rw_f);
+        assert!(!self.node_merge.contains_key(&cnw_f));
+        self.node_merge.insert(cnw_f, cnw_t);
+    }
+
+    pub fn mark_merge_pip(&mut self, tkn: &str, name_to: &str, name_from: &str) {
+        for &crd in self.rd.tiles_by_kind_name(tkn) {
+            let Some(cnw_to) = self.rd.lookup_wire(crd, name_to) else {
+                continue;
+            };
+            let Some(cnw_from) = self.rd.lookup_wire(crd, name_from) else {
+                continue;
+            };
+            self.claim_pip_tri(crd, name_to, name_from);
+            self.claim_raw_node(cnw_to, RawWireCoord { crd, wire: name_to });
+            assert!(!self.node_merge.contains_key(&cnw_to));
+            self.node_merge.insert(cnw_to, cnw_from);
+        }
+    }
+
+    pub fn alias_wire(&mut self, from: WireCoord, to: WireCoord) {
+        self.wire_aliases.insert(from, to);
     }
 
     pub fn alias_wire_slot(&mut self, from: WireSlotId, to: WireSlotId) {
@@ -682,10 +717,16 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn pin_int_wire(&mut self, rw: RawWireCoord, mut iw: WireCoord) -> bool {
+        if let Some(&niw) = self.wire_aliases.get(&iw) {
+            iw = niw;
+        }
         if let Some(&nslot) = self.wire_slot_aliases.get(&iw.slot) {
             iw.slot = nslot;
         }
-        if let Some(cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
+        if let Some(mut cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
+            while let Some(&new_cnw) = self.node_merge.get(&cnw) {
+                cnw = new_cnw;
+            }
             let iwd = self.int_wire_data.get_mut(&iw).unwrap();
             if iwd.used_i && iwd.used_o {
                 if iwd.node.is_none() {
@@ -787,7 +828,10 @@ impl<'a> Verifier<'a> {
         for &rw in tiles {
             let tile = &self.rd.tiles[&rw.crd];
             let tname = &tile.name;
-            if let Some(cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
+            if let Some(mut cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
+                while let Some(&new_cnw) = self.node_merge.get(&cnw) {
+                    cnw = new_cnw;
+                }
                 if let Some((pnw, pcrd, pwn)) = nw {
                     if pnw != cnw {
                         let ptile = &self.rd.tiles[&pcrd];
@@ -831,7 +875,10 @@ impl<'a> Verifier<'a> {
         for &rw in tiles {
             let tile = &self.rd.tiles[&rw.crd];
             let tname = &tile.name;
-            if let Some(cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
+            if let Some(mut cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
+                while let Some(&new_cnw) = self.node_merge.get(&cnw) {
+                    cnw = new_cnw;
+                }
                 if let Some(pnw) = nw {
                     if pnw != cnw {
                         println!(
@@ -905,6 +952,21 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    pub fn claim_site_dummy(&mut self, crd: Coord, name: &str) {
+        let tile = &self.rd.tiles[&crd];
+        for (i, n) in tile.sites.iter() {
+            if n == name {
+                let cts = self.claimed_sites.get_mut(&crd).unwrap();
+                if cts[i] {
+                    println!("DOUBLE CLAIMED SITE {name}");
+                }
+                cts.set(i, true);
+                return;
+            }
+        }
+        println!("MISSING SITE {} {} {}", self.rd.part, tile.name, name);
+    }
+
     pub fn claim_site(&mut self, crd: Coord, name: &str, kind: &str, pins: &[SitePin<'_>]) {
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
@@ -938,11 +1000,10 @@ impl<'a> Verifier<'a> {
                             );
                         }
                         let act_wire = tkp.wire.map(|x| &*self.rd.wires[x]);
-                        if act_wire.is_some() && pin.wire.is_none() {
-                            self.claim_net(&[RawWireCoord {
-                                crd,
-                                wire: act_wire.unwrap(),
-                            }]);
+                        if let Some(wire) = act_wire
+                            && pin.wire.is_none()
+                        {
+                            self.claim_net(&[RawWireCoord { crd, wire }]);
                         } else if pin.wire != act_wire {
                             println!(
                                 "PIN WIRE MISMATCH {} {} {} {} {} {:?} {:?}",
@@ -2026,6 +2087,25 @@ impl<'a> Verifier<'a> {
             crd: self.bel_rcrd(bcrd),
             wire: &naming.pins[name].name_far,
         }
+    }
+
+    #[track_caller]
+    pub fn bel_pip(
+        &self,
+        bcrd: BelCoord,
+        pin: &str,
+        idx: usize,
+    ) -> (RawWireCoord<'a>, RawWireCoord<'a>) {
+        let naming = self.ngrid.get_bel_naming(bcrd);
+        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let crds = self.get_tile_crds(tcrd).unwrap();
+        let pip = &naming.pins[pin].pips[idx];
+        name_pip(&crds, pip)
+    }
+
+    #[track_caller]
+    pub fn bel_pip_owire(&self, bcrd: BelCoord, pin: &str, idx: usize) -> RawWireCoord<'a> {
+        self.bel_pip(bcrd, pin, idx).0
     }
 
     pub fn verify_bel<'b>(&'b mut self, bcrd: BelCoord) -> BelVerifier<'a, 'b> {

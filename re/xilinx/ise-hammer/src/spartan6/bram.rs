@@ -76,40 +76,40 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex("BRAM", "MULTI")
             .tile_mutex("MODE", "FULL")
-            .test_enum("RAM_MODE", &["TDP", "SDP", "SP"]);
+            .test_enum_legacy("RAM_MODE", &["TDP", "SDP", "SP"]);
         bctx.mode(mode)
             .global_mutex("BRAM", "MULTI")
             .tile_mutex("MODE", "FULL")
-            .test_enum("RSTTYPE", &["SYNC", "ASYNC"]);
+            .test_enum_legacy("RSTTYPE", &["SYNC", "ASYNC"]);
         for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "FULL")
-                .test_enum(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
+                .test_enum_legacy(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
         }
         for attr in ["DATA_WIDTH_A", "DATA_WIDTH_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "FULL")
-                .test_enum(attr, &["0", "1", "2", "4", "9", "18", "36"]);
+                .test_enum_legacy(attr, &["0", "1", "2", "4", "9", "18", "36"]);
         }
         for attr in ["DOA_REG", "DOB_REG"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "FULL")
-                .test_enum(attr, &["0", "1"]);
+                .test_enum_legacy(attr, &["0", "1"]);
         }
         for attr in ["RST_PRIORITY_A", "RST_PRIORITY_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "FULL")
-                .test_enum(attr, &["CE", "SR"]);
+                .test_enum_legacy(attr, &["CE", "SR"]);
         }
         for attr in ["EN_RSTRAM_A", "EN_RSTRAM_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "FULL")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
             bctx.mode(mode)
@@ -226,40 +226,40 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex("BRAM", "MULTI")
             .tile_mutex("MODE", "HALF")
-            .test_enum("RAM_MODE", &["TDP", "SDP", "SP"]);
+            .test_enum_legacy("RAM_MODE", &["TDP", "SDP", "SP"]);
         bctx.mode(mode)
             .global_mutex("BRAM", "MULTI")
             .tile_mutex("MODE", "HALF")
-            .test_enum("RSTTYPE", &["SYNC", "ASYNC"]);
+            .test_enum_legacy("RSTTYPE", &["SYNC", "ASYNC"]);
         for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "HALF")
-                .test_enum(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
+                .test_enum_legacy(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
         }
         for attr in ["DATA_WIDTH_A", "DATA_WIDTH_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "HALF")
-                .test_enum(attr, &["0", "1", "2", "4", "9", "18", "36"]);
+                .test_enum_legacy(attr, &["0", "1", "2", "4", "9", "18", "36"]);
         }
         for attr in ["DOA_REG", "DOB_REG"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "HALF")
-                .test_enum(attr, &["0", "1"]);
+                .test_enum_legacy(attr, &["0", "1"]);
         }
         for attr in ["RST_PRIORITY_A", "RST_PRIORITY_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "HALF")
-                .test_enum(attr, &["CE", "SR"]);
+                .test_enum_legacy(attr, &["CE", "SR"]);
         }
         for attr in ["EN_RSTRAM_A", "EN_RSTRAM_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "MULTI")
                 .tile_mutex("MODE", "HALF")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
             bctx.mode(mode)

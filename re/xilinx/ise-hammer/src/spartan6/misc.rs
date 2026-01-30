@@ -76,13 +76,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
         for bel in [defs::bslots::OCT_CAL[2], defs::bslots::OCT_CAL[3]] {
             let mut bctx = ctx.bel(bel);
-            bctx.test_manual("PRESENT", "1")
+            bctx.test_manual_legacy("PRESENT", "1")
                 .mode("OCT_CALIBRATE")
                 .commit();
             bctx.mode("OCT_CALIBRATE")
-                .test_enum("ACCESS_MODE", &["STATIC", "USER"]);
+                .test_enum_legacy("ACCESS_MODE", &["STATIC", "USER"]);
             bctx.mode("OCT_CALIBRATE")
-                .test_enum("VREF_VALUE", &["0.25", "0.5", "0.75"]);
+                .test_enum_legacy("VREF_VALUE", &["0.25", "0.5", "0.75"]);
         }
     }
 
@@ -102,20 +102,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
         let mut bctx = ctx.bel(defs::bslots::DNA_PORT);
-        bctx.test_manual("ENABLE", "1").mode("DNA_PORT").commit();
+        bctx.test_manual_legacy("ENABLE", "1").mode("DNA_PORT").commit();
         let mut bctx = ctx.bel(defs::bslots::PMV);
-        bctx.test_manual("PRESENT", "1").mode("PMV").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("PMV").commit();
         bctx.mode("PMV").test_multi_attr_dec("PSLEW", 4);
         bctx.mode("PMV").test_multi_attr_dec("NSLEW", 4);
         for bel in [defs::bslots::OCT_CAL[0], defs::bslots::OCT_CAL[4]] {
             let mut bctx = ctx.bel(bel);
-            bctx.test_manual("PRESENT", "1")
+            bctx.test_manual_legacy("PRESENT", "1")
                 .mode("OCT_CALIBRATE")
                 .commit();
             bctx.mode("OCT_CALIBRATE")
-                .test_enum("ACCESS_MODE", &["STATIC", "USER"]);
+                .test_enum_legacy("ACCESS_MODE", &["STATIC", "USER"]);
             bctx.mode("OCT_CALIBRATE")
-                .test_enum("VREF_VALUE", &["0.25", "0.5", "0.75"]);
+                .test_enum_legacy("VREF_VALUE", &["0.25", "0.5", "0.75"]);
         }
     }
 
@@ -132,28 +132,28 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
         let mut bctx = ctx.bel(defs::bslots::OCT_CAL[1]);
-        bctx.test_manual("PRESENT", "1")
+        bctx.test_manual_legacy("PRESENT", "1")
             .mode("OCT_CALIBRATE")
             .commit();
         bctx.mode("OCT_CALIBRATE")
-            .test_enum("ACCESS_MODE", &["STATIC", "USER"]);
+            .test_enum_legacy("ACCESS_MODE", &["STATIC", "USER"]);
         bctx.mode("OCT_CALIBRATE")
-            .test_enum("VREF_VALUE", &["0.25", "0.5", "0.75"]);
+            .test_enum_legacy("VREF_VALUE", &["0.25", "0.5", "0.75"]);
         let mut bctx = ctx.bel(defs::bslots::ICAP);
-        bctx.test_manual("ENABLE", "1").mode("ICAP").commit();
+        bctx.test_manual_legacy("ENABLE", "1").mode("ICAP").commit();
         let mut bctx = ctx.bel(defs::bslots::SPI_ACCESS);
-        bctx.test_manual("ENABLE", "1").mode("SPI_ACCESS").commit();
+        bctx.test_manual_legacy("ENABLE", "1").mode("SPI_ACCESS").commit();
 
         let mut bctx = ctx.bel(defs::bslots::SUSPEND_SYNC);
-        bctx.test_manual("ENABLE", "1")
+        bctx.test_manual_legacy("ENABLE", "1")
             .mode("SUSPEND_SYNC")
             .commit();
         let mut bctx = ctx.bel(defs::bslots::POST_CRC_INTERNAL);
-        bctx.test_manual("PRESENT", "1")
+        bctx.test_manual_legacy("PRESENT", "1")
             .mode("POST_CRC_INTERNAL")
             .commit();
         let mut bctx = ctx.bel(defs::bslots::STARTUP);
-        bctx.test_manual("PRESENT", "1").mode("STARTUP").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("STARTUP").commit();
         for attr in ["GTS_SYNC", "GSR_SYNC"] {
             for val in ["NO", "YES"] {
                 bctx.mode("STARTUP")
@@ -195,7 +195,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
 
         let mut bctx = ctx.bel(defs::bslots::SLAVE_SPI);
-        bctx.test_manual("PRESENT", "1").mode("SLAVE_SPI").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("SLAVE_SPI").commit();
     }
 
     {
@@ -206,17 +206,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
         let mut bctx = ctx.bel(defs::bslots::OCT_CAL[5]);
-        bctx.test_manual("PRESENT", "1")
+        bctx.test_manual_legacy("PRESENT", "1")
             .mode("OCT_CALIBRATE")
             .commit();
         bctx.mode("OCT_CALIBRATE")
-            .test_enum("ACCESS_MODE", &["STATIC", "USER"]);
+            .test_enum_legacy("ACCESS_MODE", &["STATIC", "USER"]);
         bctx.mode("OCT_CALIBRATE")
-            .test_enum("VREF_VALUE", &["0.25", "0.5", "0.75"]);
+            .test_enum_legacy("VREF_VALUE", &["0.25", "0.5", "0.75"]);
         for i in 0..4 {
             let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
-            bctx.test_manual("ENABLE", "1").mode("BSCAN").commit();
-            bctx.mode("BSCAN").test_enum("JTAG_TEST", &["0", "1"]);
+            bctx.test_manual_legacy("ENABLE", "1").mode("BSCAN").commit();
+            bctx.mode("BSCAN").test_enum_legacy("JTAG_TEST", &["0", "1"]);
         }
         ctx.test_manual("BSCAN_COMMON", "USERID", "").multi_global(
             "USERID",

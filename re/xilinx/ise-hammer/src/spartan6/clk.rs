@@ -228,12 +228,12 @@ pub fn add_fuzzers<'a>(
         let mut ctx = FuzzCtx::new(session, backend, "CLKC");
         for i in 0..16 {
             let mut bctx = ctx.bel(defs::bslots::BUFGMUX[i]);
-            bctx.test_manual("PRESENT", "1").mode("BUFGMUX").commit();
+            bctx.test_manual_legacy("PRESENT", "1").mode("BUFGMUX").commit();
             bctx.mode("BUFGMUX").test_inv("S");
             bctx.mode("BUFGMUX")
-                .test_enum("CLK_SEL_TYPE", &["SYNC", "ASYNC"]);
+                .test_enum_legacy("CLK_SEL_TYPE", &["SYNC", "ASYNC"]);
             bctx.mode("BUFGMUX")
-                .test_enum("DISABLE_ATTR", &["LOW", "HIGH"]);
+                .test_enum_legacy("DISABLE_ATTR", &["LOW", "HIGH"]);
         }
         let mut bctx = ctx.bel(defs::bslots::CLKC);
         for i in 0..16 {
@@ -420,18 +420,18 @@ pub fn add_fuzzers<'a>(
         let mut ctx = FuzzCtx::new(session, backend, tile);
         for i in 0..8 {
             let mut bctx = ctx.bel(defs::bslots::BUFIO2[i]);
-            bctx.test_manual("PRESENT", "BUFIO2")
+            bctx.test_manual_legacy("PRESENT", "BUFIO2")
                 .mode("BUFIO2")
                 .commit();
-            bctx.test_manual("PRESENT", "BUFIO2_2CLK")
+            bctx.test_manual_legacy("PRESENT", "BUFIO2_2CLK")
                 .mode("BUFIO2_2CLK")
                 .commit();
             bctx.mode("BUFIO2")
                 .attr("DIVIDE", "")
-                .test_enum("DIVIDE_BYPASS", &["FALSE", "TRUE"]);
+                .test_enum_legacy("DIVIDE_BYPASS", &["FALSE", "TRUE"]);
             bctx.mode("BUFIO2")
                 .attr("DIVIDE_BYPASS", "FALSE")
-                .test_enum("DIVIDE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
+                .test_enum_legacy("DIVIDE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
             for val in ["1", "2", "3", "4", "5", "6", "7", "8"] {
                 bctx.mode("BUFIO2_2CLK")
                     .attr("POS_EDGE", "")
@@ -443,13 +443,13 @@ pub fn add_fuzzers<'a>(
             }
             bctx.mode("BUFIO2_2CLK")
                 .attr("DIVIDE", "")
-                .test_enum("POS_EDGE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
+                .test_enum_legacy("POS_EDGE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
             bctx.mode("BUFIO2_2CLK")
                 .attr("DIVIDE", "")
-                .test_enum("NEG_EDGE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
+                .test_enum_legacy("NEG_EDGE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
             bctx.mode("BUFIO2_2CLK")
                 .attr("DIVIDE", "")
-                .test_enum("R_EDGE", &["FALSE", "TRUE"]);
+                .test_enum_legacy("R_EDGE", &["FALSE", "TRUE"]);
 
             for (val, pin) in [
                 ("CLKPIN0", format!("CLKPIN{i}")),
@@ -544,14 +544,14 @@ pub fn add_fuzzers<'a>(
                 .commit();
 
             let mut bctx = ctx.bel(defs::bslots::BUFIO2FB[i]);
-            bctx.test_manual("PRESENT", "BUFIO2FB")
+            bctx.test_manual_legacy("PRESENT", "BUFIO2FB")
                 .mode("BUFIO2FB")
                 .commit();
-            bctx.test_manual("PRESENT", "BUFIO2FB_2CLK")
+            bctx.test_manual_legacy("PRESENT", "BUFIO2FB_2CLK")
                 .mode("BUFIO2FB_2CLK")
                 .commit();
             bctx.mode("BUFIO2FB")
-                .test_enum("DIVIDE_BYPASS", &["FALSE", "TRUE"]);
+                .test_enum_legacy("DIVIDE_BYPASS", &["FALSE", "TRUE"]);
 
             let obel = defs::bslots::BUFIO2_INS;
             for (val, pin) in [
@@ -592,15 +592,15 @@ pub fn add_fuzzers<'a>(
                 .commit();
             bctx.mode("BUFPLL")
                 .tile_mutex("BUFPLL", "PLAIN")
-                .test_enum("DIVIDE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
+                .test_enum_legacy("DIVIDE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
             bctx.mode("BUFPLL")
                 .tile_mutex("BUFPLL", "PLAIN")
-                .test_enum("DATA_RATE", &["SDR", "DDR"]);
+                .test_enum_legacy("DATA_RATE", &["SDR", "DDR"]);
 
             bctx.mode("BUFPLL")
                 .tile_mutex("BUFPLL", "PLAIN")
                 .no_pin("IOCLK")
-                .test_enum("ENABLE_SYNC", &["FALSE", "TRUE"]);
+                .test_enum_legacy("ENABLE_SYNC", &["FALSE", "TRUE"]);
 
             let obel_out = defs::bslots::BUFPLL_OUT;
             let obel_ins = if is_lr {
@@ -681,11 +681,11 @@ pub fn add_fuzzers<'a>(
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB")
                 .mode("BUFPLL_MCB")
-                .test_enum("DIVIDE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
+                .test_enum_legacy("DIVIDE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB")
                 .mode("BUFPLL_MCB")
-                .test_enum("LOCK_SRC", &["LOCK_TO_0", "LOCK_TO_1"]);
+                .test_enum_legacy("LOCK_SRC", &["LOCK_TO_0", "LOCK_TO_1"]);
 
             if is_lr {
                 let obel = defs::bslots::BUFPLL_INS_WE;

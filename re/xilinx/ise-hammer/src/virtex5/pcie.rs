@@ -232,13 +232,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut bctx = ctx.bel(defs::bslots::PCIE);
     let mode = "PCIE";
 
-    bctx.test_manual("PRESENT", "1").mode(mode).commit();
+    bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
 
     for &pin in PCIE_INVPINS {
         bctx.mode(mode).test_inv(pin);
     }
     for &attr in PCIE_BOOL_ATTRS {
-        bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+        bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
     }
     for &(attr, width) in PCIE_HEX_ATTRS {
         bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);

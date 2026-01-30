@@ -402,7 +402,7 @@ pub fn add_fuzzers<'a>(
                     HclkIoi,
                     BaseBelMode::new(defs::bslots::IDELAYCTRL, "IDELAYCTRL".into()),
                 ))
-                .test_enum("IDELAY_TYPE", &["DEFAULT"]);
+                .test_enum_legacy("IDELAY_TYPE", &["DEFAULT"]);
         }
         return;
     }
@@ -509,58 +509,58 @@ pub fn add_fuzzers<'a>(
             bctx.mode("ILOGIC")
                 .attr("IFFTYPE", "#FF")
                 .pin("SR")
-                .test_enum("SRUSED", &["0"]);
+                .test_enum_legacy("SRUSED", &["0"]);
             bctx.mode("ILOGIC")
                 .attr("IFFTYPE", "#FF")
                 .pin("REV")
-                .test_enum("REVUSED", &["0"]);
+                .test_enum_legacy("REVUSED", &["0"]);
 
             bctx.mode("ISERDES")
                 .attr("DATA_WIDTH", "2")
-                .test_enum("SERDES", &["FALSE", "TRUE"]);
+                .test_enum_legacy("SERDES", &["FALSE", "TRUE"]);
             bctx.mode("ISERDES")
-                .test_enum("SERDES_MODE", &["MASTER", "SLAVE"]);
+                .test_enum_legacy("SERDES_MODE", &["MASTER", "SLAVE"]);
             bctx.mode("ISERDES")
-                .test_enum("INTERFACE_TYPE", &["NETWORKING", "MEMORY"]);
+                .test_enum_legacy("INTERFACE_TYPE", &["NETWORKING", "MEMORY"]);
             bctx.mode("ISERDES")
                 .attr("SERDES", "FALSE")
-                .test_enum("DATA_WIDTH", &["2", "3", "4", "5", "6", "7", "8", "10"]);
+                .test_enum_legacy("DATA_WIDTH", &["2", "3", "4", "5", "6", "7", "8", "10"]);
             bctx.mode("ISERDES")
                 .attr("SRTYPE", "SYNC")
                 .test_enum_suffix("BITSLIP_ENABLE", "SYNC", &["FALSE", "TRUE"]);
             bctx.mode("ISERDES")
                 .attr("SRTYPE", "ASYNC")
                 .test_enum_suffix("BITSLIP_ENABLE", "ASYNC", &["FALSE", "TRUE"]);
-            bctx.mode("ISERDES").test_enum("NUM_CE", &["1", "2"]);
+            bctx.mode("ISERDES").test_enum_legacy("NUM_CE", &["1", "2"]);
             bctx.mode("ISERDES")
                 .attr("INIT_BITSLIPCNT", "1111")
                 .attr("INIT_RANK1_PARTIAL", "11111")
                 .attr("INIT_RANK2", "111111")
                 .attr("INIT_RANK3", "111111")
                 .attr("INIT_CE", "11")
-                .test_enum("DATA_RATE", &["SDR", "DDR"]);
-            bctx.mode("ISERDES").test_enum(
+                .test_enum_legacy("DATA_RATE", &["SDR", "DDR"]);
+            bctx.mode("ISERDES").test_enum_legacy(
                 "DDR_CLK_EDGE",
                 &["OPPOSITE_EDGE", "SAME_EDGE", "SAME_EDGE_PIPELINED"],
             );
 
-            bctx.mode("ILOGIC").attr("IFFTYPE", "DDR").test_enum(
+            bctx.mode("ILOGIC").attr("IFFTYPE", "DDR").test_enum_legacy(
                 "DDR_CLK_EDGE",
                 &["OPPOSITE_EDGE", "SAME_EDGE", "SAME_EDGE_PIPELINED"],
             );
             bctx.mode("ILOGIC")
-                .test_enum("IFFTYPE", &["#FF", "#LATCH", "DDR"]);
+                .test_enum_legacy("IFFTYPE", &["#FF", "#LATCH", "DDR"]);
             for attr in [
                 "INIT_Q1", "INIT_Q2", "INIT_Q3", "INIT_Q4", "SRVAL_Q1", "SRVAL_Q2", "SRVAL_Q3",
                 "SRVAL_Q4",
             ] {
-                bctx.mode("ISERDES").test_enum(attr, &["0", "1"]);
+                bctx.mode("ISERDES").test_enum_legacy(attr, &["0", "1"]);
             }
 
             bctx.mode("ILOGIC")
                 .attr("IFFTYPE", "#FF")
-                .test_enum("SRTYPE", &["SYNC", "ASYNC"]);
-            bctx.mode("ISERDES").test_enum("SRTYPE", &["SYNC", "ASYNC"]);
+                .test_enum_legacy("SRTYPE", &["SYNC", "ASYNC"]);
+            bctx.mode("ISERDES").test_enum_legacy("SRTYPE", &["SYNC", "ASYNC"]);
             bctx.mode("ISERDES")
                 .attr("DATA_RATE", "SDR")
                 .test_multi_attr_bin("INIT_CE", 2);
@@ -579,12 +579,12 @@ pub fn add_fuzzers<'a>(
 
             bctx.mode("ISERDES")
                 .pin("OFB")
-                .test_enum("OFB_USED", &["FALSE", "TRUE"]);
+                .test_enum_legacy("OFB_USED", &["FALSE", "TRUE"]);
             bctx.mode("ISERDES")
                 .pin("TFB")
-                .test_enum("TFB_USED", &["FALSE", "TRUE"]);
+                .test_enum_legacy("TFB_USED", &["FALSE", "TRUE"]);
             bctx.mode("ISERDES")
-                .test_enum("IOBDELAY", &["NONE", "IFD", "IBUF", "BOTH"]);
+                .test_enum_legacy("IOBDELAY", &["NONE", "IFD", "IBUF", "BOTH"]);
 
             bctx.mode("ILOGIC")
                 .attr("IMUX", "0")
@@ -595,7 +595,7 @@ pub fn add_fuzzers<'a>(
                 .pin("TFB")
                 .pin("OFB")
                 .pin("O")
-                .test_enum("D2OBYP_SEL", &["GND", "T"]);
+                .test_enum_legacy("D2OBYP_SEL", &["GND", "T"]);
             bctx.mode("ILOGIC")
                 .attr("IFFMUX", "0")
                 .attr("IFFTYPE", "#FF")
@@ -605,7 +605,7 @@ pub fn add_fuzzers<'a>(
                 .pin("DDLY")
                 .pin("TFB")
                 .pin("OFB")
-                .test_enum("D2OFFBYP_SEL", &["GND", "T"]);
+                .test_enum_legacy("D2OFFBYP_SEL", &["GND", "T"]);
             bctx.mode("ILOGIC")
                 .attr("IDELMUX", "1")
                 .pin("D")
@@ -613,7 +613,7 @@ pub fn add_fuzzers<'a>(
                 .pin("O")
                 .pin("TFB")
                 .pin("OFB")
-                .test_enum("IMUX", &["0", "1"]);
+                .test_enum_legacy("IMUX", &["0", "1"]);
             bctx.mode("ILOGIC")
                 .attr("IFFDELMUX", "1")
                 .attr("IFFTYPE", "#FF")
@@ -621,7 +621,7 @@ pub fn add_fuzzers<'a>(
                 .pin("DDLY")
                 .pin("TFB")
                 .pin("OFB")
-                .test_enum("IFFMUX", &["0", "1"]);
+                .test_enum_legacy("IFFMUX", &["0", "1"]);
             bctx.mode("ILOGIC")
                 .attr("IMUX", "1")
                 .attr("IFFMUX", "1")
@@ -633,7 +633,7 @@ pub fn add_fuzzers<'a>(
                 .pin("Q1")
                 .pin("TFB")
                 .pin("OFB")
-                .test_enum("IDELMUX", &["0", "1"]);
+                .test_enum_legacy("IDELMUX", &["0", "1"]);
             bctx.mode("ILOGIC")
                 .attr("IMUX", "1")
                 .attr("IFFMUX", "0")
@@ -646,7 +646,7 @@ pub fn add_fuzzers<'a>(
                 .pin("Q1")
                 .pin("TFB")
                 .pin("OFB")
-                .test_enum("IFFDELMUX", &["0", "1"]);
+                .test_enum_legacy("IFFDELMUX", &["0", "1"]);
         }
     }
 
@@ -679,9 +679,9 @@ pub fn add_fuzzers<'a>(
             .pin("OQ")
             .test_enum_suffix("CLKINV", "OPPOSITE", &["CLK", "CLK_B"]);
         bctx.mode("OLOGIC")
-            .test_enum("ODDR_CLK_EDGE", &["SAME_EDGE", "OPPOSITE_EDGE"]);
+            .test_enum_legacy("ODDR_CLK_EDGE", &["SAME_EDGE", "OPPOSITE_EDGE"]);
         bctx.mode("OLOGIC")
-            .test_enum("TDDR_CLK_EDGE", &["SAME_EDGE", "OPPOSITE_EDGE"]);
+            .test_enum_legacy("TDDR_CLK_EDGE", &["SAME_EDGE", "OPPOSITE_EDGE"]);
         bctx.mode("OSERDES")
             .attr("DATA_RATE_OQ", "DDR")
             .attr("DDR_CLK_EDGE", "SAME_EDGE")
@@ -695,7 +695,7 @@ pub fn add_fuzzers<'a>(
             .pin("CLK")
             .test_enum_suffix("CLKINV", "OPPOSITE", &["CLK", "CLK_B"]);
         bctx.mode("OSERDES")
-            .test_enum("DDR_CLK_EDGE", &["SAME_EDGE", "OPPOSITE_EDGE"]);
+            .test_enum_legacy("DDR_CLK_EDGE", &["SAME_EDGE", "OPPOSITE_EDGE"]);
 
         bctx.mode("OSERDES").test_inv("CLKDIV");
 
@@ -729,11 +729,11 @@ pub fn add_fuzzers<'a>(
 
         bctx.mode("OLOGIC")
             .attr("OUTFFTYPE", "#FF")
-            .test_enum("SRTYPE_OQ", &["SYNC", "ASYNC"]);
+            .test_enum_legacy("SRTYPE_OQ", &["SYNC", "ASYNC"]);
         bctx.mode("OLOGIC")
             .attr("TFFTYPE", "#FF")
-            .test_enum("SRTYPE_TQ", &["SYNC", "ASYNC"]);
-        bctx.mode("OSERDES").test_enum("SRTYPE", &["SYNC", "ASYNC"]);
+            .test_enum_legacy("SRTYPE_TQ", &["SYNC", "ASYNC"]);
+        bctx.mode("OSERDES").test_enum_legacy("SRTYPE", &["SYNC", "ASYNC"]);
 
         bctx.mode("OLOGIC")
             .test_enum_suffix("INIT_OQ", "OLOGIC", &["0", "1"]);
@@ -771,22 +771,22 @@ pub fn add_fuzzers<'a>(
                 .pin("TCE")
                 .pin("REV")
                 .pin("SR")
-                .test_enum(attr, &["0"]);
+                .test_enum_legacy(attr, &["0"]);
         }
 
         bctx.mode("OLOGIC")
             .pin("OQ")
-            .test_enum("OUTFFTYPE", &["#FF", "#LATCH", "DDR"]);
+            .test_enum_legacy("OUTFFTYPE", &["#FF", "#LATCH", "DDR"]);
         bctx.mode("OLOGIC")
             .pin("TQ")
-            .test_enum("TFFTYPE", &["#FF", "#LATCH", "DDR"]);
+            .test_enum_legacy("TFFTYPE", &["#FF", "#LATCH", "DDR"]);
 
         bctx.mode("OSERDES")
-            .test_enum("DATA_RATE_OQ", &["SDR", "DDR"]);
+            .test_enum_legacy("DATA_RATE_OQ", &["SDR", "DDR"]);
         bctx.mode("OSERDES")
             .attr("T1INV", "T1")
             .pin("T1")
-            .test_enum("DATA_RATE_TQ", &["BUF", "SDR", "DDR"]);
+            .test_enum_legacy("DATA_RATE_TQ", &["BUF", "SDR", "DDR"]);
 
         bctx.mode("OLOGIC")
             .attr("OSRUSED", "#OFF")
@@ -796,7 +796,7 @@ pub fn add_fuzzers<'a>(
             .attr("D1INV", "D1")
             .pin("D1")
             .pin("OQ")
-            .test_enum("OMUX", &["D1", "OUTFF"]);
+            .test_enum_legacy("OMUX", &["D1", "OUTFF"]);
         bctx.mode("OLOGIC")
             .attr("TSRUSED", "#OFF")
             .attr("TREVUSED", "#OFF")
@@ -805,25 +805,25 @@ pub fn add_fuzzers<'a>(
             .attr("T1INV", "T1")
             .pin("T1")
             .pin("TQ")
-            .test_enum("TMUX", &["T1", "TFF"]);
+            .test_enum_legacy("TMUX", &["T1", "TFF"]);
 
         bctx.mode("OLOGIC")
             .global("ENABLEMISR", "Y")
-            .test_enum("MISR_ENABLE", &["FALSE", "TRUE"]);
+            .test_enum_legacy("MISR_ENABLE", &["FALSE", "TRUE"]);
         bctx.mode("OLOGIC")
             .global("ENABLEMISR", "Y")
-            .test_enum("MISR_ENABLE_FDBK", &["FALSE", "TRUE"]);
+            .test_enum_legacy("MISR_ENABLE_FDBK", &["FALSE", "TRUE"]);
         bctx.mode("OLOGIC")
             .global("ENABLEMISR", "Y")
-            .test_enum("MISR_CLK_SELECT", &["CLK1", "CLK2"]);
+            .test_enum_legacy("MISR_CLK_SELECT", &["CLK1", "CLK2"]);
 
-        bctx.mode("OSERDES").test_enum("SERDES", &["FALSE", "TRUE"]);
+        bctx.mode("OSERDES").test_enum_legacy("SERDES", &["FALSE", "TRUE"]);
         bctx.mode("OSERDES")
-            .test_enum("SERDES_MODE", &["SLAVE", "MASTER"]);
+            .test_enum_legacy("SERDES_MODE", &["SLAVE", "MASTER"]);
         bctx.mode("OSERDES")
-            .test_enum("TRISTATE_WIDTH", &["1", "4"]);
+            .test_enum_legacy("TRISTATE_WIDTH", &["1", "4"]);
         bctx.mode("OSERDES")
-            .test_enum("DATA_WIDTH", &["2", "3", "4", "5", "6", "7", "8", "10"]);
+            .test_enum_legacy("DATA_WIDTH", &["2", "3", "4", "5", "6", "7", "8", "10"]);
         bctx.mode("OSERDES").test_multi_attr_bin("INIT_LOADCNT", 4);
 
         bctx.build()
@@ -881,11 +881,11 @@ pub fn add_fuzzers<'a>(
         bctx.mode("IODELAY").bel_unused(bel_ilogic).test_inv("C");
         bctx.mode("IODELAY").test_inv("DATAIN");
         bctx.mode("IODELAY")
-            .test_enum("HIGH_PERFORMANCE_MODE", &["FALSE", "TRUE"]);
+            .test_enum_legacy("HIGH_PERFORMANCE_MODE", &["FALSE", "TRUE"]);
         bctx.mode("IODELAY")
-            .test_enum("DELAYCHAIN_OSC", &["FALSE", "TRUE"]);
+            .test_enum_legacy("DELAYCHAIN_OSC", &["FALSE", "TRUE"]);
         bctx.mode("IODELAY")
-            .test_enum("DELAY_SRC", &["I", "O", "IO", "DATAIN"]);
+            .test_enum_legacy("DELAY_SRC", &["I", "O", "IO", "DATAIN"]);
         bctx.mode("IODELAY").test_multi_attr_dec("IDELAY_VALUE", 6);
         bctx.mode("IODELAY").test_multi_attr_dec("ODELAY_VALUE", 6);
 
@@ -898,7 +898,7 @@ pub fn add_fuzzers<'a>(
                 HclkIoi,
                 BaseBelMode::new(defs::bslots::IDELAYCTRL, "IDELAYCTRL".into()),
             ))
-            .test_enum("IDELAY_TYPE", &["FIXED", "DEFAULT", "VARIABLE"]);
+            .test_enum_legacy("IDELAY_TYPE", &["FIXED", "DEFAULT", "VARIABLE"]);
         bctx.mode("IODELAY")
             .global("LEGIDELAY", "DISABLE")
             .bel_mode(bel_other, "IODELAY")
@@ -943,7 +943,7 @@ pub fn add_fuzzers<'a>(
         bctx.mode("IOB")
             .raw(Key::Package, &package.name)
             .prop(IsBonded(bel))
-            .test_enum("PULL", &["KEEPER", "PULLDOWN", "PULLUP"]);
+            .test_enum_legacy("PULL", &["KEEPER", "PULLDOWN", "PULLUP"]);
         bctx.mode("IOB")
             .pin("O")
             .attr("OUSED", "0")
@@ -1119,10 +1119,10 @@ pub fn add_fuzzers<'a>(
                 .commit();
         }
 
-        bctx.test_manual("OUTPUT_DELAY", "0")
+        bctx.test_manual_legacy("OUTPUT_DELAY", "0")
             .pip((bel_ologic, "O_IOB"), (bel_ologic, "OQ"))
             .commit();
-        bctx.test_manual("OUTPUT_DELAY", "1")
+        bctx.test_manual_legacy("OUTPUT_DELAY", "1")
             .pip((bel_ologic, "O_IOB"), (bel_iodelay, "DATAOUT"))
             .commit();
     }

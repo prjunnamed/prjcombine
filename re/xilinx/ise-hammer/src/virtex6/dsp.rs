@@ -127,35 +127,35 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "CARRYINREG",
             "CARRYINSELREG",
         ] {
-            bctx.mode(mode).test_enum(attr, &["0", "1"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["0", "1"]);
         }
         for attr in ["DREG", "ADREG"] {
             bctx.mode(mode)
                 .attr("USE_MULT", "MULTIPLY")
                 .attr("USE_DPORT", "TRUE")
-                .test_enum(attr, &["0", "1"]);
+                .test_enum_legacy(attr, &["0", "1"]);
         }
         for attr in ["A_INPUT", "B_INPUT"] {
-            bctx.mode(mode).test_enum(attr, &["DIRECT", "CASCADE"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["DIRECT", "CASCADE"]);
         }
         bctx.mode(mode)
-            .test_enum("USE_PATTERN_DETECT", &["PATDET", "NO_PATDET"]);
+            .test_enum_legacy("USE_PATTERN_DETECT", &["PATDET", "NO_PATDET"]);
         bctx.mode(mode)
-            .test_enum("USE_SIMD", &["TWO24", "ONE48", "FOUR12"]);
-        bctx.mode(mode)
-            .attr("DREG", "0")
-            .attr("ADREG", "0")
-            .test_enum("USE_MULT", &["NONE", "MULTIPLY", "DYNAMIC"]);
+            .test_enum_legacy("USE_SIMD", &["TWO24", "ONE48", "FOUR12"]);
         bctx.mode(mode)
             .attr("DREG", "0")
             .attr("ADREG", "0")
-            .test_enum("USE_DPORT", &["FALSE", "TRUE"]);
-        bctx.mode(mode).test_enum("SEL_PATTERN", &["PATTERN", "C"]);
-        bctx.mode(mode).test_enum(
+            .test_enum_legacy("USE_MULT", &["NONE", "MULTIPLY", "DYNAMIC"]);
+        bctx.mode(mode)
+            .attr("DREG", "0")
+            .attr("ADREG", "0")
+            .test_enum_legacy("USE_DPORT", &["FALSE", "TRUE"]);
+        bctx.mode(mode).test_enum_legacy("SEL_PATTERN", &["PATTERN", "C"]);
+        bctx.mode(mode).test_enum_legacy(
             "SEL_MASK",
             &["MASK", "C", "ROUNDING_MODE1", "ROUNDING_MODE2"],
         );
-        bctx.mode(mode).test_enum(
+        bctx.mode(mode).test_enum_legacy(
             "AUTORESET_PATDET",
             &["RESET_MATCH", "RESET_NOT_MATCH", "NO_RESET"],
         );

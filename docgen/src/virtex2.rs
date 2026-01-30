@@ -322,14 +322,13 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                     "iostd-tb-lvdsbias",
                     &["IOSTD:S3A.TB:LVDSBIAS"],
                 );
-                gen_devdata_table(
+                gen_devdata(
                     ctx,
-                    &db.bsdata,
-                    &part_names,
-                    &mut devdata_used,
-                    "spartan3",
+                    kind,
+                    &db.int,
                     "pcilogicse-opts",
-                    &["PCILOGICSE:DELAY_DEFAULT"],
+                    &devdata,
+                    &[devdata::PCILOGICSE_DELAY],
                 );
                 gen_devdata_table(
                     ctx,

@@ -56753,6 +56753,13 @@ intdb {
 		OPMODE5,
 	}
 
+	enum PCILOGICSE_DELAY {
+		NILL,
+		LOW,
+		MED,
+		HIGH,
+	}
+
 	enum GT_DATA_WIDTH {
 		_1,
 		_2,
@@ -57009,10 +57016,41 @@ intdb {
 		attribute RSTTYPE: BRAM_RSTTYPE;
 	}
 
+	bel_class BUFGMUX {
+		input I0;
+		input I1;
+		input S;
+		output O;
+		attribute INIT_OUT: bitvec[1];
+	}
+
+	bel_class GLOBALSIG_BUFG {
+		attribute GWE_ENABLE: bool;
+	}
+
+	bel_class GLOBALSIG_HCLK_V2 {
+		attribute GWE_GHIGH_S_ENABLE: bool;
+		attribute GWE_GHIGH_N_ENABLE: bool;
+		attribute GSR_S_ENABLE: bool;
+		attribute GSR_N_ENABLE: bool;
+	}
+
+	bel_class GLOBALSIG_HCLK_S3 {
+		attribute ENABLE: bool;
+	}
+
 	bel_class PCILOGIC {
 		input FI[4];
 		input SI[10];
 		output OUT[6];
+	}
+
+	bel_class PCILOGICSE {
+		input I1;
+		input I2;
+		input I3;
+		attribute ENABLE: bool;
+		attribute DELAY: PCILOGICSE_DELAY;
 	}
 
 	bel_class GT {
@@ -57620,9 +57658,36 @@ intdb {
 		output TSTTRSTNEGO;
 	}
 
+	region_slot GLOBAL;
 	region_slot HCLK;
 	region_slot LEAF;
+	region_slot DCM_CLKPAD;
+	region_slot DCM_BUS;
 	wire PULLUP: pullup;
+	wire GCLK_S[0]: regional GLOBAL;
+	wire GCLK_S[1]: regional GLOBAL;
+	wire GCLK_S[2]: regional GLOBAL;
+	wire GCLK_S[3]: regional GLOBAL;
+	wire GCLK_S[4]: regional GLOBAL;
+	wire GCLK_S[5]: regional GLOBAL;
+	wire GCLK_S[6]: regional GLOBAL;
+	wire GCLK_S[7]: regional GLOBAL;
+	wire GCLK_N[0]: regional GLOBAL;
+	wire GCLK_N[1]: regional GLOBAL;
+	wire GCLK_N[2]: regional GLOBAL;
+	wire GCLK_N[3]: regional GLOBAL;
+	wire GCLK_N[4]: regional GLOBAL;
+	wire GCLK_N[5]: regional GLOBAL;
+	wire GCLK_N[6]: regional GLOBAL;
+	wire GCLK_N[7]: regional GLOBAL;
+	wire GCLK_ROW[0]: regional HCLK;
+	wire GCLK_ROW[1]: regional HCLK;
+	wire GCLK_ROW[2]: regional HCLK;
+	wire GCLK_ROW[3]: regional HCLK;
+	wire GCLK_ROW[4]: regional HCLK;
+	wire GCLK_ROW[5]: regional HCLK;
+	wire GCLK_ROW[6]: regional HCLK;
+	wire GCLK_ROW[7]: regional HCLK;
 	wire GCLK[0]: regional LEAF;
 	wire GCLK[1]: regional LEAF;
 	wire GCLK[2]: regional LEAF;
@@ -57631,14 +57696,26 @@ intdb {
 	wire GCLK[5]: regional LEAF;
 	wire GCLK[6]: regional LEAF;
 	wire GCLK[7]: regional LEAF;
-	wire DCM_CLKPAD[0]: bel;
-	wire DCM_CLKPAD[1]: bel;
-	wire DCM_CLKPAD[2]: bel;
-	wire DCM_CLKPAD[3]: bel;
-	wire DCM_CLKPAD[4]: bel;
-	wire DCM_CLKPAD[5]: bel;
-	wire DCM_CLKPAD[6]: bel;
-	wire DCM_CLKPAD[7]: bel;
+	wire OUT_CLKPAD[0]: bel;
+	wire OUT_CLKPAD[1]: bel;
+	wire OUT_CLKPAD[2]: bel;
+	wire OUT_CLKPAD[3]: bel;
+	wire DCM_CLKPAD[0]: regional DCM_CLKPAD;
+	wire DCM_CLKPAD[1]: regional DCM_CLKPAD;
+	wire DCM_CLKPAD[2]: regional DCM_CLKPAD;
+	wire DCM_CLKPAD[3]: regional DCM_CLKPAD;
+	wire DCM_CLKPAD[4]: regional DCM_CLKPAD;
+	wire DCM_CLKPAD[5]: regional DCM_CLKPAD;
+	wire DCM_CLKPAD[6]: regional DCM_CLKPAD;
+	wire DCM_CLKPAD[7]: regional DCM_CLKPAD;
+	wire DCM_BUS[0]: regional DCM_BUS;
+	wire DCM_BUS[1]: regional DCM_BUS;
+	wire DCM_BUS[2]: regional DCM_BUS;
+	wire DCM_BUS[3]: regional DCM_BUS;
+	wire DCM_BUS[4]: regional DCM_BUS;
+	wire DCM_BUS[5]: regional DCM_BUS;
+	wire DCM_BUS[6]: regional DCM_BUS;
+	wire DCM_BUS[7]: regional DCM_BUS;
 	wire OMUX[0]: mux;
 	wire OMUX[1]: mux;
 	wire OMUX[2]: mux;
@@ -58564,6 +58641,14 @@ intdb {
 	wire OUT_TBUS: bel;
 	wire OUT_PCI[0]: bel;
 	wire OUT_PCI[1]: bel;
+	wire IMUX_BUFG_CLK_INT[0]: mux;
+	wire IMUX_BUFG_CLK_INT[1]: mux;
+	wire IMUX_BUFG_CLK_INT[2]: mux;
+	wire IMUX_BUFG_CLK_INT[3]: mux;
+	wire IMUX_BUFG_CLK_INT[4]: mux;
+	wire IMUX_BUFG_CLK_INT[5]: mux;
+	wire IMUX_BUFG_CLK_INT[6]: mux;
+	wire IMUX_BUFG_CLK_INT[7]: mux;
 	wire IMUX_BUFG_CLK[0]: mux;
 	wire IMUX_BUFG_CLK[1]: mux;
 	wire IMUX_BUFG_CLK[2]: mux;
@@ -58580,22 +58665,10 @@ intdb {
 	wire IMUX_BUFG_SEL[5]: mux;
 	wire IMUX_BUFG_SEL[6]: mux;
 	wire IMUX_BUFG_SEL[7]: mux;
-	wire OUT_BUFG[0]: bel;
-	wire OUT_BUFG[1]: bel;
-	wire OUT_BUFG[2]: bel;
-	wire OUT_BUFG[3]: bel;
-	wire OUT_BUFG[4]: bel;
-	wire OUT_BUFG[5]: bel;
-	wire OUT_BUFG[6]: bel;
-	wire OUT_BUFG[7]: bel;
 
 	tile_slot INT {
 		bel_slot INT: routing;
-		bel_slot RLL: legacy;
-		bel_slot PTE2OMUX[0]: legacy;
-		bel_slot PTE2OMUX[1]: legacy;
-		bel_slot PTE2OMUX[2]: legacy;
-		bel_slot PTE2OMUX[3]: legacy;
+		bel_slot PTE2OMUX: routing;
 
 		tile_class INT_CLB {
 			cell CELL;
@@ -62371,26 +62444,6 @@ intdb {
 				proginv IMUX_TS_OPTINV[0] = IMUX_TS[0] @MAIN[4][38];
 				proginv IMUX_TS_OPTINV[1] = IMUX_TS[1] @MAIN[4][30];
 			}
-
-			bel RLL {
-				input LH0 = HEX_W0[6];
-				input LH12 = HEX_W0[5];
-				input LH18 = HEX_W0[4];
-				input LH6 = HEX_W0[3];
-				input LV0 = HEX_W0[2];
-				input LV12 = HEX_W0[1];
-				input LV18 = HEX_W0[8];
-				input LV6 = HEX_E0[7];
-			}
-
-			// wire HEX_W0[1]                      RLL.LV12
-			// wire HEX_W0[2]                      RLL.LV0
-			// wire HEX_W0[3]                      RLL.LH6
-			// wire HEX_W0[4]                      RLL.LH18
-			// wire HEX_W0[5]                      RLL.LH12
-			// wire HEX_W0[6]                      RLL.LH0
-			// wire HEX_W0[8]                      RLL.LV18
-			// wire HEX_E0[7]                      RLL.LV6
 		}
 
 		tile_class INT_IOI {
@@ -65719,26 +65772,6 @@ intdb {
 				proginv IMUX_CE_OPTINV[2] = IMUX_CE[2] @!MAIN[4][72];
 				proginv IMUX_CE_OPTINV[3] = IMUX_CE[3] @!MAIN[4][78];
 			}
-
-			bel RLL {
-				input LH0 = HEX_W0[6];
-				input LH12 = HEX_W0[5];
-				input LH18 = HEX_W0[4];
-				input LH6 = HEX_W0[3];
-				input LV0 = HEX_W0[2];
-				input LV12 = HEX_W0[1];
-				input LV18 = HEX_W0[8];
-				input LV6 = HEX_E0[7];
-			}
-
-			// wire HEX_W0[1]                      RLL.LV12
-			// wire HEX_W0[2]                      RLL.LV0
-			// wire HEX_W0[3]                      RLL.LH6
-			// wire HEX_W0[4]                      RLL.LH18
-			// wire HEX_W0[5]                      RLL.LH12
-			// wire HEX_W0[6]                      RLL.LH0
-			// wire HEX_W0[8]                      RLL.LV18
-			// wire HEX_E0[7]                      RLL.LV6
 		}
 
 		tile_class INT_IOI_CLK_S {
@@ -68259,26 +68292,6 @@ intdb {
 				proginv IMUX_CE_OPTINV[0] = IMUX_CE[0] @!MAIN[4][63];
 				proginv IMUX_CE_OPTINV[1] = IMUX_CE[1] @!MAIN[4][69];
 			}
-
-			bel RLL {
-				input LH0 = HEX_W0[6];
-				input LH12 = HEX_W0[5];
-				input LH18 = HEX_W0[4];
-				input LH6 = HEX_W0[3];
-				input LV0 = HEX_W0[2];
-				input LV12 = HEX_W0[1];
-				input LV18 = HEX_W0[8];
-				input LV6 = HEX_E0[7];
-			}
-
-			// wire HEX_W0[1]                      RLL.LV12
-			// wire HEX_W0[2]                      RLL.LV0
-			// wire HEX_W0[3]                      RLL.LH6
-			// wire HEX_W0[4]                      RLL.LH18
-			// wire HEX_W0[5]                      RLL.LH12
-			// wire HEX_W0[6]                      RLL.LH0
-			// wire HEX_W0[8]                      RLL.LV18
-			// wire HEX_E0[7]                      RLL.LV6
 		}
 
 		tile_class INT_IOI_CLK_N {
@@ -70799,26 +70812,6 @@ intdb {
 				proginv IMUX_CE_OPTINV[2] = IMUX_CE[2] @!MAIN[4][72];
 				proginv IMUX_CE_OPTINV[3] = IMUX_CE[3] @!MAIN[4][78];
 			}
-
-			bel RLL {
-				input LH0 = HEX_W0[6];
-				input LH12 = HEX_W0[5];
-				input LH18 = HEX_W0[4];
-				input LH6 = HEX_W0[3];
-				input LV0 = HEX_W0[2];
-				input LV12 = HEX_W0[1];
-				input LV18 = HEX_W0[8];
-				input LV6 = HEX_E0[7];
-			}
-
-			// wire HEX_W0[1]                      RLL.LV12
-			// wire HEX_W0[2]                      RLL.LV0
-			// wire HEX_W0[3]                      RLL.LH6
-			// wire HEX_W0[4]                      RLL.LH18
-			// wire HEX_W0[5]                      RLL.LH12
-			// wire HEX_W0[6]                      RLL.LH0
-			// wire HEX_W0[8]                      RLL.LV18
-			// wire HEX_E0[7]                      RLL.LV6
 		}
 
 		tile_class INT_BRAM {
@@ -74257,26 +74250,6 @@ intdb {
 				proginv IMUX_TS_OPTINV[0] = IMUX_TS[0] @MAIN[4][38];
 				proginv IMUX_TS_OPTINV[1] = IMUX_TS[1] @MAIN[4][30];
 			}
-
-			bel RLL {
-				input LH0 = HEX_W0[6];
-				input LH12 = HEX_W0[5];
-				input LH18 = HEX_W0[4];
-				input LH6 = HEX_W0[3];
-				input LV0 = HEX_W0[2];
-				input LV12 = HEX_W0[1];
-				input LV18 = HEX_W0[8];
-				input LV6 = HEX_E0[7];
-			}
-
-			// wire HEX_W0[1]                      RLL.LV12
-			// wire HEX_W0[2]                      RLL.LV0
-			// wire HEX_W0[3]                      RLL.LH6
-			// wire HEX_W0[4]                      RLL.LH18
-			// wire HEX_W0[5]                      RLL.LH12
-			// wire HEX_W0[6]                      RLL.LH0
-			// wire HEX_W0[8]                      RLL.LV18
-			// wire HEX_E0[7]                      RLL.LV6
 		}
 
 		tile_class INT_DCM_V2 {
@@ -77671,26 +77644,6 @@ intdb {
 				proginv IMUX_TI_OPTINV[0] = IMUX_TI[0] @!MAIN[4][19];
 				proginv IMUX_TI_OPTINV[1] = IMUX_TI[1] @!MAIN[4][27];
 			}
-
-			bel RLL {
-				input LH0 = HEX_W0[6];
-				input LH12 = HEX_W0[5];
-				input LH18 = HEX_W0[4];
-				input LH6 = HEX_W0[3];
-				input LV0 = HEX_W0[2];
-				input LV12 = HEX_W0[1];
-				input LV18 = HEX_W0[8];
-				input LV6 = HEX_E0[7];
-			}
-
-			// wire HEX_W0[1]                      RLL.LV12
-			// wire HEX_W0[2]                      RLL.LV0
-			// wire HEX_W0[3]                      RLL.LH6
-			// wire HEX_W0[4]                      RLL.LH18
-			// wire HEX_W0[5]                      RLL.LH12
-			// wire HEX_W0[6]                      RLL.LH0
-			// wire HEX_W0[8]                      RLL.LV18
-			// wire HEX_E0[7]                      RLL.LV6
 		}
 
 		tile_class INT_DCM_V2P {
@@ -81082,9 +81035,6 @@ intdb {
 				proginv IMUX_CE_OPTINV[3] = IMUX_CE[3] @!MAIN[4][78];
 				proginv IMUX_TI_OPTINV[0] = IMUX_TI[0] @!MAIN[4][19];
 				proginv IMUX_TI_OPTINV[1] = IMUX_TI[1] @!MAIN[4][27];
-			}
-
-			bel RLL {
 			}
 		}
 
@@ -84734,26 +84684,6 @@ intdb {
 				proginv IMUX_TS_OPTINV[0] = IMUX_TS[0] @MAIN[4][38];
 				proginv IMUX_TS_OPTINV[1] = IMUX_TS[1] @MAIN[4][30];
 			}
-
-			bel RLL {
-				input LH0 = HEX_W0[6];
-				input LH12 = HEX_W0[5];
-				input LH18 = HEX_W0[4];
-				input LH6 = HEX_W0[3];
-				input LV0 = HEX_W0[2];
-				input LV12 = HEX_W0[1];
-				input LV18 = HEX_W0[8];
-				input LV6 = HEX_E0[7];
-			}
-
-			// wire HEX_W0[1]                      RLL.LV12
-			// wire HEX_W0[2]                      RLL.LV0
-			// wire HEX_W0[3]                      RLL.LH6
-			// wire HEX_W0[4]                      RLL.LH18
-			// wire HEX_W0[5]                      RLL.LH12
-			// wire HEX_W0[6]                      RLL.LH0
-			// wire HEX_W0[8]                      RLL.LV18
-			// wire HEX_E0[7]                      RLL.LV6
 		}
 
 		tile_class INT_PPC {
@@ -88402,26 +88332,6 @@ intdb {
 				proginv IMUX_TS_OPTINV[0] = IMUX_TS[0] @MAIN[4][38];
 				proginv IMUX_TS_OPTINV[1] = IMUX_TS[1] @MAIN[4][30];
 			}
-
-			bel RLL {
-				input LH0 = HEX_W0[6];
-				input LH12 = HEX_W0[5];
-				input LH18 = HEX_W0[4];
-				input LH6 = HEX_W0[3];
-				input LV0 = HEX_W0[2];
-				input LV12 = HEX_W0[1];
-				input LV18 = HEX_W0[8];
-				input LV6 = HEX_E0[7];
-			}
-
-			// wire HEX_W0[1]                      RLL.LV12
-			// wire HEX_W0[2]                      RLL.LV0
-			// wire HEX_W0[3]                      RLL.LH6
-			// wire HEX_W0[4]                      RLL.LH18
-			// wire HEX_W0[5]                      RLL.LH12
-			// wire HEX_W0[6]                      RLL.LH0
-			// wire HEX_W0[8]                      RLL.LV18
-			// wire HEX_E0[7]                      RLL.LV6
 		}
 
 		tile_class INT_GT_CLKPAD {
@@ -92022,26 +91932,6 @@ intdb {
 				proginv IMUX_TI_OPTINV[0] = IMUX_TI[0] @!MAIN[4][19];
 				proginv IMUX_TI_OPTINV[1] = IMUX_TI[1] @!MAIN[4][27];
 			}
-
-			bel RLL {
-				input LH0 = HEX_W0[6];
-				input LH12 = HEX_W0[5];
-				input LH18 = HEX_W0[4];
-				input LH6 = HEX_W0[3];
-				input LV0 = HEX_W0[2];
-				input LV12 = HEX_W0[1];
-				input LV18 = HEX_W0[8];
-				input LV6 = HEX_E0[7];
-			}
-
-			// wire HEX_W0[1]                      RLL.LV12
-			// wire HEX_W0[2]                      RLL.LV0
-			// wire HEX_W0[3]                      RLL.LH6
-			// wire HEX_W0[4]                      RLL.LH18
-			// wire HEX_W0[5]                      RLL.LH12
-			// wire HEX_W0[6]                      RLL.LH0
-			// wire HEX_W0[8]                      RLL.LV18
-			// wire HEX_E0[7]                      RLL.LV6
 		}
 	}
 
@@ -92264,6 +92154,7 @@ intdb {
 		bel_slot DSP: DSP;
 		bel_slot DSP_TESTMUX: routing;
 		bel_slot DCM: legacy;
+		bel_slot DCM_INT: routing;
 		bel_slot GT: GT;
 		bel_slot GT10: GT10;
 		bel_slot PPC405: PPC405;
@@ -92279,7 +92170,6 @@ intdb {
 		bel_slot DNA_PORT: legacy;
 		bel_slot BSCAN: legacy;
 		bel_slot JTAGPPC: legacy;
-		bel_slot DCMCONN_S3E: legacy;
 		bel_slot BREFCLK_INT: legacy;
 		bel_slot RANDOR_OUT: RANDOR_OUT;
 		bel_slot MISR: legacy;
@@ -92815,6 +92705,7 @@ intdb {
 			bitrect MAIN: Vertical (22, rev 80);
 
 			bel IOI[0] {
+				output CLKPAD = OUT_CLKPAD[0];
 				output I = OUT_FAN[0];
 				input ICE = IMUX_IOI_ICE[0];
 				input ICLK1 = IMUX_IOI_ICLK[1];
@@ -92835,6 +92726,7 @@ intdb {
 			}
 
 			bel IOI[1] {
+				output CLKPAD = OUT_CLKPAD[1];
 				output I = OUT_FAN[1];
 				input ICE = IMUX_IOI_ICE[1];
 				input ICLK1 = IMUX_IOI_ICLK[1];
@@ -92855,6 +92747,7 @@ intdb {
 			}
 
 			bel IOI[2] {
+				output CLKPAD = OUT_CLKPAD[2];
 				output I = OUT_FAN[2];
 				input ICE = IMUX_IOI_ICE[2];
 				input ICLK1 = IMUX_IOI_ICLK[3];
@@ -92875,6 +92768,7 @@ intdb {
 			}
 
 			bel IOI[3] {
+				output CLKPAD = OUT_CLKPAD[3];
 				output I = OUT_FAN[3];
 				input ICE = IMUX_IOI_ICE[3];
 				input ICLK1 = IMUX_IOI_ICLK[3];
@@ -92894,6 +92788,10 @@ intdb {
 				input TCE = IMUX_IOI_TCE[3];
 			}
 
+			// wire OUT_CLKPAD[0]                  IOI[0].CLKPAD
+			// wire OUT_CLKPAD[1]                  IOI[1].CLKPAD
+			// wire OUT_CLKPAD[2]                  IOI[2].CLKPAD
+			// wire OUT_CLKPAD[3]                  IOI[3].CLKPAD
 			// wire IMUX_CLK_OPTINV[0]             IOI[0].OTCLK2 IOI[1].OTCLK2
 			// wire IMUX_CLK_OPTINV[1]             IOI[0].OTCLK1 IOI[1].OTCLK1
 			// wire IMUX_CLK_OPTINV[2]             IOI[2].OTCLK2 IOI[3].OTCLK2
@@ -92961,6 +92859,7 @@ intdb {
 			bitrect MAIN: Vertical (22, rev 80);
 
 			bel IOI[0] {
+				output CLKPAD = OUT_CLKPAD[0];
 				output I = OUT_FAN[0];
 				input ICE = IMUX_IOI_ICE[0];
 				input ICLK1 = IMUX_IOI_ICLK[1];
@@ -92981,6 +92880,7 @@ intdb {
 			}
 
 			bel IOI[1] {
+				output CLKPAD = OUT_CLKPAD[1];
 				output I = OUT_FAN[1];
 				input ICE = IMUX_IOI_ICE[1];
 				input ICLK1 = IMUX_IOI_ICLK[1];
@@ -93010,6 +92910,8 @@ intdb {
 				output BREFCLK = OUT_FAN[2];
 			}
 
+			// wire OUT_CLKPAD[0]                  IOI[0].CLKPAD
+			// wire OUT_CLKPAD[1]                  IOI[1].CLKPAD
 			// wire IMUX_CLK_OPTINV[0]             IOI[0].OTCLK2 IOI[1].OTCLK2
 			// wire IMUX_CLK_OPTINV[1]             IOI[0].OTCLK1 IOI[1].OTCLK1
 			// wire IMUX_SR_OPTINV[0]              IOI[1].SR
@@ -93054,6 +92956,7 @@ intdb {
 			}
 
 			bel IOI[2] {
+				output CLKPAD = OUT_CLKPAD[2];
 				output I = OUT_FAN[2];
 				input ICE = IMUX_IOI_ICE[2];
 				input ICLK1 = IMUX_IOI_ICLK[3];
@@ -93074,6 +92977,7 @@ intdb {
 			}
 
 			bel IOI[3] {
+				output CLKPAD = OUT_CLKPAD[3];
 				output I = OUT_FAN[3];
 				input ICE = IMUX_IOI_ICE[3];
 				input ICLK1 = IMUX_IOI_ICLK[3];
@@ -93097,6 +93001,8 @@ intdb {
 				output BREFCLK = OUT_FAN[0];
 			}
 
+			// wire OUT_CLKPAD[2]                  IOI[2].CLKPAD
+			// wire OUT_CLKPAD[3]                  IOI[3].CLKPAD
 			// wire IMUX_CLK_OPTINV[2]             IOI[2].OTCLK2 IOI[3].OTCLK2
 			// wire IMUX_CLK_OPTINV[3]             IOI[2].OTCLK1 IOI[3].OTCLK1
 			// wire IMUX_SR_OPTINV[1]              IOI[2].SR
@@ -106952,30 +106858,21 @@ intdb {
 
 	tile_slot CLK {
 		bel_slot CLK_INT: routing;
-		bel_slot BUFGMUX[0]: legacy;
-		bel_slot BUFGMUX[1]: legacy;
-		bel_slot BUFGMUX[2]: legacy;
-		bel_slot BUFGMUX[3]: legacy;
-		bel_slot BUFGMUX[4]: legacy;
-		bel_slot BUFGMUX[5]: legacy;
-		bel_slot BUFGMUX[6]: legacy;
-		bel_slot BUFGMUX[7]: legacy;
+		bel_slot BUFGMUX[0]: BUFGMUX;
+		bel_slot BUFGMUX[1]: BUFGMUX;
+		bel_slot BUFGMUX[2]: BUFGMUX;
+		bel_slot BUFGMUX[3]: BUFGMUX;
+		bel_slot BUFGMUX[4]: BUFGMUX;
+		bel_slot BUFGMUX[5]: BUFGMUX;
+		bel_slot BUFGMUX[6]: BUFGMUX;
+		bel_slot BUFGMUX[7]: BUFGMUX;
 		bel_slot PCILOGIC: PCILOGIC;
-		bel_slot PCILOGICSE: legacy;
-		bel_slot VCC: legacy;
-		bel_slot GLOBALSIG_S[0]: legacy;
-		bel_slot GLOBALSIG_S[1]: legacy;
-		bel_slot GLOBALSIG_N[0]: legacy;
-		bel_slot GLOBALSIG_N[1]: legacy;
-		bel_slot GLOBALSIG_WE: legacy;
-		bel_slot BREFCLK: legacy;
-		bel_slot DCMCONN: legacy;
-		bel_slot GLOBALSIG_DSP: legacy;
-		bel_slot CLKC: legacy;
-		bel_slot CLKC_50A: legacy;
-		bel_slot CLKQC: legacy;
+		bel_slot PCILOGICSE: PCILOGICSE;
+		bel_slot GLOBALSIG_BUFG[0]: GLOBALSIG_BUFG;
+		bel_slot GLOBALSIG_BUFG[1]: GLOBALSIG_BUFG;
+		bel_slot DCMCONN: routing;
 
-		tile_class CLK_S_V2 {
+		tile_class CLK_S {
 			cell CELL[0];
 			cell CELL[1];
 			bitrect MAIN: Vertical (4, rev 80);
@@ -106983,1157 +106880,474 @@ intdb {
 
 			switchbox CLK_INT {
 				mux CELL[0].OMUX_N10 @[MAIN[3][28], MAIN[3][24], MAIN[3][25], MAIN[3][26], MAIN[3][27]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
+					CELL[1].GCLK_S[0] = 0b00001,
+					CELL[1].GCLK_S[1] = 0b00010,
+					CELL[1].GCLK_S[2] = 0b00100,
+					CELL[1].GCLK_S[3] = 0b01000,
+					CELL[1].GCLK_S[4] = 0b10001,
+					CELL[1].GCLK_S[5] = 0b10010,
+					CELL[1].GCLK_S[6] = 0b10100,
+					CELL[1].GCLK_S[7] = 0b11000,
 					off = 0b00000,
 				}
 				mux CELL[0].OMUX_N11 @[MAIN[2][24], MAIN[2][25], MAIN[2][26], MAIN[2][27], MAIN[2][28]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
+					CELL[1].GCLK_S[0] = 0b00001,
+					CELL[1].GCLK_S[1] = 0b00010,
+					CELL[1].GCLK_S[2] = 0b00100,
+					CELL[1].GCLK_S[3] = 0b01000,
+					CELL[1].GCLK_S[4] = 0b10001,
+					CELL[1].GCLK_S[5] = 0b10010,
+					CELL[1].GCLK_S[6] = 0b10100,
+					CELL[1].GCLK_S[7] = 0b11000,
 					off = 0b00000,
 				}
 				mux CELL[0].OMUX_N12 @[MAIN[3][18], MAIN[3][14], MAIN[3][15], MAIN[3][16], MAIN[3][17]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
+					CELL[1].GCLK_S[0] = 0b00001,
+					CELL[1].GCLK_S[1] = 0b00010,
+					CELL[1].GCLK_S[2] = 0b00100,
+					CELL[1].GCLK_S[3] = 0b01000,
+					CELL[1].GCLK_S[4] = 0b10001,
+					CELL[1].GCLK_S[5] = 0b10010,
+					CELL[1].GCLK_S[6] = 0b10100,
+					CELL[1].GCLK_S[7] = 0b11000,
 					off = 0b00000,
 				}
 				mux CELL[0].OMUX_N15 @[MAIN[2][14], MAIN[2][15], MAIN[2][16], MAIN[2][17], MAIN[2][18]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
+					CELL[1].GCLK_S[0] = 0b00001,
+					CELL[1].GCLK_S[1] = 0b00010,
+					CELL[1].GCLK_S[2] = 0b00100,
+					CELL[1].GCLK_S[3] = 0b01000,
+					CELL[1].GCLK_S[4] = 0b10001,
+					CELL[1].GCLK_S[5] = 0b10010,
+					CELL[1].GCLK_S[6] = 0b10100,
+					CELL[1].GCLK_S[7] = 0b11000,
 					off = 0b00000,
 				}
-				mux CELL[0].IMUX_BUFG_CLK[0] @[MAIN[0][40], MAIN[0][35], MAIN[0][36], MAIN[0][37], MAIN[0][38], MAIN[0][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[1] @[MAIN[0][52], MAIN[0][47], MAIN[0][48], MAIN[0][49], MAIN[0][50], MAIN[0][51]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[2] @[MAIN[0][64], MAIN[0][59], MAIN[0][60], MAIN[0][61], MAIN[0][62], MAIN[0][63]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[3] @[MAIN[0][76], MAIN[0][71], MAIN[0][72], MAIN[0][73], MAIN[0][74], MAIN[0][75]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[4] @[MAIN[3][40], MAIN[3][35], MAIN[3][36], MAIN[3][37], MAIN[3][38], MAIN[3][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[5] @[MAIN[3][52], MAIN[3][47], MAIN[3][48], MAIN[3][49], MAIN[3][50], MAIN[3][51]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[6] @[MAIN[3][64], MAIN[3][59], MAIN[3][60], MAIN[3][61], MAIN[3][62], MAIN[3][63]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[7] @[MAIN[3][76], MAIN[3][71], MAIN[3][72], MAIN[3][73], MAIN[3][74], MAIN[3][75]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[0] @[MAIN[1][35], MAIN[1][36], MAIN[1][37], MAIN[1][38], MAIN[1][39], MAIN[1][40]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[1] @[MAIN[1][47], MAIN[1][48], MAIN[1][49], MAIN[1][50], MAIN[1][51], MAIN[1][52]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[2] @[MAIN[1][59], MAIN[1][60], MAIN[1][61], MAIN[1][62], MAIN[1][63], MAIN[1][64]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[3] @[MAIN[1][71], MAIN[1][72], MAIN[1][73], MAIN[1][74], MAIN[1][75], MAIN[1][76]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[4] @[MAIN[2][35], MAIN[2][36], MAIN[2][37], MAIN[2][38], MAIN[2][39], MAIN[2][40]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[5] @[MAIN[2][47], MAIN[2][48], MAIN[2][49], MAIN[2][50], MAIN[2][51], MAIN[2][52]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[6] @[MAIN[2][59], MAIN[2][60], MAIN[2][61], MAIN[2][62], MAIN[2][63], MAIN[2][64]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[7] @[MAIN[2][71], MAIN[2][72], MAIN[2][73], MAIN[2][74], MAIN[2][75], MAIN[2][76]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
 				mux CELL[1].OMUX_N10 @[MAIN[0][28], MAIN[0][24], MAIN[0][25], MAIN[0][26], MAIN[0][27]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
+					CELL[1].GCLK_S[0] = 0b10001,
+					CELL[1].GCLK_S[1] = 0b10010,
+					CELL[1].GCLK_S[2] = 0b10100,
+					CELL[1].GCLK_S[3] = 0b11000,
+					CELL[1].GCLK_S[4] = 0b00001,
+					CELL[1].GCLK_S[5] = 0b00010,
+					CELL[1].GCLK_S[6] = 0b00100,
+					CELL[1].GCLK_S[7] = 0b01000,
 					off = 0b00000,
 				}
 				mux CELL[1].OMUX_N11 @[MAIN[1][24], MAIN[1][25], MAIN[1][26], MAIN[1][27], MAIN[1][28]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
+					CELL[1].GCLK_S[0] = 0b10001,
+					CELL[1].GCLK_S[1] = 0b10010,
+					CELL[1].GCLK_S[2] = 0b10100,
+					CELL[1].GCLK_S[3] = 0b11000,
+					CELL[1].GCLK_S[4] = 0b00001,
+					CELL[1].GCLK_S[5] = 0b00010,
+					CELL[1].GCLK_S[6] = 0b00100,
+					CELL[1].GCLK_S[7] = 0b01000,
 					off = 0b00000,
 				}
 				mux CELL[1].OMUX_N12 @[MAIN[0][18], MAIN[0][14], MAIN[0][15], MAIN[0][16], MAIN[0][17]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
+					CELL[1].GCLK_S[0] = 0b10001,
+					CELL[1].GCLK_S[1] = 0b10010,
+					CELL[1].GCLK_S[2] = 0b10100,
+					CELL[1].GCLK_S[3] = 0b11000,
+					CELL[1].GCLK_S[4] = 0b00001,
+					CELL[1].GCLK_S[5] = 0b00010,
+					CELL[1].GCLK_S[6] = 0b00100,
+					CELL[1].GCLK_S[7] = 0b01000,
 					off = 0b00000,
 				}
 				mux CELL[1].OMUX_N15 @[MAIN[1][14], MAIN[1][15], MAIN[1][16], MAIN[1][17], MAIN[1][18]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
+					CELL[1].GCLK_S[0] = 0b10001,
+					CELL[1].GCLK_S[1] = 0b10010,
+					CELL[1].GCLK_S[2] = 0b10100,
+					CELL[1].GCLK_S[3] = 0b11000,
+					CELL[1].GCLK_S[4] = 0b00001,
+					CELL[1].GCLK_S[5] = 0b00010,
+					CELL[1].GCLK_S[6] = 0b00100,
+					CELL[1].GCLK_S[7] = 0b01000,
 					off = 0b00000,
 				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[0] @[MAIN[0][40], MAIN[0][35], MAIN[0][36], MAIN[0][37], MAIN[0][38], MAIN[0][39]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[0] = 0b000001,
+					CELL[0].DBL_W2[1] = 0b000010,
+					CELL[0].DBL_W2[2] = 0b000100,
+					CELL[0].DBL_E0[0] = 0b100001,
+					CELL[0].DBL_E0[1] = 0b100010,
+					CELL[0].DBL_E0[2] = 0b100100,
+					CELL[0].DBL_E1[0] = 0b101000,
+					CELL[0].DBL_E1[1] = 0b110000,
+					CELL[1].DBL_W0[0] = 0b001000,
+					CELL[1].DBL_W0[1] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[1] @[MAIN[0][52], MAIN[0][47], MAIN[0][48], MAIN[0][49], MAIN[0][50], MAIN[0][51]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[3] = 0b000001,
+					CELL[0].DBL_W2[4] = 0b000010,
+					CELL[0].DBL_E0[3] = 0b100001,
+					CELL[0].DBL_E0[4] = 0b100010,
+					CELL[0].DBL_E1[2] = 0b100100,
+					CELL[0].DBL_E1[3] = 0b101000,
+					CELL[0].DBL_E1[4] = 0b110000,
+					CELL[1].DBL_W0[2] = 0b000100,
+					CELL[1].DBL_W0[3] = 0b001000,
+					CELL[1].DBL_W0[4] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[2] @[MAIN[0][64], MAIN[0][59], MAIN[0][60], MAIN[0][61], MAIN[0][62], MAIN[0][63]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[5] = 0b000001,
+					CELL[0].DBL_W2[6] = 0b000010,
+					CELL[0].DBL_W2[7] = 0b000100,
+					CELL[0].DBL_E0[5] = 0b100001,
+					CELL[0].DBL_E0[6] = 0b100010,
+					CELL[0].DBL_E0[7] = 0b100100,
+					CELL[0].DBL_E1[5] = 0b101000,
+					CELL[0].DBL_E1[6] = 0b110000,
+					CELL[1].DBL_W0[5] = 0b001000,
+					CELL[1].DBL_W0[6] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[3] @[MAIN[0][76], MAIN[0][71], MAIN[0][72], MAIN[0][73], MAIN[0][74], MAIN[0][75]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[8] = 0b000001,
+					CELL[0].DBL_W2[9] = 0b000010,
+					CELL[0].DBL_E0[8] = 0b100001,
+					CELL[0].DBL_E0[9] = 0b100010,
+					CELL[0].DBL_E1[7] = 0b100100,
+					CELL[0].DBL_E1[8] = 0b101000,
+					CELL[0].DBL_E1[9] = 0b110000,
+					CELL[1].DBL_W0[7] = 0b000100,
+					CELL[1].DBL_W0[8] = 0b001000,
+					CELL[1].DBL_W0[9] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[4] @[MAIN[3][40], MAIN[3][35], MAIN[3][36], MAIN[3][37], MAIN[3][38], MAIN[3][39]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[0] = 0b000001,
+					CELL[0].DBL_W2[1] = 0b000010,
+					CELL[0].DBL_W2[2] = 0b000100,
+					CELL[0].DBL_E0[0] = 0b100001,
+					CELL[0].DBL_E0[1] = 0b100010,
+					CELL[0].DBL_E0[2] = 0b100100,
+					CELL[0].DBL_E1[0] = 0b101000,
+					CELL[0].DBL_E1[1] = 0b110000,
+					CELL[1].DBL_W0[0] = 0b001000,
+					CELL[1].DBL_W0[1] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[5] @[MAIN[3][52], MAIN[3][47], MAIN[3][48], MAIN[3][49], MAIN[3][50], MAIN[3][51]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[3] = 0b000001,
+					CELL[0].DBL_W2[4] = 0b000010,
+					CELL[0].DBL_E0[3] = 0b100001,
+					CELL[0].DBL_E0[4] = 0b100010,
+					CELL[0].DBL_E1[2] = 0b100100,
+					CELL[0].DBL_E1[3] = 0b101000,
+					CELL[0].DBL_E1[4] = 0b110000,
+					CELL[1].DBL_W0[2] = 0b000100,
+					CELL[1].DBL_W0[3] = 0b001000,
+					CELL[1].DBL_W0[4] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[6] @[MAIN[3][64], MAIN[3][59], MAIN[3][60], MAIN[3][61], MAIN[3][62], MAIN[3][63]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[5] = 0b000001,
+					CELL[0].DBL_W2[6] = 0b000010,
+					CELL[0].DBL_W2[7] = 0b000100,
+					CELL[0].DBL_E0[5] = 0b100001,
+					CELL[0].DBL_E0[6] = 0b100010,
+					CELL[0].DBL_E0[7] = 0b100100,
+					CELL[0].DBL_E1[5] = 0b101000,
+					CELL[0].DBL_E1[6] = 0b110000,
+					CELL[1].DBL_W0[5] = 0b001000,
+					CELL[1].DBL_W0[6] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[7] @[MAIN[3][76], MAIN[3][71], MAIN[3][72], MAIN[3][73], MAIN[3][74], MAIN[3][75]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[8] = 0b000001,
+					CELL[0].DBL_W2[9] = 0b000010,
+					CELL[0].DBL_E0[8] = 0b100001,
+					CELL[0].DBL_E0[9] = 0b100010,
+					CELL[0].DBL_E1[7] = 0b100100,
+					CELL[0].DBL_E1[8] = 0b101000,
+					CELL[0].DBL_E1[9] = 0b110000,
+					CELL[1].DBL_W0[7] = 0b000100,
+					CELL[1].DBL_W0[8] = 0b001000,
+					CELL[1].DBL_W0[9] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[0] @[MAIN[0][10], MAIN[0][9], MAIN[0][7], MAIN[0][8]] {
+					CELL[0].DCM_BUS[0] = 0b0001,
+					CELL[1].OUT_CLKPAD[0] = 0b0010,
+					CELL[1].DCM_BUS[0] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[0] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[1] @[MAIN[0][1], MAIN[0][2], MAIN[0][4], MAIN[0][3]] {
+					CELL[0].DCM_BUS[1] = 0b0001,
+					CELL[1].OUT_CLKPAD[1] = 0b0010,
+					CELL[1].DCM_BUS[1] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[1] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[2] @[MAIN[0][0], TERM[0][15], TERM[0][13], TERM[0][14]] {
+					CELL[0].DCM_BUS[2] = 0b0001,
+					CELL[1].OUT_CLKPAD[2] = 0b0010,
+					CELL[1].DCM_BUS[2] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[2] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[3] @[TERM[0][7], TERM[0][8], TERM[0][10], TERM[0][9]] {
+					CELL[0].DCM_BUS[3] = 0b0001,
+					CELL[1].OUT_CLKPAD[3] = 0b0010,
+					CELL[1].DCM_BUS[3] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[3] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[4] @[MAIN[3][10], MAIN[3][9], MAIN[3][8], MAIN[3][7]] {
+					CELL[0].OUT_CLKPAD[0] = 0b0001,
+					CELL[0].DCM_BUS[4] = 0b0010,
+					CELL[1].DCM_BUS[4] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[4] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[5] @[MAIN[3][1], MAIN[3][2], MAIN[3][3], MAIN[3][4]] {
+					CELL[0].OUT_CLKPAD[1] = 0b0001,
+					CELL[0].DCM_BUS[5] = 0b0010,
+					CELL[1].DCM_BUS[5] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[5] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[6] @[MAIN[3][0], TERM[3][15], TERM[3][14], TERM[3][13]] {
+					CELL[0].OUT_CLKPAD[2] = 0b0001,
+					CELL[0].DCM_BUS[6] = 0b0010,
+					CELL[1].DCM_BUS[6] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[6] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[7] @[TERM[3][7], TERM[3][8], TERM[3][9], TERM[3][10]] {
+					CELL[0].OUT_CLKPAD[3] = 0b0001,
+					CELL[0].DCM_BUS[7] = 0b0010,
+					CELL[1].DCM_BUS[7] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[7] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[0] @[MAIN[1][35], MAIN[1][36], MAIN[1][37], MAIN[1][38], MAIN[1][39], MAIN[1][40]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[0] = 0b000001,
+					CELL[0].DBL_W2[1] = 0b000010,
+					CELL[0].DBL_W2[2] = 0b000100,
+					CELL[0].DBL_E0[0] = 0b100001,
+					CELL[0].DBL_E0[1] = 0b100010,
+					CELL[0].DBL_E0[2] = 0b100100,
+					CELL[0].DBL_E1[0] = 0b101000,
+					CELL[0].DBL_E1[1] = 0b110000,
+					CELL[1].DBL_W0[0] = 0b001000,
+					CELL[1].DBL_W0[1] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[1] @[MAIN[1][47], MAIN[1][48], MAIN[1][49], MAIN[1][50], MAIN[1][51], MAIN[1][52]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[3] = 0b000001,
+					CELL[0].DBL_W2[4] = 0b000010,
+					CELL[0].DBL_E0[3] = 0b100001,
+					CELL[0].DBL_E0[4] = 0b100010,
+					CELL[0].DBL_E1[2] = 0b100100,
+					CELL[0].DBL_E1[3] = 0b101000,
+					CELL[0].DBL_E1[4] = 0b110000,
+					CELL[1].DBL_W0[2] = 0b000100,
+					CELL[1].DBL_W0[3] = 0b001000,
+					CELL[1].DBL_W0[4] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[2] @[MAIN[1][59], MAIN[1][60], MAIN[1][61], MAIN[1][62], MAIN[1][63], MAIN[1][64]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[5] = 0b000001,
+					CELL[0].DBL_W2[6] = 0b000010,
+					CELL[0].DBL_W2[7] = 0b000100,
+					CELL[0].DBL_E0[5] = 0b100001,
+					CELL[0].DBL_E0[6] = 0b100010,
+					CELL[0].DBL_E0[7] = 0b100100,
+					CELL[0].DBL_E1[5] = 0b101000,
+					CELL[0].DBL_E1[6] = 0b110000,
+					CELL[1].DBL_W0[5] = 0b001000,
+					CELL[1].DBL_W0[6] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[3] @[MAIN[1][71], MAIN[1][72], MAIN[1][73], MAIN[1][74], MAIN[1][75], MAIN[1][76]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[8] = 0b000001,
+					CELL[0].DBL_W2[9] = 0b000010,
+					CELL[0].DBL_E0[8] = 0b100001,
+					CELL[0].DBL_E0[9] = 0b100010,
+					CELL[0].DBL_E1[7] = 0b100100,
+					CELL[0].DBL_E1[8] = 0b101000,
+					CELL[0].DBL_E1[9] = 0b110000,
+					CELL[1].DBL_W0[7] = 0b000100,
+					CELL[1].DBL_W0[8] = 0b001000,
+					CELL[1].DBL_W0[9] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[4] @[MAIN[2][35], MAIN[2][36], MAIN[2][37], MAIN[2][38], MAIN[2][39], MAIN[2][40]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[0] = 0b000001,
+					CELL[0].DBL_W2[1] = 0b000010,
+					CELL[0].DBL_W2[2] = 0b000100,
+					CELL[0].DBL_E0[0] = 0b100001,
+					CELL[0].DBL_E0[1] = 0b100010,
+					CELL[0].DBL_E0[2] = 0b100100,
+					CELL[0].DBL_E1[0] = 0b101000,
+					CELL[0].DBL_E1[1] = 0b110000,
+					CELL[1].DBL_W0[0] = 0b001000,
+					CELL[1].DBL_W0[1] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[5] @[MAIN[2][47], MAIN[2][48], MAIN[2][49], MAIN[2][50], MAIN[2][51], MAIN[2][52]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[3] = 0b000001,
+					CELL[0].DBL_W2[4] = 0b000010,
+					CELL[0].DBL_E0[3] = 0b100001,
+					CELL[0].DBL_E0[4] = 0b100010,
+					CELL[0].DBL_E1[2] = 0b100100,
+					CELL[0].DBL_E1[3] = 0b101000,
+					CELL[0].DBL_E1[4] = 0b110000,
+					CELL[1].DBL_W0[2] = 0b000100,
+					CELL[1].DBL_W0[3] = 0b001000,
+					CELL[1].DBL_W0[4] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[6] @[MAIN[2][59], MAIN[2][60], MAIN[2][61], MAIN[2][62], MAIN[2][63], MAIN[2][64]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[5] = 0b000001,
+					CELL[0].DBL_W2[6] = 0b000010,
+					CELL[0].DBL_W2[7] = 0b000100,
+					CELL[0].DBL_E0[5] = 0b100001,
+					CELL[0].DBL_E0[6] = 0b100010,
+					CELL[0].DBL_E0[7] = 0b100100,
+					CELL[0].DBL_E1[5] = 0b101000,
+					CELL[0].DBL_E1[6] = 0b110000,
+					CELL[1].DBL_W0[5] = 0b001000,
+					CELL[1].DBL_W0[6] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[7] @[MAIN[2][71], MAIN[2][72], MAIN[2][73], MAIN[2][74], MAIN[2][75], MAIN[2][76]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[8] = 0b000001,
+					CELL[0].DBL_W2[9] = 0b000010,
+					CELL[0].DBL_E0[8] = 0b100001,
+					CELL[0].DBL_E0[9] = 0b100010,
+					CELL[0].DBL_E1[7] = 0b100100,
+					CELL[0].DBL_E1[8] = 0b101000,
+					CELL[0].DBL_E1[9] = 0b110000,
+					CELL[1].DBL_W0[7] = 0b000100,
+					CELL[1].DBL_W0[8] = 0b001000,
+					CELL[1].DBL_W0[9] = 0b010000,
+				}
+				permabuf CELL[0].DCM_CLKPAD[0] = CELL[0].OUT_CLKPAD[0];
+				permabuf CELL[0].DCM_CLKPAD[1] = CELL[0].OUT_CLKPAD[1];
+				permabuf CELL[0].DCM_CLKPAD[2] = CELL[0].OUT_CLKPAD[2];
+				permabuf CELL[0].DCM_CLKPAD[3] = CELL[0].OUT_CLKPAD[3];
+				permabuf CELL[0].DCM_CLKPAD[4] = CELL[1].OUT_CLKPAD[0];
+				permabuf CELL[0].DCM_CLKPAD[5] = CELL[1].OUT_CLKPAD[1];
+				permabuf CELL[0].DCM_CLKPAD[6] = CELL[1].OUT_CLKPAD[2];
+				permabuf CELL[0].DCM_CLKPAD[7] = CELL[1].OUT_CLKPAD[3];
+				permabuf CELL[1].DCM_CLKPAD[0] = CELL[1].OUT_CLKPAD[0];
+				permabuf CELL[1].DCM_CLKPAD[1] = CELL[1].OUT_CLKPAD[1];
+				permabuf CELL[1].DCM_CLKPAD[2] = CELL[1].OUT_CLKPAD[2];
+				permabuf CELL[1].DCM_CLKPAD[3] = CELL[1].OUT_CLKPAD[3];
+				permabuf CELL[1].DCM_CLKPAD[4] = CELL[0].OUT_CLKPAD[0];
+				permabuf CELL[1].DCM_CLKPAD[5] = CELL[0].OUT_CLKPAD[1];
+				permabuf CELL[1].DCM_CLKPAD[6] = CELL[0].OUT_CLKPAD[2];
+				permabuf CELL[1].DCM_CLKPAD[7] = CELL[0].OUT_CLKPAD[3];
 			}
 
 			bel BUFGMUX[0] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[0];
-				output O = CELL[0].OUT_BUFG[0];
-				input S = CELL[0].IMUX_BUFG_SEL[0];
+				input I0 = CELL[1].IMUX_BUFG_CLK[0];
+				input I1 = CELL[1].IMUX_BUFG_CLK[1];
+				input S = ^CELL[1].IMUX_BUFG_SEL[0] @!MAIN[1][34];
+				output O = CELL[1].GCLK_S[0];
+				attribute INIT_OUT @[MAIN[0][6]];
 			}
 
 			bel BUFGMUX[1] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[1];
-				output O = CELL[0].OUT_BUFG[1];
-				input S = CELL[0].IMUX_BUFG_SEL[1];
+				input I0 = CELL[1].IMUX_BUFG_CLK[1];
+				input I1 = CELL[1].IMUX_BUFG_CLK[0];
+				input S = ^CELL[1].IMUX_BUFG_SEL[1] @!MAIN[1][46];
+				output O = CELL[1].GCLK_S[1];
+				attribute INIT_OUT @[MAIN[0][5]];
 			}
 
 			bel BUFGMUX[2] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[2];
-				output O = CELL[0].OUT_BUFG[2];
-				input S = CELL[0].IMUX_BUFG_SEL[2];
+				input I0 = CELL[1].IMUX_BUFG_CLK[2];
+				input I1 = CELL[1].IMUX_BUFG_CLK[3];
+				input S = ^CELL[1].IMUX_BUFG_SEL[2] @!MAIN[1][58];
+				output O = CELL[1].GCLK_S[2];
+				attribute INIT_OUT @[TERM[0][12]];
 			}
 
 			bel BUFGMUX[3] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[3];
-				output O = CELL[0].OUT_BUFG[3];
-				input S = CELL[0].IMUX_BUFG_SEL[3];
+				input I0 = CELL[1].IMUX_BUFG_CLK[3];
+				input I1 = CELL[1].IMUX_BUFG_CLK[2];
+				input S = ^CELL[1].IMUX_BUFG_SEL[3] @!MAIN[1][70];
+				output O = CELL[1].GCLK_S[3];
+				attribute INIT_OUT @[TERM[0][11]];
 			}
 
 			bel BUFGMUX[4] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[4];
-				output O = CELL[0].OUT_BUFG[4];
-				input S = CELL[0].IMUX_BUFG_SEL[4];
+				input I0 = CELL[1].IMUX_BUFG_CLK[4];
+				input I1 = CELL[1].IMUX_BUFG_CLK[5];
+				input S = ^CELL[1].IMUX_BUFG_SEL[4] @!MAIN[2][34];
+				output O = CELL[1].GCLK_S[4];
+				attribute INIT_OUT @[MAIN[3][6]];
 			}
 
 			bel BUFGMUX[5] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[5];
-				output O = CELL[0].OUT_BUFG[5];
-				input S = CELL[0].IMUX_BUFG_SEL[5];
+				input I0 = CELL[1].IMUX_BUFG_CLK[5];
+				input I1 = CELL[1].IMUX_BUFG_CLK[4];
+				input S = ^CELL[1].IMUX_BUFG_SEL[5] @!MAIN[2][46];
+				output O = CELL[1].GCLK_S[5];
+				attribute INIT_OUT @[MAIN[3][5]];
 			}
 
 			bel BUFGMUX[6] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[6];
-				output O = CELL[0].OUT_BUFG[6];
-				input S = CELL[0].IMUX_BUFG_SEL[6];
+				input I0 = CELL[1].IMUX_BUFG_CLK[6];
+				input I1 = CELL[1].IMUX_BUFG_CLK[7];
+				input S = ^CELL[1].IMUX_BUFG_SEL[6] @!MAIN[2][58];
+				output O = CELL[1].GCLK_S[6];
+				attribute INIT_OUT @[TERM[3][12]];
 			}
 
 			bel BUFGMUX[7] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[7];
-				output O = CELL[0].OUT_BUFG[7];
-				input S = CELL[0].IMUX_BUFG_SEL[7];
+				input I0 = CELL[1].IMUX_BUFG_CLK[7];
+				input I1 = CELL[1].IMUX_BUFG_CLK[6];
+				input S = ^CELL[1].IMUX_BUFG_SEL[7] @!MAIN[2][70];
+				output O = CELL[1].GCLK_S[7];
+				attribute INIT_OUT @[TERM[3][11]];
 			}
 
-			bel GLOBALSIG_S[0] {
+			bel GLOBALSIG_BUFG[0] {
+				attribute GWE_ENABLE @!TERM[0][6];
 			}
 
-			bel GLOBALSIG_S[1] {
+			bel GLOBALSIG_BUFG[1] {
+				attribute GWE_ENABLE @!TERM[3][6];
 			}
 
-			// wire CELL[0].IMUX_BUFG_CLK[0]       BUFGMUX[0].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[1]       BUFGMUX[1].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[2]       BUFGMUX[2].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[3]       BUFGMUX[3].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[4]       BUFGMUX[4].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[5]       BUFGMUX[5].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[6]       BUFGMUX[6].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[7]       BUFGMUX[7].CLK
-			// wire CELL[0].IMUX_BUFG_SEL[0]       BUFGMUX[0].S
-			// wire CELL[0].IMUX_BUFG_SEL[1]       BUFGMUX[1].S
-			// wire CELL[0].IMUX_BUFG_SEL[2]       BUFGMUX[2].S
-			// wire CELL[0].IMUX_BUFG_SEL[3]       BUFGMUX[3].S
-			// wire CELL[0].IMUX_BUFG_SEL[4]       BUFGMUX[4].S
-			// wire CELL[0].IMUX_BUFG_SEL[5]       BUFGMUX[5].S
-			// wire CELL[0].IMUX_BUFG_SEL[6]       BUFGMUX[6].S
-			// wire CELL[0].IMUX_BUFG_SEL[7]       BUFGMUX[7].S
-			// wire CELL[0].OUT_BUFG[0]            BUFGMUX[0].O
-			// wire CELL[0].OUT_BUFG[1]            BUFGMUX[1].O
-			// wire CELL[0].OUT_BUFG[2]            BUFGMUX[2].O
-			// wire CELL[0].OUT_BUFG[3]            BUFGMUX[3].O
-			// wire CELL[0].OUT_BUFG[4]            BUFGMUX[4].O
-			// wire CELL[0].OUT_BUFG[5]            BUFGMUX[5].O
-			// wire CELL[0].OUT_BUFG[6]            BUFGMUX[6].O
-			// wire CELL[0].OUT_BUFG[7]            BUFGMUX[7].O
+			// wire CELL[1].GCLK_S[0]              BUFGMUX[0].O
+			// wire CELL[1].GCLK_S[1]              BUFGMUX[1].O
+			// wire CELL[1].GCLK_S[2]              BUFGMUX[2].O
+			// wire CELL[1].GCLK_S[3]              BUFGMUX[3].O
+			// wire CELL[1].GCLK_S[4]              BUFGMUX[4].O
+			// wire CELL[1].GCLK_S[5]              BUFGMUX[5].O
+			// wire CELL[1].GCLK_S[6]              BUFGMUX[6].O
+			// wire CELL[1].GCLK_S[7]              BUFGMUX[7].O
+			// wire CELL[1].IMUX_BUFG_CLK[0]       BUFGMUX[0].I0 BUFGMUX[1].I1
+			// wire CELL[1].IMUX_BUFG_CLK[1]       BUFGMUX[0].I1 BUFGMUX[1].I0
+			// wire CELL[1].IMUX_BUFG_CLK[2]       BUFGMUX[2].I0 BUFGMUX[3].I1
+			// wire CELL[1].IMUX_BUFG_CLK[3]       BUFGMUX[2].I1 BUFGMUX[3].I0
+			// wire CELL[1].IMUX_BUFG_CLK[4]       BUFGMUX[4].I0 BUFGMUX[5].I1
+			// wire CELL[1].IMUX_BUFG_CLK[5]       BUFGMUX[4].I1 BUFGMUX[5].I0
+			// wire CELL[1].IMUX_BUFG_CLK[6]       BUFGMUX[6].I0 BUFGMUX[7].I1
+			// wire CELL[1].IMUX_BUFG_CLK[7]       BUFGMUX[6].I1 BUFGMUX[7].I0
+			// wire CELL[1].IMUX_BUFG_SEL[0]       BUFGMUX[0].S
+			// wire CELL[1].IMUX_BUFG_SEL[1]       BUFGMUX[1].S
+			// wire CELL[1].IMUX_BUFG_SEL[2]       BUFGMUX[2].S
+			// wire CELL[1].IMUX_BUFG_SEL[3]       BUFGMUX[3].S
+			// wire CELL[1].IMUX_BUFG_SEL[4]       BUFGMUX[4].S
+			// wire CELL[1].IMUX_BUFG_SEL[5]       BUFGMUX[5].S
+			// wire CELL[1].IMUX_BUFG_SEL[6]       BUFGMUX[6].S
+			// wire CELL[1].IMUX_BUFG_SEL[7]       BUFGMUX[7].S
 		}
 
-		tile_class CLK_S_V2P {
-			cell CELL[0];
-			cell CELL[1];
-			bitrect MAIN: Vertical (4, rev 80);
-			bitrect TERM: Vertical (4, rev 16);
-
-			switchbox CLK_INT {
-				mux CELL[0].OMUX_N10 @[MAIN[3][28], MAIN[3][24], MAIN[3][25], MAIN[3][26], MAIN[3][27]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_N11 @[MAIN[2][24], MAIN[2][25], MAIN[2][26], MAIN[2][27], MAIN[2][28]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_N12 @[MAIN[3][18], MAIN[3][14], MAIN[3][15], MAIN[3][16], MAIN[3][17]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_N15 @[MAIN[2][14], MAIN[2][15], MAIN[2][16], MAIN[2][17], MAIN[2][18]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[0] @[MAIN[0][40], MAIN[0][35], MAIN[0][36], MAIN[0][37], MAIN[0][38], MAIN[0][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[1] @[MAIN[0][52], MAIN[0][47], MAIN[0][48], MAIN[0][49], MAIN[0][50], MAIN[0][51]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[2] @[MAIN[0][64], MAIN[0][59], MAIN[0][60], MAIN[0][61], MAIN[0][62], MAIN[0][63]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[3] @[MAIN[0][76], MAIN[0][71], MAIN[0][72], MAIN[0][73], MAIN[0][74], MAIN[0][75]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[4] @[MAIN[3][40], MAIN[3][35], MAIN[3][36], MAIN[3][37], MAIN[3][38], MAIN[3][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[5] @[MAIN[3][52], MAIN[3][47], MAIN[3][48], MAIN[3][49], MAIN[3][50], MAIN[3][51]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[6] @[MAIN[3][64], MAIN[3][59], MAIN[3][60], MAIN[3][61], MAIN[3][62], MAIN[3][63]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[7] @[MAIN[3][76], MAIN[3][71], MAIN[3][72], MAIN[3][73], MAIN[3][74], MAIN[3][75]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[0] @[MAIN[1][35], MAIN[1][36], MAIN[1][37], MAIN[1][38], MAIN[1][39], MAIN[1][40]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[1] @[MAIN[1][47], MAIN[1][48], MAIN[1][49], MAIN[1][50], MAIN[1][51], MAIN[1][52]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[2] @[MAIN[1][59], MAIN[1][60], MAIN[1][61], MAIN[1][62], MAIN[1][63], MAIN[1][64]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[3] @[MAIN[1][71], MAIN[1][72], MAIN[1][73], MAIN[1][74], MAIN[1][75], MAIN[1][76]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[4] @[MAIN[2][35], MAIN[2][36], MAIN[2][37], MAIN[2][38], MAIN[2][39], MAIN[2][40]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[5] @[MAIN[2][47], MAIN[2][48], MAIN[2][49], MAIN[2][50], MAIN[2][51], MAIN[2][52]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[6] @[MAIN[2][59], MAIN[2][60], MAIN[2][61], MAIN[2][62], MAIN[2][63], MAIN[2][64]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[7] @[MAIN[2][71], MAIN[2][72], MAIN[2][73], MAIN[2][74], MAIN[2][75], MAIN[2][76]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[1].OMUX_N10 @[MAIN[0][28], MAIN[0][24], MAIN[0][25], MAIN[0][26], MAIN[0][27]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_N11 @[MAIN[1][24], MAIN[1][25], MAIN[1][26], MAIN[1][27], MAIN[1][28]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_N12 @[MAIN[0][18], MAIN[0][14], MAIN[0][15], MAIN[0][16], MAIN[0][17]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_N15 @[MAIN[1][14], MAIN[1][15], MAIN[1][16], MAIN[1][17], MAIN[1][18]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-			}
-
-			bel BUFGMUX[0] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[0];
-				output O = CELL[0].OUT_BUFG[0];
-				input S = CELL[0].IMUX_BUFG_SEL[0];
-			}
-
-			bel BUFGMUX[1] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[1];
-				output O = CELL[0].OUT_BUFG[1];
-				input S = CELL[0].IMUX_BUFG_SEL[1];
-			}
-
-			bel BUFGMUX[2] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[2];
-				output O = CELL[0].OUT_BUFG[2];
-				input S = CELL[0].IMUX_BUFG_SEL[2];
-			}
-
-			bel BUFGMUX[3] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[3];
-				output O = CELL[0].OUT_BUFG[3];
-				input S = CELL[0].IMUX_BUFG_SEL[3];
-			}
-
-			bel BUFGMUX[4] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[4];
-				output O = CELL[0].OUT_BUFG[4];
-				input S = CELL[0].IMUX_BUFG_SEL[4];
-			}
-
-			bel BUFGMUX[5] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[5];
-				output O = CELL[0].OUT_BUFG[5];
-				input S = CELL[0].IMUX_BUFG_SEL[5];
-			}
-
-			bel BUFGMUX[6] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[6];
-				output O = CELL[0].OUT_BUFG[6];
-				input S = CELL[0].IMUX_BUFG_SEL[6];
-			}
-
-			bel BUFGMUX[7] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[7];
-				output O = CELL[0].OUT_BUFG[7];
-				input S = CELL[0].IMUX_BUFG_SEL[7];
-			}
-
-			bel GLOBALSIG_S[0] {
-			}
-
-			bel GLOBALSIG_S[1] {
-			}
-
-			bel BREFCLK {
-			}
-
-			// wire CELL[0].IMUX_BUFG_CLK[0]       BUFGMUX[0].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[1]       BUFGMUX[1].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[2]       BUFGMUX[2].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[3]       BUFGMUX[3].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[4]       BUFGMUX[4].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[5]       BUFGMUX[5].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[6]       BUFGMUX[6].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[7]       BUFGMUX[7].CLK
-			// wire CELL[0].IMUX_BUFG_SEL[0]       BUFGMUX[0].S
-			// wire CELL[0].IMUX_BUFG_SEL[1]       BUFGMUX[1].S
-			// wire CELL[0].IMUX_BUFG_SEL[2]       BUFGMUX[2].S
-			// wire CELL[0].IMUX_BUFG_SEL[3]       BUFGMUX[3].S
-			// wire CELL[0].IMUX_BUFG_SEL[4]       BUFGMUX[4].S
-			// wire CELL[0].IMUX_BUFG_SEL[5]       BUFGMUX[5].S
-			// wire CELL[0].IMUX_BUFG_SEL[6]       BUFGMUX[6].S
-			// wire CELL[0].IMUX_BUFG_SEL[7]       BUFGMUX[7].S
-			// wire CELL[0].OUT_BUFG[0]            BUFGMUX[0].O
-			// wire CELL[0].OUT_BUFG[1]            BUFGMUX[1].O
-			// wire CELL[0].OUT_BUFG[2]            BUFGMUX[2].O
-			// wire CELL[0].OUT_BUFG[3]            BUFGMUX[3].O
-			// wire CELL[0].OUT_BUFG[4]            BUFGMUX[4].O
-			// wire CELL[0].OUT_BUFG[5]            BUFGMUX[5].O
-			// wire CELL[0].OUT_BUFG[6]            BUFGMUX[6].O
-			// wire CELL[0].OUT_BUFG[7]            BUFGMUX[7].O
-		}
-
-		tile_class CLK_S_V2PX {
-			cell CELL[0];
-			cell CELL[1];
-			bitrect MAIN: Vertical (4, rev 80);
-			bitrect TERM: Vertical (4, rev 16);
-
-			switchbox CLK_INT {
-				mux CELL[0].OMUX_N10 @[MAIN[3][28], MAIN[3][24], MAIN[3][25], MAIN[3][26], MAIN[3][27]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_N11 @[MAIN[2][24], MAIN[2][25], MAIN[2][26], MAIN[2][27], MAIN[2][28]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_N12 @[MAIN[3][18], MAIN[3][14], MAIN[3][15], MAIN[3][16], MAIN[3][17]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_N15 @[MAIN[2][14], MAIN[2][15], MAIN[2][16], MAIN[2][17], MAIN[2][18]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[0] @[MAIN[0][40], MAIN[0][35], MAIN[0][36], MAIN[0][37], MAIN[0][38], MAIN[0][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[1] @[MAIN[0][52], MAIN[0][47], MAIN[0][48], MAIN[0][49], MAIN[0][50], MAIN[0][51]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[2] @[MAIN[0][64], MAIN[0][59], MAIN[0][60], MAIN[0][61], MAIN[0][62], MAIN[0][63]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[3] @[MAIN[0][76], MAIN[0][71], MAIN[0][72], MAIN[0][73], MAIN[0][74], MAIN[0][75]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[4] @[MAIN[3][40], MAIN[3][35], MAIN[3][36], MAIN[3][37], MAIN[3][38], MAIN[3][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[5] @[MAIN[3][52], MAIN[3][47], MAIN[3][48], MAIN[3][49], MAIN[3][50], MAIN[3][51]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[6] @[MAIN[3][64], MAIN[3][59], MAIN[3][60], MAIN[3][61], MAIN[3][62], MAIN[3][63]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[7] @[MAIN[3][76], MAIN[3][71], MAIN[3][72], MAIN[3][73], MAIN[3][74], MAIN[3][75]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[0] @[MAIN[1][35], MAIN[1][36], MAIN[1][37], MAIN[1][38], MAIN[1][39], MAIN[1][40]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[1] @[MAIN[1][47], MAIN[1][48], MAIN[1][49], MAIN[1][50], MAIN[1][51], MAIN[1][52]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[2] @[MAIN[1][59], MAIN[1][60], MAIN[1][61], MAIN[1][62], MAIN[1][63], MAIN[1][64]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[3] @[MAIN[1][71], MAIN[1][72], MAIN[1][73], MAIN[1][74], MAIN[1][75], MAIN[1][76]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[4] @[MAIN[2][35], MAIN[2][36], MAIN[2][37], MAIN[2][38], MAIN[2][39], MAIN[2][40]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[5] @[MAIN[2][47], MAIN[2][48], MAIN[2][49], MAIN[2][50], MAIN[2][51], MAIN[2][52]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[6] @[MAIN[2][59], MAIN[2][60], MAIN[2][61], MAIN[2][62], MAIN[2][63], MAIN[2][64]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[7] @[MAIN[2][71], MAIN[2][72], MAIN[2][73], MAIN[2][74], MAIN[2][75], MAIN[2][76]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[1].OMUX_N10 @[MAIN[0][28], MAIN[0][24], MAIN[0][25], MAIN[0][26], MAIN[0][27]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_N11 @[MAIN[1][24], MAIN[1][25], MAIN[1][26], MAIN[1][27], MAIN[1][28]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_N12 @[MAIN[0][18], MAIN[0][14], MAIN[0][15], MAIN[0][16], MAIN[0][17]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_N15 @[MAIN[1][14], MAIN[1][15], MAIN[1][16], MAIN[1][17], MAIN[1][18]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-			}
-
-			bel BUFGMUX[0] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[0];
-				output O = CELL[0].OUT_BUFG[0];
-				input S = CELL[0].IMUX_BUFG_SEL[0];
-			}
-
-			bel BUFGMUX[1] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[1];
-				output O = CELL[0].OUT_BUFG[1];
-				input S = CELL[0].IMUX_BUFG_SEL[1];
-			}
-
-			bel BUFGMUX[2] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[2];
-				output O = CELL[0].OUT_BUFG[2];
-				input S = CELL[0].IMUX_BUFG_SEL[2];
-			}
-
-			bel BUFGMUX[3] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[3];
-				output O = CELL[0].OUT_BUFG[3];
-				input S = CELL[0].IMUX_BUFG_SEL[3];
-			}
-
-			bel BUFGMUX[4] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[4];
-				output O = CELL[0].OUT_BUFG[4];
-				input S = CELL[0].IMUX_BUFG_SEL[4];
-			}
-
-			bel BUFGMUX[5] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[5];
-				output O = CELL[0].OUT_BUFG[5];
-				input S = CELL[0].IMUX_BUFG_SEL[5];
-			}
-
-			bel BUFGMUX[6] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[6];
-				output O = CELL[0].OUT_BUFG[6];
-				input S = CELL[0].IMUX_BUFG_SEL[6];
-			}
-
-			bel BUFGMUX[7] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[7];
-				output O = CELL[0].OUT_BUFG[7];
-				input S = CELL[0].IMUX_BUFG_SEL[7];
-			}
-
-			bel GLOBALSIG_S[0] {
-			}
-
-			bel GLOBALSIG_S[1] {
-			}
-
-			// wire CELL[0].IMUX_BUFG_CLK[0]       BUFGMUX[0].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[1]       BUFGMUX[1].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[2]       BUFGMUX[2].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[3]       BUFGMUX[3].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[4]       BUFGMUX[4].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[5]       BUFGMUX[5].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[6]       BUFGMUX[6].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[7]       BUFGMUX[7].CLK
-			// wire CELL[0].IMUX_BUFG_SEL[0]       BUFGMUX[0].S
-			// wire CELL[0].IMUX_BUFG_SEL[1]       BUFGMUX[1].S
-			// wire CELL[0].IMUX_BUFG_SEL[2]       BUFGMUX[2].S
-			// wire CELL[0].IMUX_BUFG_SEL[3]       BUFGMUX[3].S
-			// wire CELL[0].IMUX_BUFG_SEL[4]       BUFGMUX[4].S
-			// wire CELL[0].IMUX_BUFG_SEL[5]       BUFGMUX[5].S
-			// wire CELL[0].IMUX_BUFG_SEL[6]       BUFGMUX[6].S
-			// wire CELL[0].IMUX_BUFG_SEL[7]       BUFGMUX[7].S
-			// wire CELL[0].OUT_BUFG[0]            BUFGMUX[0].O
-			// wire CELL[0].OUT_BUFG[1]            BUFGMUX[1].O
-			// wire CELL[0].OUT_BUFG[2]            BUFGMUX[2].O
-			// wire CELL[0].OUT_BUFG[3]            BUFGMUX[3].O
-			// wire CELL[0].OUT_BUFG[4]            BUFGMUX[4].O
-			// wire CELL[0].OUT_BUFG[5]            BUFGMUX[5].O
-			// wire CELL[0].OUT_BUFG[6]            BUFGMUX[6].O
-			// wire CELL[0].OUT_BUFG[7]            BUFGMUX[7].O
-		}
-
-		tile_class CLK_N_V2 {
+		tile_class CLK_N {
 			cell CELL[0];
 			cell CELL[1];
 			bitrect MAIN: Vertical (4, rev 80);
@@ -108141,1226 +107355,503 @@ intdb {
 
 			switchbox CLK_INT {
 				mux CELL[0].OMUX_S0 @[MAIN[3][50], MAIN[3][54], MAIN[3][53], MAIN[3][52], MAIN[3][51]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
+					CELL[1].GCLK_N[0] = 0b00001,
+					CELL[1].GCLK_N[1] = 0b00010,
+					CELL[1].GCLK_N[2] = 0b00100,
+					CELL[1].GCLK_N[3] = 0b01000,
+					CELL[1].GCLK_N[4] = 0b10001,
+					CELL[1].GCLK_N[5] = 0b10010,
+					CELL[1].GCLK_N[6] = 0b10100,
+					CELL[1].GCLK_N[7] = 0b11000,
 					off = 0b00000,
 				}
 				mux CELL[0].OMUX_S3 @[MAIN[2][54], MAIN[2][53], MAIN[2][52], MAIN[2][51], MAIN[2][50]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
+					CELL[1].GCLK_N[0] = 0b00001,
+					CELL[1].GCLK_N[1] = 0b00010,
+					CELL[1].GCLK_N[2] = 0b00100,
+					CELL[1].GCLK_N[3] = 0b01000,
+					CELL[1].GCLK_N[4] = 0b10001,
+					CELL[1].GCLK_N[5] = 0b10010,
+					CELL[1].GCLK_N[6] = 0b10100,
+					CELL[1].GCLK_N[7] = 0b11000,
 					off = 0b00000,
 				}
 				mux CELL[0].OMUX_S4 @[MAIN[3][60], MAIN[3][64], MAIN[3][63], MAIN[3][62], MAIN[3][61]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
+					CELL[1].GCLK_N[0] = 0b00001,
+					CELL[1].GCLK_N[1] = 0b00010,
+					CELL[1].GCLK_N[2] = 0b00100,
+					CELL[1].GCLK_N[3] = 0b01000,
+					CELL[1].GCLK_N[4] = 0b10001,
+					CELL[1].GCLK_N[5] = 0b10010,
+					CELL[1].GCLK_N[6] = 0b10100,
+					CELL[1].GCLK_N[7] = 0b11000,
 					off = 0b00000,
 				}
 				mux CELL[0].OMUX_S5 @[MAIN[2][64], MAIN[2][63], MAIN[2][62], MAIN[2][61], MAIN[2][60]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
+					CELL[1].GCLK_N[0] = 0b00001,
+					CELL[1].GCLK_N[1] = 0b00010,
+					CELL[1].GCLK_N[2] = 0b00100,
+					CELL[1].GCLK_N[3] = 0b01000,
+					CELL[1].GCLK_N[4] = 0b10001,
+					CELL[1].GCLK_N[5] = 0b10010,
+					CELL[1].GCLK_N[6] = 0b10100,
+					CELL[1].GCLK_N[7] = 0b11000,
 					off = 0b00000,
 				}
-				mux CELL[0].IMUX_BUFG_CLK[0] @[MAIN[0][2], MAIN[0][7], MAIN[0][6], MAIN[0][5], MAIN[0][4], MAIN[0][3]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[1] @[MAIN[0][14], MAIN[0][19], MAIN[0][18], MAIN[0][17], MAIN[0][16], MAIN[0][15]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[2] @[MAIN[0][26], MAIN[0][31], MAIN[0][30], MAIN[0][29], MAIN[0][28], MAIN[0][27]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[3] @[MAIN[0][38], MAIN[0][43], MAIN[0][42], MAIN[0][41], MAIN[0][40], MAIN[0][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[4] @[MAIN[3][2], MAIN[3][7], MAIN[3][6], MAIN[3][5], MAIN[3][4], MAIN[3][3]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[5] @[MAIN[3][14], MAIN[3][19], MAIN[3][18], MAIN[3][17], MAIN[3][16], MAIN[3][15]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[6] @[MAIN[3][26], MAIN[3][31], MAIN[3][30], MAIN[3][29], MAIN[3][28], MAIN[3][27]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[7] @[MAIN[3][38], MAIN[3][43], MAIN[3][42], MAIN[3][41], MAIN[3][40], MAIN[3][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[0] @[MAIN[1][7], MAIN[1][6], MAIN[1][5], MAIN[1][4], MAIN[1][3], MAIN[1][2]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[1] @[MAIN[1][19], MAIN[1][18], MAIN[1][17], MAIN[1][16], MAIN[1][15], MAIN[1][14]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[2] @[MAIN[1][31], MAIN[1][30], MAIN[1][29], MAIN[1][28], MAIN[1][27], MAIN[1][26]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[3] @[MAIN[1][43], MAIN[1][42], MAIN[1][41], MAIN[1][40], MAIN[1][39], MAIN[1][38]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[4] @[MAIN[2][7], MAIN[2][6], MAIN[2][5], MAIN[2][4], MAIN[2][3], MAIN[2][2]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[5] @[MAIN[2][19], MAIN[2][18], MAIN[2][17], MAIN[2][16], MAIN[2][15], MAIN[2][14]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[6] @[MAIN[2][31], MAIN[2][30], MAIN[2][29], MAIN[2][28], MAIN[2][27], MAIN[2][26]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[7] @[MAIN[2][43], MAIN[2][42], MAIN[2][41], MAIN[2][40], MAIN[2][39], MAIN[2][38]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
 				mux CELL[1].OMUX_S0 @[MAIN[0][50], MAIN[0][54], MAIN[0][53], MAIN[0][52], MAIN[0][51]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
+					CELL[1].GCLK_N[0] = 0b10001,
+					CELL[1].GCLK_N[1] = 0b10010,
+					CELL[1].GCLK_N[2] = 0b10100,
+					CELL[1].GCLK_N[3] = 0b11000,
+					CELL[1].GCLK_N[4] = 0b00001,
+					CELL[1].GCLK_N[5] = 0b00010,
+					CELL[1].GCLK_N[6] = 0b00100,
+					CELL[1].GCLK_N[7] = 0b01000,
 					off = 0b00000,
 				}
 				mux CELL[1].OMUX_S3 @[MAIN[1][54], MAIN[1][53], MAIN[1][52], MAIN[1][51], MAIN[1][50]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
+					CELL[1].GCLK_N[0] = 0b10001,
+					CELL[1].GCLK_N[1] = 0b10010,
+					CELL[1].GCLK_N[2] = 0b10100,
+					CELL[1].GCLK_N[3] = 0b11000,
+					CELL[1].GCLK_N[4] = 0b00001,
+					CELL[1].GCLK_N[5] = 0b00010,
+					CELL[1].GCLK_N[6] = 0b00100,
+					CELL[1].GCLK_N[7] = 0b01000,
 					off = 0b00000,
 				}
 				mux CELL[1].OMUX_S4 @[MAIN[0][60], MAIN[0][64], MAIN[0][63], MAIN[0][62], MAIN[0][61]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
+					CELL[1].GCLK_N[0] = 0b10001,
+					CELL[1].GCLK_N[1] = 0b10010,
+					CELL[1].GCLK_N[2] = 0b10100,
+					CELL[1].GCLK_N[3] = 0b11000,
+					CELL[1].GCLK_N[4] = 0b00001,
+					CELL[1].GCLK_N[5] = 0b00010,
+					CELL[1].GCLK_N[6] = 0b00100,
+					CELL[1].GCLK_N[7] = 0b01000,
 					off = 0b00000,
 				}
 				mux CELL[1].OMUX_S5 @[MAIN[1][64], MAIN[1][63], MAIN[1][62], MAIN[1][61], MAIN[1][60]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
+					CELL[1].GCLK_N[0] = 0b10001,
+					CELL[1].GCLK_N[1] = 0b10010,
+					CELL[1].GCLK_N[2] = 0b10100,
+					CELL[1].GCLK_N[3] = 0b11000,
+					CELL[1].GCLK_N[4] = 0b00001,
+					CELL[1].GCLK_N[5] = 0b00010,
+					CELL[1].GCLK_N[6] = 0b00100,
+					CELL[1].GCLK_N[7] = 0b01000,
 					off = 0b00000,
 				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[0] @[MAIN[0][2], MAIN[0][7], MAIN[0][6], MAIN[0][5], MAIN[0][4], MAIN[0][3]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[0] = 0b000001,
+					CELL[0].DBL_W2[1] = 0b000010,
+					CELL[0].DBL_W2[2] = 0b000100,
+					CELL[0].DBL_E0[0] = 0b100001,
+					CELL[0].DBL_E0[1] = 0b100010,
+					CELL[0].DBL_E0[2] = 0b100100,
+					CELL[0].DBL_E1[0] = 0b101000,
+					CELL[0].DBL_E1[1] = 0b110000,
+					CELL[1].DBL_W0[0] = 0b001000,
+					CELL[1].DBL_W0[1] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[1] @[MAIN[0][14], MAIN[0][19], MAIN[0][18], MAIN[0][17], MAIN[0][16], MAIN[0][15]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[3] = 0b000001,
+					CELL[0].DBL_W2[4] = 0b000010,
+					CELL[0].DBL_E0[3] = 0b100001,
+					CELL[0].DBL_E0[4] = 0b100010,
+					CELL[0].DBL_E1[2] = 0b100100,
+					CELL[0].DBL_E1[3] = 0b101000,
+					CELL[0].DBL_E1[4] = 0b110000,
+					CELL[1].DBL_W0[2] = 0b000100,
+					CELL[1].DBL_W0[3] = 0b001000,
+					CELL[1].DBL_W0[4] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[2] @[MAIN[0][26], MAIN[0][31], MAIN[0][30], MAIN[0][29], MAIN[0][28], MAIN[0][27]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[5] = 0b000001,
+					CELL[0].DBL_W2[6] = 0b000010,
+					CELL[0].DBL_W2[7] = 0b000100,
+					CELL[0].DBL_E0[5] = 0b100001,
+					CELL[0].DBL_E0[6] = 0b100010,
+					CELL[0].DBL_E0[7] = 0b100100,
+					CELL[0].DBL_E1[5] = 0b101000,
+					CELL[0].DBL_E1[6] = 0b110000,
+					CELL[1].DBL_W0[5] = 0b001000,
+					CELL[1].DBL_W0[6] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[3] @[MAIN[0][38], MAIN[0][43], MAIN[0][42], MAIN[0][41], MAIN[0][40], MAIN[0][39]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[8] = 0b000001,
+					CELL[0].DBL_W2[9] = 0b000010,
+					CELL[0].DBL_E0[8] = 0b100001,
+					CELL[0].DBL_E0[9] = 0b100010,
+					CELL[0].DBL_E1[7] = 0b100100,
+					CELL[0].DBL_E1[8] = 0b101000,
+					CELL[0].DBL_E1[9] = 0b110000,
+					CELL[1].DBL_W0[7] = 0b000100,
+					CELL[1].DBL_W0[8] = 0b001000,
+					CELL[1].DBL_W0[9] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[4] @[MAIN[3][2], MAIN[3][7], MAIN[3][6], MAIN[3][5], MAIN[3][4], MAIN[3][3]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[0] = 0b000001,
+					CELL[0].DBL_W2[1] = 0b000010,
+					CELL[0].DBL_W2[2] = 0b000100,
+					CELL[0].DBL_E0[0] = 0b100001,
+					CELL[0].DBL_E0[1] = 0b100010,
+					CELL[0].DBL_E0[2] = 0b100100,
+					CELL[0].DBL_E1[0] = 0b101000,
+					CELL[0].DBL_E1[1] = 0b110000,
+					CELL[1].DBL_W0[0] = 0b001000,
+					CELL[1].DBL_W0[1] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[5] @[MAIN[3][14], MAIN[3][19], MAIN[3][18], MAIN[3][17], MAIN[3][16], MAIN[3][15]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[3] = 0b000001,
+					CELL[0].DBL_W2[4] = 0b000010,
+					CELL[0].DBL_E0[3] = 0b100001,
+					CELL[0].DBL_E0[4] = 0b100010,
+					CELL[0].DBL_E1[2] = 0b100100,
+					CELL[0].DBL_E1[3] = 0b101000,
+					CELL[0].DBL_E1[4] = 0b110000,
+					CELL[1].DBL_W0[2] = 0b000100,
+					CELL[1].DBL_W0[3] = 0b001000,
+					CELL[1].DBL_W0[4] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[6] @[MAIN[3][26], MAIN[3][31], MAIN[3][30], MAIN[3][29], MAIN[3][28], MAIN[3][27]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[5] = 0b000001,
+					CELL[0].DBL_W2[6] = 0b000010,
+					CELL[0].DBL_W2[7] = 0b000100,
+					CELL[0].DBL_E0[5] = 0b100001,
+					CELL[0].DBL_E0[6] = 0b100010,
+					CELL[0].DBL_E0[7] = 0b100100,
+					CELL[0].DBL_E1[5] = 0b101000,
+					CELL[0].DBL_E1[6] = 0b110000,
+					CELL[1].DBL_W0[5] = 0b001000,
+					CELL[1].DBL_W0[6] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK_INT[7] @[MAIN[3][38], MAIN[3][43], MAIN[3][42], MAIN[3][41], MAIN[3][40], MAIN[3][39]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[8] = 0b000001,
+					CELL[0].DBL_W2[9] = 0b000010,
+					CELL[0].DBL_E0[8] = 0b100001,
+					CELL[0].DBL_E0[9] = 0b100010,
+					CELL[0].DBL_E1[7] = 0b100100,
+					CELL[0].DBL_E1[8] = 0b101000,
+					CELL[0].DBL_E1[9] = 0b110000,
+					CELL[1].DBL_W0[7] = 0b000100,
+					CELL[1].DBL_W0[8] = 0b001000,
+					CELL[1].DBL_W0[9] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[0] @[MAIN[0][68], MAIN[0][69], MAIN[0][71], MAIN[0][70]] {
+					CELL[0].DCM_BUS[0] = 0b0001,
+					CELL[1].OUT_CLKPAD[0] = 0b0010,
+					CELL[1].DCM_BUS[0] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[0] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[1] @[MAIN[0][77], MAIN[0][76], MAIN[0][74], MAIN[0][75]] {
+					CELL[0].DCM_BUS[1] = 0b0001,
+					CELL[1].OUT_CLKPAD[1] = 0b0010,
+					CELL[1].DCM_BUS[1] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[1] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[2] @[MAIN[0][78], MAIN[0][79], TERM[0][1], TERM[0][0]] {
+					CELL[0].DCM_BUS[2] = 0b0001,
+					CELL[1].OUT_CLKPAD[2] = 0b0010,
+					CELL[1].DCM_BUS[2] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[2] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[3] @[TERM[0][7], TERM[0][6], TERM[0][4], TERM[0][5]] {
+					CELL[0].DCM_BUS[3] = 0b0001,
+					CELL[1].OUT_CLKPAD[3] = 0b0010,
+					CELL[1].DCM_BUS[3] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[3] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[4] @[MAIN[3][68], MAIN[3][69], MAIN[3][70], MAIN[3][71]] {
+					CELL[0].OUT_CLKPAD[0] = 0b0001,
+					CELL[0].DCM_BUS[4] = 0b0010,
+					CELL[1].DCM_BUS[4] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[4] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[5] @[MAIN[3][77], MAIN[3][76], MAIN[3][75], MAIN[3][74]] {
+					CELL[0].OUT_CLKPAD[1] = 0b0001,
+					CELL[0].DCM_BUS[5] = 0b0010,
+					CELL[1].DCM_BUS[5] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[5] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[6] @[MAIN[3][78], MAIN[3][79], TERM[3][0], TERM[3][1]] {
+					CELL[0].OUT_CLKPAD[2] = 0b0001,
+					CELL[0].DCM_BUS[6] = 0b0010,
+					CELL[1].DCM_BUS[6] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[6] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_CLK[7] @[TERM[3][7], TERM[3][6], TERM[3][5], TERM[3][4]] {
+					CELL[0].OUT_CLKPAD[3] = 0b0001,
+					CELL[0].DCM_BUS[7] = 0b0010,
+					CELL[1].DCM_BUS[7] = 0b0100,
+					CELL[1].IMUX_BUFG_CLK_INT[7] = 0b1000,
+					off = 0b0000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[0] @[MAIN[1][7], MAIN[1][6], MAIN[1][5], MAIN[1][4], MAIN[1][3], MAIN[1][2]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[0] = 0b000001,
+					CELL[0].DBL_W2[1] = 0b000010,
+					CELL[0].DBL_W2[2] = 0b000100,
+					CELL[0].DBL_E0[0] = 0b100001,
+					CELL[0].DBL_E0[1] = 0b100010,
+					CELL[0].DBL_E0[2] = 0b100100,
+					CELL[0].DBL_E1[0] = 0b101000,
+					CELL[0].DBL_E1[1] = 0b110000,
+					CELL[1].DBL_W0[0] = 0b001000,
+					CELL[1].DBL_W0[1] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[1] @[MAIN[1][19], MAIN[1][18], MAIN[1][17], MAIN[1][16], MAIN[1][15], MAIN[1][14]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[3] = 0b000001,
+					CELL[0].DBL_W2[4] = 0b000010,
+					CELL[0].DBL_E0[3] = 0b100001,
+					CELL[0].DBL_E0[4] = 0b100010,
+					CELL[0].DBL_E1[2] = 0b100100,
+					CELL[0].DBL_E1[3] = 0b101000,
+					CELL[0].DBL_E1[4] = 0b110000,
+					CELL[1].DBL_W0[2] = 0b000100,
+					CELL[1].DBL_W0[3] = 0b001000,
+					CELL[1].DBL_W0[4] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[2] @[MAIN[1][31], MAIN[1][30], MAIN[1][29], MAIN[1][28], MAIN[1][27], MAIN[1][26]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[5] = 0b000001,
+					CELL[0].DBL_W2[6] = 0b000010,
+					CELL[0].DBL_W2[7] = 0b000100,
+					CELL[0].DBL_E0[5] = 0b100001,
+					CELL[0].DBL_E0[6] = 0b100010,
+					CELL[0].DBL_E0[7] = 0b100100,
+					CELL[0].DBL_E1[5] = 0b101000,
+					CELL[0].DBL_E1[6] = 0b110000,
+					CELL[1].DBL_W0[5] = 0b001000,
+					CELL[1].DBL_W0[6] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[3] @[MAIN[1][43], MAIN[1][42], MAIN[1][41], MAIN[1][40], MAIN[1][39], MAIN[1][38]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[8] = 0b000001,
+					CELL[0].DBL_W2[9] = 0b000010,
+					CELL[0].DBL_E0[8] = 0b100001,
+					CELL[0].DBL_E0[9] = 0b100010,
+					CELL[0].DBL_E1[7] = 0b100100,
+					CELL[0].DBL_E1[8] = 0b101000,
+					CELL[0].DBL_E1[9] = 0b110000,
+					CELL[1].DBL_W0[7] = 0b000100,
+					CELL[1].DBL_W0[8] = 0b001000,
+					CELL[1].DBL_W0[9] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[4] @[MAIN[2][7], MAIN[2][6], MAIN[2][5], MAIN[2][4], MAIN[2][3], MAIN[2][2]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[0] = 0b000001,
+					CELL[0].DBL_W2[1] = 0b000010,
+					CELL[0].DBL_W2[2] = 0b000100,
+					CELL[0].DBL_E0[0] = 0b100001,
+					CELL[0].DBL_E0[1] = 0b100010,
+					CELL[0].DBL_E0[2] = 0b100100,
+					CELL[0].DBL_E1[0] = 0b101000,
+					CELL[0].DBL_E1[1] = 0b110000,
+					CELL[1].DBL_W0[0] = 0b001000,
+					CELL[1].DBL_W0[1] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[5] @[MAIN[2][19], MAIN[2][18], MAIN[2][17], MAIN[2][16], MAIN[2][15], MAIN[2][14]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[3] = 0b000001,
+					CELL[0].DBL_W2[4] = 0b000010,
+					CELL[0].DBL_E0[3] = 0b100001,
+					CELL[0].DBL_E0[4] = 0b100010,
+					CELL[0].DBL_E1[2] = 0b100100,
+					CELL[0].DBL_E1[3] = 0b101000,
+					CELL[0].DBL_E1[4] = 0b110000,
+					CELL[1].DBL_W0[2] = 0b000100,
+					CELL[1].DBL_W0[3] = 0b001000,
+					CELL[1].DBL_W0[4] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[6] @[MAIN[2][31], MAIN[2][30], MAIN[2][29], MAIN[2][28], MAIN[2][27], MAIN[2][26]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[5] = 0b000001,
+					CELL[0].DBL_W2[6] = 0b000010,
+					CELL[0].DBL_W2[7] = 0b000100,
+					CELL[0].DBL_E0[5] = 0b100001,
+					CELL[0].DBL_E0[6] = 0b100010,
+					CELL[0].DBL_E0[7] = 0b100100,
+					CELL[0].DBL_E1[5] = 0b101000,
+					CELL[0].DBL_E1[6] = 0b110000,
+					CELL[1].DBL_W0[5] = 0b001000,
+					CELL[1].DBL_W0[6] = 0b010000,
+				}
+				mux CELL[1].IMUX_BUFG_SEL[7] @[MAIN[2][43], MAIN[2][42], MAIN[2][41], MAIN[2][40], MAIN[2][39], MAIN[2][38]] {
+					CELL[0].PULLUP = 0b000000,
+					CELL[0].DBL_W2[8] = 0b000001,
+					CELL[0].DBL_W2[9] = 0b000010,
+					CELL[0].DBL_E0[8] = 0b100001,
+					CELL[0].DBL_E0[9] = 0b100010,
+					CELL[0].DBL_E1[7] = 0b100100,
+					CELL[0].DBL_E1[8] = 0b101000,
+					CELL[0].DBL_E1[9] = 0b110000,
+					CELL[1].DBL_W0[7] = 0b000100,
+					CELL[1].DBL_W0[8] = 0b001000,
+					CELL[1].DBL_W0[9] = 0b010000,
+				}
+				permabuf CELL[0].DCM_CLKPAD[0] = CELL[0].OUT_CLKPAD[0];
+				permabuf CELL[0].DCM_CLKPAD[1] = CELL[0].OUT_CLKPAD[1];
+				permabuf CELL[0].DCM_CLKPAD[2] = CELL[0].OUT_CLKPAD[2];
+				permabuf CELL[0].DCM_CLKPAD[3] = CELL[0].OUT_CLKPAD[3];
+				permabuf CELL[0].DCM_CLKPAD[4] = CELL[1].OUT_CLKPAD[0];
+				permabuf CELL[0].DCM_CLKPAD[5] = CELL[1].OUT_CLKPAD[1];
+				permabuf CELL[0].DCM_CLKPAD[6] = CELL[1].OUT_CLKPAD[2];
+				permabuf CELL[0].DCM_CLKPAD[7] = CELL[1].OUT_CLKPAD[3];
+				permabuf CELL[1].DCM_CLKPAD[0] = CELL[1].OUT_CLKPAD[0];
+				permabuf CELL[1].DCM_CLKPAD[1] = CELL[1].OUT_CLKPAD[1];
+				permabuf CELL[1].DCM_CLKPAD[2] = CELL[1].OUT_CLKPAD[2];
+				permabuf CELL[1].DCM_CLKPAD[3] = CELL[1].OUT_CLKPAD[3];
+				permabuf CELL[1].DCM_CLKPAD[4] = CELL[0].OUT_CLKPAD[0];
+				permabuf CELL[1].DCM_CLKPAD[5] = CELL[0].OUT_CLKPAD[1];
+				permabuf CELL[1].DCM_CLKPAD[6] = CELL[0].OUT_CLKPAD[2];
+				permabuf CELL[1].DCM_CLKPAD[7] = CELL[0].OUT_CLKPAD[3];
 			}
 
 			bel BUFGMUX[0] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[0];
-				output O = CELL[0].OUT_BUFG[0];
-				input S = CELL[0].IMUX_BUFG_SEL[0];
+				input I0 = CELL[1].IMUX_BUFG_CLK[0];
+				input I1 = CELL[1].IMUX_BUFG_CLK[1];
+				input S = ^CELL[1].IMUX_BUFG_SEL[0] @!MAIN[1][8];
+				output O = CELL[1].GCLK_N[0];
+				attribute INIT_OUT @[MAIN[0][72]];
 			}
 
 			bel BUFGMUX[1] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[1];
-				output O = CELL[0].OUT_BUFG[1];
-				input S = CELL[0].IMUX_BUFG_SEL[1];
+				input I0 = CELL[1].IMUX_BUFG_CLK[1];
+				input I1 = CELL[1].IMUX_BUFG_CLK[0];
+				input S = ^CELL[1].IMUX_BUFG_SEL[1] @!MAIN[1][20];
+				output O = CELL[1].GCLK_N[1];
+				attribute INIT_OUT @[MAIN[0][73]];
 			}
 
 			bel BUFGMUX[2] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[2];
-				output O = CELL[0].OUT_BUFG[2];
-				input S = CELL[0].IMUX_BUFG_SEL[2];
+				input I0 = CELL[1].IMUX_BUFG_CLK[2];
+				input I1 = CELL[1].IMUX_BUFG_CLK[3];
+				input S = ^CELL[1].IMUX_BUFG_SEL[2] @!MAIN[1][32];
+				output O = CELL[1].GCLK_N[2];
+				attribute INIT_OUT @[TERM[0][2]];
 			}
 
 			bel BUFGMUX[3] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[3];
-				output O = CELL[0].OUT_BUFG[3];
-				input S = CELL[0].IMUX_BUFG_SEL[3];
+				input I0 = CELL[1].IMUX_BUFG_CLK[3];
+				input I1 = CELL[1].IMUX_BUFG_CLK[2];
+				input S = ^CELL[1].IMUX_BUFG_SEL[3] @!MAIN[1][44];
+				output O = CELL[1].GCLK_N[3];
+				attribute INIT_OUT @[TERM[0][3]];
 			}
 
 			bel BUFGMUX[4] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[4];
-				output O = CELL[0].OUT_BUFG[4];
-				input S = CELL[0].IMUX_BUFG_SEL[4];
+				input I0 = CELL[1].IMUX_BUFG_CLK[4];
+				input I1 = CELL[1].IMUX_BUFG_CLK[5];
+				input S = ^CELL[1].IMUX_BUFG_SEL[4] @!MAIN[2][8];
+				output O = CELL[1].GCLK_N[4];
+				attribute INIT_OUT @[MAIN[3][72]];
 			}
 
 			bel BUFGMUX[5] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[5];
-				output O = CELL[0].OUT_BUFG[5];
-				input S = CELL[0].IMUX_BUFG_SEL[5];
+				input I0 = CELL[1].IMUX_BUFG_CLK[5];
+				input I1 = CELL[1].IMUX_BUFG_CLK[4];
+				input S = ^CELL[1].IMUX_BUFG_SEL[5] @!MAIN[2][20];
+				output O = CELL[1].GCLK_N[5];
+				attribute INIT_OUT @[MAIN[3][73]];
 			}
 
 			bel BUFGMUX[6] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[6];
-				output O = CELL[0].OUT_BUFG[6];
-				input S = CELL[0].IMUX_BUFG_SEL[6];
+				input I0 = CELL[1].IMUX_BUFG_CLK[6];
+				input I1 = CELL[1].IMUX_BUFG_CLK[7];
+				input S = ^CELL[1].IMUX_BUFG_SEL[6] @!MAIN[2][32];
+				output O = CELL[1].GCLK_N[6];
+				attribute INIT_OUT @[TERM[3][2]];
 			}
 
 			bel BUFGMUX[7] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[7];
-				output O = CELL[0].OUT_BUFG[7];
-				input S = CELL[0].IMUX_BUFG_SEL[7];
+				input I0 = CELL[1].IMUX_BUFG_CLK[7];
+				input I1 = CELL[1].IMUX_BUFG_CLK[6];
+				input S = ^CELL[1].IMUX_BUFG_SEL[7] @!MAIN[2][44];
+				output O = CELL[1].GCLK_N[7];
+				attribute INIT_OUT @[TERM[3][3]];
 			}
 
-			bel GLOBALSIG_N[0] {
+			bel GLOBALSIG_BUFG[0] {
+				attribute GWE_ENABLE @!TERM[0][8];
 			}
 
-			bel GLOBALSIG_N[1] {
+			bel GLOBALSIG_BUFG[1] {
+				attribute GWE_ENABLE @!TERM[3][8];
 			}
 
-			// wire CELL[0].IMUX_BUFG_CLK[0]       BUFGMUX[0].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[1]       BUFGMUX[1].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[2]       BUFGMUX[2].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[3]       BUFGMUX[3].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[4]       BUFGMUX[4].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[5]       BUFGMUX[5].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[6]       BUFGMUX[6].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[7]       BUFGMUX[7].CLK
-			// wire CELL[0].IMUX_BUFG_SEL[0]       BUFGMUX[0].S
-			// wire CELL[0].IMUX_BUFG_SEL[1]       BUFGMUX[1].S
-			// wire CELL[0].IMUX_BUFG_SEL[2]       BUFGMUX[2].S
-			// wire CELL[0].IMUX_BUFG_SEL[3]       BUFGMUX[3].S
-			// wire CELL[0].IMUX_BUFG_SEL[4]       BUFGMUX[4].S
-			// wire CELL[0].IMUX_BUFG_SEL[5]       BUFGMUX[5].S
-			// wire CELL[0].IMUX_BUFG_SEL[6]       BUFGMUX[6].S
-			// wire CELL[0].IMUX_BUFG_SEL[7]       BUFGMUX[7].S
-			// wire CELL[0].OUT_BUFG[0]            BUFGMUX[0].O
-			// wire CELL[0].OUT_BUFG[1]            BUFGMUX[1].O
-			// wire CELL[0].OUT_BUFG[2]            BUFGMUX[2].O
-			// wire CELL[0].OUT_BUFG[3]            BUFGMUX[3].O
-			// wire CELL[0].OUT_BUFG[4]            BUFGMUX[4].O
-			// wire CELL[0].OUT_BUFG[5]            BUFGMUX[5].O
-			// wire CELL[0].OUT_BUFG[6]            BUFGMUX[6].O
-			// wire CELL[0].OUT_BUFG[7]            BUFGMUX[7].O
-		}
-
-		tile_class CLK_N_V2P {
-			cell CELL[0];
-			cell CELL[1];
-			bitrect MAIN: Vertical (4, rev 80);
-			bitrect TERM: Vertical (4, rev 16);
-
-			switchbox CLK_INT {
-				mux CELL[0].OMUX_S0 @[MAIN[3][50], MAIN[3][54], MAIN[3][53], MAIN[3][52], MAIN[3][51]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_S3 @[MAIN[2][54], MAIN[2][53], MAIN[2][52], MAIN[2][51], MAIN[2][50]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_S4 @[MAIN[3][60], MAIN[3][64], MAIN[3][63], MAIN[3][62], MAIN[3][61]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_S5 @[MAIN[2][64], MAIN[2][63], MAIN[2][62], MAIN[2][61], MAIN[2][60]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[0] @[MAIN[0][2], MAIN[0][7], MAIN[0][6], MAIN[0][5], MAIN[0][4], MAIN[0][3]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[1] @[MAIN[0][14], MAIN[0][19], MAIN[0][18], MAIN[0][17], MAIN[0][16], MAIN[0][15]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[2] @[MAIN[0][26], MAIN[0][31], MAIN[0][30], MAIN[0][29], MAIN[0][28], MAIN[0][27]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[3] @[MAIN[0][38], MAIN[0][43], MAIN[0][42], MAIN[0][41], MAIN[0][40], MAIN[0][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[4] @[MAIN[3][2], MAIN[3][7], MAIN[3][6], MAIN[3][5], MAIN[3][4], MAIN[3][3]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[5] @[MAIN[3][14], MAIN[3][19], MAIN[3][18], MAIN[3][17], MAIN[3][16], MAIN[3][15]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[6] @[MAIN[3][26], MAIN[3][31], MAIN[3][30], MAIN[3][29], MAIN[3][28], MAIN[3][27]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[7] @[MAIN[3][38], MAIN[3][43], MAIN[3][42], MAIN[3][41], MAIN[3][40], MAIN[3][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[0] @[MAIN[1][7], MAIN[1][6], MAIN[1][5], MAIN[1][4], MAIN[1][3], MAIN[1][2]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[1] @[MAIN[1][19], MAIN[1][18], MAIN[1][17], MAIN[1][16], MAIN[1][15], MAIN[1][14]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[2] @[MAIN[1][31], MAIN[1][30], MAIN[1][29], MAIN[1][28], MAIN[1][27], MAIN[1][26]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[3] @[MAIN[1][43], MAIN[1][42], MAIN[1][41], MAIN[1][40], MAIN[1][39], MAIN[1][38]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[4] @[MAIN[2][7], MAIN[2][6], MAIN[2][5], MAIN[2][4], MAIN[2][3], MAIN[2][2]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[5] @[MAIN[2][19], MAIN[2][18], MAIN[2][17], MAIN[2][16], MAIN[2][15], MAIN[2][14]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[6] @[MAIN[2][31], MAIN[2][30], MAIN[2][29], MAIN[2][28], MAIN[2][27], MAIN[2][26]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[7] @[MAIN[2][43], MAIN[2][42], MAIN[2][41], MAIN[2][40], MAIN[2][39], MAIN[2][38]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[1].OMUX_S0 @[MAIN[0][50], MAIN[0][54], MAIN[0][53], MAIN[0][52], MAIN[0][51]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_S3 @[MAIN[1][54], MAIN[1][53], MAIN[1][52], MAIN[1][51], MAIN[1][50]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_S4 @[MAIN[0][60], MAIN[0][64], MAIN[0][63], MAIN[0][62], MAIN[0][61]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_S5 @[MAIN[1][64], MAIN[1][63], MAIN[1][62], MAIN[1][61], MAIN[1][60]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-			}
-
-			bel BUFGMUX[0] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[0];
-				output O = CELL[0].OUT_BUFG[0];
-				input S = CELL[0].IMUX_BUFG_SEL[0];
-			}
-
-			bel BUFGMUX[1] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[1];
-				output O = CELL[0].OUT_BUFG[1];
-				input S = CELL[0].IMUX_BUFG_SEL[1];
-			}
-
-			bel BUFGMUX[2] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[2];
-				output O = CELL[0].OUT_BUFG[2];
-				input S = CELL[0].IMUX_BUFG_SEL[2];
-			}
-
-			bel BUFGMUX[3] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[3];
-				output O = CELL[0].OUT_BUFG[3];
-				input S = CELL[0].IMUX_BUFG_SEL[3];
-			}
-
-			bel BUFGMUX[4] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[4];
-				output O = CELL[0].OUT_BUFG[4];
-				input S = CELL[0].IMUX_BUFG_SEL[4];
-			}
-
-			bel BUFGMUX[5] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[5];
-				output O = CELL[0].OUT_BUFG[5];
-				input S = CELL[0].IMUX_BUFG_SEL[5];
-			}
-
-			bel BUFGMUX[6] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[6];
-				output O = CELL[0].OUT_BUFG[6];
-				input S = CELL[0].IMUX_BUFG_SEL[6];
-			}
-
-			bel BUFGMUX[7] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[7];
-				output O = CELL[0].OUT_BUFG[7];
-				input S = CELL[0].IMUX_BUFG_SEL[7];
-			}
-
-			bel GLOBALSIG_N[0] {
-			}
-
-			bel GLOBALSIG_N[1] {
-			}
-
-			bel BREFCLK {
-			}
-
-			// wire CELL[0].IMUX_BUFG_CLK[0]       BUFGMUX[0].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[1]       BUFGMUX[1].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[2]       BUFGMUX[2].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[3]       BUFGMUX[3].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[4]       BUFGMUX[4].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[5]       BUFGMUX[5].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[6]       BUFGMUX[6].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[7]       BUFGMUX[7].CLK
-			// wire CELL[0].IMUX_BUFG_SEL[0]       BUFGMUX[0].S
-			// wire CELL[0].IMUX_BUFG_SEL[1]       BUFGMUX[1].S
-			// wire CELL[0].IMUX_BUFG_SEL[2]       BUFGMUX[2].S
-			// wire CELL[0].IMUX_BUFG_SEL[3]       BUFGMUX[3].S
-			// wire CELL[0].IMUX_BUFG_SEL[4]       BUFGMUX[4].S
-			// wire CELL[0].IMUX_BUFG_SEL[5]       BUFGMUX[5].S
-			// wire CELL[0].IMUX_BUFG_SEL[6]       BUFGMUX[6].S
-			// wire CELL[0].IMUX_BUFG_SEL[7]       BUFGMUX[7].S
-			// wire CELL[0].OUT_BUFG[0]            BUFGMUX[0].O
-			// wire CELL[0].OUT_BUFG[1]            BUFGMUX[1].O
-			// wire CELL[0].OUT_BUFG[2]            BUFGMUX[2].O
-			// wire CELL[0].OUT_BUFG[3]            BUFGMUX[3].O
-			// wire CELL[0].OUT_BUFG[4]            BUFGMUX[4].O
-			// wire CELL[0].OUT_BUFG[5]            BUFGMUX[5].O
-			// wire CELL[0].OUT_BUFG[6]            BUFGMUX[6].O
-			// wire CELL[0].OUT_BUFG[7]            BUFGMUX[7].O
-		}
-
-		tile_class CLK_N_V2PX {
-			cell CELL[0];
-			cell CELL[1];
-			bitrect MAIN: Vertical (4, rev 80);
-			bitrect TERM: Vertical (4, rev 16);
-
-			switchbox CLK_INT {
-				mux CELL[0].OMUX_S0 @[MAIN[3][50], MAIN[3][54], MAIN[3][53], MAIN[3][52], MAIN[3][51]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_S3 @[MAIN[2][54], MAIN[2][53], MAIN[2][52], MAIN[2][51], MAIN[2][50]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_S4 @[MAIN[3][60], MAIN[3][64], MAIN[3][63], MAIN[3][62], MAIN[3][61]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].OMUX_S5 @[MAIN[2][64], MAIN[2][63], MAIN[2][62], MAIN[2][61], MAIN[2][60]] {
-					CELL[0].OUT_BUFG[0] = 0b00001,
-					CELL[0].OUT_BUFG[1] = 0b00010,
-					CELL[0].OUT_BUFG[2] = 0b00100,
-					CELL[0].OUT_BUFG[3] = 0b01000,
-					CELL[0].OUT_BUFG[4] = 0b10001,
-					CELL[0].OUT_BUFG[5] = 0b10010,
-					CELL[0].OUT_BUFG[6] = 0b10100,
-					CELL[0].OUT_BUFG[7] = 0b11000,
-					off = 0b00000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[0] @[MAIN[0][2], MAIN[0][7], MAIN[0][6], MAIN[0][5], MAIN[0][4], MAIN[0][3]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[1] @[MAIN[0][14], MAIN[0][19], MAIN[0][18], MAIN[0][17], MAIN[0][16], MAIN[0][15]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[2] @[MAIN[0][26], MAIN[0][31], MAIN[0][30], MAIN[0][29], MAIN[0][28], MAIN[0][27]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[3] @[MAIN[0][38], MAIN[0][43], MAIN[0][42], MAIN[0][41], MAIN[0][40], MAIN[0][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[4] @[MAIN[3][2], MAIN[3][7], MAIN[3][6], MAIN[3][5], MAIN[3][4], MAIN[3][3]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[5] @[MAIN[3][14], MAIN[3][19], MAIN[3][18], MAIN[3][17], MAIN[3][16], MAIN[3][15]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[6] @[MAIN[3][26], MAIN[3][31], MAIN[3][30], MAIN[3][29], MAIN[3][28], MAIN[3][27]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_CLK[7] @[MAIN[3][38], MAIN[3][43], MAIN[3][42], MAIN[3][41], MAIN[3][40], MAIN[3][39]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[0] @[MAIN[1][7], MAIN[1][6], MAIN[1][5], MAIN[1][4], MAIN[1][3], MAIN[1][2]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[1] @[MAIN[1][19], MAIN[1][18], MAIN[1][17], MAIN[1][16], MAIN[1][15], MAIN[1][14]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[2] @[MAIN[1][31], MAIN[1][30], MAIN[1][29], MAIN[1][28], MAIN[1][27], MAIN[1][26]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[3] @[MAIN[1][43], MAIN[1][42], MAIN[1][41], MAIN[1][40], MAIN[1][39], MAIN[1][38]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[4] @[MAIN[2][7], MAIN[2][6], MAIN[2][5], MAIN[2][4], MAIN[2][3], MAIN[2][2]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[0] = 0b000001,
-					CELL[0].DBL_W2[1] = 0b000010,
-					CELL[0].DBL_W2[2] = 0b000100,
-					CELL[0].DBL_E0[0] = 0b100001,
-					CELL[0].DBL_E0[1] = 0b100010,
-					CELL[0].DBL_E0[2] = 0b100100,
-					CELL[0].DBL_E1[0] = 0b101000,
-					CELL[0].DBL_E1[1] = 0b110000,
-					CELL[1].DBL_W0[0] = 0b001000,
-					CELL[1].DBL_W0[1] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[5] @[MAIN[2][19], MAIN[2][18], MAIN[2][17], MAIN[2][16], MAIN[2][15], MAIN[2][14]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[3] = 0b000001,
-					CELL[0].DBL_W2[4] = 0b000010,
-					CELL[0].DBL_E0[3] = 0b100001,
-					CELL[0].DBL_E0[4] = 0b100010,
-					CELL[0].DBL_E1[2] = 0b100100,
-					CELL[0].DBL_E1[3] = 0b101000,
-					CELL[0].DBL_E1[4] = 0b110000,
-					CELL[1].DBL_W0[2] = 0b000100,
-					CELL[1].DBL_W0[3] = 0b001000,
-					CELL[1].DBL_W0[4] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[6] @[MAIN[2][31], MAIN[2][30], MAIN[2][29], MAIN[2][28], MAIN[2][27], MAIN[2][26]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[5] = 0b000001,
-					CELL[0].DBL_W2[6] = 0b000010,
-					CELL[0].DBL_W2[7] = 0b000100,
-					CELL[0].DBL_E0[5] = 0b100001,
-					CELL[0].DBL_E0[6] = 0b100010,
-					CELL[0].DBL_E0[7] = 0b100100,
-					CELL[0].DBL_E1[5] = 0b101000,
-					CELL[0].DBL_E1[6] = 0b110000,
-					CELL[1].DBL_W0[5] = 0b001000,
-					CELL[1].DBL_W0[6] = 0b010000,
-				}
-				mux CELL[0].IMUX_BUFG_SEL[7] @[MAIN[2][43], MAIN[2][42], MAIN[2][41], MAIN[2][40], MAIN[2][39], MAIN[2][38]] {
-					CELL[0].PULLUP = 0b000000,
-					CELL[0].DBL_W2[8] = 0b000001,
-					CELL[0].DBL_W2[9] = 0b000010,
-					CELL[0].DBL_E0[8] = 0b100001,
-					CELL[0].DBL_E0[9] = 0b100010,
-					CELL[0].DBL_E1[7] = 0b100100,
-					CELL[0].DBL_E1[8] = 0b101000,
-					CELL[0].DBL_E1[9] = 0b110000,
-					CELL[1].DBL_W0[7] = 0b000100,
-					CELL[1].DBL_W0[8] = 0b001000,
-					CELL[1].DBL_W0[9] = 0b010000,
-				}
-				mux CELL[1].OMUX_S0 @[MAIN[0][50], MAIN[0][54], MAIN[0][53], MAIN[0][52], MAIN[0][51]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_S3 @[MAIN[1][54], MAIN[1][53], MAIN[1][52], MAIN[1][51], MAIN[1][50]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_S4 @[MAIN[0][60], MAIN[0][64], MAIN[0][63], MAIN[0][62], MAIN[0][61]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-				mux CELL[1].OMUX_S5 @[MAIN[1][64], MAIN[1][63], MAIN[1][62], MAIN[1][61], MAIN[1][60]] {
-					CELL[0].OUT_BUFG[0] = 0b10001,
-					CELL[0].OUT_BUFG[1] = 0b10010,
-					CELL[0].OUT_BUFG[2] = 0b10100,
-					CELL[0].OUT_BUFG[3] = 0b11000,
-					CELL[0].OUT_BUFG[4] = 0b00001,
-					CELL[0].OUT_BUFG[5] = 0b00010,
-					CELL[0].OUT_BUFG[6] = 0b00100,
-					CELL[0].OUT_BUFG[7] = 0b01000,
-					off = 0b00000,
-				}
-			}
-
-			bel BUFGMUX[0] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[0];
-				output O = CELL[0].OUT_BUFG[0];
-				input S = CELL[0].IMUX_BUFG_SEL[0];
-			}
-
-			bel BUFGMUX[1] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[1];
-				output O = CELL[0].OUT_BUFG[1];
-				input S = CELL[0].IMUX_BUFG_SEL[1];
-			}
-
-			bel BUFGMUX[2] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[2];
-				output O = CELL[0].OUT_BUFG[2];
-				input S = CELL[0].IMUX_BUFG_SEL[2];
-			}
-
-			bel BUFGMUX[3] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[3];
-				output O = CELL[0].OUT_BUFG[3];
-				input S = CELL[0].IMUX_BUFG_SEL[3];
-			}
-
-			bel BUFGMUX[4] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[4];
-				output O = CELL[0].OUT_BUFG[4];
-				input S = CELL[0].IMUX_BUFG_SEL[4];
-			}
-
-			bel BUFGMUX[5] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[5];
-				output O = CELL[0].OUT_BUFG[5];
-				input S = CELL[0].IMUX_BUFG_SEL[5];
-			}
-
-			bel BUFGMUX[6] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[6];
-				output O = CELL[0].OUT_BUFG[6];
-				input S = CELL[0].IMUX_BUFG_SEL[6];
-			}
-
-			bel BUFGMUX[7] {
-				input CLK = CELL[0].IMUX_BUFG_CLK[7];
-				output O = CELL[0].OUT_BUFG[7];
-				input S = CELL[0].IMUX_BUFG_SEL[7];
-			}
-
-			bel GLOBALSIG_N[0] {
-			}
-
-			bel GLOBALSIG_N[1] {
-			}
-
-			// wire CELL[0].IMUX_BUFG_CLK[0]       BUFGMUX[0].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[1]       BUFGMUX[1].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[2]       BUFGMUX[2].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[3]       BUFGMUX[3].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[4]       BUFGMUX[4].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[5]       BUFGMUX[5].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[6]       BUFGMUX[6].CLK
-			// wire CELL[0].IMUX_BUFG_CLK[7]       BUFGMUX[7].CLK
-			// wire CELL[0].IMUX_BUFG_SEL[0]       BUFGMUX[0].S
-			// wire CELL[0].IMUX_BUFG_SEL[1]       BUFGMUX[1].S
-			// wire CELL[0].IMUX_BUFG_SEL[2]       BUFGMUX[2].S
-			// wire CELL[0].IMUX_BUFG_SEL[3]       BUFGMUX[3].S
-			// wire CELL[0].IMUX_BUFG_SEL[4]       BUFGMUX[4].S
-			// wire CELL[0].IMUX_BUFG_SEL[5]       BUFGMUX[5].S
-			// wire CELL[0].IMUX_BUFG_SEL[6]       BUFGMUX[6].S
-			// wire CELL[0].IMUX_BUFG_SEL[7]       BUFGMUX[7].S
-			// wire CELL[0].OUT_BUFG[0]            BUFGMUX[0].O
-			// wire CELL[0].OUT_BUFG[1]            BUFGMUX[1].O
-			// wire CELL[0].OUT_BUFG[2]            BUFGMUX[2].O
-			// wire CELL[0].OUT_BUFG[3]            BUFGMUX[3].O
-			// wire CELL[0].OUT_BUFG[4]            BUFGMUX[4].O
-			// wire CELL[0].OUT_BUFG[5]            BUFGMUX[5].O
-			// wire CELL[0].OUT_BUFG[6]            BUFGMUX[6].O
-			// wire CELL[0].OUT_BUFG[7]            BUFGMUX[7].O
-		}
-
-		tile_class CLKC {
-
-			bel CLKC {
-			}
+			// wire CELL[1].GCLK_N[0]              BUFGMUX[0].O
+			// wire CELL[1].GCLK_N[1]              BUFGMUX[1].O
+			// wire CELL[1].GCLK_N[2]              BUFGMUX[2].O
+			// wire CELL[1].GCLK_N[3]              BUFGMUX[3].O
+			// wire CELL[1].GCLK_N[4]              BUFGMUX[4].O
+			// wire CELL[1].GCLK_N[5]              BUFGMUX[5].O
+			// wire CELL[1].GCLK_N[6]              BUFGMUX[6].O
+			// wire CELL[1].GCLK_N[7]              BUFGMUX[7].O
+			// wire CELL[1].IMUX_BUFG_CLK[0]       BUFGMUX[0].I0 BUFGMUX[1].I1
+			// wire CELL[1].IMUX_BUFG_CLK[1]       BUFGMUX[0].I1 BUFGMUX[1].I0
+			// wire CELL[1].IMUX_BUFG_CLK[2]       BUFGMUX[2].I0 BUFGMUX[3].I1
+			// wire CELL[1].IMUX_BUFG_CLK[3]       BUFGMUX[2].I1 BUFGMUX[3].I0
+			// wire CELL[1].IMUX_BUFG_CLK[4]       BUFGMUX[4].I0 BUFGMUX[5].I1
+			// wire CELL[1].IMUX_BUFG_CLK[5]       BUFGMUX[4].I1 BUFGMUX[5].I0
+			// wire CELL[1].IMUX_BUFG_CLK[6]       BUFGMUX[6].I0 BUFGMUX[7].I1
+			// wire CELL[1].IMUX_BUFG_CLK[7]       BUFGMUX[6].I1 BUFGMUX[7].I0
+			// wire CELL[1].IMUX_BUFG_SEL[0]       BUFGMUX[0].S
+			// wire CELL[1].IMUX_BUFG_SEL[1]       BUFGMUX[1].S
+			// wire CELL[1].IMUX_BUFG_SEL[2]       BUFGMUX[2].S
+			// wire CELL[1].IMUX_BUFG_SEL[3]       BUFGMUX[3].S
+			// wire CELL[1].IMUX_BUFG_SEL[4]       BUFGMUX[4].S
+			// wire CELL[1].IMUX_BUFG_SEL[5]       BUFGMUX[5].S
+			// wire CELL[1].IMUX_BUFG_SEL[6]       BUFGMUX[6].S
+			// wire CELL[1].IMUX_BUFG_SEL[7]       BUFGMUX[7].S
 		}
 
 		tile_class DCMCONN_S {
 			cell CELL;
 			bitrect TERM: Vertical (22, rev 12);
 
-			bel DCMCONN {
-				output CLKPAD0 = DCM_CLKPAD[0];
-				output CLKPAD1 = DCM_CLKPAD[1];
-				output CLKPAD2 = DCM_CLKPAD[2];
-				output CLKPAD3 = DCM_CLKPAD[3];
-				output CLKPAD4 = DCM_CLKPAD[4];
-				output CLKPAD5 = DCM_CLKPAD[5];
-				output CLKPAD6 = DCM_CLKPAD[6];
-				output CLKPAD7 = DCM_CLKPAD[7];
-				input OUT0 = OMUX[0];
-				input OUT1 = OMUX[3];
-				input OUT2 = OMUX[4];
-				input OUT3 = OMUX[5];
+			switchbox DCMCONN {
+				progbuf DCM_BUS[0] = OMUX[0] @TERM[21][10];
+				progbuf DCM_BUS[1] = OMUX[3] @TERM[20][9];
+				progbuf DCM_BUS[2] = OMUX[4] @TERM[21][11];
+				progbuf DCM_BUS[3] = OMUX[5] @TERM[20][6];
+				progbuf DCM_BUS[4] = OMUX[0] @TERM[20][11];
+				progbuf DCM_BUS[5] = OMUX[3] @TERM[20][10];
+				progbuf DCM_BUS[6] = OMUX[4] @TERM[20][7];
+				progbuf DCM_BUS[7] = OMUX[5] @TERM[20][8];
 			}
-
-			// wire DCM_CLKPAD[0]                  DCMCONN.CLKPAD0
-			// wire DCM_CLKPAD[1]                  DCMCONN.CLKPAD1
-			// wire DCM_CLKPAD[2]                  DCMCONN.CLKPAD2
-			// wire DCM_CLKPAD[3]                  DCMCONN.CLKPAD3
-			// wire DCM_CLKPAD[4]                  DCMCONN.CLKPAD4
-			// wire DCM_CLKPAD[5]                  DCMCONN.CLKPAD5
-			// wire DCM_CLKPAD[6]                  DCMCONN.CLKPAD6
-			// wire DCM_CLKPAD[7]                  DCMCONN.CLKPAD7
-			// wire OMUX[0]                        DCMCONN.OUT0
-			// wire OMUX[3]                        DCMCONN.OUT1
-			// wire OMUX[4]                        DCMCONN.OUT2
-			// wire OMUX[5]                        DCMCONN.OUT3
 		}
 
 		tile_class DCMCONN_N {
 			cell CELL;
 			bitrect TERM: Vertical (22, rev 12);
 
-			bel DCMCONN {
-				output CLKPAD0 = DCM_CLKPAD[0];
-				output CLKPAD1 = DCM_CLKPAD[1];
-				output CLKPAD2 = DCM_CLKPAD[2];
-				output CLKPAD3 = DCM_CLKPAD[3];
-				output CLKPAD4 = DCM_CLKPAD[4];
-				output CLKPAD5 = DCM_CLKPAD[5];
-				output CLKPAD6 = DCM_CLKPAD[6];
-				output CLKPAD7 = DCM_CLKPAD[7];
-				input OUT0 = OMUX[10];
-				input OUT1 = OMUX[11];
-				input OUT2 = OMUX[12];
-				input OUT3 = OMUX[15];
+			switchbox DCMCONN {
+				progbuf DCM_BUS[0] = OMUX[10] @TERM[21][10];
+				progbuf DCM_BUS[1] = OMUX[11] @TERM[20][9];
+				progbuf DCM_BUS[2] = OMUX[12] @TERM[21][11];
+				progbuf DCM_BUS[3] = OMUX[15] @TERM[20][6];
+				progbuf DCM_BUS[4] = OMUX[10] @TERM[20][11];
+				progbuf DCM_BUS[5] = OMUX[11] @TERM[20][10];
+				progbuf DCM_BUS[6] = OMUX[12] @TERM[20][7];
+				progbuf DCM_BUS[7] = OMUX[15] @TERM[20][8];
 			}
-
-			// wire DCM_CLKPAD[0]                  DCMCONN.CLKPAD0
-			// wire DCM_CLKPAD[1]                  DCMCONN.CLKPAD1
-			// wire DCM_CLKPAD[2]                  DCMCONN.CLKPAD2
-			// wire DCM_CLKPAD[3]                  DCMCONN.CLKPAD3
-			// wire DCM_CLKPAD[4]                  DCMCONN.CLKPAD4
-			// wire DCM_CLKPAD[5]                  DCMCONN.CLKPAD5
-			// wire DCM_CLKPAD[6]                  DCMCONN.CLKPAD6
-			// wire DCM_CLKPAD[7]                  DCMCONN.CLKPAD7
-			// wire OMUX[10]                       DCMCONN.OUT0
-			// wire OMUX[11]                       DCMCONN.OUT1
-			// wire OMUX[12]                       DCMCONN.OUT2
-			// wire OMUX[15]                       DCMCONN.OUT3
 		}
 
 		tile_class PCI_W {
@@ -109467,95 +107958,272 @@ intdb {
 	}
 
 	tile_slot HROW {
-		bel_slot HROW: legacy;
+		bel_slot HROW: routing;
 
 		tile_class HROW {
+			cell CELL_W;
+			cell CELL_E;
 			bitrect CLK[0]: Vertical (4, rev 80);
 			bitrect CLK[1]: Vertical (4, rev 80);
 			bitrect CLK[2]: Vertical (4, rev 80);
 			bitrect CLK[3]: Vertical (4, rev 80);
 
-			bel HROW {
+			switchbox HROW {
+				mux CELL_W.GCLK_ROW[0] @[CLK[0][3][25]] {
+					CELL_W.GCLK_S[0] = 0b0,
+					CELL_W.GCLK_N[0] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[1] @[CLK[0][3][57]] {
+					CELL_W.GCLK_S[1] = 0b0,
+					CELL_W.GCLK_N[1] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[2] @[CLK[1][3][25]] {
+					CELL_W.GCLK_S[2] = 0b0,
+					CELL_W.GCLK_N[2] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[3] @[CLK[1][3][57]] {
+					CELL_W.GCLK_S[3] = 0b0,
+					CELL_W.GCLK_N[3] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[4] @[CLK[3][3][57]] {
+					CELL_W.GCLK_S[4] = 0b0,
+					CELL_W.GCLK_N[4] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[5] @[CLK[3][3][25]] {
+					CELL_W.GCLK_S[5] = 0b0,
+					CELL_W.GCLK_N[5] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[6] @[CLK[2][3][57]] {
+					CELL_W.GCLK_S[6] = 0b0,
+					CELL_W.GCLK_N[6] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[7] @[CLK[2][3][25]] {
+					CELL_W.GCLK_S[7] = 0b0,
+					CELL_W.GCLK_N[7] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[0] @[CLK[0][0][25]] {
+					CELL_W.GCLK_S[0] = 0b0,
+					CELL_W.GCLK_N[0] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[1] @[CLK[0][0][57]] {
+					CELL_W.GCLK_S[1] = 0b0,
+					CELL_W.GCLK_N[1] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[2] @[CLK[1][0][25]] {
+					CELL_W.GCLK_S[2] = 0b0,
+					CELL_W.GCLK_N[2] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[3] @[CLK[1][0][57]] {
+					CELL_W.GCLK_S[3] = 0b0,
+					CELL_W.GCLK_N[3] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[4] @[CLK[3][0][57]] {
+					CELL_W.GCLK_S[4] = 0b0,
+					CELL_W.GCLK_N[4] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[5] @[CLK[3][0][25]] {
+					CELL_W.GCLK_S[5] = 0b0,
+					CELL_W.GCLK_N[5] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[6] @[CLK[2][0][57]] {
+					CELL_W.GCLK_S[6] = 0b0,
+					CELL_W.GCLK_N[6] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[7] @[CLK[2][0][25]] {
+					CELL_W.GCLK_S[7] = 0b0,
+					CELL_W.GCLK_N[7] = 0b1,
+				}
 			}
 		}
 
 		tile_class HROW_S {
+			cell CELL_W;
+			cell CELL_E;
 			bitrect CLK_S: Vertical (4, rev 16);
 			bitrect CLK[0]: Vertical (4, rev 80);
 			bitrect CLK[1]: Vertical (4, rev 80);
 			bitrect CLK[2]: Vertical (4, rev 80);
 
-			bel HROW {
+			switchbox HROW {
+				mux CELL_W.GCLK_ROW[0] @[CLK_S[3][5]] {
+					CELL_W.GCLK_S[0] = 0b0,
+					CELL_W.GCLK_N[0] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[1] @[CLK_S[2][5]] {
+					CELL_W.GCLK_S[1] = 0b0,
+					CELL_W.GCLK_N[1] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[2] @[CLK_S[3][4]] {
+					CELL_W.GCLK_S[2] = 0b0,
+					CELL_W.GCLK_N[2] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[3] @[CLK_S[2][4]] {
+					CELL_W.GCLK_S[3] = 0b0,
+					CELL_W.GCLK_N[3] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[4] @[CLK[2][3][57]] {
+					CELL_W.GCLK_S[4] = 0b0,
+					CELL_W.GCLK_N[4] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[5] @[CLK[2][3][25]] {
+					CELL_W.GCLK_S[5] = 0b0,
+					CELL_W.GCLK_N[5] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[6] @[CLK[1][3][57]] {
+					CELL_W.GCLK_S[6] = 0b0,
+					CELL_W.GCLK_N[6] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[7] @[CLK[1][3][25]] {
+					CELL_W.GCLK_S[7] = 0b0,
+					CELL_W.GCLK_N[7] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[0] @[CLK_S[0][5]] {
+					CELL_W.GCLK_S[0] = 0b0,
+					CELL_W.GCLK_N[0] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[1] @[CLK_S[1][5]] {
+					CELL_W.GCLK_S[1] = 0b0,
+					CELL_W.GCLK_N[1] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[2] @[CLK_S[0][4]] {
+					CELL_W.GCLK_S[2] = 0b0,
+					CELL_W.GCLK_N[2] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[3] @[CLK_S[1][4]] {
+					CELL_W.GCLK_S[3] = 0b0,
+					CELL_W.GCLK_N[3] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[4] @[CLK[2][0][57]] {
+					CELL_W.GCLK_S[4] = 0b0,
+					CELL_W.GCLK_N[4] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[5] @[CLK[2][0][25]] {
+					CELL_W.GCLK_S[5] = 0b0,
+					CELL_W.GCLK_N[5] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[6] @[CLK[1][0][57]] {
+					CELL_W.GCLK_S[6] = 0b0,
+					CELL_W.GCLK_N[6] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[7] @[CLK[1][0][25]] {
+					CELL_W.GCLK_S[7] = 0b0,
+					CELL_W.GCLK_N[7] = 0b1,
+				}
 			}
 		}
 
 		tile_class HROW_N {
+			cell CELL_W;
+			cell CELL_E;
 			bitrect CLK[0]: Vertical (4, rev 80);
 			bitrect CLK[1]: Vertical (4, rev 80);
 			bitrect CLK[2]: Vertical (4, rev 80);
 			bitrect CLK_N: Vertical (4, rev 16);
 
-			bel HROW {
+			switchbox HROW {
+				mux CELL_W.GCLK_ROW[0] @[CLK[0][3][25]] {
+					CELL_W.GCLK_S[0] = 0b0,
+					CELL_W.GCLK_N[0] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[1] @[CLK[0][3][57]] {
+					CELL_W.GCLK_S[1] = 0b0,
+					CELL_W.GCLK_N[1] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[2] @[CLK[1][3][25]] {
+					CELL_W.GCLK_S[2] = 0b0,
+					CELL_W.GCLK_N[2] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[3] @[CLK[1][3][57]] {
+					CELL_W.GCLK_S[3] = 0b0,
+					CELL_W.GCLK_N[3] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[4] @[CLK_N[3][10]] {
+					CELL_W.GCLK_S[4] = 0b0,
+					CELL_W.GCLK_N[4] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[5] @[CLK_N[2][10]] {
+					CELL_W.GCLK_S[5] = 0b0,
+					CELL_W.GCLK_N[5] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[6] @[CLK_N[3][11]] {
+					CELL_W.GCLK_S[6] = 0b0,
+					CELL_W.GCLK_N[6] = 0b1,
+				}
+				mux CELL_W.GCLK_ROW[7] @[CLK_N[2][11]] {
+					CELL_W.GCLK_S[7] = 0b0,
+					CELL_W.GCLK_N[7] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[0] @[CLK[0][0][25]] {
+					CELL_W.GCLK_S[0] = 0b0,
+					CELL_W.GCLK_N[0] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[1] @[CLK[0][0][57]] {
+					CELL_W.GCLK_S[1] = 0b0,
+					CELL_W.GCLK_N[1] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[2] @[CLK[1][0][25]] {
+					CELL_W.GCLK_S[2] = 0b0,
+					CELL_W.GCLK_N[2] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[3] @[CLK[1][0][57]] {
+					CELL_W.GCLK_S[3] = 0b0,
+					CELL_W.GCLK_N[3] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[4] @[CLK_N[0][10]] {
+					CELL_W.GCLK_S[4] = 0b0,
+					CELL_W.GCLK_N[4] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[5] @[CLK_N[1][10]] {
+					CELL_W.GCLK_S[5] = 0b0,
+					CELL_W.GCLK_N[5] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[6] @[CLK_N[0][11]] {
+					CELL_W.GCLK_S[6] = 0b0,
+					CELL_W.GCLK_N[6] = 0b1,
+				}
+				mux CELL_E.GCLK_ROW[7] @[CLK_N[1][11]] {
+					CELL_W.GCLK_S[7] = 0b0,
+					CELL_W.GCLK_N[7] = 0b1,
+				}
 			}
 		}
 	}
 
 	tile_slot HCLK {
-		bel_slot HCLK: legacy;
-		bel_slot GLOBALSIG: legacy;
+		bel_slot HCLK: routing;
+		bel_slot GLOBALSIG_HCLK: GLOBALSIG_HCLK_V2;
 
 		tile_class HCLK {
 			cell S;
 			cell N;
 			bitrect MAIN: Vertical (22, rev 1);
 
-			bel HCLK {
-				output OUT_B0 = S.GCLK[0];
-				output OUT_B1 = S.GCLK[1];
-				output OUT_B2 = S.GCLK[2];
-				output OUT_B3 = S.GCLK[3];
-				output OUT_B4 = S.GCLK[4];
-				output OUT_B5 = S.GCLK[5];
-				output OUT_B6 = S.GCLK[6];
-				output OUT_B7 = S.GCLK[7];
-				output OUT_T0 = N.GCLK[0];
-				output OUT_T1 = N.GCLK[1];
-				output OUT_T2 = N.GCLK[2];
-				output OUT_T3 = N.GCLK[3];
-				output OUT_T4 = N.GCLK[4];
-				output OUT_T5 = N.GCLK[5];
-				output OUT_T6 = N.GCLK[6];
-				output OUT_T7 = N.GCLK[7];
+			switchbox HCLK {
+				progbuf S.GCLK[0] = N.GCLK_ROW[0] @MAIN[3][0];
+				progbuf S.GCLK[1] = N.GCLK_ROW[1] @MAIN[5][0];
+				progbuf S.GCLK[2] = N.GCLK_ROW[2] @MAIN[7][0];
+				progbuf S.GCLK[3] = N.GCLK_ROW[3] @MAIN[9][0];
+				progbuf S.GCLK[4] = N.GCLK_ROW[4] @MAIN[11][0];
+				progbuf S.GCLK[5] = N.GCLK_ROW[5] @MAIN[13][0];
+				progbuf S.GCLK[6] = N.GCLK_ROW[6] @MAIN[15][0];
+				progbuf S.GCLK[7] = N.GCLK_ROW[7] @MAIN[17][0];
+				progbuf N.GCLK[0] = N.GCLK_ROW[0] @MAIN[0][0];
+				progbuf N.GCLK[1] = N.GCLK_ROW[1] @MAIN[4][0];
+				progbuf N.GCLK[2] = N.GCLK_ROW[2] @MAIN[6][0];
+				progbuf N.GCLK[3] = N.GCLK_ROW[3] @MAIN[8][0];
+				progbuf N.GCLK[4] = N.GCLK_ROW[4] @MAIN[10][0];
+				progbuf N.GCLK[5] = N.GCLK_ROW[5] @MAIN[12][0];
+				progbuf N.GCLK[6] = N.GCLK_ROW[6] @MAIN[14][0];
+				progbuf N.GCLK[7] = N.GCLK_ROW[7] @MAIN[16][0];
 			}
 
-			bel GLOBALSIG {
+			bel GLOBALSIG_HCLK {
+				attribute GWE_GHIGH_S_ENABLE @!MAIN[19][0];
+				attribute GWE_GHIGH_N_ENABLE @!MAIN[18][0];
+				attribute GSR_S_ENABLE @!MAIN[21][0];
+				attribute GSR_N_ENABLE @!MAIN[20][0];
 			}
-
-			// wire S.GCLK[0]                      HCLK.OUT_B0
-			// wire S.GCLK[1]                      HCLK.OUT_B1
-			// wire S.GCLK[2]                      HCLK.OUT_B2
-			// wire S.GCLK[3]                      HCLK.OUT_B3
-			// wire S.GCLK[4]                      HCLK.OUT_B4
-			// wire S.GCLK[5]                      HCLK.OUT_B5
-			// wire S.GCLK[6]                      HCLK.OUT_B6
-			// wire S.GCLK[7]                      HCLK.OUT_B7
-			// wire N.GCLK[0]                      HCLK.OUT_T0
-			// wire N.GCLK[1]                      HCLK.OUT_T1
-			// wire N.GCLK[2]                      HCLK.OUT_T2
-			// wire N.GCLK[3]                      HCLK.OUT_T3
-			// wire N.GCLK[4]                      HCLK.OUT_T4
-			// wire N.GCLK[5]                      HCLK.OUT_T5
-			// wire N.GCLK[6]                      HCLK.OUT_T6
-			// wire N.GCLK[7]                      HCLK.OUT_T7
 		}
-	}
-
-	tile_slot PCI_CE {
-		bel_slot PCI_CE_W: legacy;
-		bel_slot PCI_CE_E: legacy;
-		bel_slot PCI_CE_S: legacy;
-		bel_slot PCI_CE_N: legacy;
-		bel_slot PCI_CE_CNR: legacy;
 	}
 
 	tile_slot RANDOR {
@@ -113425,456 +112093,7 @@ intdb {
 	device_data BRAM_WDEL_B: bitvec[3];
 	device_data BRAM_DDEL_A: bitvec[2];
 	device_data BRAM_DDEL_B: bitvec[2];
-}
-
-bstile CLK_N_V2 {
-	BUFGMUX[0]:DISABLE_ATTR: R0.F0.B72
-		1: HIGH
-		0: LOW
-	BUFGMUX[0]:INV.S: R0.F1.B8 inv 1
-	BUFGMUX[0]:MUX.CLK: R0.F0.B69 R0.F0.B70 R0.F0.B71 R0.F0.B68
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[1]:DISABLE_ATTR: R0.F0.B73
-		1: HIGH
-		0: LOW
-	BUFGMUX[1]:INV.S: R0.F1.B20 inv 1
-	BUFGMUX[1]:MUX.CLK: R0.F0.B76 R0.F0.B75 R0.F0.B74 R0.F0.B77
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[2]:DISABLE_ATTR: R1.F0.B2
-		1: HIGH
-		0: LOW
-	BUFGMUX[2]:INV.S: R0.F1.B32 inv 1
-	BUFGMUX[2]:MUX.CLK: R0.F0.B79 R1.F0.B0 R1.F0.B1 R0.F0.B78
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[3]:DISABLE_ATTR: R1.F0.B3
-		1: HIGH
-		0: LOW
-	BUFGMUX[3]:INV.S: R0.F1.B44 inv 1
-	BUFGMUX[3]:MUX.CLK: R1.F0.B6 R1.F0.B5 R1.F0.B4 R1.F0.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[4]:DISABLE_ATTR: R0.F3.B72
-		1: HIGH
-		0: LOW
-	BUFGMUX[4]:INV.S: R0.F2.B8 inv 1
-	BUFGMUX[4]:MUX.CLK: R0.F3.B69 R0.F3.B70 R0.F3.B71 R0.F3.B68
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[5]:DISABLE_ATTR: R0.F3.B73
-		1: HIGH
-		0: LOW
-	BUFGMUX[5]:INV.S: R0.F2.B20 inv 1
-	BUFGMUX[5]:MUX.CLK: R0.F3.B76 R0.F3.B75 R0.F3.B74 R0.F3.B77
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[6]:DISABLE_ATTR: R1.F3.B2
-		1: HIGH
-		0: LOW
-	BUFGMUX[6]:INV.S: R0.F2.B32 inv 1
-	BUFGMUX[6]:MUX.CLK: R0.F3.B79 R1.F3.B0 R1.F3.B1 R0.F3.B78
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[7]:DISABLE_ATTR: R1.F3.B3
-		1: HIGH
-		0: LOW
-	BUFGMUX[7]:INV.S: R0.F2.B44 inv 1
-	BUFGMUX[7]:MUX.CLK: R1.F3.B6 R1.F3.B5 R1.F3.B4 R1.F3.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-}
-
-bstile CLK_N_V2P {
-	BUFGMUX[0]:DISABLE_ATTR: R0.F0.B72
-		1: HIGH
-		0: LOW
-	BUFGMUX[0]:INV.S: R0.F1.B8 inv 1
-	BUFGMUX[0]:MUX.CLK: R0.F0.B69 R0.F0.B70 R0.F0.B71 R0.F0.B68
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[1]:DISABLE_ATTR: R0.F0.B73
-		1: HIGH
-		0: LOW
-	BUFGMUX[1]:INV.S: R0.F1.B20 inv 1
-	BUFGMUX[1]:MUX.CLK: R0.F0.B76 R0.F0.B75 R0.F0.B74 R0.F0.B77
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[2]:DISABLE_ATTR: R1.F0.B2
-		1: HIGH
-		0: LOW
-	BUFGMUX[2]:INV.S: R0.F1.B32 inv 1
-	BUFGMUX[2]:MUX.CLK: R0.F0.B79 R1.F0.B0 R1.F0.B1 R0.F0.B78
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[3]:DISABLE_ATTR: R1.F0.B3
-		1: HIGH
-		0: LOW
-	BUFGMUX[3]:INV.S: R0.F1.B44 inv 1
-	BUFGMUX[3]:MUX.CLK: R1.F0.B6 R1.F0.B5 R1.F0.B4 R1.F0.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[4]:DISABLE_ATTR: R0.F3.B72
-		1: HIGH
-		0: LOW
-	BUFGMUX[4]:INV.S: R0.F2.B8 inv 1
-	BUFGMUX[4]:MUX.CLK: R0.F3.B69 R0.F3.B70 R0.F3.B71 R0.F3.B68
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[5]:DISABLE_ATTR: R0.F3.B73
-		1: HIGH
-		0: LOW
-	BUFGMUX[5]:INV.S: R0.F2.B20 inv 1
-	BUFGMUX[5]:MUX.CLK: R0.F3.B76 R0.F3.B75 R0.F3.B74 R0.F3.B77
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[6]:DISABLE_ATTR: R1.F3.B2
-		1: HIGH
-		0: LOW
-	BUFGMUX[6]:INV.S: R0.F2.B32 inv 1
-	BUFGMUX[6]:MUX.CLK: R0.F3.B79 R1.F3.B0 R1.F3.B1 R0.F3.B78
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[7]:DISABLE_ATTR: R1.F3.B3
-		1: HIGH
-		0: LOW
-	BUFGMUX[7]:INV.S: R0.F2.B44 inv 1
-	BUFGMUX[7]:MUX.CLK: R1.F3.B6 R1.F3.B5 R1.F3.B4 R1.F3.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-}
-
-bstile CLK_N_V2PX {
-	BUFGMUX[0]:DISABLE_ATTR: R0.F0.B72
-		1: HIGH
-		0: LOW
-	BUFGMUX[0]:INV.S: R0.F1.B8 inv 1
-	BUFGMUX[0]:MUX.CLK: R0.F0.B69 R0.F0.B70 R0.F0.B71 R0.F0.B68
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[1]:DISABLE_ATTR: R0.F0.B73
-		1: HIGH
-		0: LOW
-	BUFGMUX[1]:INV.S: R0.F1.B20 inv 1
-	BUFGMUX[1]:MUX.CLK: R0.F0.B76 R0.F0.B75 R0.F0.B74 R0.F0.B77
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[2]:DISABLE_ATTR: R1.F0.B2
-		1: HIGH
-		0: LOW
-	BUFGMUX[2]:INV.S: R0.F1.B32 inv 1
-	BUFGMUX[2]:MUX.CLK: R0.F0.B79 R1.F0.B0 R1.F0.B1 R0.F0.B78
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[3]:DISABLE_ATTR: R1.F0.B3
-		1: HIGH
-		0: LOW
-	BUFGMUX[3]:INV.S: R0.F1.B44 inv 1
-	BUFGMUX[3]:MUX.CLK: R1.F0.B6 R1.F0.B5 R1.F0.B4 R1.F0.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[4]:DISABLE_ATTR: R0.F3.B72
-		1: HIGH
-		0: LOW
-	BUFGMUX[4]:INV.S: R0.F2.B8 inv 1
-	BUFGMUX[4]:MUX.CLK: R0.F3.B69 R0.F3.B70 R0.F3.B71 R0.F3.B68
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[5]:DISABLE_ATTR: R0.F3.B73
-		1: HIGH
-		0: LOW
-	BUFGMUX[5]:INV.S: R0.F2.B20 inv 1
-	BUFGMUX[5]:MUX.CLK: R0.F3.B76 R0.F3.B75 R0.F3.B74 R0.F3.B77
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[6]:DISABLE_ATTR: R1.F3.B2
-		1: HIGH
-		0: LOW
-	BUFGMUX[6]:INV.S: R0.F2.B32 inv 1
-	BUFGMUX[6]:MUX.CLK: R0.F3.B79 R1.F3.B0 R1.F3.B1 R0.F3.B78
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[7]:DISABLE_ATTR: R1.F3.B3
-		1: HIGH
-		0: LOW
-	BUFGMUX[7]:INV.S: R0.F2.B44 inv 1
-	BUFGMUX[7]:MUX.CLK: R1.F3.B6 R1.F3.B5 R1.F3.B4 R1.F3.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-}
-
-bstile CLK_S_V2 {
-	BUFGMUX[0]:DISABLE_ATTR: R0.F0.B6
-		1: HIGH
-		0: LOW
-	BUFGMUX[0]:INV.S: R0.F1.B34 inv 1
-	BUFGMUX[0]:MUX.CLK: R0.F0.B9 R0.F0.B8 R0.F0.B7 R0.F0.B10
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[1]:DISABLE_ATTR: R0.F0.B5
-		1: HIGH
-		0: LOW
-	BUFGMUX[1]:INV.S: R0.F1.B46 inv 1
-	BUFGMUX[1]:MUX.CLK: R0.F0.B2 R0.F0.B3 R0.F0.B4 R0.F0.B1
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[2]:DISABLE_ATTR: R1.F0.B12
-		1: HIGH
-		0: LOW
-	BUFGMUX[2]:INV.S: R0.F1.B58 inv 1
-	BUFGMUX[2]:MUX.CLK: R1.F0.B15 R1.F0.B14 R1.F0.B13 R0.F0.B0
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[3]:DISABLE_ATTR: R1.F0.B11
-		1: HIGH
-		0: LOW
-	BUFGMUX[3]:INV.S: R0.F1.B70 inv 1
-	BUFGMUX[3]:MUX.CLK: R1.F0.B8 R1.F0.B9 R1.F0.B10 R1.F0.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[4]:DISABLE_ATTR: R0.F3.B6
-		1: HIGH
-		0: LOW
-	BUFGMUX[4]:INV.S: R0.F2.B34 inv 1
-	BUFGMUX[4]:MUX.CLK: R0.F3.B9 R0.F3.B8 R0.F3.B7 R0.F3.B10
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[5]:DISABLE_ATTR: R0.F3.B5
-		1: HIGH
-		0: LOW
-	BUFGMUX[5]:INV.S: R0.F2.B46 inv 1
-	BUFGMUX[5]:MUX.CLK: R0.F3.B2 R0.F3.B3 R0.F3.B4 R0.F3.B1
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[6]:DISABLE_ATTR: R1.F3.B12
-		1: HIGH
-		0: LOW
-	BUFGMUX[6]:INV.S: R0.F2.B58 inv 1
-	BUFGMUX[6]:MUX.CLK: R1.F3.B15 R1.F3.B14 R1.F3.B13 R0.F3.B0
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[7]:DISABLE_ATTR: R1.F3.B11
-		1: HIGH
-		0: LOW
-	BUFGMUX[7]:INV.S: R0.F2.B70 inv 1
-	BUFGMUX[7]:MUX.CLK: R1.F3.B8 R1.F3.B9 R1.F3.B10 R1.F3.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-}
-
-bstile CLK_S_V2P {
-	BUFGMUX[0]:DISABLE_ATTR: R0.F0.B6
-		1: HIGH
-		0: LOW
-	BUFGMUX[0]:INV.S: R0.F1.B34 inv 1
-	BUFGMUX[0]:MUX.CLK: R0.F0.B9 R0.F0.B8 R0.F0.B7 R0.F0.B10
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[1]:DISABLE_ATTR: R0.F0.B5
-		1: HIGH
-		0: LOW
-	BUFGMUX[1]:INV.S: R0.F1.B46 inv 1
-	BUFGMUX[1]:MUX.CLK: R0.F0.B2 R0.F0.B3 R0.F0.B4 R0.F0.B1
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[2]:DISABLE_ATTR: R1.F0.B12
-		1: HIGH
-		0: LOW
-	BUFGMUX[2]:INV.S: R0.F1.B58 inv 1
-	BUFGMUX[2]:MUX.CLK: R1.F0.B15 R1.F0.B14 R1.F0.B13 R0.F0.B0
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[3]:DISABLE_ATTR: R1.F0.B11
-		1: HIGH
-		0: LOW
-	BUFGMUX[3]:INV.S: R0.F1.B70 inv 1
-	BUFGMUX[3]:MUX.CLK: R1.F0.B8 R1.F0.B9 R1.F0.B10 R1.F0.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[4]:DISABLE_ATTR: R0.F3.B6
-		1: HIGH
-		0: LOW
-	BUFGMUX[4]:INV.S: R0.F2.B34 inv 1
-	BUFGMUX[4]:MUX.CLK: R0.F3.B9 R0.F3.B8 R0.F3.B7 R0.F3.B10
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[5]:DISABLE_ATTR: R0.F3.B5
-		1: HIGH
-		0: LOW
-	BUFGMUX[5]:INV.S: R0.F2.B46 inv 1
-	BUFGMUX[5]:MUX.CLK: R0.F3.B2 R0.F3.B3 R0.F3.B4 R0.F3.B1
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[6]:DISABLE_ATTR: R1.F3.B12
-		1: HIGH
-		0: LOW
-	BUFGMUX[6]:INV.S: R0.F2.B58 inv 1
-	BUFGMUX[6]:MUX.CLK: R1.F3.B15 R1.F3.B14 R1.F3.B13 R0.F3.B0
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[7]:DISABLE_ATTR: R1.F3.B11
-		1: HIGH
-		0: LOW
-	BUFGMUX[7]:INV.S: R0.F2.B70 inv 1
-	BUFGMUX[7]:MUX.CLK: R1.F3.B8 R1.F3.B9 R1.F3.B10 R1.F3.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-}
-
-bstile CLK_S_V2PX {
-	BUFGMUX[0]:DISABLE_ATTR: R0.F0.B6
-		1: HIGH
-		0: LOW
-	BUFGMUX[0]:INV.S: R0.F1.B34 inv 1
-	BUFGMUX[0]:MUX.CLK: R0.F0.B9 R0.F0.B8 R0.F0.B7 R0.F0.B10
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[1]:DISABLE_ATTR: R0.F0.B5
-		1: HIGH
-		0: LOW
-	BUFGMUX[1]:INV.S: R0.F1.B46 inv 1
-	BUFGMUX[1]:MUX.CLK: R0.F0.B2 R0.F0.B3 R0.F0.B4 R0.F0.B1
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[2]:DISABLE_ATTR: R1.F0.B12
-		1: HIGH
-		0: LOW
-	BUFGMUX[2]:INV.S: R0.F1.B58 inv 1
-	BUFGMUX[2]:MUX.CLK: R1.F0.B15 R1.F0.B14 R1.F0.B13 R0.F0.B0
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[3]:DISABLE_ATTR: R1.F0.B11
-		1: HIGH
-		0: LOW
-	BUFGMUX[3]:INV.S: R0.F1.B70 inv 1
-	BUFGMUX[3]:MUX.CLK: R1.F0.B8 R1.F0.B9 R1.F0.B10 R1.F0.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[4]:DISABLE_ATTR: R0.F3.B6
-		1: HIGH
-		0: LOW
-	BUFGMUX[4]:INV.S: R0.F2.B34 inv 1
-	BUFGMUX[4]:MUX.CLK: R0.F3.B9 R0.F3.B8 R0.F3.B7 R0.F3.B10
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[5]:DISABLE_ATTR: R0.F3.B5
-		1: HIGH
-		0: LOW
-	BUFGMUX[5]:INV.S: R0.F2.B46 inv 1
-	BUFGMUX[5]:MUX.CLK: R0.F3.B2 R0.F3.B3 R0.F3.B4 R0.F3.B1
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[6]:DISABLE_ATTR: R1.F3.B12
-		1: HIGH
-		0: LOW
-	BUFGMUX[6]:INV.S: R0.F2.B58 inv 1
-	BUFGMUX[6]:MUX.CLK: R1.F3.B15 R1.F3.B14 R1.F3.B13 R0.F3.B0
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
-	BUFGMUX[7]:DISABLE_ATTR: R1.F3.B11
-		1: HIGH
-		0: LOW
-	BUFGMUX[7]:INV.S: R0.F2.B70 inv 1
-	BUFGMUX[7]:MUX.CLK: R1.F3.B8 R1.F3.B9 R1.F3.B10 R1.F3.B7
-		0010: CKI
-		0100: DCM_OUT_L
-		1000: DCM_OUT_R
-		0001: INT
+	device_data PCILOGICSE_DELAY: PCILOGICSE_DELAY;
 }
 
 bstile CNR_NE_V2 {
@@ -114140,28 +112359,6 @@ bstile CNR_SW_V2P {
 	MISC:ZCLK_DIV2: R1.F19.B10 R1.F19.B7 R1.F19.B11 R1.F19.B9 R1.F18.B11 inv 00000
 }
 
-bstile DCMCONN_N {
-	DCMCONN:BUF.OUTBUS0: R0.F21.B10 inv 0
-	DCMCONN:BUF.OUTBUS1: R0.F20.B9 inv 0
-	DCMCONN:BUF.OUTBUS2: R0.F21.B11 inv 0
-	DCMCONN:BUF.OUTBUS3: R0.F20.B6 inv 0
-	DCMCONN:BUF.OUTBUS4: R0.F20.B11 inv 0
-	DCMCONN:BUF.OUTBUS5: R0.F20.B10 inv 0
-	DCMCONN:BUF.OUTBUS6: R0.F20.B7 inv 0
-	DCMCONN:BUF.OUTBUS7: R0.F20.B8 inv 0
-}
-
-bstile DCMCONN_S {
-	DCMCONN:BUF.OUTBUS0: R0.F21.B10 inv 0
-	DCMCONN:BUF.OUTBUS1: R0.F20.B9 inv 0
-	DCMCONN:BUF.OUTBUS2: R0.F21.B11 inv 0
-	DCMCONN:BUF.OUTBUS3: R0.F20.B6 inv 0
-	DCMCONN:BUF.OUTBUS4: R0.F20.B11 inv 0
-	DCMCONN:BUF.OUTBUS5: R0.F20.B10 inv 0
-	DCMCONN:BUF.OUTBUS6: R0.F20.B7 inv 0
-	DCMCONN:BUF.OUTBUS7: R0.F20.B8 inv 0
-}
-
 bstile DCM_V2 {
 	DCM:CLKDV_COUNT_FALL: R0.F0.B43 R0.F0.B42 R0.F0.B41 R0.F0.B40 inv 0000
 	DCM:CLKDV_COUNT_FALL_2: R0.F0.B47 R0.F0.B46 R0.F0.B45 R0.F0.B44 inv 0000
@@ -114373,178 +112570,6 @@ bstile DCM_V2P {
 	DCM:VBG_SEL: R0.F3.B10 R0.F3.B9 R0.F3.B8 inv 000
 	DCM:ZD1_BY1: R1.F7.B8 inv 0
 	DCM:ZD2_BY1: R1.F7.B10 inv 0
-}
-
-bstile HCLK {
-	HCLK:BUF.OUT_B0: R0.F3.B0 inv 0
-	HCLK:BUF.OUT_B1: R0.F5.B0 inv 0
-	HCLK:BUF.OUT_B2: R0.F7.B0 inv 0
-	HCLK:BUF.OUT_B3: R0.F9.B0 inv 0
-	HCLK:BUF.OUT_B4: R0.F11.B0 inv 0
-	HCLK:BUF.OUT_B5: R0.F13.B0 inv 0
-	HCLK:BUF.OUT_B6: R0.F15.B0 inv 0
-	HCLK:BUF.OUT_B7: R0.F17.B0 inv 0
-	HCLK:BUF.OUT_T0: R0.F0.B0 inv 0
-	HCLK:BUF.OUT_T1: R0.F4.B0 inv 0
-	HCLK:BUF.OUT_T2: R0.F6.B0 inv 0
-	HCLK:BUF.OUT_T3: R0.F8.B0 inv 0
-	HCLK:BUF.OUT_T4: R0.F10.B0 inv 0
-	HCLK:BUF.OUT_T5: R0.F12.B0 inv 0
-	HCLK:BUF.OUT_T6: R0.F14.B0 inv 0
-	HCLK:BUF.OUT_T7: R0.F16.B0 inv 0
-}
-
-bstile HROW {
-	HROW:MUX.OUT_L0: R0.F3.B25
-		0: IN_B0
-		1: IN_T0
-	HROW:MUX.OUT_L1: R0.F3.B57
-		0: IN_B1
-		1: IN_T1
-	HROW:MUX.OUT_L2: R1.F3.B25
-		0: IN_B2
-		1: IN_T2
-	HROW:MUX.OUT_L3: R1.F3.B57
-		0: IN_B3
-		1: IN_T3
-	HROW:MUX.OUT_L4: R3.F3.B57
-		0: IN_B4
-		1: IN_T4
-	HROW:MUX.OUT_L5: R3.F3.B25
-		0: IN_B5
-		1: IN_T5
-	HROW:MUX.OUT_L6: R2.F3.B57
-		0: IN_B6
-		1: IN_T6
-	HROW:MUX.OUT_L7: R2.F3.B25
-		0: IN_B7
-		1: IN_T7
-	HROW:MUX.OUT_R0: R0.F0.B25
-		0: IN_B0
-		1: IN_T0
-	HROW:MUX.OUT_R1: R0.F0.B57
-		0: IN_B1
-		1: IN_T1
-	HROW:MUX.OUT_R2: R1.F0.B25
-		0: IN_B2
-		1: IN_T2
-	HROW:MUX.OUT_R3: R1.F0.B57
-		0: IN_B3
-		1: IN_T3
-	HROW:MUX.OUT_R4: R3.F0.B57
-		0: IN_B4
-		1: IN_T4
-	HROW:MUX.OUT_R5: R3.F0.B25
-		0: IN_B5
-		1: IN_T5
-	HROW:MUX.OUT_R6: R2.F0.B57
-		0: IN_B6
-		1: IN_T6
-	HROW:MUX.OUT_R7: R2.F0.B25
-		0: IN_B7
-		1: IN_T7
-}
-
-bstile HROW_N {
-	HROW:MUX.OUT_L0: R0.F3.B25
-		0: IN_B0
-		1: IN_T0
-	HROW:MUX.OUT_L1: R0.F3.B57
-		0: IN_B1
-		1: IN_T1
-	HROW:MUX.OUT_L2: R1.F3.B25
-		0: IN_B2
-		1: IN_T2
-	HROW:MUX.OUT_L3: R1.F3.B57
-		0: IN_B3
-		1: IN_T3
-	HROW:MUX.OUT_L4: R3.F3.B10
-		0: IN_B4
-		1: IN_T4
-	HROW:MUX.OUT_L5: R3.F2.B10
-		0: IN_B5
-		1: IN_T5
-	HROW:MUX.OUT_L6: R3.F3.B11
-		0: IN_B6
-		1: IN_T6
-	HROW:MUX.OUT_L7: R3.F2.B11
-		0: IN_B7
-		1: IN_T7
-	HROW:MUX.OUT_R0: R0.F0.B25
-		0: IN_B0
-		1: IN_T0
-	HROW:MUX.OUT_R1: R0.F0.B57
-		0: IN_B1
-		1: IN_T1
-	HROW:MUX.OUT_R2: R1.F0.B25
-		0: IN_B2
-		1: IN_T2
-	HROW:MUX.OUT_R3: R1.F0.B57
-		0: IN_B3
-		1: IN_T3
-	HROW:MUX.OUT_R4: R3.F0.B10
-		0: IN_B4
-		1: IN_T4
-	HROW:MUX.OUT_R5: R3.F1.B10
-		0: IN_B5
-		1: IN_T5
-	HROW:MUX.OUT_R6: R3.F0.B11
-		0: IN_B6
-		1: IN_T6
-	HROW:MUX.OUT_R7: R3.F1.B11
-		0: IN_B7
-		1: IN_T7
-}
-
-bstile HROW_S {
-	HROW:MUX.OUT_L0: R0.F3.B5
-		0: IN_B0
-		1: IN_T0
-	HROW:MUX.OUT_L1: R0.F2.B5
-		0: IN_B1
-		1: IN_T1
-	HROW:MUX.OUT_L2: R0.F3.B4
-		0: IN_B2
-		1: IN_T2
-	HROW:MUX.OUT_L3: R0.F2.B4
-		0: IN_B3
-		1: IN_T3
-	HROW:MUX.OUT_L4: R3.F3.B57
-		0: IN_B4
-		1: IN_T4
-	HROW:MUX.OUT_L5: R3.F3.B25
-		0: IN_B5
-		1: IN_T5
-	HROW:MUX.OUT_L6: R2.F3.B57
-		0: IN_B6
-		1: IN_T6
-	HROW:MUX.OUT_L7: R2.F3.B25
-		0: IN_B7
-		1: IN_T7
-	HROW:MUX.OUT_R0: R0.F0.B5
-		0: IN_B0
-		1: IN_T0
-	HROW:MUX.OUT_R1: R0.F1.B5
-		0: IN_B1
-		1: IN_T1
-	HROW:MUX.OUT_R2: R0.F0.B4
-		0: IN_B2
-		1: IN_T2
-	HROW:MUX.OUT_R3: R0.F1.B4
-		0: IN_B3
-		1: IN_T3
-	HROW:MUX.OUT_R4: R3.F0.B57
-		0: IN_B4
-		1: IN_T4
-	HROW:MUX.OUT_R5: R3.F0.B25
-		0: IN_B5
-		1: IN_T5
-	HROW:MUX.OUT_R6: R2.F0.B57
-		0: IN_B6
-		1: IN_T6
-	HROW:MUX.OUT_R7: R2.F0.B25
-		0: IN_B7
-		1: IN_T7
 }
 
 bstile IOB_V2P_EN2 {

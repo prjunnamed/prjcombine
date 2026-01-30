@@ -1023,14 +1023,15 @@ impl Namer<'_> {
                             "BRAM2_GCLKH_FEEDTHRUA",
                         ][x as usize - 1]
                     } else if self.hclklut[cell.row] == 0 {
-                        naming = "HCLK_BRAM_S";
                         if self.chip.kind == ChipKind::Spartan3E {
+                            naming = "HCLK_BRAM_S";
                             [
                                 "BRAMSITE2_DN_GCLKH",
                                 "BRAM2_DN_GCLKH_FEEDTHRU",
                                 "BRAM2_DN_GCLKH_FEEDTHRUA",
                             ][x as usize - 1]
                         } else {
+                            naming = "HCLK_BRAM_UNI_S";
                             [
                                 "BRAMSITE2_DN_GCLKH",
                                 "BRAM2_GCLKH_FEEDTHRU",
@@ -1074,6 +1075,10 @@ impl Namer<'_> {
                             ][x as usize - 1]
                         }
                     }
+                }
+                ColumnKind::Dsp => {
+                    naming = "HCLK_DSP";
+                    "GCLKH"
                 }
                 _ => "GCLKH",
             };
@@ -1525,7 +1530,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let ntile = namer.ngrid.name_tile(tcrd, naming, [name]);
                 let x = col.to_idx();
                 let y = row.to_idx();
-                ntile.add_bel(defs::bslots::RLL, format!("RLL_X{x}Y{y}"));
+                ntile.add_bel(defs::bslots::INT, format!("RLL_X{x}Y{y}"));
                 if (edev.chip.kind.is_virtex2(), tile.class) != (false, tcls_s3::INT_DCM_S3E_DUMMY)
                 {
                     let mut x = namer.vcc_xlut[col];
@@ -1812,14 +1817,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let name = namer.get_llh_name(row);
                 namer.ngrid.name_tile(tcrd, "LLH", [name]);
             }
-            (true, tcls_v2::CLK_S_V2 | tcls_v2::CLK_S_V2P | tcls_v2::CLK_S_V2PX) => {
-                let name = match chip.kind {
-                    ChipKind::Virtex2 => "CLKB",
-                    ChipKind::Virtex2P => "ML_CLKB",
-                    ChipKind::Virtex2PX => "MK_CLKB",
+            (true, tcls_v2::CLK_S) => {
+                let (name, naming) = match chip.kind {
+                    ChipKind::Virtex2 => ("CLKB", "CLK_S_V2"),
+                    ChipKind::Virtex2P => ("ML_CLKB", "CLK_S_V2P"),
+                    ChipKind::Virtex2PX => ("MK_CLKB", "CLK_S_V2PX"),
                     _ => unreachable!(),
                 };
-                let ntile = namer.ngrid.name_tile(tcrd, tcname, [name.into()]);
+                let ntile = namer.ngrid.name_tile(tcrd, naming, [name.into()]);
                 let vx = namer.vcc_xlut[chip.col_clk] - 1;
                 let vy = chip.row_s().to_idx();
                 ntile.tie_name = Some(format!("VCC_X{vx}Y{vy}"));
@@ -1832,22 +1837,22 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(defs::bslots::BUFGMUX[6], "BUFGMUX6P".to_string());
                 ntile.add_bel(defs::bslots::BUFGMUX[7], "BUFGMUX7S".to_string());
                 ntile.add_bel(
-                    defs::bslots::GLOBALSIG_S[0],
+                    defs::bslots::GLOBALSIG_BUFG[0],
                     format!("GSIG_X{x}Y0", x = chip.col_clk.to_idx()),
                 );
                 ntile.add_bel(
-                    defs::bslots::GLOBALSIG_S[1],
+                    defs::bslots::GLOBALSIG_BUFG[1],
                     format!("GSIG_X{x}Y0", x = chip.col_clk.to_idx() + 1),
                 );
             }
-            (true, tcls_v2::CLK_N_V2 | tcls_v2::CLK_N_V2P | tcls_v2::CLK_N_V2PX) => {
-                let name = match chip.kind {
-                    ChipKind::Virtex2 => "CLKT",
-                    ChipKind::Virtex2P => "ML_CLKT",
-                    ChipKind::Virtex2PX => "MK_CLKT",
+            (true, tcls_v2::CLK_N) => {
+                let (name, naming) = match chip.kind {
+                    ChipKind::Virtex2 => ("CLKT", "CLK_N_V2"),
+                    ChipKind::Virtex2P => ("ML_CLKT", "CLK_N_V2P"),
+                    ChipKind::Virtex2PX => ("MK_CLKT", "CLK_N_V2PX"),
                     _ => unreachable!(),
                 };
-                let ntile = namer.ngrid.name_tile(tcrd, tcname, [name.into()]);
+                let ntile = namer.ngrid.name_tile(tcrd, naming, [name.into()]);
                 let vx = namer.vcc_xlut[chip.col_clk] - 1;
                 let vy = if chip.kind == ChipKind::Virtex2 {
                     1
@@ -1864,11 +1869,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(defs::bslots::BUFGMUX[6], "BUFGMUX6S".to_string());
                 ntile.add_bel(defs::bslots::BUFGMUX[7], "BUFGMUX7P".to_string());
                 ntile.add_bel(
-                    defs::bslots::GLOBALSIG_N[0],
+                    defs::bslots::GLOBALSIG_BUFG[0],
                     format!("GSIG_X{x}Y1", x = chip.col_clk.to_idx()),
                 );
                 ntile.add_bel(
-                    defs::bslots::GLOBALSIG_N[1],
+                    defs::bslots::GLOBALSIG_BUFG[1],
                     format!("GSIG_X{x}Y1", x = chip.col_clk.to_idx() + 1),
                 );
             }
@@ -1887,7 +1892,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(defs::bslots::BUFGMUX[2], format!("{bufg}2"));
                 ntile.add_bel(defs::bslots::BUFGMUX[3], format!("{bufg}3"));
                 ntile.add_bel(
-                    defs::bslots::GLOBALSIG_S[0],
+                    defs::bslots::GLOBALSIG_BUFG[0],
                     format!("GSIG_X{x}Y0", x = chip.col_clk.to_idx()),
                 );
             }
@@ -1906,7 +1911,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(defs::bslots::BUFGMUX[2], format!("{bufg}6"));
                 ntile.add_bel(defs::bslots::BUFGMUX[3], format!("{bufg}7"));
                 ntile.add_bel(
-                    defs::bslots::GLOBALSIG_N[0],
+                    defs::bslots::GLOBALSIG_BUFG[0],
                     format!("GSIG_X{x}Y1", x = chip.col_clk.to_idx()),
                 );
             }
@@ -1928,7 +1933,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(defs::bslots::BUFGMUX[2], "BUFGMUX_X1Y1".to_string());
                 ntile.add_bel(defs::bslots::BUFGMUX[3], "BUFGMUX_X1Y0".to_string());
                 ntile.add_bel(
-                    defs::bslots::GLOBALSIG_S[0],
+                    defs::bslots::GLOBALSIG_BUFG[0],
                     format!("GLOBALSIG_X{x}Y0", x = namer.xlut[chip.col_clk] + 1),
                 );
             }
@@ -1950,7 +1955,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(defs::bslots::BUFGMUX[2], "BUFGMUX_X1Y11".to_string());
                 ntile.add_bel(defs::bslots::BUFGMUX[3], "BUFGMUX_X1Y10".to_string());
                 ntile.add_bel(
-                    defs::bslots::GLOBALSIG_N[0],
+                    defs::bslots::GLOBALSIG_BUFG[0],
                     format!(
                         "GLOBALSIG_X{x}Y{y}",
                         x = namer.xlut[chip.col_clk] + 1,
@@ -1975,6 +1980,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let vy = namer.vcc_ylut[chip.row_mid()] - 1;
                 let vx = 0;
                 let gsy = chip.rows_hclk.len().div_ceil(2) + 1;
+                ntile.tie_name = Some(format!("VCC_X{vx}Y{vy}"));
                 ntile.add_bel(defs::bslots::BUFGMUX[0], "BUFGMUX_X0Y2".to_string());
                 ntile.add_bel(defs::bslots::BUFGMUX[1], "BUFGMUX_X0Y3".to_string());
                 ntile.add_bel(defs::bslots::BUFGMUX[2], "BUFGMUX_X0Y4".to_string());
@@ -1984,8 +1990,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(defs::bslots::BUFGMUX[6], "BUFGMUX_X0Y8".to_string());
                 ntile.add_bel(defs::bslots::BUFGMUX[7], "BUFGMUX_X0Y9".to_string());
                 ntile.add_bel(defs::bslots::PCILOGICSE, "PCILOGIC_X0Y0".to_string());
-                ntile.add_bel(defs::bslots::VCC, format!("VCC_X{vx}Y{vy}"));
-                ntile.add_bel(defs::bslots::GLOBALSIG_WE, format!("GLOBALSIG_X0Y{gsy}"));
+                ntile.add_bel(
+                    defs::bslots::GLOBALSIG_BUFG[0],
+                    format!("GLOBALSIG_X0Y{gsy}"),
+                );
             }
             (false, tcls_s3::CLK_E_S3E | tcls_s3::CLK_E_S3A) => {
                 let x = namer.xlut[col];
@@ -2004,6 +2012,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let vy = namer.vcc_ylut[chip.row_mid()] - 1;
                 let vx = namer.vcc_xlut[chip.col_e()] + 1;
                 let gsy = chip.rows_hclk.len().div_ceil(2) + 1;
+                ntile.tie_name = Some(format!("VCC_X{vx}Y{vy}"));
                 ntile.add_bel(defs::bslots::BUFGMUX[0], "BUFGMUX_X3Y2".to_string());
                 ntile.add_bel(defs::bslots::BUFGMUX[1], "BUFGMUX_X3Y3".to_string());
                 ntile.add_bel(defs::bslots::BUFGMUX[2], "BUFGMUX_X3Y4".to_string());
@@ -2013,9 +2022,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(defs::bslots::BUFGMUX[6], "BUFGMUX_X3Y8".to_string());
                 ntile.add_bel(defs::bslots::BUFGMUX[7], "BUFGMUX_X3Y9".to_string());
                 ntile.add_bel(defs::bslots::PCILOGICSE, "PCILOGIC_X1Y0".to_string());
-                ntile.add_bel(defs::bslots::VCC, format!("VCC_X{vx}Y{vy}"));
                 ntile.add_bel(
-                    defs::bslots::GLOBALSIG_WE,
+                    defs::bslots::GLOBALSIG_BUFG[0],
                     format!("GLOBALSIG_X{x}Y{gsy}", x = namer.xlut[chip.col_e()] + 3),
                 );
             }
@@ -2063,14 +2071,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 false,
                 tcls_s3::HCLK
                 | tcls_s3::HCLK_UNI
-                | tcls_s3::HCLK_S
-                | tcls_s3::HCLK_UNI_S
-                | tcls_s3::HCLK_N
-                | tcls_s3::HCLK_UNI_N
-                | tcls_s3::HCLK_0,
             ) => {
                 let (naming, name) = namer.get_hclk_name(tcrd.cell);
-                let ntile = namer.ngrid.name_tile(tcrd, naming, [name]);
+                let mut names = vec![name];
+                if naming == "HCLK_DSP" {
+                    names.push(format!(
+                        "MACC2_GCLKH_FEEDTHRUA_X{x}Y{y}",
+                        x = namer.xlut[col] + 1,
+                        y = row.to_idx() - 1
+                    ));
+                }
+                let ntile = namer.ngrid.name_tile(tcrd, naming, names);
                 if !chip.kind.is_spartan3ea() {
                     let gsx = if col < chip.col_clk {
                         col.to_idx()
@@ -2080,7 +2091,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         col.to_idx() + 2
                     };
                     let gsy = namer.hclklut[row];
-                    ntile.add_bel(defs::bslots::GLOBALSIG, format!("GSIG_X{gsx}Y{gsy}"));
+                    ntile.add_bel(defs::bslots::GLOBALSIG_HCLK, format!("GSIG_X{gsx}Y{gsy}"));
                 } else {
                     let gsx = if col < chip.col_clk {
                         namer.xlut[col] + 1
@@ -2092,50 +2103,21 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     } else {
                         namer.hclklut[row] + 2
                     };
-                    ntile.add_bel(defs::bslots::GLOBALSIG, format!("GLOBALSIG_X{gsx}Y{gsy}"));
+                    if naming == "HCLK_DSP" {
+                        ntile.add_bel_multi(
+                            defs::bslots::GLOBALSIG_HCLK,
+                            [
+                                format!("GLOBALSIG_X{gsx}Y{gsy}"),
+                                format!("GLOBALSIG_X{gsx}Y{gsy}", gsx = gsx + 1),
+                            ],
+                        );
+                    } else {
+                        ntile.add_bel(
+                            defs::bslots::GLOBALSIG_HCLK,
+                            format!("GLOBALSIG_X{gsx}Y{gsy}"),
+                        );
+                    }
                 }
-            }
-            (false, tcls_s3::HCLK_DSP) => {
-                let name = format!(
-                    "MACC2_GCLKH_FEEDTHRUA_X{x}Y{y}",
-                    x = namer.xlut[col] + 1,
-                    y = row.to_idx() - 1
-                );
-                let ntile = namer.ngrid.name_tile(tcrd, "HCLK_DSP", [name]);
-                let gsx = if col < chip.col_clk {
-                    namer.xlut[col] + 1
-                } else {
-                    namer.xlut[col] + 2
-                } + 1;
-                let gsy = if row <= chip.row_mid() {
-                    namer.hclklut[row] + 1
-                } else {
-                    namer.hclklut[row] + 2
-                };
-                ntile.add_bel(
-                    defs::bslots::GLOBALSIG_DSP,
-                    format!("GLOBALSIG_X{gsx}Y{gsy}"),
-                );
-            }
-            (false, tcls_s3::PCI_CE_CNR) => {
-                let (_, name) = namer.get_int_name(tcrd.cell);
-                namer.ngrid.name_tile(tcrd, "PCI_CE_CNR", [name]);
-            }
-            (false, tcls_s3::PCI_CE_S | tcls_s3::PCI_CE_N) => {
-                let (_, name) = namer.get_hclk_name(tcrd.cell);
-                namer.ngrid.name_tile(tcrd, tcname, [name]);
-            }
-            (false, tcls_s3::PCI_CE_E) => {
-                let x = namer.xlut[col] - 1;
-                let y = row.to_idx();
-                let name = format!("GCLKV_IOISL_X{x}Y{y}");
-                namer.ngrid.name_tile(tcrd, "PCI_CE_E", [name]);
-            }
-            (false, tcls_s3::PCI_CE_W) => {
-                let x = namer.xlut[col] - 1;
-                let y = row.to_idx();
-                let name = format!("GCLKV_IOISR_X{x}Y{y}");
-                namer.ngrid.name_tile(tcrd, "PCI_CE_W", [name]);
             }
             (true, tcls_v2::HROW | tcls_v2::HROW_S | tcls_v2::HROW_N) => {
                 let mut r = chip.rows_hclk.len() - namer.hclklut[row];
@@ -2145,32 +2127,6 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 }
                 let name = format!("GCLKCR{r}");
                 namer.ngrid.name_tile(tcrd, "GCLKC", [name]);
-            }
-            (false, tcls_s3::HROW) => {
-                let name = if !chip.kind.is_spartan3ea() {
-                    let r = chip.rows_hclk.len() - namer.hclklut[row];
-                    let lr = if col < chip.col_clk { 'L' } else { 'R' };
-                    format!("{lr}CLKVCR{r}")
-                } else {
-                    let x = namer.xlut[col] - 1;
-                    let y = row.to_idx() - 1;
-                    format!("GCLKVC_X{x}Y{y}")
-                };
-                namer.ngrid.name_tile(tcrd, "GCLKVC", [name]);
-            }
-            (true, tcls_v2::CLKC) | (false, tcls_s3::CLKC) => {
-                let name = if chip.kind.is_spartan3ea() {
-                    let x = namer.xlut[col] - 1;
-                    let y = row.to_idx() - 1;
-                    if chip.kind == ChipKind::Spartan3E && chip.has_ll {
-                        format!("CLKC_LL_X{x}Y{y}")
-                    } else {
-                        format!("CLKC_X{x}Y{y}")
-                    }
-                } else {
-                    "M".to_string()
-                };
-                namer.ngrid.name_tile(tcrd, "CLKC", [name]);
             }
             (false, tcls_s3::CLKC_50A) => {
                 let x = namer.xlut[col] - 1;

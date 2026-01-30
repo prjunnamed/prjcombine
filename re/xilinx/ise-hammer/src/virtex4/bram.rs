@@ -41,13 +41,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
                 .bel_unused(bslots::FIFO)
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for attr in ["DOA_REG", "DOB_REG"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
                 .bel_unused(bslots::FIFO)
-                .test_enum(attr, &["0", "1"]);
+                .test_enum_legacy(attr, &["0", "1"]);
         }
         for attr in [
             "READ_WIDTH_A",
@@ -62,19 +62,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("INIT_B", "0")
                 .attr("SRVAL_A", "0")
                 .attr("SRVAL_B", "0")
-                .test_enum(attr, &["0", "1", "2", "4", "9", "18", "36"]);
+                .test_enum_legacy(attr, &["0", "1", "2", "4", "9", "18", "36"]);
         }
         for attr in ["RAM_EXTENSION_A", "RAM_EXTENSION_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
                 .bel_unused(bslots::FIFO)
-                .test_enum(attr, &["NONE", "LOWER", "UPPER"]);
+                .test_enum_legacy(attr, &["NONE", "LOWER", "UPPER"]);
         }
         for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
                 .bel_unused(bslots::FIFO)
-                .test_enum(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
+                .test_enum_legacy(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
         }
         for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
             bctx.mode(mode)
@@ -122,13 +122,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
             .bel_unused(bslots::BRAM)
-            .test_enum("DATA_WIDTH", &["4", "9", "18", "36"]);
+            .test_enum_legacy("DATA_WIDTH", &["4", "9", "18", "36"]);
         for attr in ["FIRST_WORD_FALL_THROUGH", "EN_ECC_READ", "EN_ECC_WRITE"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
                 .bel_unused(bslots::BRAM)
                 .attr("DATA_WIDTH", "36")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")

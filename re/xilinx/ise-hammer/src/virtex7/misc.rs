@@ -56,21 +56,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new(session, backend, "CFG");
     for i in 0..4 {
         let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
-        bctx.test_manual("ENABLE", "1").mode("BSCAN").commit();
+        bctx.test_manual_legacy("ENABLE", "1").mode("BSCAN").commit();
         bctx.mode("BSCAN")
             .global_mutex_here("DISABLE_JTAG")
-            .test_enum("DISABLE_JTAG", &["FALSE", "TRUE"]);
+            .test_enum_legacy("DISABLE_JTAG", &["FALSE", "TRUE"]);
     }
 
     if edev.chips.len() == 1 && !edev.chips.first().unwrap().has_ps {
         let mut bctx = ctx.bel(defs::bslots::ICAP[1]);
-        bctx.test_manual("ENABLE", "1").mode("ICAP").commit();
+        bctx.test_manual_legacy("ENABLE", "1").mode("ICAP").commit();
         bctx.mode("ICAP")
             .global_mutex_here("ICAP")
-            .test_enum("ICAP_WIDTH", &["X8", "X16", "X32"]);
+            .test_enum_legacy("ICAP_WIDTH", &["X8", "X16", "X32"]);
         bctx.mode("ICAP")
             .global_mutex_here("ICAP")
-            .test_enum("ICAP_AUTO_SWITCH", &["DISABLE", "ENABLE"]);
+            .test_enum_legacy("ICAP_AUTO_SWITCH", &["DISABLE", "ENABLE"]);
 
         let mut bctx = ctx.bel(defs::bslots::ICAP[0]);
         bctx.build()
@@ -81,11 +81,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("ICAP")
             .bel_mode(defs::bslots::ICAP[1], "ICAP")
             .global_mutex_here("ICAP")
-            .test_enum("ICAP_WIDTH", &["X8", "X16", "X32"]);
+            .test_enum_legacy("ICAP_WIDTH", &["X8", "X16", "X32"]);
         bctx.mode("ICAP")
             .bel_mode(defs::bslots::ICAP[1], "ICAP")
             .global_mutex_here("ICAP")
-            .test_enum("ICAP_AUTO_SWITCH", &["DISABLE", "ENABLE"]);
+            .test_enum_legacy("ICAP_AUTO_SWITCH", &["DISABLE", "ENABLE"]);
     }
     {
         let mut bctx = ctx.bel(defs::bslots::STARTUP);
@@ -127,7 +127,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
         bctx.mode("STARTUP")
-            .test_enum("PROG_USR", &["FALSE", "TRUE"]);
+            .test_enum_legacy("PROG_USR", &["FALSE", "TRUE"]);
     }
     if edev.chips.len() == 1 {
         let mut bctx = ctx.bel(defs::bslots::CAPTURE);
@@ -179,11 +179,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
     {
         let mut bctx = ctx.bel(defs::bslots::DCIRESET);
-        bctx.test_manual("ENABLE", "1").mode("DCIRESET").commit();
+        bctx.test_manual_legacy("ENABLE", "1").mode("DCIRESET").commit();
     }
     {
         let mut bctx = ctx.bel(defs::bslots::DNA_PORT);
-        bctx.test_manual("ENABLE", "1").mode("DNA_PORT").commit();
+        bctx.test_manual_legacy("ENABLE", "1").mode("DNA_PORT").commit();
     }
 
     let mut ctx = FuzzCtx::new_null(session, backend);

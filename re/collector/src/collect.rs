@@ -378,6 +378,21 @@ impl Collector<'_, '_> {
             devdata.insert(ddid, val);
         }
     }
+
+
+    pub fn insert_devdata_enum(&mut self, ddid: DeviceDataId, val: EnumValueId) {
+        let val = TableValue::Enum(val);
+        let devdata = self
+            .data
+            .device_data
+            .entry(self.dev_name.to_string())
+            .or_default();
+        if devdata.contains_id(ddid) {
+            assert_eq!(devdata[ddid], val);
+        } else {
+            devdata.insert(ddid, val);
+        }
+    }
 }
 
 /// Functions that grab bitdata

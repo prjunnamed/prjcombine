@@ -265,18 +265,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
     for &attr in GTP_BOOL_ATTRS {
         bctx.mode(mode)
-            .test_enum(format!("{attr}_0"), &["FALSE", "TRUE"]);
+            .test_enum_legacy(format!("{attr}_0"), &["FALSE", "TRUE"]);
         bctx.mode(mode)
-            .test_enum(format!("{attr}_1"), &["FALSE", "TRUE"]);
+            .test_enum_legacy(format!("{attr}_1"), &["FALSE", "TRUE"]);
     }
     for &(attr, vals) in GTP_ENUM_ATTRS {
-        bctx.mode(mode).test_enum(format!("{attr}_0"), vals);
-        bctx.mode(mode).test_enum(format!("{attr}_1"), vals);
+        bctx.mode(mode).test_enum_legacy(format!("{attr}_0"), vals);
+        bctx.mode(mode).test_enum_legacy(format!("{attr}_1"), vals);
     }
     for &(attr, ref vals) in GTP_ENUM_INT_ATTRS {
         let vals = Vec::from_iter(vals.clone().map(|i| i.to_string()));
-        bctx.mode(mode).test_enum(format!("{attr}_0"), &vals);
-        bctx.mode(mode).test_enum(format!("{attr}_1"), &vals);
+        bctx.mode(mode).test_enum_legacy(format!("{attr}_0"), &vals);
+        bctx.mode(mode).test_enum_legacy(format!("{attr}_1"), &vals);
     }
     for &(attr, width) in GTP_DEC_ATTRS {
         bctx.mode(mode)
@@ -298,9 +298,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     bctx.mode(mode)
-        .test_enum("CLK_OUT_GTP_SEL_0", &["TXOUTCLK0", "REFCLKPLL0"]);
+        .test_enum_legacy("CLK_OUT_GTP_SEL_0", &["TXOUTCLK0", "REFCLKPLL0"]);
     bctx.mode(mode)
-        .test_enum("CLK_OUT_GTP_SEL_1", &["TXOUTCLK1", "REFCLKPLL1"]);
+        .test_enum_legacy("CLK_OUT_GTP_SEL_1", &["TXOUTCLK1", "REFCLKPLL1"]);
 
     bctx.mode(mode)
         .test_multi_attr_hex_legacy("PMA_COM_CFG_EAST", 36);

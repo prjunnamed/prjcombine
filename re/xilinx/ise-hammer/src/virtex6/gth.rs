@@ -368,7 +368,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode).test_inv(pin);
     }
     for &(attr, vals) in GTH_ENUM_ATTRS {
-        bctx.mode(mode).test_enum(attr, vals);
+        bctx.mode(mode).test_enum_legacy(attr, vals);
     }
     for &(attr, width) in GTH_BIN_ATTRS {
         bctx.mode(mode).test_multi_attr_bin(attr, width);

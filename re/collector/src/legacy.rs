@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityPartVec, EntityVec};
 use prjcombine_types::{
     bitvec::BitVec,
-    bsdata::{BitRectId, TileBit, TileItem, TileItemKind},
+    bsdata::{BitRectId, PolTileBit, TileBit, TileItem, TileItemKind},
 };
 
 use crate::{
@@ -37,11 +37,14 @@ impl Diff {
         self.apply_enum_diff_raw(&item.bits, &values[from], &values[to]);
     }
 
-    pub fn from_bool_item_legacy(item: &TileItem) -> Self {
-        let bit = item.as_bit();
+    pub fn from_bit(bit: PolTileBit) -> Self {
         let mut res = Diff::default();
         res.bits.insert(bit.bit, !bit.inv);
         res
+    }
+
+    pub fn from_bool_item_legacy(item: &TileItem) -> Self {
+        Diff::from_bit(item.as_bit())
     }
 }
 

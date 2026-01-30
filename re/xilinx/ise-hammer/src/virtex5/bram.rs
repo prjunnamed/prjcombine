@@ -212,7 +212,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     bctx.mode("RAMBFIFO36")
-        .test_enum("IS_FIFO", &["FALSE", "TRUE"]);
+        .test_enum_legacy("IS_FIFO", &["FALSE", "TRUE"]);
 
     for (mode, attr, init, srval) in [
         ("RAMBFIFO36", "DOA_REG_L", "INIT_A_L", "SRVAL_A_L"),
@@ -449,7 +449,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     bctx.mode("RAMB36_EXP")
-        .test_enum("SAVEDATA", &["FALSE", "TRUE"]);
+        .test_enum_legacy("SAVEDATA", &["FALSE", "TRUE"]);
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {

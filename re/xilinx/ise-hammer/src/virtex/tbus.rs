@@ -39,11 +39,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("TBUF")
                 .pin("T")
                 .pin("O")
-                .test_enum("TMUX", &["0", "1", "T", "T_B"]);
+                .test_enum_legacy("TMUX", &["0", "1", "T", "T_B"]);
             bctx.mode("TBUF")
                 .pin("I")
                 .pin("O")
-                .test_enum("IMUX", &["0", "1", "I", "I_B"]);
+                .test_enum_legacy("IMUX", &["0", "1", "I", "I_B"]);
             bctx.build()
                 .row_mutex_here("TBUF")
                 .test_manual_legacy("OUT_A", "1")

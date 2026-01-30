@@ -656,7 +656,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PCIE") {
         let mut bctx = ctx.bel(defs::bslots::PCIE);
         let mode = "PCIE_2_1";
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         // always appears in left column even when DRP is in right column — bug or intentional?
         bctx.mode(mode)
             .extra_tile_attr(PcieHclkPair, "HCLK", "DRP_MASK_PCIE", "1")
@@ -665,7 +665,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
 
         for &attr in PCIE_BOOL_ATTRS {
-            bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for &(attr, width) in PCIE_HEX_ATTRS {
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
@@ -678,7 +678,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::PCIE3);
         let mode = "PCIE_3_0";
         // always turns on the "bottom" bit even in the lower region — bug or intentional?
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         bctx.mode(mode)
             .extra_tile_attr(Delta::new(3, 0, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
             .extra_tile_attr(Delta::new(3, 50, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
@@ -686,7 +686,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("DRPWE")
             .commit();
         for &attr in PCIE3_BOOL_ATTRS {
-            bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for &(attr, width) in PCIE3_HEX_ATTRS {
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);

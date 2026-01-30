@@ -791,6 +791,20 @@ impl Chip {
         }
     }
 
+    pub fn get_brefclk_io(&self, edge: DirV) -> [EdgeIoCoord; 2] {
+        assert_eq!(self.kind, ChipKind::Virtex2P);
+        match edge {
+            DirV::S => [
+                EdgeIoCoord::S(self.col_clk - 1, TileIobId::from_idx(2)),
+                EdgeIoCoord::S(self.col_clk, TileIobId::from_idx(0)),
+            ],
+            DirV::N => [
+                EdgeIoCoord::N(self.col_clk - 1, TileIobId::from_idx(0)),
+                EdgeIoCoord::N(self.col_clk, TileIobId::from_idx(2)),
+            ],
+        }
+    }
+
     pub fn get_pci_io(&self, edge: DirH) -> [EdgeIoCoord; 2] {
         match self.kind {
             ChipKind::Spartan3E => match edge {

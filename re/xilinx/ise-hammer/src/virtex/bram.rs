@@ -14,13 +14,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::BRAM);
         let mode = "BLOCKRAM";
 
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for (pinmux, pin) in [("CLKAMUX", "CLKA"), ("CLKBMUX", "CLKB")] {
             bctx.mode(mode)
                 .attr("PORTA_ATTR", "256X16")
                 .attr("PORTB_ATTR", "256X16")
                 .pin(pin)
-                .test_enum(pinmux, &["0", "1"]);
+                .test_enum_legacy(pinmux, &["0", "1"]);
         }
         for (pinmux, pin, pin_b) in [
             ("ENAMUX", "ENA", "ENA_B"),
@@ -34,11 +34,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("PORTA_ATTR", "256X16")
                 .attr("PORTB_ATTR", "256X16")
                 .pin(pin)
-                .test_enum(pinmux, &["0", "1", pin, pin_b]);
+                .test_enum_legacy(pinmux, &["0", "1", pin, pin_b]);
         }
         for attr in ["PORTA_ATTR", "PORTB_ATTR"] {
             bctx.mode(mode)
-                .test_enum(attr, &["4096X1", "2048X2", "1024X4", "512X8", "256X16"]);
+                .test_enum_legacy(attr, &["4096X1", "2048X2", "1024X4", "512X8", "256X16"]);
         }
         for i in 0..0x10 {
             let attr = format!("INIT_{i:02x}");

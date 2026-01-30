@@ -275,108 +275,108 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("IFF", "#FF")
                 .attr("IINITMUX", "0")
                 .pin("SR")
-                .test_enum("SRMUX", &["0", "1", "SR", "SR_B"]);
+                .test_enum_legacy("SRMUX", &["0", "1", "SR", "SR_B"]);
             bctx.mode(mode)
                 .attr("IFF", "#FF")
                 .pin("ICE")
-                .test_enum("ICEMUX", &["0", "1", "ICE", "ICE_B"]);
+                .test_enum_legacy("ICEMUX", &["0", "1", "ICE", "ICE_B"]);
             bctx.mode(mode)
                 .attr("OFF", "#FF")
                 .pin("OCE")
-                .test_enum("OCEMUX", &["0", "1", "OCE", "OCE_B"]);
+                .test_enum_legacy("OCEMUX", &["0", "1", "OCE", "OCE_B"]);
             bctx.mode(mode)
                 .attr("TFF", "#FF")
                 .pin("TCE")
-                .test_enum("TCEMUX", &["0", "1", "TCE", "TCE_B"]);
+                .test_enum_legacy("TCEMUX", &["0", "1", "TCE", "TCE_B"]);
             bctx.mode(mode)
                 .global_mutex("DRIVE", "IOB")
                 .attr("TSEL", "1")
                 .pin("T")
-                .test_enum("TRIMUX", &["0", "1", "T", "T_TB"]);
+                .test_enum_legacy("TRIMUX", &["0", "1", "T", "T_TB"]);
             bctx.mode(mode)
                 .global_mutex("DRIVE", "IOB")
                 .attr("OUTMUX", "1")
                 .pin("O")
-                .test_enum("OMUX", &["0", "1", "O", "O_B"]);
+                .test_enum_legacy("OMUX", &["0", "1", "O", "O_B"]);
             bctx.mode(mode)
                 .attr("IFF", "#FF")
                 .pin("CLK")
-                .test_enum("ICKINV", &["0", "1"]);
+                .test_enum_legacy("ICKINV", &["0", "1"]);
             bctx.mode(mode)
                 .attr("OFF", "#FF")
                 .pin("CLK")
-                .test_enum("OCKINV", &["0", "1"]);
+                .test_enum_legacy("OCKINV", &["0", "1"]);
             bctx.mode(mode)
                 .attr("TFF", "#FF")
                 .pin("CLK")
-                .test_enum("TCKINV", &["0", "1"]);
+                .test_enum_legacy("TCKINV", &["0", "1"]);
             bctx.mode(mode)
                 .attr("ICEMUX", "0")
                 .attr("ICKINV", "1")
                 .pin("CLK")
-                .test_enum("IFF", &["#FF", "#LATCH"]);
+                .test_enum_legacy("IFF", &["#FF", "#LATCH"]);
             bctx.mode(mode)
                 .attr("OCEMUX", "0")
                 .attr("OCKINV", "1")
                 .pin("CLK")
-                .test_enum("OFF", &["#FF", "#LATCH"]);
+                .test_enum_legacy("OFF", &["#FF", "#LATCH"]);
             bctx.mode(mode)
                 .attr("TCEMUX", "0")
                 .attr("TCKINV", "1")
                 .pin("CLK")
-                .test_enum("TFF", &["#FF", "#LATCH"]);
+                .test_enum_legacy("TFF", &["#FF", "#LATCH"]);
             bctx.mode(mode)
                 .attr("IFF", "#FF")
                 .attr("ICKINV", "1")
                 .pin("CLK")
-                .test_enum("IINITMUX", &["0"]);
+                .test_enum_legacy("IINITMUX", &["0"]);
             bctx.mode(mode)
                 .attr("OFF", "#FF")
                 .attr("OCKINV", "1")
                 .pin("CLK")
-                .test_enum("OINITMUX", &["0"]);
+                .test_enum_legacy("OINITMUX", &["0"]);
             bctx.mode(mode)
                 .attr("TFF", "#FF")
                 .attr("TCKINV", "1")
                 .pin("CLK")
-                .test_enum("TINITMUX", &["0"]);
+                .test_enum_legacy("TINITMUX", &["0"]);
             bctx.mode(mode)
                 .attr("IFF", "#FF")
                 .attr("ICKINV", "1")
                 .pin("CLK")
-                .test_enum("IFFINITATTR", &["LOW", "HIGH"]);
+                .test_enum_legacy("IFFINITATTR", &["LOW", "HIGH"]);
             bctx.mode(mode)
                 .attr("OFF", "#FF")
                 .attr("OCKINV", "1")
                 .pin("CLK")
-                .test_enum("OFFATTRBOX", &["LOW", "HIGH"]);
+                .test_enum_legacy("OFFATTRBOX", &["LOW", "HIGH"]);
             bctx.mode(mode)
                 .attr("TFF", "#FF")
                 .attr("TCKINV", "1")
                 .pin("CLK")
-                .test_enum("TFFATTRBOX", &["LOW", "HIGH"]);
+                .test_enum_legacy("TFFATTRBOX", &["LOW", "HIGH"]);
             bctx.mode(mode)
                 .attr("IFF", "#FF")
                 .pin("IQ")
-                .test_enum("FFATTRBOX", &["SYNC", "ASYNC"]);
+                .test_enum_legacy("FFATTRBOX", &["SYNC", "ASYNC"]);
             bctx.mode(mode)
                 .attr("IFF", "#FF")
                 .attr("IFFMUX", "1")
                 .pin("IQ")
                 .pin("I")
-                .test_enum("IMUX", &["0", "1"]);
+                .test_enum_legacy("IMUX", &["0", "1"]);
             bctx.mode(mode)
                 .attr("IFF", "#FF")
                 .attr("IMUX", "1")
                 .pin("IQ")
                 .pin("I")
-                .test_enum("IFFMUX", &["0", "1"]);
+                .test_enum_legacy("IFFMUX", &["0", "1"]);
             bctx.mode(mode)
                 .global_mutex("DRIVE", "IOB")
                 .attr("TFF", "#FF")
                 .attr("TRIMUX", "T")
                 .pin("T")
-                .test_enum("TSEL", &["0", "1"]);
+                .test_enum_legacy("TSEL", &["0", "1"]);
             bctx.mode(mode)
                 .global_mutex("DRIVE", "IOB")
                 .attr("OFF", "#FF")
@@ -385,11 +385,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("TSEL", "1")
                 .pin("O")
                 .pin("T")
-                .test_enum("OUTMUX", &["0", "1"]);
+                .test_enum_legacy("OUTMUX", &["0", "1"]);
             bctx.mode(mode)
                 .attr("IMUX", "0")
                 .pin("I")
-                .test_enum("PULL", &["PULLDOWN", "PULLUP", "KEEPER"]);
+                .test_enum_legacy("PULL", &["PULLDOWN", "PULLUP", "KEEPER"]);
             let iostds_cmos = if edev.chip.kind == ChipKind::Virtex {
                 IOSTDS_CMOS_V
             } else {

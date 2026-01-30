@@ -75,7 +75,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         for i in 0..4 {
             let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
-            bctx.test_manual("PRESENT", "1").mode("BSCAN").commit();
+            bctx.test_manual_legacy("PRESENT", "1").mode("BSCAN").commit();
         }
         ctx.test_manual("BSCAN_COMMON", "USERID", "").multi_global(
             "USERID",
@@ -96,7 +96,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("ICAP").test_inv("WRITE");
             bctx.mode("ICAP")
                 .bel_unused(obel)
-                .test_enum("ICAP_WIDTH", &["X8", "X32"]);
+                .test_enum_legacy("ICAP_WIDTH", &["X8", "X32"]);
         }
 
         {
@@ -110,7 +110,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         {
             let mut bctx = ctx.bel(defs::bslots::STARTUP);
-            bctx.test_manual("PRESENT", "1").mode("STARTUP").commit();
+            bctx.test_manual_legacy("PRESENT", "1").mode("STARTUP").commit();
             for pin in [
                 "CLK",
                 "GTS",
@@ -138,7 +138,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
             for attr in ["GSR_SYNC", "GWE_SYNC", "GTS_SYNC"] {
                 for val in ["YES", "NO"] {
-                    bctx.test_manual(attr, val).global(attr, val).commit();
+                    bctx.test_manual_legacy(attr, val).global(attr, val).commit();
                 }
             }
             for val in ["CCLK", "USERCLK", "JTAGCLK"] {
@@ -154,7 +154,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         {
             let mut bctx = ctx.bel(defs::bslots::JTAGPPC);
-            bctx.test_manual("PRESENT", "1").mode("JTAGPPC").commit();
+            bctx.test_manual_legacy("PRESENT", "1").mode("JTAGPPC").commit();
         }
 
         {
@@ -168,18 +168,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         {
             let mut bctx = ctx.bel(defs::bslots::DCIRESET);
-            bctx.test_manual("PRESENT", "1").mode("DCIRESET").commit();
+            bctx.test_manual_legacy("PRESENT", "1").mode("DCIRESET").commit();
         }
 
         {
             let mut bctx = ctx.bel(defs::bslots::CAPTURE);
-            bctx.test_manual("PRESENT", "1").mode("CAPTURE").commit();
+            bctx.test_manual_legacy("PRESENT", "1").mode("CAPTURE").commit();
             bctx.mode("CAPTURE").test_inv("CLK");
             bctx.mode("CAPTURE").test_inv("CAP");
             bctx.mode("CAPTURE")
                 .null_bits()
                 .extra_tile_reg(Reg::Cor0, "REG.COR", "CAPTURE")
-                .test_enum("ONESHOT", &["FALSE", "TRUE"]);
+                .test_enum_legacy("ONESHOT", &["FALSE", "TRUE"]);
         }
 
         {
@@ -288,14 +288,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "SYSMON") {
         let mut bctx = ctx.bel(defs::bslots::SYSMON);
         let mode = "MONITOR";
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for i in 0x40..0x70 {
             bctx.mode(mode)
                 .test_multi_attr_hex_legacy(format!("INIT_{i:02X}"), 16);
         }
         bctx.mode(mode)
             .global_mutex("MONITOR_GLOBAL", "NONE")
-            .test_enum("MONITOR_MODE", &["TEST", "MONITOR", "ADC"]);
+            .test_enum_legacy("MONITOR_MODE", &["TEST", "MONITOR", "ADC"]);
         for pin in [
             "DEN",
             // DCLK?

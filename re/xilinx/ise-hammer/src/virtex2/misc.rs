@@ -202,7 +202,7 @@ pub fn add_fuzzers<'a>(
             let mut ctx = FuzzCtx::new_id(session, backend, tile);
             for bel in defs::bslots::DCIRESET {
                 let mut bctx = ctx.bel(bel);
-                bctx.test_manual("PRESENT", "1").mode("DCIRESET").commit();
+                bctx.test_manual_legacy("PRESENT", "1").mode("DCIRESET").commit();
             }
         }
     }
@@ -353,7 +353,7 @@ pub fn add_fuzzers<'a>(
         }
 
         let mut bctx = ctx.bel(defs::bslots::STARTUP);
-        bctx.test_manual("PRESENT", "1").mode("STARTUP").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("STARTUP").commit();
         bctx.mode("STARTUP")
             .null_bits()
             .extra_tile(IntRelation, "STARTUP")
@@ -402,7 +402,7 @@ pub fn add_fuzzers<'a>(
         }
 
         let mut bctx = ctx.bel(defs::bslots::CAPTURE);
-        bctx.test_manual("PRESENT", "1").mode("CAPTURE").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("CAPTURE").commit();
         bctx.mode("CAPTURE")
             .null_bits()
             .extra_tile(IntRelation, "CAPTURE")
@@ -444,7 +444,7 @@ pub fn add_fuzzers<'a>(
                 .mode("ICAP")
                 .commit();
         } else {
-            bctx.test_manual("ENABLE", "1").mode("ICAP").commit();
+            bctx.test_manual_legacy("ENABLE", "1").mode("ICAP").commit();
         }
         if edev.chip.kind == ChipKind::Spartan3E {
             bctx.mode("ICAP").null_bits().test_inv("CLK");
@@ -489,7 +489,7 @@ pub fn add_fuzzers<'a>(
             }
         }
         let mut bctx = ctx.bel(defs::bslots::BSCAN);
-        bctx.test_manual("PRESENT", "1").mode("BSCAN").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("BSCAN").commit();
         bctx.build().test_manual_legacy("USERID", "").multi_global(
             "USERID",
             MultiValue::HexPrefix,
@@ -509,7 +509,7 @@ pub fn add_fuzzers<'a>(
             .commit();
         if edev.chip.kind.is_virtex2p() {
             let mut bctx = ctx.bel(defs::bslots::JTAGPPC);
-            bctx.test_manual("PRESENT", "1").mode("JTAGPPC").commit();
+            bctx.test_manual_legacy("PRESENT", "1").mode("JTAGPPC").commit();
         }
     }
 
@@ -543,7 +543,7 @@ pub fn add_fuzzers<'a>(
             .extra_tile_fixed(int_ul, "MISC")
             .extra_tile_fixed(int_lr, "MISC")
             .extra_tile_fixed(int_ur, "MISC")
-            .extra_tiles_by_bel(defs::bslots::CLKQC, "MISC")
+            .extra_tiles_by_bel(defs::bslots::HROW, "MISC")
             .extra_tiles_by_bel(defs::bslots::HCLK, "MISC")
             .test_manual("MISC", "MISR_CLOCK", "GCLK0")
             .global("MISRCLOCK", "GCLK0")

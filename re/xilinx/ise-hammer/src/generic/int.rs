@@ -1,6 +1,9 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{BelInfo, BelInput, ProgDelay, SwitchBoxItem, TileWireCoord, WireSlotId},
+    db::{
+        BelInfo, BelInput, BelSlotId, ProgDelay, SwitchBoxItem, TileClassId, TileWireCoord,
+        WireSlotId,
+    },
     grid::TileCoord,
 };
 use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_enum_raw};
@@ -8,11 +11,18 @@ use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::RawTileId;
+use prjcombine_virtex2::defs::{
+    spartan3::{tcls as tcls_s3, wires as wires_s3},
+    virtex2::wires as wires_v2,
+};
 
 use crate::{
     backend::{IseBackend, Key, Value},
     collector::CollectorCtx,
-    generic::{fbuild::FuzzBuilderBase, props::mutex::TileMutexExclusive},
+    generic::{
+        fbuild::FuzzBuilderBase,
+        props::{NullBits, mutex::TileMutexExclusive},
+    },
 };
 
 use super::{
@@ -690,6 +700,7 @@ fn build_pip_fuzzer(
     ctx: &mut FuzzCtx,
     wire_to: TileWireCoord,
     wire_from: TileWireCoord,
+    is_permabuf: bool,
 ) {
     let intdb = backend.edev.db;
     let tcid = ctx.tile_class.unwrap();
@@ -709,6 +720,15 @@ fn build_pip_fuzzer(
         ))
         .prop(WireMutexExclusive::new(wire_to))
         .prop(FuzzIntPip::new(wire_to, wire_from));
+    if let ExpandedDevice::Virtex2(edev) = backend.edev
+        && edev.chip.kind.is_virtex2()
+        && wires_v2::GCLK_ROW.contains(wire_to.wire)
+    {
+        builder = builder.prop(BaseRaw::new(Key::GlobalMutex("BUFG".into()), "USE".into()));
+    }
+    if is_permabuf {
+        builder = builder.prop(NullBits);
+    }
     if let Some(inmux) = tcls_index.pips_bwd.get(&wire_from)
         && inmux.contains(&wire_to.pos())
     {
@@ -766,13 +786,59 @@ fn is_anon_wire(edev: &ExpandedDevice, wire: WireSlotId) -> bool {
     }
 }
 
+#[allow(clippy::single_match)]
+fn skip_pip(
+    edev: &ExpandedDevice,
+    tcid: TileClassId,
+    _bslot: BelSlotId,
+    dst: TileWireCoord,
+    _src: TileWireCoord,
+) -> bool {
+    match edev {
+        ExpandedDevice::Virtex2(edev) => {
+            if !edev.chip.kind.is_virtex2() {
+                if matches!(tcid, tcls_s3::CLK_S_S3E | tcls_s3::CLK_N_S3E)
+                    && edev.chip.dcms == Some(prjcombine_virtex2::chip::Dcms::Two)
+                    && wires_s3::DCM_CLKPAD.contains(dst.wire)
+                    && dst.cell.to_idx() == 3
+                {
+                    return true;
+                }
+                if tcid == tcls_s3::CLK_S_S3A
+                    && edev.chip.dcms == Some(prjcombine_virtex2::chip::Dcms::Two)
+                    && wires_s3::DCM_CLKPAD.contains(dst.wire)
+                {
+                    return true;
+                }
+                if matches!(
+                    tcid,
+                    tcls_s3::CLK_W_S3E
+                        | tcls_s3::CLK_E_S3E
+                        | tcls_s3::CLK_W_S3A
+                        | tcls_s3::CLK_E_S3A
+                ) && wires_s3::DCM_CLKPAD.contains(dst.wire)
+                {
+                    return true;
+                }
+            }
+        }
+        _ => (),
+    }
+    false
+}
+
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, _, tcls) in &intdb.tile_classes {
         let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
             continue;
         };
-        for (_bslot, bel) in &tcls.bels {
+        for (bslot, bel) in &tcls.bels {
+            if let ExpandedDevice::Virtex2(_) = backend.edev
+                && bslot == prjcombine_virtex2::defs::bslots::PTE2OMUX
+            {
+                continue;
+            }
             let BelInfo::SwitchBox(sb) = bel else {
                 continue;
             };
@@ -783,14 +849,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             continue;
                         }
                         for &src in mux.src.keys() {
-                            build_pip_fuzzer(backend, &mut ctx, mux.dst, src.tw);
+                            build_pip_fuzzer(backend, &mut ctx, mux.dst, src.tw, false);
                         }
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
-                        build_pip_fuzzer(backend, &mut ctx, buf.dst, buf.src.tw);
+                        build_pip_fuzzer(backend, &mut ctx, buf.dst, buf.src.tw, false);
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
-                        build_pip_fuzzer(backend, &mut ctx, buf.dst, buf.src.tw);
+                        if skip_pip(backend.edev, tcid, bslot, buf.dst, buf.src.tw) {
+                            continue;
+                        }
+                        build_pip_fuzzer(backend, &mut ctx, buf.dst, buf.src.tw, true);
                     }
                     SwitchBoxItem::ProgInv(_) => (),
                     SwitchBoxItem::ProgDelay(delay) => {
@@ -819,6 +888,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         for (bslot, bel) in &tcls.bels {
+            if let ExpandedDevice::Virtex2(_) = ctx.edev
+                && bslot == prjcombine_virtex2::defs::bslots::PTE2OMUX
+            {
+                continue;
+            }
             let BelInfo::SwitchBox(sb) = bel else {
                 continue;
             };
@@ -844,7 +918,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if let ExpandedDevice::Virtex2(edev) = ctx.edev
                                 && edev.chip.kind
                                     == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
-                                && tcid == prjcombine_virtex2::defs::spartan3::tcls::INT_IOI_S3A_WE
+                                && tcid == tcls_s3::INT_IOI_S3A_WE
                                 && mux.dst.wire
                                     == prjcombine_virtex2::defs::spartan3::wires::IMUX_DATA[3]
                                 && src.wire == prjcombine_virtex2::defs::spartan3::wires::OMUX_N10
@@ -882,10 +956,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     unreachable!()
                                 };
                                 assert!(!edev.chip.kind.is_virtex2());
-                                let mux = ctx.sb_mux(
-                                    prjcombine_virtex2::defs::spartan3::tcls::INT_CLB,
-                                    mux.dst,
-                                );
+                                let mux = ctx.sb_mux(tcls_s3::INT_CLB, mux.dst);
                                 diff.bits.clear();
                                 for (idx, val) in mux.values[&Some(src)].iter().enumerate() {
                                     if val {
@@ -910,10 +981,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     SwitchBoxItem::ProgBuf(buf) => {
                         ctx.collect_progbuf(tcid, buf.dst, buf.src);
                     }
-                    SwitchBoxItem::PermaBuf(buf) => {
-                        let diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, buf.dst, buf.src));
-                        diff.assert_empty();
-                    }
+                    SwitchBoxItem::PermaBuf(_) => (),
                     SwitchBoxItem::ProgInv(_) => (),
                     SwitchBoxItem::ProgDelay(delay) => {
                         ctx.collect_delay(tcid, delay.dst, delay.steps.len());

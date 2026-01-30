@@ -90,6 +90,7 @@ pub struct XTileInfo<'a, 'b> {
     pub force_pips: HashSet<(TileWireCoord, TileWireCoord)>,
     pub switchbox: Option<BelSlotId>,
     pub force_test_mux_in: bool,
+    pub skip_edges: HashSet<(rawdump::WireId, rawdump::WireId)>,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -442,6 +443,15 @@ impl XTileInfo<'_, '_> {
         self
     }
 
+    pub fn skip_edge(mut self, wt: &str, wf: &str) -> Self {
+        if let Some(wti) = self.builder.rd.wires.get(wt)
+            && let Some(wfi) = self.builder.rd.wires.get(wf)
+        {
+            self.skip_edges.insert((wti, wfi));
+        }
+        self
+    }
+
     pub fn extract(self) {
         let rd = self.builder.rd;
 
@@ -466,6 +476,9 @@ impl XTileInfo<'_, '_> {
                 }
             }
             for &(wfi, wti) in tk.pips.keys() {
+                if self.skip_edges.contains(&(wti, wfi)) {
+                    continue;
+                }
                 let nwf = rd.lookup_wire_raw_force(rt.xy, wfi);
                 let nwt = rd.lookup_wire_raw_force(rt.xy, wti);
                 edges_in.entry(nwt).or_default().push((nwf, i, wti, wfi));
@@ -2636,8 +2649,10 @@ impl<'a> IntBuilder<'a> {
         match self.db.bel_slots[slot].kind {
             BelKind::Class(bcid) => {
                 let bcls = &self.db[bcid];
-                let BelInfo::Legacy(mut bel) = bel else {
-                    unreachable!()
+                let mut bel = match bel {
+                    BelInfo::Bel(_) => return bel,
+                    BelInfo::Legacy(bel) => bel,
+                    _ => unreachable!(),
                 };
                 let is_ultra = matches!(
                     self.rd.family.as_str(),
@@ -2749,7 +2764,7 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    fn insert_tcls_bel(&mut self, tcid: TileClassId, slot: BelSlotId, mut bel: BelInfo) {
+    pub fn insert_tcls_bel(&mut self, tcid: TileClassId, slot: BelSlotId, mut bel: BelInfo) {
         if let BelInfo::Legacy(ref mut info) = bel {
             for pin in info.pins.values_mut() {
                 let wires = std::mem::take(&mut pin.wires);
@@ -3871,6 +3886,7 @@ impl<'a> IntBuilder<'a> {
             force_pips: HashSet::new(),
             switchbox: None,
             force_test_mux_in: false,
+            skip_edges: HashSet::new(),
         }
     }
 

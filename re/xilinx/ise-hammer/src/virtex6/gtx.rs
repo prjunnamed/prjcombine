@@ -369,14 +369,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_inv(pin);
         }
         for &attr in GTX_BOOL_ATTRS {
-            bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for &(attr, vals) in GTX_ENUM_ATTRS {
-            bctx.mode(mode).test_enum(attr, vals);
+            bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, ref vals) in GTX_ENUM_INT_ATTRS {
             let vals = Vec::from_iter(vals.clone().map(|i| i.to_string()));
-            bctx.mode(mode).test_enum(attr, &vals);
+            bctx.mode(mode).test_enum_legacy(attr, &vals);
         }
         for &(attr, width) in GTX_DEC_ATTRS {
             bctx.mode(mode).test_multi_attr_dec(attr, width);
@@ -475,8 +475,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for i in 0..2 {
         let mut bctx = ctx.bel(defs::bslots::BUFDS[i]);
         let mode = "IBUFDS_GTXE1";
-        bctx.mode(mode).test_enum("CLKCM_CFG", &["FALSE", "TRUE"]);
-        bctx.mode(mode).test_enum("CLKRCV_TRST", &["FALSE", "TRUE"]);
+        bctx.mode(mode).test_enum_legacy("CLKCM_CFG", &["FALSE", "TRUE"]);
+        bctx.mode(mode).test_enum_legacy("CLKRCV_TRST", &["FALSE", "TRUE"]);
         bctx.mode(mode).test_multi_attr_bin("REFCLKOUT_DLY", 10);
         for (val, pin) in [
             ("O", "O"),

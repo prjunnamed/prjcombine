@@ -552,7 +552,7 @@ impl<'b> FuzzCtxBel<'_, 'b> {
         self.build().mode(mode)
     }
 
-    pub fn test_manual<'sm>(
+    pub fn test_manual_legacy<'sm>(
         &'sm mut self,
         attr: impl AsRef<str>,
         val: impl AsRef<str>,
@@ -697,7 +697,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.prop(prop)
     }
 
-    pub fn test_enum(mut self, attr: impl AsRef<str>, vals: &[impl AsRef<str>]) {
+    pub fn test_enum_legacy(mut self, attr: impl AsRef<str>, vals: &[impl AsRef<str>]) {
         let attr = attr.as_ref();
         for val in vals {
             let val = val.as_ref();
@@ -729,7 +729,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let pin = pin.into();
         let pininv = format!("{pin}INV");
         let pin_b = format!("{pin}_B");
-        self.pin(&pin).test_enum(pininv, &[pin, pin_b]);
+        self.pin(&pin).test_enum_legacy(pininv, &[pin, pin_b]);
     }
 
     pub fn test_inv_suffix(self, pin: impl Into<String>, suffix: impl AsRef<str>) {

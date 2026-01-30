@@ -1500,12 +1500,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         };
         let mut bctx = ctx.bel(defs::bslots::GTP_COMMON);
         let mode = "GTPE2_COMMON";
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GTP_COMMON_INVPINS {
             bctx.mode(mode).test_inv(pin);
         }
         for &(attr, vals) in GTP_COMMON_ENUM_ATTRS {
-            bctx.mode(mode).test_enum(attr, vals);
+            bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, width) in GTP_COMMON_BIN_ATTRS {
             bctx.mode(mode).test_multi_attr_bin(attr, width);
@@ -1518,12 +1518,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::GTX_COMMON);
         let mode = "GTXE2_COMMON";
 
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GTXH_COMMON_INVPINS {
             bctx.mode(mode).test_inv(pin);
         }
         for &(attr, vals) in GTXH_COMMON_ENUM_ATTRS {
-            bctx.mode(mode).test_enum(attr, vals);
+            bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, width) in GTX_COMMON_BIN_ATTRS {
             bctx.mode(mode).test_multi_attr_bin(attr, width);
@@ -1536,12 +1536,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::GTH_COMMON);
         let mode = "GTHE2_COMMON";
 
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GTXH_COMMON_INVPINS {
             bctx.mode(mode).test_inv(pin);
         }
         for &(attr, vals) in GTXH_COMMON_ENUM_ATTRS {
-            bctx.mode(mode).test_enum(attr, vals);
+            bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, width) in GTH_COMMON_BIN_ATTRS {
             bctx.mode(mode).test_multi_attr_bin(attr, width);
@@ -1636,10 +1636,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             };
             let mut bctx = ctx.bel(defs::bslots::BUFDS[i]);
             let mode = "IBUFDS_GTE2";
-            bctx.test_manual("PRESENT", "1").mode(mode).commit();
+            bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
             bctx.mode(mode).test_inv("CLKTESTSIG");
-            bctx.mode(mode).test_enum("CLKCM_CFG", &["FALSE", "TRUE"]);
-            bctx.mode(mode).test_enum("CLKRCV_TRST", &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy("CLKCM_CFG", &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy("CLKRCV_TRST", &["FALSE", "TRUE"]);
             bctx.mode(mode)
                 .tile_mutex("CLKSWING_CFG", format!("IBUFDS{i}"))
                 .test_multi_attr_bin("CLKSWING_CFG", 2);
@@ -1723,19 +1723,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         };
         let mut bctx = ctx.bel(defs::bslots::GTP_CHANNEL);
         let mode = "GTPE2_CHANNEL";
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GTP_CHANNEL_INVPINS {
             bctx.mode(mode).test_inv(pin);
         }
         for &attr in GTP_CHANNEL_BOOL_ATTRS {
-            bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for &(attr, vals) in GTP_CHANNEL_ENUM_ATTRS {
-            bctx.mode(mode).test_enum(attr, vals);
+            bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, ref vals, delta) in GTP_CHANNEL_ENUM_INT_ATTRS {
             let vals = Vec::from_iter(vals.clone().map(|i| (i + delta).to_string()));
-            bctx.mode(mode).test_enum(attr, &vals);
+            bctx.mode(mode).test_enum_legacy(attr, &vals);
         }
         for &(attr, width) in GTP_CHANNEL_DEC_ATTRS {
             bctx.mode(mode).test_multi_attr_dec(attr, width);
@@ -1750,19 +1750,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTX_CHANNEL") {
         let mut bctx = ctx.bel(defs::bslots::GTX_CHANNEL);
         let mode = "GTXE2_CHANNEL";
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GTX_CHANNEL_INVPINS {
             bctx.mode(mode).test_inv(pin);
         }
         for &attr in GTX_CHANNEL_BOOL_ATTRS {
-            bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for &(attr, vals) in GTX_CHANNEL_ENUM_ATTRS {
-            bctx.mode(mode).test_enum(attr, vals);
+            bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, ref vals, delta) in GTX_CHANNEL_ENUM_INT_ATTRS {
             let vals = Vec::from_iter(vals.clone().map(|i| (i + delta).to_string()));
-            bctx.mode(mode).test_enum(attr, &vals);
+            bctx.mode(mode).test_enum_legacy(attr, &vals);
         }
         for &(attr, width) in GTX_CHANNEL_DEC_ATTRS {
             bctx.mode(mode).test_multi_attr_dec(attr, width);
@@ -1777,19 +1777,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTH_CHANNEL") {
         let mut bctx = ctx.bel(defs::bslots::GTH_CHANNEL);
         let mode = "GTHE2_CHANNEL";
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GTH_CHANNEL_INVPINS {
             bctx.mode(mode).test_inv(pin);
         }
         for &attr in GTH_CHANNEL_BOOL_ATTRS {
-            bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for &(attr, vals) in GTH_CHANNEL_ENUM_ATTRS {
-            bctx.mode(mode).test_enum(attr, vals);
+            bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, ref vals, delta) in GTH_CHANNEL_ENUM_INT_ATTRS {
             let vals = Vec::from_iter(vals.clone().map(|i| (i + delta).to_string()));
-            bctx.mode(mode).test_enum(attr, &vals);
+            bctx.mode(mode).test_enum_legacy(attr, &vals);
         }
         for &(attr, width) in GTH_CHANNEL_DEC_ATTRS {
             bctx.mode(mode).test_multi_attr_dec(attr, width);

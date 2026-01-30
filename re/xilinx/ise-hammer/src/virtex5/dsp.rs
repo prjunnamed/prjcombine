@@ -50,55 +50,55 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "CARRYINSELREG",
             "MULTCARRYINREG",
         ] {
-            bctx.mode(mode).test_enum(attr, &["0", "1"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["0", "1"]);
         }
         for attr in ["A_INPUT", "B_INPUT"] {
-            bctx.mode(mode).test_enum(attr, &["DIRECT", "CASCADE"]);
+            bctx.mode(mode).test_enum_legacy(attr, &["DIRECT", "CASCADE"]);
         }
         for attr in ["CLOCK_INVERT_P", "CLOCK_INVERT_M"] {
             bctx.mode(mode)
-                .test_enum(attr, &["SAME_EDGE", "OPPOSITE_EDGE"]);
+                .test_enum_legacy(attr, &["SAME_EDGE", "OPPOSITE_EDGE"]);
         }
         bctx.mode(mode)
-            .test_enum("SEL_ROUNDING_MASK", &["SEL_MASK", "MODE2", "MODE1"]);
-        bctx.mode(mode).test_enum("ROUNDING_LSB_MASK", &["1", "0"]);
+            .test_enum_legacy("SEL_ROUNDING_MASK", &["SEL_MASK", "MODE2", "MODE1"]);
+        bctx.mode(mode).test_enum_legacy("ROUNDING_LSB_MASK", &["1", "0"]);
         bctx.mode(mode)
-            .test_enum("USE_PATTERN_DETECT", &["PATDET", "NO_PATDET"]);
+            .test_enum_legacy("USE_PATTERN_DETECT", &["PATDET", "NO_PATDET"]);
         bctx.mode(mode)
-            .test_enum("USE_SIMD", &["TWO24", "ONE48", "FOUR12"]);
+            .test_enum_legacy("USE_SIMD", &["TWO24", "ONE48", "FOUR12"]);
         bctx.mode(mode)
-            .test_enum("USE_MULT", &["NONE", "MULT", "MULT_S"]);
-        bctx.mode(mode).test_enum("SEL_PATTERN", &["PATTERN", "C"]);
-        bctx.mode(mode).test_enum("SEL_MASK", &["MASK", "C"]);
+            .test_enum_legacy("USE_MULT", &["NONE", "MULT", "MULT_S"]);
+        bctx.mode(mode).test_enum_legacy("SEL_PATTERN", &["PATTERN", "C"]);
+        bctx.mode(mode).test_enum_legacy("SEL_MASK", &["MASK", "C"]);
         bctx.mode(mode)
-            .test_enum("AUTORESET_OVER_UNDER_FLOW", &["TRUE", "FALSE"]);
+            .test_enum_legacy("AUTORESET_OVER_UNDER_FLOW", &["TRUE", "FALSE"]);
         bctx.mode(mode)
-            .test_enum("AUTORESET_PATTERN_DETECT_OPTINV", &["NOT_MATCH", "MATCH"]);
+            .test_enum_legacy("AUTORESET_PATTERN_DETECT_OPTINV", &["NOT_MATCH", "MATCH"]);
         bctx.mode(mode)
-            .test_enum("AUTORESET_PATTERN_DETECT", &["TRUE", "FALSE"]);
+            .test_enum_legacy("AUTORESET_PATTERN_DETECT", &["TRUE", "FALSE"]);
         bctx.mode(mode)
-            .test_enum("SCAN_IN_SET_M", &["SET", "DONT_SET"]);
+            .test_enum_legacy("SCAN_IN_SET_M", &["SET", "DONT_SET"]);
         bctx.mode(mode)
-            .test_enum("SCAN_IN_SET_P", &["SET", "DONT_SET"]);
-        bctx.mode(mode).test_enum("SCAN_IN_SETVAL_M", &["1", "0"]);
-        bctx.mode(mode).test_enum("SCAN_IN_SETVAL_P", &["1", "0"]);
+            .test_enum_legacy("SCAN_IN_SET_P", &["SET", "DONT_SET"]);
+        bctx.mode(mode).test_enum_legacy("SCAN_IN_SETVAL_M", &["1", "0"]);
+        bctx.mode(mode).test_enum_legacy("SCAN_IN_SETVAL_P", &["1", "0"]);
         bctx.mode(mode)
-            .test_enum("TEST_SET_M", &["SET", "DONT_SET"]);
+            .test_enum_legacy("TEST_SET_M", &["SET", "DONT_SET"]);
         bctx.mode(mode)
-            .test_enum("TEST_SET_P", &["SET", "DONT_SET"]);
-        bctx.mode(mode).test_enum("TEST_SETVAL_M", &["1", "0"]);
-        bctx.mode(mode).test_enum("TEST_SETVAL_P", &["1", "0"]);
+            .test_enum_legacy("TEST_SET_P", &["SET", "DONT_SET"]);
+        bctx.mode(mode).test_enum_legacy("TEST_SETVAL_M", &["1", "0"]);
+        bctx.mode(mode).test_enum_legacy("TEST_SETVAL_P", &["1", "0"]);
         if i == 0 {
             bctx.mode(mode)
                 .bel_mode(bel_other, mode)
                 .bel_attr(bel_other, "LFSR_EN_SET", "DONT_SET")
-                .test_enum("LFSR_EN_SET", &["SET", "DONT_SET"]);
+                .test_enum_legacy("LFSR_EN_SET", &["SET", "DONT_SET"]);
         } else {
             bctx.mode(mode)
                 .bel_unused(bel_other)
-                .test_enum("LFSR_EN_SET", &["SET", "DONT_SET"]);
+                .test_enum_legacy("LFSR_EN_SET", &["SET", "DONT_SET"]);
         }
-        bctx.mode(mode).test_enum("LFSR_EN_SETVAL", &["1", "0"]);
+        bctx.mode(mode).test_enum_legacy("LFSR_EN_SETVAL", &["1", "0"]);
         bctx.mode(mode).test_multi_attr_hex_legacy("PATTERN", 48);
         bctx.mode(mode).test_multi_attr_hex_legacy("MASK", 48);
     }

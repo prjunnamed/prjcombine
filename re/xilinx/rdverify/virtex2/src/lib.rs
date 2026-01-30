@@ -1,16 +1,20 @@
 use std::collections::HashMap;
 
-use prjcombine_entity::EntityBundleItemIndex;
+use prjcombine_entity::{EntityBundleItemIndex, EntityId};
 use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem, TileWireCoord},
     grid::{BelCoord, EdgeIoCoord},
 };
+use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{LegacyBelContext, RawWireCoord, SitePinDir, Verifier};
 use prjcombine_virtex2::{
-    chip::ChipKind,
-    defs::{self, bcls, bslots},
+    chip::{ChipKind, ColumnKind},
+    defs::{
+        self, bcls, bslots,
+        spartan3::{tcls as tcls_s3, wires as wires_s3},
+    },
 };
 
 mod clb;
@@ -23,18 +27,6 @@ fn get_bel_iob<'a>(
     crd: EdgeIoCoord,
 ) -> LegacyBelContext<'a> {
     vrf.get_legacy_bel(endev.chip.get_io_loc(crd))
-}
-
-fn verify_rll(vrf: &mut Verifier, bcrd: BelCoord) {
-    let bel = &vrf.get_legacy_bel(bcrd);
-    let mut pins = Vec::new();
-    if bel.info.pins.is_empty() {
-        for pin in bel.naming.pins.keys() {
-            pins.push((&**pin, SitePinDir::In));
-            vrf.claim_net(&[bel.wire(pin)]);
-        }
-    }
-    vrf.verify_legacy_bel(bel, "RESERVED_LL", &pins, &[]);
 }
 
 fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoord) {
@@ -63,11 +55,13 @@ fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoord
             .extra_in("BREFCLK2")
             .extra_out("TST10B8BICRD0")
             .extra_out("TST10B8BICRD1");
-        let obel = bcrd.with_col(endev.chip.col_clk).bel(bslots::BREFCLK);
-        for pin in ["BREFCLK", "BREFCLK2"] {
+        for (idx, pin) in ["BREFCLK", "BREFCLK2"].into_iter().enumerate() {
             bel.claim_net(&[bel.wire(pin)]);
             bel.claim_pip(bel.wire(pin), bel.wire_far(pin));
-            bel.verify_net(&[bel.wire_far(pin), bel.bel_wire(obel, pin)]);
+            let obel = bcrd
+                .with_col(endev.chip.col_clk)
+                .bel(bslots::GLOBALSIG_BUFG[idx]);
+            bel.verify_net(&[bel.wire_far(pin), bel.bel_wire(obel, "BREFCLK_O")]);
         }
         bel.claim_net(&[bel.wire("TST10B8BICRD0")]);
         bel.claim_net(&[bel.wire("TST10B8BICRD1")]);
@@ -233,21 +227,30 @@ fn verify_dsp(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
 fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoord) {
     let slot_name = endev.edev.db.bel_slots.key(bcrd.slot);
     match bcrd.slot {
-        bslots::INT
-        | bslots::TERM_W
+        bslots::INT => {
+            let crd = vrf.get_tile_crds(endev.edev.get_tile_by_bel(bcrd)).unwrap()
+                [RawTileId::from_idx(0)];
+            let name = endev.ngrid.get_bel_name(bcrd).unwrap();
+            vrf.claim_site_dummy(crd, name);
+        }
+        bslots::TERM_W
         | bslots::TERM_E
         | bslots::TERM_S
         | bslots::TERM_N
         | bslots::CLK_INT
+        | bslots::DCM_INT
         | bslots::PPC_TERM_W
         | bslots::PPC_TERM_E
         | bslots::PPC_TERM_S
         | bslots::PPC_TERM_N
         | bslots::LLH
+        | bslots::LLV
+        | bslots::PTE2OMUX
         | bslots::INTF_TESTMUX
         | bslots::DSP_TESTMUX
-        | bslots::LLV => (),
-        bslots::RLL => verify_rll(vrf, bcrd),
+        | bslots::HROW
+        | bslots::HCLK
+        | bslots::DCMCONN => (),
         _ if bslots::SLICE.contains(bcrd.slot) => {
             if endev.chip.kind.is_virtex2() {
                 clb::verify_slice_v2(endev, vrf, bcrd);
@@ -272,9 +275,13 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
         bslots::DSP => verify_dsp(endev, vrf, bcrd),
 
         _ if slot_name.starts_with("IO") => io::verify_ioi(endev, vrf, bcrd),
-        _ if slot_name.starts_with("IBUF") => {
+        _ if bslots::IBUF.contains(bcrd.slot) => {
+            let idx = bslots::IBUF.index_of(bcrd.slot).unwrap();
             let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "IBUF", &[], &[]);
+            if (bcrd.col == endev.chip.col_clk - 1 || bcrd.col == endev.chip.col_clk) && idx < 2 {
+                vrf.claim_pip(bel.wire("CLKPAD"), bel.wire("I"));
+            }
+            vrf.verify_legacy_bel(bel, "IBUF", &[], &["CLKPAD"]);
         }
         _ if slot_name.starts_with("OBUF") => {
             let bel = &vrf.get_legacy_bel(bcrd);
@@ -291,28 +298,8 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
             vrf.claim_pip(bel.wire("BREFCLK"), obel.wire_far("I"));
         }
         bslots::PCILOGICSE => io::verify_pcilogicse(endev, vrf, bcrd),
-        bslots::PCI_CE_N => io::verify_pci_ce_n(endev, vrf, bcrd),
-        bslots::PCI_CE_S => io::verify_pci_ce_s(endev, vrf, bcrd),
-        bslots::PCI_CE_E => io::verify_pci_ce_e(endev, vrf, bcrd),
-        bslots::PCI_CE_W => io::verify_pci_ce_w(endev, vrf, bcrd),
-        bslots::PCI_CE_CNR => io::verify_pci_ce_cnr(endev, vrf, bcrd),
 
-        bslots::BREFCLK => clk::verify_brefclk(endev, vrf, bcrd),
         _ if slot_name.starts_with("BUFGMUX") => clk::verify_bufgmux(endev, vrf, bcrd),
-        bslots::HCLK => clk::verify_hclk(endev, vrf, bcrd),
-        bslots::HROW => clk::verify_hrow(endev, vrf, bcrd),
-        bslots::CLKC => {
-            if endev.chip.kind.is_virtex2() {
-                clk::verify_clkc_v2(endev, vrf, bcrd);
-            } else {
-                clk::verify_clkc_s3(endev, vrf, bcrd);
-            }
-        }
-        bslots::CLKC_50A => clk::verify_clkc_50a(endev, vrf, bcrd),
-        bslots::CLKQC => clk::verify_gclkvm(endev, vrf, bcrd),
-        bslots::DCMCONN_S3E => (),
-        bslots::DCMCONN => clk::verify_dcmconn(endev, vrf, bcrd),
-
         bslots::GT | bslots::GT10 => verify_gt(endev, vrf, bcrd),
         bslots::STARTUP
         | bslots::CAPTURE
@@ -353,9 +340,14 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
                 vrf.claim_net(&[bel.wire("I2")]);
             }
         }
-        _ if slot_name.starts_with("GLOBALSIG") => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "GLOBALSIG", &[], &[]);
+        bslots::GLOBALSIG_HCLK => {
+            vrf.verify_bel(bcrd).kind("GLOBALSIG").commit();
+            if endev.chip.columns[bcrd.col].kind == ColumnKind::Dsp {
+                vrf.verify_bel(bcrd).sub(1).kind("GLOBALSIG").commit();
+            }
+        }
+        _ if bslots::GLOBALSIG_BUFG.contains(bcrd.slot) => {
+            clk::verify_globalsig_bufg(endev, vrf, bcrd);
         }
         _ if bslots::DCIRESET.contains(bcrd.slot) => {
             let bel = &vrf.get_legacy_bel(bcrd);
@@ -365,56 +357,51 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
             let bel = &vrf.get_legacy_bel(bcrd);
             vrf.verify_legacy_bel(bel, "DCI", &[], &[]);
         }
-        _ if slot_name.starts_with("PTE2OMUX") => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            let out = bel.wire("OUT");
-            for (k, v) in &bel.naming.pins {
-                if k == "OUT" {
-                    continue;
-                }
-                vrf.claim_pip(
-                    out,
-                    RawWireCoord {
-                        crd: bel.crd(),
-                        wire: &v.name,
-                    },
-                );
-            }
-        }
-        bslots::VCC => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "VCC", &[("VCCOUT", SitePinDir::Out)], &[]);
-            vrf.claim_net(&[bel.wire("VCCOUT")]);
-        }
         bslots::MISR => (),
 
         _ => println!("MEOW {}", bcrd.to_string(endev.edev.db)),
     }
 }
 
-fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
-    if endev.chip.kind.is_spartan3ea() {
-        vrf.kill_stub_out("IOIS_STUB_F1_B3");
-        vrf.kill_stub_out("IOIS_STUB_F2_B3");
-        vrf.kill_stub_out("IOIS_STUB_F3_B3");
-        vrf.kill_stub_out("IOIS_STUB_F4_B3");
-        vrf.kill_stub_out("IOIS_STUB_G1_B3");
-        vrf.kill_stub_out("IOIS_STUB_G2_B3");
-        vrf.kill_stub_out("IOIS_STUB_G3_B3");
-        vrf.kill_stub_out("IOIS_STUB_G4_B3");
-        vrf.kill_stub_out("IOIS_STUB_F4_B0");
-        vrf.kill_stub_out("IOIS_STUB_F4_B1");
-        vrf.kill_stub_out("IOIS_STUB_F4_B2");
-        vrf.kill_stub_in("STUB_IOIS_X3");
-        vrf.kill_stub_in("STUB_IOIS_Y3");
-        vrf.kill_stub_in("STUB_IOIS_XQ3");
-        vrf.kill_stub_in("STUB_IOIS_YQ3");
-    }
-}
-
 pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
     let mut vrf = Verifier::new(rd, &endev.ngrid);
+    vrf.kill_stub_out("LH0_TESTWIRE");
+    vrf.kill_stub_out("LH6_TESTWIRE");
+    vrf.kill_stub_out("LH12_TESTWIRE");
+    vrf.kill_stub_out("LH18_TESTWIRE");
+    vrf.kill_stub_out("LV0_TESTWIRE");
+    vrf.kill_stub_out("LV6_TESTWIRE");
+    vrf.kill_stub_out("LV12_TESTWIRE");
+    vrf.kill_stub_out("LV18_TESTWIRE");
     if endev.chip.kind.is_virtex2() {
+        for i in 0..8 {
+            for tkn in ["BBTERM", "BGIGABIT_INT_TERM", "BGIGABIT10_INT_TERM"] {
+                vrf.mark_merge_pip(
+                    tkn,
+                    &format!("BBTERM_CLKPAD{i}"),
+                    &format!("BBTERM_DLL_CLKPAD{i}"),
+                );
+            }
+            for tkn in ["BTTERM", "TGIGABIT_INT_TERM", "TGIGABIT10_INT_TERM"] {
+                vrf.mark_merge_pip(
+                    tkn,
+                    &format!("BTTERM_CLKPAD{i}"),
+                    &format!("BTTERM_DLL_CLKPAD{i}"),
+                );
+            }
+        }
+        for i in 0..8 {
+            vrf.mark_merge_pip(
+                "CLKC",
+                &format!("CLKC_GCLKB{i}"),
+                &format!("CLKC_GCLKB_IN{i}"),
+            );
+            vrf.mark_merge_pip(
+                "CLKC",
+                &format!("CLKC_GCLKT{i}"),
+                &format!("CLKC_GCLKT_IN{i}"),
+            );
+        }
         for (wt, wf) in [
             (
                 defs::virtex2::wires::IMUX_CLK_OPTINV.as_slice(),
@@ -458,6 +445,87 @@ pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
             );
         }
     } else {
+        for i in 0..8 {
+            for tkn in ["CLKC", "CLKC_LL"] {
+                vrf.mark_merge_pip(
+                    tkn,
+                    &format!("CLKC_GCLK{i}"),
+                    &format!("CLKC_GCLK_MAIN_B{i}"),
+                );
+                vrf.mark_merge_pip(
+                    tkn,
+                    &format!("CLKC_GCLK{ii}", ii = i + 4),
+                    &format!("CLKC_GCLK_MAIN_T{i}"),
+                );
+            }
+            vrf.mark_merge_pip(
+                "GCLKVC",
+                &format!("GCLKC_GCLK_OUT_L{i}"),
+                &format!("GCLKC_GCLK{i}"),
+            );
+            vrf.mark_merge_pip(
+                "GCLKVC",
+                &format!("GCLKC_GCLK_OUT_R{i}"),
+                &format!("GCLKC_GCLK{i}"),
+            );
+        }
+        for tkn in ["GCLKH_PCI_CE_S", "GCLKH_PCI_CE_S_50A"] {
+            vrf.mark_merge_pip(tkn, "GCLKH_PCI_CE_IN", "GCLKH_PCI_CE_OUT");
+        }
+        vrf.mark_merge_pip("GCLKH_PCI_CE_N", "GCLKH_PCI_CE_OUT", "GCLKH_PCI_CE_IN");
+        for tkn in ["LL", "LR", "UL", "UR"] {
+            vrf.mark_merge_pip(tkn, "PCI_CE_EW", "PCI_CE_NS");
+        }
+        vrf.mark_merge_pip("GCLKV_IOISL", "CLKV_PCI_CE_E", "CLKV_PCI_CE_W");
+        vrf.mark_merge_pip("GCLKV_IOISR", "CLKV_PCI_CE_W", "CLKV_PCI_CE_E");
+        if endev.chip.kind == ChipKind::Spartan3 {
+            for i in 0..4 {
+                vrf.mark_merge_pip(
+                    "BBTERM",
+                    &format!("BBTERM_CLKPAD{i}"),
+                    &format!("BBTERM_DLL_CLKPAD{i}"),
+                );
+                vrf.mark_merge_pip(
+                    "BTTERM",
+                    &format!("BTTERM_CLKPAD{i}"),
+                    &format!("BTTERM_DLL_CLKPAD{i}"),
+                );
+            }
+        } else {
+            for tkn in ["CLKV", "CLKV_LL"] {
+                vrf.mark_merge_pip(tkn, "CLKV_OUTR0", "CLKV_OMUX10_OUTR0");
+                vrf.mark_merge_pip(tkn, "CLKV_OUTR1", "CLKV_OMUX11_OUTR1");
+                vrf.mark_merge_pip(tkn, "CLKV_OUTR2", "CLKV_OMUX12_OUTR2");
+                vrf.mark_merge_pip(tkn, "CLKV_OUTR3", "CLKV_OMUX15_OUTR3");
+                vrf.mark_merge_pip(tkn, "CLKV_OUTL0", "CLKV_OMUX10_OUTL0");
+                vrf.mark_merge_pip(tkn, "CLKV_OUTL1", "CLKV_OMUX11_OUTL1");
+                vrf.mark_merge_pip(tkn, "CLKV_OUTL2", "CLKV_OMUX12_OUTL2");
+                vrf.mark_merge_pip(tkn, "CLKV_OUTL3", "CLKV_OMUX15_OUTL3");
+            }
+        }
+        if endev.chip.kind.is_spartan3a() {
+            for i in 0..8 {
+                for tkn in ["CLKL", "CLKR"] {
+                    vrf.mark_merge_pip(tkn, &format!("{tkn}_CKI{i}_END"), &format!("{tkn}_CKI{i}"));
+                }
+            }
+            for i in 0..8 {
+                for tkn in ["CLKL_IOIS", "CLKL_IOIS_LL", "CLKL_IOIS_50A"] {
+                    vrf.mark_merge_pip(
+                        tkn,
+                        &format!("CLKLH_GCLKH_MAIN_V{i}"),
+                        &format!("CLKLH_GCLKH_MAIN{i}"),
+                    );
+                }
+                for tkn in ["CLKR_IOIS", "CLKR_IOIS_LL", "CLKR_IOIS_50A"] {
+                    vrf.mark_merge_pip(
+                        tkn,
+                        &format!("CLKRH_GCLKH_MAIN_V{i}"),
+                        &format!("CLKRH_GCLKH_MAIN{i}"),
+                    );
+                }
+            }
+        }
         for (wt, wf) in [
             (
                 defs::spartan3::wires::IMUX_CLK_OPTINV.as_slice(),
@@ -486,6 +554,72 @@ pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
             vrf.kill_stub_out_cond("BRAM_CLK2");
             vrf.kill_stub_out_cond("BRAM_CLK3");
         }
+        for tcid in [
+            tcls_s3::CLK_W_S3E,
+            tcls_s3::CLK_W_S3A,
+            tcls_s3::CLK_E_S3E,
+            tcls_s3::CLK_E_S3A,
+        ] {
+            for i in 0..4 {
+                for c in [3, 4] {
+                    vrf.inject_tcls_pip(
+                        tcid,
+                        TileWireCoord::new_idx(c, wires_s3::IMUX_DATA[3 + i * 4]),
+                        TileWireCoord::new_idx(4, wires_s3::PULLUP),
+                    );
+                }
+            }
+            for &tcrd in &endev.edev.tile_index[tcid] {
+                let BelInfo::SwitchBox(sb) = &endev.edev.db[tcid].bels[bslots::CLK_INT] else {
+                    unreachable!()
+                };
+                for item in &sb.items {
+                    let SwitchBoxItem::PermaBuf(buf) = item else {
+                        continue;
+                    };
+                    let dst = endev.edev.tile_wire(tcrd, buf.dst);
+                    let src = endev.edev.tile_wire(tcrd, buf.src.tw);
+                    vrf.skip_tcls_pip(tcid, buf.dst, buf.src.tw);
+                    vrf.alias_wire(dst, src);
+                }
+                for i in 0..8 {
+                    let BelInfo::Bel(bel) = &endev.edev.db[tcid].bels[bslots::BUFGMUX[i]] else {
+                        unreachable!()
+                    };
+                    let wires = Vec::from_iter(
+                        bel.outputs[bcls::BUFGMUX::O]
+                            .iter()
+                            .map(|&wire| endev.edev.resolve_tile_wire(tcrd, wire).unwrap()),
+                    );
+                    assert_eq!(wires.len(), 2);
+                    vrf.alias_wire(wires[0], wires[1]);
+                }
+            }
+        }
+        for &tcrd in &endev.edev.tile_index[tcls_s3::HCLK_UNI] {
+            let ntile = &endev.ngrid.tiles[&tcrd];
+            if endev.ngrid.db.tile_class_namings.key(ntile.naming) == "HCLK_BRAM" {
+                let naming = &endev.ngrid.db.tile_class_namings[ntile.naming];
+                let crd = vrf.get_tile_crds(tcrd).unwrap()[RawTileId::from_idx(0)];
+                for i in 0..8 {
+                    let wire_s = RawWireCoord {
+                        crd,
+                        wire: &naming.wires[&TileWireCoord::new_idx(0, wires_s3::GCLK[i])].name,
+                    };
+                    let wire_n = RawWireCoord {
+                        crd,
+                        wire: &naming.wires[&TileWireCoord::new_idx(1, wires_s3::GCLK[i])].name,
+                    };
+                    let wire_row = RawWireCoord {
+                        crd,
+                        wire: &naming.wires[&TileWireCoord::new_idx(1, wires_s3::GCLK_QUAD[i])]
+                            .name,
+                    };
+                    vrf.claim_pip(wire_s, wire_row);
+                    vrf.merge_node(wire_s, wire_n);
+                }
+            }
+        }
     }
     vrf.skip_sb(bslots::MULT_INT);
     vrf.prep_int_wires();
@@ -496,6 +630,22 @@ pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
             verify_bel(endev, &mut vrf, tcrd.bel(slot));
         }
     }
-    verify_extra(endev, &mut vrf);
+    if endev.chip.kind.is_spartan3ea() {
+        vrf.kill_stub_out("IOIS_STUB_F1_B3");
+        vrf.kill_stub_out("IOIS_STUB_F2_B3");
+        vrf.kill_stub_out("IOIS_STUB_F3_B3");
+        vrf.kill_stub_out("IOIS_STUB_F4_B3");
+        vrf.kill_stub_out("IOIS_STUB_G1_B3");
+        vrf.kill_stub_out("IOIS_STUB_G2_B3");
+        vrf.kill_stub_out("IOIS_STUB_G3_B3");
+        vrf.kill_stub_out("IOIS_STUB_G4_B3");
+        vrf.kill_stub_out("IOIS_STUB_F4_B0");
+        vrf.kill_stub_out("IOIS_STUB_F4_B1");
+        vrf.kill_stub_out("IOIS_STUB_F4_B2");
+        vrf.kill_stub_in("STUB_IOIS_X3");
+        vrf.kill_stub_in("STUB_IOIS_Y3");
+        vrf.kill_stub_in("STUB_IOIS_XQ3");
+        vrf.kill_stub_in("STUB_IOIS_YQ3");
+    }
     vrf.finish();
 }

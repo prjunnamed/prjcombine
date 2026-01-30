@@ -191,12 +191,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode("BUFGCTRL").test_inv(pin);
             }
             bctx.mode("BUFGCTRL")
-                .test_enum("PRESELECT_I0", &["FALSE", "TRUE"]);
+                .test_enum_legacy("PRESELECT_I0", &["FALSE", "TRUE"]);
             bctx.mode("BUFGCTRL")
-                .test_enum("PRESELECT_I1", &["FALSE", "TRUE"]);
+                .test_enum_legacy("PRESELECT_I1", &["FALSE", "TRUE"]);
             bctx.mode("BUFGCTRL")
-                .test_enum("CREATE_EDGE", &["FALSE", "TRUE"]);
-            bctx.mode("BUFGCTRL").test_enum("INIT_OUT", &["0", "1"]);
+                .test_enum_legacy("CREATE_EDGE", &["FALSE", "TRUE"]);
+            bctx.mode("BUFGCTRL").test_enum_legacy("INIT_OUT", &["0", "1"]);
 
             for j in 0..2 {
                 for val in ["CKINT0", "CKINT1"] {
@@ -265,7 +265,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut ctx = FuzzCtx::new(session, backend, "HCLK");
         let mut bctx = ctx.bel(defs::bslots::HCLK);
         for i in 0..10 {
-            bctx.test_manual(format!("BUF.HCLK{i}"), "1")
+            bctx.test_manual_legacy(format!("BUF.HCLK{i}"), "1")
                 .pip(format!("HCLK_O{i}"), format!("HCLK_I{i}"))
                 .commit();
         }
@@ -381,7 +381,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 continue;
             }
             let mut bctx = ctx.bel(bel);
-            bctx.test_manual("PRESENT", "1").mode("BUFIO").commit();
+            bctx.test_manual_legacy("PRESENT", "1").mode("BUFIO").commit();
             bctx.mode("BUFIO")
                 .tile_mutex("BUFIO", format!("TEST_BUFIO{i}"))
                 .test_manual_legacy("ENABLE", "1")
@@ -395,8 +395,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
             let mut bctx = ctx.bel(bel);
 
-            bctx.test_manual("ENABLE", "1").mode("BUFR").commit();
-            bctx.mode("BUFR").test_enum(
+            bctx.test_manual_legacy("ENABLE", "1").mode("BUFR").commit();
+            bctx.mode("BUFR").test_enum_legacy(
                 "BUFR_DIVIDE",
                 &["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"],
             );
@@ -418,7 +418,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         {
             let mut bctx = ctx.bel(defs::bslots::IOCLK);
             for i in 0..10 {
-                bctx.test_manual(format!("BUF.HCLK{i}"), "1")
+                bctx.test_manual_legacy(format!("BUF.HCLK{i}"), "1")
                     .pip(format!("HCLK_O{i}"), format!("HCLK_I{i}"))
                     .commit();
             }

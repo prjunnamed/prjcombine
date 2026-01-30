@@ -86,31 +86,31 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
-            .test_enum("SAVEDATA", &["FALSE", "TRUE"]);
+            .test_enum_legacy("SAVEDATA", &["FALSE", "TRUE"]);
 
         bctx.mode(mode)
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
-            .test_enum("RAM_MODE", &["TDP", "SDP"]);
+            .test_enum_legacy("RAM_MODE", &["TDP", "SDP"]);
 
         for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "FULL")
                 .attr("RAM_MODE", "TDP")
-                .test_enum(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
+                .test_enum_legacy(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
         }
         for attr in ["DOA_REG", "DOB_REG"] {
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "FULL")
-                .test_enum(attr, &["0", "1"]);
+                .test_enum_legacy(attr, &["0", "1"]);
         }
         for attr in ["RAM_EXTENSION_A", "RAM_EXTENSION_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "FULL")
-                .test_enum(attr, &["NONE", "LOWER", "UPPER"]);
+                .test_enum_legacy(attr, &["NONE", "LOWER", "UPPER"]);
         }
         for attr in ["READ_WIDTH_A", "WRITE_WIDTH_B"] {
             bctx.mode(mode)
@@ -133,19 +133,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("DOA_REG", "0")
                 .attr("DOB_REG", "0")
                 .attr("RAM_MODE", "TDP")
-                .test_enum(attr, &["0", "1", "2", "4", "9", "18", "36"]);
+                .test_enum_legacy(attr, &["0", "1", "2", "4", "9", "18", "36"]);
         }
         for attr in ["RSTREG_PRIORITY_A", "RSTREG_PRIORITY_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "FULL")
-                .test_enum(attr, &["REGCE", "RSTREG"]);
+                .test_enum_legacy(attr, &["REGCE", "RSTREG"]);
         }
 
         bctx.mode(mode)
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
-            .test_enum(
+            .test_enum_legacy(
                 "RDADDR_COLLISION_HWCONFIG",
                 &["DELAYED_WRITE", "PERFORMANCE"],
             );
@@ -153,23 +153,23 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "FULL")
-                .test_enum("EN_PWRGATE", &["NONE", "LEFT", "RIGHT", "BOTH"]);
+                .test_enum_legacy("EN_PWRGATE", &["NONE", "LEFT", "RIGHT", "BOTH"]);
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "FULL")
-                .test_enum("EN_SDBITERR_INIT_V6", &["FALSE", "TRUE"]);
+                .test_enum_legacy("EN_SDBITERR_INIT_V6", &["FALSE", "TRUE"]);
         }
 
         bctx.mode(mode)
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
             .attr("EN_ECC_WRITE", "FALSE")
-            .test_enum("EN_ECC_READ", &["FALSE", "TRUE"]);
+            .test_enum_legacy("EN_ECC_READ", &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
             .attr("EN_ECC_READ", "FALSE")
-            .test_enum("EN_ECC_WRITE", &["FALSE", "TRUE"]);
+            .test_enum_legacy("EN_ECC_WRITE", &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
@@ -341,17 +341,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .force_bel_name("FIFO_F")
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
-            .test_enum("FIFO_MODE", &["FIFO36", "FIFO36_72"]);
+            .test_enum_legacy("FIFO_MODE", &["FIFO36", "FIFO36_72"]);
         bctx.mode(mode)
             .force_bel_name("FIFO_F")
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
-            .test_enum("EN_SYN", &["FALSE", "TRUE"]);
+            .test_enum_legacy("EN_SYN", &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .force_bel_name("FIFO_F")
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
-            .test_enum("FIRST_WORD_FALL_THROUGH", &["FALSE", "TRUE"]);
+            .test_enum_legacy("FIRST_WORD_FALL_THROUGH", &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .force_bel_name("FIFO_F")
             .global_mutex("BRAM_OPT", "NONE")
@@ -369,7 +369,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .force_bel_name("FIFO_F")
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
-            .test_enum("DO_REG", &["0", "1"]);
+            .test_enum_legacy("DO_REG", &["0", "1"]);
 
         bctx.mode(mode)
             .force_bel_name("FIFO_F")
@@ -377,7 +377,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .tile_mutex("MODE", "FULL")
             .attr("DO_REG", "0")
             .attr("FIFO_MODE", "FIFO36")
-            .test_enum("DATA_WIDTH", &["4", "9", "18", "36", "72"]);
+            .test_enum_legacy("DATA_WIDTH", &["4", "9", "18", "36", "72"]);
         bctx.mode(mode)
             .force_bel_name("FIFO_F")
             .global_mutex("BRAM_OPT", "NONE")
@@ -391,23 +391,23 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .force_bel_name("FIFO_F")
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "FULL")
-                .test_enum("RSTREG_PRIORITY", &["REGCE", "RSTREG"]);
+                .test_enum_legacy("RSTREG_PRIORITY", &["REGCE", "RSTREG"]);
         } else {
             bctx.mode(mode)
                 .force_bel_name("FIFO_F")
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "FULL")
-                .test_enum("EN_PWRGATE", &["NONE", "LEFT", "RIGHT", "BOTH"]);
+                .test_enum_legacy("EN_PWRGATE", &["NONE", "LEFT", "RIGHT", "BOTH"]);
             bctx.mode(mode)
                 .force_bel_name("FIFO_F")
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "FULL")
-                .test_enum("EN_SDBITERR_INIT_V6", &["FALSE", "TRUE"]);
+                .test_enum_legacy("EN_SDBITERR_INIT_V6", &["FALSE", "TRUE"]);
             bctx.mode(mode)
                 .force_bel_name("FIFO_F")
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "FULL")
-                .test_enum(
+                .test_enum_legacy(
                     "RDADDR_COLLISION_HWCONFIG",
                     &["DELAYED_WRITE", "PERFORMANCE"],
                 );
@@ -418,13 +418,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
             .attr("EN_ECC_WRITE", "FALSE")
-            .test_enum("EN_ECC_READ", &["FALSE", "TRUE"]);
+            .test_enum_legacy("EN_ECC_READ", &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .force_bel_name("FIFO_F")
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
             .attr("EN_ECC_READ", "FALSE")
-            .test_enum("EN_ECC_WRITE", &["FALSE", "TRUE"]);
+            .test_enum_legacy("EN_ECC_WRITE", &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .force_bel_name("FIFO_F")
             .global_mutex("BRAM_OPT", "NONE")
@@ -500,20 +500,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "HALF")
-            .test_enum("RAM_MODE", &["TDP", "SDP"]);
+            .test_enum_legacy("RAM_MODE", &["TDP", "SDP"]);
 
         for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
                 .attr("RAM_MODE", "TDP")
-                .test_enum(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
+                .test_enum_legacy(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
         }
         for attr in ["DOA_REG", "DOB_REG"] {
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
-                .test_enum(attr, &["0", "1"]);
+                .test_enum_legacy(attr, &["0", "1"]);
         }
         for attr in ["READ_WIDTH_A", "WRITE_WIDTH_B"] {
             bctx.mode(mode)
@@ -556,20 +556,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pin("WEA2")
                 .pin("WEA3")
                 .attr("RAM_MODE", "TDP")
-                .test_enum(attr, &["0", "1", "2", "4", "9", "18"]);
+                .test_enum_legacy(attr, &["0", "1", "2", "4", "9", "18"]);
         }
 
         for attr in ["RSTREG_PRIORITY_A", "RSTREG_PRIORITY_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
-                .test_enum(attr, &["REGCE", "RSTREG"]);
+                .test_enum_legacy(attr, &["REGCE", "RSTREG"]);
         }
 
         bctx.mode(mode)
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "HALF")
-            .test_enum(
+            .test_enum_legacy(
                 "RDADDR_COLLISION_HWCONFIG",
                 &["DELAYED_WRITE", "PERFORMANCE"],
             );
@@ -578,12 +578,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
-                .test_enum("EN_PWRGATE", &["NONE", "LEFT", "RIGHT", "BOTH"]);
+                .test_enum_legacy("EN_PWRGATE", &["NONE", "LEFT", "RIGHT", "BOTH"]);
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
                 .tile_mutex("SDBITERR", format!("HALF_{i}"))
-                .test_enum("EN_SDBITERR_INIT_V6", &["FALSE", "TRUE"]);
+                .test_enum_legacy("EN_SDBITERR_INIT_V6", &["FALSE", "TRUE"]);
         }
 
         if i == 0 {
@@ -619,17 +619,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .force_bel_name("FIFO_H[0]")
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
-                .test_enum("FIFO_MODE", &["FIFO18", "FIFO18_36"]);
+                .test_enum_legacy("FIFO_MODE", &["FIFO18", "FIFO18_36"]);
             bctx.mode(mode)
                 .force_bel_name("FIFO_H[0]")
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
-                .test_enum("EN_SYN", &["FALSE", "TRUE"]);
+                .test_enum_legacy("EN_SYN", &["FALSE", "TRUE"]);
             bctx.mode(mode)
                 .force_bel_name("FIFO_H[0]")
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
-                .test_enum("FIRST_WORD_FALL_THROUGH", &["FALSE", "TRUE"]);
+                .test_enum_legacy("FIRST_WORD_FALL_THROUGH", &["FALSE", "TRUE"]);
 
             bctx.mode(mode)
                 .force_bel_name("FIFO_H[0]")
@@ -648,7 +648,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .force_bel_name("FIFO_H[0]")
                 .global_mutex("BRAM_OPT", "NONE")
                 .tile_mutex("MODE", "HALF")
-                .test_enum("DO_REG", &["0", "1"]);
+                .test_enum_legacy("DO_REG", &["0", "1"]);
 
             bctx.mode(mode)
                 .force_bel_name("FIFO_H[0]")
@@ -656,7 +656,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("MODE", "HALF")
                 .attr("DO_REG", "0")
                 .attr("FIFO_MODE", "FIFO18")
-                .test_enum("DATA_WIDTH", &["4", "9", "18", "36"]);
+                .test_enum_legacy("DATA_WIDTH", &["4", "9", "18", "36"]);
             bctx.mode(mode)
                 .force_bel_name("FIFO_H[0]")
                 .global_mutex("BRAM_OPT", "NONE")
@@ -670,24 +670,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .force_bel_name("FIFO_H[0]")
                     .global_mutex("BRAM_OPT", "NONE")
                     .tile_mutex("MODE", "HALF")
-                    .test_enum("RSTREG_PRIORITY", &["REGCE", "RSTREG"]);
+                    .test_enum_legacy("RSTREG_PRIORITY", &["REGCE", "RSTREG"]);
             } else {
                 bctx.mode(mode)
                     .force_bel_name("FIFO_H[0]")
                     .global_mutex("BRAM_OPT", "NONE")
                     .tile_mutex("MODE", "HALF")
-                    .test_enum("EN_PWRGATE", &["NONE", "LEFT", "RIGHT", "BOTH"]);
+                    .test_enum_legacy("EN_PWRGATE", &["NONE", "LEFT", "RIGHT", "BOTH"]);
                 bctx.mode(mode)
                     .force_bel_name("FIFO_H[0]")
                     .global_mutex("BRAM_OPT", "NONE")
                     .tile_mutex("MODE", "HALF")
                     .tile_mutex("SDBITERR", format!("HALF_{i}"))
-                    .test_enum("EN_SDBITERR_INIT_V6", &["FALSE", "TRUE"]);
+                    .test_enum_legacy("EN_SDBITERR_INIT_V6", &["FALSE", "TRUE"]);
                 bctx.mode(mode)
                     .force_bel_name("FIFO_H[0]")
                     .global_mutex("BRAM_OPT", "NONE")
                     .tile_mutex("MODE", "HALF")
-                    .test_enum(
+                    .test_enum_legacy(
                         "RDADDR_COLLISION_HWCONFIG",
                         &["DELAYED_WRITE", "PERFORMANCE"],
                     );

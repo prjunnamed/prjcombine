@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
-use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
+use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, PipMode};
 use prjcombine_virtex2::defs::{
     self, bslots,
     virtex2::{ccls, tcls, wires},
@@ -44,6 +44,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         builder.wire_names(wires::GCLK[i], &[format!("GCLK{i}")]);
     }
     for i in 0..8 {
+        builder.mark_permabuf(wires::DCM_CLKPAD[i]);
         builder.wire_names(
             wires::DCM_CLKPAD[i],
             &[
@@ -51,6 +52,24 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 format!("GIGABIT_INT_DLL_CLKPAD{i}"),
             ],
         );
+    }
+    for i in 0..8 {
+        for tkn in ["CLKB", "CLKT"] {
+            builder.extra_name_sub(format!("{tkn}_DLLOUTL{i}"), 0, wires::DCM_BUS[i]);
+            builder.extra_name_sub(format!("{tkn}_DLLOUTR{i}"), 1, wires::DCM_BUS[i]);
+            builder.extra_name_sub(format!("{tkn}_DLL_CLKPADL{i}"), 0, wires::DCM_CLKPAD[i]);
+            builder.extra_name_sub(format!("{tkn}_DLL_CLKPADR{i}"), 1, wires::DCM_CLKPAD[i]);
+        }
+        builder.extra_name(format!("BBTERM_CKMUX{i}"), wires::DCM_BUS[i]);
+        builder.extra_name(format!("TTERM_CKMUX{i}"), wires::DCM_BUS[i]);
+    }
+    for i in 0..4 {
+        for tkn in ["CLKB", "CLKT"] {
+            builder.extra_name_sub(format!("{tkn}_CKIL{i}"), 0, wires::OUT_CLKPAD[i]);
+            builder.extra_name_sub(format!("{tkn}_CKIR{i}"), 1, wires::OUT_CLKPAD[i]);
+            builder.extra_name_sub(format!("ML_{tkn}_CKIL{i}"), 0, wires::OUT_CLKPAD[i]);
+            builder.extra_name_sub(format!("ML_{tkn}_CKIR{i}"), 1, wires::OUT_CLKPAD[i]);
+        }
     }
 
     for (i, da1, da2, db, xname) in [
@@ -705,391 +724,210 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.extra_name_sub("REG_R_PCI_OUT_U1", 2, w);
 
     for i in 0..8 {
-        builder.wire_names(
-            wires::IMUX_BUFG_SEL[i],
-            &[format!("CLKB_SELDUB{i}"), format!("CLKT_SELDUB{i}")],
-        );
-    }
-    for i in 0..8 {
-        let ii = i % 4;
-        let lr = if i < 4 { 'R' } else { 'L' };
-        builder.wire_names(
-            wires::IMUX_BUFG_CLK[i],
-            &[
-                format!("CLKB_CLKDUB{lr}{ii}"),
-                format!("CLKT_CLKDUB{lr}{ii}"),
-            ],
-        );
-    }
-    for i in 0..8 {
-        builder.wire_names(
-            wires::OUT_BUFG[i],
-            &[format!("CLKB_GCLK_ROOT{i}"), format!("CLKT_GCLK_ROOT{i}")],
-        );
+        for tkn in ["CLKB", "CLKT"] {
+            builder.extra_name_sub(format!("{tkn}_SELDUB{i}"), 1, wires::IMUX_BUFG_SEL[i]);
+            let ii = i % 4;
+            let lr = if i < 4 { 'R' } else { 'L' };
+            builder.extra_name_sub(
+                format!("{tkn}_CLKDUB{lr}{ii}"),
+                1,
+                wires::IMUX_BUFG_CLK_INT[i],
+            );
+            builder.extra_name_sub(format!("{tkn}_GCLK0{i}"), 1, wires::IMUX_BUFG_CLK[i]);
+        }
+        builder.extra_name_sub(format!("CLKB_GCLK_ROOT{i}"), 1, wires::GCLK_S[i]);
+        builder.extra_name_sub(format!("CLKT_GCLK_ROOT{i}"), 1, wires::GCLK_N[i]);
+        builder.extra_name(format!("GCLKC_GCLKB{i}"), wires::GCLK_S[i]);
+        builder.extra_name(format!("GCLKC_GCLKT{i}"), wires::GCLK_N[i]);
+        builder.extra_name_sub(format!("GCLKC_GCLKL{i}"), 0, wires::GCLK_ROW[i]);
+        builder.extra_name_sub(format!("GCLKC_GCLKR{i}"), 1, wires::GCLK_ROW[i]);
+        builder.extra_name_sub(format!("GCLKH_GCLK_B{i}"), 1, wires::GCLK_ROW[i]);
     }
 
-    let bels_int = [builder.bel_xy(bslots::RLL, "RLL", 0, 0)];
-    let bels_int_sigh = [builder
-        .bel_xy(bslots::RLL, "RLL", 0, 0)
-        .pins_name_only(&["LH0", "LH6", "LH12", "LH18", "LV0", "LV6", "LV12", "LV18"])];
-    builder.extract_int_id(tcls::INT_CLB, bslots::INT, "CENTER", "INT_CLB", &bels_int);
-    builder.extract_int_id(
-        tcls::INT_IOI,
-        bslots::INT,
-        "LR_IOIS",
-        "INT_IOI_WE",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_IOI,
-        bslots::INT,
-        "TB_IOIS",
-        "INT_IOI_SN",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_IOI,
-        bslots::INT,
-        "ML_TB_IOIS",
-        "INT_IOI_SN",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_IOI,
-        bslots::INT,
-        "ML_TBS_IOIS",
-        "INT_IOI_SN",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_IOI,
-        bslots::INT,
-        "GIGABIT_IOI",
-        "INT_IOI_SN",
-        &bels_int,
-    );
+    builder.extract_int_id(tcls::INT_CLB, bslots::INT, "CENTER", "INT_CLB", &[]);
+    builder.extract_int_id(tcls::INT_IOI, bslots::INT, "LR_IOIS", "INT_IOI_WE", &[]);
+    builder.extract_int_id(tcls::INT_IOI, bslots::INT, "TB_IOIS", "INT_IOI_SN", &[]);
+    builder.extract_int_id(tcls::INT_IOI, bslots::INT, "ML_TB_IOIS", "INT_IOI_SN", &[]);
+    builder.extract_int_id(tcls::INT_IOI, bslots::INT, "ML_TBS_IOIS", "INT_IOI_SN", &[]);
+    builder.extract_int_id(tcls::INT_IOI, bslots::INT, "GIGABIT_IOI", "INT_IOI_SN", &[]);
     builder.extract_int_id(
         tcls::INT_IOI,
         bslots::INT,
         "GIGABIT10_IOI",
         "INT_IOI_SN",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_IOI_CLK_S,
         bslots::INT,
         "MK_B_IOIS",
         "INT_IOI_CLK_S",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_IOI_CLK_N,
         bslots::INT,
         "MK_T_IOIS",
         "INT_IOI_CLK_N",
-        &bels_int,
+        &[],
     );
-    builder.extract_int_id(tcls::INT_BRAM, bslots::INT, "BRAM0", "INT_BRAM", &bels_int);
-    builder.extract_int_id(tcls::INT_BRAM, bslots::INT, "BRAM1", "INT_BRAM", &bels_int);
-    builder.extract_int_id(tcls::INT_BRAM, bslots::INT, "BRAM2", "INT_BRAM", &bels_int);
-    builder.extract_int_id(tcls::INT_BRAM, bslots::INT, "BRAM3", "INT_BRAM", &bels_int);
+    builder.extract_int_id(tcls::INT_BRAM, bslots::INT, "BRAM0", "INT_BRAM", &[]);
+    builder.extract_int_id(tcls::INT_BRAM, bslots::INT, "BRAM1", "INT_BRAM", &[]);
+    builder.extract_int_id(tcls::INT_BRAM, bslots::INT, "BRAM2", "INT_BRAM", &[]);
+    builder.extract_int_id(tcls::INT_BRAM, bslots::INT, "BRAM3", "INT_BRAM", &[]);
     builder.extract_int_id(
         tcls::INT_DCM_V2,
         bslots::INT,
         "BRAM_IOIS",
         "INT_DCM_V2",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_DCM_V2P,
         bslots::INT,
         "ML_BRAM_IOIS",
         "INT_DCM_V2P",
-        &bels_int_sigh,
+        &[],
     );
-    builder.extract_int_id(tcls::INT_CNR, bslots::INT, "LL", "INT_CNR", &bels_int);
-    builder.extract_int_id(tcls::INT_CNR, bslots::INT, "LR", "INT_CNR", &bels_int);
-    builder.extract_int_id(tcls::INT_CNR, bslots::INT, "UL", "INT_CNR", &bels_int);
-    builder.extract_int_id(tcls::INT_CNR, bslots::INT, "UR", "INT_CNR", &bels_int);
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT_INT0",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT_INT1",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT_INT2",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT_INT3",
-        "INT_GT",
-        &bels_int,
-    );
+    builder.extract_int_id(tcls::INT_CNR, bslots::INT, "LL", "INT_CNR", &[]);
+    builder.extract_int_id(tcls::INT_CNR, bslots::INT, "LR", "INT_CNR", &[]);
+    builder.extract_int_id(tcls::INT_CNR, bslots::INT, "UL", "INT_CNR", &[]);
+    builder.extract_int_id(tcls::INT_CNR, bslots::INT, "UR", "INT_CNR", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT_INT0", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT_INT1", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT_INT2", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT_INT3", "INT_GT", &[]);
     builder.extract_int_id(
         tcls::INT_GT_CLKPAD,
         bslots::INT,
         "BGIGABIT_INT4",
         "INT_GT_CLKPAD",
-        &bels_int,
+        &[],
     );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT_INT0",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT_INT1",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT_INT2",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT_INT3",
-        "INT_GT",
-        &bels_int,
-    );
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT_INT0", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT_INT1", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT_INT2", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT_INT3", "INT_GT", &[]);
     builder.extract_int_id(
         tcls::INT_GT_CLKPAD,
         bslots::INT,
         "TGIGABIT_INT4",
         "INT_GT_CLKPAD",
-        &bels_int,
+        &[],
     );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT10_INT0",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT10_INT1",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT10_INT2",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT10_INT3",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT10_INT4",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT10_INT5",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT10_INT6",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "BGIGABIT10_INT7",
-        "INT_GT",
-        &bels_int,
-    );
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT10_INT0", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT10_INT1", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT10_INT2", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT10_INT3", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT10_INT4", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT10_INT5", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT10_INT6", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "BGIGABIT10_INT7", "INT_GT", &[]);
     builder.extract_int_id(
         tcls::INT_GT_CLKPAD,
         bslots::INT,
         "BGIGABIT10_INT8",
         "INT_GT_CLKPAD",
-        &bels_int,
+        &[],
     );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT10_INT0",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT10_INT1",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT10_INT2",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT10_INT3",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT10_INT4",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT10_INT5",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT10_INT6",
-        "INT_GT",
-        &bels_int,
-    );
-    builder.extract_int_id(
-        tcls::INT_PPC,
-        bslots::INT,
-        "TGIGABIT10_INT7",
-        "INT_GT",
-        &bels_int,
-    );
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT10_INT0", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT10_INT1", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT10_INT2", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT10_INT3", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT10_INT4", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT10_INT5", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT10_INT6", "INT_GT", &[]);
+    builder.extract_int_id(tcls::INT_PPC, bslots::INT, "TGIGABIT10_INT7", "INT_GT", &[]);
     builder.extract_int_id(
         tcls::INT_GT_CLKPAD,
         bslots::INT,
         "TGIGABIT10_INT8",
         "INT_GT_CLKPAD",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "LPPC_X0Y0_INT",
         "INT_PPC_W",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "LPPC_X1Y0_INT",
         "INT_PPC_W",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "LLPPC_X0Y0_INT",
         "INT_PPC_W",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "LLPPC_X1Y0_INT",
         "INT_PPC_W",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "ULPPC_X0Y0_INT",
         "INT_PPC_W",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "ULPPC_X1Y0_INT",
         "INT_PPC_W",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "RPPC_X0Y0_INT",
         "INT_PPC_E",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "RPPC_X1Y0_INT",
         "INT_PPC_E",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "BPPC_X0Y0_INT",
         "INT_PPC_S",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "BPPC_X1Y0_INT",
         "INT_PPC_S",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "TPPC_X0Y0_INT",
         "INT_PPC_N",
-        &bels_int,
+        &[],
     );
     builder.extract_int_id(
         tcls::INT_PPC,
         bslots::INT,
         "TPPC_X1Y0_INT",
         "INT_PPC_N",
-        &bels_int,
+        &[],
     );
 
     if let Some(pips) = builder.pips.get_mut(&(tcls::INT_GT_CLKPAD, bslots::INT)) {
@@ -1152,24 +990,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.extract_int_bels_id(tcls::CLB, "CENTER", "CLB", &bels_clb);
 
     let ioi_name_only = ["DIFFI_IN", "PADOUT", "DIFFO_IN", "DIFFO_OUT"];
-    let bels_ioi = [
+    let bels_ioi: [_; 4] = core::array::from_fn(|i| {
         builder
-            .bel_indexed(bslots::IOI[0], "IOB", 0)
+            .bel_indexed(bslots::IOI[i], "IOB", i)
             .pins_name_only(&ioi_name_only)
-            .extra_wire_force("IBUF", "IOIS_IBUF0"),
-        builder
-            .bel_indexed(bslots::IOI[1], "IOB", 1)
-            .pins_name_only(&ioi_name_only)
-            .extra_wire_force("IBUF", "IOIS_IBUF1"),
-        builder
-            .bel_indexed(bslots::IOI[2], "IOB", 2)
-            .pins_name_only(&ioi_name_only)
-            .extra_wire_force("IBUF", "IOIS_IBUF2"),
-        builder
-            .bel_indexed(bslots::IOI[3], "IOB", 3)
-            .pins_name_only(&ioi_name_only)
-            .extra_wire_force("IBUF", "IOIS_IBUF3"),
-    ];
+            .extra_int_out_force(
+                "CLKPAD",
+                TileWireCoord::new_idx(0, wires::OUT_CLKPAD[i]),
+                format!("IOIS_IBUF{i}"),
+            )
+    });
     builder.extract_int_bels_id(tcls::IOI, "LR_IOIS", "IOI", &bels_ioi);
     builder.extract_int_bels_id(tcls::IOI, "TB_IOIS", "IOI", &bels_ioi);
     builder.extract_int_bels_id(tcls::IOI, "ML_TB_IOIS", "IOI", &bels_ioi);
@@ -1510,238 +1340,107 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
 
-    for (tcls, nn, tkn) in [
-        (tcls::CLK_S_V2, "CLK_S_V2", "CLKB"),
-        (tcls::CLK_S_V2P, "CLK_S_V2P", "ML_CLKB"),
-        (tcls::CLK_S_V2PX, "CLK_S_V2PX", "MK_CLKB"),
+    for (naming, tkn) in [
+        ("CLK_S_V2", "CLKB"),
+        ("CLK_S_V2P", "ML_CLKB"),
+        ("CLK_S_V2PX", "MK_CLKB"),
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let xy_l = xy.delta(-1, 0);
             let xy_r = xy.delta(1, 0);
             let mut bels = vec![
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[0], "BUFGMUX", 0)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKB_CKIR0", "ML_CLKB_CKIR0"])
-                    .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL4"])
-                    .extra_wire("DCM_PAD_R", &["CLKB_DLL_CLKPADR0"])
-                    .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL0"])
-                    .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR0"])
-                    .extra_int_in("CLK", &["CLKB_GCLK00"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[1], "BUFGMUX", 1)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKB_CKIR1"])
-                    .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL5"])
-                    .extra_wire("DCM_PAD_R", &["CLKB_DLL_CLKPADR1"])
-                    .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL1"])
-                    .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR1"])
-                    .extra_int_in("CLK", &["CLKB_GCLK01"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[2], "BUFGMUX", 2)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKB_CKIR2"])
-                    .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL6"])
-                    .extra_wire("DCM_PAD_R", &["CLKB_DLL_CLKPADR2"])
-                    .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL2"])
-                    .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR2"])
-                    .extra_int_in("CLK", &["CLKB_GCLK02"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[3], "BUFGMUX", 3)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKB_CKIR3"])
-                    .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL7"])
-                    .extra_wire("DCM_PAD_R", &["CLKB_DLL_CLKPADR3"])
-                    .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL3"])
-                    .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR3"])
-                    .extra_int_in("CLK", &["CLKB_GCLK03"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[4], "BUFGMUX", 4)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKB_CKIL0"])
-                    .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL0"])
-                    .extra_wire("DCM_PAD_R", &["CLKB_DLL_CLKPADR4"])
-                    .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL4"])
-                    .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR4"])
-                    .extra_int_in("CLK", &["CLKB_GCLK04"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[5], "BUFGMUX", 5)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKB_CKIL1"])
-                    .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL1"])
-                    .extra_wire("DCM_PAD_R", &["CLKB_DLL_CLKPADR5"])
-                    .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL5"])
-                    .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR5"])
-                    .extra_int_in("CLK", &["CLKB_GCLK05"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[6], "BUFGMUX", 6)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKB_CKIL2", "ML_CLKB_CKIL2"])
-                    .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL2"])
-                    .extra_wire("DCM_PAD_R", &["CLKB_DLL_CLKPADR6"])
-                    .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL6"])
-                    .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR6"])
-                    .extra_int_in("CLK", &["CLKB_GCLK06"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[7], "BUFGMUX", 7)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKB_CKIL3"])
-                    .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL3"])
-                    .extra_wire("DCM_PAD_R", &["CLKB_DLL_CLKPADR7"])
-                    .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL7"])
-                    .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR7"])
-                    .extra_int_in("CLK", &["CLKB_GCLK07"]),
-                builder.bel_virtual(defs::bslots::GLOBALSIG_S[0]),
-                builder.bel_virtual(defs::bslots::GLOBALSIG_S[1]),
+                builder.bel_indexed(defs::bslots::BUFGMUX[0], "BUFGMUX", 0),
+                builder.bel_indexed(defs::bslots::BUFGMUX[1], "BUFGMUX", 1),
+                builder.bel_indexed(defs::bslots::BUFGMUX[2], "BUFGMUX", 2),
+                builder.bel_indexed(defs::bslots::BUFGMUX[3], "BUFGMUX", 3),
+                builder.bel_indexed(defs::bslots::BUFGMUX[4], "BUFGMUX", 4),
+                builder.bel_indexed(defs::bslots::BUFGMUX[5], "BUFGMUX", 5),
+                builder.bel_indexed(defs::bslots::BUFGMUX[6], "BUFGMUX", 6),
+                builder.bel_indexed(defs::bslots::BUFGMUX[7], "BUFGMUX", 7),
             ];
             if tkn == "ML_CLKB" {
-                bels.push(
+                bels.extend([
                     builder
-                        .bel_virtual(bslots::BREFCLK)
-                        .extra_wire("BREFCLK", &["ML_CLKB_BREFCLK"])
-                        .extra_wire("BREFCLK2", &["ML_CLKB_BREFCLK2"]),
-                );
+                        .bel_virtual(defs::bslots::GLOBALSIG_BUFG[0])
+                        .extra_wire("BREFCLK_I", &["ML_CLKB_CKIL2"])
+                        .extra_wire("BREFCLK_O", &["ML_CLKB_BREFCLK"]),
+                    builder
+                        .bel_virtual(defs::bslots::GLOBALSIG_BUFG[1])
+                        .extra_wire("BREFCLK_I", &["ML_CLKB_CKIR0"])
+                        .extra_wire("BREFCLK_O", &["ML_CLKB_BREFCLK2"]),
+                ]);
+            } else {
+                bels.extend([
+                    builder.bel_virtual(defs::bslots::GLOBALSIG_BUFG[0]),
+                    builder.bel_virtual(defs::bslots::GLOBALSIG_BUFG[1]),
+                ]);
             }
-            builder.extract_xtile_id(
-                tcls,
-                bslots::CLK_INT,
-                xy,
-                &[],
-                &[xy_l, xy_r],
-                nn,
-                &bels,
-                &[],
-            );
+            builder
+                .xtile_id(tcls::CLK_S, naming, xy)
+                .num_cells(2)
+                .extract_muxes(bslots::CLK_INT)
+                .skip_muxes(&wires::GCLK_S[..])
+                .ref_int(xy_l, 0)
+                .ref_int(xy_r, 1)
+                .bels(bels)
+                .extract();
         }
     }
-    for (tcls, nn, tkn) in [
-        (tcls::CLK_N_V2, "CLK_N_V2", "CLKT"),
-        (tcls::CLK_N_V2P, "CLK_N_V2P", "ML_CLKT"),
-        (tcls::CLK_N_V2PX, "CLK_N_V2PX", "MK_CLKT"),
+    for (naming, tkn) in [
+        ("CLK_N_V2", "CLKT"),
+        ("CLK_N_V2P", "ML_CLKT"),
+        ("CLK_N_V2PX", "MK_CLKT"),
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let xy_l = xy.delta(-1, 0);
             let xy_r = xy.delta(1, 0);
             let mut bels = vec![
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[0], "BUFGMUX", 0)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKT_CKIR0"])
-                    .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL4"])
-                    .extra_wire("DCM_PAD_R", &["CLKT_DLL_CLKPADR0"])
-                    .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL0"])
-                    .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR0"])
-                    .extra_int_in("CLK", &["CLKT_GCLK00"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[1], "BUFGMUX", 1)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKT_CKIR1"])
-                    .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL5"])
-                    .extra_wire("DCM_PAD_R", &["CLKT_DLL_CLKPADR1"])
-                    .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL1"])
-                    .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR1"])
-                    .extra_int_in("CLK", &["CLKT_GCLK01"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[2], "BUFGMUX", 2)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKT_CKIR2", "ML_CLKT_CKIR2"])
-                    .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL6"])
-                    .extra_wire("DCM_PAD_R", &["CLKT_DLL_CLKPADR2"])
-                    .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL2"])
-                    .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR2"])
-                    .extra_int_in("CLK", &["CLKT_GCLK02"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[3], "BUFGMUX", 3)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKT_CKIR3"])
-                    .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL7"])
-                    .extra_wire("DCM_PAD_R", &["CLKT_DLL_CLKPADR3"])
-                    .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL3"])
-                    .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR3"])
-                    .extra_int_in("CLK", &["CLKT_GCLK03"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[4], "BUFGMUX", 4)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKT_CKIL0", "ML_CLKT_CKIL0"])
-                    .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL0"])
-                    .extra_wire("DCM_PAD_R", &["CLKT_DLL_CLKPADR4"])
-                    .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL4"])
-                    .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR4"])
-                    .extra_int_in("CLK", &["CLKT_GCLK04"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[5], "BUFGMUX", 5)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKT_CKIL1"])
-                    .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL1"])
-                    .extra_wire("DCM_PAD_R", &["CLKT_DLL_CLKPADR5"])
-                    .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL5"])
-                    .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR5"])
-                    .extra_int_in("CLK", &["CLKT_GCLK05"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[6], "BUFGMUX", 6)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKT_CKIL2"])
-                    .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL2"])
-                    .extra_wire("DCM_PAD_R", &["CLKT_DLL_CLKPADR6"])
-                    .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL6"])
-                    .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR6"])
-                    .extra_int_in("CLK", &["CLKT_GCLK06"]),
-                builder
-                    .bel_indexed(defs::bslots::BUFGMUX[7], "BUFGMUX", 7)
-                    .pins_name_only(&["I0", "I1"])
-                    .extra_wire("CKI", &["CLKT_CKIL3"])
-                    .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL3"])
-                    .extra_wire("DCM_PAD_R", &["CLKT_DLL_CLKPADR7"])
-                    .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL7"])
-                    .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR7"])
-                    .extra_int_in("CLK", &["CLKT_GCLK07"]),
-                builder.bel_virtual(defs::bslots::GLOBALSIG_N[0]),
-                builder.bel_virtual(defs::bslots::GLOBALSIG_N[1]),
+                builder.bel_indexed(defs::bslots::BUFGMUX[0], "BUFGMUX", 0),
+                builder.bel_indexed(defs::bslots::BUFGMUX[1], "BUFGMUX", 1),
+                builder.bel_indexed(defs::bslots::BUFGMUX[2], "BUFGMUX", 2),
+                builder.bel_indexed(defs::bslots::BUFGMUX[3], "BUFGMUX", 3),
+                builder.bel_indexed(defs::bslots::BUFGMUX[4], "BUFGMUX", 4),
+                builder.bel_indexed(defs::bslots::BUFGMUX[5], "BUFGMUX", 5),
+                builder.bel_indexed(defs::bslots::BUFGMUX[6], "BUFGMUX", 6),
+                builder.bel_indexed(defs::bslots::BUFGMUX[7], "BUFGMUX", 7),
             ];
             if tkn == "ML_CLKT" {
-                bels.push(
+                bels.extend([
                     builder
-                        .bel_virtual(bslots::BREFCLK)
-                        .extra_wire("BREFCLK", &["ML_CLKT_BREFCLK"])
-                        .extra_wire("BREFCLK2", &["ML_CLKT_BREFCLK2"]),
-                );
+                        .bel_virtual(defs::bslots::GLOBALSIG_BUFG[0])
+                        .extra_wire("BREFCLK_I", &["ML_CLKT_CKIL0"])
+                        .extra_wire("BREFCLK_O", &["ML_CLKT_BREFCLK"]),
+                    builder
+                        .bel_virtual(defs::bslots::GLOBALSIG_BUFG[1])
+                        .extra_wire("BREFCLK_I", &["ML_CLKT_CKIR2"])
+                        .extra_wire("BREFCLK_O", &["ML_CLKT_BREFCLK2"]),
+                ]);
+            } else {
+                bels.extend([
+                    builder.bel_virtual(defs::bslots::GLOBALSIG_BUFG[0]),
+                    builder.bel_virtual(defs::bslots::GLOBALSIG_BUFG[1]),
+                ]);
             }
-            builder.extract_xtile_id(
-                tcls,
-                bslots::CLK_INT,
-                xy,
-                &[],
-                &[xy_l, xy_r],
-                nn,
-                &bels,
-                &[],
-            );
+            builder
+                .xtile_id(tcls::CLK_N, naming, xy)
+                .num_cells(2)
+                .extract_muxes(bslots::CLK_INT)
+                .skip_muxes(&wires::GCLK_N[..])
+                .ref_int(xy_l, 0)
+                .ref_int(xy_r, 1)
+                .bels(bels)
+                .extract();
         }
-    }
-
-    for &xy in rd.tiles_by_kind_name("CLKC") {
-        let mut bel = builder.bel_virtual(bslots::CLKC);
-        for i in 0..8 {
-            bel = bel
-                .extra_wire(format!("IN_B{i}"), &[format!("CLKC_GCLKB_IN{i}")])
-                .extra_wire(format!("IN_T{i}"), &[format!("CLKC_GCLKT_IN{i}")])
-                .extra_wire(format!("OUT_B{i}"), &[format!("CLKC_GCLKB{i}")])
-                .extra_wire(format!("OUT_T{i}"), &[format!("CLKC_GCLKT{i}")]);
-        }
-        builder.extract_xtile_bels_id(tcls::CLKC, xy, &[], &[], "CLKC", &[bel], false);
     }
 
     for &xy in rd.tiles_by_kind_name("GCLKC") {
-        for tcls in [tcls::HROW, tcls::HROW_S, tcls::HROW_N] {
-            let mut bel = builder.bel_virtual(bslots::HROW);
-            for i in 0..8 {
-                bel = bel
-                    .extra_wire(format!("IN_B{i}"), &[format!("GCLKC_GCLKB{i}")])
-                    .extra_wire(format!("IN_T{i}"), &[format!("GCLKC_GCLKT{i}")])
-                    .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLKL{i}")])
-                    .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLKR{i}")]);
-            }
-            builder.extract_xtile_bels_id(tcls, xy, &[], &[], "GCLKC", &[bel], false);
+        for tcid in [tcls::HROW, tcls::HROW_S, tcls::HROW_N] {
+            builder
+                .xtile_id(tcid, "GCLKC", xy)
+                .num_cells(2)
+                .switchbox(bslots::HROW)
+                .optin_muxes(&wires::GCLK_ROW[..])
+                .extract();
         }
     }
 
@@ -1749,23 +1448,21 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_s_xy = builder.walk_to_int(xy, Dir::S, false).unwrap();
             let int_n_xy = builder.walk_to_int(xy, Dir::N, false).unwrap();
-            let mut bel = builder.bel_virtual(bslots::HCLK);
-            for i in 0..8 {
-                bel = bel
-                    .extra_wire(format!("IN{i}"), &[format!("GCLKH_GCLK_B{i}")])
-                    .extra_int_out(format!("OUT_T{i}"), &[format!("GCLKH_GCLK_UP{i}")])
-                    .extra_int_out(format!("OUT_B{i}"), &[format!("GCLKH_GCLK_DN{i}")]);
-            }
-            builder.extract_xtile_bels_id(
-                tcls::HCLK,
-                xy,
-                &[],
-                &[int_s_xy, int_n_xy],
-                "HCLK",
-                &[builder.bel_virtual(bslots::GLOBALSIG), bel],
-                false,
-            );
+            let bel = builder.bel_virtual(bslots::GLOBALSIG_HCLK);
+            builder
+                .xtile_id(tcls::HCLK, "HCLK", xy)
+                .num_cells(2)
+                .ref_int(int_s_xy, 0)
+                .ref_int(int_n_xy, 1)
+                .switchbox(bslots::HCLK)
+                .optin_muxes(&wires::GCLK[..])
+                .bel(bel)
+                .extract();
         }
+    }
+    let pips = builder.pips.get_mut(&(tcls::HCLK, bslots::HCLK)).unwrap();
+    for mode in pips.pips.values_mut() {
+        *mode = PipMode::Buf;
     }
 
     for &xy in rd.tiles_by_kind_name("BRAMSITE") {
@@ -1795,50 +1492,22 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
 
-    for (tkn, tcls, kind) in [
+    for (tkn, tcid, kind) in [
         ("BBTERM", tcls::DCMCONN_S, "DCMCONN_S"),
         ("BTTERM", tcls::DCMCONN_N, "DCMCONN_N"),
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy = [xy.delta(0, if kind == "DCMCONN_S" { 1 } else { -1 })];
-            builder.extract_xtile_bels_id(
-                tcls,
-                xy,
-                &[],
-                &int_xy,
-                kind,
-                &[builder
-                    .bel_virtual(bslots::DCMCONN)
-                    .extra_wire("OUTBUS0", &["BBTERM_CKMUX0", "TTERM_CKMUX0"])
-                    .extra_wire("OUTBUS1", &["BBTERM_CKMUX1", "TTERM_CKMUX1"])
-                    .extra_wire("OUTBUS2", &["BBTERM_CKMUX2", "TTERM_CKMUX2"])
-                    .extra_wire("OUTBUS3", &["BBTERM_CKMUX3", "TTERM_CKMUX3"])
-                    .extra_wire("OUTBUS4", &["BBTERM_CKMUX4", "TTERM_CKMUX4"])
-                    .extra_wire("OUTBUS5", &["BBTERM_CKMUX5", "TTERM_CKMUX5"])
-                    .extra_wire("OUTBUS6", &["BBTERM_CKMUX6", "TTERM_CKMUX6"])
-                    .extra_wire("OUTBUS7", &["BBTERM_CKMUX7", "TTERM_CKMUX7"])
-                    .extra_wire("CLKPADBUS0", &["BBTERM_DLL_CLKPAD0", "BTTERM_DLL_CLKPAD0"])
-                    .extra_wire("CLKPADBUS1", &["BBTERM_DLL_CLKPAD1", "BTTERM_DLL_CLKPAD1"])
-                    .extra_wire("CLKPADBUS2", &["BBTERM_DLL_CLKPAD2", "BTTERM_DLL_CLKPAD2"])
-                    .extra_wire("CLKPADBUS3", &["BBTERM_DLL_CLKPAD3", "BTTERM_DLL_CLKPAD3"])
-                    .extra_wire("CLKPADBUS4", &["BBTERM_DLL_CLKPAD4", "BTTERM_DLL_CLKPAD4"])
-                    .extra_wire("CLKPADBUS5", &["BBTERM_DLL_CLKPAD5", "BTTERM_DLL_CLKPAD5"])
-                    .extra_wire("CLKPADBUS6", &["BBTERM_DLL_CLKPAD6", "BTTERM_DLL_CLKPAD6"])
-                    .extra_wire("CLKPADBUS7", &["BBTERM_DLL_CLKPAD7", "BTTERM_DLL_CLKPAD7"])
-                    .extra_int_out("CLKPAD0", &["BBTERM_CLKPAD0", "BTTERM_CLKPAD0"])
-                    .extra_int_out("CLKPAD1", &["BBTERM_CLKPAD1", "BTTERM_CLKPAD1"])
-                    .extra_int_out("CLKPAD2", &["BBTERM_CLKPAD2", "BTTERM_CLKPAD2"])
-                    .extra_int_out("CLKPAD3", &["BBTERM_CLKPAD3", "BTTERM_CLKPAD3"])
-                    .extra_int_out("CLKPAD4", &["BBTERM_CLKPAD4", "BTTERM_CLKPAD4"])
-                    .extra_int_out("CLKPAD5", &["BBTERM_CLKPAD5", "BTTERM_CLKPAD5"])
-                    .extra_int_out("CLKPAD6", &["BBTERM_CLKPAD6", "BTTERM_CLKPAD6"])
-                    .extra_int_out("CLKPAD7", &["BBTERM_CLKPAD7", "BTTERM_CLKPAD7"])
-                    .extra_int_in("OUT0", &["BTERM_OMUX0", "BTTERM_OMUX10"])
-                    .extra_int_in("OUT1", &["BTERM_OMUX3", "BTTERM_OMUX11"])
-                    .extra_int_in("OUT2", &["BTERM_OMUX4", "BTTERM_OMUX12"])
-                    .extra_int_in("OUT3", &["BTERM_OMUX5", "BTTERM_OMUX15"])],
-                false,
-            );
+            let int_xy = xy.delta(0, if kind == "DCMCONN_S" { 1 } else { -1 });
+            builder
+                .xtile_id(tcid, kind, xy)
+                .ref_int(int_xy, 0)
+                .switchbox(bslots::DCMCONN)
+                .optin_muxes(wires::DCM_BUS.as_slice())
+                .extract();
+        }
+        let pips = builder.pips.get_mut(&(tcid, bslots::DCMCONN)).unwrap();
+        for mode in pips.pips.values_mut() {
+            *mode = PipMode::Buf;
         }
     }
 

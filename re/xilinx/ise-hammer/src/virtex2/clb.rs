@@ -2,10 +2,11 @@ use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem},
     grid::TileCoord,
 };
-use prjcombine_re_collector::diff::{Diff, DiffKey, xlat_bit};
+use prjcombine_re_collector::diff::{Diff, DiffKey, xlat_bit, xlat_enum_attr};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_types::bsdata::TileBit;
 use prjcombine_virtex2::{
     chip::ChipKind,
     defs::{bcls, bslots, enums, spartan3::tcls as tcls_s3, tslots, virtex2::tcls as tcls_v2},
@@ -679,6 +680,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .assert_empty();
         } else {
             ctx.collect_bel_attr(tcid, bslot, bcls::RANDOR::MODE);
+        }
+        if tcid == tcls_s3::RANDOR_FC {
+            ctx.insert_bel_attr_raw(
+                tcid,
+                bslot,
+                bcls::RANDOR::MODE,
+                xlat_enum_attr(vec![
+                    (enums::RANDOR_MODE::OR, Diff::default()),
+                    (
+                        enums::RANDOR_MODE::AND,
+                        Diff::from_bit(TileBit::new(0, 1, 4).pos()),
+                    ),
+                ]),
+            );
         }
         let tcid = if edev.chip.kind == ChipKind::FpgaCore {
             tcls_s3::RANDOR_INIT_FC

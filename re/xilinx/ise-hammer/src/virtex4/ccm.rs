@@ -15,7 +15,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
     for idx in 0..2 {
         let mut bctx = ctx.bel(defs::bslots::PMCD[idx]);
-        bctx.test_manual("PRESENT", "1").mode("PMCD").commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode("PMCD").commit();
         for pin in ["CLKA", "CLKB", "CLKC", "CLKD"] {
             bctx.mode("PMCD")
                 .test_manual_legacy(format!("{pin}_ENABLE"), "1")
@@ -25,12 +25,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for pin in ["REL", "RST"] {
             bctx.mode("PMCD").test_inv(pin);
         }
-        bctx.mode("PMCD").test_enum("EN_REL", &["FALSE", "TRUE"]);
+        bctx.mode("PMCD").test_enum_legacy("EN_REL", &["FALSE", "TRUE"]);
         bctx.mode("PMCD")
-            .test_enum("RST_DEASSERT_CLK", &["CLKA", "CLKB", "CLKC", "CLKD"]);
+            .test_enum_legacy("RST_DEASSERT_CLK", &["CLKA", "CLKB", "CLKC", "CLKD"]);
         bctx.mode("PMCD")
             .tile_mutex("VREG", format!("PMCD{idx}"))
-            .test_enum("CCM_VREG_ENABLE", &["FALSE", "TRUE"]);
+            .test_enum_legacy("CCM_VREG_ENABLE", &["FALSE", "TRUE"]);
         bctx.mode("PMCD")
             .tile_mutex("VREG", format!("PMCD{idx}"))
             .test_multi_attr_bin("CCM_VBG_SEL", 4);
@@ -150,7 +150,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
         bctx.mode("DPM")
             .tile_mutex("VREG", "DPM")
-            .test_enum("CCM_VREG_ENABLE", &["FALSE", "TRUE"]);
+            .test_enum_legacy("CCM_VREG_ENABLE", &["FALSE", "TRUE"]);
         bctx.mode("DPM")
             .tile_mutex("VREG", "DPM")
             .test_multi_attr_bin("CCM_VBG_SEL", 4);

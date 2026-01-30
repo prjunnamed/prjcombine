@@ -66,9 +66,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let mut bctx = ctx.bel(defs::bslots::BUFG[i]);
             bctx.mode("GCLK")
                 .pin("CE")
-                .test_enum("CEMUX", &["0", "1", "CE", "CE_B"]);
+                .test_enum_legacy("CEMUX", &["0", "1", "CE", "CE_B"]);
             bctx.mode("GCLK")
-                .test_enum("DISABLE_ATTR", &["LOW", "HIGH"]);
+                .test_enum_legacy("DISABLE_ATTR", &["LOW", "HIGH"]);
         }
     }
     for tile in ["CLKV_CLKV", "CLKV_GCLKV", "CLKV_NULL"] {
@@ -116,7 +116,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for lr in ['L', 'R'] {
             for i in 0..4 {
                 for j in 0..4 {
-                    bctx.test_manual(format!("BUF.GCLK_{lr}{i}_{j}"), "1")
+                    bctx.test_manual_legacy(format!("BUF.GCLK_{lr}{i}_{j}"), "1")
                         .pip(format!("OUT_{lr}{j}_{i}"), format!("IN{i}"))
                         .commit();
                 }

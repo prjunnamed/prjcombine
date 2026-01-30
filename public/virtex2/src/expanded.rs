@@ -230,13 +230,10 @@ impl ExpandedDevice<'_> {
         let col = tcrd.col;
         let row = tcrd.row;
         let tile = &self[tcrd];
-        let kind = self.db.tile_classes.key(tile.class).as_str();
-        if self.db.tile_classes[tile.class].bitrects.is_empty() {
+        let tcls = &self.db.tile_classes[tile.class];
+        if tcls.bitrects.is_empty() {
             EntityVec::new()
-        } else if self.db.tile_classes[tile.class]
-            .bels
-            .contains_id(defs::bslots::BRAM)
-        {
+        } else if tcls.bels.contains_id(defs::bslots::BRAM) {
             EntityVec::from_iter([
                 self.btile_main(tcrd.delta(0, 0)),
                 self.btile_main(tcrd.delta(0, 1)),
@@ -244,10 +241,7 @@ impl ExpandedDevice<'_> {
                 self.btile_main(tcrd.delta(0, 3)),
                 self.btile_bram(tcrd.cell),
             ])
-        } else if self.db.tile_classes[tile.class]
-            .bels
-            .contains_id(defs::bslots::PCILOGICSE)
-        {
+        } else if tcls.bels.contains_id(defs::bslots::PCILOGICSE) {
             // CLK_W_*, CLK_E_*
             EntityVec::from_iter([
                 self.btile_main(tcrd.delta(0, -1)),
@@ -257,10 +251,7 @@ impl ExpandedDevice<'_> {
                 self.btile_term_h(tcrd.delta(0, 0)),
                 self.btile_term_h(tcrd.delta(0, 1)),
             ])
-        } else if self.db.tile_classes[tile.class]
-            .bels
-            .contains_id(defs::bslots::BUFGMUX[0])
-        {
+        } else if tcls.bels.contains_id(defs::bslots::BUFGMUX[0]) {
             // CLK_S_*, CLK_N_*
             EntityVec::from_iter([self.btile_spine(row), self.btile_spine_end(row)])
         } else if !self.chip.kind.is_virtex2() && tile.class == defs::spartan3::tcls::CLKC_50A {
@@ -275,7 +266,7 @@ impl ExpandedDevice<'_> {
                 self.btile_clkv(tcrd.delta(0, -1)),
                 self.btile_clkv(tcrd.delta(0, 0)),
             ])
-        } else if kind.starts_with("HROW") {
+        } else if tcrd.slot == defs::tslots::HROW {
             if row == self.chip.row_s() + 1 {
                 EntityVec::from_iter([
                     self.btile_spine_end(row - 1),
@@ -329,10 +320,7 @@ impl ExpandedDevice<'_> {
             )
         {
             EntityVec::from_iter([self.btile_term_v(tcrd.cell)])
-        } else if self.db.tile_classes[tile.class]
-            .bels
-            .contains_id(defs::bslots::DCM)
-        {
+        } else if tcls.bels.contains_id(defs::bslots::DCM) {
             if self.chip.kind.is_virtex2() {
                 EntityVec::from_iter([self.btile_main(tcrd.cell), self.btile_term_v(tcrd.cell)])
             } else if self.chip.kind == ChipKind::Spartan3 {
@@ -390,7 +378,13 @@ impl ExpandedDevice<'_> {
                     _ => unreachable!(),
                 }
             }
-        } else if kind.starts_with("CNR_") {
+        } else if !self.chip.kind.is_virtex2() && tile.class == defs::spartan3::tcls::RANDOR_FC {
+            EntityVec::from_iter([self.btile_term_v(tcrd.cell)])
+        } else if tcrd.slot == defs::tslots::BEL
+            && (col == self.chip.col_w() || col == self.chip.col_e())
+            && (row == self.chip.row_s() || row == self.chip.row_n())
+        {
+            // CNR
             if self.chip.kind.is_virtex2() {
                 EntityVec::from_iter([self.btile_term_h(tcrd.cell), self.btile_term_v(tcrd.cell)])
             } else {
@@ -398,17 +392,17 @@ impl ExpandedDevice<'_> {
             }
         } else if tcrd.slot == defs::tslots::RANDOR {
             EntityVec::from_iter([self.btile_main(tcrd.cell)])
-        } else if kind == "PPC_TERM_N" {
+        } else if self.chip.kind.is_virtex2() && tile.class == defs::virtex2::tcls::PPC_TERM_N {
             EntityVec::from_iter([self.btile_main(tcrd.delta(0, 1))])
-        } else if kind == "PPC_TERM_S" {
+        } else if self.chip.kind.is_virtex2() && tile.class == defs::virtex2::tcls::PPC_TERM_S {
             EntityVec::from_iter([self.btile_main(tcrd.delta(0, -1))])
-        } else if kind.starts_with("LLV") {
+        } else if tcls.bels.contains_id(defs::bslots::LLV) {
             if self.chip.kind == ChipKind::Spartan3E {
                 EntityVec::from_iter([self.btile_llv_s(col), self.btile_llv_n(col)])
             } else {
                 EntityVec::from_iter([self.btile_llv(col)])
             }
-        } else if kind.starts_with("LLH") {
+        } else if tcls.bels.contains_id(defs::bslots::LLH) {
             EntityVec::from_iter([self.btile_spine(row)])
         } else {
             EntityVec::from_iter(self.tile_cells(tcrd).map(|(_, cell)| self.btile_main(cell)))

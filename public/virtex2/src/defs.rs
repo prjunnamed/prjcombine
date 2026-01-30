@@ -182,14 +182,46 @@ target_defs! {
     // TODO: enums and bel classes
     // TODO: IOI, IOB
     // TODO: DCM
-    // TODO: BUFGMUX, PCILOGICSE
-    // TODO: corner stuff
+
+    bel_class BUFGMUX {
+        input I0, I1;
+        input S;
+        output O;
+
+        attribute INIT_OUT: bitvec[1];
+    }
+
+    bel_class GLOBALSIG_BUFG {
+        attribute GWE_ENABLE: bool;
+    }
+
+    bel_class GLOBALSIG_HCLK_V2 {
+        attribute GWE_GHIGH_S_ENABLE: bool;
+        attribute GWE_GHIGH_N_ENABLE: bool;
+        attribute GSR_S_ENABLE: bool;
+        attribute GSR_N_ENABLE: bool;
+    }
+
+    bel_class GLOBALSIG_HCLK_S3 {
+        attribute ENABLE: bool;
+    }
 
     bel_class PCILOGIC {
         input FI[4];
         input SI[10];
         output OUT[6];
     }
+
+    enum PCILOGICSE_DELAY { NILL, LOW, MED, HIGH }
+    bel_class PCILOGICSE {
+        input I1, I2, I3;
+
+        attribute ENABLE: bool;
+        attribute DELAY: PCILOGICSE_DELAY;
+    }
+    device_data PCILOGICSE_DELAY: PCILOGICSE_DELAY;
+
+    // TODO: corner stuff
 
     enum GT_DATA_WIDTH { _1, _2, _4 }
     enum GT_SEQ_LEN { _1, _2, _3, _4 }
@@ -954,16 +986,24 @@ target_defs! {
         output TSTTRSTNEGO;
     }
 
+    region_slot GLOBAL;
     // A set of cells sharing a HCLK row.
     region_slot HCLK;
     // A set of cells sharing HCLK leaf.
     region_slot LEAF;
+    region_slot DCM_CLKPAD;
+    region_slot DCM_BUS;
 
     if variant virtex2 {
         wire PULLUP: pullup;
 
+        wire GCLK_S[8]: regional GLOBAL;
+        wire GCLK_N[8]: regional GLOBAL;
+        wire GCLK_ROW[8]: regional HCLK;
         wire GCLK[8]: regional LEAF;
-        wire DCM_CLKPAD[8]: bel;
+        wire OUT_CLKPAD[4]: bel;
+        wire DCM_CLKPAD[8]: regional DCM_CLKPAD;
+        wire DCM_BUS[8]: regional DCM_BUS;
 
         wire OMUX[16]: mux;
         wire OMUX_S0: branch N;
@@ -1089,14 +1129,20 @@ target_defs! {
         wire OUT_TBUS: bel;
         wire OUT_PCI[2]: bel;
 
+        wire IMUX_BUFG_CLK_INT[8]: mux;
         wire IMUX_BUFG_CLK[8]: mux;
         wire IMUX_BUFG_SEL[8]: mux;
-        wire OUT_BUFG[8]: bel;
     } else {
         wire PULLUP: pullup;
 
+        wire GCLK_S[4]: regional GLOBAL;
+        wire GCLK_N[4]: regional GLOBAL;
+        wire GCLK_WE[8]: regional HCLK;
+        wire GCLK_QUAD[8]: regional HCLK;
         wire GCLK[8]: regional LEAF;
-        wire DCM_CLKPAD[4]: bel;
+        wire OUT_CLKPAD[2]: bel;
+        wire DCM_CLKPAD[4]: regional DCM_CLKPAD;
+        wire DCM_BUS[4]: regional DCM_BUS;
 
         wire OMUX[16]: mux;
         wire OMUX_S0: branch N;
@@ -1188,9 +1234,9 @@ target_defs! {
         wire OUT_HALF0_BEL[4]: bel;
         wire OUT_HALF1_BEL[4]: bel;
 
+        wire IMUX_BUFG_CLK_INT[4]: mux;
         wire IMUX_BUFG_CLK[4]: mux;
         wire IMUX_BUFG_SEL[4]: mux;
-        wire OUT_BUFG[4]: bel;
 
         // spartan3a only
         wire IMUX_MULT_A[18]: mux;
@@ -1223,8 +1269,7 @@ target_defs! {
 
     tile_slot INT {
         bel_slot INT: routing;
-        bel_slot RLL: legacy;
-        bel_slot PTE2OMUX[4]: legacy;
+        bel_slot PTE2OMUX: routing;
 
         if variant virtex2 {
             tile_class
@@ -1336,6 +1381,7 @@ target_defs! {
         }
 
         bel_slot DCM: legacy;
+        bel_slot DCM_INT: routing;
         if variant virtex2 {
             tile_class DCM_V2, DCM_V2P {
                 cell CELL;
@@ -1401,6 +1447,10 @@ target_defs! {
         bel_slot DNA_PORT: legacy;
         bel_slot BSCAN: legacy;
         bel_slot JTAGPPC: legacy;
+        // TODO: move
+        bel_slot BREFCLK_INT: legacy;
+        bel_slot RANDOR_OUT: RANDOR_OUT;
+        bel_slot MISR: legacy;
         if variant virtex2 {
             tile_class
                 CNR_SW_V2,
@@ -1439,11 +1489,6 @@ target_defs! {
                 bitrect TERM_H: TERM_H;
             }
         }
-
-        bel_slot DCMCONN_S3E: legacy;
-        bel_slot BREFCLK_INT: legacy;
-        bel_slot RANDOR_OUT: RANDOR_OUT;
-        bel_slot MISR: legacy;
     }
 
     tile_slot TERM_H {
@@ -1686,29 +1731,28 @@ target_defs! {
 
     tile_slot CLK {
         bel_slot CLK_INT: routing;
-        bel_slot BUFGMUX[8]: legacy;
+        bel_slot BUFGMUX[8]: BUFGMUX;
         bel_slot PCILOGIC: PCILOGIC;
-        bel_slot PCILOGICSE: legacy;
-        // TODO: remove
-        bel_slot VCC: legacy;
-        bel_slot GLOBALSIG_S[2]: legacy;
-        bel_slot GLOBALSIG_N[2]: legacy;
-        bel_slot GLOBALSIG_WE: legacy;
-        bel_slot BREFCLK: legacy;
+        bel_slot PCILOGICSE: PCILOGICSE;
+        bel_slot GLOBALSIG_BUFG[2]: GLOBALSIG_BUFG;
         if variant virtex2 {
-            tile_class CLK_S_V2, CLK_S_V2P, CLK_S_V2PX {
+            tile_class CLK_S {
                 cell CELL[2];
                 bitrect MAIN: CLK;
                 bitrect TERM: CLK_SN;
             }
-            tile_class CLK_N_V2, CLK_N_V2P, CLK_N_V2PX {
+            tile_class CLK_N {
                 cell CELL[2];
                 bitrect MAIN: CLK;
                 bitrect TERM: CLK_SN;
             }
         } else {
             tile_class CLK_S_S3, CLK_S_FC, CLK_S_S3E, CLK_S_S3A {
-                cell CELL;
+                if tile_class [CLK_S_S3, CLK_S_FC] {
+                    cell CELL[2];
+                } else {
+                    cell CELL[8];
+                }
                 if tile_class CLK_S_S3A {
                     bitrect MAIN: CLK;
                     bitrect TERM: CLK_SN_LL;
@@ -1718,7 +1762,11 @@ target_defs! {
                 }
             }
             tile_class CLK_N_S3, CLK_N_FC, CLK_N_S3E, CLK_N_S3A {
-                cell CELL;
+                if tile_class [CLK_N_S3, CLK_N_FC] {
+                    cell CELL[2];
+                } else {
+                    cell CELL[8];
+                }
                 if tile_class CLK_N_S3A {
                     bitrect MAIN: CLK;
                     bitrect TERM: CLK_SN_LL;
@@ -1728,106 +1776,80 @@ target_defs! {
                 }
             }
             tile_class CLK_W_S3E, CLK_W_S3A {
-                cell CELL[2];
+                cell CELL[8];
                 bitrect MAIN[2]: MAIN;
                 bitrect TERM[4]: TERM_H;
             }
             tile_class CLK_E_S3E, CLK_E_S3A {
-                cell CELL[2];
+                cell CELL[8];
                 bitrect MAIN[2]: MAIN;
                 bitrect TERM[4]: TERM_H;
             }
         }
 
-        bel_slot DCMCONN: legacy;
-        bel_slot GLOBALSIG_DSP: legacy;
-        bel_slot CLKC: legacy;
-        bel_slot CLKC_50A: legacy;
-        bel_slot CLKQC: legacy;
+        bel_slot DCMCONN: routing;
         if variant virtex2 {
-            tile_class CLKC;
-            tile_class DCMCONN_S {
+            tile_class DCMCONN_S, DCMCONN_N {
                 cell CELL;
                 bitrect TERM: TERM_V;
             }
-            tile_class DCMCONN_N {
-                cell CELL;
-                bitrect TERM: TERM_V;
-            }
-            tile_class PCI_W {
-                cell CELL[4];
-            }
-            tile_class PCI_E {
+            tile_class PCI_W, PCI_E {
                 cell CELL[4];
             }
         } else {
-            tile_class CLKC;
-            tile_class CLKC_50A {
-                bitrect MAIN: CLK_LL;
-            }
-            tile_class CLKQC_S3 {
-                bitrect MAIN: CLK;
-            }
-            tile_class CLKQC_S3E {
-                bitrect MAIN: CLK;
-            }
-            tile_class DCMCONN_S {
+            tile_class DCMCONN_S, DCMCONN_N {
                 cell CELL;
             }
-            tile_class DCMCONN_N {
-                cell CELL;
-            }
-            tile_class HCLK_DSP;
         }
     }
 
     tile_slot HROW {
-        bel_slot HROW: legacy;
+        bel_slot HROW: routing;
         if variant virtex2 {
             tile_class HROW {
+                cell CELL_W;
+                cell CELL_E;
                 bitrect CLK[4]: CLK;
             }
             tile_class HROW_S {
+                cell CELL_W;
+                cell CELL_E;
                 bitrect CLK_S: CLK_SN;
                 bitrect CLK[3]: CLK;
             }
             tile_class HROW_N {
+                cell CELL_W;
+                cell CELL_E;
                 bitrect CLK[3]: CLK;
                 bitrect CLK_N: CLK_SN;
             }
         } else {
-            tile_class HROW;
+            tile_class CLKC_50A {
+                cell CELL_W, CELL_E;
+                bitrect MAIN: CLK_LL;
+            }
+            tile_class CLKQC_S3, CLKQC_S3E {
+                cell CELL_S, CELL_N;
+                bitrect CLK_S: CLK;
+                bitrect CLK_N: CLK;
+            }
         }
     }
 
     tile_slot HCLK {
-        bel_slot HCLK: legacy;
-        bel_slot GLOBALSIG: legacy;
+        bel_slot HCLK: routing;
         if variant virtex2 {
+            bel_slot GLOBALSIG_HCLK: GLOBALSIG_HCLK_V2;
             tile_class HCLK {
                 cell S, N;
                 bitrect MAIN: HCLK;
             }
         } else {
-            tile_class HCLK, HCLK_S,  HCLK_N, HCLK_UNI, HCLK_UNI_S, HCLK_UNI_N, HCLK_0 {
+            bel_slot GLOBALSIG_HCLK: GLOBALSIG_HCLK_S3;
+            tile_class HCLK, HCLK_UNI {
                 cell S, N;
                 bitrect MAIN: HCLK;
             }
-        }
-    }
-
-    tile_slot PCI_CE {
-        bel_slot PCI_CE_W: legacy;
-        bel_slot PCI_CE_E: legacy;
-        bel_slot PCI_CE_S: legacy;
-        bel_slot PCI_CE_N: legacy;
-        bel_slot PCI_CE_CNR: legacy;
-        if variant spartan3 {
-            tile_class PCI_CE_W;
-            tile_class PCI_CE_E;
-            tile_class PCI_CE_S;
-            tile_class PCI_CE_N;
-            tile_class PCI_CE_CNR;
         }
     }
 
@@ -1839,7 +1861,7 @@ target_defs! {
                 bitrect MAIN: MAIN;
             }
             tile_class RANDOR_FC {
-                bitrect MAIN: MAIN;
+                bitrect TERM: TERM_V_S3;
             }
             tile_class RANDOR_INIT {
                 bitrect MAIN: MAIN;

@@ -1,5 +1,3 @@
-#![allow(clippy::comparison_chain)]
-
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::{

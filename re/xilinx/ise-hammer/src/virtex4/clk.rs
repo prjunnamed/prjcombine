@@ -251,16 +251,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for i in 0..32 {
             let mut bctx = ctx.bel(defs::bslots::BUFGCTRL[i]);
             let mode = "BUFGCTRL";
-            bctx.test_manual("PRESENT", "1").mode(mode).commit();
+            bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
             for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
                 bctx.mode(mode).test_inv(pin);
             }
             bctx.mode(mode)
-                .test_enum("PRESELECT_I0", &["FALSE", "TRUE"]);
+                .test_enum_legacy("PRESELECT_I0", &["FALSE", "TRUE"]);
             bctx.mode(mode)
-                .test_enum("PRESELECT_I1", &["FALSE", "TRUE"]);
-            bctx.mode(mode).test_enum("CREATE_EDGE", &["FALSE", "TRUE"]);
-            bctx.mode(mode).test_enum("INIT_OUT", &["0", "1"]);
+                .test_enum_legacy("PRESELECT_I1", &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy("CREATE_EDGE", &["FALSE", "TRUE"]);
+            bctx.mode(mode).test_enum_legacy("INIT_OUT", &["0", "1"]);
 
             for midx in 0..2 {
                 let bus = format!("MUXBUS{midx}");
@@ -578,12 +578,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let obel_rclk = defs::bslots::RCLK;
             for bel in [defs::bslots::BUFR[0], defs::bslots::BUFR[1]] {
                 let mut bctx = ctx.bel(bel);
-                bctx.test_manual("PRESENT", "1").mode("BUFR").commit();
+                bctx.test_manual_legacy("PRESENT", "1").mode("BUFR").commit();
                 bctx.mode("BUFR")
                     .test_manual_legacy("ENABLE", "1")
                     .pin("O")
                     .commit();
-                bctx.mode("BUFR").test_enum(
+                bctx.mode("BUFR").test_enum_legacy(
                     "BUFR_DIVIDE",
                     &["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"],
                 );
@@ -687,7 +687,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
         {
             let mut bctx = ctx.bel(defs::bslots::IDELAYCTRL);
-            bctx.test_manual("ENABLE", "1").mode("IDELAYCTRL").commit();
+            bctx.test_manual_legacy("ENABLE", "1").mode("IDELAYCTRL").commit();
             for i in 0..8 {
                 let hclk = format!("HCLK{i}");
                 let hclk_o = format!("HCLK_O{i}");

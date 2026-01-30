@@ -34,38 +34,38 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("ARB_NUM_TIME_SLOTS", &["10", "12"]);
+        .test_enum_legacy("ARB_NUM_TIME_SLOTS", &["10", "12"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("CAL_BYPASS", &["YES", "NO"]);
+        .test_enum_legacy("CAL_BYPASS", &["YES", "NO"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("CAL_CALIBRATION_MODE", &["CALIBRATION", "NOCALIBRATION"]);
+        .test_enum_legacy("CAL_CALIBRATION_MODE", &["CALIBRATION", "NOCALIBRATION"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("CAL_CLK_DIV", &["1", "2", "4", "8"]);
+        .test_enum_legacy("CAL_CLK_DIV", &["1", "2", "4", "8"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("CAL_DELAY", &["QUARTER", "HALF", "THREEQUARTER", "FULL"]);
+        .test_enum_legacy("CAL_DELAY", &["QUARTER", "HALF", "THREEQUARTER", "FULL"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("MEM_ADDR_ORDER", &["BANK_ROW_COLUMN", "ROW_BANK_COLUMN"]);
+        .test_enum_legacy("MEM_ADDR_ORDER", &["BANK_ROW_COLUMN", "ROW_BANK_COLUMN"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("MEM_BA_SIZE", &["2", "3"]);
+        .test_enum_legacy("MEM_BA_SIZE", &["2", "3"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("MEM_CA_SIZE", &["9", "10", "11", "12"]);
+        .test_enum_legacy("MEM_CA_SIZE", &["9", "10", "11", "12"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("MEM_RA_SIZE", &["12", "13", "14", "15"]);
+        .test_enum_legacy("MEM_RA_SIZE", &["12", "13", "14", "15"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("MEM_TYPE", &["DDR", "DDR2", "DDR3", "MDDR"]);
+        .test_enum_legacy("MEM_TYPE", &["DDR", "DDR2", "DDR3", "MDDR"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
-        .test_enum("MEM_WIDTH", &["4", "8", "16"]);
-    bctx.mode(mode).global_mutex("MCB", "TEST").test_enum(
+        .test_enum_legacy("MEM_WIDTH", &["4", "8", "16"]);
+    bctx.mode(mode).global_mutex("MCB", "TEST").test_enum_legacy(
         "PORT_CONFIG",
         &[
             "B32_B32_B32_B32",
@@ -140,38 +140,38 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex("MCB", "TEST")
             .attr("MEM_TYPE", mt)
-            .test_enum("MEM_CAS_LATENCY", &["1", "2", "3", "4", "5", "6"]);
+            .test_enum_legacy("MEM_CAS_LATENCY", &["1", "2", "3", "4", "5", "6"]);
     }
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         // sigh. doesn't actually work for plain DDR.
         .attr("MEM_TYPE", "DDR2")
-        .test_enum("MEM_DDR1_2_ODS", &["REDUCED", "FULL"]);
+        .test_enum_legacy("MEM_DDR1_2_ODS", &["REDUCED", "FULL"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR2")
-        .test_enum("MEM_DDR2_ADD_LATENCY", &["0", "1", "2", "3", "4", "5"]);
+        .test_enum_legacy("MEM_DDR2_ADD_LATENCY", &["0", "1", "2", "3", "4", "5"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR2")
-        .test_enum("MEM_DDR2_DIFF_DQS_EN", &["YES", "NO"]);
+        .test_enum_legacy("MEM_DDR2_DIFF_DQS_EN", &["YES", "NO"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR2")
-        .test_enum("MEM_DDR2_RTT", &["50OHMS", "75OHMS", "150OHMS"]);
+        .test_enum_legacy("MEM_DDR2_RTT", &["50OHMS", "75OHMS", "150OHMS"]);
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR2")
-        .test_enum("MEM_DDR2_WRT_RECOVERY", &["2", "3", "4", "5", "6"]);
+        .test_enum_legacy("MEM_DDR2_WRT_RECOVERY", &["2", "3", "4", "5", "6"]);
     for mt in ["DDR2", "DDR3"] {
         bctx.mode(mode)
             .global_mutex("MCB", "TEST")
             .attr("MEM_TYPE", mt)
-            .test_enum("MEM_DDR2_3_HIGH_TEMP_SR", &["NORMAL", "EXTENDED"]);
+            .test_enum_legacy("MEM_DDR2_3_HIGH_TEMP_SR", &["NORMAL", "EXTENDED"]);
         bctx.mode(mode)
             .global_mutex("MCB", "TEST")
             .attr("MEM_TYPE", mt)
-            .test_enum(
+            .test_enum_legacy(
                 "MEM_DDR2_3_PA_SR",
                 &[
                     "FULL",
@@ -188,47 +188,47 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR3")
-        .test_enum("MEM_DDR3_ADD_LATENCY", &["CL1", "CL2"]);
+        .test_enum_legacy("MEM_DDR3_ADD_LATENCY", &["CL1", "CL2"]);
 
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR3")
-        .test_enum("MEM_DDR3_AUTO_SR", &["ENABLED", "MANUAL"]);
+        .test_enum_legacy("MEM_DDR3_AUTO_SR", &["ENABLED", "MANUAL"]);
 
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR3")
-        .test_enum("MEM_DDR3_CAS_LATENCY", &["5", "6", "7", "8", "9", "10"]);
+        .test_enum_legacy("MEM_DDR3_CAS_LATENCY", &["5", "6", "7", "8", "9", "10"]);
 
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR3")
-        .test_enum("MEM_DDR3_CAS_WR_LATENCY", &["5", "6", "7", "8"]);
+        .test_enum_legacy("MEM_DDR3_CAS_WR_LATENCY", &["5", "6", "7", "8"]);
 
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR3")
-        .test_enum("MEM_DDR3_DYN_WRT_ODT", &["DIV2", "DIV4"]);
+        .test_enum_legacy("MEM_DDR3_DYN_WRT_ODT", &["DIV2", "DIV4"]);
 
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR3")
-        .test_enum("MEM_DDR3_ODS", &["DIV6", "DIV7"]);
+        .test_enum_legacy("MEM_DDR3_ODS", &["DIV6", "DIV7"]);
 
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR3")
-        .test_enum("MEM_DDR3_RTT", &["DIV2", "DIV4", "DIV6", "DIV8", "DIV12"]);
+        .test_enum_legacy("MEM_DDR3_RTT", &["DIV2", "DIV4", "DIV6", "DIV8", "DIV12"]);
 
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "DDR3")
-        .test_enum("MEM_DDR3_WRT_RECOVERY", &["5", "6", "7", "8", "10", "12"]);
+        .test_enum_legacy("MEM_DDR3_WRT_RECOVERY", &["5", "6", "7", "8", "10", "12"]);
 
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "MDDR")
-        .test_enum(
+        .test_enum_legacy(
             "MEM_MDDR_ODS",
             &["QUARTER", "HALF", "THREEQUARTERS", "FULL"],
         );
@@ -236,12 +236,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "MDDR")
-        .test_enum("MEM_MOBILE_PA_SR", &["HALF", "FULL"]);
+        .test_enum_legacy("MEM_MOBILE_PA_SR", &["HALF", "FULL"]);
 
     bctx.mode(mode)
         .global_mutex("MCB", "TEST")
         .attr("MEM_TYPE", "MDDR")
-        .test_enum("MEM_MOBILE_TC_SR", &["0", "1", "2", "3"]);
+        .test_enum_legacy("MEM_MOBILE_TC_SR", &["0", "1", "2", "3"]);
 
     for val in ["DISABLED", "ENABLED"] {
         bctx.mode(mode)

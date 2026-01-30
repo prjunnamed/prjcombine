@@ -103,7 +103,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("A6RAMMODE", "SPRAM64")
                     .pin("WE")
                     .pin("CE")
-                    .test_enum("WEMUX", &["WE", "CE"]);
+                    .test_enum_legacy("WEMUX", &["WE", "CE"]);
                 for attr in ["WA7USED", "WA8USED"] {
                     bctx.mode("SLICEM")
                         .attr("A6LUT", "#RAM:0")
@@ -112,58 +112,58 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("BX")
                         .pin("CX")
                         .pin("DX")
-                        .test_enum(attr, &["0"]);
+                        .test_enum_legacy(attr, &["0"]);
                 }
                 if matches!(mode, Mode::Virtex5 | Mode::Spartan6) {
                     bctx.mode("SLICEM")
                         .attr("A6LUT", "#RAM:0")
                         .attr("A6RAMMODE", "SPRAM64")
                         .pin("AX")
-                        .test_enum("ADI1MUX", &["AX", "BMC31", "BDI1"]);
+                        .test_enum_legacy("ADI1MUX", &["AX", "BMC31", "BDI1"]);
                     bctx.mode("SLICEM")
                         .attr("B6LUT", "#RAM:0")
                         .attr("B6RAMMODE", "SPRAM64")
                         .pin("BX")
                         .pin("DX")
-                        .test_enum("BDI1MUX", &["BX", "CMC31", "DX"]);
+                        .test_enum_legacy("BDI1MUX", &["BX", "CMC31", "DX"]);
                     bctx.mode("SLICEM")
                         .attr("C6LUT", "#RAM:0")
                         .attr("C6RAMMODE", "SPRAM64")
                         .pin("CX")
                         .pin("DX")
-                        .test_enum("CDI1MUX", &["CX", "DMC31", "DX"]);
+                        .test_enum_legacy("CDI1MUX", &["CX", "DMC31", "DX"]);
                 } else {
                     bctx.mode("SLICEM")
                         .attr("A6LUT", "#RAM:0")
                         .attr("A6RAMMODE", "SPRAM64")
                         .pin("AI")
-                        .test_enum("ADI1MUX", &["AI", "BMC31", "BDI1"]);
+                        .test_enum_legacy("ADI1MUX", &["AI", "BMC31", "BDI1"]);
                     bctx.mode("SLICEM")
                         .attr("B6LUT", "#RAM:0")
                         .attr("B6RAMMODE", "SPRAM64")
                         .pin("BI")
                         .pin("DI")
-                        .test_enum("BDI1MUX", &["BI", "CMC31", "DI"]);
+                        .test_enum_legacy("BDI1MUX", &["BI", "CMC31", "DI"]);
                     bctx.mode("SLICEM")
                         .attr("C6LUT", "#RAM:0")
                         .attr("C6RAMMODE", "SPRAM64")
                         .pin("CI")
                         .pin("DI")
-                        .test_enum("CDI1MUX", &["CI", "DMC31", "DI"]);
+                        .test_enum_legacy("CDI1MUX", &["CI", "DMC31", "DI"]);
                 }
-                bctx.mode("SLICEM").attr("A6LUT", "#RAM:0").test_enum(
+                bctx.mode("SLICEM").attr("A6LUT", "#RAM:0").test_enum_legacy(
                     "A6RAMMODE",
                     &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
                 );
-                bctx.mode("SLICEM").attr("B6LUT", "#RAM:0").test_enum(
+                bctx.mode("SLICEM").attr("B6LUT", "#RAM:0").test_enum_legacy(
                     "B6RAMMODE",
                     &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
                 );
-                bctx.mode("SLICEM").attr("C6LUT", "#RAM:0").test_enum(
+                bctx.mode("SLICEM").attr("C6LUT", "#RAM:0").test_enum_legacy(
                     "C6RAMMODE",
                     &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
                 );
-                bctx.mode("SLICEM").attr("D6LUT", "#RAM:0").test_enum(
+                bctx.mode("SLICEM").attr("D6LUT", "#RAM:0").test_enum_legacy(
                     "D6RAMMODE",
                     &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
                 );
@@ -177,35 +177,35 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("COUTUSED", "0")
                     .pin("AX")
                     .pin("COUT")
-                    .test_enum("ACY0", &["AX", "O5"]);
+                    .test_enum_legacy("ACY0", &["AX", "O5"]);
                 bctx.mode("SLICEL")
                     .attr("B5LUT", "#LUT:0")
                     .attr("B6LUT", "#LUT:0")
                     .attr("COUTUSED", "0")
                     .pin("BX")
                     .pin("COUT")
-                    .test_enum("BCY0", &["BX", "O5"]);
+                    .test_enum_legacy("BCY0", &["BX", "O5"]);
                 bctx.mode("SLICEL")
                     .attr("C5LUT", "#LUT:0")
                     .attr("C6LUT", "#LUT:0")
                     .attr("COUTUSED", "0")
                     .pin("CX")
                     .pin("COUT")
-                    .test_enum("CCY0", &["CX", "O5"]);
+                    .test_enum_legacy("CCY0", &["CX", "O5"]);
                 bctx.mode("SLICEL")
                     .attr("D5LUT", "#LUT:0")
                     .attr("D6LUT", "#LUT:0")
                     .attr("COUTUSED", "0")
                     .pin("DX")
                     .pin("COUT")
-                    .test_enum("DCY0", &["DX", "O5"]);
+                    .test_enum_legacy("DCY0", &["DX", "O5"]);
                 bctx.mode("SLICEL")
                     .attr("COUTUSED", "0")
                     .pin("AX")
                     .pin("COUT")
-                    .test_enum("PRECYINIT", &["AX", "1", "0"]);
+                    .test_enum_legacy("PRECYINIT", &["AX", "1", "0"]);
 
-                bctx.test_manual("CINUSED", "1")
+                bctx.test_manual_legacy("CINUSED", "1")
                     .related_pip(ClbCinDown, (PinFar, "COUT"), "COUT")
                     .commit();
             }
@@ -216,50 +216,50 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("A6LUT", "#LUT:0")
                     .attr("A5LUT", "#LUT:0")
                     .pin("AMUX")
-                    .test_enum("AOUTMUX", &["A5Q", "O5"]);
+                    .test_enum_legacy("AOUTMUX", &["A5Q", "O5"]);
                 bctx.mode("SLICEX")
                     .attr("B6LUT", "#LUT:0")
                     .attr("B5LUT", "#LUT:0")
                     .pin("BMUX")
-                    .test_enum("BOUTMUX", &["B5Q", "O5"]);
+                    .test_enum_legacy("BOUTMUX", &["B5Q", "O5"]);
                 bctx.mode("SLICEX")
                     .attr("C6LUT", "#LUT:0")
                     .attr("C5LUT", "#LUT:0")
                     .pin("CMUX")
-                    .test_enum("COUTMUX", &["C5Q", "O5"]);
+                    .test_enum_legacy("COUTMUX", &["C5Q", "O5"]);
                 bctx.mode("SLICEX")
                     .attr("D6LUT", "#LUT:0")
                     .attr("D5LUT", "#LUT:0")
                     .pin("DMUX")
-                    .test_enum("DOUTMUX", &["D5Q", "O5"]);
+                    .test_enum_legacy("DOUTMUX", &["D5Q", "O5"]);
                 bctx.mode("SLICEX")
                     .attr("A6LUT", "#LUT:0")
                     .attr("AFF", "#FF")
                     .pin("AX")
                     .pin("AQ")
                     .pin("CLK")
-                    .test_enum("AFFMUX", &["AX", "O6"]);
+                    .test_enum_legacy("AFFMUX", &["AX", "O6"]);
                 bctx.mode("SLICEX")
                     .attr("B6LUT", "#LUT:0")
                     .attr("BFF", "#FF")
                     .pin("BX")
                     .pin("BQ")
                     .pin("CLK")
-                    .test_enum("BFFMUX", &["BX", "O6"]);
+                    .test_enum_legacy("BFFMUX", &["BX", "O6"]);
                 bctx.mode("SLICEX")
                     .attr("C6LUT", "#LUT:0")
                     .attr("CFF", "#FF")
                     .pin("CX")
                     .pin("CQ")
                     .pin("CLK")
-                    .test_enum("CFFMUX", &["CX", "O6"]);
+                    .test_enum_legacy("CFFMUX", &["CX", "O6"]);
                 bctx.mode("SLICEX")
                     .attr("D6LUT", "#LUT:0")
                     .attr("DFF", "#FF")
                     .pin("DX")
                     .pin("DQ")
                     .pin("CLK")
-                    .test_enum("DFFMUX", &["DX", "O6"]);
+                    .test_enum_legacy("DFFMUX", &["DX", "O6"]);
             } else {
                 // [ABCD]MUX
                 if mode == Mode::Virtex5 {
@@ -267,30 +267,30 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("A6LUT", "#LUT:0")
                         .attr("A5LUT", "#LUT:0")
                         .pin("AMUX")
-                        .test_enum("AOUTMUX", &["O5", "O6", "XOR", "CY", "F7"]);
+                        .test_enum_legacy("AOUTMUX", &["O5", "O6", "XOR", "CY", "F7"]);
                     bctx.mode("SLICEL")
                         .attr("B6LUT", "#LUT:0")
                         .attr("B5LUT", "#LUT:0")
                         .pin("BMUX")
-                        .test_enum("BOUTMUX", &["O5", "O6", "XOR", "CY", "F8"]);
+                        .test_enum_legacy("BOUTMUX", &["O5", "O6", "XOR", "CY", "F8"]);
                     bctx.mode("SLICEL")
                         .attr("C6LUT", "#LUT:0")
                         .attr("C5LUT", "#LUT:0")
                         .pin("CMUX")
-                        .test_enum("COUTMUX", &["O5", "O6", "XOR", "CY", "F7"]);
+                        .test_enum_legacy("COUTMUX", &["O5", "O6", "XOR", "CY", "F7"]);
                     if is_m {
                         bctx.mode("SLICEM")
                             .attr("A6LUT", "#LUT:0")
                             .attr("D6LUT", "#LUT:0")
                             .attr("D5LUT", "#LUT:0")
                             .pin("DMUX")
-                            .test_enum("DOUTMUX", &["O5", "O6", "XOR", "CY", "MC31"]);
+                            .test_enum_legacy("DOUTMUX", &["O5", "O6", "XOR", "CY", "MC31"]);
                     } else {
                         bctx.mode("SLICEL")
                             .attr("D6LUT", "#LUT:0")
                             .attr("D5LUT", "#LUT:0")
                             .pin("DMUX")
-                            .test_enum("DOUTMUX", &["O5", "O6", "XOR", "CY"]);
+                            .test_enum_legacy("DOUTMUX", &["O5", "O6", "XOR", "CY"]);
                     }
                 } else {
                     bctx.mode("SLICEL")
@@ -300,7 +300,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("CLKINV", "CLK")
                         .pin("AMUX")
                         .pin("CLK")
-                        .test_enum("AOUTMUX", &["O5", "O6", "XOR", "CY", "A5Q", "F7"]);
+                        .test_enum_legacy("AOUTMUX", &["O5", "O6", "XOR", "CY", "A5Q", "F7"]);
                     bctx.mode("SLICEL")
                         .attr("B6LUT", "#LUT:0")
                         .attr("B5LUT", "#LUT:0")
@@ -308,7 +308,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("CLKINV", "CLK")
                         .pin("BMUX")
                         .pin("CLK")
-                        .test_enum("BOUTMUX", &["O5", "O6", "XOR", "CY", "B5Q", "F8"]);
+                        .test_enum_legacy("BOUTMUX", &["O5", "O6", "XOR", "CY", "B5Q", "F8"]);
                     bctx.mode("SLICEL")
                         .attr("C6LUT", "#LUT:0")
                         .attr("C5LUT", "#LUT:0")
@@ -316,7 +316,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("CLKINV", "CLK")
                         .pin("CMUX")
                         .pin("CLK")
-                        .test_enum("COUTMUX", &["O5", "O6", "XOR", "CY", "C5Q", "F7"]);
+                        .test_enum_legacy("COUTMUX", &["O5", "O6", "XOR", "CY", "C5Q", "F7"]);
                     if is_m {
                         bctx.mode("SLICEM")
                             .attr("A6LUT", "#LUT:0")
@@ -326,7 +326,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("CLKINV", "CLK")
                             .pin("DMUX")
                             .pin("CLK")
-                            .test_enum("DOUTMUX", &["O5", "O6", "XOR", "CY", "D5Q", "MC31"]);
+                            .test_enum_legacy("DOUTMUX", &["O5", "O6", "XOR", "CY", "D5Q", "MC31"]);
                     } else {
                         bctx.mode("SLICEL")
                             .attr("D6LUT", "#LUT:0")
@@ -335,7 +335,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("CLKINV", "CLK")
                             .pin("DMUX")
                             .pin("CLK")
-                            .test_enum("DOUTMUX", &["O5", "O6", "XOR", "CY", "D5Q"]);
+                            .test_enum_legacy("DOUTMUX", &["O5", "O6", "XOR", "CY", "D5Q"]);
                     }
                 }
 
@@ -348,7 +348,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("AX")
                     .pin("AQ")
                     .pin("CLK")
-                    .test_enum("AFFMUX", &["O5", "O6", "XOR", "CY", "AX", "F7"]);
+                    .test_enum_legacy("AFFMUX", &["O5", "O6", "XOR", "CY", "AX", "F7"]);
                 bctx.mode("SLICEL")
                     .attr("B6LUT", "#LUT:0")
                     .attr("B5LUT", "#LUT:0")
@@ -357,7 +357,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("BX")
                     .pin("BQ")
                     .pin("CLK")
-                    .test_enum("BFFMUX", &["O5", "O6", "XOR", "CY", "BX", "F8"]);
+                    .test_enum_legacy("BFFMUX", &["O5", "O6", "XOR", "CY", "BX", "F8"]);
                 bctx.mode("SLICEL")
                     .attr("C6LUT", "#LUT:0")
                     .attr("C5LUT", "#LUT:0")
@@ -366,7 +366,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("CX")
                     .pin("CQ")
                     .pin("CLK")
-                    .test_enum("CFFMUX", &["O5", "O6", "XOR", "CY", "CX", "F7"]);
+                    .test_enum_legacy("CFFMUX", &["O5", "O6", "XOR", "CY", "CX", "F7"]);
                 if is_m {
                     bctx.mode("SLICEM")
                         .attr("A6LUT", "#LUT:0")
@@ -377,7 +377,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("DX")
                         .pin("DQ")
                         .pin("CLK")
-                        .test_enum("DFFMUX", &["O5", "O6", "XOR", "CY", "DX", "MC31"]);
+                        .test_enum_legacy("DFFMUX", &["O5", "O6", "XOR", "CY", "DX", "MC31"]);
                 } else {
                     bctx.mode("SLICEL")
                         .attr("D6LUT", "#LUT:0")
@@ -387,7 +387,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("DX")
                         .pin("DQ")
                         .pin("CLK")
-                        .test_enum("DFFMUX", &["O5", "O6", "XOR", "CY", "DX"]);
+                        .test_enum_legacy("DFFMUX", &["O5", "O6", "XOR", "CY", "DX"]);
                 }
                 if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                     bctx.mode("SLICEL")
@@ -398,7 +398,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("AX")
                         .pin("AMUX")
                         .pin("CLK")
-                        .test_enum("A5FFMUX", &["IN_A", "IN_B"]);
+                        .test_enum_legacy("A5FFMUX", &["IN_A", "IN_B"]);
                     bctx.mode("SLICEL")
                         .attr("B6LUT", "#LUT:0")
                         .attr("B5LUT", "#LUT:0")
@@ -407,7 +407,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("BX")
                         .pin("BMUX")
                         .pin("CLK")
-                        .test_enum("B5FFMUX", &["IN_A", "IN_B"]);
+                        .test_enum_legacy("B5FFMUX", &["IN_A", "IN_B"]);
                     bctx.mode("SLICEL")
                         .attr("C6LUT", "#LUT:0")
                         .attr("C5LUT", "#LUT:0")
@@ -416,7 +416,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("CX")
                         .pin("CMUX")
                         .pin("CLK")
-                        .test_enum("C5FFMUX", &["IN_A", "IN_B"]);
+                        .test_enum_legacy("C5FFMUX", &["IN_A", "IN_B"]);
                     bctx.mode("SLICEL")
                         .attr("D6LUT", "#LUT:0")
                         .attr("D5LUT", "#LUT:0")
@@ -425,7 +425,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("DX")
                         .pin("DMUX")
                         .pin("CLK")
-                        .test_enum("D5FFMUX", &["IN_A", "IN_B"]);
+                        .test_enum_legacy("D5FFMUX", &["IN_A", "IN_B"]);
                 }
             }
 
@@ -433,7 +433,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(bk_x)
                 .attr("AFF", "#FF")
                 .pin("AQ")
-                .test_enum("SYNC_ATTR", &["SYNC", "ASYNC"]);
+                .test_enum_legacy("SYNC_ATTR", &["SYNC", "ASYNC"]);
             bctx.mode(bk_x).attr("AFF", "#FF").pin("AQ").test_inv("CLK");
             match mode {
                 Mode::Virtex5 => {
@@ -442,7 +442,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("AQ")
                         .pin("DX")
                         .pin("CLK")
-                        .test_enum("REVUSED", &["0"]);
+                        .test_enum_legacy("REVUSED", &["0"]);
                     bctx.mode(bk_x)
                         .attr("AFFINIT", "INIT1")
                         .attr("BFF", "")
@@ -450,7 +450,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DFF", "")
                         .pin("AQ")
                         .pin("CLK")
-                        .test_enum("AFF", &["#LATCH", "#FF"]);
+                        .test_enum_legacy("AFF", &["#LATCH", "#FF"]);
                     bctx.mode(bk_x)
                         .attr("BFFINIT", "INIT1")
                         .attr("AFF", "")
@@ -458,7 +458,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DFF", "")
                         .pin("BQ")
                         .pin("CLK")
-                        .test_enum("BFF", &["#LATCH", "#FF"]);
+                        .test_enum_legacy("BFF", &["#LATCH", "#FF"]);
                     bctx.mode(bk_x)
                         .attr("CFFINIT", "INIT1")
                         .attr("AFF", "")
@@ -466,7 +466,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DFF", "")
                         .pin("CQ")
                         .pin("CLK")
-                        .test_enum("CFF", &["#LATCH", "#FF"]);
+                        .test_enum_legacy("CFF", &["#LATCH", "#FF"]);
                     bctx.mode(bk_x)
                         .attr("DFFINIT", "INIT1")
                         .attr("AFF", "")
@@ -474,7 +474,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("CFF", "")
                         .pin("DQ")
                         .pin("CLK")
-                        .test_enum("DFF", &["#LATCH", "#FF"]);
+                        .test_enum_legacy("DFF", &["#LATCH", "#FF"]);
                     for attr in ["AFFSR", "BFFSR", "CFFSR", "DFFSR"] {
                         bctx.mode(bk_x)
                             .attr("AFF", "#FF")
@@ -490,7 +490,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("CQ")
                             .pin("DQ")
                             .pin("CLK")
-                            .test_enum(attr, &["SRHIGH", "SRLOW"]);
+                            .test_enum_legacy(attr, &["SRHIGH", "SRLOW"]);
                     }
                     for attr in ["AFFINIT", "BFFINIT", "CFFINIT", "DFFINIT"] {
                         bctx.mode(bk_x)
@@ -507,7 +507,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("CQ")
                             .pin("DQ")
                             .pin("CLK")
-                            .test_enum(attr, &["INIT0", "INIT1"]);
+                            .test_enum_legacy(attr, &["INIT0", "INIT1"]);
                     }
                 }
                 Mode::Spartan6 => {
@@ -517,28 +517,28 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DFF", "")
                         .pin("AQ")
                         .pin("CLK")
-                        .test_enum("AFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
+                        .test_enum_legacy("AFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
                     bctx.mode(bk_x)
                         .attr("AFF", "")
                         .attr("CFF", "")
                         .attr("DFF", "")
                         .pin("BQ")
                         .pin("CLK")
-                        .test_enum("BFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
+                        .test_enum_legacy("BFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
                     bctx.mode(bk_x)
                         .attr("AFF", "")
                         .attr("BFF", "")
                         .attr("DFF", "")
                         .pin("CQ")
                         .pin("CLK")
-                        .test_enum("CFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
+                        .test_enum_legacy("CFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
                     bctx.mode(bk_x)
                         .attr("AFF", "")
                         .attr("BFF", "")
                         .attr("CFF", "")
                         .pin("DQ")
                         .pin("CLK")
-                        .test_enum("DFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
+                        .test_enum_legacy("DFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
                     for attr in ["AFFSRINIT", "BFFSRINIT", "CFFSRINIT", "DFFSRINIT"] {
                         bctx.mode(bk_x)
                             .attr("AFF", "#FF")
@@ -550,7 +550,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("CQ")
                             .pin("DQ")
                             .pin("CLK")
-                            .test_enum(attr, &["SRINIT0", "SRINIT1"]);
+                            .test_enum_legacy(attr, &["SRINIT0", "SRINIT1"]);
                     }
                     bctx.mode(bk_x)
                         .attr("AOUTMUX", "A5Q")
@@ -558,28 +558,28 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("A6LUT", "#LUT:0")
                         .pin("AMUX")
                         .pin("CLK")
-                        .test_enum("A5FFSRINIT", &["SRINIT0", "SRINIT1"]);
+                        .test_enum_legacy("A5FFSRINIT", &["SRINIT0", "SRINIT1"]);
                     bctx.mode(bk_x)
                         .attr("BOUTMUX", "B5Q")
                         .attr("B5LUT", "#LUT:0")
                         .attr("B6LUT", "#LUT:0")
                         .pin("BMUX")
                         .pin("CLK")
-                        .test_enum("B5FFSRINIT", &["SRINIT0", "SRINIT1"]);
+                        .test_enum_legacy("B5FFSRINIT", &["SRINIT0", "SRINIT1"]);
                     bctx.mode(bk_x)
                         .attr("COUTMUX", "C5Q")
                         .attr("C5LUT", "#LUT:0")
                         .attr("C6LUT", "#LUT:0")
                         .pin("CMUX")
                         .pin("CLK")
-                        .test_enum("C5FFSRINIT", &["SRINIT0", "SRINIT1"]);
+                        .test_enum_legacy("C5FFSRINIT", &["SRINIT0", "SRINIT1"]);
                     bctx.mode(bk_x)
                         .attr("DOUTMUX", "D5Q")
                         .attr("D5LUT", "#LUT:0")
                         .attr("D6LUT", "#LUT:0")
                         .pin("DMUX")
                         .pin("CLK")
-                        .test_enum("D5FFSRINIT", &["SRINIT0", "SRINIT1"]);
+                        .test_enum_legacy("D5FFSRINIT", &["SRINIT0", "SRINIT1"]);
                 }
                 Mode::Virtex6 | Mode::Virtex7 => {
                     bctx.mode(bk_x)
@@ -589,7 +589,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DFF", "")
                         .pin("AQ")
                         .pin("CLK")
-                        .test_enum("AFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
+                        .test_enum_legacy("AFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
                     bctx.mode(bk_x)
                         .attr("BFFINIT", "INIT1")
                         .attr("AFF", "")
@@ -597,7 +597,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DFF", "")
                         .pin("BQ")
                         .pin("CLK")
-                        .test_enum("BFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
+                        .test_enum_legacy("BFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
                     bctx.mode(bk_x)
                         .attr("CFFINIT", "INIT1")
                         .attr("AFF", "")
@@ -605,7 +605,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("DFF", "")
                         .pin("CQ")
                         .pin("CLK")
-                        .test_enum("CFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
+                        .test_enum_legacy("CFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
                     bctx.mode(bk_x)
                         .attr("DFFINIT", "INIT1")
                         .attr("AFF", "")
@@ -613,7 +613,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("CFF", "")
                         .pin("DQ")
                         .pin("CLK")
-                        .test_enum("DFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
+                        .test_enum_legacy("DFF", &["#LATCH", "#FF", "AND2L", "OR2L"]);
 
                     for attr in ["AFFSR", "BFFSR", "CFFSR", "DFFSR"] {
                         bctx.mode(bk_x)
@@ -630,7 +630,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("CQ")
                             .pin("DQ")
                             .pin("CLK")
-                            .test_enum(attr, &["SRHIGH", "SRLOW"]);
+                            .test_enum_legacy(attr, &["SRHIGH", "SRLOW"]);
                     }
                     for attr in ["AFFINIT", "BFFINIT", "CFFINIT", "DFFINIT"] {
                         bctx.mode(bk_x)
@@ -647,7 +647,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("CQ")
                             .pin("DQ")
                             .pin("CLK")
-                            .test_enum(attr, &["INIT0", "INIT1"]);
+                            .test_enum_legacy(attr, &["INIT0", "INIT1"]);
                     }
                     bctx.mode(bk_x)
                         .attr("AOUTMUX", "A5Q")
@@ -657,7 +657,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("A5FFINIT", "INIT0")
                         .pin("AMUX")
                         .pin("CLK")
-                        .test_enum("A5FFSR", &["SRLOW", "SRHIGH"]);
+                        .test_enum_legacy("A5FFSR", &["SRLOW", "SRHIGH"]);
                     bctx.mode(bk_x)
                         .attr("BOUTMUX", "B5Q")
                         .attr("B5LUT", "#LUT:0")
@@ -666,7 +666,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("B5FFINIT", "INIT0")
                         .pin("BMUX")
                         .pin("CLK")
-                        .test_enum("B5FFSR", &["SRLOW", "SRHIGH"]);
+                        .test_enum_legacy("B5FFSR", &["SRLOW", "SRHIGH"]);
                     bctx.mode(bk_x)
                         .attr("COUTMUX", "C5Q")
                         .attr("C5LUT", "#LUT:0")
@@ -675,7 +675,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("C5FFINIT", "INIT0")
                         .pin("CMUX")
                         .pin("CLK")
-                        .test_enum("C5FFSR", &["SRLOW", "SRHIGH"]);
+                        .test_enum_legacy("C5FFSR", &["SRLOW", "SRHIGH"]);
                     bctx.mode(bk_x)
                         .attr("DOUTMUX", "D5Q")
                         .attr("D5LUT", "#LUT:0")
@@ -684,7 +684,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("D5FFINIT", "INIT0")
                         .pin("DMUX")
                         .pin("CLK")
-                        .test_enum("D5FFSR", &["SRLOW", "SRHIGH"]);
+                        .test_enum_legacy("D5FFSR", &["SRLOW", "SRHIGH"]);
                     bctx.mode(bk_x)
                         .attr("AOUTMUX", "A5Q")
                         .attr("A5LUT", "#LUT:0")
@@ -693,7 +693,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("A5FFSR", "SRLOW")
                         .pin("AMUX")
                         .pin("CLK")
-                        .test_enum("A5FFINIT", &["INIT0", "INIT1"]);
+                        .test_enum_legacy("A5FFINIT", &["INIT0", "INIT1"]);
                     bctx.mode(bk_x)
                         .attr("BOUTMUX", "B5Q")
                         .attr("B5LUT", "#LUT:0")
@@ -702,7 +702,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("B5FFSR", "SRLOW")
                         .pin("BMUX")
                         .pin("CLK")
-                        .test_enum("B5FFINIT", &["INIT0", "INIT1"]);
+                        .test_enum_legacy("B5FFINIT", &["INIT0", "INIT1"]);
                     bctx.mode(bk_x)
                         .attr("COUTMUX", "C5Q")
                         .attr("C5LUT", "#LUT:0")
@@ -711,7 +711,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("C5FFSR", "SRLOW")
                         .pin("CMUX")
                         .pin("CLK")
-                        .test_enum("C5FFINIT", &["INIT0", "INIT1"]);
+                        .test_enum_legacy("C5FFINIT", &["INIT0", "INIT1"]);
                     bctx.mode(bk_x)
                         .attr("DOUTMUX", "D5Q")
                         .attr("D5LUT", "#LUT:0")
@@ -720,7 +720,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("D5FFSR", "SRLOW")
                         .pin("DMUX")
                         .pin("CLK")
-                        .test_enum("D5FFINIT", &["INIT0", "INIT1"]);
+                        .test_enum_legacy("D5FFINIT", &["INIT0", "INIT1"]);
                 }
             }
             if matches!(mode, Mode::Virtex5 | Mode::Spartan6) {
@@ -729,26 +729,26 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("AQ")
                     .pin("CE")
                     .pin("CLK")
-                    .test_enum("CEUSED", &["0"]);
+                    .test_enum_legacy("CEUSED", &["0"]);
                 bctx.mode(bk_x)
                     .attr("AFF", "#FF")
                     .pin("AQ")
                     .pin("SR")
                     .pin("CLK")
-                    .test_enum("SRUSED", &["0"]);
+                    .test_enum_legacy("SRUSED", &["0"]);
             } else {
                 bctx.mode(bk_x)
                     .attr("AFF", "#FF")
                     .pin("AQ")
                     .pin("CE")
                     .pin("CLK")
-                    .test_enum("CEUSEDMUX", &["1", "IN"]);
+                    .test_enum_legacy("CEUSEDMUX", &["1", "IN"]);
                 bctx.mode(bk_x)
                     .attr("AFF", "#FF")
                     .pin("AQ")
                     .pin("SR")
                     .pin("CLK")
-                    .test_enum("SRUSEDMUX", &["0", "IN"]);
+                    .test_enum_legacy("SRUSEDMUX", &["0", "IN"]);
             }
         }
     }

@@ -112,7 +112,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex("CMT", "TEST")
             .global_xy("PLLADV_*_USE_CALC", "NO")
-            .test_enum(attr, &["FALSE", "TRUE"]);
+            .test_enum_legacy(attr, &["FALSE", "TRUE"]);
     }
 
     for (attr, width) in [
@@ -197,7 +197,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     bctx.mode(mode)
         .global_mutex("CMT", "CALC")
         .global_xy("PLLADV_*_USE_CALC", "NO")
-        .test_enum(
+        .test_enum_legacy(
             "COMPENSATION",
             &[
                 "SOURCE_SYNCHRONOUS",

@@ -51,7 +51,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
     for i in 0..4 {
         let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
-        bctx.test_manual("ENABLE", "1").mode("BSCAN").commit();
+        bctx.test_manual_legacy("ENABLE", "1").mode("BSCAN").commit();
     }
     ctx.test_manual("BSCAN_COMMON", "USERID", "")
         .multi_global("USERID", MultiValue::HexPrefix, 32);
@@ -63,7 +63,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
         bctx.mode("ICAP")
             .global_mutex_here("ICAP")
-            .test_enum("ICAP_WIDTH", &["X8", "X16", "X32"]);
+            .test_enum_legacy("ICAP_WIDTH", &["X8", "X16", "X32"]);
     }
     {
         let mut bctx = ctx.bel(defs::bslots::PMV_CFG[0]);
@@ -105,7 +105,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
         for attr in ["GSR_SYNC", "GTS_SYNC"] {
             for val in ["YES", "NO"] {
-                bctx.test_manual(attr, val).global(attr, val).commit();
+                bctx.test_manual_legacy(attr, val).global(attr, val).commit();
             }
         }
     }
@@ -117,7 +117,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .mode("JTAGPPC")
             .commit();
         bctx.mode("JTAGPPC")
-            .test_enum("NUM_PPC", &["0", "1", "2", "3", "4"]);
+            .test_enum_legacy("NUM_PPC", &["0", "1", "2", "3", "4"]);
     }
     {
         let mut bctx = ctx.bel(defs::bslots::FRAME_ECC);

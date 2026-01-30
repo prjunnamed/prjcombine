@@ -508,7 +508,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         };
         let mut bctx = ctx.bel(bel);
         let mode = backend.edev.db.bel_slots.key(bel).as_str();
-        bctx.test_manual("ENABLE", "1").mode(mode).commit();
+        bctx.test_manual_legacy("ENABLE", "1").mode(mode).commit();
         for pin in ["RXUSRCLK0", "RXUSRCLK1", "TXUSRCLK0", "TXUSRCLK1"] {
             bctx.mode(mode)
                 .mutex("USRCLK", pin)
@@ -531,17 +531,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             (defs::bslots::BUFDS[0], "IN"),
                             (defs::bslots::IPAD_CLKN[0], "O"),
                         )
-                        .test_enum(attr, &["FALSE", "TRUE"]);
+                        .test_enum_legacy(attr, &["FALSE", "TRUE"]);
                 } else {
-                    bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+                    bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
                 }
             }
             for &(attr, vals) in GTP_ENUM_ATTRS {
-                bctx.mode(mode).test_enum(attr, vals);
+                bctx.mode(mode).test_enum_legacy(attr, vals);
             }
             for &(attr, ref vals) in GTP_ENUM_INT_ATTRS {
                 let vals = Vec::from_iter(vals.clone().map(|i| i.to_string()));
-                bctx.mode(mode).test_enum(attr, &vals);
+                bctx.mode(mode).test_enum_legacy(attr, &vals);
             }
             for &(attr, width) in GTP_DEC_ATTRS {
                 bctx.mode(mode).test_multi_attr_dec(attr, width);
@@ -554,14 +554,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         } else {
             for &attr in GTX_BOOL_ATTRS {
-                bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+                bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
             }
             for &(attr, vals) in GTX_ENUM_ATTRS {
-                bctx.mode(mode).test_enum(attr, vals);
+                bctx.mode(mode).test_enum_legacy(attr, vals);
             }
             for &(attr, ref vals) in GTX_ENUM_INT_ATTRS {
                 let vals = Vec::from_iter(vals.clone().map(|i| i.to_string()));
-                bctx.mode(mode).test_enum(attr, &vals);
+                bctx.mode(mode).test_enum_legacy(attr, &vals);
             }
             for &(attr, width) in GTX_DEC_ATTRS {
                 bctx.mode(mode).test_multi_attr_dec(attr, width);

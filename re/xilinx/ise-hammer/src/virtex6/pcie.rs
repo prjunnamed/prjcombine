@@ -269,7 +269,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .mode(mode)
         .commit();
     for &attr in PCIE_BOOL_ATTRS {
-        bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+        bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
     }
     for &(attr, width) in PCIE_HEX_ATTRS {
         bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);

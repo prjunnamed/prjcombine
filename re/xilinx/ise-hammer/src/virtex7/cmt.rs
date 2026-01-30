@@ -38,16 +38,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     {
         let mut bctx = ctx.bel(defs::bslots::IN_FIFO);
         let mode = "IN_FIFO";
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
 
-        bctx.mode(mode).test_enum("ALMOST_EMPTY_VALUE", &["1", "2"]);
-        bctx.mode(mode).test_enum("ALMOST_FULL_VALUE", &["1", "2"]);
+        bctx.mode(mode).test_enum_legacy("ALMOST_EMPTY_VALUE", &["1", "2"]);
+        bctx.mode(mode).test_enum_legacy("ALMOST_FULL_VALUE", &["1", "2"]);
         bctx.mode(mode)
-            .test_enum("ARRAY_MODE", &["ARRAY_MODE_4_X_8", "ARRAY_MODE_4_X_4"]);
-        bctx.mode(mode).test_enum("SLOW_RD_CLK", &["FALSE", "TRUE"]);
-        bctx.mode(mode).test_enum("SLOW_WR_CLK", &["FALSE", "TRUE"]);
+            .test_enum_legacy("ARRAY_MODE", &["ARRAY_MODE_4_X_8", "ARRAY_MODE_4_X_4"]);
+        bctx.mode(mode).test_enum_legacy("SLOW_RD_CLK", &["FALSE", "TRUE"]);
+        bctx.mode(mode).test_enum_legacy("SLOW_WR_CLK", &["FALSE", "TRUE"]);
         bctx.mode(mode)
-            .test_enum("SYNCHRONOUS_MODE", &["FALSE", "TRUE"]);
+            .test_enum_legacy("SYNCHRONOUS_MODE", &["FALSE", "TRUE"]);
         bctx.mode(mode).test_multi_attr_bin("SPARE", 4);
 
         bctx.build()
@@ -74,18 +74,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     {
         let mut bctx = ctx.bel(defs::bslots::OUT_FIFO);
         let mode = "OUT_FIFO";
-        bctx.test_manual("PRESENT", "1").mode(mode).commit();
+        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
 
-        bctx.mode(mode).test_enum("ALMOST_EMPTY_VALUE", &["1", "2"]);
-        bctx.mode(mode).test_enum("ALMOST_FULL_VALUE", &["1", "2"]);
+        bctx.mode(mode).test_enum_legacy("ALMOST_EMPTY_VALUE", &["1", "2"]);
+        bctx.mode(mode).test_enum_legacy("ALMOST_FULL_VALUE", &["1", "2"]);
         bctx.mode(mode)
-            .test_enum("ARRAY_MODE", &["ARRAY_MODE_8_X_4", "ARRAY_MODE_4_X_4"]);
-        bctx.mode(mode).test_enum("SLOW_RD_CLK", &["FALSE", "TRUE"]);
-        bctx.mode(mode).test_enum("SLOW_WR_CLK", &["FALSE", "TRUE"]);
+            .test_enum_legacy("ARRAY_MODE", &["ARRAY_MODE_8_X_4", "ARRAY_MODE_4_X_4"]);
+        bctx.mode(mode).test_enum_legacy("SLOW_RD_CLK", &["FALSE", "TRUE"]);
+        bctx.mode(mode).test_enum_legacy("SLOW_WR_CLK", &["FALSE", "TRUE"]);
         bctx.mode(mode)
-            .test_enum("SYNCHRONOUS_MODE", &["FALSE", "TRUE"]);
+            .test_enum_legacy("SYNCHRONOUS_MODE", &["FALSE", "TRUE"]);
         bctx.mode(mode)
-            .test_enum("OUTPUT_DISABLE", &["FALSE", "TRUE"]);
+            .test_enum_legacy("OUTPUT_DISABLE", &["FALSE", "TRUE"]);
         bctx.mode(mode).test_multi_attr_bin("SPARE", 4);
 
         bctx.build()
@@ -128,19 +128,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "WR_CYCLES",
         ] {
             bctx.mode("PHASER_IN_ADV")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
-        bctx.mode("PHASER_IN_ADV").test_enum(
+        bctx.mode("PHASER_IN_ADV").test_enum_legacy(
             "CLKOUT_DIV",
             &[
                 "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
             ],
         );
         bctx.mode("PHASER_IN_ADV")
-            .test_enum("CTL_MODE", &["HARD", "SOFT"]);
+            .test_enum_legacy("CTL_MODE", &["HARD", "SOFT"]);
         bctx.mode("PHASER_IN")
-            .test_enum("FREQ_REF_DIV", &["NONE", "DIV2", "DIV4"]);
-        bctx.mode("PHASER_IN_ADV").test_enum(
+            .test_enum_legacy("FREQ_REF_DIV", &["NONE", "DIV2", "DIV4"]);
+        bctx.mode("PHASER_IN_ADV").test_enum_legacy(
             "OUTPUT_CLK_SRC",
             &[
                 "PHASE_REF",
@@ -152,9 +152,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             ],
         );
         bctx.mode("PHASER_IN_ADV")
-            .test_enum("PD_REVERSE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
+            .test_enum_legacy("PD_REVERSE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
         bctx.mode("PHASER_IN_ADV")
-            .test_enum("STG1_PD_UPDATE", &["2", "3", "4", "5", "6", "7", "8", "9"]);
+            .test_enum_legacy("STG1_PD_UPDATE", &["2", "3", "4", "5", "6", "7", "8", "9"]);
         for (attr, width) in [
             ("CLKOUT_DIV_ST", 4),
             ("DQS_AUTO_RECAL", 1),
@@ -206,25 +206,25 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "SYNC_IN_DIV_RST",
         ] {
             bctx.mode("PHASER_OUT_ADV")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
-        bctx.mode("PHASER_OUT_ADV").test_enum(
+        bctx.mode("PHASER_OUT_ADV").test_enum_legacy(
             "CLKOUT_DIV",
             &[
                 "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
             ],
         );
         bctx.mode("PHASER_OUT_ADV")
-            .test_enum("CTL_MODE", &["HARD", "SOFT"]);
+            .test_enum_legacy("CTL_MODE", &["HARD", "SOFT"]);
         bctx.mode("PHASER_OUT_ADV")
             .attr("STG1_BYPASS", "PHASE_REF")
-            .test_enum(
+            .test_enum_legacy(
                 "OUTPUT_CLK_SRC",
                 &["PHASE_REF", "DELAYED_PHASE_REF", "DELAYED_REF", "FREQ_REF"],
             );
         bctx.mode("PHASER_OUT_ADV")
             .attr("OUTPUT_CLK_SRC", "PHASE_REF")
-            .test_enum("STG1_BYPASS", &["PHASE_REF", "FREQ_REF"]);
+            .test_enum_legacy("STG1_BYPASS", &["PHASE_REF", "FREQ_REF"]);
         for (attr, width) in [("CLKOUT_DIV_ST", 4), ("TEST_OPT", 11)] {
             bctx.mode("PHASER_OUT_ADV").test_multi_attr_bin(attr, width);
         }
@@ -255,7 +255,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("PHASER_REF").test_inv(pin);
         }
         for attr in ["PHASER_REF_EN", "SEL_SLIPD", "SUP_SEL_AREG"] {
-            bctx.mode("PHASER_REF").test_enum(attr, &["FALSE", "TRUE"]);
+            bctx.mode("PHASER_REF").test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         for (attr, width) in [
             ("AVDD_COMP_SET", 3),
@@ -302,10 +302,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "PHY_COUNT_ENABLE",
             "SYNC_MODE",
         ] {
-            bctx.mode("PHY_CONTROL").test_enum(attr, &["FALSE", "TRUE"]);
+            bctx.mode("PHY_CONTROL").test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         bctx.mode("PHY_CONTROL")
-            .test_enum("CLK_RATIO", &["1", "2", "4", "8"]);
+            .test_enum_legacy("CLK_RATIO", &["1", "2", "4", "8"]);
         for (attr, width) in [
             ("RD_DURATION_0", 6),
             ("RD_DURATION_1", 6),
@@ -395,7 +395,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .mutex("MODE", "TEST")
                 .global_xy(use_calc, "NO")
-                .test_enum(attr, &["FALSE", "TRUE"]);
+                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
         if bel == defs::bslots::MMCM[0] {
             for attr in [
@@ -409,7 +409,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode(mode)
                     .mutex("MODE", "TEST")
                     .global_xy(use_calc, "NO")
-                    .test_enum(attr, &["FALSE", "TRUE"]);
+                    .test_enum_legacy(attr, &["FALSE", "TRUE"]);
             }
             bctx.mode(mode)
                 .mutex("MODE", "TEST")
@@ -417,7 +417,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("CLKOUT6_EN", "TRUE")
                 .attr("CLKOUT4_USE_FINE_PS", "")
                 .attr("CLKOUT4_MX", "")
-                .test_enum("CLKOUT4_CASCADE", &["FALSE", "TRUE"]);
+                .test_enum_legacy("CLKOUT4_CASCADE", &["FALSE", "TRUE"]);
             for attr in [
                 "CLKOUT0_USE_FINE_PS",
                 "CLKOUT1_USE_FINE_PS",
@@ -440,7 +440,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("CLKOUT5_MX", "")
                     .attr("CLKOUT6_MX", "")
                     .attr("INTERP_EN", "00000000")
-                    .test_enum(attr, &["FALSE", "TRUE"]);
+                    .test_enum_legacy(attr, &["FALSE", "TRUE"]);
             }
             for attr in ["CLKOUT0_FRAC_EN", "CLKFBOUT_FRAC_EN"] {
                 bctx.mode(mode)
@@ -449,7 +449,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("CLKOUT5_EN", "TRUE")
                     .attr("CLKOUT6_EN", "TRUE")
                     .attr("INTERP_EN", "00000000")
-                    .test_enum(attr, &["FALSE", "TRUE"]);
+                    .test_enum_legacy(attr, &["FALSE", "TRUE"]);
             }
         }
         for (attr, width) in [
@@ -603,7 +603,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("CLKOUT2_EN", "FALSE")
                 .attr("CLKOUT2_MX", "00")
                 .attr("CLKOUT3_EN", "FALSE")
-                .test_enum("SS_EN", &["FALSE", "TRUE"]);
+                .test_enum_legacy("SS_EN", &["FALSE", "TRUE"]);
         }
 
         for mult in 1..=64 {
@@ -650,7 +650,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .mutex("MODE", "COMP")
             .global_xy(use_calc, "NO")
             .attr("HROW_DLY_SET", "000")
-            .test_enum("COMPENSATION", &["ZHOLD", "EXTERNAL", "INTERNAL", "BUF_IN"]);
+            .test_enum_legacy("COMPENSATION", &["ZHOLD", "EXTERNAL", "INTERNAL", "BUF_IN"]);
 
         bctx.mode(mode)
             .test_manual_legacy("DRP_MASK", "1")
@@ -768,7 +768,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
 
         for i in 0..4 {
-            bctx.test_manual(format!("BUF.CLKOUT{i}_FREQ_BB"), "1")
+            bctx.test_manual_legacy(format!("BUF.CLKOUT{i}_FREQ_BB"), "1")
                 .pip(format!("FREQ_BB_OUT{i}"), format!("CLKOUT{i}"))
                 .commit();
         }
@@ -792,11 +792,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
     for i in 0..2 {
         let mut bctx = ctx.bel(defs::bslots::BUFMRCE[i]);
-        bctx.test_manual("ENABLE", "1").mode("BUFMRCE").commit();
+        bctx.test_manual_legacy("ENABLE", "1").mode("BUFMRCE").commit();
         bctx.mode("BUFMRCE").test_inv("CE");
-        bctx.mode("BUFMRCE").test_enum("INIT_OUT", &["0", "1"]);
+        bctx.mode("BUFMRCE").test_enum_legacy("INIT_OUT", &["0", "1"]);
         bctx.mode("BUFMRCE")
-            .test_enum("CE_TYPE", &["SYNC", "ASYNC"]);
+            .test_enum_legacy("CE_TYPE", &["SYNC", "ASYNC"]);
         let bel_other = defs::bslots::BUFMRCE[i ^ 1];
         for j in 4..14 {
             bctx.build()

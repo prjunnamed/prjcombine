@@ -9,7 +9,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
     let mut bctx = ctx.bel(defs::bslots::PCIE);
     let mode = "PCIE_A1";
-    bctx.test_manual("PRESENT", "1").mode(mode).commit();
+    bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
 
     for attr in [
         "DEV_CAP_EXT_TAG_SUPPORTED",
@@ -37,7 +37,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         "USR_EXT_CFG",
         "VC0_CPL_INFINITE",
     ] {
-        bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+        bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
     }
 
     for (attr, width) in [
