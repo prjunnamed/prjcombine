@@ -157,147 +157,287 @@
 <p>This tile is used on Spartan 3.</p>
 <h2 id="tile-cnr_nw_s3"><a class="header" href="#tile-cnr_nw_s3">Tile CNR_NW_S3</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-dci0"><a class="header" href="#bel-dci0">Bel DCI[0]</a></h3>
+<h3 id="bels-dci"><a class="header" href="#bels-dci">Bels DCI</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CNR_NW_S3 bel DCI[0]</caption>
+<caption>spartan3 CNR_NW_S3 bel DCI pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>DCI[0]</th><th>DCI[1]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>ADDRESS0</td><td>output</td><td>OUT_SEC[0]</td></tr>
+<tr><td>DCI_CLK</td><td>in</td><td>IMUX_DATA[23]</td><td>IMUX_DATA[15]</td></tr>
 
-<tr><td>ADDRESS1</td><td>output</td><td>OUT_SEC[1]</td></tr>
+<tr><td>DCI_RESET</td><td>in</td><td>IMUX_DATA[22]</td><td>IMUX_DATA[14]</td></tr>
 
-<tr><td>ADDRESS2</td><td>output</td><td>OUT_SEC[2]</td></tr>
+<tr><td>HI_LO_P</td><td>in</td><td>IMUX_DATA[20]</td><td>IMUX_DATA[12]</td></tr>
 
-<tr><td>DATA</td><td>output</td><td>OUT_SEC[3]</td></tr>
+<tr><td>HI_LO_N</td><td>in</td><td>IMUX_DATA[21]</td><td>IMUX_DATA[13]</td></tr>
 
-<tr><td>DCI_CLK</td><td>input</td><td>IMUX_DATA[23]</td></tr>
+<tr><td>SCLK</td><td>out</td><td>OUT_SEC[6]</td><td>OUT_SEC[6]</td></tr>
 
-<tr><td>DCI_DONE</td><td>output</td><td>OUT_SEC[4]</td></tr>
+<tr><td>ADDRESS[0]</td><td>out</td><td>OUT_SEC[0]</td><td>OUT_SEC[0]</td></tr>
 
-<tr><td>DCI_RESET</td><td>input</td><td>IMUX_DATA[22]</td></tr>
+<tr><td>ADDRESS[1]</td><td>out</td><td>OUT_SEC[1]</td><td>OUT_SEC[1]</td></tr>
 
-<tr><td>HI_LO_N</td><td>input</td><td>IMUX_DATA[21]</td></tr>
+<tr><td>ADDRESS[2]</td><td>out</td><td>OUT_SEC[2]</td><td>OUT_SEC[2]</td></tr>
 
-<tr><td>HI_LO_P</td><td>input</td><td>IMUX_DATA[20]</td></tr>
+<tr><td>DATA</td><td>out</td><td>OUT_SEC[3]</td><td>OUT_SEC[3]</td></tr>
 
-<tr><td>IOUPDATE</td><td>output</td><td>OUT_SEC[8]</td></tr>
+<tr><td>N_OR_P</td><td>out</td><td>OUT_SEC[5]</td><td>OUT_SEC[5]</td></tr>
 
-<tr><td>N_OR_P</td><td>output</td><td>OUT_SEC[5]</td></tr>
+<tr><td>UPDATE</td><td>out</td><td>OUT_SEC[7]</td><td>OUT_SEC[7]</td></tr>
 
-<tr><td>SCLK</td><td>output</td><td>OUT_SEC[6]</td></tr>
+<tr><td>IOUPDATE</td><td>out</td><td>OUT_SEC[8]</td><td>OUT_SEC[8]</td></tr>
 
-<tr><td>UPDATE</td><td>output</td><td>OUT_SEC[7]</td></tr>
+<tr><td>DCI_DONE</td><td>out</td><td>OUT_SEC[4]</td><td>OUT_SEC[4]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-dci1"><a class="header" href="#bel-dci1">Bel DCI[1]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CNR_NW_S3 bel DCI[1]</caption>
+<caption>spartan3 CNR_NW_S3 bel DCI attribute bits</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Attribute</th><th>DCI[0]</th><th>DCI[1]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>ADDRESS0</td><td>output</td><td>OUT_SEC[0]</td></tr>
+<tr><td>ENABLE</td><td id="spartan3-CNR_NW_S3-DCI[0]-ENABLE"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][44]">TERM_H[0][44]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-ENABLE"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][44]">TERM_H[1][44]</a></td></tr>
 
-<tr><td>ADDRESS1</td><td>output</td><td>OUT_SEC[1]</td></tr>
+<tr><td>TEST_ENABLE</td><td id="spartan3-CNR_NW_S3-DCI[0]-TEST_ENABLE"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][62]">TERM_H[0][62]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-TEST_ENABLE"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][62]">TERM_H[1][62]</a></td></tr>
 
-<tr><td>ADDRESS2</td><td>output</td><td>OUT_SEC[2]</td></tr>
+<tr><td>FORCE_DONE_HIGH</td><td id="spartan3-CNR_NW_S3-DCI[0]-FORCE_DONE_HIGH"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][61]">TERM_H[0][61]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-FORCE_DONE_HIGH"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][61]">TERM_H[1][61]</a></td></tr>
 
-<tr><td>DATA</td><td>output</td><td>OUT_SEC[3]</td></tr>
+<tr><td>S3_PMASK_TERM_SPLIT bit 0</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_SPLIT[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][56]">TERM_H[0][56]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_SPLIT[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][56]">TERM_H[1][56]</a></td></tr>
 
-<tr><td>DCI_CLK</td><td>input</td><td>IMUX_DATA[15]</td></tr>
+<tr><td>S3_PMASK_TERM_SPLIT bit 1</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_SPLIT[1]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][57]">TERM_H[0][57]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_SPLIT[1]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][57]">TERM_H[1][57]</a></td></tr>
 
-<tr><td>DCI_DONE</td><td>output</td><td>OUT_SEC[4]</td></tr>
+<tr><td>S3_PMASK_TERM_SPLIT bit 2</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_SPLIT[2]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][58]">TERM_H[0][58]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_SPLIT[2]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][58]">TERM_H[1][58]</a></td></tr>
 
-<tr><td>DCI_RESET</td><td>input</td><td>IMUX_DATA[14]</td></tr>
+<tr><td>S3_PMASK_TERM_SPLIT bit 3</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_SPLIT[3]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][59]">TERM_H[0][59]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_SPLIT[3]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][59]">TERM_H[1][59]</a></td></tr>
 
-<tr><td>HI_LO_N</td><td>input</td><td>IMUX_DATA[13]</td></tr>
+<tr><td>S3_NMASK_TERM_SPLIT bit 0</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_NMASK_TERM_SPLIT[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][46]">TERM_H[0][46]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_NMASK_TERM_SPLIT[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][46]">TERM_H[1][46]</a></td></tr>
 
-<tr><td>HI_LO_P</td><td>input</td><td>IMUX_DATA[12]</td></tr>
+<tr><td>S3_NMASK_TERM_SPLIT bit 1</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_NMASK_TERM_SPLIT[1]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][47]">TERM_H[0][47]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_NMASK_TERM_SPLIT[1]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][47]">TERM_H[1][47]</a></td></tr>
 
-<tr><td>IOUPDATE</td><td>output</td><td>OUT_SEC[8]</td></tr>
+<tr><td>S3_NMASK_TERM_SPLIT bit 2</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_NMASK_TERM_SPLIT[2]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][48]">TERM_H[0][48]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_NMASK_TERM_SPLIT[2]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][48]">TERM_H[1][48]</a></td></tr>
 
-<tr><td>N_OR_P</td><td>output</td><td>OUT_SEC[5]</td></tr>
+<tr><td>S3_NMASK_TERM_SPLIT bit 3</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_NMASK_TERM_SPLIT[3]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][49]">TERM_H[0][49]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_NMASK_TERM_SPLIT[3]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][49]">TERM_H[1][49]</a></td></tr>
 
-<tr><td>SCLK</td><td>output</td><td>OUT_SEC[6]</td></tr>
+<tr><td>S3_PMASK_TERM_VCC bit 0</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_VCC[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][51]">TERM_H[0][51]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_VCC[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][51]">TERM_H[1][51]</a></td></tr>
 
-<tr><td>UPDATE</td><td>output</td><td>OUT_SEC[7]</td></tr>
+<tr><td>S3_PMASK_TERM_VCC bit 1</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_VCC[1]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][52]">TERM_H[0][52]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_VCC[1]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][52]">TERM_H[1][52]</a></td></tr>
+
+<tr><td>S3_PMASK_TERM_VCC bit 2</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_VCC[2]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][53]">TERM_H[0][53]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_VCC[2]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][53]">TERM_H[1][53]</a></td></tr>
+
+<tr><td>S3_PMASK_TERM_VCC bit 3</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_VCC[3]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][54]">TERM_H[0][54]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_VCC[3]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][54]">TERM_H[1][54]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 0</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][33]">TERM_H[1][33]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][33]">TERM_H[0][33]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 1</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[1]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][34]">TERM_H[1][34]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[1]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][34]">TERM_H[0][34]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 2</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[2]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][35]">TERM_H[1][35]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[2]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][35]">TERM_H[0][35]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 3</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[3]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][36]">TERM_H[1][36]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[3]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][36]">TERM_H[0][36]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 4</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[4]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][37]">TERM_H[1][37]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[4]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][37]">TERM_H[0][37]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 5</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[5]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][38]">TERM_H[1][38]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[5]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][38]">TERM_H[0][38]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 6</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[6]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][39]">TERM_H[1][39]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[6]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][39]">TERM_H[0][39]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 7</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[7]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][40]">TERM_H[1][40]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[7]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][40]">TERM_H[0][40]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 8</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[8]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][41]">TERM_H[1][41]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[8]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][41]">TERM_H[0][41]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 9</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[9]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][42]">TERM_H[1][42]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[9]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][42]">TERM_H[0][42]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 10</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[10]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][43]">TERM_H[1][43]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[10]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][43]">TERM_H[0][43]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 11</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[11]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][30]">TERM_H[1][30]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[11]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][29]">TERM_H[0][29]</a></td></tr>
+
+<tr><td>S3_LVDSBIAS bit 12</td><td id="spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[12]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][31]">TERM_H[1][31]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[12]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][32]">TERM_H[0][32]</a></td></tr>
+
+<tr><td>QUIET</td><td id="spartan3-CNR_NW_S3-DCI[0]-QUIET"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][45]">TERM_H[0][45]</a></td><td id="spartan3-CNR_NW_S3-DCI[1]-QUIET"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][45]">TERM_H[1][45]</a></td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-dcireset0"><a class="header" href="#bel-dcireset0">Bel DCIRESET[0]</a></h3>
+<h3 id="bels-dcireset"><a class="header" href="#bels-dcireset">Bels DCIRESET</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CNR_NW_S3 bel DCIRESET[0]</caption>
+<caption>spartan3 CNR_NW_S3 bel DCIRESET pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>DCIRESET[0]</th><th>DCIRESET[1]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>RST</td><td>input</td><td>IMUX_DATA[19]</td></tr>
+<tr><td>RST</td><td>in</td><td>IMUX_DATA[19]</td><td>IMUX_DATA[11]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-dcireset1"><a class="header" href="#bel-dcireset1">Bel DCIRESET[1]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CNR_NW_S3 bel DCIRESET[1]</caption>
+<caption>spartan3 CNR_NW_S3 bel DCIRESET attribute bits</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Attribute</th><th>DCIRESET[0]</th><th>DCIRESET[1]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>RST</td><td>input</td><td>IMUX_DATA[11]</td></tr>
+<tr><td>ENABLE</td><td id="spartan3-CNR_NW_S3-DCIRESET[0]-ENABLE"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][63]">TERM_H[0][63]</a></td><td id="spartan3-CNR_NW_S3-DCIRESET[1]-ENABLE"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][63]">TERM_H[1][63]</a></td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-pmv"><a class="header" href="#bel-pmv">Bel PMV</a></h3>
+<h3 id="bels-pmv"><a class="header" href="#bels-pmv">Bels PMV</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CNR_NW_S3 bel PMV</caption>
+<caption>spartan3 CNR_NW_S3 bel PMV pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>PMV</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>A0</td><td>input</td><td>IMUX_DATA[0]</td></tr>
+<tr><td>A[0]</td><td>in</td><td>IMUX_DATA[0]</td></tr>
 
-<tr><td>A1</td><td>input</td><td>IMUX_DATA[1]</td></tr>
+<tr><td>A[1]</td><td>in</td><td>IMUX_DATA[1]</td></tr>
 
-<tr><td>A2</td><td>input</td><td>IMUX_DATA[2]</td></tr>
+<tr><td>A[2]</td><td>in</td><td>IMUX_DATA[2]</td></tr>
 
-<tr><td>A3</td><td>input</td><td>IMUX_DATA[3]</td></tr>
+<tr><td>A[3]</td><td>in</td><td>IMUX_DATA[3]</td></tr>
 
-<tr><td>A4</td><td>input</td><td>IMUX_DATA[4]</td></tr>
+<tr><td>A[4]</td><td>in</td><td>IMUX_DATA[4]</td></tr>
 
-<tr><td>A5</td><td>input</td><td>IMUX_DATA[5]</td></tr>
+<tr><td>A[5]</td><td>in</td><td>IMUX_DATA[5]</td></tr>
 
-<tr><td>EN</td><td>input</td><td>IMUX_DATA[6]</td></tr>
+<tr><td>EN</td><td>in</td><td>IMUX_DATA[6]</td></tr>
 
-<tr><td>O</td><td>output</td><td>OUT_FAN[0]</td></tr>
+<tr><td>O</td><td>out</td><td>OUT_FAN[0]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misc_cnr_s3"><a class="header" href="#bels-misc_cnr_s3">Bels MISC_CNR_S3</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3 bel MISC_CNR_S3 pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISC_CNR_S3</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3 bel MISC_CNR_S3 attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISC_CNR_S3</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>MUX_DCI_TEST bit 0</td><td id="spartan3-CNR_NW_S3-MISC_CNR_S3-MUX_DCI_TEST[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][50]">TERM_H[0][50]</a></td></tr>
+
+<tr><td>DCM_ENABLE</td><td id="spartan3-CNR_NW_S3-MISC_CNR_S3-DCM_ENABLE"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[0][8]">TERM_H[0][8]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misc_nw"><a class="header" href="#bels-misc_nw">Bels MISC_NW</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3 bel MISC_NW pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISC_NW</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3 bel MISC_NW attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISC_NW</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>HSWAPEN_PULL</td><td><a href="#spartan3-CNR_NW_S3-MISC_NW-HSWAPEN_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>PROG_PULL</td><td><a href="#spartan3-CNR_NW_S3-MISC_NW-PROG_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>TDI_PULL</td><td><a href="#spartan3-CNR_NW_S3-MISC_NW-TDI_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>TEST_LL</td><td id="spartan3-CNR_NW_S3-MISC_NW-TEST_LL"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][32]">TERM_H[1][32]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3 enum IOB_PULL</caption>
+<thead>
+<tr id="spartan3-CNR_NW_S3-MISC_NW-HSWAPEN_PULL"><th>MISC_NW.HSWAPEN_PULL</th><td id="spartan3-CNR_NW_S3-MISC_NW-HSWAPEN_PULL[1]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][26]">TERM_H[1][26]</a></td><td id="spartan3-CNR_NW_S3-MISC_NW-HSWAPEN_PULL[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][27]">TERM_H[1][27]</a></td></tr>
+
+<tr id="spartan3-CNR_NW_S3-MISC_NW-TDI_PULL"><th>MISC_NW.TDI_PULL</th><td id="spartan3-CNR_NW_S3-MISC_NW-TDI_PULL[1]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][29]">TERM_H[1][29]</a></td><td id="spartan3-CNR_NW_S3-MISC_NW-TDI_PULL[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][28]">TERM_H[1][28]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td><td>0</td></tr>
+
+<tr><td>PULLDOWN</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3 enum IOB_PULL</caption>
+<thead>
+<tr id="spartan3-CNR_NW_S3-MISC_NW-PROG_PULL"><th>MISC_NW.PROG_PULL</th><td id="spartan3-CNR_NW_S3-MISC_NW-PROG_PULL[0]"><a href="#spartan3-CNR_NW_S3-bit-TERM_H[1][25]">TERM_H[1][25]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td></tr>
 
 </tbody>
 
@@ -314,17 +454,17 @@
 </thead>
 
 <tbody>
-<tr><td>IMUX_DATA[0]</td><td>PMV.A0</td></tr>
+<tr><td>IMUX_DATA[0]</td><td>PMV.A[0]</td></tr>
 
-<tr><td>IMUX_DATA[1]</td><td>PMV.A1</td></tr>
+<tr><td>IMUX_DATA[1]</td><td>PMV.A[1]</td></tr>
 
-<tr><td>IMUX_DATA[2]</td><td>PMV.A2</td></tr>
+<tr><td>IMUX_DATA[2]</td><td>PMV.A[2]</td></tr>
 
-<tr><td>IMUX_DATA[3]</td><td>PMV.A3</td></tr>
+<tr><td>IMUX_DATA[3]</td><td>PMV.A[3]</td></tr>
 
-<tr><td>IMUX_DATA[4]</td><td>PMV.A4</td></tr>
+<tr><td>IMUX_DATA[4]</td><td>PMV.A[4]</td></tr>
 
-<tr><td>IMUX_DATA[5]</td><td>PMV.A5</td></tr>
+<tr><td>IMUX_DATA[5]</td><td>PMV.A[5]</td></tr>
 
 <tr><td>IMUX_DATA[6]</td><td>PMV.EN</td></tr>
 
@@ -350,11 +490,11 @@
 
 <tr><td>OUT_FAN[0]</td><td>PMV.O</td></tr>
 
-<tr><td>OUT_SEC[0]</td><td>DCI[0].ADDRESS0, DCI[1].ADDRESS0</td></tr>
+<tr><td>OUT_SEC[0]</td><td>DCI[0].ADDRESS[0], DCI[1].ADDRESS[0]</td></tr>
 
-<tr><td>OUT_SEC[1]</td><td>DCI[0].ADDRESS1, DCI[1].ADDRESS1</td></tr>
+<tr><td>OUT_SEC[1]</td><td>DCI[0].ADDRESS[1], DCI[1].ADDRESS[1]</td></tr>
 
-<tr><td>OUT_SEC[2]</td><td>DCI[0].ADDRESS2, DCI[1].ADDRESS2</td></tr>
+<tr><td>OUT_SEC[2]</td><td>DCI[0].ADDRESS[2], DCI[1].ADDRESS[2]</td></tr>
 
 <tr><td>OUT_SEC[3]</td><td>DCI[0].DATA, DCI[1].DATA</td></tr>
 
@@ -381,26 +521,38 @@
 <tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
 
 <tr>
-<th>F0</th>
 <th>F1</th>
+<th>F0</th>
 </tr>
 
 </thead>
 
 <tbody>
 <tr><td>B63</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][63]" title="TERM_H[1][63]">
+<a href="#spartan3-CNR_NW_S3-DCIRESET[1]-ENABLE">DCIRESET[1]:  ENABLE</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][63]" title="TERM_H[0][63]">
+<a href="#spartan3-CNR_NW_S3-DCIRESET[0]-ENABLE">DCIRESET[0]:  ENABLE</a>
+</td>
 </tr>
 
 <tr><td>B62</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][62]" title="TERM_H[1][62]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-TEST_ENABLE">DCI[1]:  TEST_ENABLE</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][62]" title="TERM_H[0][62]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-TEST_ENABLE">DCI[0]:  TEST_ENABLE</a>
+</td>
 </tr>
 
 <tr><td>B61</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][61]" title="TERM_H[1][61]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-FORCE_DONE_HIGH">DCI[1]:  FORCE_DONE_HIGH</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][61]" title="TERM_H[0][61]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-FORCE_DONE_HIGH">DCI[0]:  FORCE_DONE_HIGH</a>
+</td>
 </tr>
 
 <tr><td>B60</td>
@@ -409,23 +561,39 @@
 </tr>
 
 <tr><td>B59</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][59]" title="TERM_H[1][59]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_SPLIT[3]">DCI[1]:  S3_PMASK_TERM_SPLIT bit 3</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][59]" title="TERM_H[0][59]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_SPLIT[3]">DCI[0]:  S3_PMASK_TERM_SPLIT bit 3</a>
+</td>
 </tr>
 
 <tr><td>B58</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][58]" title="TERM_H[1][58]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_SPLIT[2]">DCI[1]:  S3_PMASK_TERM_SPLIT bit 2</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][58]" title="TERM_H[0][58]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_SPLIT[2]">DCI[0]:  S3_PMASK_TERM_SPLIT bit 2</a>
+</td>
 </tr>
 
 <tr><td>B57</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][57]" title="TERM_H[1][57]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_SPLIT[1]">DCI[1]:  S3_PMASK_TERM_SPLIT bit 1</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][57]" title="TERM_H[0][57]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_SPLIT[1]">DCI[0]:  S3_PMASK_TERM_SPLIT bit 1</a>
+</td>
 </tr>
 
 <tr><td>B56</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][56]" title="TERM_H[1][56]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_SPLIT[0]">DCI[1]:  S3_PMASK_TERM_SPLIT bit 0</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][56]" title="TERM_H[0][56]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_SPLIT[0]">DCI[0]:  S3_PMASK_TERM_SPLIT bit 0</a>
+</td>
 </tr>
 
 <tr><td>B55</td>
@@ -434,152 +602,258 @@
 </tr>
 
 <tr><td>B54</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][54]" title="TERM_H[1][54]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_VCC[3]">DCI[1]:  S3_PMASK_TERM_VCC bit 3</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][54]" title="TERM_H[0][54]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_VCC[3]">DCI[0]:  S3_PMASK_TERM_VCC bit 3</a>
+</td>
 </tr>
 
 <tr><td>B53</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][53]" title="TERM_H[1][53]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_VCC[2]">DCI[1]:  S3_PMASK_TERM_VCC bit 2</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][53]" title="TERM_H[0][53]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_VCC[2]">DCI[0]:  S3_PMASK_TERM_VCC bit 2</a>
+</td>
 </tr>
 
 <tr><td>B52</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][52]" title="TERM_H[1][52]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_VCC[1]">DCI[1]:  S3_PMASK_TERM_VCC bit 1</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][52]" title="TERM_H[0][52]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_VCC[1]">DCI[0]:  S3_PMASK_TERM_VCC bit 1</a>
+</td>
 </tr>
 
 <tr><td>B51</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][51]" title="TERM_H[1][51]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_PMASK_TERM_VCC[0]">DCI[1]:  S3_PMASK_TERM_VCC bit 0</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][51]" title="TERM_H[0][51]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_PMASK_TERM_VCC[0]">DCI[0]:  S3_PMASK_TERM_VCC bit 0</a>
+</td>
 </tr>
 
 <tr><td>B50</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][50]" title="TERM_H[0][50]">
+<a href="#spartan3-CNR_NW_S3-MISC_CNR_S3-MUX_DCI_TEST[0]">MISC_CNR_S3:  MUX_DCI_TEST bit 0</a>
+</td>
 </tr>
 
 <tr><td>B49</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][49]" title="TERM_H[1][49]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_NMASK_TERM_SPLIT[3]">DCI[1]:  S3_NMASK_TERM_SPLIT bit 3</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][49]" title="TERM_H[0][49]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_NMASK_TERM_SPLIT[3]">DCI[0]:  S3_NMASK_TERM_SPLIT bit 3</a>
+</td>
 </tr>
 
 <tr><td>B48</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][48]" title="TERM_H[1][48]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_NMASK_TERM_SPLIT[2]">DCI[1]:  S3_NMASK_TERM_SPLIT bit 2</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][48]" title="TERM_H[0][48]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_NMASK_TERM_SPLIT[2]">DCI[0]:  S3_NMASK_TERM_SPLIT bit 2</a>
+</td>
 </tr>
 
 <tr><td>B47</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][47]" title="TERM_H[1][47]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_NMASK_TERM_SPLIT[1]">DCI[1]:  S3_NMASK_TERM_SPLIT bit 1</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][47]" title="TERM_H[0][47]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_NMASK_TERM_SPLIT[1]">DCI[0]:  S3_NMASK_TERM_SPLIT bit 1</a>
+</td>
 </tr>
 
 <tr><td>B46</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][46]" title="TERM_H[1][46]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_NMASK_TERM_SPLIT[0]">DCI[1]:  S3_NMASK_TERM_SPLIT bit 0</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][46]" title="TERM_H[0][46]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_NMASK_TERM_SPLIT[0]">DCI[0]:  S3_NMASK_TERM_SPLIT bit 0</a>
+</td>
 </tr>
 
 <tr><td>B45</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][45]" title="TERM_H[1][45]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-QUIET">DCI[1]:  QUIET</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][45]" title="TERM_H[0][45]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-QUIET">DCI[0]:  QUIET</a>
+</td>
 </tr>
 
 <tr><td>B44</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][44]" title="TERM_H[1][44]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-ENABLE">DCI[1]:  ENABLE</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][44]" title="TERM_H[0][44]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-ENABLE">DCI[0]:  ENABLE</a>
+</td>
 </tr>
 
 <tr><td>B43</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][43]" title="TERM_H[1][43]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[10]">DCI[0]:  S3_LVDSBIAS bit 10</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][43]" title="TERM_H[0][43]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[10]">DCI[1]:  S3_LVDSBIAS bit 10</a>
+</td>
 </tr>
 
 <tr><td>B42</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][42]" title="TERM_H[1][42]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[9]">DCI[0]:  S3_LVDSBIAS bit 9</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][42]" title="TERM_H[0][42]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[9]">DCI[1]:  S3_LVDSBIAS bit 9</a>
+</td>
 </tr>
 
 <tr><td>B41</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][41]" title="TERM_H[1][41]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[8]">DCI[0]:  S3_LVDSBIAS bit 8</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][41]" title="TERM_H[0][41]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[8]">DCI[1]:  S3_LVDSBIAS bit 8</a>
+</td>
 </tr>
 
 <tr><td>B40</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][40]" title="TERM_H[1][40]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[7]">DCI[0]:  S3_LVDSBIAS bit 7</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][40]" title="TERM_H[0][40]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[7]">DCI[1]:  S3_LVDSBIAS bit 7</a>
+</td>
 </tr>
 
 <tr><td>B39</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][39]" title="TERM_H[1][39]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[6]">DCI[0]:  S3_LVDSBIAS bit 6</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][39]" title="TERM_H[0][39]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[6]">DCI[1]:  S3_LVDSBIAS bit 6</a>
+</td>
 </tr>
 
 <tr><td>B38</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][38]" title="TERM_H[1][38]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[5]">DCI[0]:  S3_LVDSBIAS bit 5</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][38]" title="TERM_H[0][38]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[5]">DCI[1]:  S3_LVDSBIAS bit 5</a>
+</td>
 </tr>
 
 <tr><td>B37</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][37]" title="TERM_H[1][37]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[4]">DCI[0]:  S3_LVDSBIAS bit 4</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][37]" title="TERM_H[0][37]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[4]">DCI[1]:  S3_LVDSBIAS bit 4</a>
+</td>
 </tr>
 
 <tr><td>B36</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][36]" title="TERM_H[1][36]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[3]">DCI[0]:  S3_LVDSBIAS bit 3</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][36]" title="TERM_H[0][36]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[3]">DCI[1]:  S3_LVDSBIAS bit 3</a>
+</td>
 </tr>
 
 <tr><td>B35</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][35]" title="TERM_H[1][35]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[2]">DCI[0]:  S3_LVDSBIAS bit 2</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][35]" title="TERM_H[0][35]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[2]">DCI[1]:  S3_LVDSBIAS bit 2</a>
+</td>
 </tr>
 
 <tr><td>B34</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][34]" title="TERM_H[1][34]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[1]">DCI[0]:  S3_LVDSBIAS bit 1</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][34]" title="TERM_H[0][34]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[1]">DCI[1]:  S3_LVDSBIAS bit 1</a>
+</td>
 </tr>
 
 <tr><td>B33</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][33]" title="TERM_H[1][33]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[0]">DCI[0]:  S3_LVDSBIAS bit 0</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][33]" title="TERM_H[0][33]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[0]">DCI[1]:  S3_LVDSBIAS bit 0</a>
+</td>
 </tr>
 
 <tr><td>B32</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][32]" title="TERM_H[1][32]">
+<a href="#spartan3-CNR_NW_S3-MISC_NW-TEST_LL">MISC_NW:  TEST_LL</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][32]" title="TERM_H[0][32]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[12]">DCI[1]:  S3_LVDSBIAS bit 12</a>
+</td>
 </tr>
 
 <tr><td>B31</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][31]" title="TERM_H[1][31]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[12]">DCI[0]:  S3_LVDSBIAS bit 12</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B30</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][30]" title="TERM_H[1][30]">
+<a href="#spartan3-CNR_NW_S3-DCI[0]-S3_LVDSBIAS[11]">DCI[0]:  S3_LVDSBIAS bit 11</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B29</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][29]" title="TERM_H[1][29]">
+<a href="#spartan3-CNR_NW_S3-MISC_NW-TDI_PULL[1]">MISC_NW:  TDI_PULL bit 1</a>
+</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][29]" title="TERM_H[0][29]">
+<a href="#spartan3-CNR_NW_S3-DCI[1]-S3_LVDSBIAS[11]">DCI[1]:  S3_LVDSBIAS bit 11</a>
+</td>
 </tr>
 
 <tr><td>B28</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][28]" title="TERM_H[1][28]">
+<a href="#spartan3-CNR_NW_S3-MISC_NW-TDI_PULL[0]">MISC_NW:  TDI_PULL bit 0</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B27</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][27]" title="TERM_H[1][27]">
+<a href="#spartan3-CNR_NW_S3-MISC_NW-HSWAPEN_PULL[0]">MISC_NW:  HSWAPEN_PULL bit 0</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B26</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][26]" title="TERM_H[1][26]">
+<a href="#spartan3-CNR_NW_S3-MISC_NW-HSWAPEN_PULL[1]">MISC_NW:  HSWAPEN_PULL bit 1</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B25</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[1][25]" title="TERM_H[1][25]">
+<a href="#spartan3-CNR_NW_S3-MISC_NW-PROG_PULL[0]">MISC_NW:  PROG_PULL bit 0</a>
+</td>
 <td>-</td>
 </tr>
 
@@ -665,7 +939,9 @@
 
 <tr><td>B8</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3-bit-TERM_H[0][8]" title="TERM_H[0][8]">
+<a href="#spartan3-CNR_NW_S3-MISC_CNR_S3-DCM_ENABLE">MISC_CNR_S3:  DCM_ENABLE</a>
+</td>
 </tr>
 
 <tr><td>B7</td>
@@ -706,752 +982,6 @@
 <tr><td>B0</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan3 CNR_NW_S3 rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B63</td>
-<td title="R0.F0.B63">
-<a href="#tile-spartan3-CNR_NW_S3-DCIRESET[0]:ENABLE">DCIRESET[0]:ENABLE</a>
-</td>
-<td title="R0.F1.B63">
-<a href="#tile-spartan3-CNR_NW_S3-DCIRESET[1]:ENABLE">DCIRESET[1]:ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B62</td>
-<td title="R0.F0.B62">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:TEST_ENABLE">DCI[0]:TEST_ENABLE</a>
-</td>
-<td title="R0.F1.B62">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:TEST_ENABLE">DCI[1]:TEST_ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B61</td>
-<td title="R0.F0.B61">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:FORCE_DONE_HIGH">DCI[0]:FORCE_DONE_HIGH</a>
-</td>
-<td title="R0.F1.B61">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:FORCE_DONE_HIGH">DCI[1]:FORCE_DONE_HIGH</a>
-</td>
-</tr>
-
-<tr><td>B60</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B59</td>
-<td title="R0.F0.B59">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[3]</a>
-</td>
-<td title="R0.F1.B59">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[3]</a>
-</td>
-</tr>
-
-<tr><td>B58</td>
-<td title="R0.F0.B58">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[2]</a>
-</td>
-<td title="R0.F1.B58">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[2]</a>
-</td>
-</tr>
-
-<tr><td>B57</td>
-<td title="R0.F0.B57">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[1]</a>
-</td>
-<td title="R0.F1.B57">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[1]</a>
-</td>
-</tr>
-
-<tr><td>B56</td>
-<td title="R0.F0.B56">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[0]</a>
-</td>
-<td title="R0.F1.B56">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[0]</a>
-</td>
-</tr>
-
-<tr><td>B55</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B54</td>
-<td title="R0.F0.B54">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[3]</a>
-</td>
-<td title="R0.F1.B54">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[3]</a>
-</td>
-</tr>
-
-<tr><td>B53</td>
-<td title="R0.F0.B53">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[2]</a>
-</td>
-<td title="R0.F1.B53">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[2]</a>
-</td>
-</tr>
-
-<tr><td>B52</td>
-<td title="R0.F0.B52">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[1]</a>
-</td>
-<td title="R0.F1.B52">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[1]</a>
-</td>
-</tr>
-
-<tr><td>B51</td>
-<td title="R0.F0.B51">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[0]</a>
-</td>
-<td title="R0.F1.B51">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[0]</a>
-</td>
-</tr>
-
-<tr><td>B50</td>
-<td title="R0.F0.B50">
-<a href="#tile-spartan3-CNR_NW_S3-MISC:DCI_TEST_MUX">MISC:DCI_TEST_MUX[0]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B49</td>
-<td title="R0.F0.B49">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[3]</a>
-</td>
-<td title="R0.F1.B49">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[3]</a>
-</td>
-</tr>
-
-<tr><td>B48</td>
-<td title="R0.F0.B48">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[2]</a>
-</td>
-<td title="R0.F1.B48">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[2]</a>
-</td>
-</tr>
-
-<tr><td>B47</td>
-<td title="R0.F0.B47">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[1]</a>
-</td>
-<td title="R0.F1.B47">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[1]</a>
-</td>
-</tr>
-
-<tr><td>B46</td>
-<td title="R0.F0.B46">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[0]</a>
-</td>
-<td title="R0.F1.B46">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[0]</a>
-</td>
-</tr>
-
-<tr><td>B45</td>
-<td title="R0.F0.B45">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:QUIET">DCI[0]:QUIET</a>
-</td>
-<td title="R0.F1.B45">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:QUIET">DCI[1]:QUIET</a>
-</td>
-</tr>
-
-<tr><td>B44</td>
-<td title="R0.F0.B44">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:ENABLE">DCI[0]:ENABLE</a>
-</td>
-<td title="R0.F1.B44">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:ENABLE">DCI[1]:ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B43</td>
-<td title="R0.F0.B43">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[2]</a>
-</td>
-<td title="R0.F1.B43">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[2]</a>
-</td>
-</tr>
-
-<tr><td>B42</td>
-<td title="R0.F0.B42">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[3]</a>
-</td>
-<td title="R0.F1.B42">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[3]</a>
-</td>
-</tr>
-
-<tr><td>B41</td>
-<td title="R0.F0.B41">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[4]</a>
-</td>
-<td title="R0.F1.B41">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[4]</a>
-</td>
-</tr>
-
-<tr><td>B40</td>
-<td title="R0.F0.B40">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[5]</a>
-</td>
-<td title="R0.F1.B40">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[5]</a>
-</td>
-</tr>
-
-<tr><td>B39</td>
-<td title="R0.F0.B39">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[6]</a>
-</td>
-<td title="R0.F1.B39">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[6]</a>
-</td>
-</tr>
-
-<tr><td>B38</td>
-<td title="R0.F0.B38">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[7]</a>
-</td>
-<td title="R0.F1.B38">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[7]</a>
-</td>
-</tr>
-
-<tr><td>B37</td>
-<td title="R0.F0.B37">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[8]</a>
-</td>
-<td title="R0.F1.B37">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[8]</a>
-</td>
-</tr>
-
-<tr><td>B36</td>
-<td title="R0.F0.B36">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[9]</a>
-</td>
-<td title="R0.F1.B36">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[9]</a>
-</td>
-</tr>
-
-<tr><td>B35</td>
-<td title="R0.F0.B35">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[10]</a>
-</td>
-<td title="R0.F1.B35">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[10]</a>
-</td>
-</tr>
-
-<tr><td>B34</td>
-<td title="R0.F0.B34">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[11]</a>
-</td>
-<td title="R0.F1.B34">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[11]</a>
-</td>
-</tr>
-
-<tr><td>B33</td>
-<td title="R0.F0.B33">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[12]</a>
-</td>
-<td title="R0.F1.B33">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[12]</a>
-</td>
-</tr>
-
-<tr><td>B32</td>
-<td title="R0.F0.B32">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[0]</a>
-</td>
-<td title="R0.F1.B32">
-<a href="#tile-spartan3-CNR_NW_S3-MISC:TEST_LL">MISC:TEST_LL</a>
-</td>
-</tr>
-
-<tr><td>B31</td>
-<td>-</td>
-<td title="R0.F1.B31">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[0]</a>
-</td>
-</tr>
-
-<tr><td>B30</td>
-<td>-</td>
-<td title="R0.F1.B30">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[1]</a>
-</td>
-</tr>
-
-<tr><td>B29</td>
-<td title="R0.F0.B29">
-<a href="#tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[1]</a>
-</td>
-<td title="R0.F1.B29">
-<a href="#tile-spartan3-CNR_NW_S3-MISC:TDIPIN">MISC:TDIPIN[1]</a>
-</td>
-</tr>
-
-<tr><td>B28</td>
-<td>-</td>
-<td title="R0.F1.B28">
-<a href="#tile-spartan3-CNR_NW_S3-MISC:TDIPIN">MISC:TDIPIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B27</td>
-<td>-</td>
-<td title="R0.F1.B27">
-<a href="#tile-spartan3-CNR_NW_S3-MISC:HSWAPENPIN">MISC:HSWAPENPIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B26</td>
-<td>-</td>
-<td title="R0.F1.B26">
-<a href="#tile-spartan3-CNR_NW_S3-MISC:HSWAPENPIN">MISC:HSWAPENPIN[1]</a>
-</td>
-</tr>
-
-<tr><td>B25</td>
-<td>-</td>
-<td title="R0.F1.B25">
-<a href="#tile-spartan3-CNR_NW_S3-MISC:PROGPIN">MISC:PROGPIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan3-CNR_NW_S3-MISC:DCM_ENABLE">MISC:DCM_ENABLE</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3-DCIRESET[0]:ENABLE">DCIRESET[0]:ENABLE</th>
-<th>0.F0.B63</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCIRESET[1]:ENABLE">DCIRESET[1]:ENABLE</th>
-<th>0.F1.B63</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[0]:ENABLE">DCI[0]:ENABLE</th>
-<th>0.F0.B44</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[0]:FORCE_DONE_HIGH">DCI[0]:FORCE_DONE_HIGH</th>
-<th>0.F0.B61</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[0]:QUIET">DCI[0]:QUIET</th>
-<th>0.F0.B45</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[0]:TEST_ENABLE">DCI[0]:TEST_ENABLE</th>
-<th>0.F0.B62</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[1]:ENABLE">DCI[1]:ENABLE</th>
-<th>0.F1.B44</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[1]:FORCE_DONE_HIGH">DCI[1]:FORCE_DONE_HIGH</th>
-<th>0.F1.B61</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[1]:QUIET">DCI[1]:QUIET</th>
-<th>0.F1.B45</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[1]:TEST_ENABLE">DCI[1]:TEST_ENABLE</th>
-<th>0.F1.B62</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-MISC:DCM_ENABLE">MISC:DCM_ENABLE</th>
-<th>0.F0.B8</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-MISC:TEST_LL">MISC:TEST_LL</th>
-<th>0.F1.B32</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS</th>
-<th>0.F1.B33</th>
-<th>0.F1.B34</th>
-<th>0.F1.B35</th>
-<th>0.F1.B36</th>
-<th>0.F1.B37</th>
-<th>0.F1.B38</th>
-<th>0.F1.B39</th>
-<th>0.F1.B40</th>
-<th>0.F1.B41</th>
-<th>0.F1.B42</th>
-<th>0.F1.B43</th>
-<th>0.F1.B30</th>
-<th>0.F1.B31</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS</th>
-<th>0.F0.B33</th>
-<th>0.F0.B34</th>
-<th>0.F0.B35</th>
-<th>0.F0.B36</th>
-<th>0.F0.B37</th>
-<th>0.F0.B38</th>
-<th>0.F0.B39</th>
-<th>0.F0.B40</th>
-<th>0.F0.B41</th>
-<th>0.F0.B42</th>
-<th>0.F0.B43</th>
-<th>0.F0.B29</th>
-<th>0.F0.B32</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[12]</td>
-<td>[11]</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT</th>
-<th>0.F0.B49</th>
-<th>0.F0.B48</th>
-<th>0.F0.B47</th>
-<th>0.F0.B46</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT</th>
-<th>0.F0.B59</th>
-<th>0.F0.B58</th>
-<th>0.F0.B57</th>
-<th>0.F0.B56</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC</th>
-<th>0.F0.B54</th>
-<th>0.F0.B53</th>
-<th>0.F0.B52</th>
-<th>0.F0.B51</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT</th>
-<th>0.F1.B49</th>
-<th>0.F1.B48</th>
-<th>0.F1.B47</th>
-<th>0.F1.B46</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT</th>
-<th>0.F1.B59</th>
-<th>0.F1.B58</th>
-<th>0.F1.B57</th>
-<th>0.F1.B56</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC</th>
-<th>0.F1.B54</th>
-<th>0.F1.B53</th>
-<th>0.F1.B52</th>
-<th>0.F1.B51</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3-MISC:DCI_TEST_MUX">MISC:DCI_TEST_MUX</th>
-<th>0.F0.B50</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>DCI0</td>
-<td>0</td>
-</tr>
-
-<tr><td>DCI1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3-MISC:HSWAPENPIN">MISC:HSWAPENPIN</th>
-<th>0.F1.B26</th>
-<th>0.F1.B27</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3-MISC:TDIPIN">MISC:TDIPIN</th>
-<th>0.F1.B29</th>
-<th>0.F1.B28</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PULLDOWN</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3-MISC:PROGPIN">MISC:PROGPIN</th>
-<th>0.F1.B25</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>1</td>
 </tr>
 
 </tbody>
@@ -1463,48 +993,97 @@ non-inverted
 <p>This tile is used on FPGAcore.</p>
 <h2 id="tile-cnr_nw_fc"><a class="header" href="#tile-cnr_nw_fc">Tile CNR_NW_FC</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-pmv-1"><a class="header" href="#bel-pmv-1">Bel PMV</a></h3>
+<h3 id="bels-pmv-1"><a class="header" href="#bels-pmv-1">Bels PMV</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CNR_NW_FC bel PMV</caption>
+<caption>spartan3 CNR_NW_FC bel PMV pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>PMV</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>A0</td><td>input</td><td>IMUX_DATA[0]</td></tr>
+<tr><td>A[0]</td><td>in</td><td>IMUX_DATA[0]</td></tr>
 
-<tr><td>A1</td><td>input</td><td>IMUX_DATA[1]</td></tr>
+<tr><td>A[1]</td><td>in</td><td>IMUX_DATA[1]</td></tr>
 
-<tr><td>A2</td><td>input</td><td>IMUX_DATA[2]</td></tr>
+<tr><td>A[2]</td><td>in</td><td>IMUX_DATA[2]</td></tr>
 
-<tr><td>A3</td><td>input</td><td>IMUX_DATA[3]</td></tr>
+<tr><td>A[3]</td><td>in</td><td>IMUX_DATA[3]</td></tr>
 
-<tr><td>A4</td><td>input</td><td>IMUX_DATA[4]</td></tr>
+<tr><td>A[4]</td><td>in</td><td>IMUX_DATA[4]</td></tr>
 
-<tr><td>A5</td><td>input</td><td>IMUX_DATA[5]</td></tr>
+<tr><td>A[5]</td><td>in</td><td>IMUX_DATA[5]</td></tr>
 
-<tr><td>EN</td><td>input</td><td>IMUX_DATA[6]</td></tr>
+<tr><td>EN</td><td>in</td><td>IMUX_DATA[6]</td></tr>
 
-<tr><td>O</td><td>output</td><td>OUT_FAN[0]</td></tr>
+<tr><td>O</td><td>out</td><td>OUT_FAN[0]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-misr"><a class="header" href="#bel-misr">Bel MISR</a></h3>
+<h3 id="bels-misr_fc"><a class="header" href="#bels-misr_fc">Bels MISR_FC</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CNR_NW_FC bel MISR</caption>
+<caption>spartan3 CNR_NW_FC bel MISR_FC pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>MISR_FC</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK[3]</td></tr>
+<tr><td>CLK</td><td>in</td><td>IMUX_CLK_OPTINV[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_FC bel MISR_FC attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISR_FC</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>MISR_CLOCK</td><td id="spartan3-CNR_NW_FC-MISR_FC-MISR_CLOCK"><a href="#spartan3-CNR_NW_FC-bit-TERM_H[0][1]">TERM_H[0][1]</a></td></tr>
+
+<tr><td>MISR_RESET</td><td id="spartan3-CNR_NW_FC-MISR_FC-MISR_RESET"><a href="#spartan3-CNR_NW_FC-bit-TERM_H[0][0]">TERM_H[0][0]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misc_nw-1"><a class="header" href="#bels-misc_nw-1">Bels MISC_NW</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_FC bel MISC_NW pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISC_NW</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_FC bel MISC_NW attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISC_NW</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>TEST_LL</td><td id="spartan3-CNR_NW_FC-MISC_NW-TEST_LL"><a href="#spartan3-CNR_NW_FC-bit-TERM_H[1][32]">TERM_H[1][32]</a></td></tr>
 
 </tbody>
 
@@ -1521,19 +1100,19 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>IMUX_CLK[3]</td><td>MISR.CLK</td></tr>
+<tr><td>IMUX_CLK_OPTINV[3]</td><td>MISR_FC.CLK</td></tr>
 
-<tr><td>IMUX_DATA[0]</td><td>PMV.A0</td></tr>
+<tr><td>IMUX_DATA[0]</td><td>PMV.A[0]</td></tr>
 
-<tr><td>IMUX_DATA[1]</td><td>PMV.A1</td></tr>
+<tr><td>IMUX_DATA[1]</td><td>PMV.A[1]</td></tr>
 
-<tr><td>IMUX_DATA[2]</td><td>PMV.A2</td></tr>
+<tr><td>IMUX_DATA[2]</td><td>PMV.A[2]</td></tr>
 
-<tr><td>IMUX_DATA[3]</td><td>PMV.A3</td></tr>
+<tr><td>IMUX_DATA[3]</td><td>PMV.A[3]</td></tr>
 
-<tr><td>IMUX_DATA[4]</td><td>PMV.A4</td></tr>
+<tr><td>IMUX_DATA[4]</td><td>PMV.A[4]</td></tr>
 
-<tr><td>IMUX_DATA[5]</td><td>PMV.A5</td></tr>
+<tr><td>IMUX_DATA[5]</td><td>PMV.A[5]</td></tr>
 
 <tr><td>IMUX_DATA[6]</td><td>PMV.EN</td></tr>
 
@@ -1552,8 +1131,8 @@ non-inverted
 <tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
 
 <tr>
-<th>F0</th>
 <th>F1</th>
+<th>F0</th>
 </tr>
 
 </thead>
@@ -1715,7 +1294,9 @@ non-inverted
 </tr>
 
 <tr><td>B32</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_FC-bit-TERM_H[1][32]" title="TERM_H[1][32]">
+<a href="#spartan3-CNR_NW_FC-MISC_NW-TEST_LL">MISC_NW:  TEST_LL</a>
+</td>
 <td>-</td>
 </tr>
 
@@ -1871,232 +1452,16 @@ non-inverted
 
 <tr><td>B1</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_FC-bit-TERM_H[0][1]" title="TERM_H[0][1]">
+<a href="#spartan3-CNR_NW_FC-MISR_FC-MISR_CLOCK">MISR_FC:  MISR_CLOCK</a>
+</td>
 </tr>
 
 <tr><td>B0</td>
 <td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan3 CNR_NW_FC rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B32</td>
-<td>-</td>
-<td title="R0.F1.B32">
-<a href="#tile-spartan3-CNR_NW_FC-MISC:TEST_LL">MISC:TEST_LL</a>
+<td id="spartan3-CNR_NW_FC-bit-TERM_H[0][0]" title="TERM_H[0][0]">
+<a href="#spartan3-CNR_NW_FC-MISR_FC-MISR_RESET">MISR_FC:  MISR_RESET</a>
 </td>
-</tr>
-
-<tr><td>B31</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B30</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B29</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B28</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B27</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B26</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-CNR_NW_FC-MISC:MISR_CLOCK">MISC:MISR_CLOCK</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-CNR_NW_FC-MISC:MISR_RESET">MISC:MISR_RESET</a>
-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_FC-MISC:MISR_CLOCK">MISC:MISR_CLOCK</th>
-<th>0.F0.B1</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_FC-MISC:MISR_RESET">MISC:MISR_RESET</th>
-<th>0.F0.B0</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_FC-MISC:TEST_LL">MISC:TEST_LL</th>
-<th>0.F1.B32</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
 </tr>
 
 </tbody>
@@ -2108,31 +1473,177 @@ non-inverted
 <p>This tile is used on Spartan 3E.</p>
 <h2 id="tile-cnr_nw_s3e"><a class="header" href="#tile-cnr_nw_s3e">Tile CNR_NW_S3E</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-pmv-2"><a class="header" href="#bel-pmv-2">Bel PMV</a></h3>
+<h3 id="bels-pmv-2"><a class="header" href="#bels-pmv-2">Bels PMV</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CNR_NW_S3E bel PMV</caption>
+<caption>spartan3 CNR_NW_S3E bel PMV pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>PMV</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>A0</td><td>input</td><td>IMUX_DATA[0]</td></tr>
+<tr><td>A[0]</td><td>in</td><td>IMUX_DATA[0]</td></tr>
 
-<tr><td>A1</td><td>input</td><td>IMUX_DATA[1]</td></tr>
+<tr><td>A[1]</td><td>in</td><td>IMUX_DATA[1]</td></tr>
 
-<tr><td>A2</td><td>input</td><td>IMUX_DATA[2]</td></tr>
+<tr><td>A[2]</td><td>in</td><td>IMUX_DATA[2]</td></tr>
 
-<tr><td>A3</td><td>input</td><td>IMUX_DATA[3]</td></tr>
+<tr><td>A[3]</td><td>in</td><td>IMUX_DATA[3]</td></tr>
 
-<tr><td>A4</td><td>input</td><td>IMUX_DATA[4]</td></tr>
+<tr><td>A[4]</td><td>in</td><td>IMUX_DATA[4]</td></tr>
 
-<tr><td>A5</td><td>input</td><td>IMUX_DATA[5]</td></tr>
+<tr><td>A[5]</td><td>in</td><td>IMUX_DATA[5]</td></tr>
 
-<tr><td>EN</td><td>input</td><td>IMUX_DATA[6]</td></tr>
+<tr><td>EN</td><td>in</td><td>IMUX_DATA[6]</td></tr>
 
-<tr><td>O</td><td>output</td><td>OUT_FAN[0]</td></tr>
+<tr><td>O</td><td>out</td><td>OUT_FAN[0]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misc_nw-2"><a class="header" href="#bels-misc_nw-2">Bels MISC_NW</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3E bel MISC_NW pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISC_NW</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3E bel MISC_NW attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISC_NW</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>PROG_PULL</td><td><a href="#spartan3-CNR_NW_S3E-MISC_NW-PROG_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>TDI_PULL</td><td><a href="#spartan3-CNR_NW_S3E-MISC_NW-TDI_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>TEST_LL</td><td id="spartan3-CNR_NW_S3E-MISC_NW-TEST_LL"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[1][32]">TERM_H[1][32]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3E enum IOB_PULL</caption>
+<thead>
+<tr id="spartan3-CNR_NW_S3E-MISC_NW-PROG_PULL"><th>MISC_NW.PROG_PULL</th><td id="spartan3-CNR_NW_S3E-MISC_NW-PROG_PULL[0]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[1][25]">TERM_H[1][25]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3E enum IOB_PULL</caption>
+<thead>
+<tr id="spartan3-CNR_NW_S3E-MISC_NW-TDI_PULL"><th>MISC_NW.TDI_PULL</th><td id="spartan3-CNR_NW_S3E-MISC_NW-TDI_PULL[1]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[1][29]">TERM_H[1][29]</a></td><td id="spartan3-CNR_NW_S3E-MISC_NW-TDI_PULL[0]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[1][28]">TERM_H[1][28]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td><td>0</td></tr>
+
+<tr><td>PULLDOWN</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-bank"><a class="header" href="#bels-bank">Bels BANK</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3E bel BANK pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>BANK</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3E bel BANK attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>BANK</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>S3E_LVDSBIAS[0] bit 0</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][0]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][44]">TERM_H[0][44]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[0] bit 1</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][1]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][39]">TERM_H[0][39]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[0] bit 2</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][2]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][38]">TERM_H[0][38]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[0] bit 3</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][3]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][37]">TERM_H[0][37]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[0] bit 4</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][4]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][36]">TERM_H[0][36]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[0] bit 5</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][5]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][27]">TERM_H[0][27]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[0] bit 6</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][6]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][26]">TERM_H[0][26]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[0] bit 7</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][7]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][25]">TERM_H[0][25]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[0] bit 8</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][8]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][24]">TERM_H[0][24]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[0] bit 9</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][9]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][23]">TERM_H[0][23]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[0] bit 10</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][10]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][22]">TERM_H[0][22]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 0</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][0]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][45]">TERM_H[0][45]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 1</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][1]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][43]">TERM_H[0][43]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 2</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][2]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][42]">TERM_H[0][42]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 3</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][3]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][41]">TERM_H[0][41]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 4</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][4]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][40]">TERM_H[0][40]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 5</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][5]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][35]">TERM_H[0][35]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 6</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][6]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][34]">TERM_H[0][34]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 7</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][7]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][33]">TERM_H[0][33]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 8</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][8]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][32]">TERM_H[0][32]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 9</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][9]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][29]">TERM_H[0][29]</a></td></tr>
+
+<tr><td>S3E_LVDSBIAS[1] bit 10</td><td id="spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][10]"><a href="#spartan3-CNR_NW_S3E-bit-TERM_H[0][28]">TERM_H[0][28]</a></td></tr>
 
 </tbody>
 
@@ -2149,17 +1660,17 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>IMUX_DATA[0]</td><td>PMV.A0</td></tr>
+<tr><td>IMUX_DATA[0]</td><td>PMV.A[0]</td></tr>
 
-<tr><td>IMUX_DATA[1]</td><td>PMV.A1</td></tr>
+<tr><td>IMUX_DATA[1]</td><td>PMV.A[1]</td></tr>
 
-<tr><td>IMUX_DATA[2]</td><td>PMV.A2</td></tr>
+<tr><td>IMUX_DATA[2]</td><td>PMV.A[2]</td></tr>
 
-<tr><td>IMUX_DATA[3]</td><td>PMV.A3</td></tr>
+<tr><td>IMUX_DATA[3]</td><td>PMV.A[3]</td></tr>
 
-<tr><td>IMUX_DATA[4]</td><td>PMV.A4</td></tr>
+<tr><td>IMUX_DATA[4]</td><td>PMV.A[4]</td></tr>
 
-<tr><td>IMUX_DATA[5]</td><td>PMV.A5</td></tr>
+<tr><td>IMUX_DATA[5]</td><td>PMV.A[5]</td></tr>
 
 <tr><td>IMUX_DATA[6]</td><td>PMV.EN</td></tr>
 
@@ -2178,8 +1689,8 @@ non-inverted
 <tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
 
 <tr>
-<th>F0</th>
 <th>F1</th>
+<th>F0</th>
 </tr>
 
 </thead>
@@ -2277,72 +1788,102 @@ non-inverted
 
 <tr><td>B45</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][45]" title="TERM_H[0][45]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][0]">BANK:  S3E_LVDSBIAS[1] bit 0</a>
+</td>
 </tr>
 
 <tr><td>B44</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][44]" title="TERM_H[0][44]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][0]">BANK:  S3E_LVDSBIAS[0] bit 0</a>
+</td>
 </tr>
 
 <tr><td>B43</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][43]" title="TERM_H[0][43]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][1]">BANK:  S3E_LVDSBIAS[1] bit 1</a>
+</td>
 </tr>
 
 <tr><td>B42</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][42]" title="TERM_H[0][42]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][2]">BANK:  S3E_LVDSBIAS[1] bit 2</a>
+</td>
 </tr>
 
 <tr><td>B41</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][41]" title="TERM_H[0][41]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][3]">BANK:  S3E_LVDSBIAS[1] bit 3</a>
+</td>
 </tr>
 
 <tr><td>B40</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][40]" title="TERM_H[0][40]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][4]">BANK:  S3E_LVDSBIAS[1] bit 4</a>
+</td>
 </tr>
 
 <tr><td>B39</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][39]" title="TERM_H[0][39]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][1]">BANK:  S3E_LVDSBIAS[0] bit 1</a>
+</td>
 </tr>
 
 <tr><td>B38</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][38]" title="TERM_H[0][38]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][2]">BANK:  S3E_LVDSBIAS[0] bit 2</a>
+</td>
 </tr>
 
 <tr><td>B37</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][37]" title="TERM_H[0][37]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][3]">BANK:  S3E_LVDSBIAS[0] bit 3</a>
+</td>
 </tr>
 
 <tr><td>B36</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][36]" title="TERM_H[0][36]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][4]">BANK:  S3E_LVDSBIAS[0] bit 4</a>
+</td>
 </tr>
 
 <tr><td>B35</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][35]" title="TERM_H[0][35]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][5]">BANK:  S3E_LVDSBIAS[1] bit 5</a>
+</td>
 </tr>
 
 <tr><td>B34</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][34]" title="TERM_H[0][34]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][6]">BANK:  S3E_LVDSBIAS[1] bit 6</a>
+</td>
 </tr>
 
 <tr><td>B33</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][33]" title="TERM_H[0][33]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][7]">BANK:  S3E_LVDSBIAS[1] bit 7</a>
+</td>
 </tr>
 
 <tr><td>B32</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[1][32]" title="TERM_H[1][32]">
+<a href="#spartan3-CNR_NW_S3E-MISC_NW-TEST_LL">MISC_NW:  TEST_LL</a>
+</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][32]" title="TERM_H[0][32]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][8]">BANK:  S3E_LVDSBIAS[1] bit 8</a>
+</td>
 </tr>
 
 <tr><td>B31</td>
@@ -2356,43 +1897,65 @@ non-inverted
 </tr>
 
 <tr><td>B29</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[1][29]" title="TERM_H[1][29]">
+<a href="#spartan3-CNR_NW_S3E-MISC_NW-TDI_PULL[1]">MISC_NW:  TDI_PULL bit 1</a>
+</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][29]" title="TERM_H[0][29]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][9]">BANK:  S3E_LVDSBIAS[1] bit 9</a>
+</td>
 </tr>
 
 <tr><td>B28</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[1][28]" title="TERM_H[1][28]">
+<a href="#spartan3-CNR_NW_S3E-MISC_NW-TDI_PULL[0]">MISC_NW:  TDI_PULL bit 0</a>
+</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][28]" title="TERM_H[0][28]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[1][10]">BANK:  S3E_LVDSBIAS[1] bit 10</a>
+</td>
 </tr>
 
 <tr><td>B27</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][27]" title="TERM_H[0][27]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][5]">BANK:  S3E_LVDSBIAS[0] bit 5</a>
+</td>
 </tr>
 
 <tr><td>B26</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][26]" title="TERM_H[0][26]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][6]">BANK:  S3E_LVDSBIAS[0] bit 6</a>
+</td>
 </tr>
 
 <tr><td>B25</td>
-<td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[1][25]" title="TERM_H[1][25]">
+<a href="#spartan3-CNR_NW_S3E-MISC_NW-PROG_PULL[0]">MISC_NW:  PROG_PULL bit 0</a>
+</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][25]" title="TERM_H[0][25]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][7]">BANK:  S3E_LVDSBIAS[0] bit 7</a>
+</td>
 </tr>
 
 <tr><td>B24</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][24]" title="TERM_H[0][24]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][8]">BANK:  S3E_LVDSBIAS[0] bit 8</a>
+</td>
 </tr>
 
 <tr><td>B23</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][23]" title="TERM_H[0][23]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][9]">BANK:  S3E_LVDSBIAS[0] bit 9</a>
+</td>
 </tr>
 
 <tr><td>B22</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3E-bit-TERM_H[0][22]" title="TERM_H[0][22]">
+<a href="#spartan3-CNR_NW_S3E-BANK-S3E_LVDSBIAS[0][10]">BANK:  S3E_LVDSBIAS[0] bit 10</a>
+</td>
 </tr>
 
 <tr><td>B21</td>
@@ -2503,438 +2066,6 @@ non-inverted
 <tr><td>B0</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan3 CNR_NW_S3E rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B45</td>
-<td title="R0.F0.B45">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[0]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B44</td>
-<td title="R0.F0.B44">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[0]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B43</td>
-<td title="R0.F0.B43">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[1]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B42</td>
-<td title="R0.F0.B42">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[2]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B41</td>
-<td title="R0.F0.B41">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[3]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B40</td>
-<td title="R0.F0.B40">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[4]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B39</td>
-<td title="R0.F0.B39">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[1]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B38</td>
-<td title="R0.F0.B38">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[2]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B37</td>
-<td title="R0.F0.B37">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[3]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B36</td>
-<td title="R0.F0.B36">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[4]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B35</td>
-<td title="R0.F0.B35">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[5]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B34</td>
-<td title="R0.F0.B34">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[6]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B33</td>
-<td title="R0.F0.B33">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[7]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B32</td>
-<td title="R0.F0.B32">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[8]</a>
-</td>
-<td title="R0.F1.B32">
-<a href="#tile-spartan3-CNR_NW_S3E-MISC:TEST_LL">MISC:TEST_LL</a>
-</td>
-</tr>
-
-<tr><td>B31</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B30</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B29</td>
-<td title="R0.F0.B29">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[9]</a>
-</td>
-<td title="R0.F1.B29">
-<a href="#tile-spartan3-CNR_NW_S3E-MISC:TDIPIN">MISC:TDIPIN[1]</a>
-</td>
-</tr>
-
-<tr><td>B28</td>
-<td title="R0.F0.B28">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[10]</a>
-</td>
-<td title="R0.F1.B28">
-<a href="#tile-spartan3-CNR_NW_S3E-MISC:TDIPIN">MISC:TDIPIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B27</td>
-<td title="R0.F0.B27">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[5]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B26</td>
-<td title="R0.F0.B26">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[6]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td title="R0.F0.B25">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[7]</a>
-</td>
-<td title="R0.F1.B25">
-<a href="#tile-spartan3-CNR_NW_S3E-MISC:PROGPIN">MISC:PROGPIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B24</td>
-<td title="R0.F0.B24">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[8]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td title="R0.F0.B23">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[9]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td title="R0.F0.B22">
-<a href="#tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[10]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0</th>
-<th>0.F0.B22</th>
-<th>0.F0.B23</th>
-<th>0.F0.B24</th>
-<th>0.F0.B25</th>
-<th>0.F0.B26</th>
-<th>0.F0.B27</th>
-<th>0.F0.B36</th>
-<th>0.F0.B37</th>
-<th>0.F0.B38</th>
-<th>0.F0.B39</th>
-<th>0.F0.B44</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3E-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1</th>
-<th>0.F0.B28</th>
-<th>0.F0.B29</th>
-<th>0.F0.B32</th>
-<th>0.F0.B33</th>
-<th>0.F0.B34</th>
-<th>0.F0.B35</th>
-<th>0.F0.B40</th>
-<th>0.F0.B41</th>
-<th>0.F0.B42</th>
-<th>0.F0.B43</th>
-<th>0.F0.B45</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3E-MISC:PROGPIN">MISC:PROGPIN</th>
-<th>0.F1.B25</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3E-MISC:TDIPIN">MISC:TDIPIN</th>
-<th>0.F1.B29</th>
-<th>0.F1.B28</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PULLDOWN</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3E-MISC:TEST_LL">MISC:TEST_LL</th>
-<th>0.F1.B32</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
 </tr>
 
 </tbody>
@@ -2946,56 +2077,210 @@ non-inverted
 <p>This tile is used on Spartan 3A.</p>
 <h2 id="tile-cnr_nw_s3a"><a class="header" href="#tile-cnr_nw_s3a">Tile CNR_NW_S3A</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-pmv-3"><a class="header" href="#bel-pmv-3">Bel PMV</a></h3>
+<h3 id="bels-pmv-3"><a class="header" href="#bels-pmv-3">Bels PMV</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CNR_NW_S3A bel PMV</caption>
+<caption>spartan3 CNR_NW_S3A bel PMV pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>PMV</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>A0</td><td>input</td><td>IMUX_DATA[0]</td></tr>
+<tr><td>A[0]</td><td>in</td><td>IMUX_DATA[0]</td></tr>
 
-<tr><td>A1</td><td>input</td><td>IMUX_DATA[1]</td></tr>
+<tr><td>A[1]</td><td>in</td><td>IMUX_DATA[1]</td></tr>
 
-<tr><td>A2</td><td>input</td><td>IMUX_DATA[2]</td></tr>
+<tr><td>A[2]</td><td>in</td><td>IMUX_DATA[2]</td></tr>
 
-<tr><td>A3</td><td>input</td><td>IMUX_DATA[3]</td></tr>
+<tr><td>A[3]</td><td>in</td><td>IMUX_DATA[3]</td></tr>
 
-<tr><td>A4</td><td>input</td><td>IMUX_DATA[4]</td></tr>
+<tr><td>A[4]</td><td>in</td><td>IMUX_DATA[4]</td></tr>
 
-<tr><td>A5</td><td>input</td><td>IMUX_DATA[5]</td></tr>
+<tr><td>A[5]</td><td>in</td><td>IMUX_DATA[5]</td></tr>
 
-<tr><td>EN</td><td>input</td><td>IMUX_DATA[6]</td></tr>
+<tr><td>EN</td><td>in</td><td>IMUX_DATA[6]</td></tr>
 
-<tr><td>O</td><td>output</td><td>OUT_FAN[0]</td></tr>
+<tr><td>O</td><td>out</td><td>OUT_FAN[0]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-dna_port"><a class="header" href="#bel-dna_port">Bel DNA_PORT</a></h3>
+<h3 id="bels-dna_port"><a class="header" href="#bels-dna_port">Bels DNA_PORT</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 CNR_NW_S3A bel DNA_PORT</caption>
+<caption>spartan3 CNR_NW_S3A bel DNA_PORT pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>DNA_PORT</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[0]</td></tr>
+<tr><td>CLK</td><td>in</td><td>IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>DIN</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
+<tr><td>DIN</td><td>in</td><td>IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>DOUT</td><td>output</td><td>OUT_FAN[7]</td></tr>
+<tr><td>READ</td><td>in</td><td>IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>READ</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
+<tr><td>SHIFT</td><td>in</td><td>IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>SHIFT</td><td>input</td><td>IMUX_SR_OPTINV[2]</td></tr>
+<tr><td>DOUT</td><td>out</td><td>OUT_FAN[7]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misc_nw-3"><a class="header" href="#bels-misc_nw-3">Bels MISC_NW</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3A bel MISC_NW pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISC_NW</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3A bel MISC_NW attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISC_NW</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>PROG_PULL</td><td><a href="#spartan3-CNR_NW_S3A-MISC_NW-PROG_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>TDI_PULL</td><td><a href="#spartan3-CNR_NW_S3A-MISC_NW-TDI_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>TMS_PULL</td><td><a href="#spartan3-CNR_NW_S3A-MISC_NW-TMS_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>TEST_LL</td><td id="spartan3-CNR_NW_S3A-MISC_NW-TEST_LL"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][32]">TERM_H[1][32]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3A enum IOB_PULL</caption>
+<thead>
+<tr id="spartan3-CNR_NW_S3A-MISC_NW-PROG_PULL"><th>MISC_NW.PROG_PULL</th><td id="spartan3-CNR_NW_S3A-MISC_NW-PROG_PULL[0]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][25]">TERM_H[1][25]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3A enum IOB_PULL</caption>
+<thead>
+<tr id="spartan3-CNR_NW_S3A-MISC_NW-TDI_PULL"><th>MISC_NW.TDI_PULL</th><td id="spartan3-CNR_NW_S3A-MISC_NW-TDI_PULL[1]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][29]">TERM_H[1][29]</a></td><td id="spartan3-CNR_NW_S3A-MISC_NW-TDI_PULL[0]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][28]">TERM_H[1][28]</a></td></tr>
+
+<tr id="spartan3-CNR_NW_S3A-MISC_NW-TMS_PULL"><th>MISC_NW.TMS_PULL</th><td id="spartan3-CNR_NW_S3A-MISC_NW-TMS_PULL[1]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[0][31]">TERM_H[0][31]</a></td><td id="spartan3-CNR_NW_S3A-MISC_NW-TMS_PULL[0]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[0][30]">TERM_H[0][30]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td><td>0</td></tr>
+
+<tr><td>PULLDOWN</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-bank-1"><a class="header" href="#bels-bank-1">Bels BANK</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3A bel BANK pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>BANK</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 CNR_NW_S3A bel BANK attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>BANK</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>S3A_LVDSBIAS[0] bit 0</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][0]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][62]">TERM_H[1][62]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 1</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][1]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][60]">TERM_H[1][60]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 2</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][2]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][55]">TERM_H[1][55]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 3</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][3]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][54]">TERM_H[1][54]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 4</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][4]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][53]">TERM_H[1][53]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 5</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][5]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][52]">TERM_H[1][52]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 6</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][6]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][45]">TERM_H[1][45]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 7</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][7]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][44]">TERM_H[1][44]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 8</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][8]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][43]">TERM_H[1][43]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 9</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][9]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][42]">TERM_H[1][42]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 10</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][10]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][41]">TERM_H[1][41]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[0] bit 11</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][11]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][40]">TERM_H[1][40]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 0</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][0]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][63]">TERM_H[1][63]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 1</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][1]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][61]">TERM_H[1][61]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 2</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][2]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][59]">TERM_H[1][59]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 3</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][3]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][58]">TERM_H[1][58]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 4</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][4]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][57]">TERM_H[1][57]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 5</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][5]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][56]">TERM_H[1][56]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 6</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][6]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][51]">TERM_H[1][51]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 7</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][7]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][50]">TERM_H[1][50]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 8</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][8]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][49]">TERM_H[1][49]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 9</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][9]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][48]">TERM_H[1][48]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 10</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][10]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][47]">TERM_H[1][47]</a></td></tr>
+
+<tr><td>S3A_LVDSBIAS[1] bit 11</td><td id="spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][11]"><a href="#spartan3-CNR_NW_S3A-bit-TERM_H[1][46]">TERM_H[1][46]</a></td></tr>
 
 </tbody>
 
@@ -3020,17 +2305,17 @@ non-inverted
 
 <tr><td>IMUX_SR_OPTINV[2]</td><td>DNA_PORT.SHIFT</td></tr>
 
-<tr><td>IMUX_DATA[0]</td><td>PMV.A0</td></tr>
+<tr><td>IMUX_DATA[0]</td><td>PMV.A[0]</td></tr>
 
-<tr><td>IMUX_DATA[1]</td><td>PMV.A1</td></tr>
+<tr><td>IMUX_DATA[1]</td><td>PMV.A[1]</td></tr>
 
-<tr><td>IMUX_DATA[2]</td><td>PMV.A2</td></tr>
+<tr><td>IMUX_DATA[2]</td><td>PMV.A[2]</td></tr>
 
-<tr><td>IMUX_DATA[3]</td><td>PMV.A3</td></tr>
+<tr><td>IMUX_DATA[3]</td><td>PMV.A[3]</td></tr>
 
-<tr><td>IMUX_DATA[4]</td><td>PMV.A4</td></tr>
+<tr><td>IMUX_DATA[4]</td><td>PMV.A[4]</td></tr>
 
-<tr><td>IMUX_DATA[5]</td><td>PMV.A5</td></tr>
+<tr><td>IMUX_DATA[5]</td><td>PMV.A[5]</td></tr>
 
 <tr><td>IMUX_DATA[6]</td><td>PMV.EN</td></tr>
 
@@ -3051,130 +2336,178 @@ non-inverted
 <tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
 
 <tr>
-<th>F0</th>
 <th>F1</th>
+<th>F0</th>
 </tr>
 
 </thead>
 
 <tbody>
 <tr><td>B63</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][63]" title="TERM_H[1][63]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][0]">BANK:  S3A_LVDSBIAS[1] bit 0</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B62</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][62]" title="TERM_H[1][62]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][0]">BANK:  S3A_LVDSBIAS[0] bit 0</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B61</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][61]" title="TERM_H[1][61]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][1]">BANK:  S3A_LVDSBIAS[1] bit 1</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B60</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][60]" title="TERM_H[1][60]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][1]">BANK:  S3A_LVDSBIAS[0] bit 1</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B59</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][59]" title="TERM_H[1][59]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][2]">BANK:  S3A_LVDSBIAS[1] bit 2</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B58</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][58]" title="TERM_H[1][58]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][3]">BANK:  S3A_LVDSBIAS[1] bit 3</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B57</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][57]" title="TERM_H[1][57]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][4]">BANK:  S3A_LVDSBIAS[1] bit 4</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B56</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][56]" title="TERM_H[1][56]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][5]">BANK:  S3A_LVDSBIAS[1] bit 5</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B55</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][55]" title="TERM_H[1][55]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][2]">BANK:  S3A_LVDSBIAS[0] bit 2</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B54</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][54]" title="TERM_H[1][54]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][3]">BANK:  S3A_LVDSBIAS[0] bit 3</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B53</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][53]" title="TERM_H[1][53]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][4]">BANK:  S3A_LVDSBIAS[0] bit 4</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B52</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][52]" title="TERM_H[1][52]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][5]">BANK:  S3A_LVDSBIAS[0] bit 5</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B51</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][51]" title="TERM_H[1][51]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][6]">BANK:  S3A_LVDSBIAS[1] bit 6</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B50</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][50]" title="TERM_H[1][50]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][7]">BANK:  S3A_LVDSBIAS[1] bit 7</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B49</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][49]" title="TERM_H[1][49]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][8]">BANK:  S3A_LVDSBIAS[1] bit 8</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B48</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][48]" title="TERM_H[1][48]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][9]">BANK:  S3A_LVDSBIAS[1] bit 9</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B47</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][47]" title="TERM_H[1][47]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][10]">BANK:  S3A_LVDSBIAS[1] bit 10</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B46</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][46]" title="TERM_H[1][46]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[1][11]">BANK:  S3A_LVDSBIAS[1] bit 11</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B45</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][45]" title="TERM_H[1][45]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][6]">BANK:  S3A_LVDSBIAS[0] bit 6</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B44</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][44]" title="TERM_H[1][44]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][7]">BANK:  S3A_LVDSBIAS[0] bit 7</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B43</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][43]" title="TERM_H[1][43]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][8]">BANK:  S3A_LVDSBIAS[0] bit 8</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B42</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][42]" title="TERM_H[1][42]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][9]">BANK:  S3A_LVDSBIAS[0] bit 9</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B41</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][41]" title="TERM_H[1][41]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][10]">BANK:  S3A_LVDSBIAS[0] bit 10</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B40</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][40]" title="TERM_H[1][40]">
+<a href="#spartan3-CNR_NW_S3A-BANK-S3A_LVDSBIAS[0][11]">BANK:  S3A_LVDSBIAS[0] bit 11</a>
+</td>
 <td>-</td>
 </tr>
 
@@ -3214,27 +2547,37 @@ non-inverted
 </tr>
 
 <tr><td>B32</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][32]" title="TERM_H[1][32]">
+<a href="#spartan3-CNR_NW_S3A-MISC_NW-TEST_LL">MISC_NW:  TEST_LL</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B31</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[0][31]" title="TERM_H[0][31]">
+<a href="#spartan3-CNR_NW_S3A-MISC_NW-TMS_PULL[1]">MISC_NW:  TMS_PULL bit 1</a>
+</td>
 </tr>
 
 <tr><td>B30</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[0][30]" title="TERM_H[0][30]">
+<a href="#spartan3-CNR_NW_S3A-MISC_NW-TMS_PULL[0]">MISC_NW:  TMS_PULL bit 0</a>
+</td>
 </tr>
 
 <tr><td>B29</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][29]" title="TERM_H[1][29]">
+<a href="#spartan3-CNR_NW_S3A-MISC_NW-TDI_PULL[1]">MISC_NW:  TDI_PULL bit 1</a>
+</td>
 <td>-</td>
 </tr>
 
 <tr><td>B28</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][28]" title="TERM_H[1][28]">
+<a href="#spartan3-CNR_NW_S3A-MISC_NW-TDI_PULL[0]">MISC_NW:  TDI_PULL bit 0</a>
+</td>
 <td>-</td>
 </tr>
 
@@ -3249,7 +2592,9 @@ non-inverted
 </tr>
 
 <tr><td>B25</td>
-<td>-</td>
+<td id="spartan3-CNR_NW_S3A-bit-TERM_H[1][25]" title="TERM_H[1][25]">
+<a href="#spartan3-CNR_NW_S3A-MISC_NW-PROG_PULL[0]">MISC_NW:  PROG_PULL bit 0</a>
+</td>
 <td>-</td>
 </tr>
 
@@ -3376,544 +2721,6 @@ non-inverted
 <tr><td>B0</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan3 CNR_NW_S3A rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B63</td>
-<td>-</td>
-<td title="R0.F1.B63">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[0]</a>
-</td>
-</tr>
-
-<tr><td>B62</td>
-<td>-</td>
-<td title="R0.F1.B62">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[0]</a>
-</td>
-</tr>
-
-<tr><td>B61</td>
-<td>-</td>
-<td title="R0.F1.B61">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[1]</a>
-</td>
-</tr>
-
-<tr><td>B60</td>
-<td>-</td>
-<td title="R0.F1.B60">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[1]</a>
-</td>
-</tr>
-
-<tr><td>B59</td>
-<td>-</td>
-<td title="R0.F1.B59">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[2]</a>
-</td>
-</tr>
-
-<tr><td>B58</td>
-<td>-</td>
-<td title="R0.F1.B58">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[3]</a>
-</td>
-</tr>
-
-<tr><td>B57</td>
-<td>-</td>
-<td title="R0.F1.B57">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[4]</a>
-</td>
-</tr>
-
-<tr><td>B56</td>
-<td>-</td>
-<td title="R0.F1.B56">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[5]</a>
-</td>
-</tr>
-
-<tr><td>B55</td>
-<td>-</td>
-<td title="R0.F1.B55">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[2]</a>
-</td>
-</tr>
-
-<tr><td>B54</td>
-<td>-</td>
-<td title="R0.F1.B54">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[3]</a>
-</td>
-</tr>
-
-<tr><td>B53</td>
-<td>-</td>
-<td title="R0.F1.B53">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[4]</a>
-</td>
-</tr>
-
-<tr><td>B52</td>
-<td>-</td>
-<td title="R0.F1.B52">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[5]</a>
-</td>
-</tr>
-
-<tr><td>B51</td>
-<td>-</td>
-<td title="R0.F1.B51">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[6]</a>
-</td>
-</tr>
-
-<tr><td>B50</td>
-<td>-</td>
-<td title="R0.F1.B50">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[7]</a>
-</td>
-</tr>
-
-<tr><td>B49</td>
-<td>-</td>
-<td title="R0.F1.B49">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[8]</a>
-</td>
-</tr>
-
-<tr><td>B48</td>
-<td>-</td>
-<td title="R0.F1.B48">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[9]</a>
-</td>
-</tr>
-
-<tr><td>B47</td>
-<td>-</td>
-<td title="R0.F1.B47">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[10]</a>
-</td>
-</tr>
-
-<tr><td>B46</td>
-<td>-</td>
-<td title="R0.F1.B46">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[11]</a>
-</td>
-</tr>
-
-<tr><td>B45</td>
-<td>-</td>
-<td title="R0.F1.B45">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[6]</a>
-</td>
-</tr>
-
-<tr><td>B44</td>
-<td>-</td>
-<td title="R0.F1.B44">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[7]</a>
-</td>
-</tr>
-
-<tr><td>B43</td>
-<td>-</td>
-<td title="R0.F1.B43">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[8]</a>
-</td>
-</tr>
-
-<tr><td>B42</td>
-<td>-</td>
-<td title="R0.F1.B42">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[9]</a>
-</td>
-</tr>
-
-<tr><td>B41</td>
-<td>-</td>
-<td title="R0.F1.B41">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[10]</a>
-</td>
-</tr>
-
-<tr><td>B40</td>
-<td>-</td>
-<td title="R0.F1.B40">
-<a href="#tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[11]</a>
-</td>
-</tr>
-
-<tr><td>B39</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B38</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B37</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B36</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B35</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B34</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B33</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B32</td>
-<td>-</td>
-<td title="R0.F1.B32">
-<a href="#tile-spartan3-CNR_NW_S3A-MISC:TEST_LL">MISC:TEST_LL</a>
-</td>
-</tr>
-
-<tr><td>B31</td>
-<td title="R0.F0.B31">
-<a href="#tile-spartan3-CNR_NW_S3A-MISC:TMSPIN">MISC:TMSPIN[1]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B30</td>
-<td title="R0.F0.B30">
-<a href="#tile-spartan3-CNR_NW_S3A-MISC:TMSPIN">MISC:TMSPIN[0]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B29</td>
-<td>-</td>
-<td title="R0.F1.B29">
-<a href="#tile-spartan3-CNR_NW_S3A-MISC:TDIPIN">MISC:TDIPIN[1]</a>
-</td>
-</tr>
-
-<tr><td>B28</td>
-<td>-</td>
-<td title="R0.F1.B28">
-<a href="#tile-spartan3-CNR_NW_S3A-MISC:TDIPIN">MISC:TDIPIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B27</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B26</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td>-</td>
-<td title="R0.F1.B25">
-<a href="#tile-spartan3-CNR_NW_S3A-MISC:PROGPIN">MISC:PROGPIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0</th>
-<th>0.F1.B40</th>
-<th>0.F1.B41</th>
-<th>0.F1.B42</th>
-<th>0.F1.B43</th>
-<th>0.F1.B44</th>
-<th>0.F1.B45</th>
-<th>0.F1.B52</th>
-<th>0.F1.B53</th>
-<th>0.F1.B54</th>
-<th>0.F1.B55</th>
-<th>0.F1.B60</th>
-<th>0.F1.B62</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3A-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1</th>
-<th>0.F1.B46</th>
-<th>0.F1.B47</th>
-<th>0.F1.B48</th>
-<th>0.F1.B49</th>
-<th>0.F1.B50</th>
-<th>0.F1.B51</th>
-<th>0.F1.B56</th>
-<th>0.F1.B57</th>
-<th>0.F1.B58</th>
-<th>0.F1.B59</th>
-<th>0.F1.B61</th>
-<th>0.F1.B63</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[11]</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3A-MISC:PROGPIN">MISC:PROGPIN</th>
-<th>0.F1.B25</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3A-MISC:TDIPIN">MISC:TDIPIN</th>
-<th>0.F1.B29</th>
-<th>0.F1.B28</th>
-</tr>
-
-<tr><th id="tile-spartan3-CNR_NW_S3A-MISC:TMSPIN">MISC:TMSPIN</th>
-<th>0.F0.B31</th>
-<th>0.F0.B30</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PULLDOWN</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-CNR_NW_S3A-MISC:TEST_LL">MISC:TEST_LL</th>
-<th>0.F1.B32</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
 </tr>
 
 </tbody>

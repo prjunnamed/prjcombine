@@ -155,78 +155,196 @@
 <p>TODO: document</p>
 <h2 id="tile-cnr_sw_v2"><a class="header" href="#tile-cnr_sw_v2">Tile CNR_SW_V2</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-dci0"><a class="header" href="#bel-dci0">Bel DCI[0]</a></h3>
+<h3 id="bels-dci"><a class="header" href="#bels-dci">Bels DCI</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex2 CNR_SW_V2 bel DCI[0]</caption>
+<caption>virtex2 CNR_SW_V2 bel DCI pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>DCI[0]</th><th>DCI[1]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>ADDRESS0</td><td>output</td><td>OUT_HALF0[14]</td></tr>
+<tr><td>DCI_CLK</td><td>in</td><td>IMUX_G2_DATA[7]</td><td>IMUX_G1_DATA[7]</td></tr>
 
-<tr><td>ADDRESS1</td><td>output</td><td>OUT_HALF1[14]</td></tr>
+<tr><td>DCI_RESET</td><td>in</td><td>IMUX_G2_DATA[6]</td><td>IMUX_G1_DATA[6]</td></tr>
 
-<tr><td>ADDRESS2</td><td>output</td><td>OUT_HALF0[13]</td></tr>
+<tr><td>HI_LO_P</td><td>in</td><td>IMUX_G2_DATA[4]</td><td>IMUX_G1_DATA[4]</td></tr>
 
-<tr><td>DATA</td><td>output</td><td>OUT_HALF1[15]</td></tr>
+<tr><td>HI_LO_N</td><td>in</td><td>IMUX_G2_DATA[5]</td><td>IMUX_G1_DATA[5]</td></tr>
 
-<tr><td>DCI_CLK</td><td>input</td><td>IMUX_G2_DATA[7]</td></tr>
+<tr><td>SCLK</td><td>out</td><td>OUT_HALF0[16]</td><td>OUT_HALF0[11]</td></tr>
 
-<tr><td>DCI_DONE</td><td>output</td><td>OUT_HALF0[15]</td></tr>
+<tr><td>ADDRESS[0]</td><td>out</td><td>OUT_HALF0[14]</td><td>OUT_HALF0[9]</td></tr>
 
-<tr><td>DCI_RESET</td><td>input</td><td>IMUX_G2_DATA[6]</td></tr>
+<tr><td>ADDRESS[1]</td><td>out</td><td>OUT_HALF1[14]</td><td>OUT_HALF1[9]</td></tr>
 
-<tr><td>HI_LO_N</td><td>input</td><td>IMUX_G2_DATA[5]</td></tr>
+<tr><td>ADDRESS[2]</td><td>out</td><td>OUT_HALF0[13]</td><td>OUT_HALF0[8]</td></tr>
 
-<tr><td>HI_LO_P</td><td>input</td><td>IMUX_G2_DATA[4]</td></tr>
+<tr><td>DATA</td><td>out</td><td>OUT_HALF1[15]</td><td>OUT_HALF1[10]</td></tr>
 
-<tr><td>N_OR_P</td><td>output</td><td>OUT_HALF1[16]</td></tr>
+<tr><td>N_OR_P</td><td>out</td><td>OUT_HALF1[16]</td><td>OUT_HALF1[11]</td></tr>
 
-<tr><td>SCLK</td><td>output</td><td>OUT_HALF0[16]</td></tr>
+<tr><td>UPDATE</td><td>out</td><td>OUT_HALF1[17]</td><td>OUT_HALF1[12]</td></tr>
 
-<tr><td>UPDATE</td><td>output</td><td>OUT_HALF1[17]</td></tr>
+<tr><td>DCI_DONE</td><td>out</td><td>OUT_HALF0[15]</td><td>OUT_HALF0[10]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-dci1"><a class="header" href="#bel-dci1">Bel DCI[1]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex2 CNR_SW_V2 bel DCI[1]</caption>
+<caption>virtex2 CNR_SW_V2 bel DCI attribute bits</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Attribute</th><th>DCI[0]</th><th>DCI[1]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>ADDRESS0</td><td>output</td><td>OUT_HALF0[9]</td></tr>
+<tr><td>ENABLE</td><td id="virtex2-CNR_SW_V2-DCI[0]-ENABLE"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][42]">TERM_H[2][42]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-ENABLE"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[10][7]">TERM_V[10][7]</a></td></tr>
 
-<tr><td>ADDRESS1</td><td>output</td><td>OUT_HALF1[9]</td></tr>
+<tr><td>TEST_ENABLE</td><td id="virtex2-CNR_SW_V2-DCI[0]-TEST_ENABLE"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][31]">TERM_H[2][31]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-TEST_ENABLE"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[9][6]">TERM_V[9][6]</a></td></tr>
 
-<tr><td>ADDRESS2</td><td>output</td><td>OUT_HALF0[8]</td></tr>
+<tr><td>FORCE_DONE_HIGH</td><td id="virtex2-CNR_SW_V2-DCI[0]-FORCE_DONE_HIGH"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][31]">TERM_H[3][31]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-FORCE_DONE_HIGH"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[9][8]">TERM_V[9][8]</a></td></tr>
 
-<tr><td>DATA</td><td>output</td><td>OUT_HALF1[10]</td></tr>
+<tr><td>V2_PMASK_TERM_SPLIT bit 0</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_SPLIT[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][34]">TERM_H[2][34]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_SPLIT[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[8][9]">TERM_V[8][9]</a></td></tr>
 
-<tr><td>DCI_CLK</td><td>input</td><td>IMUX_G1_DATA[7]</td></tr>
+<tr><td>V2_PMASK_TERM_SPLIT bit 1</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_SPLIT[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][33]">TERM_H[3][33]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_SPLIT[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[9][9]">TERM_V[9][9]</a></td></tr>
 
-<tr><td>DCI_DONE</td><td>output</td><td>OUT_HALF0[10]</td></tr>
+<tr><td>V2_PMASK_TERM_SPLIT bit 2</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_SPLIT[2]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][33]">TERM_H[2][33]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_SPLIT[2]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[9][11]">TERM_V[9][11]</a></td></tr>
 
-<tr><td>DCI_RESET</td><td>input</td><td>IMUX_G1_DATA[6]</td></tr>
+<tr><td>V2_PMASK_TERM_SPLIT bit 3</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_SPLIT[3]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][32]">TERM_H[3][32]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_SPLIT[3]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[9][7]">TERM_V[9][7]</a></td></tr>
 
-<tr><td>HI_LO_N</td><td>input</td><td>IMUX_G1_DATA[5]</td></tr>
+<tr><td>V2_PMASK_TERM_SPLIT bit 4</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_SPLIT[4]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][32]">TERM_H[2][32]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_SPLIT[4]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[9][10]">TERM_V[9][10]</a></td></tr>
 
-<tr><td>HI_LO_P</td><td>input</td><td>IMUX_G1_DATA[4]</td></tr>
+<tr><td>V2_NMASK_TERM_SPLIT bit 0</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_NMASK_TERM_SPLIT[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][39]">TERM_H[2][39]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_NMASK_TERM_SPLIT[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[11][11]">TERM_V[11][11]</a></td></tr>
 
-<tr><td>N_OR_P</td><td>output</td><td>OUT_HALF1[11]</td></tr>
+<tr><td>V2_NMASK_TERM_SPLIT bit 1</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_NMASK_TERM_SPLIT[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][38]">TERM_H[3][38]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_NMASK_TERM_SPLIT[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[11][7]">TERM_V[11][7]</a></td></tr>
 
-<tr><td>SCLK</td><td>output</td><td>OUT_HALF0[11]</td></tr>
+<tr><td>V2_NMASK_TERM_SPLIT bit 2</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_NMASK_TERM_SPLIT[2]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][38]">TERM_H[2][38]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_NMASK_TERM_SPLIT[2]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[11][10]">TERM_V[11][10]</a></td></tr>
 
-<tr><td>UPDATE</td><td>output</td><td>OUT_HALF1[12]</td></tr>
+<tr><td>V2_NMASK_TERM_SPLIT bit 3</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_NMASK_TERM_SPLIT[3]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][37]">TERM_H[3][37]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_NMASK_TERM_SPLIT[3]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[11][8]">TERM_V[11][8]</a></td></tr>
+
+<tr><td>V2_NMASK_TERM_SPLIT bit 4</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_NMASK_TERM_SPLIT[4]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][37]">TERM_H[2][37]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_NMASK_TERM_SPLIT[4]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[11][6]">TERM_V[11][6]</a></td></tr>
+
+<tr><td>V2_PMASK_TERM_VCC bit 0</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_VCC[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][36]">TERM_H[3][36]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_VCC[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[8][8]">TERM_V[8][8]</a></td></tr>
+
+<tr><td>V2_PMASK_TERM_VCC bit 1</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_VCC[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][36]">TERM_H[2][36]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_VCC[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[8][6]">TERM_V[8][6]</a></td></tr>
+
+<tr><td>V2_PMASK_TERM_VCC bit 2</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_VCC[2]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][35]">TERM_H[3][35]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_VCC[2]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[8][7]">TERM_V[8][7]</a></td></tr>
+
+<tr><td>V2_PMASK_TERM_VCC bit 3</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_VCC[3]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][35]">TERM_H[2][35]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_VCC[3]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[8][11]">TERM_V[8][11]</a></td></tr>
+
+<tr><td>V2_PMASK_TERM_VCC bit 4</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_VCC[4]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][34]">TERM_H[3][34]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_VCC[4]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[8][10]">TERM_V[8][10]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 0</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][48]">TERM_H[3][48]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[12][8]">TERM_V[12][8]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 1</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][48]">TERM_H[2][48]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[12][6]">TERM_V[12][6]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 2</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[2]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][47]">TERM_H[3][47]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[2]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[12][7]">TERM_V[12][7]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 3</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[3]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][47]">TERM_H[2][47]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[3]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[12][10]">TERM_V[12][10]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 4</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[4]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][46]">TERM_H[3][46]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[4]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[12][11]">TERM_V[12][11]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 5</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[5]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][46]">TERM_H[2][46]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[5]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[12][9]">TERM_V[12][9]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 6</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[6]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][45]">TERM_H[3][45]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[6]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[13][9]">TERM_V[13][9]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 7</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[7]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[2][45]">TERM_H[2][45]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[7]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[13][11]">TERM_V[13][11]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 8</td><td id="virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[8]"><a href="#virtex2-CNR_SW_V2-bit-TERM_H[3][44]">TERM_H[3][44]</a></td><td id="virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[8]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[13][7]">TERM_V[13][7]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misc_sw"><a class="header" href="#bels-misc_sw">Bels MISC_SW</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>virtex2 CNR_SW_V2 bel MISC_SW pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISC_SW</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex2 CNR_SW_V2 bel MISC_SW attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISC_SW</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>M0_PULL</td><td><a href="#virtex2-CNR_SW_V2-MISC_SW-M0_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>M1_PULL</td><td><a href="#virtex2-CNR_SW_V2-MISC_SW-M1_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>M2_PULL</td><td><a href="#virtex2-CNR_SW_V2-MISC_SW-M2_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>DCI_CLK_ENABLE</td><td id="virtex2-CNR_SW_V2-MISC_SW-DCI_CLK_ENABLE"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[18][10]">TERM_V[18][10]</a></td></tr>
+
+<tr><td>DCI_ALTVR</td><td id="virtex2-CNR_SW_V2-MISC_SW-DCI_ALTVR"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[18][9]">TERM_V[18][9]</a></td></tr>
+
+<tr><td>BCLK_N_DIV2 bit 0</td><td id="virtex2-CNR_SW_V2-MISC_SW-BCLK_N_DIV2[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[17][10]">TERM_V[17][10]</a></td></tr>
+
+<tr><td>BCLK_N_DIV2 bit 1</td><td id="virtex2-CNR_SW_V2-MISC_SW-BCLK_N_DIV2[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[17][9]">TERM_V[17][9]</a></td></tr>
+
+<tr><td>BCLK_N_DIV2 bit 2</td><td id="virtex2-CNR_SW_V2-MISC_SW-BCLK_N_DIV2[2]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[17][6]">TERM_V[17][6]</a></td></tr>
+
+<tr><td>BCLK_N_DIV2 bit 3</td><td id="virtex2-CNR_SW_V2-MISC_SW-BCLK_N_DIV2[3]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[17][7]">TERM_V[17][7]</a></td></tr>
+
+<tr><td>BCLK_N_DIV2 bit 4</td><td id="virtex2-CNR_SW_V2-MISC_SW-BCLK_N_DIV2[4]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[17][8]">TERM_V[17][8]</a></td></tr>
+
+<tr><td>ZCLK_N_DIV2 bit 0</td><td id="virtex2-CNR_SW_V2-MISC_SW-ZCLK_N_DIV2[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[18][11]">TERM_V[18][11]</a></td></tr>
+
+<tr><td>ZCLK_N_DIV2 bit 1</td><td id="virtex2-CNR_SW_V2-MISC_SW-ZCLK_N_DIV2[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[19][9]">TERM_V[19][9]</a></td></tr>
+
+<tr><td>ZCLK_N_DIV2 bit 2</td><td id="virtex2-CNR_SW_V2-MISC_SW-ZCLK_N_DIV2[2]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[19][11]">TERM_V[19][11]</a></td></tr>
+
+<tr><td>ZCLK_N_DIV2 bit 3</td><td id="virtex2-CNR_SW_V2-MISC_SW-ZCLK_N_DIV2[3]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[19][7]">TERM_V[19][7]</a></td></tr>
+
+<tr><td>ZCLK_N_DIV2 bit 4</td><td id="virtex2-CNR_SW_V2-MISC_SW-ZCLK_N_DIV2[4]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[19][10]">TERM_V[19][10]</a></td></tr>
+
+<tr><td>DISABLE_BANDGAP</td><td id="virtex2-CNR_SW_V2-MISC_SW-DISABLE_BANDGAP"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[16][6]">TERM_V[16][6]</a></td></tr>
+
+<tr><td>RAISE_VGG bit 0</td><td id="virtex2-CNR_SW_V2-MISC_SW-RAISE_VGG[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[19][6]">TERM_V[19][6]</a></td></tr>
+
+<tr><td>RAISE_VGG bit 1</td><td id="virtex2-CNR_SW_V2-MISC_SW-RAISE_VGG[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[19][8]">TERM_V[19][8]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex2 CNR_SW_V2 enum IOB_PULL</caption>
+<thead>
+<tr id="virtex2-CNR_SW_V2-MISC_SW-M0_PULL"><th>MISC_SW.M0_PULL</th><td id="virtex2-CNR_SW_V2-MISC_SW-M0_PULL[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[16][10]">TERM_V[16][10]</a></td><td id="virtex2-CNR_SW_V2-MISC_SW-M0_PULL[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[16][11]">TERM_V[16][11]</a></td></tr>
+
+<tr id="virtex2-CNR_SW_V2-MISC_SW-M1_PULL"><th>MISC_SW.M1_PULL</th><td id="virtex2-CNR_SW_V2-MISC_SW-M1_PULL[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[16][9]">TERM_V[16][9]</a></td><td id="virtex2-CNR_SW_V2-MISC_SW-M1_PULL[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[17][11]">TERM_V[17][11]</a></td></tr>
+
+<tr id="virtex2-CNR_SW_V2-MISC_SW-M2_PULL"><th>MISC_SW.M2_PULL</th><td id="virtex2-CNR_SW_V2-MISC_SW-M2_PULL[1]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[16][7]">TERM_V[16][7]</a></td><td id="virtex2-CNR_SW_V2-MISC_SW-M2_PULL[0]"><a href="#virtex2-CNR_SW_V2-bit-TERM_V[16][8]">TERM_V[16][8]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td><td>0</td></tr>
+
+<tr><td>PULLDOWN</td><td>1</td><td>0</td></tr>
 
 </tbody>
 
@@ -259,23 +377,23 @@
 
 <tr><td>IMUX_G2_DATA[7]</td><td>DCI[0].DCI_CLK</td></tr>
 
-<tr><td>OUT_HALF0[8]</td><td>DCI[1].ADDRESS2</td></tr>
+<tr><td>OUT_HALF0[8]</td><td>DCI[1].ADDRESS[2]</td></tr>
 
-<tr><td>OUT_HALF0[9]</td><td>DCI[1].ADDRESS0</td></tr>
+<tr><td>OUT_HALF0[9]</td><td>DCI[1].ADDRESS[0]</td></tr>
 
 <tr><td>OUT_HALF0[10]</td><td>DCI[1].DCI_DONE</td></tr>
 
 <tr><td>OUT_HALF0[11]</td><td>DCI[1].SCLK</td></tr>
 
-<tr><td>OUT_HALF0[13]</td><td>DCI[0].ADDRESS2</td></tr>
+<tr><td>OUT_HALF0[13]</td><td>DCI[0].ADDRESS[2]</td></tr>
 
-<tr><td>OUT_HALF0[14]</td><td>DCI[0].ADDRESS0</td></tr>
+<tr><td>OUT_HALF0[14]</td><td>DCI[0].ADDRESS[0]</td></tr>
 
 <tr><td>OUT_HALF0[15]</td><td>DCI[0].DCI_DONE</td></tr>
 
 <tr><td>OUT_HALF0[16]</td><td>DCI[0].SCLK</td></tr>
 
-<tr><td>OUT_HALF1[9]</td><td>DCI[1].ADDRESS1</td></tr>
+<tr><td>OUT_HALF1[9]</td><td>DCI[1].ADDRESS[1]</td></tr>
 
 <tr><td>OUT_HALF1[10]</td><td>DCI[1].DATA</td></tr>
 
@@ -283,7 +401,7 @@
 
 <tr><td>OUT_HALF1[12]</td><td>DCI[1].UPDATE</td></tr>
 
-<tr><td>OUT_HALF1[14]</td><td>DCI[0].ADDRESS1</td></tr>
+<tr><td>OUT_HALF1[14]</td><td>DCI[0].ADDRESS[1]</td></tr>
 
 <tr><td>OUT_HALF1[15]</td><td>DCI[0].DATA</td></tr>
 
@@ -304,10 +422,10 @@
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
 
 <tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
 <th>F3</th>
+<th>F2</th>
+<th>F1</th>
+<th>F0</th>
 </tr>
 
 </thead>
@@ -531,35 +649,53 @@
 </tr>
 
 <tr><td>B48</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][48]" title="TERM_H[3][48]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[0]">DCI[0]:  V2_LVDSBIAS bit 0</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][48]" title="TERM_H[2][48]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[1]">DCI[0]:  V2_LVDSBIAS bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B47</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][47]" title="TERM_H[3][47]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[2]">DCI[0]:  V2_LVDSBIAS bit 2</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][47]" title="TERM_H[2][47]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[3]">DCI[0]:  V2_LVDSBIAS bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B46</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][46]" title="TERM_H[3][46]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[4]">DCI[0]:  V2_LVDSBIAS bit 4</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][46]" title="TERM_H[2][46]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[5]">DCI[0]:  V2_LVDSBIAS bit 5</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B45</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][45]" title="TERM_H[3][45]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[6]">DCI[0]:  V2_LVDSBIAS bit 6</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][45]" title="TERM_H[2][45]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[7]">DCI[0]:  V2_LVDSBIAS bit 7</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B44</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][44]" title="TERM_H[3][44]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_LVDSBIAS[8]">DCI[0]:  V2_LVDSBIAS bit 8</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -574,7 +710,9 @@
 
 <tr><td>B42</td>
 <td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][42]" title="TERM_H[2][42]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-ENABLE">DCI[0]:  ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
@@ -595,63 +733,97 @@
 
 <tr><td>B39</td>
 <td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][39]" title="TERM_H[2][39]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_NMASK_TERM_SPLIT[0]">DCI[0]:  V2_NMASK_TERM_SPLIT bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B38</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][38]" title="TERM_H[3][38]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_NMASK_TERM_SPLIT[1]">DCI[0]:  V2_NMASK_TERM_SPLIT bit 1</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][38]" title="TERM_H[2][38]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_NMASK_TERM_SPLIT[2]">DCI[0]:  V2_NMASK_TERM_SPLIT bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B37</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][37]" title="TERM_H[3][37]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_NMASK_TERM_SPLIT[3]">DCI[0]:  V2_NMASK_TERM_SPLIT bit 3</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][37]" title="TERM_H[2][37]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_NMASK_TERM_SPLIT[4]">DCI[0]:  V2_NMASK_TERM_SPLIT bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B36</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][36]" title="TERM_H[3][36]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_VCC[0]">DCI[0]:  V2_PMASK_TERM_VCC bit 0</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][36]" title="TERM_H[2][36]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_VCC[1]">DCI[0]:  V2_PMASK_TERM_VCC bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B35</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][35]" title="TERM_H[3][35]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_VCC[2]">DCI[0]:  V2_PMASK_TERM_VCC bit 2</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][35]" title="TERM_H[2][35]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_VCC[3]">DCI[0]:  V2_PMASK_TERM_VCC bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B34</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][34]" title="TERM_H[3][34]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_VCC[4]">DCI[0]:  V2_PMASK_TERM_VCC bit 4</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][34]" title="TERM_H[2][34]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_SPLIT[0]">DCI[0]:  V2_PMASK_TERM_SPLIT bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B33</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][33]" title="TERM_H[3][33]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_SPLIT[1]">DCI[0]:  V2_PMASK_TERM_SPLIT bit 1</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][33]" title="TERM_H[2][33]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_SPLIT[2]">DCI[0]:  V2_PMASK_TERM_SPLIT bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B32</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][32]" title="TERM_H[3][32]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_SPLIT[3]">DCI[0]:  V2_PMASK_TERM_SPLIT bit 3</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][32]" title="TERM_H[2][32]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-V2_PMASK_TERM_SPLIT[4]">DCI[0]:  V2_PMASK_TERM_SPLIT bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B31</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[3][31]" title="TERM_H[3][31]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-FORCE_DONE_HIGH">DCI[0]:  FORCE_DONE_HIGH</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_H[2][31]" title="TERM_H[2][31]">
+<a href="#virtex2-CNR_SW_V2-DCI[0]-TEST_ENABLE">DCI[0]:  TEST_ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
@@ -885,784 +1057,28 @@
 <tr><th rowspan="2">Bit</th><th colspan="22">Frame</th></tr>
 
 <tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-<th>F6</th>
-<th>F7</th>
-<th>F8</th>
-<th>F9</th>
-<th>F10</th>
-<th>F11</th>
-<th>F12</th>
-<th>F13</th>
-<th>F14</th>
-<th>F15</th>
-<th>F16</th>
-<th>F17</th>
-<th>F18</th>
-<th>F19</th>
-<th>F20</th>
 <th>F21</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>virtex2 CNR_SW_V2 rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B48</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B48">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[1]</a>
-</td>
-<td title="R0.F3.B48">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[0]</a>
-</td>
-</tr>
-
-<tr><td>B47</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B47">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[3]</a>
-</td>
-<td title="R0.F3.B47">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[2]</a>
-</td>
-</tr>
-
-<tr><td>B46</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B46">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[5]</a>
-</td>
-<td title="R0.F3.B46">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[4]</a>
-</td>
-</tr>
-
-<tr><td>B45</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B45">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[7]</a>
-</td>
-<td title="R0.F3.B45">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[6]</a>
-</td>
-</tr>
-
-<tr><td>B44</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F3.B44">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[8]</a>
-</td>
-</tr>
-
-<tr><td>B43</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B42</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B42">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:ENABLE">DCI[0]:ENABLE</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B41</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B40</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B39</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B39">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[0]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B38</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B38">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[2]</a>
-</td>
-<td title="R0.F3.B38">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[1]</a>
-</td>
-</tr>
-
-<tr><td>B37</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B37">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[4]</a>
-</td>
-<td title="R0.F3.B37">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[3]</a>
-</td>
-</tr>
-
-<tr><td>B36</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B36">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[1]</a>
-</td>
-<td title="R0.F3.B36">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[0]</a>
-</td>
-</tr>
-
-<tr><td>B35</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B35">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[3]</a>
-</td>
-<td title="R0.F3.B35">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[2]</a>
-</td>
-</tr>
-
-<tr><td>B34</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B34">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[0]</a>
-</td>
-<td title="R0.F3.B34">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[4]</a>
-</td>
-</tr>
-
-<tr><td>B33</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B33">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[2]</a>
-</td>
-<td title="R0.F3.B33">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[1]</a>
-</td>
-</tr>
-
-<tr><td>B32</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B32">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[4]</a>
-</td>
-<td title="R0.F3.B32">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[3]</a>
-</td>
-</tr>
-
-<tr><td>B31</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B31">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:TEST_ENABLE">DCI[0]:TEST_ENABLE</a>
-</td>
-<td title="R0.F3.B31">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[0]:FORCE_DONE_HIGH">DCI[0]:FORCE_DONE_HIGH</a>
-</td>
-</tr>
-
-<tr><td>B30</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B29</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B28</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B27</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B26</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<caption>virtex2 CNR_SW_V2 rect R1</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="20">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-<th>F6</th>
-<th>F7</th>
-<th>F8</th>
-<th>F9</th>
-<th>F10</th>
-<th>F11</th>
-<th>F12</th>
-<th>F13</th>
-<th>F14</th>
-<th>F15</th>
-<th>F16</th>
-<th>F17</th>
-<th>F18</th>
+<th>F20</th>
 <th>F19</th>
+<th>F18</th>
+<th>F17</th>
+<th>F16</th>
+<th>F15</th>
+<th>F14</th>
+<th>F13</th>
+<th>F12</th>
+<th>F11</th>
+<th>F10</th>
+<th>F9</th>
+<th>F8</th>
+<th>F7</th>
+<th>F6</th>
+<th>F5</th>
+<th>F4</th>
+<th>F3</th>
+<th>F2</th>
+<th>F1</th>
+<th>F0</th>
 </tr>
 
 </thead>
@@ -1671,238 +1087,252 @@
 <tr><td>B11</td>
 <td>-</td>
 <td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[19][11]" title="TERM_V[19][11]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-ZCLK_N_DIV2[2]">MISC_SW:  ZCLK_N_DIV2 bit 2</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[18][11]" title="TERM_V[18][11]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-ZCLK_N_DIV2[0]">MISC_SW:  ZCLK_N_DIV2 bit 0</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[17][11]" title="TERM_V[17][11]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-M1_PULL[0]">MISC_SW:  M1_PULL bit 0</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[16][11]" title="TERM_V[16][11]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-M0_PULL[0]">MISC_SW:  M0_PULL bit 0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[13][11]" title="TERM_V[13][11]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[7]">DCI[1]:  V2_LVDSBIAS bit 7</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[12][11]" title="TERM_V[12][11]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[4]">DCI[1]:  V2_LVDSBIAS bit 4</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[11][11]" title="TERM_V[11][11]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_NMASK_TERM_SPLIT[0]">DCI[1]:  V2_NMASK_TERM_SPLIT bit 0</a>
+</td>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[9][11]" title="TERM_V[9][11]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_SPLIT[2]">DCI[1]:  V2_PMASK_TERM_SPLIT bit 2</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[8][11]" title="TERM_V[8][11]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_VCC[3]">DCI[1]:  V2_PMASK_TERM_VCC bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F8.B11">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[3]</a>
-</td>
-<td title="R1.F9.B11">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[2]</a>
-</td>
-<td>-</td>
-<td title="R1.F11.B11">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[0]</a>
-</td>
-<td title="R1.F12.B11">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[4]</a>
-</td>
-<td title="R1.F13.B11">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[7]</a>
-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F16.B11">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:M0PIN">MISC:M0PIN[1]</a>
-</td>
-<td title="R1.F17.B11">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:M1PIN">MISC:M1PIN[1]</a>
-</td>
-<td title="R1.F18.B11">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2[0]</a>
-</td>
-<td title="R1.F19.B11">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2[2]</a>
-</td>
 </tr>
 
 <tr><td>B10</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F8.B10">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[4]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[19][10]" title="TERM_V[19][10]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-ZCLK_N_DIV2[4]">MISC_SW:  ZCLK_N_DIV2 bit 4</a>
 </td>
-<td title="R1.F9.B10">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[4]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[18][10]" title="TERM_V[18][10]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-DCI_CLK_ENABLE">MISC_SW:  DCI_CLK_ENABLE</a>
 </td>
-<td>-</td>
-<td title="R1.F11.B10">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[2]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[17][10]" title="TERM_V[17][10]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-BCLK_N_DIV2[0]">MISC_SW:  BCLK_N_DIV2 bit 0</a>
 </td>
-<td title="R1.F12.B10">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[3]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[16][10]" title="TERM_V[16][10]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-M0_PULL[1]">MISC_SW:  M0_PULL bit 1</a>
 </td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F16.B10">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:M0PIN">MISC:M0PIN[0]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[12][10]" title="TERM_V[12][10]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[3]">DCI[1]:  V2_LVDSBIAS bit 3</a>
 </td>
-<td title="R1.F17.B10">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:BCLK_DIV2">MISC:BCLK_DIV2[0]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[11][10]" title="TERM_V[11][10]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_NMASK_TERM_SPLIT[2]">DCI[1]:  V2_NMASK_TERM_SPLIT bit 2</a>
 </td>
-<td title="R1.F18.B10">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:DCI_CLK_ENABLE">MISC:DCI_CLK_ENABLE</a>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[9][10]" title="TERM_V[9][10]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_SPLIT[4]">DCI[1]:  V2_PMASK_TERM_SPLIT bit 4</a>
 </td>
-<td title="R1.F19.B10">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2[4]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[8][10]" title="TERM_V[8][10]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_VCC[4]">DCI[1]:  V2_PMASK_TERM_VCC bit 4</a>
 </td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B9</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F8.B9">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[0]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[19][9]" title="TERM_V[19][9]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-ZCLK_N_DIV2[1]">MISC_SW:  ZCLK_N_DIV2 bit 1</a>
 </td>
-<td title="R1.F9.B9">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[1]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[18][9]" title="TERM_V[18][9]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-DCI_ALTVR">MISC_SW:  DCI_ALTVR</a>
 </td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F12.B9">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[5]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[17][9]" title="TERM_V[17][9]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-BCLK_N_DIV2[1]">MISC_SW:  BCLK_N_DIV2 bit 1</a>
 </td>
-<td title="R1.F13.B9">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[6]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[16][9]" title="TERM_V[16][9]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-M1_PULL[1]">MISC_SW:  M1_PULL bit 1</a>
 </td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F16.B9">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:M1PIN">MISC:M1PIN[0]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[13][9]" title="TERM_V[13][9]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[6]">DCI[1]:  V2_LVDSBIAS bit 6</a>
 </td>
-<td title="R1.F17.B9">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:BCLK_DIV2">MISC:BCLK_DIV2[1]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[12][9]" title="TERM_V[12][9]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[5]">DCI[1]:  V2_LVDSBIAS bit 5</a>
 </td>
-<td title="R1.F18.B9">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:DCI_ALTVR">MISC:DCI_ALTVR</a>
+<td>-</td>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[9][9]" title="TERM_V[9][9]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_SPLIT[1]">DCI[1]:  V2_PMASK_TERM_SPLIT bit 1</a>
 </td>
-<td title="R1.F19.B9">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2[1]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[8][9]" title="TERM_V[8][9]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_SPLIT[0]">DCI[1]:  V2_PMASK_TERM_SPLIT bit 0</a>
 </td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B8</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F8.B8">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[0]</a>
-</td>
-<td title="R1.F9.B8">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:FORCE_DONE_HIGH">DCI[1]:FORCE_DONE_HIGH</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[19][8]" title="TERM_V[19][8]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-RAISE_VGG[1]">MISC_SW:  RAISE_VGG bit 1</a>
 </td>
 <td>-</td>
-<td title="R1.F11.B8">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[3]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[17][8]" title="TERM_V[17][8]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-BCLK_N_DIV2[4]">MISC_SW:  BCLK_N_DIV2 bit 4</a>
 </td>
-<td title="R1.F12.B8">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[0]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[16][8]" title="TERM_V[16][8]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-M2_PULL[0]">MISC_SW:  M2_PULL bit 0</a>
 </td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F16.B8">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:M2PIN">MISC:M2PIN[1]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[12][8]" title="TERM_V[12][8]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[0]">DCI[1]:  V2_LVDSBIAS bit 0</a>
 </td>
-<td title="R1.F17.B8">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:BCLK_DIV2">MISC:BCLK_DIV2[4]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[11][8]" title="TERM_V[11][8]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_NMASK_TERM_SPLIT[3]">DCI[1]:  V2_NMASK_TERM_SPLIT bit 3</a>
 </td>
 <td>-</td>
-<td title="R1.F19.B8">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:RAISEVGG">MISC:RAISEVGG[1]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[9][8]" title="TERM_V[9][8]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-FORCE_DONE_HIGH">DCI[1]:  FORCE_DONE_HIGH</a>
 </td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[8][8]" title="TERM_V[8][8]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_VCC[0]">DCI[1]:  V2_PMASK_TERM_VCC bit 0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B7</td>
 <td>-</td>
 <td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[19][7]" title="TERM_V[19][7]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-ZCLK_N_DIV2[3]">MISC_SW:  ZCLK_N_DIV2 bit 3</a>
+</td>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[17][7]" title="TERM_V[17][7]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-BCLK_N_DIV2[3]">MISC_SW:  BCLK_N_DIV2 bit 3</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[16][7]" title="TERM_V[16][7]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-M2_PULL[1]">MISC_SW:  M2_PULL bit 1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[13][7]" title="TERM_V[13][7]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[8]">DCI[1]:  V2_LVDSBIAS bit 8</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[12][7]" title="TERM_V[12][7]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[2]">DCI[1]:  V2_LVDSBIAS bit 2</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[11][7]" title="TERM_V[11][7]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_NMASK_TERM_SPLIT[1]">DCI[1]:  V2_NMASK_TERM_SPLIT bit 1</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[10][7]" title="TERM_V[10][7]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-ENABLE">DCI[1]:  ENABLE</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[9][7]" title="TERM_V[9][7]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_SPLIT[3]">DCI[1]:  V2_PMASK_TERM_SPLIT bit 3</a>
+</td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[8][7]" title="TERM_V[8][7]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_VCC[2]">DCI[1]:  V2_PMASK_TERM_VCC bit 2</a>
+</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F8.B7">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[2]</a>
-</td>
-<td title="R1.F9.B7">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[3]</a>
-</td>
-<td title="R1.F10.B7">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:ENABLE">DCI[1]:ENABLE</a>
-</td>
-<td title="R1.F11.B7">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[1]</a>
-</td>
-<td title="R1.F12.B7">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[2]</a>
-</td>
-<td title="R1.F13.B7">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[8]</a>
-</td>
 <td>-</td>
-<td>-</td>
-<td title="R1.F16.B7">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:M2PIN">MISC:M2PIN[0]</a>
-</td>
-<td title="R1.F17.B7">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:BCLK_DIV2">MISC:BCLK_DIV2[3]</a>
-</td>
-<td>-</td>
-<td title="R1.F19.B7">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2[3]</a>
-</td>
 </tr>
 
 <tr><td>B6</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F8.B6">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[1]</a>
-</td>
-<td title="R1.F9.B6">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:TEST_ENABLE">DCI[1]:TEST_ENABLE</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[19][6]" title="TERM_V[19][6]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-RAISE_VGG[0]">MISC_SW:  RAISE_VGG bit 0</a>
 </td>
 <td>-</td>
-<td title="R1.F11.B6">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[4]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[17][6]" title="TERM_V[17][6]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-BCLK_N_DIV2[2]">MISC_SW:  BCLK_N_DIV2 bit 2</a>
 </td>
-<td title="R1.F12.B6">
-<a href="#tile-virtex2-CNR_SW_V2-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[1]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[16][6]" title="TERM_V[16][6]">
+<a href="#virtex2-CNR_SW_V2-MISC_SW-DISABLE_BANDGAP">MISC_SW:  DISABLE_BANDGAP</a>
 </td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F16.B6">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:DISABLEBANDGAP">MISC:DISABLEBANDGAP</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[12][6]" title="TERM_V[12][6]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_LVDSBIAS[1]">DCI[1]:  V2_LVDSBIAS bit 1</a>
 </td>
-<td title="R1.F17.B6">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:BCLK_DIV2">MISC:BCLK_DIV2[2]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[11][6]" title="TERM_V[11][6]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_NMASK_TERM_SPLIT[4]">DCI[1]:  V2_NMASK_TERM_SPLIT bit 4</a>
 </td>
 <td>-</td>
-<td title="R1.F19.B6">
-<a href="#tile-virtex2-CNR_SW_V2-MISC:RAISEVGG">MISC:RAISEVGG[0]</a>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[9][6]" title="TERM_V[9][6]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-TEST_ENABLE">DCI[1]:  TEST_ENABLE</a>
 </td>
+<td id="virtex2-CNR_SW_V2-bit-TERM_V[8][6]" title="TERM_V[8][6]">
+<a href="#virtex2-CNR_SW_V2-DCI[1]-V2_PMASK_TERM_VCC[1]">DCI[1]:  V2_PMASK_TERM_VCC bit 1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B5</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1946,9 +1376,13 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B3</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1992,9 +1426,13 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B1</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2038,257 +1476,8 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[0]:ENABLE">DCI[0]:ENABLE</th>
-<th>0.F2.B42</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[0]:FORCE_DONE_HIGH">DCI[0]:FORCE_DONE_HIGH</th>
-<th>0.F3.B31</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[0]:TEST_ENABLE">DCI[0]:TEST_ENABLE</th>
-<th>0.F2.B31</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[1]:ENABLE">DCI[1]:ENABLE</th>
-<th>1.F10.B7</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[1]:FORCE_DONE_HIGH">DCI[1]:FORCE_DONE_HIGH</th>
-<th>1.F9.B8</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[1]:TEST_ENABLE">DCI[1]:TEST_ENABLE</th>
-<th>1.F9.B6</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-MISC:DCI_ALTVR">MISC:DCI_ALTVR</th>
-<th>1.F18.B9</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-MISC:DCI_CLK_ENABLE">MISC:DCI_CLK_ENABLE</th>
-<th>1.F18.B10</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-MISC:DISABLEBANDGAP">MISC:DISABLEBANDGAP</th>
-<th>1.F16.B6</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS</th>
-<th>0.F3.B44</th>
-<th>0.F2.B45</th>
-<th>0.F3.B45</th>
-<th>0.F2.B46</th>
-<th>0.F3.B46</th>
-<th>0.F2.B47</th>
-<th>0.F3.B47</th>
-<th>0.F2.B48</th>
-<th>0.F3.B48</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS</th>
-<th>1.F13.B7</th>
-<th>1.F13.B11</th>
-<th>1.F13.B9</th>
-<th>1.F12.B9</th>
-<th>1.F12.B11</th>
-<th>1.F12.B10</th>
-<th>1.F12.B7</th>
-<th>1.F12.B6</th>
-<th>1.F12.B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT</th>
-<th>0.F2.B37</th>
-<th>0.F3.B37</th>
-<th>0.F2.B38</th>
-<th>0.F3.B38</th>
-<th>0.F2.B39</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT</th>
-<th>0.F2.B32</th>
-<th>0.F3.B32</th>
-<th>0.F2.B33</th>
-<th>0.F3.B33</th>
-<th>0.F2.B34</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC</th>
-<th>0.F3.B34</th>
-<th>0.F2.B35</th>
-<th>0.F3.B35</th>
-<th>0.F2.B36</th>
-<th>0.F3.B36</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT</th>
-<th>1.F11.B6</th>
-<th>1.F11.B8</th>
-<th>1.F11.B10</th>
-<th>1.F11.B7</th>
-<th>1.F11.B11</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT</th>
-<th>1.F9.B10</th>
-<th>1.F9.B7</th>
-<th>1.F9.B11</th>
-<th>1.F9.B9</th>
-<th>1.F8.B9</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC</th>
-<th>1.F8.B10</th>
-<th>1.F8.B11</th>
-<th>1.F8.B7</th>
-<th>1.F8.B6</th>
-<th>1.F8.B8</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-MISC:BCLK_DIV2">MISC:BCLK_DIV2</th>
-<th>1.F17.B8</th>
-<th>1.F17.B7</th>
-<th>1.F17.B6</th>
-<th>1.F17.B9</th>
-<th>1.F17.B10</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2</th>
-<th>1.F19.B10</th>
-<th>1.F19.B7</th>
-<th>1.F19.B11</th>
-<th>1.F19.B9</th>
-<th>1.F18.B11</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex2-CNR_SW_V2-MISC:M0PIN">MISC:M0PIN</th>
-<th>1.F16.B11</th>
-<th>1.F16.B10</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-MISC:M1PIN">MISC:M1PIN</th>
-<th>1.F17.B11</th>
-<th>1.F16.B9</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2-MISC:M2PIN">MISC:M2PIN</th>
-<th>1.F16.B8</th>
-<th>1.F16.B7</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLDOWN</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex2-CNR_SW_V2-MISC:RAISEVGG">MISC:RAISEVGG</th>
-<th>1.F19.B8</th>
-<th>1.F19.B6</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[1]</td>
-<td>[0]</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>
@@ -2298,78 +1487,198 @@ non-inverted
 
 <h2 id="tile-cnr_sw_v2p"><a class="header" href="#tile-cnr_sw_v2p">Tile CNR_SW_V2P</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-dci0-1"><a class="header" href="#bel-dci0-1">Bel DCI[0]</a></h3>
+<h3 id="bels-dci-1"><a class="header" href="#bels-dci-1">Bels DCI</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex2 CNR_SW_V2P bel DCI[0]</caption>
+<caption>virtex2 CNR_SW_V2P bel DCI pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>DCI[0]</th><th>DCI[1]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>ADDRESS0</td><td>output</td><td>OUT_HALF0[14]</td></tr>
+<tr><td>DCI_CLK</td><td>in</td><td>IMUX_G2_DATA[7]</td><td>IMUX_G1_DATA[7]</td></tr>
 
-<tr><td>ADDRESS1</td><td>output</td><td>OUT_HALF1[14]</td></tr>
+<tr><td>DCI_RESET</td><td>in</td><td>IMUX_G2_DATA[6]</td><td>IMUX_G1_DATA[6]</td></tr>
 
-<tr><td>ADDRESS2</td><td>output</td><td>OUT_HALF0[13]</td></tr>
+<tr><td>HI_LO_P</td><td>in</td><td>IMUX_G2_DATA[4]</td><td>IMUX_G1_DATA[4]</td></tr>
 
-<tr><td>DATA</td><td>output</td><td>OUT_HALF1[15]</td></tr>
+<tr><td>HI_LO_N</td><td>in</td><td>IMUX_G2_DATA[5]</td><td>IMUX_G1_DATA[5]</td></tr>
 
-<tr><td>DCI_CLK</td><td>input</td><td>IMUX_G2_DATA[7]</td></tr>
+<tr><td>SCLK</td><td>out</td><td>OUT_HALF0[16]</td><td>OUT_HALF0[11]</td></tr>
 
-<tr><td>DCI_DONE</td><td>output</td><td>OUT_HALF0[15]</td></tr>
+<tr><td>ADDRESS[0]</td><td>out</td><td>OUT_HALF0[14]</td><td>OUT_HALF0[9]</td></tr>
 
-<tr><td>DCI_RESET</td><td>input</td><td>IMUX_G2_DATA[6]</td></tr>
+<tr><td>ADDRESS[1]</td><td>out</td><td>OUT_HALF1[14]</td><td>OUT_HALF1[9]</td></tr>
 
-<tr><td>HI_LO_N</td><td>input</td><td>IMUX_G2_DATA[5]</td></tr>
+<tr><td>ADDRESS[2]</td><td>out</td><td>OUT_HALF0[13]</td><td>OUT_HALF0[8]</td></tr>
 
-<tr><td>HI_LO_P</td><td>input</td><td>IMUX_G2_DATA[4]</td></tr>
+<tr><td>DATA</td><td>out</td><td>OUT_HALF1[15]</td><td>OUT_HALF1[10]</td></tr>
 
-<tr><td>N_OR_P</td><td>output</td><td>OUT_HALF1[16]</td></tr>
+<tr><td>N_OR_P</td><td>out</td><td>OUT_HALF1[16]</td><td>OUT_HALF1[11]</td></tr>
 
-<tr><td>SCLK</td><td>output</td><td>OUT_HALF0[16]</td></tr>
+<tr><td>UPDATE</td><td>out</td><td>OUT_HALF1[17]</td><td>OUT_HALF1[12]</td></tr>
 
-<tr><td>UPDATE</td><td>output</td><td>OUT_HALF1[17]</td></tr>
+<tr><td>DCI_DONE</td><td>out</td><td>OUT_HALF0[15]</td><td>OUT_HALF0[10]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-dci1-1"><a class="header" href="#bel-dci1-1">Bel DCI[1]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex2 CNR_SW_V2P bel DCI[1]</caption>
+<caption>virtex2 CNR_SW_V2P bel DCI attribute bits</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Attribute</th><th>DCI[0]</th><th>DCI[1]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>ADDRESS0</td><td>output</td><td>OUT_HALF0[9]</td></tr>
+<tr><td>ENABLE</td><td id="virtex2-CNR_SW_V2P-DCI[0]-ENABLE"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][42]">TERM_H[2][42]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-ENABLE"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[10][7]">TERM_V[10][7]</a></td></tr>
 
-<tr><td>ADDRESS1</td><td>output</td><td>OUT_HALF1[9]</td></tr>
+<tr><td>TEST_ENABLE</td><td id="virtex2-CNR_SW_V2P-DCI[0]-TEST_ENABLE"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][31]">TERM_H[2][31]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-TEST_ENABLE"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[9][6]">TERM_V[9][6]</a></td></tr>
 
-<tr><td>ADDRESS2</td><td>output</td><td>OUT_HALF0[8]</td></tr>
+<tr><td>FORCE_DONE_HIGH</td><td id="virtex2-CNR_SW_V2P-DCI[0]-FORCE_DONE_HIGH"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][31]">TERM_H[3][31]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-FORCE_DONE_HIGH"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[9][8]">TERM_V[9][8]</a></td></tr>
 
-<tr><td>DATA</td><td>output</td><td>OUT_HALF1[10]</td></tr>
+<tr><td>V2_PMASK_TERM_SPLIT bit 0</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_SPLIT[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][34]">TERM_H[2][34]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_SPLIT[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[8][9]">TERM_V[8][9]</a></td></tr>
 
-<tr><td>DCI_CLK</td><td>input</td><td>IMUX_G1_DATA[7]</td></tr>
+<tr><td>V2_PMASK_TERM_SPLIT bit 1</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_SPLIT[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][33]">TERM_H[3][33]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_SPLIT[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[9][9]">TERM_V[9][9]</a></td></tr>
 
-<tr><td>DCI_DONE</td><td>output</td><td>OUT_HALF0[10]</td></tr>
+<tr><td>V2_PMASK_TERM_SPLIT bit 2</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_SPLIT[2]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][33]">TERM_H[2][33]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_SPLIT[2]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[9][11]">TERM_V[9][11]</a></td></tr>
 
-<tr><td>DCI_RESET</td><td>input</td><td>IMUX_G1_DATA[6]</td></tr>
+<tr><td>V2_PMASK_TERM_SPLIT bit 3</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_SPLIT[3]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][32]">TERM_H[3][32]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_SPLIT[3]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[9][7]">TERM_V[9][7]</a></td></tr>
 
-<tr><td>HI_LO_N</td><td>input</td><td>IMUX_G1_DATA[5]</td></tr>
+<tr><td>V2_PMASK_TERM_SPLIT bit 4</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_SPLIT[4]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][32]">TERM_H[2][32]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_SPLIT[4]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[9][10]">TERM_V[9][10]</a></td></tr>
 
-<tr><td>HI_LO_P</td><td>input</td><td>IMUX_G1_DATA[4]</td></tr>
+<tr><td>V2_NMASK_TERM_SPLIT bit 0</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_NMASK_TERM_SPLIT[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][39]">TERM_H[2][39]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_NMASK_TERM_SPLIT[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[11][11]">TERM_V[11][11]</a></td></tr>
 
-<tr><td>N_OR_P</td><td>output</td><td>OUT_HALF1[11]</td></tr>
+<tr><td>V2_NMASK_TERM_SPLIT bit 1</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_NMASK_TERM_SPLIT[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][38]">TERM_H[3][38]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_NMASK_TERM_SPLIT[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[11][7]">TERM_V[11][7]</a></td></tr>
 
-<tr><td>SCLK</td><td>output</td><td>OUT_HALF0[11]</td></tr>
+<tr><td>V2_NMASK_TERM_SPLIT bit 2</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_NMASK_TERM_SPLIT[2]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][38]">TERM_H[2][38]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_NMASK_TERM_SPLIT[2]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[11][10]">TERM_V[11][10]</a></td></tr>
 
-<tr><td>UPDATE</td><td>output</td><td>OUT_HALF1[12]</td></tr>
+<tr><td>V2_NMASK_TERM_SPLIT bit 3</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_NMASK_TERM_SPLIT[3]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][37]">TERM_H[3][37]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_NMASK_TERM_SPLIT[3]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[11][8]">TERM_V[11][8]</a></td></tr>
+
+<tr><td>V2_NMASK_TERM_SPLIT bit 4</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_NMASK_TERM_SPLIT[4]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][37]">TERM_H[2][37]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_NMASK_TERM_SPLIT[4]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[11][6]">TERM_V[11][6]</a></td></tr>
+
+<tr><td>V2_PMASK_TERM_VCC bit 0</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_VCC[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][36]">TERM_H[3][36]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_VCC[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[8][8]">TERM_V[8][8]</a></td></tr>
+
+<tr><td>V2_PMASK_TERM_VCC bit 1</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_VCC[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][36]">TERM_H[2][36]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_VCC[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[8][6]">TERM_V[8][6]</a></td></tr>
+
+<tr><td>V2_PMASK_TERM_VCC bit 2</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_VCC[2]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][35]">TERM_H[3][35]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_VCC[2]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[8][7]">TERM_V[8][7]</a></td></tr>
+
+<tr><td>V2_PMASK_TERM_VCC bit 3</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_VCC[3]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][35]">TERM_H[2][35]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_VCC[3]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[8][11]">TERM_V[8][11]</a></td></tr>
+
+<tr><td>V2_PMASK_TERM_VCC bit 4</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_VCC[4]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][34]">TERM_H[3][34]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_VCC[4]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[8][10]">TERM_V[8][10]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 0</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][48]">TERM_H[3][48]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[12][8]">TERM_V[12][8]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 1</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][48]">TERM_H[2][48]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[12][6]">TERM_V[12][6]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 2</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[2]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][47]">TERM_H[3][47]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[2]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[12][7]">TERM_V[12][7]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 3</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[3]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][47]">TERM_H[2][47]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[3]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[12][10]">TERM_V[12][10]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 4</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[4]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][46]">TERM_H[3][46]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[4]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[12][11]">TERM_V[12][11]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 5</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[5]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][46]">TERM_H[2][46]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[5]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[12][9]">TERM_V[12][9]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 6</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[6]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][45]">TERM_H[3][45]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[6]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[13][9]">TERM_V[13][9]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 7</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[7]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[2][45]">TERM_H[2][45]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[7]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[13][11]">TERM_V[13][11]</a></td></tr>
+
+<tr><td>V2_LVDSBIAS bit 8</td><td id="virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[8]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][44]">TERM_H[3][44]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[8]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[13][7]">TERM_V[13][7]</a></td></tr>
+
+<tr><td>QUIET</td><td id="virtex2-CNR_SW_V2P-DCI[0]-QUIET"><a href="#virtex2-CNR_SW_V2P-bit-TERM_H[3][39]">TERM_H[3][39]</a></td><td id="virtex2-CNR_SW_V2P-DCI[1]-QUIET"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[11][9]">TERM_V[11][9]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misc_sw-1"><a class="header" href="#bels-misc_sw-1">Bels MISC_SW</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>virtex2 CNR_SW_V2P bel MISC_SW pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISC_SW</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex2 CNR_SW_V2P bel MISC_SW attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISC_SW</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>M0_PULL</td><td><a href="#virtex2-CNR_SW_V2P-MISC_SW-M0_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>M1_PULL</td><td><a href="#virtex2-CNR_SW_V2P-MISC_SW-M1_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>M2_PULL</td><td><a href="#virtex2-CNR_SW_V2P-MISC_SW-M2_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>DCI_CLK_ENABLE</td><td id="virtex2-CNR_SW_V2P-MISC_SW-DCI_CLK_ENABLE"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[18][10]">TERM_V[18][10]</a></td></tr>
+
+<tr><td>BCLK_N_DIV2 bit 0</td><td id="virtex2-CNR_SW_V2P-MISC_SW-BCLK_N_DIV2[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[17][10]">TERM_V[17][10]</a></td></tr>
+
+<tr><td>BCLK_N_DIV2 bit 1</td><td id="virtex2-CNR_SW_V2P-MISC_SW-BCLK_N_DIV2[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[17][9]">TERM_V[17][9]</a></td></tr>
+
+<tr><td>BCLK_N_DIV2 bit 2</td><td id="virtex2-CNR_SW_V2P-MISC_SW-BCLK_N_DIV2[2]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[17][6]">TERM_V[17][6]</a></td></tr>
+
+<tr><td>BCLK_N_DIV2 bit 3</td><td id="virtex2-CNR_SW_V2P-MISC_SW-BCLK_N_DIV2[3]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[17][7]">TERM_V[17][7]</a></td></tr>
+
+<tr><td>BCLK_N_DIV2 bit 4</td><td id="virtex2-CNR_SW_V2P-MISC_SW-BCLK_N_DIV2[4]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[17][8]">TERM_V[17][8]</a></td></tr>
+
+<tr><td>ZCLK_N_DIV2 bit 0</td><td id="virtex2-CNR_SW_V2P-MISC_SW-ZCLK_N_DIV2[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[18][11]">TERM_V[18][11]</a></td></tr>
+
+<tr><td>ZCLK_N_DIV2 bit 1</td><td id="virtex2-CNR_SW_V2P-MISC_SW-ZCLK_N_DIV2[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[19][9]">TERM_V[19][9]</a></td></tr>
+
+<tr><td>ZCLK_N_DIV2 bit 2</td><td id="virtex2-CNR_SW_V2P-MISC_SW-ZCLK_N_DIV2[2]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[19][11]">TERM_V[19][11]</a></td></tr>
+
+<tr><td>ZCLK_N_DIV2 bit 3</td><td id="virtex2-CNR_SW_V2P-MISC_SW-ZCLK_N_DIV2[3]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[19][7]">TERM_V[19][7]</a></td></tr>
+
+<tr><td>ZCLK_N_DIV2 bit 4</td><td id="virtex2-CNR_SW_V2P-MISC_SW-ZCLK_N_DIV2[4]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[19][10]">TERM_V[19][10]</a></td></tr>
+
+<tr><td>DISABLE_BANDGAP</td><td id="virtex2-CNR_SW_V2P-MISC_SW-DISABLE_BANDGAP"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[16][6]">TERM_V[16][6]</a></td></tr>
+
+<tr><td>DISABLE_VGG_GENERATION</td><td id="virtex2-CNR_SW_V2P-MISC_SW-DISABLE_VGG_GENERATION"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[18][8]">TERM_V[18][8]</a></td></tr>
+
+<tr><td>RAISE_VGG bit 0</td><td id="virtex2-CNR_SW_V2P-MISC_SW-RAISE_VGG[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[19][6]">TERM_V[19][6]</a></td></tr>
+
+<tr><td>RAISE_VGG bit 1</td><td id="virtex2-CNR_SW_V2P-MISC_SW-RAISE_VGG[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[19][8]">TERM_V[19][8]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex2 CNR_SW_V2P enum IOB_PULL</caption>
+<thead>
+<tr id="virtex2-CNR_SW_V2P-MISC_SW-M0_PULL"><th>MISC_SW.M0_PULL</th><td id="virtex2-CNR_SW_V2P-MISC_SW-M0_PULL[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[16][10]">TERM_V[16][10]</a></td><td id="virtex2-CNR_SW_V2P-MISC_SW-M0_PULL[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[16][11]">TERM_V[16][11]</a></td></tr>
+
+<tr id="virtex2-CNR_SW_V2P-MISC_SW-M1_PULL"><th>MISC_SW.M1_PULL</th><td id="virtex2-CNR_SW_V2P-MISC_SW-M1_PULL[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[16][9]">TERM_V[16][9]</a></td><td id="virtex2-CNR_SW_V2P-MISC_SW-M1_PULL[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[17][11]">TERM_V[17][11]</a></td></tr>
+
+<tr id="virtex2-CNR_SW_V2P-MISC_SW-M2_PULL"><th>MISC_SW.M2_PULL</th><td id="virtex2-CNR_SW_V2P-MISC_SW-M2_PULL[1]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[16][7]">TERM_V[16][7]</a></td><td id="virtex2-CNR_SW_V2P-MISC_SW-M2_PULL[0]"><a href="#virtex2-CNR_SW_V2P-bit-TERM_V[16][8]">TERM_V[16][8]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td><td>0</td></tr>
+
+<tr><td>PULLDOWN</td><td>1</td><td>0</td></tr>
 
 </tbody>
 
@@ -2402,23 +1711,23 @@ non-inverted
 
 <tr><td>IMUX_G2_DATA[7]</td><td>DCI[0].DCI_CLK</td></tr>
 
-<tr><td>OUT_HALF0[8]</td><td>DCI[1].ADDRESS2</td></tr>
+<tr><td>OUT_HALF0[8]</td><td>DCI[1].ADDRESS[2]</td></tr>
 
-<tr><td>OUT_HALF0[9]</td><td>DCI[1].ADDRESS0</td></tr>
+<tr><td>OUT_HALF0[9]</td><td>DCI[1].ADDRESS[0]</td></tr>
 
 <tr><td>OUT_HALF0[10]</td><td>DCI[1].DCI_DONE</td></tr>
 
 <tr><td>OUT_HALF0[11]</td><td>DCI[1].SCLK</td></tr>
 
-<tr><td>OUT_HALF0[13]</td><td>DCI[0].ADDRESS2</td></tr>
+<tr><td>OUT_HALF0[13]</td><td>DCI[0].ADDRESS[2]</td></tr>
 
-<tr><td>OUT_HALF0[14]</td><td>DCI[0].ADDRESS0</td></tr>
+<tr><td>OUT_HALF0[14]</td><td>DCI[0].ADDRESS[0]</td></tr>
 
 <tr><td>OUT_HALF0[15]</td><td>DCI[0].DCI_DONE</td></tr>
 
 <tr><td>OUT_HALF0[16]</td><td>DCI[0].SCLK</td></tr>
 
-<tr><td>OUT_HALF1[9]</td><td>DCI[1].ADDRESS1</td></tr>
+<tr><td>OUT_HALF1[9]</td><td>DCI[1].ADDRESS[1]</td></tr>
 
 <tr><td>OUT_HALF1[10]</td><td>DCI[1].DATA</td></tr>
 
@@ -2426,7 +1735,7 @@ non-inverted
 
 <tr><td>OUT_HALF1[12]</td><td>DCI[1].UPDATE</td></tr>
 
-<tr><td>OUT_HALF1[14]</td><td>DCI[0].ADDRESS1</td></tr>
+<tr><td>OUT_HALF1[14]</td><td>DCI[0].ADDRESS[1]</td></tr>
 
 <tr><td>OUT_HALF1[15]</td><td>DCI[0].DATA</td></tr>
 
@@ -2447,10 +1756,10 @@ non-inverted
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
 
 <tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
 <th>F3</th>
+<th>F2</th>
+<th>F1</th>
+<th>F0</th>
 </tr>
 
 </thead>
@@ -2674,35 +1983,53 @@ non-inverted
 </tr>
 
 <tr><td>B48</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][48]" title="TERM_H[3][48]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[0]">DCI[0]:  V2_LVDSBIAS bit 0</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][48]" title="TERM_H[2][48]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[1]">DCI[0]:  V2_LVDSBIAS bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B47</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][47]" title="TERM_H[3][47]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[2]">DCI[0]:  V2_LVDSBIAS bit 2</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][47]" title="TERM_H[2][47]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[3]">DCI[0]:  V2_LVDSBIAS bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B46</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][46]" title="TERM_H[3][46]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[4]">DCI[0]:  V2_LVDSBIAS bit 4</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][46]" title="TERM_H[2][46]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[5]">DCI[0]:  V2_LVDSBIAS bit 5</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B45</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][45]" title="TERM_H[3][45]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[6]">DCI[0]:  V2_LVDSBIAS bit 6</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][45]" title="TERM_H[2][45]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[7]">DCI[0]:  V2_LVDSBIAS bit 7</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B44</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][44]" title="TERM_H[3][44]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_LVDSBIAS[8]">DCI[0]:  V2_LVDSBIAS bit 8</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2717,7 +2044,9 @@ non-inverted
 
 <tr><td>B42</td>
 <td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][42]" title="TERM_H[2][42]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-ENABLE">DCI[0]:  ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
@@ -2737,64 +2066,100 @@ non-inverted
 </tr>
 
 <tr><td>B39</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][39]" title="TERM_H[3][39]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-QUIET">DCI[0]:  QUIET</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][39]" title="TERM_H[2][39]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_NMASK_TERM_SPLIT[0]">DCI[0]:  V2_NMASK_TERM_SPLIT bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B38</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][38]" title="TERM_H[3][38]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_NMASK_TERM_SPLIT[1]">DCI[0]:  V2_NMASK_TERM_SPLIT bit 1</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][38]" title="TERM_H[2][38]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_NMASK_TERM_SPLIT[2]">DCI[0]:  V2_NMASK_TERM_SPLIT bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B37</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][37]" title="TERM_H[3][37]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_NMASK_TERM_SPLIT[3]">DCI[0]:  V2_NMASK_TERM_SPLIT bit 3</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][37]" title="TERM_H[2][37]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_NMASK_TERM_SPLIT[4]">DCI[0]:  V2_NMASK_TERM_SPLIT bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B36</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][36]" title="TERM_H[3][36]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_VCC[0]">DCI[0]:  V2_PMASK_TERM_VCC bit 0</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][36]" title="TERM_H[2][36]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_VCC[1]">DCI[0]:  V2_PMASK_TERM_VCC bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B35</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][35]" title="TERM_H[3][35]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_VCC[2]">DCI[0]:  V2_PMASK_TERM_VCC bit 2</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][35]" title="TERM_H[2][35]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_VCC[3]">DCI[0]:  V2_PMASK_TERM_VCC bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B34</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][34]" title="TERM_H[3][34]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_VCC[4]">DCI[0]:  V2_PMASK_TERM_VCC bit 4</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][34]" title="TERM_H[2][34]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_SPLIT[0]">DCI[0]:  V2_PMASK_TERM_SPLIT bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B33</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][33]" title="TERM_H[3][33]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_SPLIT[1]">DCI[0]:  V2_PMASK_TERM_SPLIT bit 1</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][33]" title="TERM_H[2][33]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_SPLIT[2]">DCI[0]:  V2_PMASK_TERM_SPLIT bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B32</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][32]" title="TERM_H[3][32]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_SPLIT[3]">DCI[0]:  V2_PMASK_TERM_SPLIT bit 3</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][32]" title="TERM_H[2][32]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-V2_PMASK_TERM_SPLIT[4]">DCI[0]:  V2_PMASK_TERM_SPLIT bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
 
 <tr><td>B31</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[3][31]" title="TERM_H[3][31]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-FORCE_DONE_HIGH">DCI[0]:  FORCE_DONE_HIGH</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_H[2][31]" title="TERM_H[2][31]">
+<a href="#virtex2-CNR_SW_V2P-DCI[0]-TEST_ENABLE">DCI[0]:  TEST_ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 </tr>
@@ -3028,786 +2393,28 @@ non-inverted
 <tr><th rowspan="2">Bit</th><th colspan="22">Frame</th></tr>
 
 <tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-<th>F6</th>
-<th>F7</th>
-<th>F8</th>
-<th>F9</th>
-<th>F10</th>
-<th>F11</th>
-<th>F12</th>
-<th>F13</th>
-<th>F14</th>
-<th>F15</th>
-<th>F16</th>
-<th>F17</th>
-<th>F18</th>
-<th>F19</th>
-<th>F20</th>
 <th>F21</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>virtex2 CNR_SW_V2P rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B48</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B48">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[1]</a>
-</td>
-<td title="R0.F3.B48">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[0]</a>
-</td>
-</tr>
-
-<tr><td>B47</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B47">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[3]</a>
-</td>
-<td title="R0.F3.B47">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[2]</a>
-</td>
-</tr>
-
-<tr><td>B46</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B46">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[5]</a>
-</td>
-<td title="R0.F3.B46">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[4]</a>
-</td>
-</tr>
-
-<tr><td>B45</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B45">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[7]</a>
-</td>
-<td title="R0.F3.B45">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[6]</a>
-</td>
-</tr>
-
-<tr><td>B44</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F3.B44">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS[8]</a>
-</td>
-</tr>
-
-<tr><td>B43</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B42</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B42">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:ENABLE">DCI[0]:ENABLE</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B41</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B40</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B39</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B39">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[0]</a>
-</td>
-<td title="R0.F3.B39">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:QUIET">DCI[0]:QUIET</a>
-</td>
-</tr>
-
-<tr><td>B38</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B38">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[2]</a>
-</td>
-<td title="R0.F3.B38">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[1]</a>
-</td>
-</tr>
-
-<tr><td>B37</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B37">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[4]</a>
-</td>
-<td title="R0.F3.B37">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT[3]</a>
-</td>
-</tr>
-
-<tr><td>B36</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B36">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[1]</a>
-</td>
-<td title="R0.F3.B36">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[0]</a>
-</td>
-</tr>
-
-<tr><td>B35</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B35">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[3]</a>
-</td>
-<td title="R0.F3.B35">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[2]</a>
-</td>
-</tr>
-
-<tr><td>B34</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B34">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[0]</a>
-</td>
-<td title="R0.F3.B34">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC[4]</a>
-</td>
-</tr>
-
-<tr><td>B33</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B33">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[2]</a>
-</td>
-<td title="R0.F3.B33">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[1]</a>
-</td>
-</tr>
-
-<tr><td>B32</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B32">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[4]</a>
-</td>
-<td title="R0.F3.B32">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT[3]</a>
-</td>
-</tr>
-
-<tr><td>B31</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B31">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:TEST_ENABLE">DCI[0]:TEST_ENABLE</a>
-</td>
-<td title="R0.F3.B31">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[0]:FORCE_DONE_HIGH">DCI[0]:FORCE_DONE_HIGH</a>
-</td>
-</tr>
-
-<tr><td>B30</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B29</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B28</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B27</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B26</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<caption>virtex2 CNR_SW_V2P rect R1</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="20">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-<th>F6</th>
-<th>F7</th>
-<th>F8</th>
-<th>F9</th>
-<th>F10</th>
-<th>F11</th>
-<th>F12</th>
-<th>F13</th>
-<th>F14</th>
-<th>F15</th>
-<th>F16</th>
-<th>F17</th>
-<th>F18</th>
+<th>F20</th>
 <th>F19</th>
+<th>F18</th>
+<th>F17</th>
+<th>F16</th>
+<th>F15</th>
+<th>F14</th>
+<th>F13</th>
+<th>F12</th>
+<th>F11</th>
+<th>F10</th>
+<th>F9</th>
+<th>F8</th>
+<th>F7</th>
+<th>F6</th>
+<th>F5</th>
+<th>F4</th>
+<th>F3</th>
+<th>F2</th>
+<th>F1</th>
+<th>F0</th>
 </tr>
 
 </thead>
@@ -3816,240 +2423,254 @@ non-inverted
 <tr><td>B11</td>
 <td>-</td>
 <td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[19][11]" title="TERM_V[19][11]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-ZCLK_N_DIV2[2]">MISC_SW:  ZCLK_N_DIV2 bit 2</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[18][11]" title="TERM_V[18][11]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-ZCLK_N_DIV2[0]">MISC_SW:  ZCLK_N_DIV2 bit 0</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[17][11]" title="TERM_V[17][11]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-M1_PULL[0]">MISC_SW:  M1_PULL bit 0</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[16][11]" title="TERM_V[16][11]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-M0_PULL[0]">MISC_SW:  M0_PULL bit 0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[13][11]" title="TERM_V[13][11]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[7]">DCI[1]:  V2_LVDSBIAS bit 7</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[12][11]" title="TERM_V[12][11]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[4]">DCI[1]:  V2_LVDSBIAS bit 4</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[11][11]" title="TERM_V[11][11]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_NMASK_TERM_SPLIT[0]">DCI[1]:  V2_NMASK_TERM_SPLIT bit 0</a>
+</td>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[9][11]" title="TERM_V[9][11]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_SPLIT[2]">DCI[1]:  V2_PMASK_TERM_SPLIT bit 2</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[8][11]" title="TERM_V[8][11]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_VCC[3]">DCI[1]:  V2_PMASK_TERM_VCC bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F8.B11">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[3]</a>
-</td>
-<td title="R1.F9.B11">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[2]</a>
-</td>
-<td>-</td>
-<td title="R1.F11.B11">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[0]</a>
-</td>
-<td title="R1.F12.B11">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[4]</a>
-</td>
-<td title="R1.F13.B11">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[7]</a>
-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F16.B11">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:M0PIN">MISC:M0PIN[1]</a>
-</td>
-<td title="R1.F17.B11">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:M1PIN">MISC:M1PIN[1]</a>
-</td>
-<td title="R1.F18.B11">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2[0]</a>
-</td>
-<td title="R1.F19.B11">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2[2]</a>
-</td>
 </tr>
 
 <tr><td>B10</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F8.B10">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[4]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[19][10]" title="TERM_V[19][10]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-ZCLK_N_DIV2[4]">MISC_SW:  ZCLK_N_DIV2 bit 4</a>
 </td>
-<td title="R1.F9.B10">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[4]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[18][10]" title="TERM_V[18][10]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-DCI_CLK_ENABLE">MISC_SW:  DCI_CLK_ENABLE</a>
 </td>
-<td>-</td>
-<td title="R1.F11.B10">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[2]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[17][10]" title="TERM_V[17][10]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-BCLK_N_DIV2[0]">MISC_SW:  BCLK_N_DIV2 bit 0</a>
 </td>
-<td title="R1.F12.B10">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[3]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[16][10]" title="TERM_V[16][10]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-M0_PULL[1]">MISC_SW:  M0_PULL bit 1</a>
 </td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F16.B10">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:M0PIN">MISC:M0PIN[0]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[12][10]" title="TERM_V[12][10]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[3]">DCI[1]:  V2_LVDSBIAS bit 3</a>
 </td>
-<td title="R1.F17.B10">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:BCLK_DIV2">MISC:BCLK_DIV2[0]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[11][10]" title="TERM_V[11][10]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_NMASK_TERM_SPLIT[2]">DCI[1]:  V2_NMASK_TERM_SPLIT bit 2</a>
 </td>
-<td title="R1.F18.B10">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:DCI_CLK_ENABLE">MISC:DCI_CLK_ENABLE</a>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[9][10]" title="TERM_V[9][10]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_SPLIT[4]">DCI[1]:  V2_PMASK_TERM_SPLIT bit 4</a>
 </td>
-<td title="R1.F19.B10">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2[4]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[8][10]" title="TERM_V[8][10]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_VCC[4]">DCI[1]:  V2_PMASK_TERM_VCC bit 4</a>
 </td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B9</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F8.B9">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[0]</a>
-</td>
-<td title="R1.F9.B9">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[1]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[19][9]" title="TERM_V[19][9]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-ZCLK_N_DIV2[1]">MISC_SW:  ZCLK_N_DIV2 bit 1</a>
 </td>
 <td>-</td>
-<td title="R1.F11.B9">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:QUIET">DCI[1]:QUIET</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[17][9]" title="TERM_V[17][9]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-BCLK_N_DIV2[1]">MISC_SW:  BCLK_N_DIV2 bit 1</a>
 </td>
-<td title="R1.F12.B9">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[5]</a>
-</td>
-<td title="R1.F13.B9">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[6]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[16][9]" title="TERM_V[16][9]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-M1_PULL[1]">MISC_SW:  M1_PULL bit 1</a>
 </td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F16.B9">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:M1PIN">MISC:M1PIN[0]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[13][9]" title="TERM_V[13][9]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[6]">DCI[1]:  V2_LVDSBIAS bit 6</a>
 </td>
-<td title="R1.F17.B9">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:BCLK_DIV2">MISC:BCLK_DIV2[1]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[12][9]" title="TERM_V[12][9]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[5]">DCI[1]:  V2_LVDSBIAS bit 5</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[11][9]" title="TERM_V[11][9]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-QUIET">DCI[1]:  QUIET</a>
 </td>
 <td>-</td>
-<td title="R1.F19.B9">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2[1]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[9][9]" title="TERM_V[9][9]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_SPLIT[1]">DCI[1]:  V2_PMASK_TERM_SPLIT bit 1</a>
 </td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[8][9]" title="TERM_V[8][9]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_SPLIT[0]">DCI[1]:  V2_PMASK_TERM_SPLIT bit 0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B8</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F8.B8">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[0]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[19][8]" title="TERM_V[19][8]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-RAISE_VGG[1]">MISC_SW:  RAISE_VGG bit 1</a>
 </td>
-<td title="R1.F9.B8">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:FORCE_DONE_HIGH">DCI[1]:FORCE_DONE_HIGH</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[18][8]" title="TERM_V[18][8]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-DISABLE_VGG_GENERATION">MISC_SW:  DISABLE_VGG_GENERATION</a>
 </td>
-<td>-</td>
-<td title="R1.F11.B8">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[3]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[17][8]" title="TERM_V[17][8]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-BCLK_N_DIV2[4]">MISC_SW:  BCLK_N_DIV2 bit 4</a>
 </td>
-<td title="R1.F12.B8">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[0]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[16][8]" title="TERM_V[16][8]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-M2_PULL[0]">MISC_SW:  M2_PULL bit 0</a>
 </td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F16.B8">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:M2PIN">MISC:M2PIN[1]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[12][8]" title="TERM_V[12][8]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[0]">DCI[1]:  V2_LVDSBIAS bit 0</a>
 </td>
-<td title="R1.F17.B8">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:BCLK_DIV2">MISC:BCLK_DIV2[4]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[11][8]" title="TERM_V[11][8]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_NMASK_TERM_SPLIT[3]">DCI[1]:  V2_NMASK_TERM_SPLIT bit 3</a>
 </td>
-<td title="R1.F18.B8">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:DISABLEVGGGENERATION">MISC:DISABLEVGGGENERATION</a>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[9][8]" title="TERM_V[9][8]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-FORCE_DONE_HIGH">DCI[1]:  FORCE_DONE_HIGH</a>
 </td>
-<td title="R1.F19.B8">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:RAISEVGG">MISC:RAISEVGG[1]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[8][8]" title="TERM_V[8][8]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_VCC[0]">DCI[1]:  V2_PMASK_TERM_VCC bit 0</a>
 </td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B7</td>
 <td>-</td>
 <td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[19][7]" title="TERM_V[19][7]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-ZCLK_N_DIV2[3]">MISC_SW:  ZCLK_N_DIV2 bit 3</a>
+</td>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[17][7]" title="TERM_V[17][7]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-BCLK_N_DIV2[3]">MISC_SW:  BCLK_N_DIV2 bit 3</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[16][7]" title="TERM_V[16][7]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-M2_PULL[1]">MISC_SW:  M2_PULL bit 1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[13][7]" title="TERM_V[13][7]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[8]">DCI[1]:  V2_LVDSBIAS bit 8</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[12][7]" title="TERM_V[12][7]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[2]">DCI[1]:  V2_LVDSBIAS bit 2</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[11][7]" title="TERM_V[11][7]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_NMASK_TERM_SPLIT[1]">DCI[1]:  V2_NMASK_TERM_SPLIT bit 1</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[10][7]" title="TERM_V[10][7]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-ENABLE">DCI[1]:  ENABLE</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[9][7]" title="TERM_V[9][7]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_SPLIT[3]">DCI[1]:  V2_PMASK_TERM_SPLIT bit 3</a>
+</td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[8][7]" title="TERM_V[8][7]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_VCC[2]">DCI[1]:  V2_PMASK_TERM_VCC bit 2</a>
+</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F8.B7">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[2]</a>
-</td>
-<td title="R1.F9.B7">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT[3]</a>
-</td>
-<td title="R1.F10.B7">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:ENABLE">DCI[1]:ENABLE</a>
-</td>
-<td title="R1.F11.B7">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[1]</a>
-</td>
-<td title="R1.F12.B7">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[2]</a>
-</td>
-<td title="R1.F13.B7">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[8]</a>
-</td>
 <td>-</td>
-<td>-</td>
-<td title="R1.F16.B7">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:M2PIN">MISC:M2PIN[0]</a>
-</td>
-<td title="R1.F17.B7">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:BCLK_DIV2">MISC:BCLK_DIV2[3]</a>
-</td>
-<td>-</td>
-<td title="R1.F19.B7">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2[3]</a>
-</td>
 </tr>
 
 <tr><td>B6</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F8.B6">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC[1]</a>
-</td>
-<td title="R1.F9.B6">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:TEST_ENABLE">DCI[1]:TEST_ENABLE</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[19][6]" title="TERM_V[19][6]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-RAISE_VGG[0]">MISC_SW:  RAISE_VGG bit 0</a>
 </td>
 <td>-</td>
-<td title="R1.F11.B6">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT[4]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[17][6]" title="TERM_V[17][6]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-BCLK_N_DIV2[2]">MISC_SW:  BCLK_N_DIV2 bit 2</a>
 </td>
-<td title="R1.F12.B6">
-<a href="#tile-virtex2-CNR_SW_V2P-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS[1]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[16][6]" title="TERM_V[16][6]">
+<a href="#virtex2-CNR_SW_V2P-MISC_SW-DISABLE_BANDGAP">MISC_SW:  DISABLE_BANDGAP</a>
 </td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R1.F16.B6">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:DISABLEBANDGAP">MISC:DISABLEBANDGAP</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[12][6]" title="TERM_V[12][6]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_LVDSBIAS[1]">DCI[1]:  V2_LVDSBIAS bit 1</a>
 </td>
-<td title="R1.F17.B6">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:BCLK_DIV2">MISC:BCLK_DIV2[2]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[11][6]" title="TERM_V[11][6]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_NMASK_TERM_SPLIT[4]">DCI[1]:  V2_NMASK_TERM_SPLIT bit 4</a>
 </td>
 <td>-</td>
-<td title="R1.F19.B6">
-<a href="#tile-virtex2-CNR_SW_V2P-MISC:RAISEVGG">MISC:RAISEVGG[0]</a>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[9][6]" title="TERM_V[9][6]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-TEST_ENABLE">DCI[1]:  TEST_ENABLE</a>
 </td>
+<td id="virtex2-CNR_SW_V2P-bit-TERM_V[8][6]" title="TERM_V[8][6]">
+<a href="#virtex2-CNR_SW_V2P-DCI[1]-V2_PMASK_TERM_VCC[1]">DCI[1]:  V2_PMASK_TERM_VCC bit 1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B5</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4093,9 +2714,13 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B3</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4139,9 +2764,13 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>B1</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4185,265 +2814,8 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[0]:ENABLE">DCI[0]:ENABLE</th>
-<th>0.F2.B42</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[0]:FORCE_DONE_HIGH">DCI[0]:FORCE_DONE_HIGH</th>
-<th>0.F3.B31</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[0]:QUIET">DCI[0]:QUIET</th>
-<th>0.F3.B39</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[0]:TEST_ENABLE">DCI[0]:TEST_ENABLE</th>
-<th>0.F2.B31</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[1]:ENABLE">DCI[1]:ENABLE</th>
-<th>1.F10.B7</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[1]:FORCE_DONE_HIGH">DCI[1]:FORCE_DONE_HIGH</th>
-<th>1.F9.B8</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[1]:QUIET">DCI[1]:QUIET</th>
-<th>1.F11.B9</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[1]:TEST_ENABLE">DCI[1]:TEST_ENABLE</th>
-<th>1.F9.B6</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-MISC:DCI_CLK_ENABLE">MISC:DCI_CLK_ENABLE</th>
-<th>1.F18.B10</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-MISC:DISABLEBANDGAP">MISC:DISABLEBANDGAP</th>
-<th>1.F16.B6</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-MISC:DISABLEVGGGENERATION">MISC:DISABLEVGGGENERATION</th>
-<th>1.F18.B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[0]:LVDSBIAS">DCI[0]:LVDSBIAS</th>
-<th>0.F3.B44</th>
-<th>0.F2.B45</th>
-<th>0.F3.B45</th>
-<th>0.F2.B46</th>
-<th>0.F3.B46</th>
-<th>0.F2.B47</th>
-<th>0.F3.B47</th>
-<th>0.F2.B48</th>
-<th>0.F3.B48</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[1]:LVDSBIAS">DCI[1]:LVDSBIAS</th>
-<th>1.F13.B7</th>
-<th>1.F13.B11</th>
-<th>1.F13.B9</th>
-<th>1.F12.B9</th>
-<th>1.F12.B11</th>
-<th>1.F12.B10</th>
-<th>1.F12.B7</th>
-<th>1.F12.B6</th>
-<th>1.F12.B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[0]:NMASK_TERM_SPLIT">DCI[0]:NMASK_TERM_SPLIT</th>
-<th>0.F2.B37</th>
-<th>0.F3.B37</th>
-<th>0.F2.B38</th>
-<th>0.F3.B38</th>
-<th>0.F2.B39</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_SPLIT">DCI[0]:PMASK_TERM_SPLIT</th>
-<th>0.F2.B32</th>
-<th>0.F3.B32</th>
-<th>0.F2.B33</th>
-<th>0.F3.B33</th>
-<th>0.F2.B34</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[0]:PMASK_TERM_VCC">DCI[0]:PMASK_TERM_VCC</th>
-<th>0.F3.B34</th>
-<th>0.F2.B35</th>
-<th>0.F3.B35</th>
-<th>0.F2.B36</th>
-<th>0.F3.B36</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[1]:NMASK_TERM_SPLIT">DCI[1]:NMASK_TERM_SPLIT</th>
-<th>1.F11.B6</th>
-<th>1.F11.B8</th>
-<th>1.F11.B10</th>
-<th>1.F11.B7</th>
-<th>1.F11.B11</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_SPLIT">DCI[1]:PMASK_TERM_SPLIT</th>
-<th>1.F9.B10</th>
-<th>1.F9.B7</th>
-<th>1.F9.B11</th>
-<th>1.F9.B9</th>
-<th>1.F8.B9</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-DCI[1]:PMASK_TERM_VCC">DCI[1]:PMASK_TERM_VCC</th>
-<th>1.F8.B10</th>
-<th>1.F8.B11</th>
-<th>1.F8.B7</th>
-<th>1.F8.B6</th>
-<th>1.F8.B8</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-MISC:BCLK_DIV2">MISC:BCLK_DIV2</th>
-<th>1.F17.B8</th>
-<th>1.F17.B7</th>
-<th>1.F17.B6</th>
-<th>1.F17.B9</th>
-<th>1.F17.B10</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-MISC:ZCLK_DIV2">MISC:ZCLK_DIV2</th>
-<th>1.F19.B10</th>
-<th>1.F19.B7</th>
-<th>1.F19.B11</th>
-<th>1.F19.B9</th>
-<th>1.F18.B11</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex2-CNR_SW_V2P-MISC:M0PIN">MISC:M0PIN</th>
-<th>1.F16.B11</th>
-<th>1.F16.B10</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-MISC:M1PIN">MISC:M1PIN</th>
-<th>1.F17.B11</th>
-<th>1.F16.B9</th>
-</tr>
-
-<tr><th id="tile-virtex2-CNR_SW_V2P-MISC:M2PIN">MISC:M2PIN</th>
-<th>1.F16.B8</th>
-<th>1.F16.B7</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLDOWN</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex2-CNR_SW_V2P-MISC:RAISEVGG">MISC:RAISEVGG</th>
-<th>1.F19.B8</th>
-<th>1.F19.B6</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[1]</td>
-<td>[0]</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>

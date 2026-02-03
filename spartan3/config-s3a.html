@@ -153,112 +153,530 @@
                     <main>
                         <h1 id="configuration-registers-spartan-3a"><a class="header" href="#configuration-registers-spartan-3a">Configuration registers (Spartan 3A)</a></h1>
 <p>TODO: document</p>
-<h2 id="cor1s3a"><a class="header" href="#cor1s3a"><code>COR1.S3A</code></a></h2>
-<p>This is the Spartan 3A version of <code>COR1</code>.</p>
+<h2 id="tile-global_s3a"><a class="header" href="#tile-global_s3a">Tile GLOBAL_S3A</a></h2>
+<p>Cells: 0</p>
+<h3 id="bels-global"><a class="header" href="#bels-global">Bels GLOBAL</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 REG.COR1.S3A rect R0</caption>
+<caption>spartan3 GLOBAL_S3A bel GLOBAL pins</caption>
 <thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>GLOBAL</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A bel GLOBAL attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>GLOBAL</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>GWE_CYCLE</td><td><a href="#spartan3-GLOBAL_S3A-GLOBAL-GWE_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>GTS_CYCLE</td><td><a href="#spartan3-GLOBAL_S3A-GLOBAL-GTS_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>LOCK_CYCLE</td><td><a href="#spartan3-GLOBAL_S3A-GLOBAL-LOCK_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>DONE_CYCLE</td><td><a href="#spartan3-GLOBAL_S3A-GLOBAL-DONE_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>STARTUP_CLOCK</td><td><a href="#spartan3-GLOBAL_S3A-GLOBAL-STARTUP_CLOCK">[enum: STARTUP_CLOCK]</a></td></tr>
+
+<tr><td>CAPTURE_ONESHOT</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CAPTURE_ONESHOT"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][12]">COR2[0][12]</a></td></tr>
+
+<tr><td>DRIVE_DONE</td><td id="spartan3-GLOBAL_S3A-GLOBAL-DRIVE_DONE"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][2]">COR1[0][2]</a></td></tr>
+
+<tr><td>DONE_PIPE</td><td id="spartan3-GLOBAL_S3A-GLOBAL-DONE_PIPE"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][3]">COR1[0][3]</a></td></tr>
+
+<tr><td>CRC_ENABLE</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CRC_ENABLE"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][4]">!COR1[0][4]</a></td></tr>
+
+<tr><td>MULTIBOOT_ENABLE</td><td id="spartan3-GLOBAL_S3A-GLOBAL-MULTIBOOT_ENABLE"><a href="#spartan3-GLOBAL_S3A-bit-CTL[0][7]">CTL[0][7]</a></td></tr>
+
+<tr><td>GTS_USR_B</td><td id="spartan3-GLOBAL_S3A-GLOBAL-GTS_USR_B"><a href="#spartan3-GLOBAL_S3A-bit-CTL[0][0]">CTL[0][0]</a></td></tr>
+
+<tr><td>VGG_TEST</td><td id="spartan3-GLOBAL_S3A-GLOBAL-VGG_TEST"><a href="#spartan3-GLOBAL_S3A-bit-CTL[0][1]">CTL[0][1]</a></td></tr>
+
+<tr><td>SECURITY</td><td><a href="#spartan3-GLOBAL_S3A-GLOBAL-SECURITY">[enum: SECURITY]</a></td></tr>
+
+<tr><td>PERSIST</td><td id="spartan3-GLOBAL_S3A-GLOBAL-PERSIST"><a href="#spartan3-GLOBAL_S3A-bit-CTL[0][3]">CTL[0][3]</a></td></tr>
+
+<tr><td>ICAP_ENABLE</td><td id="spartan3-GLOBAL_S3A-GLOBAL-ICAP_ENABLE"><a href="#spartan3-GLOBAL_S3A-bit-CTL[0][2]">CTL[0][2]</a></td></tr>
+
+<tr><td>S3A_VRDSEL bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-S3A_VRDSEL[0]"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][5]">COR1[0][5]</a></td></tr>
+
+<tr><td>S3A_VRDSEL bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-S3A_VRDSEL[1]"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][6]">COR1[0][6]</a></td></tr>
+
+<tr><td>S3A_VRDSEL bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-S3A_VRDSEL[2]"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][7]">COR1[0][7]</a></td></tr>
+
+<tr><td>SEND_VGG bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SEND_VGG[0]"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][8]">COR1[0][8]</a></td></tr>
+
+<tr><td>SEND_VGG bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SEND_VGG[1]"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][9]">COR1[0][9]</a></td></tr>
+
+<tr><td>SEND_VGG bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SEND_VGG[2]"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][10]">COR1[0][10]</a></td></tr>
+
+<tr><td>SEND_VGG bit 3</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SEND_VGG[3]"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][11]">COR1[0][11]</a></td></tr>
+
+<tr><td>VGG_ENABLE_OFFCHIP</td><td id="spartan3-GLOBAL_S3A-GLOBAL-VGG_ENABLE_OFFCHIP"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][13]">!COR1[0][13]</a></td></tr>
+
+<tr><td>VGG_SENDMAX</td><td id="spartan3-GLOBAL_S3A-GLOBAL-VGG_SENDMAX"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][12]">!COR1[0][12]</a></td></tr>
+
+<tr><td>DRIVE_AWAKE</td><td id="spartan3-GLOBAL_S3A-GLOBAL-DRIVE_AWAKE"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][15]">COR1[0][15]</a></td></tr>
+
+<tr><td>BPI_DIV8</td><td id="spartan3-GLOBAL_S3A-GLOBAL-BPI_DIV8"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][13]">COR2[0][13]</a></td></tr>
+
+<tr><td>ICAP_BYPASS</td><td id="spartan3-GLOBAL_S3A-GLOBAL-ICAP_BYPASS"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][14]">COR2[0][14]</a></td></tr>
+
+<tr><td>RESET_ON_ERR</td><td id="spartan3-GLOBAL_S3A-GLOBAL-RESET_ON_ERR"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][15]">COR2[0][15]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[0]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][0]">CCLK_FREQ[0][0]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[1]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][1]">CCLK_FREQ[0][1]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[2]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][2]">CCLK_FREQ[0][2]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 3</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[3]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][3]">CCLK_FREQ[0][3]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 4</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[4]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][4]">CCLK_FREQ[0][4]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 5</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[5]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][5]">CCLK_FREQ[0][5]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 6</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[6]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][6]">CCLK_FREQ[0][6]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 7</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[7]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][7]">CCLK_FREQ[0][7]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 8</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[8]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][8]">CCLK_FREQ[0][8]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 9</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[9]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][9]">CCLK_FREQ[0][9]</a></td></tr>
+
+<tr><td>CCLK_DLY bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CCLK_DLY[0]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][10]">CCLK_FREQ[0][10]</a></td></tr>
+
+<tr><td>CCLK_DLY bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CCLK_DLY[1]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][11]">CCLK_FREQ[0][11]</a></td></tr>
+
+<tr><td>CCLK_SEP bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CCLK_SEP[0]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][12]">CCLK_FREQ[0][12]</a></td></tr>
+
+<tr><td>CCLK_SEP bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CCLK_SEP[1]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][13]">CCLK_FREQ[0][13]</a></td></tr>
+
+<tr><td>CLK_SWITCH_OPT bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CLK_SWITCH_OPT[0]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][14]">CCLK_FREQ[0][14]</a></td></tr>
+
+<tr><td>CLK_SWITCH_OPT bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-CLK_SWITCH_OPT[1]"><a href="#spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][15]">CCLK_FREQ[0][15]</a></td></tr>
+
+<tr><td>HC_CYCLE bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-HC_CYCLE[0]"><a href="#spartan3-GLOBAL_S3A-bit-HC_OPT[0][0]">HC_OPT[0][0]</a></td></tr>
+
+<tr><td>HC_CYCLE bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-HC_CYCLE[1]"><a href="#spartan3-GLOBAL_S3A-bit-HC_OPT[0][1]">HC_OPT[0][1]</a></td></tr>
+
+<tr><td>HC_CYCLE bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-HC_CYCLE[2]"><a href="#spartan3-GLOBAL_S3A-bit-HC_OPT[0][2]">HC_OPT[0][2]</a></td></tr>
+
+<tr><td>HC_CYCLE bit 3</td><td id="spartan3-GLOBAL_S3A-GLOBAL-HC_CYCLE[3]"><a href="#spartan3-GLOBAL_S3A-bit-HC_OPT[0][3]">HC_OPT[0][3]</a></td></tr>
+
+<tr><td>TWO_ROUND</td><td id="spartan3-GLOBAL_S3A-GLOBAL-TWO_ROUND"><a href="#spartan3-GLOBAL_S3A-bit-HC_OPT[0][4]">HC_OPT[0][4]</a></td></tr>
+
+<tr><td>BRAM_SKIP</td><td id="spartan3-GLOBAL_S3A-GLOBAL-BRAM_SKIP"><a href="#spartan3-GLOBAL_S3A-bit-HC_OPT[0][5]">HC_OPT[0][5]</a></td></tr>
+
+<tr><td>SW_CLK</td><td><a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_CLK">[enum: SW_CLK]</a></td></tr>
+
+<tr><td>EN_PORB</td><td id="spartan3-GLOBAL_S3A-GLOBAL-EN_PORB"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][1]">!POWERDOWN[0][1]</a></td></tr>
+
+<tr><td>EN_SUSPEND</td><td id="spartan3-GLOBAL_S3A-GLOBAL-EN_SUSPEND"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][2]">POWERDOWN[0][2]</a></td></tr>
+
+<tr><td>EN_SW_GSR</td><td id="spartan3-GLOBAL_S3A-GLOBAL-EN_SW_GSR"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][4]">POWERDOWN[0][4]</a></td></tr>
+
+<tr><td>SUSPEND_FILTER</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SUSPEND_FILTER"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][5]">!POWERDOWN[0][5]</a></td></tr>
+
+<tr><td>WAKE_DELAY1 bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY1[0]"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][6]">POWERDOWN[0][6]</a></td></tr>
+
+<tr><td>WAKE_DELAY1 bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY1[1]"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][7]">POWERDOWN[0][7]</a></td></tr>
+
+<tr><td>WAKE_DELAY1 bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY1[2]"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][8]">POWERDOWN[0][8]</a></td></tr>
+
+<tr><td>WAKE_DELAY2 bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY2[0]"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][9]">POWERDOWN[0][9]</a></td></tr>
+
+<tr><td>WAKE_DELAY2 bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY2[1]"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][10]">POWERDOWN[0][10]</a></td></tr>
+
+<tr><td>WAKE_DELAY2 bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY2[2]"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][11]">POWERDOWN[0][11]</a></td></tr>
+
+<tr><td>WAKE_DELAY2 bit 3</td><td id="spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY2[3]"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][12]">POWERDOWN[0][12]</a></td></tr>
+
+<tr><td>WAKE_DELAY2 bit 4</td><td id="spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY2[4]"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][13]">POWERDOWN[0][13]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[0]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GWE[0][0]">PU_GWE[0][0]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[1]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GWE[0][1]">PU_GWE[0][1]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[2]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GWE[0][2]">PU_GWE[0][2]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 3</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[3]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GWE[0][3]">PU_GWE[0][3]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 4</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[4]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GWE[0][4]">PU_GWE[0][4]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 5</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[5]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GWE[0][5]">PU_GWE[0][5]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 6</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[6]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GWE[0][6]">PU_GWE[0][6]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 7</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[7]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GWE[0][7]">PU_GWE[0][7]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 8</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[8]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GWE[0][8]">PU_GWE[0][8]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 9</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[9]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GWE[0][9]">PU_GWE[0][9]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[0]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GTS[0][0]">PU_GTS[0][0]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[1]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GTS[0][1]">PU_GTS[0][1]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[2]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GTS[0][2]">PU_GTS[0][2]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 3</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[3]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GTS[0][3]">PU_GTS[0][3]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 4</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[4]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GTS[0][4]">PU_GTS[0][4]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 5</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[5]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GTS[0][5]">PU_GTS[0][5]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 6</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[6]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GTS[0][6]">PU_GTS[0][6]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 7</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[7]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GTS[0][7]">PU_GTS[0][7]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 8</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[8]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GTS[0][8]">PU_GTS[0][8]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 9</td><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[9]"><a href="#spartan3-GLOBAL_S3A-bit-PU_GTS[0][9]">PU_GTS[0][9]</a></td></tr>
+
+<tr><td>BOOTVSEL bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-BOOTVSEL[0]"><a href="#spartan3-GLOBAL_S3A-bit-MODE[0][0]">MODE[0][0]</a></td></tr>
+
+<tr><td>BOOTVSEL bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-BOOTVSEL[1]"><a href="#spartan3-GLOBAL_S3A-bit-MODE[0][1]">MODE[0][1]</a></td></tr>
+
+<tr><td>BOOTVSEL bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-BOOTVSEL[2]"><a href="#spartan3-GLOBAL_S3A-bit-MODE[0][2]">MODE[0][2]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_BOOT_MODE bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_BOOT_MODE[0]"><a href="#spartan3-GLOBAL_S3A-bit-MODE[0][3]">MODE[0][3]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_BOOT_MODE bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_BOOT_MODE[1]"><a href="#spartan3-GLOBAL_S3A-bit-MODE[0][4]">MODE[0][4]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_BOOT_MODE bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_BOOT_MODE[2]"><a href="#spartan3-GLOBAL_S3A-bit-MODE[0][5]">MODE[0][5]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_NEW_MODE</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_NEW_MODE"><a href="#spartan3-GLOBAL_S3A-bit-MODE[0][6]">MODE[0][6]</a></td></tr>
+
+<tr><td>TESTMODE_EN</td><td id="spartan3-GLOBAL_S3A-GLOBAL-TESTMODE_EN"><a href="#spartan3-GLOBAL_S3A-bit-MODE[0][7]">MODE[0][7]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[0]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][0]">GENERAL1[0][0]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[1]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][1]">GENERAL1[0][1]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[2]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][2]">GENERAL1[0][2]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 3</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[3]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][3]">GENERAL1[0][3]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 4</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[4]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][4]">GENERAL1[0][4]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 5</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[5]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][5]">GENERAL1[0][5]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 6</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[6]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][6]">GENERAL1[0][6]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 7</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[7]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][7]">GENERAL1[0][7]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 8</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[8]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][8]">GENERAL1[0][8]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 9</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[9]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][9]">GENERAL1[0][9]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 10</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[10]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][10]">GENERAL1[0][10]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 11</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[11]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][11]">GENERAL1[0][11]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 12</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[12]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][12]">GENERAL1[0][12]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 13</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[13]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][13]">GENERAL1[0][13]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 14</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[14]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][14]">GENERAL1[0][14]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 15</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[15]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL1[0][15]">GENERAL1[0][15]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 16</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[16]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][0]">GENERAL2[0][0]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 17</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[17]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][1]">GENERAL2[0][1]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 18</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[18]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][2]">GENERAL2[0][2]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 19</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[19]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][3]">GENERAL2[0][3]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 20</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[20]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][4]">GENERAL2[0][4]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 21</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[21]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][5]">GENERAL2[0][5]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 22</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[22]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][6]">GENERAL2[0][6]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 23</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[23]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][7]">GENERAL2[0][7]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 24</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[24]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][8]">GENERAL2[0][8]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 25</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[25]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][9]">GENERAL2[0][9]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 26</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[26]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][10]">GENERAL2[0][10]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 27</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[27]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][11]">GENERAL2[0][11]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 28</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[28]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][12]">GENERAL2[0][12]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 29</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[29]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][13]">GENERAL2[0][13]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 30</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[30]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][14]">GENERAL2[0][14]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 31</td><td id="spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[31]"><a href="#spartan3-GLOBAL_S3A-bit-GENERAL2[0][15]">GENERAL2[0][15]</a></td></tr>
+
+<tr><td>POST_CRC_EN</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_EN"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][0]">SEU_OPT[0][0]</a></td></tr>
+
+<tr><td>GLUTMASK</td><td id="spartan3-GLOBAL_S3A-GLOBAL-GLUTMASK"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][1]">SEU_OPT[0][1]</a></td></tr>
+
+<tr><td>POST_CRC_KEEP</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_KEEP"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][3]">SEU_OPT[0][3]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 0</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[0]"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][4]">SEU_OPT[0][4]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 1</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[1]"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][5]">SEU_OPT[0][5]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 2</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[2]"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][6]">SEU_OPT[0][6]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 3</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[3]"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][7]">SEU_OPT[0][7]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 4</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[4]"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][8]">SEU_OPT[0][8]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 5</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[5]"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][9]">SEU_OPT[0][9]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 6</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[6]"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][10]">SEU_OPT[0][10]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 7</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[7]"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][11]">SEU_OPT[0][11]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 8</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[8]"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][12]">SEU_OPT[0][12]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 9</td><td id="spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[9]"><a href="#spartan3-GLOBAL_S3A-bit-SEU_OPT[0][13]">SEU_OPT[0][13]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A enum STARTUP_CYCLE</caption>
+<thead>
+<tr id="spartan3-GLOBAL_S3A-GLOBAL-GWE_CYCLE"><th>GLOBAL.GWE_CYCLE</th><td id="spartan3-GLOBAL_S3A-GLOBAL-GWE_CYCLE[2]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][2]">COR2[0][2]</a></td><td id="spartan3-GLOBAL_S3A-GLOBAL-GWE_CYCLE[1]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][1]">COR2[0][1]</a></td><td id="spartan3-GLOBAL_S3A-GLOBAL-GWE_CYCLE[0]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][0]">COR2[0][0]</a></td></tr>
+
+<tr id="spartan3-GLOBAL_S3A-GLOBAL-GTS_CYCLE"><th>GLOBAL.GTS_CYCLE</th><td id="spartan3-GLOBAL_S3A-GLOBAL-GTS_CYCLE[2]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][5]">COR2[0][5]</a></td><td id="spartan3-GLOBAL_S3A-GLOBAL-GTS_CYCLE[1]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][4]">COR2[0][4]</a></td><td id="spartan3-GLOBAL_S3A-GLOBAL-GTS_CYCLE[0]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][3]">COR2[0][3]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_2</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_3</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_4</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_5</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>_6</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>DONE</td><td>1</td><td>1</td><td>1</td></tr>
+
+<tr><td>KEEP</td><td>0</td><td>0</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A enum STARTUP_CYCLE</caption>
+<thead>
+<tr id="spartan3-GLOBAL_S3A-GLOBAL-LOCK_CYCLE"><th>GLOBAL.LOCK_CYCLE</th><td id="spartan3-GLOBAL_S3A-GLOBAL-LOCK_CYCLE[2]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][8]">COR2[0][8]</a></td><td id="spartan3-GLOBAL_S3A-GLOBAL-LOCK_CYCLE[1]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][7]">COR2[0][7]</a></td><td id="spartan3-GLOBAL_S3A-GLOBAL-LOCK_CYCLE[0]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][6]">COR2[0][6]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_2</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_3</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_4</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_5</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>_6</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>NOWAIT</td><td>1</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A enum STARTUP_CYCLE</caption>
+<thead>
+<tr id="spartan3-GLOBAL_S3A-GLOBAL-DONE_CYCLE"><th>GLOBAL.DONE_CYCLE</th><td id="spartan3-GLOBAL_S3A-GLOBAL-DONE_CYCLE[2]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][11]">COR2[0][11]</a></td><td id="spartan3-GLOBAL_S3A-GLOBAL-DONE_CYCLE[1]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][10]">COR2[0][10]</a></td><td id="spartan3-GLOBAL_S3A-GLOBAL-DONE_CYCLE[0]"><a href="#spartan3-GLOBAL_S3A-bit-COR2[0][9]">COR2[0][9]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_2</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_3</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_4</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_5</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>_6</td><td>1</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A enum STARTUP_CLOCK</caption>
+<thead>
+<tr id="spartan3-GLOBAL_S3A-GLOBAL-STARTUP_CLOCK"><th>GLOBAL.STARTUP_CLOCK</th><td id="spartan3-GLOBAL_S3A-GLOBAL-STARTUP_CLOCK[1]"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][1]">COR1[0][1]</a></td><td id="spartan3-GLOBAL_S3A-GLOBAL-STARTUP_CLOCK[0]"><a href="#spartan3-GLOBAL_S3A-bit-COR1[0][0]">COR1[0][0]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CCLK</td><td>0</td><td>0</td></tr>
+
+<tr><td>USERCLK</td><td>0</td><td>1</td></tr>
+
+<tr><td>JTAGCLK</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A enum SECURITY</caption>
+<thead>
+<tr id="spartan3-GLOBAL_S3A-GLOBAL-SECURITY"><th>GLOBAL.SECURITY</th><td id="spartan3-GLOBAL_S3A-GLOBAL-SECURITY[1]"><a href="#spartan3-GLOBAL_S3A-bit-CTL[0][5]">CTL[0][5]</a></td><td id="spartan3-GLOBAL_S3A-GLOBAL-SECURITY[0]"><a href="#spartan3-GLOBAL_S3A-bit-CTL[0][4]">CTL[0][4]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>0</td></tr>
+
+<tr><td>LEVEL1</td><td>0</td><td>1</td></tr>
+
+<tr><td>LEVEL2</td><td>1</td><td>0</td></tr>
+
+<tr><td>LEVEL3</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A enum SW_CLK</caption>
+<thead>
+<tr id="spartan3-GLOBAL_S3A-GLOBAL-SW_CLK"><th>GLOBAL.SW_CLK</th><td id="spartan3-GLOBAL_S3A-GLOBAL-SW_CLK[0]"><a href="#spartan3-GLOBAL_S3A-bit-POWERDOWN[0][0]">POWERDOWN[0][0]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>INTERNALCLK</td><td>0</td></tr>
+
+<tr><td>STARTUPCLK</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A rect COR1</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.COR1.S3A-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK[0]</a>
+<tr><td>F0</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][15]" title="COR1[0][15]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-DRIVE_AWAKE">GLOBAL:  DRIVE_AWAKE</a>
 </td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.COR1.S3A-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-REG.COR1.S3A-STARTUP:DRIVE_DONE">STARTUP:DRIVE_DONE</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-REG.COR1.S3A-STARTUP:DONE_PIPE">STARTUP:DONE_PIPE</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.COR1.S3A-STARTUP:CRC">~STARTUP:CRC</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.COR1.S3A-STARTUP:VRDSEL">STARTUP:VRDSEL[0]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan3-REG.COR1.S3A-STARTUP:VRDSEL">STARTUP:VRDSEL[1]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-REG.COR1.S3A-STARTUP:VRDSEL">STARTUP:VRDSEL[2]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan3-REG.COR1.S3A-MISC:SEND_VGG">MISC:SEND_VGG[0]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan3-REG.COR1.S3A-MISC:SEND_VGG">MISC:SEND_VGG[1]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan3-REG.COR1.S3A-MISC:SEND_VGG">MISC:SEND_VGG[2]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan3-REG.COR1.S3A-MISC:SEND_VGG">MISC:SEND_VGG[3]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan3-REG.COR1.S3A-MISC:VGG_SENDMAX">~MISC:VGG_SENDMAX</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan3-REG.COR1.S3A-MISC:VGG_ENABLE_OFFCHIP">~MISC:VGG_ENABLE_OFFCHIP</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
 <td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan3-REG.COR1.S3A-STARTUP:DRIVE_AWAKE">STARTUP:DRIVE_AWAKE</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][13]" title="COR1[0][13]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-VGG_ENABLE_OFFCHIP">GLOBAL: ! VGG_ENABLE_OFFCHIP</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][12]" title="COR1[0][12]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-VGG_SENDMAX">GLOBAL: ! VGG_SENDMAX</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][11]" title="COR1[0][11]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SEND_VGG[3]">GLOBAL:  SEND_VGG bit 3</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][10]" title="COR1[0][10]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SEND_VGG[2]">GLOBAL:  SEND_VGG bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][9]" title="COR1[0][9]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SEND_VGG[1]">GLOBAL:  SEND_VGG bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][8]" title="COR1[0][8]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SEND_VGG[0]">GLOBAL:  SEND_VGG bit 0</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][7]" title="COR1[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-S3A_VRDSEL[2]">GLOBAL:  S3A_VRDSEL bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][6]" title="COR1[0][6]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-S3A_VRDSEL[1]">GLOBAL:  S3A_VRDSEL bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][5]" title="COR1[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-S3A_VRDSEL[0]">GLOBAL:  S3A_VRDSEL bit 0</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][4]" title="COR1[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CRC_ENABLE">GLOBAL: ! CRC_ENABLE</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][3]" title="COR1[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-DONE_PIPE">GLOBAL:  DONE_PIPE</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][2]" title="COR1[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-DRIVE_DONE">GLOBAL:  DRIVE_DONE</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][1]" title="COR1[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-STARTUP_CLOCK[1]">GLOBAL:  STARTUP_CLOCK bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR1[0][0]" title="COR1[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-STARTUP_CLOCK[0]">GLOBAL:  STARTUP_CLOCK bit 0</a>
 </td>
 </tr>
 
@@ -269,253 +687,80 @@
 
 <div class="table-wrapper">
 <table>
+<caption>spartan3 GLOBAL_S3A rect COR2</caption>
 <thead>
-<tr><th id="tile-spartan3-REG.COR1.S3A-MISC:SEND_VGG">MISC:SEND_VGG</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.COR1.S3A-MISC:VGG_ENABLE_OFFCHIP">MISC:VGG_ENABLE_OFFCHIP</th>
-<th>0.F0.B13</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.COR1.S3A-MISC:VGG_SENDMAX">MISC:VGG_SENDMAX</th>
-<th>0.F0.B12</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:CRC">STARTUP:CRC</th>
-<th>0.F0.B4</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:DONE_PIPE">STARTUP:DONE_PIPE</th>
-<th>0.F0.B3</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:DRIVE_AWAKE">STARTUP:DRIVE_AWAKE</th>
-<th>0.F0.B15</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:DRIVE_DONE">STARTUP:DRIVE_DONE</th>
-<th>0.F0.B2</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>CCLK</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>USERCLK</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>JTAGCLK</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:VRDSEL">STARTUP:VRDSEL</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="cor2s3a"><a class="header" href="#cor2s3a"><code>COR2.S3A</code></a></h2>
-<p>This is the Spartan 3A version of <code>COR2</code>.</p>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.COR2.S3A rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[0]</a>
+<tr><td>F0</td>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][15]" title="COR2[0][15]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-RESET_ON_ERR">GLOBAL:  RESET_ON_ERR</a>
 </td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[1]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][14]" title="COR2[0][14]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-ICAP_BYPASS">GLOBAL:  ICAP_BYPASS</a>
 </td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[2]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][13]" title="COR2[0][13]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-BPI_DIV8">GLOBAL:  BPI_DIV8</a>
 </td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[0]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][12]" title="COR2[0][12]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CAPTURE_ONESHOT">GLOBAL:  CAPTURE_ONESHOT</a>
 </td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[1]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][11]" title="COR2[0][11]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-DONE_CYCLE[2]">GLOBAL:  DONE_CYCLE bit 2</a>
 </td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[2]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][10]" title="COR2[0][10]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-DONE_CYCLE[1]">GLOBAL:  DONE_CYCLE bit 1</a>
 </td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[0]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][9]" title="COR2[0][9]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-DONE_CYCLE[0]">GLOBAL:  DONE_CYCLE bit 0</a>
 </td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[1]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][8]" title="COR2[0][8]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-LOCK_CYCLE[2]">GLOBAL:  LOCK_CYCLE bit 2</a>
 </td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[2]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][7]" title="COR2[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-LOCK_CYCLE[1]">GLOBAL:  LOCK_CYCLE bit 1</a>
 </td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[0]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][6]" title="COR2[0][6]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-LOCK_CYCLE[0]">GLOBAL:  LOCK_CYCLE bit 0</a>
 </td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[1]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][5]" title="COR2[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-GTS_CYCLE[2]">GLOBAL:  GTS_CYCLE bit 2</a>
 </td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[2]</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][4]" title="COR2[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-GTS_CYCLE[1]">GLOBAL:  GTS_CYCLE bit 1</a>
 </td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan3-REG.COR2.S3A-CAPTURE:ONESHOT">CAPTURE:ONESHOT</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][3]" title="COR2[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-GTS_CYCLE[0]">GLOBAL:  GTS_CYCLE bit 0</a>
 </td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:BPI_DIV8">STARTUP:BPI_DIV8</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][2]" title="COR2[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-GWE_CYCLE[2]">GLOBAL:  GWE_CYCLE bit 2</a>
 </td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan3-REG.COR2.S3A-ICAP:BYPASS">ICAP:BYPASS</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][1]" title="COR2[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-GWE_CYCLE[1]">GLOBAL:  GWE_CYCLE bit 1</a>
 </td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan3-REG.COR2.S3A-STARTUP:RESET_ON_ERR">STARTUP:RESET_ON_ERR</a>
+<td id="spartan3-GLOBAL_S3A-bit-COR2[0][0]" title="COR2[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-GWE_CYCLE[0]">GLOBAL:  GWE_CYCLE bit 0</a>
 </td>
 </tr>
 
@@ -526,1838 +771,62 @@ non-inverted
 
 <div class="table-wrapper">
 <table>
+<caption>spartan3 GLOBAL_S3A rect CTL</caption>
 <thead>
-<tr><th id="tile-spartan3-REG.COR2.S3A-CAPTURE:ONESHOT">CAPTURE:ONESHOT</th>
-<th>0.F0.B12</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.COR2.S3A-ICAP:BYPASS">ICAP:BYPASS</th>
-<th>0.F0.B14</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:BPI_DIV8">STARTUP:BPI_DIV8</th>
-<th>0.F0.B13</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:RESET_ON_ERR">STARTUP:RESET_ON_ERR</th>
-<th>0.F0.B15</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>4</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>5</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>6</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>KEEP</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>4</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>5</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>6</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>DONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>4</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>5</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>6</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NOWAIT</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="ctls3a"><a class="header" href="#ctls3a"><code>CTL.S3A</code></a></h2>
-<p>This is the Spartan 3A version of <code>CTL</code>.</p>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.CTL.S3A rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.CTL.S3A-MISC:GTS_USR_B">MISC:GTS_USR_B</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.CTL.S3A-MISC:VGG_TEST">MISC:VGG_TEST</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-REG.CTL.S3A-ICAP:ENABLE">ICAP:ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-REG.CTL.S3A-MISC:PERSIST">MISC:PERSIST</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.CTL.S3A-MISC:SECURITY">MISC:SECURITY[0]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.CTL.S3A-MISC:SECURITY">MISC:SECURITY[1]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
+<tr><td>F0</td>
 <td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-REG.CTL.S3A-MISC:MULTIBOOT_ENABLE">MISC:MULTIBOOT_ENABLE</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.CTL.S3A-ICAP:ENABLE">ICAP:ENABLE</th>
-<th>0.F0.B2</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.CTL.S3A-MISC:GTS_USR_B">MISC:GTS_USR_B</th>
-<th>0.F0.B0</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.CTL.S3A-MISC:MULTIBOOT_ENABLE">MISC:MULTIBOOT_ENABLE</th>
-<th>0.F0.B7</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.CTL.S3A-MISC:PERSIST">MISC:PERSIST</th>
-<th>0.F0.B3</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.CTL.S3A-MISC:VGG_TEST">MISC:VGG_TEST</th>
-<th>0.F0.B1</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.CTL.S3A-MISC:SECURITY">MISC:SECURITY</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>LEVEL1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>LEVEL2</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>LEVEL3</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="cclk_freq"><a class="header" href="#cclk_freq"><code>CCLK_FREQ</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.CCLK_FREQ rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[7]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[8]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[9]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_DLY">STARTUP:CCLK_DLY[0]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_DLY">STARTUP:CCLK_DLY[1]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_SEP">STARTUP:CCLK_SEP[0]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_SEP">STARTUP:CCLK_SEP[1]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CLK_SWITCH_OPT">STARTUP:CLK_SWITCH_OPT[0]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CLK_SWITCH_OPT">STARTUP:CLK_SWITCH_OPT[1]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_DLY">STARTUP:CCLK_DLY</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_SEP">STARTUP:CCLK_SEP</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.CCLK_FREQ-STARTUP:CLK_SWITCH_OPT">STARTUP:CLK_SWITCH_OPT</th>
-<th>0.F0.B15</th>
-<th>0.F0.B14</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>100</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>50</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>44</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>33</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>27</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>25</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>22</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>17</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>13</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>12</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>10</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>8</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>7</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>6</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="hc_opt"><a class="header" href="#hc_opt"><code>HC_OPT</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.HC_OPT rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.HC_OPT-MISC:TWO_ROUND">MISC:TWO_ROUND</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.HC_OPT-MISC:BRAM_SKIP">MISC:BRAM_SKIP</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.HC_OPT-MISC:BRAM_SKIP">MISC:BRAM_SKIP</th>
-<th>0.F0.B5</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.HC_OPT-MISC:TWO_ROUND">MISC:TWO_ROUND</th>
-<th>0.F0.B4</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="powerdown"><a class="header" href="#powerdown"><code>POWERDOWN</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.POWERDOWN rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:SW_CLK">MISC:SW_CLK[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:EN_PORB">~MISC:EN_PORB</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:EN_SUSPEND">MISC:EN_SUSPEND</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
 <td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:EN_SW_GSR">MISC:EN_SW_GSR</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:SUSPEND_FILTER">~MISC:SUSPEND_FILTER</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1[0]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1[1]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1[2]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[0]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[1]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[2]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[3]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[4]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.POWERDOWN-MISC:EN_PORB">MISC:EN_PORB</th>
-<th>0.F0.B1</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.POWERDOWN-MISC:SUSPEND_FILTER">MISC:SUSPEND_FILTER</th>
-<th>0.F0.B5</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.POWERDOWN-MISC:EN_SUSPEND">MISC:EN_SUSPEND</th>
-<th>0.F0.B2</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.POWERDOWN-MISC:EN_SW_GSR">MISC:EN_SW_GSR</th>
-<th>0.F0.B4</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.POWERDOWN-MISC:SW_CLK">MISC:SW_CLK</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>INTERNALCLK</td>
-<td>0</td>
-</tr>
-
-<tr><td>STARTUPCLK</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="pu_gwe"><a class="header" href="#pu_gwe"><code>PU_GWE</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.PU_GWE rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[7]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[8]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[9]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="pu_gts"><a class="header" href="#pu_gts"><code>PU_GTS</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.PU_GTS rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[7]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[8]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[9]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="mode"><a class="header" href="#mode"><code>MODE</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.MODE rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.MODE-MISC:BOOTVSEL">MISC:BOOTVSEL[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.MODE-MISC:BOOTVSEL">MISC:BOOTVSEL[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-REG.MODE-MISC:BOOTVSEL">MISC:BOOTVSEL[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE[0]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE[1]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE[2]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_NEW_MODE">MISC:NEXT_CONFIG_NEW_MODE</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-REG.MODE-MISC:TESTMODE_EN">MISC:TESTMODE_EN</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.MODE-MISC:BOOTVSEL">MISC:BOOTVSEL</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_NEW_MODE">MISC:NEXT_CONFIG_NEW_MODE</th>
-<th>0.F0.B6</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.MODE-MISC:TESTMODE_EN">MISC:TESTMODE_EN</th>
-<th>0.F0.B7</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="general12"><a class="header" href="#general12"><code>GENERAL[12]</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.GENERAL rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[7]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[8]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[9]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[10]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[11]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[12]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[13]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[14]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[15]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.GENERAL rect R1</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R1.F0.B0">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[16]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R1.F0.B1">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[17]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R1.F0.B2">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[18]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R1.F0.B3">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[19]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R1.F0.B4">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[20]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R1.F0.B5">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[21]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R1.F0.B6">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[22]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R1.F0.B7">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[23]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R1.F0.B8">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[24]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R1.F0.B9">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[25]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R1.F0.B10">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[26]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R1.F0.B11">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[27]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R1.F0.B12">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[28]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R1.F0.B13">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[29]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R1.F0.B14">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[30]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R1.F0.B15">
-<a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[31]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR</th>
-<th>1.F0.B15</th>
-<th>1.F0.B14</th>
-<th>1.F0.B13</th>
-<th>1.F0.B12</th>
-<th>1.F0.B11</th>
-<th>1.F0.B10</th>
-<th>1.F0.B9</th>
-<th>1.F0.B8</th>
-<th>1.F0.B7</th>
-<th>1.F0.B6</th>
-<th>1.F0.B5</th>
-<th>1.F0.B4</th>
-<th>1.F0.B3</th>
-<th>1.F0.B2</th>
-<th>1.F0.B1</th>
-<th>1.F0.B0</th>
-<th>0.F0.B15</th>
-<th>0.F0.B14</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[31]</td>
-<td>[30]</td>
-<td>[29]</td>
-<td>[28]</td>
-<td>[27]</td>
-<td>[26]</td>
-<td>[25]</td>
-<td>[24]</td>
-<td>[23]</td>
-<td>[22]</td>
-<td>[21]</td>
-<td>[20]</td>
-<td>[19]</td>
-<td>[18]</td>
-<td>[17]</td>
-<td>[16]</td>
-<td>[15]</td>
-<td>[14]</td>
-<td>[13]</td>
-<td>[12]</td>
-<td>[11]</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="seu_opt"><a class="header" href="#seu_opt"><code>SEU_OPT</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan3 REG.SEU_OPT rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_EN">MISC:POST_CRC_EN</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:GLUTMASK">MISC:GLUTMASK</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
 <td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_KEEP">MISC:POST_CRC_KEEP</a>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan3-GLOBAL_S3A-bit-CTL[0][7]" title="CTL[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-MULTIBOOT_ENABLE">GLOBAL:  MULTIBOOT_ENABLE</a>
 </td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[0]</a>
+<td>-</td>
+<td id="spartan3-GLOBAL_S3A-bit-CTL[0][5]" title="CTL[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SECURITY[1]">GLOBAL:  SECURITY bit 1</a>
 </td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[1]</a>
+<td id="spartan3-GLOBAL_S3A-bit-CTL[0][4]" title="CTL[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SECURITY[0]">GLOBAL:  SECURITY bit 0</a>
 </td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[2]</a>
+<td id="spartan3-GLOBAL_S3A-bit-CTL[0][3]" title="CTL[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-PERSIST">GLOBAL:  PERSIST</a>
 </td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[3]</a>
+<td id="spartan3-GLOBAL_S3A-bit-CTL[0][2]" title="CTL[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-ICAP_ENABLE">GLOBAL:  ICAP_ENABLE</a>
 </td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[4]</a>
+<td id="spartan3-GLOBAL_S3A-bit-CTL[0][1]" title="CTL[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-VGG_TEST">GLOBAL:  VGG_TEST</a>
 </td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[5]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[6]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[7]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[8]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[9]</a>
+<td id="spartan3-GLOBAL_S3A-bit-CTL[0][0]" title="CTL[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-GTS_USR_B">GLOBAL:  GTS_USR_B</a>
 </td>
 </tr>
 
@@ -2368,659 +837,681 @@ non-inverted
 
 <div class="table-wrapper">
 <table>
+<caption>spartan3 GLOBAL_S3A rect CCLK_FREQ</caption>
 <thead>
-<tr><th id="tile-spartan3-REG.SEU_OPT-MISC:GLUTMASK">MISC:GLUTMASK</th>
-<th>0.F0.B1</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_EN">MISC:POST_CRC_EN</th>
-<th>0.F0.B0</th>
-</tr>
-
-<tr><th id="tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_KEEP">MISC:POST_CRC_KEEP</th>
-<th>0.F0.B3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>100</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>50</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>44</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>33</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>27</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>25</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>22</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>17</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>13</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>12</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>10</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>8</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>7</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>6</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="device-data"><a class="header" href="#device-data">Device data</a></h2>
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th rowspan="2">Device</th>
-<th colspan="4">MISC:SEND_VGG_DEFAULT</th>
-<th colspan="1">MISC:VGG_SENDMAX_DEFAULT</th>
-</tr>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>[3]</th>
-<th>[2]</th>
-<th>[1]</th>
-<th>[0]</th>
-<th>[0]</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>xc3s50</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+<tr><td>F0</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][15]" title="CCLK_FREQ[0][15]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CLK_SWITCH_OPT[1]">GLOBAL:  CLK_SWITCH_OPT bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][14]" title="CCLK_FREQ[0][14]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CLK_SWITCH_OPT[0]">GLOBAL:  CLK_SWITCH_OPT bit 0</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][13]" title="CCLK_FREQ[0][13]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CCLK_SEP[1]">GLOBAL:  CCLK_SEP bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][12]" title="CCLK_FREQ[0][12]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CCLK_SEP[0]">GLOBAL:  CCLK_SEP bit 0</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][11]" title="CCLK_FREQ[0][11]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CCLK_DLY[1]">GLOBAL:  CCLK_DLY bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][10]" title="CCLK_FREQ[0][10]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CCLK_DLY[0]">GLOBAL:  CCLK_DLY bit 0</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][9]" title="CCLK_FREQ[0][9]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[9]">GLOBAL:  CONFIG_RATE_DIV bit 9</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][8]" title="CCLK_FREQ[0][8]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[8]">GLOBAL:  CONFIG_RATE_DIV bit 8</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][7]" title="CCLK_FREQ[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[7]">GLOBAL:  CONFIG_RATE_DIV bit 7</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][6]" title="CCLK_FREQ[0][6]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[6]">GLOBAL:  CONFIG_RATE_DIV bit 6</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][5]" title="CCLK_FREQ[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[5]">GLOBAL:  CONFIG_RATE_DIV bit 5</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][4]" title="CCLK_FREQ[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[4]">GLOBAL:  CONFIG_RATE_DIV bit 4</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][3]" title="CCLK_FREQ[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[3]">GLOBAL:  CONFIG_RATE_DIV bit 3</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][2]" title="CCLK_FREQ[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[2]">GLOBAL:  CONFIG_RATE_DIV bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][1]" title="CCLK_FREQ[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[1]">GLOBAL:  CONFIG_RATE_DIV bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-CCLK_FREQ[0][0]" title="CCLK_FREQ[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-CONFIG_RATE_DIV[0]">GLOBAL:  CONFIG_RATE_DIV bit 0</a>
+</td>
 </tr>
 
-<tr><td>xa3s50</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A rect HC_OPT</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
-<tr><td>xc3s200</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan3-GLOBAL_S3A-bit-HC_OPT[0][5]" title="HC_OPT[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-BRAM_SKIP">GLOBAL:  BRAM_SKIP</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-HC_OPT[0][4]" title="HC_OPT[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-TWO_ROUND">GLOBAL:  TWO_ROUND</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-HC_OPT[0][3]" title="HC_OPT[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-HC_CYCLE[3]">GLOBAL:  HC_CYCLE bit 3</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-HC_OPT[0][2]" title="HC_OPT[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-HC_CYCLE[2]">GLOBAL:  HC_CYCLE bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-HC_OPT[0][1]" title="HC_OPT[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-HC_CYCLE[1]">GLOBAL:  HC_CYCLE bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-HC_OPT[0][0]" title="HC_OPT[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-HC_CYCLE[0]">GLOBAL:  HC_CYCLE bit 0</a>
+</td>
 </tr>
 
-<tr><td>xa3s200</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A rect POWERDOWN</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
-<tr><td>xc3s400</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][13]" title="POWERDOWN[0][13]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY2[4]">GLOBAL:  WAKE_DELAY2 bit 4</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][12]" title="POWERDOWN[0][12]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY2[3]">GLOBAL:  WAKE_DELAY2 bit 3</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][11]" title="POWERDOWN[0][11]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY2[2]">GLOBAL:  WAKE_DELAY2 bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][10]" title="POWERDOWN[0][10]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY2[1]">GLOBAL:  WAKE_DELAY2 bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][9]" title="POWERDOWN[0][9]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY2[0]">GLOBAL:  WAKE_DELAY2 bit 0</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][8]" title="POWERDOWN[0][8]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY1[2]">GLOBAL:  WAKE_DELAY1 bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][7]" title="POWERDOWN[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY1[1]">GLOBAL:  WAKE_DELAY1 bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][6]" title="POWERDOWN[0][6]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-WAKE_DELAY1[0]">GLOBAL:  WAKE_DELAY1 bit 0</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][5]" title="POWERDOWN[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SUSPEND_FILTER">GLOBAL: ! SUSPEND_FILTER</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][4]" title="POWERDOWN[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-EN_SW_GSR">GLOBAL:  EN_SW_GSR</a>
+</td>
+<td>-</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][2]" title="POWERDOWN[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-EN_SUSPEND">GLOBAL:  EN_SUSPEND</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][1]" title="POWERDOWN[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-EN_PORB">GLOBAL: ! EN_PORB</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-POWERDOWN[0][0]" title="POWERDOWN[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_CLK[0]">GLOBAL:  SW_CLK bit 0</a>
+</td>
 </tr>
 
-<tr><td>xa3s400</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A rect PU_GWE</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
-<tr><td>xc3s1000</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GWE[0][9]" title="PU_GWE[0][9]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[9]">GLOBAL:  SW_GWE_CYCLE bit 9</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GWE[0][8]" title="PU_GWE[0][8]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[8]">GLOBAL:  SW_GWE_CYCLE bit 8</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GWE[0][7]" title="PU_GWE[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[7]">GLOBAL:  SW_GWE_CYCLE bit 7</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GWE[0][6]" title="PU_GWE[0][6]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[6]">GLOBAL:  SW_GWE_CYCLE bit 6</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GWE[0][5]" title="PU_GWE[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[5]">GLOBAL:  SW_GWE_CYCLE bit 5</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GWE[0][4]" title="PU_GWE[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[4]">GLOBAL:  SW_GWE_CYCLE bit 4</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GWE[0][3]" title="PU_GWE[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[3]">GLOBAL:  SW_GWE_CYCLE bit 3</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GWE[0][2]" title="PU_GWE[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[2]">GLOBAL:  SW_GWE_CYCLE bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GWE[0][1]" title="PU_GWE[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[1]">GLOBAL:  SW_GWE_CYCLE bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GWE[0][0]" title="PU_GWE[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GWE_CYCLE[0]">GLOBAL:  SW_GWE_CYCLE bit 0</a>
+</td>
 </tr>
 
-<tr><td>xa3s1000</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A rect PU_GTS</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
-<tr><td>xc3s1000l</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GTS[0][9]" title="PU_GTS[0][9]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[9]">GLOBAL:  SW_GTS_CYCLE bit 9</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GTS[0][8]" title="PU_GTS[0][8]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[8]">GLOBAL:  SW_GTS_CYCLE bit 8</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GTS[0][7]" title="PU_GTS[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[7]">GLOBAL:  SW_GTS_CYCLE bit 7</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GTS[0][6]" title="PU_GTS[0][6]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[6]">GLOBAL:  SW_GTS_CYCLE bit 6</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GTS[0][5]" title="PU_GTS[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[5]">GLOBAL:  SW_GTS_CYCLE bit 5</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GTS[0][4]" title="PU_GTS[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[4]">GLOBAL:  SW_GTS_CYCLE bit 4</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GTS[0][3]" title="PU_GTS[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[3]">GLOBAL:  SW_GTS_CYCLE bit 3</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GTS[0][2]" title="PU_GTS[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[2]">GLOBAL:  SW_GTS_CYCLE bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GTS[0][1]" title="PU_GTS[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[1]">GLOBAL:  SW_GTS_CYCLE bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-PU_GTS[0][0]" title="PU_GTS[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-SW_GTS_CYCLE[0]">GLOBAL:  SW_GTS_CYCLE bit 0</a>
+</td>
 </tr>
 
-<tr><td>xc3s1500</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A rect MODE</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
-<tr><td>xa3s1500</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan3-GLOBAL_S3A-bit-MODE[0][7]" title="MODE[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-TESTMODE_EN">GLOBAL:  TESTMODE_EN</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-MODE[0][6]" title="MODE[0][6]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_NEW_MODE">GLOBAL:  NEXT_CONFIG_NEW_MODE</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-MODE[0][5]" title="MODE[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_BOOT_MODE[2]">GLOBAL:  NEXT_CONFIG_BOOT_MODE bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-MODE[0][4]" title="MODE[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_BOOT_MODE[1]">GLOBAL:  NEXT_CONFIG_BOOT_MODE bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-MODE[0][3]" title="MODE[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_BOOT_MODE[0]">GLOBAL:  NEXT_CONFIG_BOOT_MODE bit 0</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-MODE[0][2]" title="MODE[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-BOOTVSEL[2]">GLOBAL:  BOOTVSEL bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-MODE[0][1]" title="MODE[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-BOOTVSEL[1]">GLOBAL:  BOOTVSEL bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-MODE[0][0]" title="MODE[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-BOOTVSEL[0]">GLOBAL:  BOOTVSEL bit 0</a>
+</td>
 </tr>
 
-<tr><td>xc3s1500l</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A rect GENERAL1</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
-<tr><td>xc3s2000</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][15]" title="GENERAL1[0][15]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[15]">GLOBAL:  NEXT_CONFIG_ADDR bit 15</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][14]" title="GENERAL1[0][14]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[14]">GLOBAL:  NEXT_CONFIG_ADDR bit 14</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][13]" title="GENERAL1[0][13]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[13]">GLOBAL:  NEXT_CONFIG_ADDR bit 13</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][12]" title="GENERAL1[0][12]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[12]">GLOBAL:  NEXT_CONFIG_ADDR bit 12</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][11]" title="GENERAL1[0][11]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[11]">GLOBAL:  NEXT_CONFIG_ADDR bit 11</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][10]" title="GENERAL1[0][10]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[10]">GLOBAL:  NEXT_CONFIG_ADDR bit 10</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][9]" title="GENERAL1[0][9]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[9]">GLOBAL:  NEXT_CONFIG_ADDR bit 9</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][8]" title="GENERAL1[0][8]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[8]">GLOBAL:  NEXT_CONFIG_ADDR bit 8</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][7]" title="GENERAL1[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[7]">GLOBAL:  NEXT_CONFIG_ADDR bit 7</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][6]" title="GENERAL1[0][6]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[6]">GLOBAL:  NEXT_CONFIG_ADDR bit 6</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][5]" title="GENERAL1[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[5]">GLOBAL:  NEXT_CONFIG_ADDR bit 5</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][4]" title="GENERAL1[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[4]">GLOBAL:  NEXT_CONFIG_ADDR bit 4</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][3]" title="GENERAL1[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[3]">GLOBAL:  NEXT_CONFIG_ADDR bit 3</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][2]" title="GENERAL1[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[2]">GLOBAL:  NEXT_CONFIG_ADDR bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][1]" title="GENERAL1[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[1]">GLOBAL:  NEXT_CONFIG_ADDR bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL1[0][0]" title="GENERAL1[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[0]">GLOBAL:  NEXT_CONFIG_ADDR bit 0</a>
+</td>
 </tr>
 
-<tr><td>xc3s4000</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A rect GENERAL2</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
-<tr><td>xc3s4000l</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][15]" title="GENERAL2[0][15]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[31]">GLOBAL:  NEXT_CONFIG_ADDR bit 31</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][14]" title="GENERAL2[0][14]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[30]">GLOBAL:  NEXT_CONFIG_ADDR bit 30</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][13]" title="GENERAL2[0][13]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[29]">GLOBAL:  NEXT_CONFIG_ADDR bit 29</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][12]" title="GENERAL2[0][12]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[28]">GLOBAL:  NEXT_CONFIG_ADDR bit 28</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][11]" title="GENERAL2[0][11]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[27]">GLOBAL:  NEXT_CONFIG_ADDR bit 27</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][10]" title="GENERAL2[0][10]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[26]">GLOBAL:  NEXT_CONFIG_ADDR bit 26</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][9]" title="GENERAL2[0][9]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[25]">GLOBAL:  NEXT_CONFIG_ADDR bit 25</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][8]" title="GENERAL2[0][8]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[24]">GLOBAL:  NEXT_CONFIG_ADDR bit 24</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][7]" title="GENERAL2[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[23]">GLOBAL:  NEXT_CONFIG_ADDR bit 23</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][6]" title="GENERAL2[0][6]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[22]">GLOBAL:  NEXT_CONFIG_ADDR bit 22</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][5]" title="GENERAL2[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[21]">GLOBAL:  NEXT_CONFIG_ADDR bit 21</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][4]" title="GENERAL2[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[20]">GLOBAL:  NEXT_CONFIG_ADDR bit 20</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][3]" title="GENERAL2[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[19]">GLOBAL:  NEXT_CONFIG_ADDR bit 19</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][2]" title="GENERAL2[0][2]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[18]">GLOBAL:  NEXT_CONFIG_ADDR bit 18</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][1]" title="GENERAL2[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[17]">GLOBAL:  NEXT_CONFIG_ADDR bit 17</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-GENERAL2[0][0]" title="GENERAL2[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-NEXT_CONFIG_ADDR[16]">GLOBAL:  NEXT_CONFIG_ADDR bit 16</a>
+</td>
 </tr>
 
-<tr><td>xc3s5000</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 GLOBAL_S3A rect SEU_OPT</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
-<tr><td>xcexf10</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
+</thead>
 
-<tr><td>xcexf20</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xcexf40</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s100e</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3s100e</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s250e</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3s250e</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s500e</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3s500e</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s1200e</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3s1200e</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s1600e</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3s1600e</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s50a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s50an</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s200a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3s200a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s200an</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s400a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3s400a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s400an</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s700a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3s700a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s700an</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s1400a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3s1400a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3s1400an</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3sd1800a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3sd1800a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xc3sd3400a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>xa3sd3400a</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][13]" title="SEU_OPT[0][13]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[9]">GLOBAL:  POST_CRC_FREQ_DIV bit 9</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][12]" title="SEU_OPT[0][12]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[8]">GLOBAL:  POST_CRC_FREQ_DIV bit 8</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][11]" title="SEU_OPT[0][11]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[7]">GLOBAL:  POST_CRC_FREQ_DIV bit 7</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][10]" title="SEU_OPT[0][10]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[6]">GLOBAL:  POST_CRC_FREQ_DIV bit 6</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][9]" title="SEU_OPT[0][9]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[5]">GLOBAL:  POST_CRC_FREQ_DIV bit 5</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][8]" title="SEU_OPT[0][8]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[4]">GLOBAL:  POST_CRC_FREQ_DIV bit 4</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][7]" title="SEU_OPT[0][7]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[3]">GLOBAL:  POST_CRC_FREQ_DIV bit 3</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][6]" title="SEU_OPT[0][6]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[2]">GLOBAL:  POST_CRC_FREQ_DIV bit 2</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][5]" title="SEU_OPT[0][5]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[1]">GLOBAL:  POST_CRC_FREQ_DIV bit 1</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][4]" title="SEU_OPT[0][4]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_FREQ_DIV[0]">GLOBAL:  POST_CRC_FREQ_DIV bit 0</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][3]" title="SEU_OPT[0][3]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_KEEP">GLOBAL:  POST_CRC_KEEP</a>
+</td>
+<td>-</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][1]" title="SEU_OPT[0][1]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-GLUTMASK">GLOBAL:  GLUTMASK</a>
+</td>
+<td id="spartan3-GLOBAL_S3A-bit-SEU_OPT[0][0]" title="SEU_OPT[0][0]">
+<a href="#spartan3-GLOBAL_S3A-GLOBAL-POST_CRC_EN">GLOBAL:  POST_CRC_EN</a>
+</td>
 </tr>
 
 </tbody>

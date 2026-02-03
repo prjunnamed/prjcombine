@@ -551,13 +551,13 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>INTF</td><td>INTF_GT_S0, INTF_GT_S123, INTF_GT_S_CLKPAD, INTF_GT_N0, INTF_GT_N123, INTF_GT_N_CLKPAD, INTF_PPC</td><td>INTF_TESTMUX</td></tr>
 
-<tr><td>BEL</td><td>CLB, IOI, IOI_CLK_S, IOI_CLK_N, BRAM, DCM_V2, DCM_V2P, GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N, PPC_W, PPC_E, CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td><td>SLICE[0], SLICE[1], SLICE[2], SLICE[3], TBUF[0], TBUF[1], TBUS, IOI[0], IOI[1], IOI[2], IOI[3], IBUF[0], IBUF[1], IBUF[2], IBUF[3], OBUF[0], OBUF[1], OBUF[2], OBUF[3], BRAM, MULT, MULT_INT, DSP, DSP_TESTMUX, DCM, DCM_INT, GT, GT10, PPC405, DCI[0], DCI[1], DCIRESET[0], DCIRESET[1], STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
+<tr><td>BEL</td><td>CLB, IOI, IOI_CLK_S, IOI_CLK_N, BRAM, DCM_V2, DCM_V2P, GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N, PPC_W, PPC_E, CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td><td>SLICE[0], SLICE[1], SLICE[2], SLICE[3], TBUF[0], TBUF[1], TBUS, IOI[0], IOI[1], IOI[2], IOI[3], IREG[0], IREG[1], IREG[2], IREG[3], OREG[0], OREG[1], OREG[2], OREG[3], BRAM, MULT, MULT_INT, DSP, DSP_TESTMUX, DCM, DCM_INT, GT, GT10, PPC405, DCI[0], DCI[1], DCIRESET[0], DCIRESET[1], STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, RANDOR_OUT, MISC_CNR_S3, MISR_FC, MISC_SW, MISC_SE, MISC_NW, MISC_NE, BANK</td></tr>
 
 <tr><td>TERM_H</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E, LLH</td></tr>
 
 <tr><td>TERM_V</td><td>TERM_S, TERM_N, PPC_TERM_S, PPC_TERM_N</td><td>TERM_S, TERM_N, PPC_TERM_S, PPC_TERM_N, LLV</td></tr>
 
-<tr><td>IOB</td><td>IOB_V2_SW2, IOB_V2_SE2, IOB_V2_NW2, IOB_V2_NE2, IOB_V2_WS2, IOB_V2_WN2, IOB_V2_ES2, IOB_V2_EN2, IOB_V2P_SW2, IOB_V2P_SE2, IOB_V2P_SE2_CLK, IOB_V2P_SW1, IOB_V2P_SW1_ALT, IOB_V2P_SE1, IOB_V2P_SE1_ALT, IOB_V2P_NW2, IOB_V2P_NE2, IOB_V2P_NE2_CLK, IOB_V2P_NW1, IOB_V2P_NW1_ALT, IOB_V2P_NE1, IOB_V2P_NE1_ALT, IOB_V2P_WS2, IOB_V2P_WN2, IOB_V2P_ES2, IOB_V2P_EN2</td><td></td></tr>
+<tr><td>IOB</td><td>IOB_V2_SW2, IOB_V2_SE2, IOB_V2_NW2, IOB_V2_NE2, IOB_V2_WS2, IOB_V2_WN2, IOB_V2_ES2, IOB_V2_EN2, IOB_V2P_SW2, IOB_V2P_SE2, IOB_V2P_SE2_CLK, IOB_V2P_SW1, IOB_V2P_SW1_ALT, IOB_V2P_SE1, IOB_V2P_SE1_ALT, IOB_V2P_NW2, IOB_V2P_NE2, IOB_V2P_NE2_CLK, IOB_V2P_NW1, IOB_V2P_NW1_ALT, IOB_V2P_NE1, IOB_V2P_NE1_ALT, IOB_V2P_WS2, IOB_V2P_WN2, IOB_V2P_ES2, IOB_V2P_EN2</td><td>IOB[0], IOB[1], IOB[2], IOB[3], IOB[4], IOB[5], IOB[6], IOB[7], IBUF[0], IBUF[1], IBUF[2], IBUF[3], OBUF[0], OBUF[1], OBUF[2], OBUF[3]</td></tr>
 
 <tr><td>CLK</td><td>CLK_S, CLK_N, DCMCONN_S, DCMCONN_N, PCI_W, PCI_E</td><td>CLK_INT, BUFGMUX[0], BUFGMUX[1], BUFGMUX[2], BUFGMUX[3], BUFGMUX[4], BUFGMUX[5], BUFGMUX[6], BUFGMUX[7], PCILOGIC, PCILOGICSE, GLOBALSIG_BUFG[0], GLOBALSIG_BUFG[1], DCMCONN</td></tr>
 
@@ -566,6 +566,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <tr><td>HCLK</td><td>HCLK</td><td>HCLK, GLOBALSIG_HCLK</td></tr>
 
 <tr><td>RANDOR</td><td></td><td>RANDOR, RANDOR_INIT</td></tr>
+
+<tr><td>GLOBAL</td><td>GLOBAL</td><td>GLOBAL</td></tr>
 
 </tbody>
 
@@ -602,29 +604,29 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>TBUS</td><td>TBUS</td><td>BEL</td><td>CLB</td></tr>
 
-<tr><td>IOI[0]</td><td>legacy</td><td>BEL</td><td>IOI, IOI_CLK_S, IOI_CLK_N</td></tr>
+<tr><td>IOI[0]</td><td>IOI</td><td>BEL</td><td>IOI, IOI_CLK_S, IOI_CLK_N</td></tr>
 
-<tr><td>IOI[1]</td><td>legacy</td><td>BEL</td><td>IOI, IOI_CLK_S, IOI_CLK_N</td></tr>
+<tr><td>IOI[1]</td><td>IOI</td><td>BEL</td><td>IOI, IOI_CLK_S, IOI_CLK_N</td></tr>
 
-<tr><td>IOI[2]</td><td>legacy</td><td>BEL</td><td>IOI, IOI_CLK_S, IOI_CLK_N</td></tr>
+<tr><td>IOI[2]</td><td>IOI</td><td>BEL</td><td>IOI, IOI_CLK_S, IOI_CLK_N</td></tr>
 
-<tr><td>IOI[3]</td><td>legacy</td><td>BEL</td><td>IOI, IOI_CLK_S, IOI_CLK_N</td></tr>
+<tr><td>IOI[3]</td><td>IOI</td><td>BEL</td><td>IOI, IOI_CLK_S, IOI_CLK_N</td></tr>
 
-<tr><td>IBUF[0]</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>IREG[0]</td><td>IREG</td><td>BEL</td><td></td></tr>
 
-<tr><td>IBUF[1]</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>IREG[1]</td><td>IREG</td><td>BEL</td><td></td></tr>
 
-<tr><td>IBUF[2]</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>IREG[2]</td><td>IREG</td><td>BEL</td><td></td></tr>
 
-<tr><td>IBUF[3]</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>IREG[3]</td><td>IREG</td><td>BEL</td><td></td></tr>
 
-<tr><td>OBUF[0]</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>OREG[0]</td><td>OREG</td><td>BEL</td><td></td></tr>
 
-<tr><td>OBUF[1]</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>OREG[1]</td><td>OREG</td><td>BEL</td><td></td></tr>
 
-<tr><td>OBUF[2]</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>OREG[2]</td><td>OREG</td><td>BEL</td><td></td></tr>
 
-<tr><td>OBUF[3]</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>OREG[3]</td><td>OREG</td><td>BEL</td><td></td></tr>
 
 <tr><td>BRAM</td><td>BRAM</td><td>BEL</td><td>BRAM</td></tr>
 
@@ -636,7 +638,7 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>DSP_TESTMUX</td><td>routing</td><td>BEL</td><td></td></tr>
 
-<tr><td>DCM</td><td>legacy</td><td>BEL</td><td>DCM_V2, DCM_V2P</td></tr>
+<tr><td>DCM</td><td>DCM</td><td>BEL</td><td>DCM_V2, DCM_V2P</td></tr>
 
 <tr><td>DCM_INT</td><td>routing</td><td>BEL</td><td></td></tr>
 
@@ -646,35 +648,45 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>PPC405</td><td>PPC405</td><td>BEL</td><td>PPC_W, PPC_E</td></tr>
 
-<tr><td>DCI[0]</td><td>legacy</td><td>BEL</td><td>CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td></tr>
+<tr><td>DCI[0]</td><td>DCI</td><td>BEL</td><td>CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td></tr>
 
-<tr><td>DCI[1]</td><td>legacy</td><td>BEL</td><td>CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td></tr>
+<tr><td>DCI[1]</td><td>DCI</td><td>BEL</td><td>CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td></tr>
 
-<tr><td>DCIRESET[0]</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>DCIRESET[0]</td><td>DCIRESET</td><td>BEL</td><td></td></tr>
 
-<tr><td>DCIRESET[1]</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>DCIRESET[1]</td><td>DCIRESET</td><td>BEL</td><td></td></tr>
 
-<tr><td>STARTUP</td><td>legacy</td><td>BEL</td><td>CNR_SE_V2, CNR_SE_V2P</td></tr>
+<tr><td>STARTUP</td><td>STARTUP</td><td>BEL</td><td>CNR_SE_V2, CNR_SE_V2P</td></tr>
 
-<tr><td>CAPTURE</td><td>legacy</td><td>BEL</td><td>CNR_SE_V2, CNR_SE_V2P</td></tr>
+<tr><td>CAPTURE</td><td>CAPTURE</td><td>BEL</td><td>CNR_SE_V2, CNR_SE_V2P</td></tr>
 
-<tr><td>ICAP</td><td>legacy</td><td>BEL</td><td>CNR_SE_V2, CNR_SE_V2P</td></tr>
+<tr><td>ICAP</td><td>ICAP</td><td>BEL</td><td>CNR_SE_V2, CNR_SE_V2P</td></tr>
 
-<tr><td>SPI_ACCESS</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>SPI_ACCESS</td><td>SPI_ACCESS</td><td>BEL</td><td></td></tr>
 
-<tr><td>PMV</td><td>legacy</td><td>BEL</td><td>CNR_NW_V2, CNR_NW_V2P</td></tr>
+<tr><td>PMV</td><td>PMV</td><td>BEL</td><td>CNR_NW_V2, CNR_NW_V2P</td></tr>
 
-<tr><td>DNA_PORT</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>DNA_PORT</td><td>DNA_PORT</td><td>BEL</td><td></td></tr>
 
-<tr><td>BSCAN</td><td>legacy</td><td>BEL</td><td>CNR_NE_V2, CNR_NE_V2P</td></tr>
+<tr><td>BSCAN</td><td>BSCAN</td><td>BEL</td><td>CNR_NE_V2, CNR_NE_V2P</td></tr>
 
-<tr><td>JTAGPPC</td><td>legacy</td><td>BEL</td><td>CNR_NE_V2P</td></tr>
-
-<tr><td>BREFCLK_INT</td><td>legacy</td><td>BEL</td><td>IOI_CLK_S, IOI_CLK_N</td></tr>
+<tr><td>JTAGPPC</td><td>JTAGPPC</td><td>BEL</td><td>CNR_NE_V2P</td></tr>
 
 <tr><td>RANDOR_OUT</td><td>RANDOR_OUT</td><td>BEL</td><td></td></tr>
 
-<tr><td>MISR</td><td>legacy</td><td>BEL</td><td></td></tr>
+<tr><td>MISC_CNR_S3</td><td>MISC_CNR_S3</td><td>BEL</td><td></td></tr>
+
+<tr><td>MISR_FC</td><td>MISR_FC</td><td>BEL</td><td></td></tr>
+
+<tr><td>MISC_SW</td><td>MISC_SW</td><td>BEL</td><td>CNR_SW_V2, CNR_SW_V2P</td></tr>
+
+<tr><td>MISC_SE</td><td>MISC_SE</td><td>BEL</td><td>CNR_SE_V2, CNR_SE_V2P</td></tr>
+
+<tr><td>MISC_NW</td><td>MISC_NW</td><td>BEL</td><td>CNR_NW_V2, CNR_NW_V2P</td></tr>
+
+<tr><td>MISC_NE</td><td>MISC_NE</td><td>BEL</td><td>CNR_NE_V2, CNR_NE_V2P</td></tr>
+
+<tr><td>BANK</td><td>BANK</td><td>BEL</td><td></td></tr>
 
 <tr><td>TERM_W</td><td>routing</td><td>TERM_H</td><td>TERM_W</td></tr>
 
@@ -695,6 +707,38 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <tr><td>PPC_TERM_N</td><td>routing</td><td>TERM_V</td><td>PPC_TERM_N</td></tr>
 
 <tr><td>LLV</td><td>routing</td><td>TERM_V</td><td></td></tr>
+
+<tr><td>IOB[0]</td><td>IOB</td><td>IOB</td><td>IOB_V2_SW2, IOB_V2_SE2, IOB_V2_NW2, IOB_V2_NE2, IOB_V2_WS2, IOB_V2_WN2, IOB_V2_ES2, IOB_V2_EN2, IOB_V2P_SW2, IOB_V2P_SE2, IOB_V2P_SE2_CLK, IOB_V2P_SW1, IOB_V2P_SW1_ALT, IOB_V2P_SE1, IOB_V2P_SE1_ALT, IOB_V2P_NW2, IOB_V2P_NE2, IOB_V2P_NE2_CLK, IOB_V2P_NW1, IOB_V2P_NW1_ALT, IOB_V2P_NE1, IOB_V2P_NE1_ALT, IOB_V2P_WS2, IOB_V2P_WN2, IOB_V2P_ES2, IOB_V2P_EN2</td></tr>
+
+<tr><td>IOB[1]</td><td>IOB</td><td>IOB</td><td>IOB_V2_SW2, IOB_V2_SE2, IOB_V2_NW2, IOB_V2_NE2, IOB_V2_WS2, IOB_V2_WN2, IOB_V2_ES2, IOB_V2_EN2, IOB_V2P_SW2, IOB_V2P_SE2, IOB_V2P_SE2_CLK, IOB_V2P_SW1, IOB_V2P_SW1_ALT, IOB_V2P_SE1, IOB_V2P_SE1_ALT, IOB_V2P_NW2, IOB_V2P_NE2, IOB_V2P_NE2_CLK, IOB_V2P_NW1, IOB_V2P_NW1_ALT, IOB_V2P_NE1, IOB_V2P_NE1_ALT, IOB_V2P_WS2, IOB_V2P_WN2, IOB_V2P_ES2, IOB_V2P_EN2</td></tr>
+
+<tr><td>IOB[2]</td><td>IOB</td><td>IOB</td><td>IOB_V2_SW2, IOB_V2_SE2, IOB_V2_NW2, IOB_V2_NE2, IOB_V2_WS2, IOB_V2_WN2, IOB_V2_ES2, IOB_V2_EN2, IOB_V2P_SW2, IOB_V2P_SE2, IOB_V2P_SE2_CLK, IOB_V2P_SW1, IOB_V2P_SW1_ALT, IOB_V2P_SE1, IOB_V2P_SE1_ALT, IOB_V2P_NW2, IOB_V2P_NE2, IOB_V2P_NE2_CLK, IOB_V2P_NW1, IOB_V2P_NW1_ALT, IOB_V2P_NE1, IOB_V2P_NE1_ALT, IOB_V2P_WS2, IOB_V2P_WN2, IOB_V2P_ES2, IOB_V2P_EN2</td></tr>
+
+<tr><td>IOB[3]</td><td>IOB</td><td>IOB</td><td>IOB_V2_SW2, IOB_V2_SE2, IOB_V2_NW2, IOB_V2_NE2, IOB_V2_WS2, IOB_V2_WN2, IOB_V2_ES2, IOB_V2_EN2, IOB_V2P_SW2, IOB_V2P_SE2, IOB_V2P_SE2_CLK, IOB_V2P_NW2, IOB_V2P_NE2, IOB_V2P_NE2_CLK, IOB_V2P_WS2, IOB_V2P_WN2, IOB_V2P_ES2, IOB_V2P_EN2</td></tr>
+
+<tr><td>IOB[4]</td><td>IOB</td><td>IOB</td><td>IOB_V2_SW2, IOB_V2_SE2, IOB_V2_NW2, IOB_V2_NE2, IOB_V2_WS2, IOB_V2_WN2, IOB_V2_ES2, IOB_V2_EN2, IOB_V2P_SW2, IOB_V2P_SE2, IOB_V2P_SE2_CLK, IOB_V2P_NW2, IOB_V2P_NE2, IOB_V2P_NE2_CLK, IOB_V2P_WS2, IOB_V2P_WN2, IOB_V2P_ES2, IOB_V2P_EN2</td></tr>
+
+<tr><td>IOB[5]</td><td>IOB</td><td>IOB</td><td>IOB_V2_SW2, IOB_V2_SE2, IOB_V2_NW2, IOB_V2_NE2, IOB_V2_WS2, IOB_V2_WN2, IOB_V2_ES2, IOB_V2_EN2, IOB_V2P_SW2, IOB_V2P_SE2, IOB_V2P_SE2_CLK, IOB_V2P_NW2, IOB_V2P_NE2, IOB_V2P_NE2_CLK, IOB_V2P_WS2, IOB_V2P_WN2, IOB_V2P_ES2, IOB_V2P_EN2</td></tr>
+
+<tr><td>IOB[6]</td><td>IOB</td><td>IOB</td><td></td></tr>
+
+<tr><td>IOB[7]</td><td>IOB</td><td>IOB</td><td></td></tr>
+
+<tr><td>IBUF[0]</td><td>IBUF</td><td>IOB</td><td></td></tr>
+
+<tr><td>IBUF[1]</td><td>IBUF</td><td>IOB</td><td></td></tr>
+
+<tr><td>IBUF[2]</td><td>IBUF</td><td>IOB</td><td></td></tr>
+
+<tr><td>IBUF[3]</td><td>IBUF</td><td>IOB</td><td></td></tr>
+
+<tr><td>OBUF[0]</td><td>OBUF</td><td>IOB</td><td></td></tr>
+
+<tr><td>OBUF[1]</td><td>OBUF</td><td>IOB</td><td></td></tr>
+
+<tr><td>OBUF[2]</td><td>OBUF</td><td>IOB</td><td></td></tr>
+
+<tr><td>OBUF[3]</td><td>OBUF</td><td>IOB</td><td></td></tr>
 
 <tr><td>CLK_INT</td><td>routing</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
@@ -733,6 +777,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <tr><td>RANDOR</td><td>RANDOR</td><td>RANDOR</td><td></td></tr>
 
 <tr><td>RANDOR_INIT</td><td>RANDOR_INIT</td><td>RANDOR</td><td></td></tr>
+
+<tr><td>GLOBAL</td><td>GLOBAL</td><td>GLOBAL</td><td>GLOBAL</td></tr>
 
 </tbody>
 
