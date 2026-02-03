@@ -981,10 +981,7 @@ pub fn parse(s: &str) -> Result<Vm6, ParseError> {
                     parser.error(ParseErrorKind::RedefinedInstance)?;
                 }
                 res.iostd_default = Some(line[1].to_string());
-                loop {
-                    let Some(nl) = parser.peek_line() else {
-                        break;
-                    };
+                while let Some(nl) = parser.peek_line() {
                     if nl.len() != 2 {
                         break;
                     }

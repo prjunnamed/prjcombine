@@ -179,10 +179,7 @@ pub fn parse_svf(kind: DeviceKind, svf: &str) -> Bitstream {
         words[idx + 1].1 |= &w;
     }
     let mut fixups = HashSet::new();
-    loop {
-        let Some(line) = lines.next() else {
-            break;
-        };
+    while let Some(line) = lines.next() {
         if line.starts_with("SDR") {
             let mut line = line.to_string();
             while !line.ends_with(';') {
