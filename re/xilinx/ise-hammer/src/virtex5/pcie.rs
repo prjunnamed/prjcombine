@@ -226,7 +226,7 @@ const PCIE_HEX_ATTRS: &[(&str, usize)] = &[
 const PCIE_DEC_ATTRS: &[(&str, usize)] = &[("TXTSNFTS", 8), ("TXTSNFTSCOMCLK", 8)];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PCIE") else {
+    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PCIE") else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::PCIE);
@@ -235,7 +235,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
 
     for &pin in PCIE_INVPINS {
-        bctx.mode(mode).test_inv(pin);
+        bctx.mode(mode).test_inv_legacy(pin);
     }
     for &attr in PCIE_BOOL_ATTRS {
         bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
@@ -249,7 +249,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    if !ctx.has_tile("PCIE") {
+    if !ctx.has_tile_legacy("PCIE") {
         return;
     }
     let tile = "PCIE";

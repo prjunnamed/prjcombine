@@ -79,9 +79,13 @@ pub fn collect_iob(
                     .tile_class_iob(edev.chip.get_io_edge(anchor))
                     .unwrap();
                 let key = match attrval {
-                    Key::IbufEnable => {
-                        DiffKey::BelAttrBit(tcid, anchor.slot, defs::bcls::IOB::IBUF_ENABLE, 0)
-                    }
+                    Key::IbufEnable => DiffKey::BelAttrBit(
+                        tcid,
+                        anchor.slot,
+                        defs::bcls::IOB::IBUF_ENABLE,
+                        0,
+                        true,
+                    ),
                     Key::PullupDisable => DiffKey::BelAttrSpecial(
                         tcid,
                         anchor.slot,
@@ -128,7 +132,7 @@ pub fn collect_iob(
                     let tcid = edev.chip.kind.tile_class_iob(edge).unwrap();
                     let key = match attrval {
                         Key::IbufEnable => {
-                            DiffKey::BelAttrBit(tcid, slot, defs::bcls::IOB::IBUF_ENABLE, 0)
+                            DiffKey::BelAttrBit(tcid, slot, defs::bcls::IOB::IBUF_ENABLE, 0, true)
                         }
                         Key::PullupDisable => DiffKey::BelAttrSpecial(
                             tcid,
@@ -418,21 +422,21 @@ pub fn collect(
                     diff.assert_empty();
                 }
             } else {
-                let diff = collector.get_diff_raw(&DiffKey::BelAttrSpecial(
+                let diff = collector.get_diff_bel_attr_special(
                     tcid,
                     bel,
                     defs::bcls::IOB::PULLUP,
                     specials::DISABLE,
-                ));
+                );
                 let bit = xlat_bit(!diff);
                 collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::PULLUP, bit);
                 if edev.chip.kind.has_multi_pullup() {
-                    let diff = collector.get_diff_raw(&DiffKey::BelAttrSpecial(
+                    let diff = collector.get_diff_bel_attr_special(
                         tcid,
                         bel,
                         defs::bcls::IOB::WEAK_PULLUP,
                         specials::DISABLE,
-                    ));
+                    );
                     let bit = xlat_bit(!diff);
                     collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::WEAK_PULLUP, bit);
                     for attr in [
@@ -581,7 +585,7 @@ pub fn collect(
                     collector.collect_bel_attr(tcid, bslot, attr);
                 }
                 let attr = defs::bcls::PLL65::DELAY_ADJUSTMENT_MODE_DYNAMIC;
-                let mut diff = collector.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, 0));
+                let mut diff = collector.get_diff_attr_bool(tcid, bslot, attr);
                 let fda = collector.bel_attr_bitvec(
                     tcid,
                     bslot,
@@ -679,12 +683,12 @@ pub fn collect(
                 collector.collect_bel_attr(tcid, defs::bslots::RGB_DRV, attr);
             }
             let mut diffs = Vec::from_iter((0..10).map(|i| {
-                collector.get_diff_raw(&DiffKey::BelAttrBit(
+                collector.get_diff_attr_bit(
                     tcid,
                     defs::bslots::IR_DRV,
                     defs::bcls::IR_DRV::IR_CURRENT,
                     i,
-                ))
+                )
             }));
             let en = diffs[0].split_bits_by(|bit| bit.frame.to_idx() == 5);
             collector.insert_bel_attr_bitvec(
@@ -708,12 +712,8 @@ pub fn collect(
                 defs::bcls::RGB_DRV::CURRENT_MODE,
             ] {
                 if attr == defs::bcls::RGB_DRV::ENABLE && edev.chip.kind == ChipKind::Ice40T01 {
-                    let mut diff = collector.get_diff_raw(&DiffKey::BelAttrBit(
-                        tcid,
-                        defs::bslots::RGB_DRV,
-                        attr,
-                        0,
-                    ));
+                    let mut diff =
+                        collector.get_diff_attr_bit(tcid, defs::bslots::RGB_DRV, attr, 0);
                     let led_drv_cur_en = diff.split_bits_by(|bit| bit.rect.to_idx() >= 3);
                     collector.insert_bel_attr_bool(
                         tcid,
@@ -762,7 +762,7 @@ pub fn collect(
         for bslot in defs::bslots::FILTER {
             let tcid = defs::tcls::MISC_T05;
             let aid = defs::bcls::FILTER::ENABLE;
-            let diff = collector.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, aid, 0));
+            let diff = collector.get_diff_attr_bool(tcid, bslot, aid);
             let mut bits = Vec::from_iter(
                 diff.bits
                     .into_iter()

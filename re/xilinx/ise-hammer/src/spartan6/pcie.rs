@@ -4,7 +4,7 @@ use prjcombine_spartan6::defs;
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PCIE") else {
+    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PCIE") else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::PCIE);
@@ -112,7 +112,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "PCIE";
-    if !ctx.has_tile(tile) {
+    if !ctx.has_tile_legacy(tile) {
         return;
     }
     let bel = "PCIE";

@@ -18,7 +18,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new(session, backend, "DCM");
+    let mut ctx = FuzzCtx::new_legacy(session, backend, "DCM");
     let mut bctx = ctx.bel(defs::bslots::DCM[0]);
     let mode = "DCM_ADV";
 
@@ -67,7 +67,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         "FREEZE_DLL",
         "FREEZE_DFS",
     ] {
-        bctx.mode(mode).test_inv(pin);
+        bctx.mode(mode).test_inv_legacy(pin);
     }
 
     for pin in [
@@ -168,7 +168,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .test_enum_legacy("STARTUP_WAIT", &["FALSE", "TRUE"]);
     bctx.mode(mode)
         .test_enum_legacy("CLKIN_DIVIDE_BY_2", &["FALSE", "TRUE"]);
-    bctx.mode(mode).test_enum_legacy("PMCD_SYNC", &["FALSE", "TRUE"]);
+    bctx.mode(mode)
+        .test_enum_legacy("PMCD_SYNC", &["FALSE", "TRUE"]);
     bctx.mode(mode)
         .no_pin("CLKFB")
         .test_enum_legacy("CLK_FEEDBACK", &["NONE", "1X", "2X"]);
@@ -346,7 +347,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
         ],
     );
-    bctx.mode(mode).test_enum_legacy("DFS_TRACKMODE", &["0", "1"]);
+    bctx.mode(mode)
+        .test_enum_legacy("DFS_TRACKMODE", &["0", "1"]);
     bctx.mode(mode)
         .mutex("PIN", "NONE")
         .pin("CLK0")
@@ -488,13 +490,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for addr in 0x40..0x60 {
         let reg_mask_bit = reg_bit(addr, 17);
         assert_eq!(present.bits.remove(&reg_mask_bit), Some(true));
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("DRP{addr:02X}_MASK"),
             TileItem::from_bit_inv(reg_mask_bit, false),
         );
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("DRP{addr:02X}"),
@@ -521,69 +523,69 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let diff_0 = ctx.get_diff_legacy(tile, bel, "CLK0", "1");
     let diff_0 = diff_0.combine(&!&diff);
-    ctx.insert(tile, bel, "ENABLE.CLK0", xlat_bit_legacy(diff_0));
+    ctx.insert_legacy(tile, bel, "ENABLE.CLK0", xlat_bit_legacy(diff_0));
     // ???
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "ENABLE.CLK90",
         TileItem::from_bit_inv(reg_bit(0x4e, 1), false),
     );
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "ENABLE.CLK180",
         TileItem::from_bit_inv(reg_bit(0x4e, 2), false),
     );
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "ENABLE.CLK270",
         TileItem::from_bit_inv(reg_bit(0x4e, 3), false),
     );
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "ENABLE.CLK2X",
         TileItem::from_bit_inv(reg_bit(0x4e, 4), false),
     );
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "ENABLE.CLK2X180",
         TileItem::from_bit_inv(reg_bit(0x4e, 5), false),
     );
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "ENABLE.CLKDV",
         TileItem::from_bit_inv(reg_bit(0x4e, 6), false),
     );
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "ENABLE.CLKFX180",
         TileItem::from_bit_inv(reg_bit(0x51, 8), false),
     );
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "ENABLE.CLKFX",
         TileItem::from_bit_inv(reg_bit(0x51, 9), false),
     );
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "ENABLE.CONCUR",
         TileItem::from_bit_inv(reg_bit(0x51, 10), false),
     );
 
-    ctx.insert(tile, bel, "DLL_ZD2_EN", xlat_bit_legacy(diff));
+    ctx.insert_legacy(tile, bel, "DLL_ZD2_EN", xlat_bit_legacy(diff));
     let diff = ctx.get_diff_legacy(tile, bel, "CLKFX", "1");
     for pin in ["CLKFX180", "CONCUR"] {
         assert_eq!(diff, ctx.get_diff_legacy(tile, bel, pin, "1"));
     }
-    ctx.insert(tile, bel, "DFS_ENABLE", xlat_bit_legacy(diff));
+    ctx.insert_legacy(tile, bel, "DFS_ENABLE", xlat_bit_legacy(diff));
 
     ctx.collect_bitvec_legacy(tile, bel, "BGM_VLDLY", "");
     ctx.collect_bitvec_legacy(tile, bel, "BGM_LDLY", "");
@@ -624,8 +626,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_bitvec_legacy(tile, bel, "DCM_VREG_PHASE_MARGIN", "");
     ctx.collect_bitvec_legacy(tile, bel, "PHASE_SHIFT", "");
     let mut diff = ctx.get_diff_legacy(tile, bel, "PHASE_SHIFT", "-1");
-    diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "PHASE_SHIFT"), 1, 0);
-    ctx.insert(tile, bel, "PHASE_SHIFT_NEGATIVE", xlat_bit_legacy(diff));
+    diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "PHASE_SHIFT"), 1, 0);
+    ctx.insert_legacy(tile, bel, "PHASE_SHIFT_NEGATIVE", xlat_bit_legacy(diff));
 
     let mut diffs = vec![];
     for val in [
@@ -639,11 +641,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diff_mr = ctx.get_diff_legacy(tile, bel, "DCM_VREF_SOURCE.MAX_RANGE", val);
         let mut diff_ms = ctx.get_diff_legacy(tile, bel, "DCM_VREF_SOURCE.MAX_SPEED", val);
         if val == "VBG" {
-            diff_mr.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "DCM_VBG_SEL"), 0x1, 0);
-            diff_ms.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "DCM_VBG_SEL"), 0x1, 0);
+            diff_mr.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "DCM_VBG_SEL"), 0x1, 0);
+            diff_ms.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "DCM_VBG_SEL"), 0x1, 0);
         } else if val != "VDD" {
-            diff_mr.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "DCM_VBG_SEL"), 0x5, 0);
-            diff_ms.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "DCM_VBG_SEL"), 0x9, 0);
+            diff_mr.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "DCM_VBG_SEL"), 0x5, 0);
+            diff_ms.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "DCM_VBG_SEL"), 0x9, 0);
         }
         assert_eq!(diff_mr, diff_ms);
         if matches!(val, "VDD" | "VBG" | "VBG_DLL") {
@@ -652,7 +654,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diffs.push((val, diff_mr));
         }
     }
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "DCM_VREF_SOURCE",
@@ -687,15 +689,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut diffs = vec![];
     for val in ["LOW", "HIGH", "HIGH_SER"] {
         let mut diff = ctx.get_diff_legacy(tile, bel, "DLL_FREQUENCY_MODE", val);
-        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "FACTORY_JF"), 0xf0f0, 0);
+        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "FACTORY_JF"), 0xf0f0, 0);
         diffs.push((val, diff));
     }
-    ctx.insert(tile, bel, "DLL_FREQUENCY_MODE", xlat_enum_legacy(diffs));
+    ctx.insert_legacy(tile, bel, "DLL_FREQUENCY_MODE", xlat_enum_legacy(diffs));
 
     let diff = ctx
         .peek_diff_legacy(tile, bel, "CLKOUT_PHASE_SHIFT", "NONE")
         .clone();
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "PS_MODE",
@@ -711,14 +713,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut d = ctx.get_diff_legacy(tile, bel, "CLKOUT_PHASE_SHIFT", val);
         let mut dn = ctx.get_diff_legacy(tile, bel, "CLKOUT_PHASE_SHIFT.NEG", val);
         let mut dd = ctx.get_diff_legacy(tile, bel, "CLKOUT_PHASE_SHIFT.DLL", val);
-        let item = ctx.item(tile, bel, "PS_MODE");
+        let item = ctx.item_legacy(tile, bel, "PS_MODE");
         d.apply_enum_diff_legacy(item, "CLKIN", "CLKFB");
         dd.apply_enum_diff_legacy(item, "CLKIN", "CLKFB");
         if val != "FIXED" {
             dn.apply_enum_diff_legacy(item, "CLKIN", "CLKFB");
         }
         if val != "NONE" && val != "DIRECT" {
-            let item = ctx.item(tile, bel, "DLL_ZD2_EN");
+            let item = ctx.item_legacy(tile, bel, "DLL_ZD2_EN");
             d.apply_bit_diff_legacy(item, true, false);
             dn.apply_bit_diff_legacy(item, true, false);
         }
@@ -726,19 +728,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         assert_eq!(d, dd);
         match val {
             "NONE" => d.assert_empty(),
-            "FIXED" | "VARIABLE_POSITIVE" => ctx.insert(tile, bel, "PS_ENABLE", xlat_bit_legacy(d)),
+            "FIXED" | "VARIABLE_POSITIVE" => {
+                ctx.insert_legacy(tile, bel, "PS_ENABLE", xlat_bit_legacy(d))
+            }
             "VARIABLE_CENTER" => {
-                d.apply_bit_diff_legacy(ctx.item(tile, bel, "PS_ENABLE"), true, false);
-                ctx.insert(tile, bel, "PS_CENTERED", xlat_bit_legacy(d));
+                d.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "PS_ENABLE"), true, false);
+                ctx.insert_legacy(tile, bel, "PS_CENTERED", xlat_bit_legacy(d));
             }
             "DIRECT" => {
-                d.apply_bit_diff_legacy(ctx.item(tile, bel, "PS_ENABLE"), true, false);
+                d.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "PS_ENABLE"), true, false);
                 d.apply_enum_diff_legacy(
-                    ctx.item(tile, bel, "DLL_PHASE_SHIFT_CALIBRATION"),
+                    ctx.item_legacy(tile, bel, "DLL_PHASE_SHIFT_CALIBRATION"),
                     "AUTO_ZD2",
                     "AUTO_DPS",
                 );
-                ctx.insert(tile, bel, "PS_DIRECT", xlat_bit_legacy(d));
+                ctx.insert_legacy(tile, bel, "PS_DIRECT", xlat_bit_legacy(d));
             }
             _ => unreachable!(),
         }
@@ -752,9 +756,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("CLKDV_COUNT_FALL", 12..16),
     ] {
         let bits = Vec::from_iter(bits.map(|bit| reg_bit(0x4d, bit)));
-        ctx.insert(tile, bel, attr, TileItem::from_bitvec_inv(bits, false));
+        ctx.insert_legacy(tile, bel, attr, TileItem::from_bitvec_inv(bits, false));
     }
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "CLKDV_MODE",
@@ -836,23 +840,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut diffs = vec![("PHASE_FREQ_LOCK", Diff::default())];
     for val in ["FREQ_LOCK", "AVE_FREQ_LOCK"] {
         let mut diff = ctx.get_diff_legacy(tile, bel, "DFS_OSCILLATOR_MODE", val);
-        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "DFS_EARLY_LOCK"), true, false);
-        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "DFS_HARDSYNC"), 3, 0);
+        diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "DFS_EARLY_LOCK"), true, false);
+        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "DFS_HARDSYNC"), 3, 0);
         diffs.push((val, diff));
     }
-    ctx.insert(tile, bel, "DFS_OSCILLATOR_MODE", xlat_enum_legacy(diffs));
+    ctx.insert_legacy(tile, bel, "DFS_OSCILLATOR_MODE", xlat_enum_legacy(diffs));
     let item = xlat_bitvec_legacy(vec![ctx.get_diff_legacy(
         tile,
         bel,
         "DFS_OSCILLATOR_MODE",
         "PHASE_FREQ_LOCK",
     )]);
-    ctx.insert(tile, bel, "DFS_FEEDBACK", item);
+    ctx.insert_legacy(tile, bel, "DFS_FEEDBACK", item);
 
     ctx.collect_bit_legacy(tile, bel, "CLKIN_IOB", "1");
     let mut diff = ctx.get_diff_legacy(tile, bel, "CLKFB_IOB", "1");
-    diff.apply_bit_diff_legacy(ctx.item(tile, bel, "DCM_EXT_FB_EN"), true, false);
-    ctx.insert(tile, bel, "CLKFB_IOB", xlat_bit_legacy(diff));
+    diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "DCM_EXT_FB_EN"), true, false);
+    ctx.insert_legacy(tile, bel, "CLKFB_IOB", xlat_bit_legacy(diff));
     ctx.collect_bit_legacy(tile, bel, "CLKIN_ENABLE", "1");
     ctx.collect_bit_legacy(tile, bel, "CLKFB_ENABLE", "1");
 
@@ -871,28 +875,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.get_diff_legacy(tile, bel, "CLK_FEEDBACK.CLKFB", "2X")
             .combine(&!&d2)
     );
-    ctx.insert(tile, bel, "CLKFB_FEEDBACK", xlat_bit_legacy(df));
-    ctx.insert(
+    ctx.insert_legacy(tile, bel, "CLKFB_FEEDBACK", xlat_bit_legacy(df));
+    ctx.insert_legacy(
         tile,
         bel,
         "CLK_FEEDBACK",
         xlat_enum_legacy(vec![("1X", d1), ("2X", d2), ("NONE", dn)]),
     );
 
-    present.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "DCM_VBG_SEL"), 1, 0);
-    present.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "CLKDV_COUNT_MAX"), 1, 0);
-    present.apply_enum_diff_legacy(ctx.item(tile, bel, "CLKDV_MODE"), "INT", "HALF");
-    present.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE.CLK90"), true, false);
-    present.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE.CLK180"), true, false);
-    present.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE.CLK270"), true, false);
-    present.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE.CLK2X"), true, false);
-    present.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE.CLK2X180"), true, false);
-    present.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE.CLKDV"), true, false);
-    present.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE.CLKFX180"), true, false);
-    present.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE.CLKFX"), true, false);
-    present.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE.CONCUR"), true, false);
+    present.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "DCM_VBG_SEL"), 1, 0);
+    present.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKDV_COUNT_MAX"), 1, 0);
+    present.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "CLKDV_MODE"), "INT", "HALF");
+    present.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "ENABLE.CLK90"), true, false);
+    present.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "ENABLE.CLK180"), true, false);
+    present.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "ENABLE.CLK270"), true, false);
+    present.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "ENABLE.CLK2X"), true, false);
+    present.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "ENABLE.CLK2X180"), true, false);
+    present.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "ENABLE.CLKDV"), true, false);
+    present.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "ENABLE.CLKFX180"), true, false);
+    present.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "ENABLE.CLKFX"), true, false);
+    present.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "ENABLE.CONCUR"), true, false);
 
-    ctx.insert(tile, bel, "UNK_ALWAYS_SET", xlat_bit_legacy(present));
+    ctx.insert_legacy(tile, bel, "UNK_ALWAYS_SET", xlat_bit_legacy(present));
 
     for pin in ["CLKIN", "CLKFB"] {
         let mut diffs = vec![];
@@ -937,7 +941,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(diff, diff_test);
             diffs.push((format!("CKINT{i}"), diff));
         }
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("MUX.{pin}"),

@@ -101,8 +101,8 @@ impl Chip {
                 let row = self.row_n();
                 if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                     for &iob in data.iobs.iter().rev() {
-                        if iob.tile == tidx {
-                            let crd = EdgeIoCoord::N(col, iob.iob);
+                        if iob.cell == tidx {
+                            let crd = EdgeIoCoord::N(col, iob.iob_id);
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {
@@ -120,8 +120,8 @@ impl Chip {
                 let col = self.col_w();
                 if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                     for &iob in data.iobs.iter().rev() {
-                        if iob.tile == tidx {
-                            let crd = EdgeIoCoord::W(row, iob.iob);
+                        if iob.cell == tidx {
+                            let crd = EdgeIoCoord::W(row, iob.iob_id);
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {
@@ -140,8 +140,8 @@ impl Chip {
                 let row = self.row_s();
                 if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                     for &iob in data.iobs.iter().rev() {
-                        if iob.tile == tidx {
-                            let crd = EdgeIoCoord::S(col, iob.iob);
+                        if iob.cell == tidx {
+                            let crd = EdgeIoCoord::S(col, iob.iob_id);
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {
@@ -165,8 +165,8 @@ impl Chip {
                 let col = self.col_e();
                 if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                     for &iob in data.iobs.iter().rev() {
-                        if iob.tile == tidx {
-                            let crd = EdgeIoCoord::E(row, iob.iob);
+                        if iob.cell == tidx {
+                            let crd = EdgeIoCoord::E(row, iob.iob_id);
                             if iob.kind == IobKind::Iob {
                                 io.insert(crd, builder.get_toi());
                             } else {

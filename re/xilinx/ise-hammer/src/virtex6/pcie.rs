@@ -257,14 +257,14 @@ const PCIE_DEC_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PCIE") else {
+    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PCIE") else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::PCIE);
     let mode = "PCIE_2_0";
 
     bctx.build()
-        .extra_tile_attr(Delta::new(3, 20, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
+        .extra_tile_attr_legacy(Delta::new(3, 20, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
         .test_manual_legacy("PRESENT", "1")
         .mode(mode)
         .commit();
@@ -280,7 +280,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    if !ctx.has_tile("PCIE") {
+    if !ctx.has_tile_legacy("PCIE") {
         return;
     }
     let tile = "PCIE";
@@ -293,7 +293,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         TileBit::new(tile, frame, bit)
     }
     for reg in 0..0x78 {
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("DRP{reg:02X}"),
@@ -315,5 +315,5 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "HCLK";
     let bel = "HCLK";
     let item = ctx.extract_bit_legacy(tile, bel, "DRP_MASK_PCIE", "1");
-    ctx.insert(tile, bel, "DRP_MASK_BELOW", item);
+    ctx.insert_legacy(tile, bel, "DRP_MASK_BELOW", item);
 }

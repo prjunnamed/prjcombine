@@ -108,7 +108,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diff_latch =
             ctx.get_diff_attr_val(tcid, bslot, bcls::LC::FF_MODE, enums::FF_MODE::LATCH);
         diff_latch.apply_bit_diff(ctx.bel_input_inv(tcid, bslot, bcls::LC::CK), true, false);
-        ctx.insert_bel_attr_raw(
+        ctx.insert_bel_attr_enum(
             tcid,
             bslot,
             bcls::LC::FF_MODE,
@@ -133,7 +133,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.get_diff_attr_val(tcid, bslot, bcls::LC::MUX_DO, enums::LC_MUX_DO::F5O),
             ));
         }
-        ctx.insert_bel_attr_raw(tcid, bslot, bcls::LC::MUX_DO, xlat_enum_attr(diffs));
+        ctx.insert_bel_attr_enum(tcid, bslot, bcls::LC::MUX_DO, xlat_enum_attr(diffs));
     }
-    ctx.collect_bel_attr_bool_bi(tcid, bslots::PROGTIE, bcls::PROGTIE::VAL)
+    ctx.collect_bel_attr_bi(tcid, bslots::PROGTIE, bcls::PROGTIE::VAL);
 }

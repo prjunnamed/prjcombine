@@ -152,16 +152,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bel_attr(tcid, slot, bcls::IO::IFF_MODE);
         }
         if tcls.bels.contains_id(bslots::MISC_SE) {
-            let diff0 = ctx.get_diff_raw(&DiffKey::BelAttrEnumBool(
+            let diff0 = ctx.get_diff_raw(&DiffKey::BelAttrBit(
                 tcid,
                 bslots::MISC_SE,
                 bcls::MISC_SE::REPROGRAM_ENABLE,
+                0,
                 false,
             ));
-            let diff1 = ctx.get_diff_raw(&DiffKey::BelAttrEnumBool(
+            let diff1 = ctx.get_diff_raw(&DiffKey::BelAttrBit(
                 tcid,
                 bslots::MISC_SE,
                 bcls::MISC_SE::REPROGRAM_ENABLE,
+                0,
                 true,
             ));
             let mut item = xlat_enum_raw(vec![(false, diff0), (true, diff1)], OcdMode::BitOrder);
@@ -177,7 +179,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bcls::MISC_SE::REPROGRAM_ENABLE,
                 bits,
             );
-            ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
+            ctx.collect_bel_attr_bi(tcid, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
             ctx.collect_bel_attr(tcid, bslots::MISC_SE, bcls::MISC_SE::DONETIME);
             ctx.collect_bel_attr(tcid, bslots::MISC_SE, bcls::MISC_SE::RESETTIME);
             let mut diffs = vec![(enums::OSC_MODE::DISABLE, Diff::default())];
@@ -202,7 +204,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 );
                 diffs.push((val, diff));
             }
-            ctx.insert_bel_attr_raw(tcid, bslots::OSC, bcls::OSC::MODE, xlat_enum_attr(diffs));
+            ctx.insert_bel_attr_enum(tcid, bslots::OSC, bcls::OSC::MODE, xlat_enum_attr(diffs));
         }
         if tcls.bels.contains_id(bslots::MISC_SW) {
             ctx.collect_bel_attr(tcid, bslots::MISC_SW, bcls::MISC_SW::READBACK_MODE);

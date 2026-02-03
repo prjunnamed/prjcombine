@@ -504,7 +504,7 @@ impl Chip {
         let bel = self.get_io_loc(io);
         if let Some((data, tidx)) = self.get_iob_tile_data(bel.cell) {
             for &iob_data in &data.iobs {
-                if iob_data.tile == tidx && iob_data.iob == iob {
+                if iob_data.cell == tidx && iob_data.iob_id == iob {
                     pad_kind = Some(iob_data.kind);
                 }
             }
@@ -524,8 +524,8 @@ impl Chip {
             let row = self.row_n();
             if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                 for &iob in &data.iobs {
-                    if iob.tile == tidx {
-                        res.push(EdgeIoCoord::N(col, TileIobId::from_idx(iob.iob.to_idx())));
+                    if iob.cell == tidx {
+                        res.push(EdgeIoCoord::N(col, TileIobId::from_idx(iob.iob_id.to_idx())));
                     }
                 }
             }
@@ -534,8 +534,8 @@ impl Chip {
             let col = self.col_e();
             if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                 for &iob in &data.iobs {
-                    if iob.tile == tidx {
-                        res.push(EdgeIoCoord::E(row, TileIobId::from_idx(iob.iob.to_idx())));
+                    if iob.cell == tidx {
+                        res.push(EdgeIoCoord::E(row, TileIobId::from_idx(iob.iob_id.to_idx())));
                     }
                 }
             }
@@ -544,8 +544,8 @@ impl Chip {
             let row = self.row_s();
             if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                 for &iob in &data.iobs {
-                    if iob.tile == tidx {
-                        res.push(EdgeIoCoord::S(col, TileIobId::from_idx(iob.iob.to_idx())));
+                    if iob.cell == tidx {
+                        res.push(EdgeIoCoord::S(col, TileIobId::from_idx(iob.iob_id.to_idx())));
                     }
                 }
             }
@@ -554,8 +554,8 @@ impl Chip {
             let col = self.col_w();
             if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                 for &iob in &data.iobs {
-                    if iob.tile == tidx {
-                        res.push(EdgeIoCoord::W(row, TileIobId::from_idx(iob.iob.to_idx())));
+                    if iob.cell == tidx {
+                        res.push(EdgeIoCoord::W(row, TileIobId::from_idx(iob.iob_id.to_idx())));
                     }
                 }
             }
@@ -572,9 +572,9 @@ impl Chip {
         };
         let slot = if self.kind == ChipKind::FpgaCore {
             if iob.to_idx() < 4 {
-                defs::bslots::IBUF[iob.to_idx()]
+                defs::bslots::IREG[iob.to_idx()]
             } else {
-                defs::bslots::OBUF[iob.to_idx() - 4]
+                defs::bslots::OREG[iob.to_idx() - 4]
             }
         } else {
             defs::bslots::IOI[iob.to_idx()]
@@ -584,9 +584,9 @@ impl Chip {
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
         let iob = TileIobId::from_idx(if self.kind == ChipKind::FpgaCore {
-            defs::bslots::IBUF
+            defs::bslots::IREG
                 .index_of(bel.slot)
-                .unwrap_or_else(|| defs::bslots::OBUF.index_of(bel.slot).unwrap() + 4)
+                .unwrap_or_else(|| defs::bslots::OREG.index_of(bel.slot).unwrap() + 4)
         } else {
             defs::bslots::IOI.index_of(bel.slot).unwrap()
         });

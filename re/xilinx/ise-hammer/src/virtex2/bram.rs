@@ -37,7 +37,7 @@ pub fn add_fuzzers<'a>(
         ChipKind::Spartan3A => tcls_s3::BRAM_S3A,
         ChipKind::Spartan3ADsp => tcls_s3::BRAM_S3ADSP,
     };
-    let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+    let mut ctx = FuzzCtx::new(session, backend, tcid);
     let mut bctx = ctx.bel(defs::bslots::BRAM);
     let mode = match chip_kind {
         ChipKind::Spartan3ADsp => "RAMB16BWER",
@@ -158,9 +158,9 @@ pub fn add_fuzzers<'a>(
                 bctx.mode(mode)
                     .test_bel_attr_rename("RSTTYPE", bcls::BRAM::RSTTYPE_A);
                 bctx.mode(mode)
-                    .test_bel_attr_bool(bcls::BRAM::DOA_REG, "0", "1");
+                    .test_bel_attr_bool_auto(bcls::BRAM::DOA_REG, "0", "1");
                 bctx.mode(mode)
-                    .test_bel_attr_bool(bcls::BRAM::DOB_REG, "0", "1");
+                    .test_bel_attr_bool_auto(bcls::BRAM::DOB_REG, "0", "1");
             }
             for attr in [
                 bcls::BRAM::INIT_A,
@@ -247,7 +247,7 @@ pub fn add_fuzzers<'a>(
                 bctx.mode(mode)
                     .attr("PORTA_ATTR", "512X36")
                     .attr("PORTB_ATTR", "512X36")
-                    .test_bel_attr_bool(bcls::BRAM::SAVEDATA, "FALSE", "TRUE");
+                    .test_bel_attr_bool_auto(bcls::BRAM::SAVEDATA, "FALSE", "TRUE");
             }
             for attr in [
                 bcls::BRAM::INIT_A,
@@ -375,7 +375,7 @@ pub fn add_fuzzers<'a>(
                 bcls::MULT::PREG,
                 bcls::MULT::PREG_CLKINVERSION,
             ] {
-                bctx.mode(mode).test_bel_attr_bool(attr, "0", "1");
+                bctx.mode(mode).test_bel_attr_bool_auto(attr, "0", "1");
             }
             bctx.mode(mode).test_bel_attr(bcls::MULT::B_INPUT);
         }
@@ -524,7 +524,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             .combine(&!&present_base);
         let (a0, b0) = filter_ab(diff0);
         let (a1, b1) = filter_ab(diff1);
-        ctx.insert_bel_attr_raw(
+        ctx.insert_bel_attr_enum(
             tcid,
             bslot,
             bcls::BRAM::WW_VALUE_A,
@@ -534,7 +534,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 (enums::BRAM_WW_VALUE::_1, a1),
             ]),
         );
-        ctx.insert_bel_attr_raw(
+        ctx.insert_bel_attr_enum(
             tcid,
             bslot,
             bcls::BRAM::WW_VALUE_B,
@@ -583,8 +583,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslot, pin).bit]);
                 }
 
-                ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::BRAM::DOA_REG);
-                ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::BRAM::DOB_REG);
+                ctx.collect_bel_attr_bi(tcid, bslot, bcls::BRAM::DOA_REG);
+                ctx.collect_bel_attr_bi(tcid, bslot, bcls::BRAM::DOB_REG);
                 let mut diffs_a = vec![];
                 let mut diffs_b = vec![];
                 for val in ctx.edev.db.enum_classes[enums::BRAM_RSTTYPE].values.ids() {
@@ -593,13 +593,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     diffs_a.push((val, diff_a));
                     diffs_b.push((val, diff_b));
                 }
-                ctx.insert_bel_attr_raw(
+                ctx.insert_bel_attr_enum(
                     tcid,
                     bslot,
                     bcls::BRAM::RSTTYPE_A,
                     xlat_enum_attr(diffs_a),
                 );
-                ctx.insert_bel_attr_raw(
+                ctx.insert_bel_attr_enum(
                     tcid,
                     bslot,
                     bcls::BRAM::RSTTYPE_B,
@@ -613,8 +613,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslot, pin).bit]);
             }
             if chip_kind.is_virtex2() {
-                let diff0 = ctx.get_diff_attr_bool(tcid, bslot, bcls::BRAM::SAVEDATA, false);
-                let diff1 = ctx.get_diff_attr_bool(tcid, bslot, bcls::BRAM::SAVEDATA, true);
+                let diff0 = ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::BRAM::SAVEDATA, false);
+                let diff1 = ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::BRAM::SAVEDATA, true);
                 let bits = xlat_bit_wide_bi(diff0, diff1);
                 ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::BRAM::SAVEDATA, bits);
             }
@@ -675,7 +675,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 bcls::MULT::PREG,
                 bcls::MULT::PREG_CLKINVERSION,
             ] {
-                ctx.collect_bel_attr_bool_bi(tcid, bslot, attr);
+                ctx.collect_bel_attr_bi(tcid, bslot, attr);
             }
             ctx.collect_bel_attr(tcid, bslot, bcls::MULT::B_INPUT);
             present.discard_bits(&[ctx

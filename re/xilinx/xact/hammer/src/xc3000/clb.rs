@@ -178,7 +178,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.get_diff_attr_special(tcid, bslots::CLB, bcls::CLB::MUX_X, specials::CLB_M),
             ),
         ]);
-        ctx.insert_bel_attr_raw(tcid, bslots::CLB, bcls::CLB::MUX_X, item);
+        ctx.insert_bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_X, item);
         let item = xlat_enum_attr(vec![
             (
                 enums::CLB_MUX_Y::QY,
@@ -193,7 +193,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.get_diff_attr_special(tcid, bslots::CLB, bcls::CLB::MUX_Y, specials::CLB_M),
             ),
         ]);
-        ctx.insert_bel_attr_raw(tcid, bslots::CLB, bcls::CLB::MUX_Y, item);
+        ctx.insert_bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_Y, item);
         for attr in [bcls::CLB::MUX_DX, bcls::CLB::MUX_DY] {
             let item = xlat_enum_attr(vec![
                 (
@@ -213,7 +213,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.get_diff_attr_special(tcid, bslots::CLB, attr, specials::CLB_M),
                 ),
             ]);
-            ctx.insert_bel_attr_raw(tcid, bslots::CLB, attr, item);
+            ctx.insert_bel_attr_enum(tcid, bslots::CLB, attr, item);
         }
         ctx.collect_bel_attr(tcid, bslots::CLB, bcls::CLB::EC_ENABLE);
         ctx.collect_bel_attr(tcid, bslots::CLB, bcls::CLB::RD_ENABLE);
@@ -258,7 +258,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 lut_diffs.push(diff);
             }
             let diff_i4_e = diff_abce.combine(&!&diff_abcd);
-            ctx.insert_bel_attr_raw(
+            ctx.insert_bel_attr_enum(
                 tcid,
                 bslots::CLB,
                 attr_i4,
@@ -269,7 +269,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             let diff_i3_qx = diff_abqxd.combine(&!&diff_abcd);
             let diff_i3_qy = diff_abqyd.combine(&!&diff_abcd);
-            ctx.insert_bel_attr_raw(
+            ctx.insert_bel_attr_enum(
                 tcid,
                 bslots::CLB,
                 attr_i3,
@@ -281,7 +281,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             let diff_i2_qx = diff_aqxcd.combine(&!&diff_abcd);
             let diff_i2_qy = diff_aqycd.combine(&!&diff_abcd);
-            ctx.insert_bel_attr_raw(
+            ctx.insert_bel_attr_enum(
                 tcid,
                 bslots::CLB,
                 attr_i2,
@@ -373,7 +373,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         assert_eq!(diff.bits.len(), 1);
         let bit = diff.bits.keys().copied().next().unwrap();
-        ctx.insert_bel_attr_raw(
+        ctx.insert_bel_attr_enum(
             tcid,
             bslots::CLB,
             bcls::CLB::MODE,

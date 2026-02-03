@@ -42,21 +42,23 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     ] {
         for &val in vals {
             ctx.build()
-                .extra_tiles_by_kind("CFG", bel)
-                .test_manual(bel, attr, val)
+                .extra_tiles_by_kind_legacy("CFG", bel)
+                .test_manual_legacy(bel, attr, val)
                 .global(attr, val)
                 .commit();
         }
     }
     ctx.build()
-        .extra_tiles_by_kind("CFG", "BSCAN_COMMON")
-        .test_manual("BSCAN_COMMON", "USERID", "")
+        .extra_tiles_by_kind_legacy("CFG", "BSCAN_COMMON")
+        .test_manual_legacy("BSCAN_COMMON", "USERID", "")
         .multi_global("USERID", MultiValue::HexPrefix, 32);
 
-    let mut ctx = FuzzCtx::new(session, backend, "CFG");
+    let mut ctx = FuzzCtx::new_legacy(session, backend, "CFG");
     for i in 0..4 {
         let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
-        bctx.test_manual_legacy("ENABLE", "1").mode("BSCAN").commit();
+        bctx.test_manual_legacy("ENABLE", "1")
+            .mode("BSCAN")
+            .commit();
         bctx.mode("BSCAN")
             .global_mutex_here("DISABLE_JTAG")
             .test_enum_legacy("DISABLE_JTAG", &["FALSE", "TRUE"]);
@@ -179,11 +181,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
     {
         let mut bctx = ctx.bel(defs::bslots::DCIRESET);
-        bctx.test_manual_legacy("ENABLE", "1").mode("DCIRESET").commit();
+        bctx.test_manual_legacy("ENABLE", "1")
+            .mode("DCIRESET")
+            .commit();
     }
     {
         let mut bctx = ctx.bel(defs::bslots::DNA_PORT);
-        bctx.test_manual_legacy("ENABLE", "1").mode("DNA_PORT").commit();
+        bctx.test_manual_legacy("ENABLE", "1")
+            .mode("DNA_PORT")
+            .commit();
     }
 
     let mut ctx = FuzzCtx::new_null(session, backend);
@@ -239,7 +245,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
 
             for &val in vals {
-                ctx.test_reg(reg, reg_name, bel, attr, val)
+                ctx.test_reg_legacy(reg, reg_name, bel, attr, val)
                     .global(opt, val)
                     .commit();
             }
@@ -302,7 +308,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
 
             for &val in vals {
-                ctx.test_reg(reg, reg_name, bel, attr, val)
+                ctx.test_reg_legacy(reg, reg_name, bel, attr, val)
                     .global(opt, val)
                     .commit();
             }
@@ -348,7 +354,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
 
             for &val in vals {
-                ctx.test_reg(reg, reg_name, bel, attr, val)
+                ctx.test_reg_legacy(reg, reg_name, bel, attr, val)
                     .global(opt, val)
                     .commit();
             }
@@ -376,7 +382,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             ("ENABLE_VGG_CLAMP", "ENABLE_VGG_CLAMP", &["NO", "YES"]),
         ] {
             for &val in vals {
-                ctx.test_reg(reg, reg_name, bel, attr, val)
+                ctx.test_reg_legacy(reg, reg_name, bel, attr, val)
                     .global(opt, val)
                     .commit();
             }
@@ -386,7 +392,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             ("VGG_NEG_GAIN_SEL", 5),
             ("VGG_POS_GAIN_SEL", 1),
         ] {
-            ctx.test_reg(reg, reg_name, bel, opt, "")
+            ctx.test_reg_legacy(reg, reg_name, bel, opt, "")
                 .multi_global(opt, MultiValue::Bin, width);
         }
     }
@@ -420,7 +426,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let reg_name = "REG.WBSTAR";
         let bel = "MISC";
         for val in ["DISABLE", "ENABLE"] {
-            ctx.test_reg(reg, reg_name, bel, "REVISION_SELECT_TRISTATE", val)
+            ctx.test_reg_legacy(reg, reg_name, bel, "REVISION_SELECT_TRISTATE", val)
                 .global("REVISIONSELECT_TRISTATE", val)
                 .commit();
         }
@@ -441,7 +447,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .no_global("VGG_SEL")
             .no_global("VGG_POS_GAIN_SEL")
             .no_global("VGG_NEG_GAIN_SEL")
-            .test_manual("MISC", "ENCRYPT", "YES")
+            .test_manual_legacy("MISC", "ENCRYPT", "YES")
             .global("ENCRYPT", "YES")
             .commit();
     }
@@ -571,10 +577,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .multi_global(attr, MultiValue::Bin, width);
     }
 
-    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "SYSMON") {
+    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "SYSMON") {
         let mut bctx = ctx.bel(defs::bslots::SYSMON);
         bctx.build()
-            .extra_tile_attr(
+            .extra_tile_attr_legacy(
                 Delta::new(0, 0, "HCLK"),
                 "HCLK",
                 "DRP_MASK_ABOVE_L",
@@ -583,8 +589,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_manual_legacy("ENABLE", "1")
             .mode("XADC")
             .commit();
-        bctx.mode("XADC").test_inv("DCLK");
-        bctx.mode("XADC").test_inv("CONVSTCLK");
+        bctx.mode("XADC").test_inv_legacy("DCLK");
+        bctx.mode("XADC").test_inv_legacy("CONVSTCLK");
         for i in 0x40..0x60 {
             bctx.mode("XADC")
                 .global_mutex("SYSMON", "SYSMON")
@@ -610,8 +616,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for &val in vals {
                 ctx.build()
                     .global_mutex("SYSMON", "OPT")
-                    .extra_tiles_by_bel(defs::bslots::SYSMON, "SYSMON")
-                    .test_manual("SYSMON", attr, val)
+                    .extra_tiles_by_bel_legacy(defs::bslots::SYSMON, "SYSMON")
+                    .test_manual_legacy("SYSMON", attr, val)
                     .global(attr, val)
                     .commit();
             }
@@ -646,7 +652,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = &format!("BSCAN[{i}]");
         ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
         let item = ctx.extract_bit_wide_bi_legacy(tile, bel, "DISABLE_JTAG", "FALSE", "TRUE");
-        ctx.insert(tile, "BSCAN_COMMON", "DISABLE_JTAG", item);
+        ctx.insert_legacy(tile, "BSCAN_COMMON", "DISABLE_JTAG", item);
     }
     {
         let bel = "BSCAN_COMMON";
@@ -665,7 +671,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item0 = ctx.extract_enum_legacy(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
         let item1 = ctx.extract_enum_legacy(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
         assert_eq!(item0, item1);
-        ctx.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
+        ctx.insert_legacy(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
     }
 
     {
@@ -675,13 +681,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item0 = ctx.extract_bit_wide_legacy(tile, bel, "PIN.GSR", "1");
         let item1 = ctx.extract_bit_wide_legacy(tile, bel, "PIN.GTS", "1");
         assert_eq!(item0, item1);
-        ctx.insert(tile, bel, "GTS_GSR_ENABLE", item0);
+        ctx.insert_legacy(tile, bel, "GTS_GSR_ENABLE", item0);
         ctx.collect_bit_wide_bi_legacy(tile, bel, "PROG_USR", "FALSE", "TRUE");
         let item = ctx.extract_bit_wide_legacy(tile, bel, "PIN.USRCCLKO", "1");
-        ctx.insert(tile, bel, "USRCCLK_ENABLE", item);
+        ctx.insert_legacy(tile, bel, "USRCCLK_ENABLE", item);
         if edev.chips.first().unwrap().regs > 1 {
             let item = ctx.extract_bit_wide_legacy(tile, bel, "PIN.KEYCLEARB", "1");
-            ctx.insert(tile, bel, "KEY_CLEAR_ENABLE", item);
+            ctx.insert_legacy(tile, bel, "KEY_CLEAR_ENABLE", item);
         }
     }
     {
@@ -753,13 +759,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if edev.chips.len() == 1 {
             ctx.collect_bit_bi_legacy(tile, bel, "ONESHOT", "FALSE", "TRUE");
         }
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             "EXTMASTERCCLK_EN",
             TileItem::from_bit_inv(TileBit::new(0, 0, 26), false),
         );
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             "EXTMASTERCCLK_DIV",
@@ -790,10 +796,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diffs = vec![];
         for val in ["1", "2", "3", "6", "13", "25", "50"] {
             let mut diff = ctx.get_diff_legacy(tile, bel, "POST_CRC_FREQ", val);
-            diff.apply_enum_diff_legacy(ctx.item(tile, bel, "POST_CRC_CLK"), "INTERNAL", "CFG_CLK");
+            diff.apply_enum_diff_legacy(
+                ctx.item_legacy(tile, bel, "POST_CRC_CLK"),
+                "INTERNAL",
+                "CFG_CLK",
+            );
             diffs.push((val, diff));
         }
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             "POST_CRC_FREQ",
@@ -808,7 +818,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bit_bi_legacy(tile, bel, "POST_CRC_INIT_FLAG", "DISABLE", "ENABLE");
         ctx.collect_bit_bi_legacy(tile, bel, "SYSMON_PARTIAL_RECONFIG", "DISABLE", "ENABLE");
         ctx.collect_bit_bi_legacy(tile, bel, "TRIM_BITSTREAM", "DISABLE", "ENABLE");
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             "PERSIST_DEASSERT_AT_DESYNC",
@@ -818,8 +828,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item2 =
             xlat_bit_legacy(!ctx.get_diff_legacy(tile, "CFG_IO_ACCESS", "TDO", "UNCONNECTED"));
         assert_eq!(item, item2);
-        ctx.insert(tile, "MISC", "CFG_IO_ACCESS_TDO", item);
-        ctx.insert(
+        ctx.insert_legacy(tile, "MISC", "CFG_IO_ACCESS_TDO", item);
+        ctx.insert_legacy(
             tile,
             bel,
             "TRIM_REG",
@@ -845,7 +855,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bit_legacy(tile, bel, "ENCRYPT", "YES");
         }
         ctx.collect_bit_bi_legacy(tile, bel, "PERSIST", "NO", "CTLREG");
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             "ICAP_SELECT",
@@ -863,7 +873,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         let bel = "FRAME_ECC";
         let item = ctx.extract_bit_legacy(tile, bel, "ENABLE", "1");
-        ctx.insert(tile, "MISC", "GLUTMASK", item);
+        ctx.insert_legacy(tile, "MISC", "GLUTMASK", item);
         ctx.collect_enum_legacy(tile, bel, "FARSRC", &["FAR", "EFAR"]);
     }
     {
@@ -878,9 +888,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec_legacy(tile, bel, "VGG_POS_GAIN_SEL", "");
         if edev.chips.first().unwrap().regs > 1 {
             let mut diff = ctx.get_diff_legacy(tile, bel, "ENCRYPT", "YES");
-            diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "VGG_POS_GAIN_SEL"), 1, 0);
-            diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "VGG_NEG_GAIN_SEL"), 0xf, 0);
-            diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "VGG_SEL"), 0xf, 0);
+            diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "VGG_POS_GAIN_SEL"), 1, 0);
+            diff.apply_bitvec_diff_int_legacy(
+                ctx.item_legacy(tile, bel, "VGG_NEG_GAIN_SEL"),
+                0xf,
+                0,
+            );
+            diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "VGG_SEL"), 0xf, 0);
             diff.assert_empty();
         }
     }
@@ -912,7 +926,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .into_iter()
             .collect(),
         };
-        ctx.insert(tile, bel, "BPI_SYNC_MODE", item);
+        ctx.insert_legacy(tile, bel, "BPI_SYNC_MODE", item);
     }
     if !edev.chips.first().unwrap().has_ps {
         let tile = "REG.WBSTAR";
@@ -962,7 +976,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
 
-    if ctx.has_tile("SYSMON") {
+    if ctx.has_tile_legacy("SYSMON") {
         let tile = "SYSMON";
         let bel = "SYSMON";
         ctx.get_diff_legacy(tile, bel, "ENABLE", "1").assert_empty();
@@ -980,20 +994,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.get_diff_legacy(tile, bel, "JTAG_XADC", "ENABLE")
             .assert_empty();
         let mut diff = ctx.get_diff_legacy(tile, bel, "JTAG_XADC", "DISABLE");
-        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "SYSMON_TEST_E"), 7, 0);
+        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "SYSMON_TEST_E"), 7, 0);
         diff.assert_empty();
         let mut diff = ctx.get_diff_legacy(tile, bel, "JTAG_XADC", "STATUSONLY");
-        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "SYSMON_TEST_E"), 0xc8, 0);
+        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "SYSMON_TEST_E"), 0xc8, 0);
         diff.assert_empty();
 
         let mut diff = ctx.get_diff_legacy(tile, bel, "XADCENHANCEDLINEARITY", "ON");
-        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "SYSMON_TEST_C"), 0x10, 0);
+        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "SYSMON_TEST_C"), 0x10, 0);
         diff.assert_empty();
         ctx.get_diff_legacy(tile, bel, "XADCENHANCEDLINEARITY", "OFF")
             .assert_empty();
 
         let mut diff = ctx.get_diff_legacy(tile, bel, "XADCPOWERDOWN", "ENABLE");
-        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "INIT_42"), 0x30, 0);
+        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "INIT_42"), 0x30, 0);
         diff.assert_empty();
         ctx.get_diff_legacy(tile, bel, "XADCPOWERDOWN", "DISABLE")
             .assert_empty();

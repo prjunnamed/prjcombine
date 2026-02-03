@@ -1,9 +1,6 @@
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::{
-    db::{BelAttribute, BelAttributeEnum},
-    grid::{CellCoord, DieId},
-};
-use prjcombine_re_collector::diff::{OcdMode, xlat_enum_raw};
+use prjcombine_interconnect::grid::{CellCoord, DieId};
+use prjcombine_re_collector::diff::xlat_enum_attr;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bits;
@@ -22,7 +19,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
 
     {
-        let mut ctx = FuzzCtx::new_id(session, backend, tcls::CNR_SW);
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_SW);
         let mut bctx = ctx.bel(bslots::MISC_SW);
         for (val, vname) in &backend.edev.db[enums::SCAN_TEST].values {
             bctx.build()
@@ -65,7 +62,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new_id(session, backend, tcls::CNR_NW);
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NW);
         let mut bctx = ctx.bel(bslots::MISC_NW);
         for (val, vname) in &backend.edev.db[enums::IO_INPUT_MODE].values {
             bctx.build()
@@ -99,7 +96,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new_id(session, backend, tcls::CNR_SE);
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_SE);
         let mut bctx = ctx.bel(bslots::MISC_SE);
         bctx.build().test_global_attr_bool_rename(
             "PROGPIN",
@@ -159,7 +156,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .global("STARTUPCLK", "CCLK")
                 .global("DONEACTIVE", "C1")
-                .test_bel_attr_enum_bool(bcls::STARTUP::SYNC_TO_DONE, val)
+                .test_bel_attr_bits_bi(bcls::STARTUP::SYNC_TO_DONE, val)
                 .global_diff("GSRINACTIVE", "C4", phase)
                 .global_diff("OUTPUTSACTIVE", "C4", phase)
                 .global_diff("SYNCTODONE", "NO", rval)
@@ -246,7 +243,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new_id(session, backend, tcls::CNR_NE);
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NE);
         let mut bctx = ctx.bel(bslots::MISC_NE);
         bctx.build()
             .test_global_attr_bool_rename("TAC", bcls::MISC_NE::TAC, "OFF", "ON");
@@ -312,19 +309,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_bel_attr(tcls::CNR_SW, bslots::MISC_SW, bcls::MISC_SW::SCAN_TEST);
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::READ_ABORT);
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::READ_CAPTURE);
+    ctx.collect_bel_attr_bi(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::READ_ABORT);
+    ctx.collect_bel_attr_bi(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::READ_CAPTURE);
     ctx.collect_bel_attr(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::MUX_CLK);
 
     ctx.collect_bel_attr(tcls::CNR_NW, bslots::MISC_NW, bcls::MISC_NW::IO_INPUT_MODE);
     ctx.collect_bel_attr(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::ENABLE);
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::READBACK);
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::RECONFIG);
+    ctx.collect_bel_attr_bi(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::READBACK);
+    ctx.collect_bel_attr_bi(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::RECONFIG);
 
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::TCTEST);
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::PROG_PULLUP);
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::CRC);
+    ctx.collect_bel_attr_bi(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::TCTEST);
+    ctx.collect_bel_attr_bi(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
+    ctx.collect_bel_attr_bi(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::PROG_PULLUP);
+    ctx.collect_bel_attr_bi(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::CRC);
     ctx.collect_bel_attr(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::CONFIG_RATE);
     ctx.collect_bel_input_inv_bi(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::GTS);
     ctx.collect_bel_input_inv_bi(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::GR);
@@ -343,30 +340,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ),
             ));
         }
-        let mut item = xlat_enum_raw(diffs, OcdMode::ValueOrder);
+        let mut item = xlat_enum_attr(diffs);
         // sigh. DI has identical value to DI_PLUS_2, which is obviously bogus.
         // not *completely* sure this is the right fixup, but it seems to be the most
         // likely option.
         assert_eq!(item.bits.len(), 2);
         item.values
             .insert(enums::GTS_GSR_TIMING::DONE_IN, bits![0; 2]);
-        let attr = BelAttribute::Enum(BelAttributeEnum {
-            bits: item.bits,
-            values: item.values.into_iter().collect(),
-        });
-        ctx.insert_bel_attr_raw(
+        ctx.insert_bel_attr_enum(
             tcls::CNR_SE,
             bslots::STARTUP,
             bcls::STARTUP::GSR_TIMING,
-            attr,
+            item,
         );
     }
     ctx.collect_bel_attr(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::MUX_CLK);
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::SYNC_TO_DONE);
+    ctx.collect_bel_attr_bi(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::SYNC_TO_DONE);
     ctx.collect_bel_attr(tcls::CNR_SE, bslots::OSC_SE, bcls::OSC_SE::OSC1_DIV);
     ctx.collect_bel_attr(tcls::CNR_SE, bslots::OSC_SE, bcls::OSC_SE::OSC2_DIV);
     ctx.collect_bel_attr(tcls::CNR_SE, bslots::OSC_SE, bcls::OSC_SE::MUX_CLK);
 
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_NE, bslots::MISC_NE, bcls::MISC_NE::TLC);
-    ctx.collect_bel_attr_bool_bi(tcls::CNR_NE, bslots::MISC_NE, bcls::MISC_NE::TAC);
+    ctx.collect_bel_attr_bi(tcls::CNR_NE, bslots::MISC_NE, bcls::MISC_NE::TLC);
+    ctx.collect_bel_attr_bi(tcls::CNR_NE, bslots::MISC_NE, bcls::MISC_NE::TAC);
 }

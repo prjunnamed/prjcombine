@@ -3,10 +3,7 @@ use std::{error::Error, fs::File, path::Path};
 use bincode::{Decode, Encode};
 use prjcombine_entity::{EntityMap, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::{DeviceDataId, IntDb, TableValue};
-use prjcombine_types::{
-    bsdata::BsData,
-    db::{BondId, ChipId, DevBondId, DevSpeedId, DeviceCombo, DumpFlags},
-};
+use prjcombine_types::db::{BondId, ChipId, DevBondId, DevSpeedId, DeviceCombo, DumpFlags};
 
 use crate::{bond::Bond, chip::Chip};
 
@@ -26,7 +23,6 @@ pub struct Database {
     pub bonds: EntityVec<BondId, Bond>,
     pub devices: Vec<Device>,
     pub int: IntDb,
-    pub bsdata: BsData,
 }
 
 impl Database {
@@ -131,9 +127,6 @@ impl Database {
             writeln!(o)?;
         }
 
-        if flags.bsdata {
-            self.bsdata.dump(o)?;
-        }
         Ok(())
     }
 }

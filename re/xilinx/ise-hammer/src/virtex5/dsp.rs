@@ -10,7 +10,7 @@ const DSP48E_INVPINS: &[&str] = &[
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let tile = "DSP";
-    let mut ctx = FuzzCtx::new(session, backend, tile);
+    let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
     for i in 0..2 {
         let bel_other = defs::bslots::DSP[i ^ 1];
         let mut bctx = ctx.bel(defs::bslots::DSP[i]);
@@ -21,7 +21,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .mode(mode)
             .commit();
         for &pin in DSP48E_INVPINS {
-            bctx.mode(mode).test_inv(pin);
+            bctx.mode(mode).test_inv_legacy(pin);
         }
         for (aname, attr, attrcasc) in [
             ("AREG_ACASCREG", "AREG", "ACASCREG"),
@@ -53,7 +53,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_enum_legacy(attr, &["0", "1"]);
         }
         for attr in ["A_INPUT", "B_INPUT"] {
-            bctx.mode(mode).test_enum_legacy(attr, &["DIRECT", "CASCADE"]);
+            bctx.mode(mode)
+                .test_enum_legacy(attr, &["DIRECT", "CASCADE"]);
         }
         for attr in ["CLOCK_INVERT_P", "CLOCK_INVERT_M"] {
             bctx.mode(mode)
@@ -61,14 +62,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
         bctx.mode(mode)
             .test_enum_legacy("SEL_ROUNDING_MASK", &["SEL_MASK", "MODE2", "MODE1"]);
-        bctx.mode(mode).test_enum_legacy("ROUNDING_LSB_MASK", &["1", "0"]);
+        bctx.mode(mode)
+            .test_enum_legacy("ROUNDING_LSB_MASK", &["1", "0"]);
         bctx.mode(mode)
             .test_enum_legacy("USE_PATTERN_DETECT", &["PATDET", "NO_PATDET"]);
         bctx.mode(mode)
             .test_enum_legacy("USE_SIMD", &["TWO24", "ONE48", "FOUR12"]);
         bctx.mode(mode)
             .test_enum_legacy("USE_MULT", &["NONE", "MULT", "MULT_S"]);
-        bctx.mode(mode).test_enum_legacy("SEL_PATTERN", &["PATTERN", "C"]);
+        bctx.mode(mode)
+            .test_enum_legacy("SEL_PATTERN", &["PATTERN", "C"]);
         bctx.mode(mode).test_enum_legacy("SEL_MASK", &["MASK", "C"]);
         bctx.mode(mode)
             .test_enum_legacy("AUTORESET_OVER_UNDER_FLOW", &["TRUE", "FALSE"]);
@@ -80,14 +83,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_enum_legacy("SCAN_IN_SET_M", &["SET", "DONT_SET"]);
         bctx.mode(mode)
             .test_enum_legacy("SCAN_IN_SET_P", &["SET", "DONT_SET"]);
-        bctx.mode(mode).test_enum_legacy("SCAN_IN_SETVAL_M", &["1", "0"]);
-        bctx.mode(mode).test_enum_legacy("SCAN_IN_SETVAL_P", &["1", "0"]);
+        bctx.mode(mode)
+            .test_enum_legacy("SCAN_IN_SETVAL_M", &["1", "0"]);
+        bctx.mode(mode)
+            .test_enum_legacy("SCAN_IN_SETVAL_P", &["1", "0"]);
         bctx.mode(mode)
             .test_enum_legacy("TEST_SET_M", &["SET", "DONT_SET"]);
         bctx.mode(mode)
             .test_enum_legacy("TEST_SET_P", &["SET", "DONT_SET"]);
-        bctx.mode(mode).test_enum_legacy("TEST_SETVAL_M", &["1", "0"]);
-        bctx.mode(mode).test_enum_legacy("TEST_SETVAL_P", &["1", "0"]);
+        bctx.mode(mode)
+            .test_enum_legacy("TEST_SETVAL_M", &["1", "0"]);
+        bctx.mode(mode)
+            .test_enum_legacy("TEST_SETVAL_P", &["1", "0"]);
         if i == 0 {
             bctx.mode(mode)
                 .bel_mode(bel_other, mode)
@@ -98,7 +105,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .bel_unused(bel_other)
                 .test_enum_legacy("LFSR_EN_SET", &["SET", "DONT_SET"]);
         }
-        bctx.mode(mode).test_enum_legacy("LFSR_EN_SETVAL", &["1", "0"]);
+        bctx.mode(mode)
+            .test_enum_legacy("LFSR_EN_SETVAL", &["1", "0"]);
         bctx.mode(mode).test_multi_attr_hex_legacy("PATTERN", 48);
         bctx.mode(mode).test_multi_attr_hex_legacy("MASK", 48);
     }
@@ -165,13 +173,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for bel in ["DSP[0]", "DSP[1]"] {
         let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-        present.discard_bits_legacy(ctx.item(tile, bel, "SCAN_IN_SET_M"));
-        present.discard_bits_legacy(ctx.item(tile, bel, "SCAN_IN_SET_P"));
-        present.discard_bits_legacy(ctx.item(tile, bel, "TEST_SET_M"));
-        present.discard_bits_legacy(ctx.item(tile, bel, "TEST_SET_P"));
+        present.discard_bits_legacy(ctx.item_legacy(tile, bel, "SCAN_IN_SET_M"));
+        present.discard_bits_legacy(ctx.item_legacy(tile, bel, "SCAN_IN_SET_P"));
+        present.discard_bits_legacy(ctx.item_legacy(tile, bel, "TEST_SET_M"));
+        present.discard_bits_legacy(ctx.item_legacy(tile, bel, "TEST_SET_P"));
         if bel == "DSP[0]" {
-            present.discard_bits_legacy(ctx.item(tile, "DSP[0]", "LFSR_EN_SET"));
-            present.discard_bits_legacy(ctx.item(tile, "DSP[1]", "LFSR_EN_SET"));
+            present.discard_bits_legacy(ctx.item_legacy(tile, "DSP[0]", "LFSR_EN_SET"));
+            present.discard_bits_legacy(ctx.item_legacy(tile, "DSP[1]", "LFSR_EN_SET"));
         }
         present.assert_empty();
     }

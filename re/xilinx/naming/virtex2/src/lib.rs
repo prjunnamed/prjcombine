@@ -435,11 +435,11 @@ impl Namer<'_> {
                     let has_iobs = data
                         .iobs
                         .iter()
-                        .any(|iob| iob.tile == tidx && iob.kind == IobKind::Iob);
+                        .any(|iob| iob.cell == tidx && iob.kind == IobKind::Iob);
                     let has_ibufs = data
                         .iobs
                         .iter()
-                        .any(|iob| iob.tile == tidx && iob.kind == IobKind::Ibuf);
+                        .any(|iob| iob.cell == tidx && iob.kind == IobKind::Ibuf);
                     let kind = if !has_ibufs {
                         if cell.row == self.chip.row_s() {
                             "BIOIS"
@@ -507,7 +507,7 @@ impl Namer<'_> {
                     let has_ibufs = data
                         .iobs
                         .iter()
-                        .any(|iob| iob.tile == tidx && iob.kind == IobKind::Ibuf);
+                        .any(|iob| iob.cell == tidx && iob.kind == IobKind::Ibuf);
                     let kind = if !has_ibufs {
                         if cell.col == self.chip.col_w() {
                             "LIOIS"
@@ -1198,14 +1198,14 @@ impl Namer<'_> {
             if cd.io != ColumnIoKind::None {
                 let (data, tidx) = get_iob_data_n(self.chip.kind, cd.io);
                 for &iob in &data.iobs {
-                    if iob.tile == tidx {
+                    if iob.cell == tidx {
                         if iob.kind == IobKind::Clk {
-                            clks.push(iob.iob.to_idx());
+                            clks.push(iob.iob_id.to_idx());
                         } else if iob.kind == IobKind::Ibuf && self.chip.kind != ChipKind::FpgaCore
                         {
-                            ipads.push(iob.iob.to_idx());
+                            ipads.push(iob.iob_id.to_idx());
                         } else {
-                            pads.push(iob.iob.to_idx());
+                            pads.push(iob.iob_id.to_idx());
                         }
                     }
                 }
@@ -1225,9 +1225,9 @@ impl Namer<'_> {
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
                     if i < 4 {
-                        defs::bslots::IBUF[i]
+                        defs::bslots::IREG[i]
                     } else {
-                        defs::bslots::OBUF[i - 4]
+                        defs::bslots::OREG[i - 4]
                     }
                 } else {
                     defs::bslots::IOI[i]
@@ -1264,11 +1264,11 @@ impl Namer<'_> {
             let mut pads = vec![];
             let mut ipads = vec![];
             for &iob in &data.iobs {
-                if iob.tile == tidx {
+                if iob.cell == tidx {
                     if iob.kind == IobKind::Ibuf && self.chip.kind != ChipKind::FpgaCore {
-                        ipads.push(iob.iob.to_idx());
+                        ipads.push(iob.iob_id.to_idx());
                     } else {
-                        pads.push(iob.iob.to_idx());
+                        pads.push(iob.iob_id.to_idx());
                     }
                 }
             }
@@ -1287,9 +1287,9 @@ impl Namer<'_> {
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
                     if i < 4 {
-                        defs::bslots::IBUF[i]
+                        defs::bslots::IREG[i]
                     } else {
-                        defs::bslots::OBUF[i - 4]
+                        defs::bslots::OREG[i - 4]
                     }
                 } else {
                     defs::bslots::IOI[i]
@@ -1326,14 +1326,14 @@ impl Namer<'_> {
             if cd.io != ColumnIoKind::None {
                 let (data, tidx) = get_iob_data_s(self.chip.kind, cd.io);
                 for &iob in &data.iobs {
-                    if iob.tile == tidx {
+                    if iob.cell == tidx {
                         if iob.kind == IobKind::Clk {
-                            clks.push(iob.iob.to_idx());
+                            clks.push(iob.iob_id.to_idx());
                         } else if iob.kind == IobKind::Ibuf && self.chip.kind != ChipKind::FpgaCore
                         {
-                            ipads.push(iob.iob.to_idx());
+                            ipads.push(iob.iob_id.to_idx());
                         } else {
-                            pads.push(iob.iob.to_idx());
+                            pads.push(iob.iob_id.to_idx());
                         }
                     }
                 }
@@ -1353,9 +1353,9 @@ impl Namer<'_> {
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
                     if i < 4 {
-                        defs::bslots::IBUF[i]
+                        defs::bslots::IREG[i]
                     } else {
-                        defs::bslots::OBUF[i - 4]
+                        defs::bslots::OREG[i - 4]
                     }
                 } else {
                     defs::bslots::IOI[i]
@@ -1409,11 +1409,11 @@ impl Namer<'_> {
             let mut pads = vec![];
             let mut ipads = vec![];
             for &iob in &data.iobs {
-                if iob.tile == tidx {
+                if iob.cell == tidx {
                     if iob.kind == IobKind::Ibuf && self.chip.kind != ChipKind::FpgaCore {
-                        ipads.push(iob.iob.to_idx());
+                        ipads.push(iob.iob_id.to_idx());
                     } else {
-                        pads.push(iob.iob.to_idx());
+                        pads.push(iob.iob_id.to_idx());
                     }
                 }
             }
@@ -1432,9 +1432,9 @@ impl Namer<'_> {
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
                     if i < 4 {
-                        defs::bslots::IBUF[i]
+                        defs::bslots::IREG[i]
                     } else {
-                        defs::bslots::OBUF[i - 4]
+                        defs::bslots::OREG[i - 4]
                     }
                 } else {
                     defs::bslots::IOI[i]
@@ -2066,12 +2066,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 );
                 ntile.add_bel(defs::bslots::PCILOGIC, "PCILOGIC_X1Y0".into());
             }
-            (true, tcls_v2::HCLK)
-            | (
-                false,
-                tcls_s3::HCLK
-                | tcls_s3::HCLK_UNI
-            ) => {
+            (true, tcls_v2::HCLK) | (false, tcls_s3::HCLK | tcls_s3::HCLK_UNI) => {
                 let (naming, name) = namer.get_hclk_name(tcrd.cell);
                 let mut names = vec![name];
                 if naming == "HCLK_DSP" {
@@ -2494,6 +2489,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let ntile = namer.ngrid.name_tile(tcrd, tcname, [name]);
                 ntile.add_bel(defs::bslots::BSCAN, "BSCAN".to_string());
             }
+
+            (true, tcls_v2::GLOBAL)
+            | (
+                false,
+                tcls_s3::GLOBAL_S3 | tcls_s3::GLOBAL_FC | tcls_s3::GLOBAL_S3E | tcls_s3::GLOBAL_S3A,
+            ) => (),
 
             _ => panic!("ummm {tcname}?"),
         }

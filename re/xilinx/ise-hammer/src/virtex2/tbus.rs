@@ -34,7 +34,7 @@ impl TileRelation for ClbTbusRight {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new_id(session, backend, tcls::CLB);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CLB);
     for (i, out_a, out_b) in [(0, "BUS0", "BUS2"), (1, "BUS1", "BUS3")] {
         let mut bctx = ctx.bel(bslots::TBUF[i]);
         bctx.mode("TBUF")

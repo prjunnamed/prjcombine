@@ -76,7 +76,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     } else {
         ("SLICEL", "SLICEM")
     };
-    let mut ctx = FuzzCtx::new_id(
+    let mut ctx = FuzzCtx::new(
         session,
         backend,
         if edev.chip.kind.is_virtex2() {
@@ -538,7 +538,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
     if !edev.chip.kind.is_virtex2() {
-        let mut ctx = FuzzCtx::new_id(
+        let mut ctx = FuzzCtx::new(
             session,
             backend,
             if edev.chip.kind == ChipKind::FpgaCore {
@@ -584,16 +584,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         // LUT RAM
         let is_m = edev.chip.kind.is_virtex2() || matches!(idx, 0 | 2);
         if is_m {
-            ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE::F_SHIFT_ENABLE, false)
+            ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::SLICE::F_SHIFT_ENABLE, false)
                 .assert_empty();
-            ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE::G_SHIFT_ENABLE, false)
+            ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::SLICE::G_SHIFT_ENABLE, false)
                 .assert_empty();
             let f_ram = ctx.get_diff_attr_bit(tcid, bslot, bcls::SLICE::F_RAM_ENABLE, 0);
             let g_ram = ctx.get_diff_attr_bit(tcid, bslot, bcls::SLICE::G_RAM_ENABLE, 0);
             let (f_ram, g_ram, ram) = Diff::split(f_ram, g_ram);
             ctx.insert_bel_attr_bool(tcid, bslot, bcls::SLICE::FF_SR_ENABLE, xlat_bit(!ram));
-            let f_shift_d = ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE::F_SHIFT_ENABLE, true);
-            let g_shift_d = ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE::G_SHIFT_ENABLE, true);
+            let f_shift_d =
+                ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::SLICE::F_SHIFT_ENABLE, true);
+            let g_shift_d =
+                ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::SLICE::G_SHIFT_ENABLE, true);
             let f_shift = f_ram.combine(&f_shift_d);
             let g_shift = g_ram.combine(&g_shift_d);
             ctx.insert_bel_attr_bool(tcid, bslot, bcls::SLICE::F_RAM_ENABLE, xlat_bit(f_ram));
@@ -644,13 +646,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         // FFs
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FF_SR_SYNC);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FF_LATCH);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE::FF_SR_SYNC);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE::FF_LATCH);
         ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::FF_REV_ENABLE);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FFX_SRVAL);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FFY_SRVAL);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FFX_INIT);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE::FFY_INIT);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE::FFX_SRVAL);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE::FFY_SRVAL);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE::FFX_INIT);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE::FFY_INIT);
 
         // inverts
         let int = if edev.chip.kind.is_virtex2() {
@@ -682,7 +684,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bel_attr(tcid, bslot, bcls::RANDOR::MODE);
         }
         if tcid == tcls_s3::RANDOR_FC {
-            ctx.insert_bel_attr_raw(
+            ctx.insert_bel_attr_enum(
                 tcid,
                 bslot,
                 bcls::RANDOR::MODE,
@@ -714,7 +716,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if tcid == int_clb {
             continue;
         }
-        if !ctx.has_tile_id(tcid) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
         if !tcls.bels.contains_id(bslots::INT) {

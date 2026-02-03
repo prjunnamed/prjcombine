@@ -92,6 +92,17 @@ impl core::fmt::Debug for PolTileBit {
     }
 }
 
+impl core::ops::Not for PolTileBit {
+    type Output = PolTileBit;
+
+    fn not(self) -> Self::Output {
+        PolTileBit {
+            bit: self.bit,
+            inv: !self.inv,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct BitRectGeometry {
     pub frames: usize,

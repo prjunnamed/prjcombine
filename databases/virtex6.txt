@@ -22577,6 +22577,45 @@ intdb {
 		GMC15,
 	}
 
+	enum BRAM_WRITE_MODE {
+		WRITE_FIRST,
+		READ_FIRST,
+		NO_CHANGE,
+	}
+
+	enum BRAM_WW_VALUE {
+		NONE,
+		_0,
+		_1,
+	}
+
+	enum BRAM_V4_DATA_WIDTH {
+		_1,
+		_2,
+		_4,
+		_9,
+		_18,
+		_36,
+	}
+
+	enum BRAM_V4_FIFO_WIDTH {
+		_4,
+		_9,
+		_18,
+		_36,
+	}
+
+	enum DSP_B_INPUT {
+		DIRECT,
+		CASCADE,
+	}
+
+	enum DSP_REG2 {
+		_0,
+		_1,
+		_2,
+	}
+
 	bel_class SLICE_V4 {
 		input F1;
 		input F2;
@@ -22628,6 +22667,99 @@ intdb {
 		attribute DYMUX: SLICE_V4_DYMUX;
 		attribute XBMUX: SLICE_V4_XBMUX;
 		attribute YBMUX: SLICE_V4_YBMUX;
+	}
+
+	bel_class BRAM_V4 {
+		input CLKA;
+		input CLKB;
+		input ENA;
+		input ENB;
+		input SSRA;
+		input SSRB;
+		input WEA[4];
+		input WEB[4];
+		input REGCEA;
+		input REGCEB;
+		input ADDRA[15];
+		input ADDRB[15];
+		input DIA[32];
+		input DIB[32];
+		input DIPA[4];
+		input DIPB[4];
+		output DOA[32];
+		output DOB[32];
+		output DOPA[4];
+		output DOPB[4];
+		attribute DATA: bitvec[16384];
+		attribute DATAP: bitvec[2048];
+		attribute SAVEDATA: bitvec[64];
+		attribute INIT_A: bitvec[36];
+		attribute INIT_B: bitvec[36];
+		attribute SRVAL_A: bitvec[36];
+		attribute SRVAL_B: bitvec[36];
+		attribute READ_WIDTH_A: BRAM_V4_DATA_WIDTH;
+		attribute READ_WIDTH_B: BRAM_V4_DATA_WIDTH;
+		attribute WRITE_WIDTH_A: BRAM_V4_DATA_WIDTH;
+		attribute WRITE_WIDTH_B: BRAM_V4_DATA_WIDTH;
+		attribute WRITE_MODE_A: BRAM_WRITE_MODE;
+		attribute WRITE_MODE_B: BRAM_WRITE_MODE;
+		attribute WW_VALUE_A: BRAM_WW_VALUE;
+		attribute WW_VALUE_B: BRAM_WW_VALUE;
+		attribute DOA_REG: bool;
+		attribute DOB_REG: bool;
+		attribute INVERT_CLK_DOA_REG: bool;
+		attribute INVERT_CLK_DOB_REG: bool;
+		attribute RAM_EXTENSION_A_LOWER: bool;
+		attribute RAM_EXTENSION_B_LOWER: bool;
+		attribute EN_ECC_READ: bitvec[4];
+		attribute EN_ECC_WRITE: bitvec[4];
+		attribute FIFO_ENABLE: bool;
+		attribute FIFO_WIDTH: BRAM_V4_FIFO_WIDTH;
+		attribute FIRST_WORD_FALL_THROUGH: bool;
+		attribute ALMOST_EMPTY_OFFSET: bitvec[12];
+		attribute ALMOST_FULL_OFFSET: bitvec[12];
+	}
+
+	bel_class DSP_V4 {
+		input A[18];
+		input B[18];
+		input CARRYIN;
+		input CARRYINSEL[2];
+		input OPMODE[7];
+		input SUBTRACT;
+		input CLK;
+		input CEA;
+		input CEB;
+		input CEM;
+		input CEP;
+		input CECARRYIN;
+		input CECINSUB;
+		input CECTRL;
+		input RSTA;
+		input RSTB;
+		input RSTM;
+		input RSTP;
+		input RSTCARRYIN;
+		input RSTCTRL;
+		output P[48];
+		attribute AREG: DSP_REG2;
+		attribute BREG: DSP_REG2;
+		attribute MREG: bool;
+		attribute PREG: bool;
+		attribute OPMODEREG: bool;
+		attribute SUBTRACTREG: bool;
+		attribute CARRYINREG: bool;
+		attribute CARRYINSELREG: bool;
+		attribute B_INPUT: DSP_B_INPUT;
+		attribute UNK_ENABLE: bool;
+	}
+
+	bel_class DSP_C {
+		input C[48];
+		input CEC;
+		input RSTC;
+		attribute MUX_CLK: bitvec[1];
+		attribute CREG: bool;
 	}
 
 	region_slot HCLK;
@@ -27947,13 +28079,13 @@ intdb {
 		bel_slot SLICE[2]: legacy;
 		bel_slot SLICE[3]: legacy;
 		bel_slot BRAM: legacy;
-		bel_slot FIFO: legacy;
 		bel_slot BRAM_F: legacy;
 		bel_slot BRAM_H[0]: legacy;
 		bel_slot BRAM_H[1]: legacy;
 		bel_slot BRAM_ADDR: legacy;
 		bel_slot DSP[0]: legacy;
 		bel_slot DSP[1]: legacy;
+		bel_slot DSP_C: DSP_C;
 		bel_slot TIEOFF_DSP: legacy;
 		bel_slot ILOGIC[0]: legacy;
 		bel_slot ILOGIC[1]: legacy;

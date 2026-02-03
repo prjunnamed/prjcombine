@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new(session, backend, "BRAM");
+    let mut ctx = FuzzCtx::new_legacy(session, backend, "BRAM");
     let mut bctx = ctx.bel(defs::bslots::BRAM);
 
     bctx.build()
@@ -475,7 +475,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ] {
         let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", format!("FIFO36_EXP.{opt}"));
         diff = diff.combine(&!&present_fifo36);
-        ctx.insert(tile, bel, opt, xlat_bit_legacy(diff));
+        ctx.insert_legacy(tile, bel, opt, xlat_bit_legacy(diff));
     }
     let mut diffs = vec![("NONE", Diff::default())];
     for val in ["WW0", "WW1"] {
@@ -484,7 +484,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diff = diff.combine(&!&present_fifo36);
         diffs.push((val, diff));
     }
-    ctx.insert(tile, bel, "WEAK_WRITE", xlat_enum_legacy(diffs));
+    ctx.insert_legacy(tile, bel, "WEAK_WRITE", xlat_enum_legacy(diffs));
 
     fn split_diff_ul(diff: Diff) -> (Diff, Diff) {
         let mut diff_l = Diff::default();
@@ -516,8 +516,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diffs_l.push((i, diff_l));
         diffs_u.push((i, diff_u));
     }
-    ctx.insert(tile, bel, "TRD_DLY_L", xlat_bitvec_sparse_legacy(diffs_l));
-    ctx.insert(tile, bel, "TRD_DLY_U", xlat_bitvec_sparse_legacy(diffs_u));
+    ctx.insert_legacy(tile, bel, "TRD_DLY_L", xlat_bitvec_sparse_legacy(diffs_l));
+    ctx.insert_legacy(tile, bel, "TRD_DLY_U", xlat_bitvec_sparse_legacy(diffs_u));
 
     let diff_3 = ctx
         .peek_diff_legacy(tile, bel, "PRESENT", "FIFO36_EXP.TWR_DLY.11")
@@ -541,21 +541,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diffs_l.push((i, diff_l));
         diffs_u.push((i, diff_u));
     }
-    ctx.insert(tile, bel, "TWR_DLY_L", xlat_bitvec_sparse_legacy(diffs_l));
-    ctx.insert(tile, bel, "TWR_DLY_U", xlat_bitvec_sparse_legacy(diffs_u));
+    ctx.insert_legacy(tile, bel, "TWR_DLY_L", xlat_bitvec_sparse_legacy(diffs_l));
+    ctx.insert_legacy(tile, bel, "TWR_DLY_U", xlat_bitvec_sparse_legacy(diffs_u));
 
     for val in ["0", "101", "1010", "1111"] {
         let mut diff =
             ctx.get_diff_legacy(tile, bel, "PRESENT", format!("FIFO36_EXP.TSCRUB_DLY.{val}"));
         diff = diff.combine(&!&present_fifo36);
         if matches!(val, "101" | "1111") {
-            diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "TWR_DLY_L"), 8, 0);
-            diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "TWR_DLY_U"), 8, 0);
+            diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "TWR_DLY_L"), 8, 0);
+            diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "TWR_DLY_U"), 8, 0);
         }
         if matches!(val, "1010" | "1111") {
             let (diff_l, diff_u) = split_diff_ul(diff);
-            ctx.insert(tile, bel, "TSCRUB_DLY_L", xlat_bit_legacy(diff_l));
-            ctx.insert(tile, bel, "TSCRUB_DLY_U", xlat_bit_legacy(diff_u));
+            ctx.insert_legacy(tile, bel, "TSCRUB_DLY_L", xlat_bit_legacy(diff_l));
+            ctx.insert_legacy(tile, bel, "TSCRUB_DLY_U", xlat_bit_legacy(diff_u));
         } else {
             diff.assert_empty();
         }
@@ -670,7 +670,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             pin,
             &format!("{pin}_B"),
         );
-        ctx.insert(tile, bel, format!("INV.{hwpin}"), item);
+        ctx.insert_legacy(tile, bel, format!("INV.{hwpin}"), item);
     }
     for hwpin in [
         "CLKARDCLKL",
@@ -690,7 +690,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "ENBWRENL",
         "ENBU",
     ] {
-        let item = ctx.item(tile, bel, &format!("INV.{hwpin}"));
+        let item = ctx.item_legacy(tile, bel, &format!("INV.{hwpin}"));
         present_rambfifo36.apply_bit_diff_legacy(item, false, true);
         present_ramb18x2.apply_bit_diff_legacy(item, false, true);
         present_ramb18x2sdp.apply_bit_diff_legacy(item, false, true);
@@ -705,7 +705,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for mode in ["RAMBFIFO36", "RAMB36SDP_EXP", "FIFO36_72_EXP"] {
         let item =
             ctx.extract_bit_bi_legacy(tile, bel, &format!("EN_ECC_READ.{mode}"), "FALSE", "TRUE");
-        ctx.insert(tile, bel, "EN_ECC_READ", item);
+        ctx.insert_legacy(tile, bel, "EN_ECC_READ", item);
         let item = ctx.extract_bit_bi_legacy(
             tile,
             bel,
@@ -721,24 +721,24 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "FALSE",
                 "TRUE",
             );
-            ctx.insert(tile, bel, "EN_ECC_WRITE", item);
+            ctx.insert_legacy(tile, bel, "EN_ECC_WRITE", item);
         } else {
             ctx.get_diff_legacy(tile, bel, format!("EN_ECC_WRITE.{mode}"), "FALSE")
                 .assert_empty();
             let mut diff = ctx.get_diff_legacy(tile, bel, format!("EN_ECC_WRITE.{mode}"), "TRUE");
             diff.apply_bit_diff_legacy(&item, true, false);
-            ctx.insert(tile, bel, "EN_ECC_WRITE_NO_READ", xlat_bit_legacy(diff));
+            ctx.insert_legacy(tile, bel, "EN_ECC_WRITE_NO_READ", xlat_bit_legacy(diff));
         }
-        ctx.insert(tile, bel, "EN_ECC_WRITE", item);
+        ctx.insert_legacy(tile, bel, "EN_ECC_WRITE", item);
     }
     let item = ctx.extract_bit_bi_legacy(tile, bel, "EN_ECC_SCRUB.RAMBFIFO36", "FALSE", "TRUE");
-    ctx.insert(tile, bel, "EN_ECC_SCRUB", item);
+    ctx.insert_legacy(tile, bel, "EN_ECC_SCRUB", item);
     ctx.get_diff_legacy(tile, bel, "EN_ECC_SCRUB.RAMB36SDP_EXP", "FALSE")
         .assert_empty();
     let mut diff = ctx.get_diff_legacy(tile, bel, "EN_ECC_SCRUB.RAMB36SDP_EXP", "TRUE");
-    diff.apply_bit_diff_legacy(ctx.item(tile, bel, "EN_ECC_SCRUB"), true, false);
-    diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "TWR_DLY_L"), 8, 0);
-    diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "TWR_DLY_U"), 8, 0);
+    diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "EN_ECC_SCRUB"), true, false);
+    diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "TWR_DLY_L"), 8, 0);
+    diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "TWR_DLY_U"), 8, 0);
     diff.assert_empty();
 
     let item = ctx.extract_bit_bi_legacy(tile, bel, "IS_FIFO", "FALSE", "TRUE");
@@ -746,7 +746,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     present_rambfifo18_36.apply_bit_diff_legacy(&item, true, false);
     present_fifo36.apply_bit_diff_legacy(&item, true, false);
     present_fifo36_72.apply_bit_diff_legacy(&item, true, false);
-    ctx.insert(tile, bel, "IS_FIFO", item);
+    ctx.insert_legacy(tile, bel, "IS_FIFO", item);
     for mode in [
         "RAMBFIFO36",
         "RAMBFIFO18",
@@ -761,16 +761,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "FALSE",
             "TRUE",
         );
-        ctx.insert(tile, bel, "FIRST_WORD_FALL_THROUGH", item);
+        ctx.insert_legacy(tile, bel, "FIRST_WORD_FALL_THROUGH", item);
         if mode != "RAMBFIFO36" {
             for attr in ["ALMOST_FULL_OFFSET", "ALMOST_EMPTY_OFFSET"] {
                 let item = ctx.extract_bitvec_legacy(tile, bel, &format!("{attr}.{mode}"), "");
-                ctx.insert(tile, bel, attr, item);
+                ctx.insert_legacy(tile, bel, attr, item);
             }
         }
     }
     for attr in ["ALMOST_FULL_OFFSET", "ALMOST_EMPTY_OFFSET"] {
-        let item = ctx.item(tile, bel, attr);
+        let item = ctx.item_legacy(tile, bel, attr);
         present_rambfifo36.apply_bitvec_diff_legacy(item, &bits![0; 13], &bits![1; 13]);
         present_ramb18x2.apply_bitvec_diff_legacy(item, &bits![0; 13], &bits![1; 13]);
         present_ramb18x2sdp.apply_bitvec_diff_legacy(item, &bits![0; 13], &bits![1; 13]);
@@ -811,7 +811,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             &format!("{attr}.{mode}"),
             &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"],
         );
-        ctx.insert(tile, bel, hwattr, item);
+        ctx.insert_legacy(tile, bel, hwattr, item);
     }
     for attr in [
         "WRITE_MODE_A_L",
@@ -819,19 +819,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "WRITE_MODE_B_L",
         "WRITE_MODE_B_U",
     ] {
-        let item = ctx.item(tile, bel, attr);
+        let item = ctx.item_legacy(tile, bel, attr);
         present_ramb18x2sdp.apply_enum_diff_legacy(item, "READ_FIRST", "WRITE_FIRST");
         present_ramb36sdp.apply_enum_diff_legacy(item, "READ_FIRST", "WRITE_FIRST");
     }
     for attr in ["WRITE_MODE_A_L", "WRITE_MODE_B_L"] {
-        let item = ctx.item(tile, bel, attr);
+        let item = ctx.item_legacy(tile, bel, attr);
         present_rambfifo18.apply_enum_diff_legacy(item, "NO_CHANGE", "WRITE_FIRST");
         present_rambfifo18_36.apply_enum_diff_legacy(item, "NO_CHANGE", "WRITE_FIRST");
         present_fifo36.apply_enum_diff_legacy(item, "NO_CHANGE", "WRITE_FIRST");
         present_fifo36_72.apply_enum_diff_legacy(item, "NO_CHANGE", "WRITE_FIRST");
     }
     for attr in ["WRITE_MODE_A_U", "WRITE_MODE_B_U"] {
-        let item = ctx.item(tile, bel, attr);
+        let item = ctx.item_legacy(tile, bel, attr);
         present_rambfifo18_36.apply_enum_diff_legacy(item, "NO_CHANGE", "WRITE_FIRST");
         present_fifo36.apply_enum_diff_legacy(item, "NO_CHANGE", "WRITE_FIRST");
         present_fifo36_72.apply_enum_diff_legacy(item, "NO_CHANGE", "WRITE_FIRST");
@@ -853,7 +853,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.get_diff_legacy(tile, bel, format!("{attr}.{mode}"), "LOWER"),
                 ),
             ]);
-            ctx.insert(tile, bel, attr, item);
+            ctx.insert_legacy(tile, bel, attr, item);
         }
     }
 
@@ -867,9 +867,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         &format!("{attr}_{ab}_{ul}.{mode}"),
                         "",
                     );
-                    ctx.insert(tile, bel, format!("{attr}_{ab}_{ul}"), item);
+                    ctx.insert_legacy(tile, bel, format!("{attr}_{ab}_{ul}"), item);
                 }
-                let item = ctx.item(tile, bel, &format!("{attr}_{ab}_{ul}"));
+                let item = ctx.item_legacy(tile, bel, &format!("{attr}_{ab}_{ul}"));
                 present_rambfifo36.apply_bitvec_diff_legacy(item, &bits![0; 18], &bits![1; 18]);
                 present_ramb18x2.apply_bitvec_diff_legacy(item, &bits![0; 18], &bits![1; 18]);
                 present_ramb18x2sdp.apply_bitvec_diff_legacy(item, &bits![0; 18], &bits![1; 18]);
@@ -889,13 +889,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     diffs_u.push(diff);
                 }
             }
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("{attr}_{ab}_L"),
                 xlat_bitvec_legacy(diffs_l),
             );
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("{attr}_{ab}_U"),
@@ -909,13 +909,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut diffs_b = diffs.split_off(16);
             diffs.extend(diffs_a_hi);
             diffs_b.extend(diffs_b_hi);
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("{attr}_A_{ul}"),
                 xlat_bitvec_legacy(diffs),
             );
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("{attr}_B_{ul}"),
@@ -946,25 +946,25 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 diffs_b_u.push(diff);
             }
         }
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("{attr}_A_L"),
             xlat_bitvec_legacy(diffs_a_l),
         );
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("{attr}_A_U"),
             xlat_bitvec_legacy(diffs_a_u),
         );
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("{attr}_B_L"),
             xlat_bitvec_legacy(diffs_b_l),
         );
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("{attr}_B_U"),
@@ -1030,23 +1030,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("DOB_REG_U", "RAMBFIFO18", "DOB_REG"),
     ] {
         let item = ctx.extract_enum_legacy(tile, bel, &format!("{attr}.{mode}"), &["0", "1"]);
-        ctx.insert(tile, bel, hwattr, item);
+        ctx.insert_legacy(tile, bel, hwattr, item);
     }
     for attr in ["DOA_REG_L", "DOB_REG_L"] {
-        let item = ctx.item(tile, bel, attr);
+        let item = ctx.item_legacy(tile, bel, attr);
         present_rambfifo18.apply_enum_diff_legacy(item, "1", "0");
         present_rambfifo18_36.apply_enum_diff_legacy(item, "1", "0");
         present_fifo36.apply_enum_diff_legacy(item, "1", "0");
         present_fifo36_72.apply_enum_diff_legacy(item, "1", "0");
     }
     for attr in ["DOA_REG_U", "DOB_REG_U"] {
-        let item = ctx.item(tile, bel, attr);
+        let item = ctx.item_legacy(tile, bel, attr);
         present_fifo36.apply_enum_diff_legacy(item, "1", "0");
         present_fifo36_72.apply_enum_diff_legacy(item, "1", "0");
     }
 
     let item = ctx.extract_bit_bi_legacy(tile, bel, "EN_SYN.RAMBFIFO36", "FALSE", "TRUE");
-    ctx.insert(tile, bel, "EN_SYN", item);
+    ctx.insert_legacy(tile, bel, "EN_SYN", item);
     ctx.get_diff_legacy(tile, bel, "EN_SYN.RAMBFIFO18", "FALSE")
         .assert_empty();
     ctx.get_diff_legacy(tile, bel, "EN_SYN.RAMBFIFO18_36", "FALSE")
@@ -1057,17 +1057,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         .assert_empty();
     for mode in ["RAMBFIFO18", "RAMBFIFO18_36"] {
         let mut diff = ctx.get_diff_legacy(tile, bel, format!("EN_SYN.{mode}"), "TRUE");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DOA_REG_L"), "0", "1");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DOB_REG_L"), "0", "1");
-        ctx.insert(tile, bel, "EN_SYN", xlat_bit_legacy(diff));
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "DOA_REG_L"), "0", "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "DOB_REG_L"), "0", "1");
+        ctx.insert_legacy(tile, bel, "EN_SYN", xlat_bit_legacy(diff));
     }
     for mode in ["FIFO36_EXP", "FIFO36_72_EXP"] {
         let mut diff = ctx.get_diff_legacy(tile, bel, format!("EN_SYN.{mode}"), "TRUE");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DOA_REG_L"), "0", "1");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DOA_REG_U"), "0", "1");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DOB_REG_L"), "0", "1");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DOB_REG_U"), "0", "1");
-        ctx.insert(tile, bel, "EN_SYN", xlat_bit_legacy(diff));
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "DOA_REG_L"), "0", "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "DOA_REG_U"), "0", "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "DOB_REG_L"), "0", "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "DOB_REG_U"), "0", "1");
+        ctx.insert_legacy(tile, bel, "EN_SYN", xlat_bit_legacy(diff));
     }
     let mut d0 = ctx.get_diff_legacy(tile, bel, "DO_REG_U.RAMBFIFO18_36", "0");
     let mut d1 = ctx.get_diff_legacy(tile, bel, "DO_REG_U.RAMBFIFO18_36", "1");
@@ -1082,11 +1082,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "INIT_B_L",
         "INIT_B_U",
     ] {
-        d0.apply_bitvec_diff_legacy(ctx.item(tile, bel, attr), &bits![1; 18], &bits![0; 18]);
+        d0.apply_bitvec_diff_legacy(
+            ctx.item_legacy(tile, bel, attr),
+            &bits![1; 18],
+            &bits![0; 18],
+        );
     }
     d0.assert_empty();
-    d1.apply_enum_diff_legacy(ctx.item(tile, bel, "DOA_REG_U"), "1", "0");
-    d1.apply_enum_diff_legacy(ctx.item(tile, bel, "DOB_REG_U"), "1", "0");
+    d1.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "DOA_REG_U"), "1", "0");
+    d1.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "DOB_REG_U"), "1", "0");
     d1.assert_empty();
 
     for rw in ["READ", "WRITE"] {
@@ -1113,7 +1117,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.peek_diff_legacy(tile, bel, format!("{rw}_WIDTH_{ab}_U.RAMB18X2"), val);
                 assert_eq!(diff, diff_l.combine(diff_u));
             }
-            ctx.insert(tile, bel, format!("{rw}_MUX_UL_{ab}"), item);
+            ctx.insert_legacy(tile, bel, format!("{rw}_MUX_UL_{ab}"), item);
         }
     }
     for ab in ['A', 'B'] {
@@ -1146,12 +1150,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut diff =
                 ctx.get_diff_legacy(tile, bel, format!("READ_WIDTH_{ab}.RAMBFIFO18"), val);
             diff.apply_bitvec_diff_legacy(
-                ctx.item(tile, bel, &format!("INIT_{ab}_L")),
+                ctx.item_legacy(tile, bel, &format!("INIT_{ab}_L")),
                 &isr,
                 &bits![1; 18],
             );
             diff.apply_bitvec_diff_legacy(
-                ctx.item(tile, bel, &format!("SRVAL_{ab}_L")),
+                ctx.item_legacy(tile, bel, &format!("SRVAL_{ab}_L")),
                 &isr,
                 &bits![1; 18],
             );
@@ -1183,7 +1187,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present_ramb36sdp.apply_enum_diff_legacy(&item, "18", "1");
         present_rambfifo18_36.apply_enum_diff_legacy(&item, "18", "1");
         present_fifo36_72.apply_enum_diff_legacy(&item, "18", "1");
-        ctx.insert(tile, bel, attr, item);
+        ctx.insert_legacy(tile, bel, attr, item);
     }
     for ab in ['A', 'B'] {
         for ul in ['U', 'L'] {
@@ -1195,12 +1199,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     "36",
                 );
                 diff.apply_enum_diff_legacy(
-                    ctx.item(tile, bel, &format!("{rw}_WIDTH_{ab}_{ul}")),
+                    ctx.item_legacy(tile, bel, &format!("{rw}_WIDTH_{ab}_{ul}")),
                     "18",
                     "1",
                 );
                 if ab == 'A' {
-                    ctx.insert(tile, bel, format!("{rw}_SDP_{ul}"), xlat_bit_legacy(diff));
+                    ctx.insert_legacy(tile, bel, format!("{rw}_SDP_{ul}"), xlat_bit_legacy(diff));
                 } else {
                     diff.assert_empty();
                 }
@@ -1208,7 +1212,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
     for attr in ["READ_SDP_L", "READ_SDP_U", "WRITE_SDP_L", "WRITE_SDP_U"] {
-        let item = ctx.item(tile, bel, attr);
+        let item = ctx.item_legacy(tile, bel, attr);
         present_ramb18x2sdp.apply_bit_diff_legacy(item, true, false);
         present_ramb36sdp.apply_bit_diff_legacy(item, true, false);
         present_rambfifo18_36.apply_bit_diff_legacy(item, true, false);
@@ -1235,8 +1239,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     "",
                 ));
             }
-            ctx.insert(tile, bel, format!("DATA_{ul}"), xlat_bitvec_legacy(data));
-            ctx.insert(tile, bel, format!("DATAP_{ul}"), xlat_bitvec_legacy(datap));
+            ctx.insert_legacy(tile, bel, format!("DATA_{ul}"), xlat_bitvec_legacy(data));
+            ctx.insert_legacy(tile, bel, format!("DATAP_{ul}"), xlat_bitvec_legacy(datap));
         }
     }
     for mode in ["RAMBFIFO18", "RAMBFIFO18_36"] {
@@ -1248,8 +1252,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for i in 0..8 {
             datap.extend(ctx.get_diffs_legacy(tile, bel, format!("INITP_{i:02X}.{mode}"), ""));
         }
-        ctx.insert(tile, bel, "DATA_U", xlat_bitvec_legacy(data));
-        ctx.insert(tile, bel, "DATAP_U", xlat_bitvec_legacy(datap));
+        ctx.insert_legacy(tile, bel, "DATA_U", xlat_bitvec_legacy(data));
+        ctx.insert_legacy(tile, bel, "DATAP_U", xlat_bitvec_legacy(datap));
     }
     for mode in ["RAMB36_EXP", "RAMB36SDP_EXP"] {
         let mut data = vec![];
@@ -1278,10 +1282,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 datap_u.push(diff);
             }
         }
-        ctx.insert(tile, bel, "DATA_L", xlat_bitvec_legacy(data_l));
-        ctx.insert(tile, bel, "DATA_U", xlat_bitvec_legacy(data_u));
-        ctx.insert(tile, bel, "DATAP_L", xlat_bitvec_legacy(datap_l));
-        ctx.insert(tile, bel, "DATAP_U", xlat_bitvec_legacy(datap_u));
+        ctx.insert_legacy(tile, bel, "DATA_L", xlat_bitvec_legacy(data_l));
+        ctx.insert_legacy(tile, bel, "DATA_U", xlat_bitvec_legacy(data_u));
+        ctx.insert_legacy(tile, bel, "DATAP_L", xlat_bitvec_legacy(datap_l));
+        ctx.insert_legacy(tile, bel, "DATAP_U", xlat_bitvec_legacy(datap_u));
     }
 
     ctx.collect_bit_wide_bi_legacy(tile, bel, "SAVEDATA", "FALSE", "TRUE");
@@ -1295,40 +1299,40 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut diffs = vec![];
     for val in ["4", "9", "18"] {
         let mut diff = ctx.get_diff_legacy(tile, bel, "DATA_WIDTH.RAMBFIFO18", val);
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "READ_WIDTH_A_L"), val, "1");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "READ_WIDTH_B_L"), val, "1");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "WRITE_WIDTH_A_L"), val, "1");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "WRITE_WIDTH_B_L"), val, "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "READ_WIDTH_A_L"), val, "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "READ_WIDTH_B_L"), val, "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "WRITE_WIDTH_A_L"), val, "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "WRITE_WIDTH_B_L"), val, "1");
         diffs.push((val, diff));
     }
     for (val, hwval) in [("4", "2"), ("9", "4"), ("18", "9"), ("36", "18")] {
         let mut diff = ctx.get_diff_legacy(tile, bel, "DATA_WIDTH.FIFO36_EXP", val);
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "READ_WIDTH_A_L"), hwval, "1");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "WRITE_WIDTH_B_L"), hwval, "1");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "READ_WIDTH_A_U"), hwval, "1");
-        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "WRITE_WIDTH_B_U"), hwval, "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "READ_WIDTH_A_L"), hwval, "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "WRITE_WIDTH_B_L"), hwval, "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "READ_WIDTH_A_U"), hwval, "1");
+        diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "WRITE_WIDTH_B_U"), hwval, "1");
         if val == "9" {
-            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "READ_MUX_UL_A"), true, false);
-            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "READ_MUX_UL_B"), true, false);
-            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "WRITE_MUX_UL_A"), true, false);
-            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "WRITE_MUX_UL_B"), true, false);
+            diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "READ_MUX_UL_A"), true, false);
+            diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "READ_MUX_UL_B"), true, false);
+            diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "WRITE_MUX_UL_A"), true, false);
+            diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "WRITE_MUX_UL_B"), true, false);
         }
         if val == "36" {
             // what the fuck.
-            diff.apply_enum_diff_legacy(ctx.item(tile, bel, "READ_WIDTH_B_L"), hwval, "1");
-            diff.apply_enum_diff_legacy(ctx.item(tile, bel, "WRITE_WIDTH_A_L"), hwval, "1");
-            diff.apply_enum_diff_legacy(ctx.item(tile, bel, "READ_WIDTH_B_U"), hwval, "1");
-            diff.apply_enum_diff_legacy(ctx.item(tile, bel, "WRITE_WIDTH_A_U"), hwval, "1");
+            diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "READ_WIDTH_B_L"), hwval, "1");
+            diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "WRITE_WIDTH_A_L"), hwval, "1");
+            diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "READ_WIDTH_B_U"), hwval, "1");
+            diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "WRITE_WIDTH_A_U"), hwval, "1");
         }
         diffs.push((hwval, diff));
     }
     diffs.push(("36", present_rambfifo18_36));
-    ctx.insert(tile, bel, "FIFO_WIDTH", xlat_enum_legacy(diffs));
+    ctx.insert_legacy(tile, bel, "FIFO_WIDTH", xlat_enum_legacy(diffs));
 
-    present_ramb36sdp.apply_enum_diff_legacy(ctx.item(tile, bel, "FIFO_WIDTH"), "36", "2");
-    present_fifo36_72.apply_enum_diff_legacy(ctx.item(tile, bel, "FIFO_WIDTH"), "36", "2");
+    present_ramb36sdp.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "FIFO_WIDTH"), "36", "2");
+    present_fifo36_72.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "FIFO_WIDTH"), "36", "2");
     present_ramb36sdp.assert_empty();
 
     assert_eq!(present_fifo36, present_fifo36_72);
-    ctx.insert(tile, bel, "IS_FIFO_U", xlat_bit_legacy(present_fifo36));
+    ctx.insert_legacy(tile, bel, "IS_FIFO_U", xlat_bit_legacy(present_fifo36));
 }

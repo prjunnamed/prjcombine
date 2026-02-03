@@ -354,18 +354,18 @@ const GTH_HEX_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTH") else {
+    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "GTH") else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::GTH_QUAD);
     let mode = "GTHE1_QUAD";
     bctx.build()
-        .extra_tile_attr(Delta::new(0, 0, "HCLK"), "HCLK", "DRP_MASK_BOTH", "GTH")
+        .extra_tile_attr_legacy(Delta::new(0, 0, "HCLK"), "HCLK", "DRP_MASK_BOTH", "GTH")
         .test_manual_legacy("ENABLE", "1")
         .mode(mode)
         .commit();
     for &pin in GTH_INVPINS {
-        bctx.mode(mode).test_inv(pin);
+        bctx.mode(mode).test_inv_legacy(pin);
     }
     for &(attr, vals) in GTH_ENUM_ATTRS {
         bctx.mode(mode).test_enum_legacy(attr, vals);
@@ -396,7 +396,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "GTH";
-    if !ctx.has_tile(tile) {
+    if !ctx.has_tile_legacy(tile) {
         return;
     }
     let bel = "GTH_QUAD";
@@ -407,7 +407,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         TileBit::new(tile, frame, bit)
     }
     for addr in 0..0x140 {
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("DRP{addr:03X}"),
@@ -434,7 +434,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ] {
                 diffs.push((val, ctx.get_diff_legacy(tile, bel, attr, sval)));
             }
-            ctx.insert(tile, bel, attr, xlat_enum_legacy(diffs));
+            ctx.insert_legacy(tile, bel, attr, xlat_enum_legacy(diffs));
         } else {
             ctx.collect_enum_legacy(tile, bel, attr, vals);
         }
@@ -451,7 +451,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diffs[1].bits.insert(bit, true);
             assert_eq!(diffs[2].bits.remove(&bit), Some(true));
         }
-        ctx.insert(tile, bel, attr, xlat_bitvec_legacy(diffs));
+        ctx.insert_legacy(tile, bel, attr, xlat_bitvec_legacy(diffs));
     }
     ctx.collect_enum_legacy(
         tile,
@@ -463,7 +463,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "HCLK";
     let bel = "HCLK";
     let mut diff = ctx.get_diff_legacy(tile, bel, "DRP_MASK_BOTH", "GTH");
-    diff.apply_bit_diff_legacy(ctx.item(tile, bel, "DRP_MASK_BELOW"), true, false);
-    diff.apply_bit_diff_legacy(ctx.item(tile, bel, "DRP_MASK_ABOVE"), true, false);
+    diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "DRP_MASK_BELOW"), true, false);
+    diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "DRP_MASK_ABOVE"), true, false);
     diff.assert_empty();
 }

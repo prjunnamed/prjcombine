@@ -201,6 +201,7 @@ pub struct Table {
 pub enum TableValue {
     BitVec(BitVec),
     Enum(EnumValueId),
+    U32(u32),
 }
 
 impl EntityTag for DeviceDataTag {
@@ -329,6 +330,8 @@ pub enum BelAttributeType {
     Bool,
     BitVec(usize),
     BitVecArray(usize, usize),
+    // for table / device data only
+    U32,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]

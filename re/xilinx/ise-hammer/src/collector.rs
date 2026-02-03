@@ -35,7 +35,7 @@ impl DerefMut for CollectorCtx<'_, '_> {
 }
 
 impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
-    pub fn insert(
+    pub fn insert_legacy(
         &mut self,
         tile: impl Into<String>,
         bel: impl Into<String>,
@@ -45,15 +45,15 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         self.data.bsdata.insert(tile, bel, attr, item);
     }
 
-    pub fn item(&self, tile: &str, bel: &str, attr: &str) -> &TileItem {
+    pub fn item_legacy(&self, tile: &str, bel: &str, attr: &str) -> &TileItem {
         self.data.bsdata.item(tile, bel, attr)
     }
 
-    pub fn insert_misc_data(&mut self, key: impl Into<String>, val: impl Into<DbValue>) {
+    pub fn insert_misc_data_legacy(&mut self, key: impl Into<String>, val: impl Into<DbValue>) {
         self.collector.data.bsdata.insert_misc_data(key, val);
     }
 
-    pub fn insert_device_data(&mut self, key: impl Into<String>, val: impl Into<DbValue>) {
+    pub fn insert_device_data_legacy(&mut self, key: impl Into<String>, val: impl Into<DbValue>) {
         self.collector
             .data
             .bsdata
@@ -68,14 +68,14 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
 
     pub fn collect_inv(&mut self, tile: &str, bel: &str, pin: &str) {
         let item = self.extract_inv(tile, bel, pin);
-        self.insert(tile, bel, format!("INV.{pin}"), item);
+        self.insert_legacy(tile, bel, format!("INV.{pin}"), item);
     }
 
-    pub fn has_tile_id(&self, tcid: TileClassId) -> bool {
+    pub fn has_tcls(&self, tcid: TileClassId) -> bool {
         !self.edev.tile_index[tcid].is_empty()
     }
 
-    pub fn has_tile(&self, tile: &str) -> bool {
+    pub fn has_tile_legacy(&self, tile: &str) -> bool {
         let tcid = self.edev.db.get_tile_class(tile);
         !self.edev.tile_index[tcid].is_empty()
     }

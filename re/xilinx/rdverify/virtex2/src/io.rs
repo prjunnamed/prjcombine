@@ -3,28 +3,28 @@ use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::BelCoord;
 use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
-use prjcombine_re_xilinx_rdverify::{SitePinDir, Verifier};
+use prjcombine_re_xilinx_rdverify::Verifier;
 use prjcombine_virtex2::chip::{ChipKind, IoDiffKind};
-use prjcombine_virtex2::defs::bslots;
+use prjcombine_virtex2::defs::{bcls, bslots};
 use prjcombine_virtex2::iob::IobKind;
-
-use crate::get_bel_iob;
 
 pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let idx = bslots::IOI.index_of(bcrd.slot).unwrap();
-    let bel = &vrf.get_legacy_bel(bcrd);
-    let io = endev.chip.get_io_crd(bel.bel);
+    let mut bel = vrf.verify_bel(bcrd);
+    let io = endev.chip.get_io_crd(bcrd);
     let io_info = endev.chip.get_io_info(io);
     if io_info.pad_kind == Some(IobKind::Clk) {
-        vrf.verify_legacy_bel(
-            bel,
-            ["CLK_P", "CLK_N"][io.iob().to_idx() % 2],
-            &[("I", SitePinDir::Out)],
-            &[],
-        );
-        vrf.claim_net(&[bel.wire("I")]);
-        vrf.claim_net(&[bel.wire_far("I")]);
-        vrf.claim_pip(bel.wire_far("I"), bel.wire("I"));
+        bel = bel
+            .kind(["CLK_P", "CLK_N"][io.iob().to_idx() % 2])
+            .extra_out_rename("I", "BREFCLK")
+            .skip_out(bcls::IOI::I);
+        bel.claim_net(&[bel.wire("BREFCLK")]);
+        bel.claim_net(&[bel.wire_far("BREFCLK")]);
+        bel.claim_pip(bel.wire_far("BREFCLK"), bel.wire("BREFCLK"));
+        if idx.is_multiple_of(2) {
+            bel.claim_pip(bel.wire("I"), bel.wire_far("BREFCLK"));
+        }
+        bel.commit();
     } else {
         let tn = &bel.ntile.names[RawTileId::from_idx(0)];
         let is_ipad = tn.contains("IBUFS") || (tn.contains("IOIB") && idx == 2);
@@ -63,45 +63,44 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoor
                 (IoDiffKind::None, true) => "IBUF",
             }
         };
-        let mut pins = vec![
-            ("PADOUT", SitePinDir::Out),
-            ("DIFFI_IN", SitePinDir::In),
-            ("DIFFO_OUT", SitePinDir::Out),
-            ("DIFFO_IN", SitePinDir::In),
-        ];
+        bel = bel
+            .kind(kind)
+            .extra_out("PADOUT")
+            .extra_in("DIFFI_IN")
+            .extra_out("DIFFO_OUT")
+            .extra_in("DIFFO_IN")
+            .skip_out(bcls::IOI::CLKPAD);
         if matches!(
             endev.chip.kind,
             ChipKind::Spartan3E | ChipKind::Spartan3A | ChipKind::Spartan3ADsp
         ) {
-            pins.extend([
-                ("PCI_RDY", SitePinDir::Out),
-                ("PCI_CE", SitePinDir::In),
-                ("ODDROUT1", SitePinDir::Out),
-                ("ODDROUT2", SitePinDir::Out),
-                ("ODDRIN1", SitePinDir::In),
-                ("ODDRIN2", SitePinDir::In),
-                ("IDDRIN1", SitePinDir::In),
-                ("IDDRIN2", SitePinDir::In),
-            ]);
+            bel = bel
+                .extra_out("PCI_RDY")
+                .extra_in("PCI_CE")
+                .extra_out("ODDROUT1")
+                .extra_out("ODDROUT2")
+                .extra_in("ODDRIN1")
+                .extra_in("ODDRIN2")
+                .extra_in("IDDRIN1")
+                .extra_in("IDDRIN2");
         }
         if endev.chip.kind == ChipKind::Spartan3ADsp {
-            pins.extend([("OAUX", SitePinDir::In), ("TAUX", SitePinDir::In)]);
+            bel = bel.extra_in("OAUX").extra_in("TAUX");
         }
-        vrf.verify_legacy_bel(bel, kind, &pins, &["CLKPAD"]);
         // diff pairing
         if !endev.chip.kind.is_virtex2() || io_info.diff != IoDiffKind::None {
             for pin in ["PADOUT", "DIFFI_IN", "DIFFO_IN", "DIFFO_OUT"] {
-                vrf.claim_net(&[bel.wire(pin)]);
+                bel.claim_net(&[bel.wire(pin)]);
             }
             match io_info.diff {
                 IoDiffKind::P(oiob) => {
-                    let obel = get_bel_iob(endev, vrf, io.with_iob(oiob));
-                    vrf.claim_pip(bel.wire("DIFFI_IN"), obel.wire("PADOUT"));
+                    let obel = endev.chip.get_io_loc(io.with_iob(oiob));
+                    bel.claim_pip(bel.wire("DIFFI_IN"), bel.bel_wire(obel, "PADOUT"));
                 }
                 IoDiffKind::N(oiob) => {
-                    let obel = get_bel_iob(endev, vrf, io.with_iob(oiob));
-                    vrf.claim_pip(bel.wire("DIFFI_IN"), obel.wire("PADOUT"));
-                    vrf.claim_pip(bel.wire("DIFFO_IN"), obel.wire("DIFFO_OUT"));
+                    let obel = endev.chip.get_io_loc(io.with_iob(oiob));
+                    bel.claim_pip(bel.wire("DIFFI_IN"), bel.bel_wire(obel, "PADOUT"));
+                    bel.claim_pip(bel.wire("DIFFO_IN"), bel.bel_wire(obel, "DIFFO_OUT"));
                 }
                 IoDiffKind::None => (),
             }
@@ -114,31 +113,33 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoor
                 "ODDRIN1", "ODDRIN2", "ODDROUT1", "ODDROUT2", "IDDRIN1", "IDDRIN2", "PCI_CE",
                 "PCI_RDY",
             ] {
-                vrf.claim_net(&[bel.wire(pin)]);
+                bel.claim_net(&[bel.wire(pin)]);
             }
             // ODDR, IDDR
             if let IoDiffKind::P(oiob) | IoDiffKind::N(oiob) = io_info.diff {
-                let obel = get_bel_iob(endev, vrf, io.with_iob(oiob));
-                vrf.claim_pip(bel.wire("ODDRIN1"), obel.wire("ODDROUT2"));
-                vrf.claim_pip(bel.wire("ODDRIN2"), obel.wire("ODDROUT1"));
-                vrf.claim_pip(bel.wire("IDDRIN1"), obel.wire("IQ1"));
-                vrf.claim_pip(bel.wire("IDDRIN2"), obel.wire("IQ2"));
+                let obel = endev.chip.get_io_loc(io.with_iob(oiob));
+                bel.claim_pip(bel.wire("ODDRIN1"), bel.bel_wire(obel, "ODDROUT2"));
+                bel.claim_pip(bel.wire("ODDRIN2"), bel.bel_wire(obel, "ODDROUT1"));
+                bel.claim_pip(bel.wire("IDDRIN1"), bel.bel_wire(obel, "IQ1"));
+                bel.claim_pip(bel.wire("IDDRIN2"), bel.bel_wire(obel, "IQ2"));
             }
-            vrf.claim_pip(bel.wire("PCI_CE"), bel.wire_far("PCI_CE"));
-            let scol = if bel.col < endev.chip.col_clk {
+            bel.claim_pip(bel.wire("PCI_CE"), bel.wire_far("PCI_CE"));
+            let scol = if bcrd.col < endev.chip.col_clk {
                 endev.chip.col_w()
             } else {
                 endev.chip.col_e()
             };
-            let obel = bel
-                .cell
+            let obel = bcrd
                 .with_cr(scol, endev.chip.row_mid())
                 .bel(bslots::PCILOGICSE);
-            vrf.verify_net(&[vrf.bel_pip_owire(obel, "PCI_CE", 0), bel.wire_far("PCI_CE")]);
+            bel.verify_net(&[
+                bel.vrf.bel_pip_owire(obel, "PCI_CE", 0),
+                bel.wire_far("PCI_CE"),
+            ]);
         }
         if endev.chip.kind == ChipKind::Spartan3ADsp {
             for pin in ["OAUX", "TAUX"] {
-                vrf.claim_net(&[bel.wire(pin)]);
+                bel.claim_net(&[bel.wire(pin)]);
             }
         }
         let is_clock = if endev.chip.kind.is_virtex2() {
@@ -149,8 +150,9 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoor
             (0..8).any(|idx| endev.chip.get_clk_io(io.edge(), idx) == Some(io))
         };
         if is_clock {
-            vrf.claim_pip(bel.wire("CLKPAD"), bel.wire("I"));
+            bel.claim_pip(bel.wire("CLKPAD"), bel.wire("I"));
         }
+        bel.commit();
     }
 }
 

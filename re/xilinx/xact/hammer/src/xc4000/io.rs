@@ -217,8 +217,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 continue;
             }
             ctx.collect_bel_attr_default(tcid, bslot, bcls::IO::PULL, enums::IO_PULL::NONE);
-            ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::OFF_SRVAL);
-            ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::IFF_SRVAL);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::IO::OFF_SRVAL);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::IO::IFF_SRVAL);
             ctx.collect_bel_input_inv(tcid, bslot, bcls::IO::IK);
             ctx.collect_bel_input_inv(tcid, bslot, bcls::IO::OK);
             ctx.collect_bel_input_inv(tcid, bslot, bcls::IO::T);
@@ -233,7 +233,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     (enums::IO_SLEW::FAST, diff),
                     (enums::IO_SLEW::SLOW, Diff::default()),
                 ]);
-                ctx.insert_bel_attr_raw(tcid, bslot, bcls::IO::SLEW, item);
+                ctx.insert_bel_attr_enum(tcid, bslot, bcls::IO::SLEW, item);
             } else {
                 ctx.collect_bel_attr(tcid, bslot, bcls::IO::SLEW);
             }
@@ -242,7 +242,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 (enums::IO_IFF_D::DELAY, diff),
                 (enums::IO_IFF_D::I, Diff::default()),
             ]);
-            ctx.insert_bel_attr_raw(tcid, bslot, bcls::IO::IFF_D, item);
+            ctx.insert_bel_attr_enum(tcid, bslot, bcls::IO::IFF_D, item);
 
             let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::IO_INFF_IK);
             diff.apply_enum_diff(

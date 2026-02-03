@@ -248,7 +248,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Spartan6(edev) = backend.edev else {
         unreachable!()
     };
-    let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTP") else {
+    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "GTP") else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::GTP);
@@ -261,7 +261,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .commit();
 
     for &pin in GTP_INVPINS {
-        bctx.mode(mode).test_inv(pin);
+        bctx.mode(mode).test_inv_legacy(pin);
     }
     for &attr in GTP_BOOL_ATTRS {
         bctx.mode(mode)
@@ -360,7 +360,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "GTP";
     let bel = "GTP";
 
-    if !ctx.has_tile(tile) {
+    if !ctx.has_tile_legacy(tile) {
         return;
     }
 
@@ -372,7 +372,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     for i in 0..0x80 {
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("DRP{i:02X}"),
@@ -415,11 +415,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut diffs = ctx.get_diffs_legacy(tile, bel, "COMMA_10B_ENABLE_1", "");
     diffs[3].bits.insert(TileBit::new(11, 23, 3), true);
     assert_eq!(diffs[4].bits.remove(&TileBit::new(11, 23, 3)), Some(true));
-    ctx.insert(tile, bel, "COMMA_10B_ENABLE_1", xlat_bitvec_legacy(diffs));
+    ctx.insert_legacy(tile, bel, "COMMA_10B_ENABLE_1", xlat_bitvec_legacy(diffs));
     ctx.collect_bitvec_legacy(tile, bel, "RXPRBSERR_LOOPBACK_0", "");
     ctx.get_diff_legacy(tile, bel, "RXPRBSERR_LOOPBACK_1", "")
         .assert_empty();
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "RXPRBSERR_LOOPBACK_1",
@@ -456,13 +456,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff = diff.combine(&!&refselpll_static);
             diffs.push((val, diff));
         }
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("REFSELPLL{i}_STATIC"),
             xlat_enum_legacy(diffs),
         );
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             format!("REFSELPLL{i}_STATIC_ENABLE"),

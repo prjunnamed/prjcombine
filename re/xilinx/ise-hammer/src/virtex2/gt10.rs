@@ -230,7 +230,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let intdb = backend.edev.db;
     let bcls = &intdb[bcls::GT10];
     for tcid in [tcls::GIGABIT10_S, tcls::GIGABIT10_N] {
-        let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         let bel_data = &intdb[ctx.tile_class.unwrap()].bels[bslots::GT10];
         let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
@@ -307,7 +307,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         (0xfe, "K30_7"),
                     ] {
                         bctx.mode(mode)
-                            .test_bel_attr_u32(aid, val)
+                            .test_bel_attr_bitvec_u32(aid, val)
                             .attr(aname, vname)
                             .commit();
                     }
@@ -424,7 +424,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 _ => {
                     if attr.typ == BelAttributeType::Bool {
-                        ctx.collect_bel_attr_bool_bi(tcid, bslot, aid);
+                        ctx.collect_bel_attr_bi(tcid, bslot, aid);
                     } else {
                         ctx.collect_bel_attr(tcid, bslot, aid);
                     }

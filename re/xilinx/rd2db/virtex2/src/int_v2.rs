@@ -4,11 +4,15 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 
-use prjcombine_re_xilinx_naming::db::NamingDb;
+use prjcombine_re_xilinx_naming::db::{NamingDb, TileClassNaming};
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, PipMode};
-use prjcombine_virtex2::defs::{
-    self, bslots,
-    virtex2::{ccls, tcls, wires},
+use prjcombine_virtex2::{
+    chip::ChipKind,
+    defs::{
+        self, bcls, bslots,
+        virtex2::{ccls, tcls, wires},
+    },
+    iob::get_iob_tiles,
 };
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
@@ -939,7 +943,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ] {
             pips.pips.remove(&(
                 TileWireCoord::new_idx(0, w),
-                TileWireCoord::new_idx(0, wires::PULLUP),
+                TileWireCoord::new_idx(0, wires::PULLUP).pos(),
             ));
         }
     }
@@ -947,6 +951,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let slice_name_only = [
         "DX", "DY", "FXINA", "FXINB", "F5", "FX", "CIN", "COUT", "SHIFTIN", "SHIFTOUT", "ALTDIG",
         "DIG", "SLICEWE0", "SLICEWE1", "SLICEWE2", "BXOUT", "BYOUT", "BYINVOUT", "SOPIN", "SOPOUT",
+        "WF1", "WF2", "WF3", "WF4", "WG1", "WG2", "WG3", "WG4",
     ];
 
     let bels_clb = [
@@ -1007,34 +1012,46 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.extract_int_bels_id(tcls::IOI, "GIGABIT_IOI", "IOI", &bels_ioi);
     builder.extract_int_bels_id(tcls::IOI, "GIGABIT10_IOI", "IOI", &bels_ioi);
     if rd.part.contains("vpx") {
-        let bels_ioi_clk_b = [
+        let bels_ioi_clk_s = [
             bels_ioi[0].clone(),
             bels_ioi[1].clone(),
             builder
                 .bel_single(bslots::IOI[2], "CLKPPAD2")
-                .pin_name_only("I", 1),
+                .pin_rename("I", "BREFCLK")
+                .pin_name_only("BREFCLK", 1)
+                .extra_int_out("I", &["IOIS_BREFCLK_SE"]),
             builder
                 .bel_single(bslots::IOI[3], "CLKNPAD2")
-                .pin_name_only("I", 1),
-            builder
-                .bel_virtual(bslots::BREFCLK_INT)
-                .extra_int_out("BREFCLK", &["IOIS_BREFCLK_SE"]),
+                .pin_rename("I", "BREFCLK")
+                .pin_name_only("BREFCLK", 1),
         ];
-        let bels_ioi_clk_t = [
+        let bels_ioi_clk_n = [
             builder
                 .bel_single(bslots::IOI[0], "CLKPPAD1")
-                .pin_name_only("I", 1),
+                .pin_rename("I", "BREFCLK")
+                .pin_name_only("BREFCLK", 1)
+                .extra_int_out("I", &["IOIS_BREFCLK_SE"]),
             builder
                 .bel_single(bslots::IOI[1], "CLKNPAD1")
-                .pin_name_only("I", 1),
+                .pin_rename("I", "BREFCLK")
+                .pin_name_only("BREFCLK", 1),
             bels_ioi[2].clone(),
             bels_ioi[3].clone(),
-            builder
-                .bel_virtual(bslots::BREFCLK_INT)
-                .extra_int_out("BREFCLK", &["IOIS_BREFCLK_SE"]),
         ];
-        builder.extract_int_bels_id(tcls::IOI_CLK_S, "MK_B_IOIS", "IOI_CLK_S", &bels_ioi_clk_b);
-        builder.extract_int_bels_id(tcls::IOI_CLK_N, "MK_T_IOIS", "IOI_CLK_N", &bels_ioi_clk_t);
+        for &xy in rd.tiles_by_kind_name("MK_B_IOIS") {
+            builder
+                .xtile_id(tcls::IOI_CLK_S, "IOI_CLK_S", xy)
+                .ref_int(xy, 0)
+                .bels(bels_ioi_clk_s.clone())
+                .extract();
+        }
+        for &xy in rd.tiles_by_kind_name("MK_T_IOIS") {
+            builder
+                .xtile_id(tcls::IOI_CLK_N, "IOI_CLK_N", xy)
+                .ref_int(xy, 0)
+                .bels(bels_ioi_clk_n.clone())
+                .extract();
+        }
     }
 
     let bels_dcm = [builder.bel_xy(bslots::DCM, "DCM", 0, 0)];
@@ -1068,6 +1085,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         &[
             builder.bel_indexed(bslots::DCI[0], "DCI", 6),
             builder.bel_indexed(bslots::DCI[1], "DCI", 5),
+            builder.bel_virtual(bslots::MISC_SW),
         ],
     );
 
@@ -1081,6 +1099,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_single(bslots::STARTUP, "STARTUP"),
             builder.bel_single(bslots::CAPTURE, "CAPTURE"),
             builder.bel_single(bslots::ICAP, "ICAP"),
+            builder.bel_virtual(bslots::MISC_SE),
         ],
     );
     builder.extract_int_bels_id(
@@ -1091,6 +1110,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_indexed(bslots::DCI[0], "DCI", 7),
             builder.bel_indexed(bslots::DCI[1], "DCI", 0),
             builder.bel_single(bslots::PMV, "PMV"),
+            builder.bel_virtual(bslots::MISC_NW),
         ],
     );
     if rd.family == "virtex2p" {
@@ -1103,6 +1123,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder.bel_indexed(bslots::DCI[1], "DCI", 1),
                 builder.bel_single(bslots::BSCAN, "BSCAN"),
                 builder.bel_single(bslots::JTAGPPC, "JTAGPPC"),
+                builder.bel_virtual(bslots::MISC_NE),
             ],
         );
     } else {
@@ -1114,8 +1135,32 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder.bel_indexed(bslots::DCI[0], "DCI", 2),
                 builder.bel_indexed(bslots::DCI[1], "DCI", 1),
                 builder.bel_single(bslots::BSCAN, "BSCAN"),
+                builder.bel_virtual(bslots::MISC_NE),
             ],
         );
+    }
+    for tcid in [tcls::CNR_SE_V2, tcls::CNR_SE_V2P] {
+        if let Some(bel) = builder.db.tile_classes[tcid].bels.get_mut(bslots::ICAP) {
+            let BelInfo::Bel(bel) = bel else {
+                unreachable!()
+            };
+            for pin in [bcls::ICAP::CE, bcls::ICAP::WRITE] {
+                let BelInput::Fixed(wire) = bel.inputs[pin] else {
+                    unreachable!()
+                };
+                bel.inputs[pin] = BelInput::Fixed(!wire);
+            }
+        }
+        if let Some(bel) = builder.db.tile_classes[tcid].bels.get_mut(bslots::STARTUP) {
+            let BelInfo::Bel(bel) = bel else {
+                unreachable!()
+            };
+            let pin = bcls::STARTUP::GTS;
+            let BelInput::Fixed(wire) = bel.inputs[pin] else {
+                unreachable!()
+            };
+            bel.inputs[pin] = BelInput::Fixed(!wire);
+        }
     }
 
     for (tkn, n) in [
@@ -1718,6 +1763,24 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 false,
             );
         }
+    }
+
+    let kind = if rd.family == "virtex2" {
+        ChipKind::Virtex2
+    } else {
+        ChipKind::Virtex2P
+    };
+    for itd in get_iob_tiles(kind) {
+        let tcid = itd.tcid;
+        let mut naming = TileClassNaming::default();
+        for i in 0..itd.iobs.len() {
+            builder.insert_tcls_bel(tcid, bslots::IOB[i], BelInfo::Bel(Default::default()));
+            naming.bels.insert(bslots::IOB[i], Default::default());
+        }
+        builder
+            .ndb
+            .tile_class_namings
+            .insert(builder.db.tile_classes.key(tcid).into(), naming);
     }
 
     builder.build()

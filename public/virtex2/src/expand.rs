@@ -185,7 +185,7 @@ impl Expander<'_, '_> {
             if cd.io != ColumnIoKind::None {
                 let (data, tidx) = get_iob_data_n(self.chip.kind, cd.io);
                 if tidx.to_idx() == 0 {
-                    self.egrid.add_tile_e_id(cell, data.tcid, data.tiles);
+                    self.egrid.add_tile_e_id(cell, data.tcid, data.cells);
                 }
             }
             if !self.chip.kind.is_virtex2() {
@@ -222,7 +222,7 @@ impl Expander<'_, '_> {
             self.egrid.add_tile_single_id(cell, ioi_kind);
             let (data, tidx) = get_iob_data_e(self.chip.kind, self.chip.rows[cell.row]);
             if tidx.to_idx() == 0 {
-                self.egrid.add_tile_n_id(cell, data.tcid, data.tiles);
+                self.egrid.add_tile_n_id(cell, data.tcid, data.cells);
             }
         }
     }
@@ -260,7 +260,7 @@ impl Expander<'_, '_> {
             if cd.io != ColumnIoKind::None {
                 let (data, tidx) = get_iob_data_s(self.chip.kind, cd.io);
                 if tidx.to_idx() == 0 {
-                    self.egrid.add_tile_e_id(cell, data.tcid, data.tiles);
+                    self.egrid.add_tile_e_id(cell, data.tcid, data.cells);
                 }
             }
             if !self.chip.kind.is_virtex2() && self.chip.kind != ChipKind::FpgaCore {
@@ -302,7 +302,7 @@ impl Expander<'_, '_> {
             self.egrid.add_tile_single_id(cell, ioi_kind);
             let (data, tidx) = get_iob_data_w(self.chip.kind, self.chip.rows[cell.row]);
             if tidx.to_idx() == 0 {
-                self.egrid.add_tile_n_id(cell, data.tcid, data.tiles);
+                self.egrid.add_tile_n_id(cell, data.tcid, data.cells);
             }
         }
     }
@@ -1162,6 +1162,21 @@ impl Expander<'_, '_> {
         }
     }
 
+    fn fill_global(&mut self) {
+        let tcid = match self.chip.kind {
+            ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => tcls_v2::GLOBAL,
+            ChipKind::Spartan3 => tcls_s3::GLOBAL_S3,
+            ChipKind::FpgaCore => tcls_s3::GLOBAL_FC,
+            ChipKind::Spartan3E => tcls_s3::GLOBAL_S3E,
+            ChipKind::Spartan3A | ChipKind::Spartan3ADsp => tcls_s3::GLOBAL_S3A,
+        };
+        self.egrid.add_tile_id(
+            CellCoord::new(self.die, self.chip.col_w(), self.chip.row_s()),
+            tcid,
+            &[],
+        );
+    }
+
     fn fill_frame_info(&mut self) {
         let mut major = 0;
         // spine
@@ -1337,6 +1352,7 @@ impl Chip {
         expander.fill_hrow();
         expander.fill_clkc();
         expander.fill_clkqc();
+        expander.fill_global();
         expander.fill_frame_info();
 
         let clkv_frame = expander.clkv_frame;

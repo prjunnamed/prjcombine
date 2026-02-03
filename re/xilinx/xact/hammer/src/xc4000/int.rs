@@ -1346,7 +1346,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             (enums::IO_MUX_OFF_D::O1, Diff::default()),
             (enums::IO_MUX_OFF_D::O2, diff_mux_off_d_o2),
         ]);
-        ctx.insert_bel_attr_raw(tcid, bel, bcls::IO::MUX_OFF_D, item);
+        ctx.insert_bel_attr_enum(tcid, bel, bcls::IO::MUX_OFF_D, item);
 
         assert_eq!(diff_o1_oq, diff_o2_oq);
 
@@ -1363,7 +1363,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             (enums::IO_MUX_O::O2, diff_o2_o),
             (enums::IO_MUX_O::O2_INV, diff_o2_oi),
         ]);
-        ctx.insert_bel_attr_raw(tcid, bel, bcls::IO::MUX_O, item);
+        ctx.insert_bel_attr_enum(tcid, bel, bcls::IO::MUX_O, item);
 
         let item = xlat_bit(diff_off_used);
         ctx.insert_bel_attr_bool(tcid, bel, bcls::IO::OFF_USED, item);

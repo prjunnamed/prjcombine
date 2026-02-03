@@ -1,13 +1,10 @@
-use prjcombine_interconnect::{dir::Dir, grid::TileCoord};
-use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, FeatureId, xlat_bit_bi},
-    legacy::{xlat_bit_bi_legacy, xlat_bit_legacy, xlat_bit_wide_legacy},
-};
+use prjcombine_interconnect::{db::BelSlotId, dir::Dir, grid::TileCoord};
+use prjcombine_re_collector::diff::{Diff, DiffKey, xlat_bit, xlat_bit_bi, xlat_bit_wide};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex2::defs::{self, bslots, spartan3::tcls};
+use prjcombine_types::bsdata::TileBit;
+use prjcombine_virtex2::defs::{self, bcls, bslots, enums, spartan3::tcls};
 
 use crate::{
     backend::IseBackend,
@@ -26,6 +23,16 @@ struct IobExtra {
 impl IobExtra {
     pub fn new(edge: Dir) -> Self {
         Self { edge }
+    }
+}
+
+fn ioi_to_iob(slot: BelSlotId) -> BelSlotId {
+    if let Some(idx) = bslots::IREG.index_of(slot) {
+        bslots::IBUF[idx]
+    } else if let Some(idx) = bslots::OREG.index_of(slot) {
+        bslots::OBUF[idx]
+    } else {
+        unreachable!()
     }
 }
 
@@ -52,14 +59,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IobExtra {
         };
         if edge_match {
             let tile = &backend.edev[tcrd];
-            let DiffKey::Legacy(fuzzer_id) = fuzzer.info.features[0].key.clone() else {
-                unreachable!()
+            let key = match fuzzer.info.features[0].key {
+                DiffKey::BelAttrBit(_tcid, bslot, attr, bit, val) => {
+                    DiffKey::BelAttrBit(tile.class, ioi_to_iob(bslot), attr, bit, val)
+                }
+                _ => unreachable!(),
             };
             fuzzer.info.features.push(FuzzerFeature {
-                key: DiffKey::Legacy(FeatureId {
-                    tile: backend.edev.db.tile_classes.key(tile.class).clone(),
-                    ..fuzzer_id
-                }),
+                key,
                 rects: backend.edev.tile_bits(tcrd),
             });
             Some((fuzzer, false))
@@ -70,34 +77,36 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IobExtra {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let tile = "IOI_FC";
-    let mut ctx = FuzzCtx::new(session, backend, tile);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::IOI_FC);
     for i in 0..4 {
-        let mut bctx = ctx.bel(defs::bslots::IBUF[i]);
+        let mut bctx = ctx.bel(defs::bslots::IREG[i]);
         let mode = "IBUF";
-        bctx.test_manual_legacy("ENABLE", "1")
-            .mode(mode)
+        bctx.build()
+            .null_bits()
             .prop(IobExtra::new(Dir::W))
             .prop(IobExtra::new(Dir::E))
             .prop(IobExtra::new(Dir::S))
             .prop(IobExtra::new(Dir::N))
+            .test_bel_attr_bits(bcls::IBUF::ENABLE)
+            .mode(mode)
             .commit();
         bctx.mode(mode)
+            .null_bits()
             .prop(IobExtra::new(Dir::W))
             .prop(IobExtra::new(Dir::E))
             .prop(IobExtra::new(Dir::S))
             .prop(IobExtra::new(Dir::N))
-            .test_manual_legacy("ENABLE_O2IPADPATH", "1")
+            .test_bel_attr_bits(bcls::IBUF::O2IPAD_ENABLE)
             .attr("ENABLE_O2IPADPATH", "ENABLE_O2IPADPATH")
             .commit();
         bctx.mode(mode)
             .attr("ENABLE_O2IQPATH", "")
-            .test_manual_legacy("ENABLE_O2IPATH", "1")
+            .test_bel_attr_bits(bcls::IREG::O2I_ENABLE)
             .attr("ENABLE_O2IPATH", "ENABLE_O2IPATH")
             .commit();
         bctx.mode(mode)
             .attr("ENABLE_O2IPATH", "")
-            .test_manual_legacy("ENABLE_O2IQPATH", "1")
+            .test_bel_attr_bits(bcls::IREG::O2IQ_ENABLE)
             .attr("ENABLE_O2IQPATH", "ENABLE_O2IQPATH")
             .commit();
         bctx.mode(mode)
@@ -105,66 +114,83 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("IFF", "#FF")
             .pin("I")
             .pin("IQ")
-            .test_enum_legacy("IMUX", &["0", "1"]);
+            .test_bel_attr_bool_rename("IMUX", bcls::IREG::I_DELAY_ENABLE, "1", "0");
         bctx.mode(mode)
             .attr("IMUX", "1")
             .attr("IFF", "#FF")
             .pin("I")
             .pin("IQ")
-            .test_enum_legacy("IFFDMUX", &["0", "1"]);
+            .test_bel_attr_bool_rename("IFFDMUX", bcls::IREG::IQ_DELAY_ENABLE, "1", "0");
         bctx.mode(mode)
             .attr("IFFDMUX", "1")
             .attr("IFF_INIT_ATTR", "INIT1")
             .attr("CEINV", "CE_B")
             .pin("IQ")
             .pin("CE")
-            .test_enum_legacy("IFF", &["#FF", "#LATCH"]);
+            .test_bel_attr_bool_rename("IFF", bcls::IREG::FF_LATCH, "#FF", "#LATCH");
         bctx.mode(mode)
             .attr("IFF", "#FF")
             .attr("IFFDMUX", "1")
             .pin("IQ")
-            .test_enum_legacy("IFFATTRBOX", &["SYNC", "ASYNC"]);
+            .test_bel_attr_bool_rename("IFFATTRBOX", bcls::IREG::FF_SR_SYNC, "ASYNC", "SYNC");
         bctx.mode(mode)
             .attr("IFF", "#FF")
             .attr("IFFDMUX", "1")
             .attr("IFF_SR_ATTR", "SRLOW")
             .pin("IQ")
-            .test_enum_legacy("IFF_INIT_ATTR", &["INIT0", "INIT1"]);
+            .test_bel_attr_bool_rename("IFF_INIT_ATTR", bcls::IREG::FF_INIT, "INIT0", "INIT1");
         bctx.mode(mode)
             .attr("IFF", "#FF")
             .attr("IFFDMUX", "1")
             .attr("IFF_INIT_ATTR", "INIT0")
             .pin("IQ")
-            .test_enum_legacy("IFF_SR_ATTR", &["SRLOW", "SRHIGH"]);
+            .test_bel_attr_bool_rename("IFF_SR_ATTR", bcls::IREG::FF_SRVAL, "SRLOW", "SRHIGH");
 
-        for pin in ["CLK", "CE", "SR", "REV"] {
-            bctx.mode(mode).pin("IQ").attr("IFF", "#FF").test_inv(pin);
+        for pin in [
+            bcls::IREG::CLK,
+            bcls::IREG::CE,
+            bcls::IREG::SR,
+            bcls::IREG::REV,
+        ] {
+            bctx.mode(mode)
+                .pin("IQ")
+                .attr("IFF", "#FF")
+                .test_bel_input_inv_auto(pin);
         }
     }
     for i in 0..4 {
-        let mut bctx = ctx.bel(defs::bslots::OBUF[i]);
+        let mut bctx = ctx.bel(defs::bslots::OREG[i]);
         let mode = "OBUF";
-        bctx.test_manual_legacy("ENABLE", "1")
+        bctx.build()
+            .null_bits()
+            .prop(IobExtra::new(Dir::W))
+            .prop(IobExtra::new(Dir::E))
+            .prop(IobExtra::new(Dir::S))
+            .prop(IobExtra::new(Dir::N))
+            .test_bel_attr_bits(bcls::OBUF::ENABLE)
             .mode(mode)
             .attr("ENABLE_MISR", "FALSE")
-            .prop(IobExtra::new(Dir::W))
-            .prop(IobExtra::new(Dir::E))
-            .prop(IobExtra::new(Dir::S))
-            .prop(IobExtra::new(Dir::N))
             .commit();
         bctx.mode(mode)
+            .null_bits()
             .prop(IobExtra::new(Dir::W))
             .prop(IobExtra::new(Dir::E))
             .prop(IobExtra::new(Dir::S))
             .prop(IobExtra::new(Dir::N))
-            .test_manual_legacy("ENABLE_MISR", "TRUE")
+            .test_bel_attr_bits(bcls::OBUF::MISR_ENABLE)
             .attr_diff("ENABLE_MISR", "FALSE", "TRUE")
             .commit();
-        for pin in ["CLK", "CE", "SR", "REV", "O"] {
+        for pin in [
+            bcls::OREG::CLK,
+            bcls::OREG::CE,
+            bcls::OREG::SR,
+            bcls::OREG::REV,
+            bcls::OREG::O,
+        ] {
             bctx.mode(mode)
                 .attr("OMUX", "OFF")
                 .attr("OFF", "#FF")
-                .test_inv(pin);
+                .test_bel_input_inv_auto(pin);
         }
         bctx.mode(mode)
             .attr("OINV", "O")
@@ -172,108 +198,118 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("CEINV", "CE_B")
             .pin("O")
             .pin("CE")
-            .test_enum_legacy("OFF", &["#FF", "#LATCH"]);
+            .test_bel_attr_bool_rename("OFF", bcls::OREG::FF_LATCH, "#FF", "#LATCH");
         bctx.mode(mode)
             .attr("OFF", "#FF")
             .attr("OINV", "O")
             .pin("O")
-            .test_enum_legacy("OFFATTRBOX", &["SYNC", "ASYNC"]);
+            .test_bel_attr_bool_rename("OFFATTRBOX", bcls::OREG::FF_SR_SYNC, "ASYNC", "SYNC");
         bctx.mode(mode)
             .attr("OFF", "#FF")
             .attr("OINV", "O")
             .attr("OFF_SR_ATTR", "SRLOW")
             .pin("O")
-            .test_enum_legacy("OFF_INIT_ATTR", &["INIT0", "INIT1"]);
+            .test_bel_attr_bool_rename("OFF_INIT_ATTR", bcls::OREG::FF_INIT, "INIT0", "INIT1");
         bctx.mode(mode)
             .attr("OFF", "#FF")
             .attr("OINV", "O")
             .attr("OFF_INIT_ATTR", "INIT0")
             .pin("O")
-            .test_enum_legacy("OFF_SR_ATTR", &["SRLOW", "SRHIGH"]);
-        bctx.mode(mode)
-            .attr("OFF", "#FF")
-            .attr("OINV", "O")
-            .pin("O")
-            .test_enum_legacy("OMUX", &["O", "OFF"]);
+            .test_bel_attr_bool_rename("OFF_SR_ATTR", bcls::OREG::FF_SRVAL, "SRLOW", "SRHIGH");
+        for (val, vname) in [(enums::OREG_MUX_O::O, "O"), (enums::OREG_MUX_O::OQ, "OFF")] {
+            bctx.mode(mode)
+                .attr("OFF", "#FF")
+                .attr("OINV", "O")
+                .pin("O")
+                .test_bel_attr_val(bcls::OREG::MUX_O, val)
+                .attr("OMUX", vname)
+                .commit();
+        }
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let tcid = tcls::IOI_FC;
     for i in 0..4 {
-        let tile = "IOI_FC";
-        let bel = &format!("IBUF[{i}]");
-        ctx.get_diff_legacy(tile, bel, "ENABLE", "1").assert_empty();
-        ctx.get_diff_legacy(tile, bel, "ENABLE_O2IPADPATH", "1")
-            .assert_empty();
-        let diff_i = ctx.get_diff_legacy(tile, bel, "ENABLE_O2IPATH", "1");
-        let diff_iq = ctx.get_diff_legacy(tile, bel, "ENABLE_O2IQPATH", "1");
+        let bslot = bslots::IREG[i];
+        let diff_i = ctx.get_diff_attr_bit(tcid, bslot, bcls::IREG::O2I_ENABLE, 0);
+        let diff_iq = ctx.get_diff_attr_bit(tcid, bslot, bcls::IREG::O2IQ_ENABLE, 0);
         let (diff_i, diff_iq, diff_common) = Diff::split(diff_i, diff_iq);
-        ctx.insert(tile, bel, "ENABLE_O2IPATH", xlat_bit_legacy(diff_i));
-        ctx.insert(tile, bel, "ENABLE_O2IQPATH", xlat_bit_legacy(diff_iq));
-        ctx.insert(
-            tile,
-            bel,
-            "ENABLE_O2I_O2IQ_PATH",
-            xlat_bit_legacy(diff_common),
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::IREG::O2I_ENABLE, xlat_bit(diff_i));
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::IREG::O2IQ_ENABLE, xlat_bit(diff_iq));
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            bcls::IREG::O2I_O2IQ_ENABLE,
+            xlat_bit(diff_common),
         );
-        for pin in ["CLK", "CE"] {
-            ctx.collect_inv(tile, bel, pin);
+        for pin in [bcls::IREG::CLK, bcls::IREG::CE] {
+            ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
         }
-        for pin in ["REV", "SR"] {
-            let d0 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV"), pin);
-            let d1 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
+        for (pin, attr) in [
+            (bcls::IREG::SR, bcls::IREG::FF_SR_ENABLE),
+            (bcls::IREG::REV, bcls::IREG::FF_REV_ENABLE),
+        ] {
+            let d0 = ctx.get_diff_bel_input_inv(tcid, bslot, pin, false);
+            let d1 = ctx.get_diff_bel_input_inv(tcid, bslot, pin, true);
             let (d0, d1, de) = Diff::split(d0, d1);
-            ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bit_bi_legacy(d0, d1));
-            ctx.insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit_legacy(de));
+            ctx.insert_bel_input_inv(tcid, bslot, pin, xlat_bit_bi(d0, d1));
+            ctx.insert_bel_attr_bool(tcid, bslot, attr, xlat_bit(de));
         }
-        ctx.get_diff_legacy(tile, bel, "IMUX", "1").assert_empty();
-        ctx.get_diff_legacy(tile, bel, "IFFDMUX", "1")
+        ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::IREG::I_DELAY_ENABLE, false)
             .assert_empty();
-        let diff_i = ctx.get_diff_legacy(tile, bel, "IMUX", "0");
-        let diff_iff = ctx.get_diff_legacy(tile, bel, "IFFDMUX", "0");
+        ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::IREG::IQ_DELAY_ENABLE, false)
+            .assert_empty();
+        let diff_i = ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::IREG::I_DELAY_ENABLE, true);
+        let diff_iff = ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::IREG::IQ_DELAY_ENABLE, true);
         let (diff_i, diff_iff, diff_common) = Diff::split(diff_i, diff_iff);
-        ctx.insert(tile, bel, "I_DELAY_ENABLE", xlat_bit_legacy(diff_i));
-        ctx.insert(tile, bel, "IFF_DELAY_ENABLE", xlat_bit_legacy(diff_iff));
-        ctx.insert(tile, bel, "DELAY_ENABLE", xlat_bit_wide_legacy(diff_common));
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "IFF", "#FF", "#LATCH");
-        ctx.insert(tile, bel, "FF_LATCH", item);
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "IFFATTRBOX", "ASYNC", "SYNC");
-        ctx.insert(tile, bel, "FF_SR_SYNC", item);
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "IFF_INIT_ATTR", "INIT0", "INIT1");
-        ctx.insert(tile, bel, "FF_INIT", item);
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "IFF_SR_ATTR", "SRLOW", "SRHIGH");
-        ctx.insert(tile, bel, "FF_SRVAL", item);
-        ctx.insert(
-            tile,
-            bel,
-            "READBACK_I",
-            TileItem::from_bit_inv(TileBit::new(0, 3, [0, 31, 32, 63][i]), false),
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::IREG::I_DELAY_ENABLE, xlat_bit(diff_i));
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::IREG::IQ_DELAY_ENABLE, xlat_bit(diff_iff));
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::IREG::DELAY_ENABLE,
+            xlat_bit_wide(diff_common),
         );
-        for tile in ["IOB_FC_S", "IOB_FC_N", "IOB_FC_W", "IOB_FC_E"] {
-            ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-            ctx.collect_bit_legacy(tile, bel, "ENABLE_O2IPADPATH", "1");
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::IREG::FF_LATCH);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::IREG::FF_SR_SYNC);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::IREG::FF_INIT);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::IREG::FF_SRVAL);
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            bcls::IREG::READBACK_I,
+            TileBit::new(0, 3, [0, 31, 32, 63][i]).pos(),
+        );
+        for tcid in [
+            tcls::IOB_FC_S,
+            tcls::IOB_FC_N,
+            tcls::IOB_FC_W,
+            tcls::IOB_FC_E,
+        ] {
+            let bslot = bslots::IBUF[i];
+            ctx.collect_bel_attr(tcid, bslot, bcls::IBUF::ENABLE);
+            ctx.collect_bel_attr(tcid, bslot, bcls::IBUF::O2IPAD_ENABLE);
         }
     }
     for i in 0..4 {
-        let tile = "IOI_FC";
         let tcid = tcls::IOI_FC;
-        let bslot = bslots::OBUF[i];
-        let bel = &format!("OBUF[{i}]");
-        ctx.get_diff_legacy(tile, bel, "ENABLE", "1").assert_empty();
-        ctx.get_diff_legacy(tile, bel, "ENABLE_MISR", "TRUE")
-            .assert_empty();
-        for pin in ["CLK", "O"] {
-            ctx.collect_inv(tile, bel, pin);
+        let bslot = bslots::OREG[i];
+        for pin in [bcls::OREG::CLK, bcls::OREG::O] {
+            ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
         }
-        ctx.collect_int_inv_legacy(&[tcls::INT_IOI_FC], tcid, bslot, "CE", false);
-        for pin in ["REV", "SR"] {
-            let d0 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV"), pin);
-            let d1 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
+        ctx.collect_bel_input_inv_int_bi(&[tcls::INT_IOI_FC], tcid, bslot, bcls::OREG::CE);
+        for (pin, attr) in [
+            (bcls::OREG::SR, bcls::OREG::FF_SR_ENABLE),
+            (bcls::OREG::REV, bcls::OREG::FF_REV_ENABLE),
+        ] {
+            let d0 = ctx.get_diff_bel_input_inv(tcid, bslot, pin, false);
+            let d1 = ctx.get_diff_bel_input_inv(tcid, bslot, pin, true);
             let (d0, d1, de) = Diff::split(d0, d1);
-            if pin == "REV" {
-                ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bit_bi_legacy(d0, d1));
+            if pin == bcls::OREG::REV {
+                ctx.insert_bel_input_inv(tcid, bslot, pin, xlat_bit_bi(d0, d1));
             } else {
-                ctx.insert_int_inv_legacy(
+                ctx.insert_bel_input_inv_int(
                     &[tcls::INT_IOI_FC],
                     tcid,
                     bslot,
@@ -281,20 +317,25 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     xlat_bit_bi(d0, d1),
                 );
             }
-            ctx.insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit_legacy(de));
+            ctx.insert_bel_attr_bool(tcid, bslot, attr, xlat_bit(de));
         }
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "OFF", "#FF", "#LATCH");
-        ctx.insert(tile, bel, "FF_LATCH", item);
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "OFFATTRBOX", "ASYNC", "SYNC");
-        ctx.insert(tile, bel, "FF_SR_SYNC", item);
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "OFF_INIT_ATTR", "INIT0", "INIT1");
-        ctx.insert(tile, bel, "FF_INIT", item);
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "OFF_SR_ATTR", "SRLOW", "SRHIGH");
-        ctx.insert(tile, bel, "FF_SRVAL", item);
-        ctx.collect_enum_default_legacy(tile, bel, "OMUX", &["O", "OFF"], "NONE");
-        for tile in ["IOB_FC_S", "IOB_FC_N", "IOB_FC_W", "IOB_FC_E"] {
-            ctx.collect_bit_wide_legacy(tile, bel, "ENABLE", "1");
-            ctx.collect_bit_legacy(tile, bel, "ENABLE_MISR", "TRUE");
+
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::OREG::FF_LATCH);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::OREG::FF_SR_SYNC);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::OREG::FF_INIT);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::OREG::FF_SRVAL);
+        ctx.collect_bel_attr_default(tcid, bslot, bcls::OREG::MUX_O, enums::OREG_MUX_O::NONE);
+
+        for tcid in [
+            tcls::IOB_FC_S,
+            tcls::IOB_FC_N,
+            tcls::IOB_FC_W,
+            tcls::IOB_FC_E,
+        ] {
+            let bslot = bslots::OBUF[i];
+            let diff = ctx.get_diff_attr_bit(tcid, bslot, bcls::OBUF::ENABLE, 0);
+            ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::OBUF::ENABLE, xlat_bit_wide(diff));
+            ctx.collect_bel_attr(tcid, bslot, bcls::OBUF::MISR_ENABLE);
         }
     }
 }

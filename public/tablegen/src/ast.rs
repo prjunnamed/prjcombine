@@ -108,6 +108,7 @@ pub enum AttributeType {
     BitVec(usize),
     BitVecArray(usize, usize),
     Enum(Ident),
+    U32,
 }
 
 // endregion

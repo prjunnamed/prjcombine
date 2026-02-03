@@ -55,6 +55,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for StabilizeGclkc {
                         (fuzzer, _) =
                             BasePip::new(NoopRelation, PipWire::Int(dst), PipWire::Int(src))
                                 .apply(backend, tcrd, fuzzer)?;
+                        (fuzzer, _) = WireMutexExclusive::new(dst).apply(backend, tcrd, fuzzer)?;
+                        (fuzzer, _) = WireMutexShared::new(src).apply(backend, tcrd, fuzzer)?;
                     }
                 }
             }
@@ -83,7 +85,7 @@ pub fn add_fuzzers<'a>(
                 _ => unreachable!(),
             };
             for tile in [clk_w, clk_e] {
-                let mut ctx = FuzzCtx::new_id(session, backend, tile);
+                let mut ctx = FuzzCtx::new(session, backend, tile);
                 let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
                 bctx.build()
                     .global_mutex("PCILOGICSE", "NONE")
@@ -108,7 +110,7 @@ pub fn add_fuzzers<'a>(
     };
     let bufg_num = if chip_kind.is_virtex2() { 8 } else { 4 };
     for tcid in [tcid_s, tcid_n] {
-        let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..bufg_num {
             let mut bctx = ctx.bel(defs::bslots::BUFGMUX[i]);
             if edev.chip.kind != ChipKind::FpgaCore {
@@ -193,7 +195,7 @@ pub fn add_fuzzers<'a>(
             _ => unreachable!(),
         };
         for tcid in [clk_w, clk_e] {
-            let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+            let mut ctx = FuzzCtx::new(session, backend, tcid);
             for i in 0..8 {
                 let mut bctx = ctx.bel(defs::bslots::BUFGMUX[i]);
                 bctx.build()
@@ -252,7 +254,7 @@ pub fn add_fuzzers<'a>(
     } else {
         [tcls_s3::HCLK, tcls_s3::HCLK_UNI].as_slice()
     } {
-        let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         let mut bctx = ctx.bel(defs::bslots::GLOBALSIG_HCLK);
@@ -287,7 +289,7 @@ pub fn add_fuzzers<'a>(
     if !chip_kind.is_virtex2() && chip_kind != ChipKind::FpgaCore {
         // PTE2OMUX
         for tcid in [tcls_s3::INT_DCM, tcls_s3::INT_DCM_S3E_DUMMY] {
-            let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
+            let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
                 continue;
             };
             let BelInfo::SwitchBox(ref sb) = backend.edev.db[tcid].bels[bslots::PTE2OMUX] else {
@@ -364,7 +366,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let bslot = bslots::BUFGMUX[i];
             if edev.chip.kind != ChipKind::FpgaCore {
                 ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::BUFGMUX::S);
-                ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::BUFGMUX::INIT_OUT);
+                ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFGMUX::INIT_OUT);
             }
         }
     }
@@ -418,7 +420,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             for i in 0..8 {
                 let bslot = bslots::BUFGMUX[i];
                 ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::BUFGMUX::S);
-                ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::BUFGMUX::INIT_OUT);
+                ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFGMUX::INIT_OUT);
             }
             let bslot = bslots::PCILOGICSE;
             let mut present = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
@@ -474,7 +476,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     if !chip_kind.is_virtex2() && chip_kind != ChipKind::FpgaCore {
         // PTE2OMUX
         for tcid in [tcls_s3::INT_DCM, tcls_s3::INT_DCM_S3E_DUMMY] {
-            if !ctx.has_tile_id(tcid) {
+            if !ctx.has_tcls(tcid) {
                 continue;
             }
             let BelInfo::SwitchBox(ref sb) = ctx.edev.db[tcid].bels[bslots::PTE2OMUX] else {

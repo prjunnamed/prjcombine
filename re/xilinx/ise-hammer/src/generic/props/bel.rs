@@ -1,24 +1,28 @@
 use prjcombine_interconnect::{
-    db::{BelInfo, BelSlotId},
+    db::{BelInfo, BelInput, BelInputId, BelKind, BelSlotId},
     grid::TileCoord,
 };
 use prjcombine_re_collector::diff::DiffKey;
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 
-use crate::backend::{IseBackend, Key, MultiValue, PinFromKind, Value};
+use crate::{
+    backend::{IseBackend, Key, MultiValue, PinFromKind, Value},
+    generic::utils::get_input_name,
+};
 
 use super::DynProp;
 
 #[derive(Clone, Debug)]
 pub struct BaseBelMode {
     pub bel: BelSlotId,
+    pub sub: usize,
     pub val: String,
 }
 
 impl BaseBelMode {
-    pub fn new(bel: BelSlotId, val: String) -> Self {
-        Self { bel, val }
+    pub fn new(bel: BelSlotId, sub: usize, val: String) -> Self {
+        Self { bel, sub, val }
     }
 }
 
@@ -33,7 +37,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelMode {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         Some((fuzzer.base(Key::SiteMode(site), self.val.clone()), false))
     }
 }
@@ -41,11 +48,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelMode {
 #[derive(Clone, Debug)]
 pub struct BelUnused {
     pub bel: BelSlotId,
+    pub sub: usize,
 }
 
 impl BelUnused {
-    pub fn new(bel: BelSlotId) -> Self {
-        Self { bel }
+    pub fn new(bel: BelSlotId, sub: usize) -> Self {
+        Self { bel, sub }
     }
 }
 
@@ -60,7 +68,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BelUnused {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         Some((fuzzer.base(Key::SiteMode(site), None), false))
     }
 }
@@ -68,13 +79,19 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BelUnused {
 #[derive(Clone, Debug)]
 pub struct FuzzBelMode {
     pub bel: BelSlotId,
+    pub sub: usize,
     pub val0: String,
     pub val1: String,
 }
 
 impl FuzzBelMode {
-    pub fn new(bel: BelSlotId, val0: String, val1: String) -> Self {
-        Self { bel, val0, val1 }
+    pub fn new(bel: BelSlotId, sub: usize, val0: String, val1: String) -> Self {
+        Self {
+            bel,
+            sub,
+            val0,
+            val1,
+        }
     }
 }
 
@@ -89,7 +106,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelMode {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         Some((
             fuzzer.fuzz(Key::SiteMode(site), self.val0.clone(), self.val1.clone()),
             false,
@@ -100,12 +120,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelMode {
 #[derive(Clone, Debug)]
 pub struct BaseBelPin {
     pub bel: BelSlotId,
+    pub sub: usize,
     pub pin: String,
 }
 
 impl BaseBelPin {
-    pub fn new(bel: BelSlotId, pin: String) -> Self {
-        Self { bel, pin }
+    pub fn new(bel: BelSlotId, sub: usize, pin: String) -> Self {
+        Self { bel, sub, pin }
     }
 }
 
@@ -120,7 +141,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPin {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         Some((
             fuzzer.base(Key::SitePin(site, self.pin.clone()), true),
             false,
@@ -131,12 +155,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPin {
 #[derive(Clone, Debug)]
 pub struct BaseBelNoPin {
     pub bel: BelSlotId,
+    pub sub: usize,
     pub pin: String,
 }
 
 impl BaseBelNoPin {
-    pub fn new(bel: BelSlotId, pin: String) -> Self {
-        Self { bel, pin }
+    pub fn new(bel: BelSlotId, sub: usize, pin: String) -> Self {
+        Self { bel, sub, pin }
     }
 }
 
@@ -151,7 +176,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelNoPin {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         Some((
             fuzzer.base(Key::SitePin(site, self.pin.clone()), false),
             false,
@@ -162,12 +190,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelNoPin {
 #[derive(Clone, Debug)]
 pub struct FuzzBelPin {
     pub bel: BelSlotId,
+    pub sub: usize,
     pub pin: String,
 }
 
 impl FuzzBelPin {
-    pub fn new(bel: BelSlotId, pin: String) -> Self {
-        Self { bel, pin }
+    pub fn new(bel: BelSlotId, sub: usize, pin: String) -> Self {
+        Self { bel, sub, pin }
     }
 }
 
@@ -182,7 +211,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPin {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         Some((
             fuzzer.fuzz(Key::SitePin(site, self.pin.clone()), None, true),
             false,
@@ -264,18 +296,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinPips {
 }
 
 #[derive(Clone, Debug)]
-pub struct FuzzBelPinIntPips {
+pub struct FuzzBelPinIntPipsInput {
     pub bel: BelSlotId,
-    pub pin: String,
+    pub pin: BelInputId,
 }
 
-impl FuzzBelPinIntPips {
-    pub fn new(bel: BelSlotId, pin: String) -> Self {
+impl FuzzBelPinIntPipsInput {
+    pub fn new(bel: BelSlotId, pin: BelInputId) -> Self {
         Self { bel, pin }
     }
 }
 
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinIntPips {
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinIntPipsInput {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -290,14 +322,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinIntPips {
         let tcls = &backend.edev.db[tile.class];
         let ntile = &backend.ngrid.tiles[&tcrd];
         let bel_data = &tcls.bels[self.bel];
-        let BelInfo::Legacy(bel_data) = bel_data else {
+        let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
-        let pin_data = &bel_data.pins[&self.pin];
+        let BelKind::Class(bcid) = backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let pname = get_input_name(backend.edev, bcid, self.pin);
+        let BelInput::Fixed(wire) = bel_data.inputs[self.pin] else {
+            unreachable!()
+        };
         let bel_naming = backend.ngrid.get_bel_naming(tcrd.bel(self.bel));
-        let pin_naming = &bel_naming.pins[&self.pin];
-        assert_eq!(pin_data.wires.len(), 1);
-        let wire = *pin_data.wires.first().unwrap();
+        let pin_naming = &bel_naming.pins[&pname];
         if let Some(pip) = pin_naming.int_pips.get(&wire) {
             fuzzer = fuzzer.fuzz(
                 Key::Pip(&ntile.names[pip.tile], &pip.wire_from, &pip.wire_to),
@@ -312,13 +348,19 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinIntPips {
 #[derive(Clone, Debug)]
 pub struct BaseBelPinFrom {
     pub bel: BelSlotId,
+    pub sub: usize,
     pub pin: String,
     pub from: PinFromKind,
 }
 
 impl BaseBelPinFrom {
-    pub fn new(bel: BelSlotId, pin: String, from: PinFromKind) -> Self {
-        Self { bel, pin, from }
+    pub fn new(bel: BelSlotId, sub: usize, pin: String, from: PinFromKind) -> Self {
+        Self {
+            bel,
+            sub,
+            pin,
+            from,
+        }
     }
 }
 
@@ -333,7 +375,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinFrom {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         Some((
             fuzzer.base(Key::SitePinFrom(site, self.pin.clone()), self.from),
             false,
@@ -344,15 +389,23 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinFrom {
 #[derive(Clone, Debug)]
 pub struct FuzzBelPinFrom {
     pub bel: BelSlotId,
+    pub sub: usize,
     pub pin: String,
     pub from0: PinFromKind,
     pub from1: PinFromKind,
 }
 
 impl FuzzBelPinFrom {
-    pub fn new(bel: BelSlotId, pin: String, from0: PinFromKind, from1: PinFromKind) -> Self {
+    pub fn new(
+        bel: BelSlotId,
+        sub: usize,
+        pin: String,
+        from0: PinFromKind,
+        from1: PinFromKind,
+    ) -> Self {
         Self {
             bel,
+            sub,
             pin,
             from0,
             from1,
@@ -371,7 +424,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinFrom {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         Some((
             fuzzer.fuzz(
                 Key::SitePinFrom(site, self.pin.clone()),
@@ -386,17 +442,28 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinFrom {
 #[derive(Clone, Debug)]
 pub struct BaseBelPinPair {
     pub bel_to: BelSlotId,
+    pub sub_to: usize,
     pub pin_to: String,
     pub bel_from: BelSlotId,
+    pub sub_from: usize,
     pub pin_from: String,
 }
 
 impl BaseBelPinPair {
-    pub fn new(bel_to: BelSlotId, pin_to: String, bel_from: BelSlotId, pin_from: String) -> Self {
+    pub fn new(
+        bel_to: BelSlotId,
+        sub_to: usize,
+        pin_to: String,
+        bel_from: BelSlotId,
+        sub_from: usize,
+        pin_from: String,
+    ) -> Self {
         Self {
             bel_to,
+            sub_to,
             pin_to,
             bel_from,
+            sub_from,
             pin_from,
         }
     }
@@ -413,8 +480,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinPair {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site_to = backend.ngrid.get_bel_name(tcrd.bel(self.bel_to)).unwrap();
-        let site_from = backend.ngrid.get_bel_name(tcrd.bel(self.bel_from)).unwrap();
+        let site_to = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel_to), self.sub_to)
+            .unwrap();
+        let site_from = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel_from), self.sub_from)
+            .unwrap();
         Some((
             fuzzer.base(
                 Key::SitePin(site_to, self.pin_to.clone()),
@@ -428,17 +501,28 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinPair {
 #[derive(Clone, Debug)]
 pub struct FuzzBelPinPair {
     pub bel_to: BelSlotId,
+    pub sub_to: usize,
     pub pin_to: String,
     pub bel_from: BelSlotId,
+    pub sub_from: usize,
     pub pin_from: String,
 }
 
 impl FuzzBelPinPair {
-    pub fn new(bel_to: BelSlotId, pin_to: String, bel_from: BelSlotId, pin_from: String) -> Self {
+    pub fn new(
+        bel_to: BelSlotId,
+        sub_to: usize,
+        pin_to: String,
+        bel_from: BelSlotId,
+        sub_from: usize,
+        pin_from: String,
+    ) -> Self {
         Self {
             bel_to,
+            sub_to,
             pin_to,
             bel_from,
+            sub_from,
             pin_from,
         }
     }
@@ -455,8 +539,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinPair {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site_to = backend.ngrid.get_bel_name(tcrd.bel(self.bel_to)).unwrap();
-        let site_from = backend.ngrid.get_bel_name(tcrd.bel(self.bel_from)).unwrap();
+        let site_to = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel_to), self.sub_to)
+            .unwrap();
+        let site_from = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel_from), self.sub_from)
+            .unwrap();
         Some((
             fuzzer.fuzz(
                 Key::SitePin(site_to, self.pin_to.clone()),
@@ -471,13 +561,19 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinPair {
 #[derive(Clone, Debug)]
 pub struct BaseBelAttr {
     pub bel: BelSlotId,
+    pub sub: usize,
     pub attr: String,
     pub val: String,
 }
 
 impl BaseBelAttr {
-    pub fn new(bel: BelSlotId, attr: String, val: String) -> Self {
-        Self { bel, attr, val }
+    pub fn new(bel: BelSlotId, sub: usize, attr: String, val: String) -> Self {
+        Self {
+            bel,
+            sub,
+            attr,
+            val,
+        }
     }
 }
 
@@ -492,7 +588,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelAttr {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         Some((
             fuzzer.base(Key::SiteAttr(site, self.attr.clone()), self.val.clone()),
             false,
@@ -503,15 +602,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelAttr {
 #[derive(Clone, Debug)]
 pub struct FuzzBelAttr {
     pub bel: BelSlotId,
+    pub sub: usize,
     pub attr: String,
     pub val_a: String,
     pub val_b: String,
 }
 
 impl FuzzBelAttr {
-    pub fn new(bel: BelSlotId, attr: String, val_a: String, val_b: String) -> Self {
+    pub fn new(bel: BelSlotId, sub: usize, attr: String, val_a: String, val_b: String) -> Self {
         Self {
             bel,
+            sub,
             attr,
             val_a,
             val_b,
@@ -530,7 +631,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelAttr {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         Some((
             fuzzer.fuzz(
                 Key::SiteAttr(site, self.attr.clone()),
@@ -545,15 +649,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelAttr {
 #[derive(Clone, Debug)]
 pub struct FuzzBelMultiAttr {
     pub bel: BelSlotId,
+    pub sub: usize,
     pub attr: String,
     pub val: MultiValue,
     pub width: usize,
 }
 
 impl FuzzBelMultiAttr {
-    pub fn new(bel: BelSlotId, attr: String, val: MultiValue, width: usize) -> Self {
+    pub fn new(bel: BelSlotId, sub: usize, attr: String, val: MultiValue, width: usize) -> Self {
         Self {
             bel,
+            sub,
             attr,
             val,
             width,
@@ -572,7 +678,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelMultiAttr {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        let site = backend
+            .ngrid
+            .get_bel_name_sub(tcrd.bel(self.bel), self.sub)
+            .unwrap();
         fuzzer.bits = self.width;
         Some((
             fuzzer.fuzz_multi(Key::SiteAttr(site, self.attr.clone()), self.val),
@@ -582,29 +691,29 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelMultiAttr {
 }
 
 #[derive(Clone, Debug)]
-pub struct BelMutex {
+pub struct BelMutex<'b> {
     pub bel: BelSlotId,
     pub attr: String,
-    pub val: String,
+    pub val: Value<'b>,
 }
 
-impl BelMutex {
-    pub fn new(bel: BelSlotId, attr: String, val: String) -> Self {
+impl<'b> BelMutex<'b> {
+    pub fn new(bel: BelSlotId, attr: String, val: Value<'b>) -> Self {
         Self { bel, attr, val }
     }
 }
 
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for BelMutex {
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for BelMutex<'b> {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
 
-    fn apply<'a>(
+    fn apply(
         &self,
-        _backend: &IseBackend<'a>,
+        _backend: &IseBackend<'b>,
         tcrd: TileCoord,
-        fuzzer: Fuzzer<IseBackend<'a>>,
-    ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
+        fuzzer: Fuzzer<IseBackend<'b>>,
+    ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         let bel = tcrd.bel(self.bel);
         Some((
             fuzzer.base(Key::BelMutex(bel, self.attr.clone()), self.val.clone()),

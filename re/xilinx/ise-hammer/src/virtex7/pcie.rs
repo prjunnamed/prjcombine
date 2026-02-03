@@ -653,13 +653,13 @@ impl TileRelation for PcieHclkPair {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PCIE") {
+    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PCIE") {
         let mut bctx = ctx.bel(defs::bslots::PCIE);
         let mode = "PCIE_2_1";
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         // always appears in left column even when DRP is in right column — bug or intentional?
         bctx.mode(mode)
-            .extra_tile_attr(PcieHclkPair, "HCLK", "DRP_MASK_PCIE", "1")
+            .extra_tile_attr_legacy(PcieHclkPair, "HCLK", "DRP_MASK_PCIE", "1")
             .test_manual_legacy("DRP_MASK", "1")
             .pin("DRPWE")
             .commit();
@@ -674,14 +674,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_dec(attr, width);
         }
     }
-    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PCIE3") {
+    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PCIE3") {
         let mut bctx = ctx.bel(defs::bslots::PCIE3);
         let mode = "PCIE_3_0";
         // always turns on the "bottom" bit even in the lower region — bug or intentional?
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         bctx.mode(mode)
-            .extra_tile_attr(Delta::new(3, 0, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
-            .extra_tile_attr(Delta::new(3, 50, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
+            .extra_tile_attr_legacy(Delta::new(3, 0, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
+            .extra_tile_attr_legacy(Delta::new(3, 50, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
             .test_manual_legacy("DRP_MASK", "1")
             .pin("DRPWE")
             .commit();
@@ -699,7 +699,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut got_pcie = false;
-    if ctx.has_tile("PCIE") {
+    if ctx.has_tile_legacy("PCIE") {
         let tile = "PCIE";
         let bel = "PCIE";
 
@@ -710,7 +710,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             TileBit::new(tile, frame, bit)
         }
         for reg in 0..0x96 {
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("DRP{reg:02X}"),
@@ -736,7 +736,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         got_pcie = true;
     }
-    if ctx.has_tile("PCIE3") {
+    if ctx.has_tile_legacy("PCIE3") {
         let tile = "PCIE3";
         let bel = "PCIE3";
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
@@ -758,6 +758,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "HCLK";
         let bel = "HCLK";
         let item = ctx.extract_bit_legacy(tile, bel, "DRP_MASK_PCIE", "1");
-        ctx.insert(tile, bel, "DRP_MASK_BELOW_R", item);
+        ctx.insert_legacy(tile, bel, "DRP_MASK_BELOW_R", item);
     }
 }

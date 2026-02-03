@@ -127,7 +127,7 @@ pub fn add_fuzzers<'a>(
     devdata_only: bool,
 ) {
     if devdata_only {
-        let mut ctx = FuzzCtx::new(session, backend, "PCILOGICSE");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "PCILOGICSE");
         let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
         bctx.build()
             .no_global("PCI_CE_DELAY_LEFT")
@@ -140,7 +140,7 @@ pub fn add_fuzzers<'a>(
         unreachable!()
     };
     {
-        let mut ctx = FuzzCtx::new(session, backend, "HCLK");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK");
         let mut bctx = ctx.bel(defs::bslots::HCLK);
         for i in 0..16 {
             let gclk_i = format!("GCLK{i}_I");
@@ -158,7 +158,7 @@ pub fn add_fuzzers<'a>(
                 .commit();
         }
     }
-    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "HCLK_H_MIDBUF") {
+    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "HCLK_H_MIDBUF") {
         let mut bctx = ctx.bel(defs::bslots::HCLK_H_MIDBUF);
         for i in 0..16 {
             bctx.build()
@@ -174,7 +174,7 @@ pub fn add_fuzzers<'a>(
         }
     }
     {
-        let mut ctx = FuzzCtx::new(session, backend, "HCLK_ROW");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK_ROW");
         for slots in [defs::bslots::BUFH_W, defs::bslots::BUFH_E] {
             for i in 0..16 {
                 let mut bctx = ctx.bel(slots[i]);
@@ -209,7 +209,7 @@ pub fn add_fuzzers<'a>(
         }
     }
     {
-        let mut ctx = FuzzCtx::new(session, backend, "HCLK_V_MIDBUF");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK_V_MIDBUF");
         let mut bctx = ctx.bel(defs::bslots::HCLK_V_MIDBUF);
         for i in 0..16 {
             bctx.build()
@@ -225,11 +225,13 @@ pub fn add_fuzzers<'a>(
         }
     }
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CLKC");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "CLKC");
         for i in 0..16 {
             let mut bctx = ctx.bel(defs::bslots::BUFGMUX[i]);
-            bctx.test_manual_legacy("PRESENT", "1").mode("BUFGMUX").commit();
-            bctx.mode("BUFGMUX").test_inv("S");
+            bctx.test_manual_legacy("PRESENT", "1")
+                .mode("BUFGMUX")
+                .commit();
+            bctx.mode("BUFGMUX").test_inv_legacy("S");
             bctx.mode("BUFGMUX")
                 .test_enum_legacy("CLK_SEL_TYPE", &["SYNC", "ASYNC"]);
             bctx.mode("BUFGMUX")
@@ -338,7 +340,7 @@ pub fn add_fuzzers<'a>(
         .into_iter()
         .enumerate()
     {
-        if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) {
+        if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) {
             let mut bctx = ctx.bel(defs::bslots::PLL_BUFPLL);
             for out in ["CLKOUT0", "CLKOUT1", "LOCKED"] {
                 for ud in ['U', 'D'] {
@@ -356,7 +358,7 @@ pub fn add_fuzzers<'a>(
         ("DCM_BUFPLL_BUF_N", defs::bslots::DCM_BUFPLL_BUF_N),
         ("DCM_BUFPLL_BUF_N_MID", defs::bslots::DCM_BUFPLL_BUF_N_MID),
     ] {
-        if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) {
+        if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) {
             let mut bctx = ctx.bel(bel);
             for src in ["PLL0", "PLL1", "CLKC"] {
                 let (bufs_d, bufs_u) = match (tile, edev.chip.rows.len() / 64) {
@@ -417,7 +419,7 @@ pub fn add_fuzzers<'a>(
         ("CLK_W", true),
         ("CLK_E", true),
     ] {
-        let mut ctx = FuzzCtx::new(session, backend, tile);
+        let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
         for i in 0..8 {
             let mut bctx = ctx.bel(defs::bslots::BUFIO2[i]);
             bctx.test_manual_legacy("PRESENT", "BUFIO2")
@@ -738,19 +740,19 @@ pub fn add_fuzzers<'a>(
             ctx.build()
                 .global("ENABLEMISR", "Y")
                 .global("MISRRESET", "N")
-                .test_manual("MISC", "MISR_ENABLE", "1")
+                .test_manual_legacy("MISC", "MISR_ENABLE", "1")
                 .global(format!("MISR_{n}M_EN"), "Y")
                 .commit();
             ctx.build()
                 .global("ENABLEMISR", "Y")
                 .global("MISRRESET", "Y")
-                .test_manual("MISC", "MISR_ENABLE_RESET", "1")
+                .test_manual_legacy("MISC", "MISR_ENABLE_RESET", "1")
                 .global(format!("MISR_{n}M_EN"), "Y")
                 .commit();
         }
     }
     {
-        let mut ctx = FuzzCtx::new(session, backend, "PCILOGICSE");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "PCILOGICSE");
         let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
         bctx.build()
             .no_global("PCI_CE_DELAY_LEFT")
@@ -771,7 +773,7 @@ pub fn add_fuzzers<'a>(
         ("PCI_CE_SPLIT", defs::bslots::PCI_CE_SPLIT),
         ("PCI_CE_H_BUF", defs::bslots::PCI_CE_H_BUF),
     ] {
-        if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) {
+        if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) {
             let mut bctx = ctx.bel(bel);
             bctx.build()
                 .null_bits()
@@ -790,7 +792,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let tile = "PCILOGICSE";
         let bel = "PCILOGICSE";
         let default = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-        let item = ctx.item(tile, bel, "PCI_CE_DELAY");
+        let item = ctx.item_legacy(tile, bel, "PCI_CE_DELAY");
         let val: BitVec = item
             .bits
             .iter()
@@ -801,7 +803,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         };
         for (k, v) in values {
             if *v == val {
-                ctx.insert_device_data("PCI_CE_DELAY", k.clone());
+                ctx.insert_device_data_legacy("PCI_CE_DELAY", k.clone());
                 break;
             }
         }
@@ -871,7 +873,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     "PLL1D_CLKOUT1",
                 ],
             );
-            ctx.insert(tile, bel, out, item);
+            ctx.insert_legacy(tile, bel, out, item);
         }
         for out in ["OUTD_CLKOUT0", "OUTD_CLKOUT1"] {
             let item = ctx.extract_enum_legacy(
@@ -885,7 +887,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     "PLL1U_CLKOUT1",
                 ],
             );
-            ctx.insert(tile, bel, out, item);
+            ctx.insert_legacy(tile, bel, out, item);
         }
         for out in ["OUTU_CLKOUT0", "OUTU_CLKOUT1"] {
             let item = ctx.extract_enum_legacy(
@@ -899,7 +901,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     "PLL1D_CLKOUT1",
                 ],
             );
-            ctx.insert(tile, bel, out, item);
+            ctx.insert_legacy(tile, bel, out, item);
         }
         for out in [
             "OUTL_LOCKED0",
@@ -918,7 +920,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     "PLL1U_LOCKED",
                 ],
             );
-            ctx.insert(tile, bel, out, item);
+            ctx.insert_legacy(tile, bel, out, item);
         }
         let item = ctx.extract_enum_legacy(
             tile,
@@ -926,14 +928,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             "OUTD_LOCKED",
             &["PLL0U_LOCKED", "PLL1U_LOCKED"],
         );
-        ctx.insert(tile, bel, "OUTD_LOCKED", item);
+        ctx.insert_legacy(tile, bel, "OUTD_LOCKED", item);
         let item = ctx.extract_enum_legacy(
             tile,
             "CLKC_BUFPLL",
             "OUTU_LOCKED",
             &["PLL0D_LOCKED", "PLL1D_LOCKED"],
         );
-        ctx.insert(tile, bel, "OUTU_LOCKED", item);
+        ctx.insert_legacy(tile, bel, "OUTU_LOCKED", item);
     }
     for tile in [
         "DCM_BUFPLL_BUF_S",
@@ -941,7 +943,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         "DCM_BUFPLL_BUF_N",
         "DCM_BUFPLL_BUF_N_MID",
     ] {
-        if !ctx.has_tile(tile) {
+        if !ctx.has_tile_legacy(tile) {
             continue;
         }
         let bel = tile;
@@ -959,7 +961,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             ctx.get_diff_legacy(tile, bel, attr, "1").assert_empty();
         }
     }
-    if ctx.has_tile("PLL_BUFPLL_OUT0") {
+    if ctx.has_tile_legacy("PLL_BUFPLL_OUT0") {
         let tile = "PLL_BUFPLL_OUT0";
         let bel = "PLL_BUFPLL";
         for attr in [
@@ -998,7 +1000,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
     }
     for tile in ["PLL_BUFPLL_S", "PLL_BUFPLL_N"] {
-        if ctx.has_tile(tile) {
+        if ctx.has_tile_legacy(tile) {
             let bel = "PLL_BUFPLL";
             for attr in [
                 "PLL0_CLKOUT0",
@@ -1027,15 +1029,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 .assert_empty();
             let diff = ctx.get_diff_legacy(tile, bel, "CMT_ENABLE", "1");
             assert_eq!(diff, ctx.get_diff_legacy(tile, bel_fb, "CMT_ENABLE", "1"));
-            ctx.insert(tile, bel, "CMT_ENABLE", xlat_bit_legacy(diff));
+            ctx.insert_legacy(tile, bel, "CMT_ENABLE", xlat_bit_legacy(diff));
             ctx.collect_bit_legacy(tile, bel, "IOCLK_ENABLE", "1");
             ctx.collect_enum_legacy(tile, bel, "CKPIN", &["VCC", "DIVCLK", "CLKPIN"]);
             ctx.collect_bit_bi_legacy(tile, bel, "R_EDGE", "FALSE", "TRUE");
             ctx.collect_bit_bi_legacy(tile, bel, "DIVIDE_BYPASS", "FALSE", "TRUE");
             let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "BUFIO2_2CLK");
-            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "R_EDGE"), true, false);
-            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "DIVIDE_BYPASS"), false, true);
-            ctx.insert(tile, bel, "ENABLE_2CLK", xlat_bit_legacy(diff));
+            diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "R_EDGE"), true, false);
+            diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "DIVIDE_BYPASS"), false, true);
+            ctx.insert_legacy(tile, bel, "ENABLE_2CLK", xlat_bit_legacy(diff));
 
             let mut pos_edge = vec![];
             let mut pos_bits = HashSet::new();
@@ -1055,7 +1057,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 let val = format!("{i}");
                 let mut diff = ctx.get_diff_legacy(tile, bel, "DIVIDE", &val);
                 if matches!(i, 2 | 4 | 6 | 8) {
-                    diff.apply_bit_diff_legacy(ctx.item(tile, bel, "R_EDGE"), true, false);
+                    diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "R_EDGE"), true, false);
                 }
                 let diff2 = ctx.get_diff_legacy(tile, bel, "DIVIDE.2CLK", &val);
                 assert_eq!(diff, diff2);
@@ -1065,9 +1067,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 neg_edge.push((format!("DIVIDE_{i}"), neg));
                 divide.push((val, diff));
             }
-            ctx.insert(tile, bel, "POS_EDGE", xlat_enum_legacy(pos_edge));
-            ctx.insert(tile, bel, "NEG_EDGE", xlat_enum_legacy(neg_edge));
-            ctx.insert(tile, bel, "DIVIDE", xlat_enum_legacy(divide));
+            ctx.insert_legacy(tile, bel, "POS_EDGE", xlat_enum_legacy(pos_edge));
+            ctx.insert_legacy(tile, bel, "NEG_EDGE", xlat_enum_legacy(neg_edge));
+            ctx.insert_legacy(tile, bel, "DIVIDE", xlat_enum_legacy(divide));
 
             let enable = ctx.peek_diff_legacy(tile, bel, "I", "CLKPIN0").clone();
             let mut diffs = vec![];
@@ -1078,13 +1080,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 diff = diff.combine(&!&enable);
                 diffs.push((val, diff));
             }
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 "I",
                 xlat_enum_legacy_ocd(diffs, OcdMode::BitOrder),
             );
-            ctx.insert(tile, bel, "ENABLE", xlat_bit_legacy(enable));
+            ctx.insert_legacy(tile, bel, "ENABLE", xlat_bit_legacy(enable));
             ctx.collect_enum_legacy_ocd(
                 tile,
                 bel,
@@ -1100,7 +1102,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             ctx.get_diff_legacy(tile, bel_fb, "DIVIDE_BYPASS", "TRUE")
                 .assert_empty();
             let diff = ctx.get_diff_legacy(tile, bel_fb, "DIVIDE_BYPASS", "FALSE");
-            ctx.insert(tile, bel, "FB_DIVIDE_BYPASS", xlat_bit_wide_legacy(!diff));
+            ctx.insert_legacy(tile, bel, "FB_DIVIDE_BYPASS", xlat_bit_wide_legacy(!diff));
 
             let enable = ctx.peek_diff_legacy(tile, bel_fb, "I", "CLKPIN").clone();
             let mut diffs = vec![];
@@ -1109,17 +1111,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 diff = diff.combine(&!&enable);
                 diffs.push((val, diff));
             }
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 "FB_I",
                 xlat_enum_legacy_ocd(diffs, OcdMode::BitOrder),
             );
-            ctx.insert(tile, bel, "FB_ENABLE", xlat_bit_legacy(enable));
+            ctx.insert_legacy(tile, bel, "FB_ENABLE", xlat_bit_legacy(enable));
 
             let mut present = ctx.get_diff_legacy(tile, bel_fb, "PRESENT", "BUFIO2FB_2CLK");
-            present.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "FB_DIVIDE_BYPASS"), 0, 0xf);
-            present.apply_enum_diff_legacy(ctx.item(tile, bel, "FB_I"), "CFB", "CLKPIN");
+            present.apply_bitvec_diff_int_legacy(
+                ctx.item_legacy(tile, bel, "FB_DIVIDE_BYPASS"),
+                0,
+                0xf,
+            );
+            present.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "FB_I"), "CFB", "CLKPIN");
             present.assert_empty();
         }
         for val in ["1", "2", "3", "4", "5", "6", "7", "8"] {
@@ -1144,11 +1150,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let enable = ctx.extract_bit_legacy(tile, bel, "ENABLE", "1");
             let mut diff = ctx.get_diff_legacy(tile, bel, "ENABLE_NONE_SYNC", "1");
             diff.apply_bit_diff_legacy(&enable, true, false);
-            ctx.insert(tile, bel, "ENABLE_NONE_SYNC", xlat_bit_wide_legacy(diff));
+            ctx.insert_legacy(tile, bel, "ENABLE_NONE_SYNC", xlat_bit_wide_legacy(diff));
             let mut diff = ctx.get_diff_legacy(tile, bel, "ENABLE_BOTH_SYNC", "1");
             diff.apply_bit_diff_legacy(&enable, true, false);
-            ctx.insert(tile, bel, "ENABLE_BOTH_SYNC", xlat_bit_wide_legacy(diff));
-            ctx.insert(tile, "BUFPLL_COMMON", "ENABLE", enable);
+            ctx.insert_legacy(tile, bel, "ENABLE_BOTH_SYNC", xlat_bit_wide_legacy(diff));
+            ctx.insert_legacy(tile, "BUFPLL_COMMON", "ENABLE", enable);
             ctx.collect_bit_bi_legacy(tile, bel, "ENABLE_SYNC", "FALSE", "TRUE");
 
             if !is_lr {
@@ -1164,18 +1170,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         {
             let bel = "BUFPLL_MCB";
             let item = ctx.extract_bit_legacy(tile, bel, "ENABLE.0", "1");
-            ctx.insert(tile, "BUFPLL_COMMON", "ENABLE", item);
+            ctx.insert_legacy(tile, "BUFPLL_COMMON", "ENABLE", item);
             let item = ctx.extract_bit_legacy(tile, bel, "ENABLE.1", "1");
-            ctx.insert(tile, "BUFPLL_COMMON", "ENABLE", item);
+            ctx.insert_legacy(tile, "BUFPLL_COMMON", "ENABLE", item);
             if is_lr {
                 let item = ctx.extract_enum_legacy(tile, bel, "PLLIN", &["GCLK", "CMT"]);
-                ctx.insert(tile, "BUFPLL_COMMON", "PLLIN", item);
+                ctx.insert_legacy(tile, "BUFPLL_COMMON", "PLLIN", item);
             }
             let mut diff0 = ctx.get_diff_legacy(tile, bel, "LOCK_SRC", "LOCK_TO_0");
-            diff0.apply_bit_diff_legacy(ctx.item(tile, "BUFPLL[1]", "ENABLE_SYNC"), false, true);
+            diff0.apply_bit_diff_legacy(
+                ctx.item_legacy(tile, "BUFPLL[1]", "ENABLE_SYNC"),
+                false,
+                true,
+            );
             let mut diff1 = ctx.get_diff_legacy(tile, bel, "LOCK_SRC", "LOCK_TO_1");
-            diff1.apply_bit_diff_legacy(ctx.item(tile, "BUFPLL[0]", "ENABLE_SYNC"), false, true);
-            ctx.insert(
+            diff1.apply_bit_diff_legacy(
+                ctx.item_legacy(tile, "BUFPLL[0]", "ENABLE_SYNC"),
+                false,
+                true,
+            );
+            ctx.insert_legacy(
                 tile,
                 bel,
                 "LOCK_SRC",
@@ -1183,12 +1197,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             );
             let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
             diff.apply_bitvec_diff_int_legacy(
-                ctx.item(tile, "BUFPLL[0]", "ENABLE_BOTH_SYNC"),
+                ctx.item_legacy(tile, "BUFPLL[0]", "ENABLE_BOTH_SYNC"),
                 7,
                 0,
             );
             diff.apply_bitvec_diff_int_legacy(
-                ctx.item(tile, "BUFPLL[1]", "ENABLE_BOTH_SYNC"),
+                ctx.item_legacy(tile, "BUFPLL[1]", "ENABLE_BOTH_SYNC"),
                 7,
                 0,
             );
@@ -1204,8 +1218,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             if has_gt && !ctx.device.name.starts_with("xa") {
                 ctx.collect_bit_legacy(tile, bel, "MISR_ENABLE", "1");
                 let mut diff = ctx.get_diff_legacy(tile, bel, "MISR_ENABLE_RESET", "1");
-                diff.apply_bit_diff_legacy(ctx.item(tile, bel, "MISR_ENABLE"), true, false);
-                ctx.insert(tile, bel, "MISR_RESET", xlat_bit_legacy(diff));
+                diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "MISR_ENABLE"), true, false);
+                ctx.insert_legacy(tile, bel, "MISR_RESET", xlat_bit_legacy(diff));
             } else {
                 // they're sometimes working, sometimes not, in nonsensical ways; just kill them
                 ctx.get_diff_legacy(tile, bel, "MISR_ENABLE", "1");
@@ -1222,7 +1236,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let val = format!("TAP{i}");
             let diff = ctx.get_diff_legacy(tile, bel, "PRESENT", &val);
             if diff == default {
-                ctx.insert_device_data("PCI_CE_DELAY", val.clone());
+                ctx.insert_device_data_legacy("PCI_CE_DELAY", val.clone());
             }
             diffs.push((val, diff));
         }
@@ -1234,9 +1248,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         assert_eq!(bits.len(), 1);
         for (_, diff) in &mut diffs {
             let enable = diff.split_bits(&bits);
-            ctx.insert(tile, bel, "ENABLE", xlat_bit_legacy(enable));
+            ctx.insert_legacy(tile, bel, "ENABLE", xlat_bit_legacy(enable));
         }
-        ctx.insert(tile, bel, "PCI_CE_DELAY", xlat_enum_legacy(diffs));
+        ctx.insert_legacy(tile, bel, "PCI_CE_DELAY", xlat_enum_legacy(diffs));
     }
     for (tile, frame, bit, target) in [
         // used in CLEXL (incl. spine) and DSP columns; also used on PCIE sides and left GTP side
@@ -1272,7 +1286,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ("HCLK_GTP", 19, 0, 24),
         // BRAM columns do not have masking
     ] {
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             "GLUTMASK",
             format!("FRAME{target}"),

@@ -13,8 +13,8 @@ use prjcombine_types::{
 use crate::{
     bitdata::CollectorData,
     diff::{
-        Diff, DiffKey, OcdMode, SpecialId, xlat_bit, xlat_bit_bi, xlat_bitvec, xlat_bitvec_sparse,
-        xlat_enum_attr, xlat_enum_raw,
+        Diff, DiffKey, OcdMode, SpecialId, xlat_bit, xlat_bit_bi, xlat_bit_bi_default, xlat_bitvec,
+        xlat_bitvec_sparse, xlat_enum_attr, xlat_enum_attr_ocd, xlat_enum_raw,
     },
 };
 
@@ -68,6 +68,18 @@ impl Collector<'_, '_> {
         &res[0]
     }
 
+    pub fn get_diffs_attr_bits(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        bits: usize,
+    ) -> Vec<Diff> {
+        (0..bits)
+            .map(|idx| self.get_diff_attr_bit(tcid, bslot, attr, idx))
+            .collect()
+    }
+
     pub fn get_diff_attr_special(
         &mut self,
         tcid: TileClassId,
@@ -106,7 +118,37 @@ impl Collector<'_, '_> {
         attr: BelAttributeId,
         bit: usize,
     ) -> Diff {
-        self.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, bit))
+        self.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, bit, true))
+    }
+
+    pub fn get_diff_attr_bit_bi(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        bit: usize,
+        val: bool,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, bit, val))
+    }
+
+    pub fn get_diff_attr_bool(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, 0, true))
+    }
+
+    pub fn get_diff_attr_bool_bi(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        val: bool,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, 0, val))
     }
 
     pub fn get_diff_attr_bitvec(
@@ -119,6 +161,16 @@ impl Collector<'_, '_> {
         self.get_diff_raw(&DiffKey::BelAttrBitVec(tcid, bslot, attr, val))
     }
 
+    pub fn get_diff_attr_u32(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        val: u32,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelAttrU32(tcid, bslot, attr, val))
+    }
+
     pub fn get_diff_bel_attr_special(
         &mut self,
         tcid: TileClassId,
@@ -129,14 +181,14 @@ impl Collector<'_, '_> {
         self.get_diff_raw(&DiffKey::BelAttrSpecial(tcid, bslot, attr, spec))
     }
 
-    pub fn get_diff_attr_bool(
+    pub fn get_diff_bel_attr_row(
         &mut self,
         tcid: TileClassId,
         bslot: BelSlotId,
         attr: BelAttributeId,
-        val: bool,
+        row: TableRowId,
     ) -> Diff {
-        self.get_diff_raw(&DiffKey::BelAttrEnumBool(tcid, bslot, attr, val))
+        self.get_diff_raw(&DiffKey::BelAttrRow(tcid, bslot, attr, row))
     }
 
     pub fn get_diff_bel_special(
@@ -146,6 +198,16 @@ impl Collector<'_, '_> {
         spec: SpecialId,
     ) -> Diff {
         self.get_diff_raw(&DiffKey::BelSpecial(tcid, bslot, spec))
+    }
+
+    pub fn get_diff_bel_special_u32(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        spec: SpecialId,
+        val: u32,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelSpecialU32(tcid, bslot, spec, val))
     }
 
     pub fn get_diff_bel_special_row(
@@ -158,6 +220,20 @@ impl Collector<'_, '_> {
         self.get_diff_raw(&DiffKey::BelSpecialRow(tcid, bslot, spec, row))
     }
 
+    pub fn get_diff_bel_sss_row(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        spec0: SpecialId,
+        spec1: SpecialId,
+        spec2: SpecialId,
+        row: TableRowId,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelSpecialSpecialSpecialRow(
+            tcid, bslot, spec0, spec1, spec2, row,
+        ))
+    }
+
     pub fn get_diff_bel_input_inv(
         &mut self,
         tcid: TileClassId,
@@ -166,6 +242,59 @@ impl Collector<'_, '_> {
         val: bool,
     ) -> Diff {
         self.get_diff_raw(&DiffKey::BelInputInv(tcid, bslot, pin, val))
+    }
+
+    pub fn peek_diff_attr_bit(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        bit: usize,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, bit, true))
+    }
+
+    pub fn peek_diff_attr_val(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        val: EnumValueId,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::BelAttrValue(tcid, bslot, attr, val))
+    }
+
+    pub fn peek_diff_bel_special(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        spec: SpecialId,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::BelSpecial(tcid, bslot, spec))
+    }
+
+    pub fn peek_diff_bel_special_row(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        spec: SpecialId,
+        row: TableRowId,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::BelSpecialRow(tcid, bslot, spec, row))
+    }
+
+    pub fn peek_diff_bel_sss_row(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        spec0: SpecialId,
+        spec1: SpecialId,
+        spec2: SpecialId,
+        row: TableRowId,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::BelSpecialSpecialSpecialRow(
+            tcid, bslot, spec0, spec1, spec2, row,
+        ))
     }
 }
 
@@ -186,6 +315,16 @@ impl Collector<'_, '_> {
                 e.insert(attr);
             }
         }
+    }
+
+    pub fn insert_bel_attr_enum(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+        attr: BelAttributeEnum,
+    ) {
+        self.insert_bel_attr_raw(tcid, bslot, aid, BelAttribute::Enum(attr));
     }
 
     pub fn insert_bel_attr_bool(
@@ -379,9 +518,36 @@ impl Collector<'_, '_> {
         }
     }
 
+    pub fn insert_devdata_bool(&mut self, ddid: DeviceDataId, val: bool) {
+        let val = TableValue::BitVec(BitVec::from_iter([val]));
+        let devdata = self
+            .data
+            .device_data
+            .entry(self.dev_name.to_string())
+            .or_default();
+        if devdata.contains_id(ddid) {
+            assert_eq!(devdata[ddid], val);
+        } else {
+            devdata.insert(ddid, val);
+        }
+    }
 
     pub fn insert_devdata_enum(&mut self, ddid: DeviceDataId, val: EnumValueId) {
         let val = TableValue::Enum(val);
+        let devdata = self
+            .data
+            .device_data
+            .entry(self.dev_name.to_string())
+            .or_default();
+        if devdata.contains_id(ddid) {
+            assert_eq!(devdata[ddid], val);
+        } else {
+            devdata.insert(ddid, val);
+        }
+    }
+
+    pub fn insert_devdata_u32(&mut self, ddid: DeviceDataId, val: u32) {
+        let val = TableValue::U32(val);
         let devdata = self
             .data
             .device_data
@@ -497,19 +663,48 @@ impl Collector<'_, '_> {
                         self.get_diff_raw(&DiffKey::BelAttrValue(tcid, bslot, aid, vid)),
                     ));
                 }
-                xlat_enum_attr(diffs)
+                BelAttribute::Enum(xlat_enum_attr(diffs))
             }
-            BelAttributeType::Bool => BelAttribute::BitVec(vec![xlat_bit(
-                self.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, aid, 0)),
-            )]),
+            BelAttributeType::Bool => {
+                BelAttribute::BitVec(vec![xlat_bit(self.get_diff_attr_bool(tcid, bslot, aid))])
+            }
             BelAttributeType::BitVec(width) => BelAttribute::BitVec(xlat_bitvec(
                 (0..width)
-                    .map(|idx| self.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, aid, idx)))
+                    .map(|idx| self.get_diff_attr_bit(tcid, bslot, aid, idx))
                     .collect(),
             )),
             BelAttributeType::BitVecArray(_, _) => todo!(),
+            BelAttributeType::U32 => unreachable!(),
         };
         self.insert_bel_attr_raw(tcid, bslot, aid, attr);
+    }
+
+    pub fn collect_bel_attr_ocd(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+        ocd: OcdMode,
+    ) {
+        let BelKind::Class(bcid) = self.intdb.bel_slots[bslot].kind else {
+            unreachable!()
+        };
+        let bcattr = &self.intdb.bel_classes[bcid].attributes[aid];
+        let BelAttributeType::Enum(ecid) = bcattr.typ else {
+            unreachable!()
+        };
+
+        let ecls = &self.intdb.enum_classes[ecid];
+        let mut diffs = vec![];
+        for vid in ecls.values.ids() {
+            diffs.push((
+                vid,
+                self.get_diff_raw(&DiffKey::BelAttrValue(tcid, bslot, aid, vid)),
+            ));
+        }
+
+        let attr = xlat_enum_attr_ocd(diffs, ocd);
+        self.insert_bel_attr_enum(tcid, bslot, aid, attr);
     }
 
     pub fn collect_bel_attr_subset(
@@ -528,7 +723,7 @@ impl Collector<'_, '_> {
         }
 
         let attr = xlat_enum_attr(diffs);
-        self.insert_bel_attr_raw(tcid, bslot, aid, attr);
+        self.insert_bel_attr_enum(tcid, bslot, aid, attr);
     }
 
     pub fn collect_bel_attr_default(
@@ -559,27 +754,35 @@ impl Collector<'_, '_> {
         }
 
         let attr = xlat_enum_attr(diffs);
-        self.insert_bel_attr_raw(tcid, bslot, aid, attr);
+        self.insert_bel_attr_enum(tcid, bslot, aid, attr);
     }
 
-    pub fn collect_bel_attr_bool_bi(
+    pub fn collect_bel_attr_bi(
         &mut self,
         tcid: TileClassId,
         bslot: BelSlotId,
         aid: BelAttributeId,
-    ) {
+    ) -> BitVec {
         let BelKind::Class(bcid) = self.intdb.bel_slots[bslot].kind else {
             unreachable!()
         };
         let bcattr = &self.intdb.bel_classes[bcid].attributes[aid];
-        let diff0 = self.get_diff_raw(&DiffKey::BelAttrEnumBool(tcid, bslot, aid, false));
-        let diff1 = self.get_diff_raw(&DiffKey::BelAttrEnumBool(tcid, bslot, aid, true));
-        let bit = xlat_bit_bi(diff0, diff1);
-        assert!(matches!(
-            bcattr.typ,
-            BelAttributeType::Bool | BelAttributeType::BitVec(1)
-        ));
-        self.insert_bel_attr_bool(tcid, bslot, aid, bit);
+        let width = match bcattr.typ {
+            BelAttributeType::Bool => 1,
+            BelAttributeType::BitVec(width) => width,
+            _ => unreachable!(),
+        };
+        let mut res = vec![];
+        let mut default = BitVec::new();
+        for i in 0..width {
+            let diff0 = self.get_diff_attr_bit_bi(tcid, bslot, aid, i, false);
+            let diff1 = self.get_diff_attr_bit_bi(tcid, bslot, aid, i, true);
+            let (bit, def) = xlat_bit_bi_default(diff0, diff1);
+            res.push(bit);
+            default.push(def);
+        }
+        self.insert_bel_attr_bitvec(tcid, bslot, aid, res);
+        default
     }
 
     pub fn collect_bel_attr_sparse(

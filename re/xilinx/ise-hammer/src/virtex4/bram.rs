@@ -1,340 +1,398 @@
-use prjcombine_re_collector::{
-    diff::Diff,
-    legacy::{xlat_bitvec_legacy, xlat_enum_legacy},
-};
+use prjcombine_entity::EntityId;
+use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_bit_wide, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::defs::{bslots, virtex4::tcls};
+use prjcombine_virtex4::defs::{bcls, bslots, enums, virtex4::tcls};
 
 use crate::{
     backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
     generic::fbuild::{FuzzBuilderBase, FuzzCtx},
+    virtex4::specials,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new_id(session, backend, tcls::BRAM);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::BRAM);
     {
         let mut bctx = ctx.bel(bslots::BRAM);
         let mode = "RAMB16";
         bctx.build()
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(bslots::FIFO)
-            .test_manual_legacy("PRESENT", "1")
+            .sub_unused(1)
+            .test_bel_special(specials::PRESENT)
             .mode(mode)
             .commit();
         for pin in [
-            "CLKA", "CLKB", "ENA", "ENB", "SSRA", "SSRB", "REGCEA", "REGCEB", "WEA0", "WEA1",
-            "WEA2", "WEA3", "WEB0", "WEB1", "WEB2", "WEB3",
+            bcls::BRAM_V4::CLKA,
+            bcls::BRAM_V4::CLKB,
+            bcls::BRAM_V4::ENA,
+            bcls::BRAM_V4::ENB,
+            bcls::BRAM_V4::SSRA,
+            bcls::BRAM_V4::SSRB,
+            bcls::BRAM_V4::REGCEA,
+            bcls::BRAM_V4::REGCEB,
+            bcls::BRAM_V4::WEA[0],
+            bcls::BRAM_V4::WEA[1],
+            bcls::BRAM_V4::WEA[2],
+            bcls::BRAM_V4::WEA[3],
+            bcls::BRAM_V4::WEB[0],
+            bcls::BRAM_V4::WEB[1],
+            bcls::BRAM_V4::WEB[2],
+            bcls::BRAM_V4::WEB[3],
         ] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(bslots::FIFO)
-                .test_inv(pin);
+                .sub_unused(1)
+                .test_bel_input_inv_auto(pin);
         }
         for attr in [
-            "INVERT_CLK_DOA_REG",
-            "INVERT_CLK_DOB_REG",
-            "EN_ECC_READ",
-            "EN_ECC_WRITE",
-            "SAVEDATA",
+            bcls::BRAM_V4::INVERT_CLK_DOA_REG,
+            bcls::BRAM_V4::INVERT_CLK_DOB_REG,
+            bcls::BRAM_V4::EN_ECC_READ,
+            bcls::BRAM_V4::EN_ECC_WRITE,
+            bcls::BRAM_V4::SAVEDATA,
         ] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(bslots::FIFO)
-                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
+                .sub_unused(1)
+                .test_bel_attr_bool_auto(attr, "FALSE", "TRUE");
         }
-        for attr in ["DOA_REG", "DOB_REG"] {
+        for attr in [bcls::BRAM_V4::DOA_REG, bcls::BRAM_V4::DOB_REG] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(bslots::FIFO)
-                .test_enum_legacy(attr, &["0", "1"]);
+                .sub_unused(1)
+                .test_bel_attr_bool_auto(attr, "0", "1");
         }
         for attr in [
-            "READ_WIDTH_A",
-            "READ_WIDTH_B",
-            "WRITE_WIDTH_A",
-            "WRITE_WIDTH_B",
+            bcls::BRAM_V4::READ_WIDTH_A,
+            bcls::BRAM_V4::READ_WIDTH_B,
+            bcls::BRAM_V4::WRITE_WIDTH_A,
+            bcls::BRAM_V4::WRITE_WIDTH_B,
         ] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(bslots::FIFO)
+                .sub_unused(1)
                 .attr("INIT_A", "0")
                 .attr("INIT_B", "0")
                 .attr("SRVAL_A", "0")
                 .attr("SRVAL_B", "0")
-                .test_enum_legacy(attr, &["0", "1", "2", "4", "9", "18", "36"]);
+                .test_bel_attr(attr);
+            bctx.mode(mode)
+                .null_bits()
+                .global_mutex("BRAM", "NOPE")
+                .sub_unused(1)
+                .attr("INIT_A", "0")
+                .attr("INIT_B", "0")
+                .attr("SRVAL_A", "0")
+                .attr("SRVAL_B", "0")
+                .test_bel_attr_special(attr, specials::BRAM_DATA_WIDTH_0)
+                .attr(backend.edev.db[bcls::BRAM_V4].attributes.key(attr), "0")
+                .commit();
         }
-        for attr in ["RAM_EXTENSION_A", "RAM_EXTENSION_B"] {
+        for (attr, aname) in [
+            (bcls::BRAM_V4::RAM_EXTENSION_A_LOWER, "RAM_EXTENSION_A"),
+            (bcls::BRAM_V4::RAM_EXTENSION_B_LOWER, "RAM_EXTENSION_B"),
+        ] {
+            for (val, vname) in [(false, "NONE"), (false, "UPPER"), (true, "LOWER")] {
+                bctx.mode(mode)
+                    .global_mutex("BRAM", "NOPE")
+                    .sub_unused(1)
+                    .test_bel_attr_bits_bi(attr, val)
+                    .attr(aname, vname)
+                    .commit();
+            }
+        }
+        for attr in [bcls::BRAM_V4::WRITE_MODE_A, bcls::BRAM_V4::WRITE_MODE_B] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(bslots::FIFO)
-                .test_enum_legacy(attr, &["NONE", "LOWER", "UPPER"]);
+                .sub_unused(1)
+                .test_bel_attr(attr);
         }
-        for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
-            bctx.mode(mode)
-                .global_mutex("BRAM", "NOPE")
-                .bel_unused(bslots::FIFO)
-                .test_enum_legacy(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
-        }
-        for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
+        for attr in [
+            bcls::BRAM_V4::INIT_A,
+            bcls::BRAM_V4::INIT_B,
+            bcls::BRAM_V4::SRVAL_A,
+            bcls::BRAM_V4::SRVAL_B,
+        ] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
                 .attr("READ_WIDTH_A", "36")
                 .attr("READ_WIDTH_B", "36")
-                .test_multi_attr_hex_legacy(attr, 36);
+                .test_bel_attr_multi(attr, MultiValue::Hex(0));
         }
         for i in 0..0x40 {
             let attr = format!("INIT_{i:02X}");
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .test_multi_attr_hex_legacy(attr, 256);
+                .test_bel_attr_bits_base(bcls::BRAM_V4::DATA, i * 0x100)
+                .multi_attr(attr, MultiValue::Hex(0), 0x100);
         }
         for i in 0..0x8 {
             let attr = format!("INITP_{i:02X}");
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .test_multi_attr_hex_legacy(attr, 256);
+                .test_bel_attr_bits_base(bcls::BRAM_V4::DATAP, i * 0x100)
+                .multi_attr(attr, MultiValue::Hex(0), 0x100);
         }
-        for val in ["0", "1"] {
+        for (val, vname) in [
+            (enums::BRAM_WW_VALUE::_0, "0"),
+            (enums::BRAM_WW_VALUE::_1, "1"),
+        ] {
             bctx.mode(mode)
                 .global_mutex_here("BRAM")
-                .test_manual_legacy("Ibram_ww_value", val)
-                .global("Ibram_ww_value", val)
+                .test_bel_attr_val(bcls::BRAM_V4::WW_VALUE_A, val)
+                .global("Ibram_ww_value", vname)
                 .commit();
         }
     }
     {
-        let mut bctx = ctx.bel(bslots::FIFO);
+        let mut bctx = ctx.bel(bslots::BRAM).sub(1);
         let mode = "FIFO16";
         bctx.build()
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(bslots::BRAM)
-            .test_manual_legacy("PRESENT", "1")
+            .sub_unused(0)
+            .test_bel_special(specials::BRAM_FIFO)
             .mode(mode)
             .commit();
-        for pin in ["RDCLK", "WRCLK", "RDEN", "WREN", "RST"] {
-            bctx.mode(mode)
-                .global_mutex("BRAM", "NOPE")
-                .bel_unused(bslots::BRAM)
-                .attr("DATA_WIDTH", "36")
-                .test_inv(pin);
+        for (pin, pname) in [
+            (bcls::BRAM_V4::CLKA, "RDCLK"),
+            (bcls::BRAM_V4::CLKB, "WRCLK"),
+            (bcls::BRAM_V4::ENA, "RDEN"),
+            (bcls::BRAM_V4::ENB, "WREN"),
+            (bcls::BRAM_V4::SSRA, "RST"),
+        ] {
+            for val in [false, true] {
+                bctx.mode(mode)
+                    .global_mutex("BRAM", "NOPE")
+                    .sub_unused(0)
+                    .attr("DATA_WIDTH", "36")
+                    .pin(pname)
+                    .test_bel_input_inv(pin, val)
+                    .attr(
+                        format!("{pname}INV"),
+                        if val {
+                            format!("{pname}_B")
+                        } else {
+                            pname.to_string()
+                        },
+                    )
+                    .commit();
+            }
         }
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(bslots::BRAM)
-            .test_enum_legacy("DATA_WIDTH", &["4", "9", "18", "36"]);
-        for attr in ["FIRST_WORD_FALL_THROUGH", "EN_ECC_READ", "EN_ECC_WRITE"] {
-            bctx.mode(mode)
-                .global_mutex("BRAM", "NOPE")
-                .bel_unused(bslots::BRAM)
-                .attr("DATA_WIDTH", "36")
-                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
+            .sub_unused(0)
+            .test_bel_attr_rename("DATA_WIDTH", bcls::BRAM_V4::FIFO_WIDTH);
+        bctx.mode(mode)
+            .global_mutex("BRAM", "NOPE")
+            .sub_unused(0)
+            .attr("DATA_WIDTH", "36")
+            .test_bel_attr_bool_auto(bcls::BRAM_V4::FIRST_WORD_FALL_THROUGH, "FALSE", "TRUE");
+        for attr in [bcls::BRAM_V4::EN_ECC_READ, bcls::BRAM_V4::EN_ECC_WRITE] {
+            for (val, spec) in [
+                (false, specials::FIFO_EN_ECC_FALSE),
+                (true, specials::FIFO_EN_ECC_TRUE),
+            ] {
+                bctx.mode(mode)
+                    .null_bits()
+                    .global_mutex("BRAM", "NOPE")
+                    .sub_unused(0)
+                    .attr("DATA_WIDTH", "36")
+                    .test_bel_attr_special(attr, spec)
+                    .attr(
+                        backend.edev.db[bcls::BRAM_V4].attributes.key(attr),
+                        if val { "TRUE" } else { "FALSE" },
+                    )
+                    .commit();
+            }
         }
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(bslots::BRAM)
+            .sub_unused(0)
             .attr("FIRST_WORD_FALL_THROUGH", "FALSE")
-            .test_manual_legacy("ALMOST_FULL_OFFSET:NFWFT", "")
+            .test_bel_attr_bits(bcls::BRAM_V4::ALMOST_FULL_OFFSET)
             .multi_attr("ALMOST_FULL_OFFSET", MultiValue::Hex(0), 12);
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(bslots::BRAM)
+            .sub_unused(0)
             .attr("FIRST_WORD_FALL_THROUGH", "FALSE")
-            .test_manual_legacy("ALMOST_EMPTY_OFFSET:NFWFT", "")
+            .test_bel_attr_bits(bcls::BRAM_V4::ALMOST_EMPTY_OFFSET)
             .multi_attr("ALMOST_EMPTY_OFFSET", MultiValue::Hex(1), 12);
 
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(bslots::BRAM)
+            .sub_unused(0)
             .attr("FIRST_WORD_FALL_THROUGH", "TRUE")
-            .test_manual_legacy("ALMOST_FULL_OFFSET:FWFT", "")
+            .test_bel_attr_bits(bcls::BRAM_V4::ALMOST_FULL_OFFSET)
             .multi_attr("ALMOST_FULL_OFFSET", MultiValue::Hex(0), 12);
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(bslots::BRAM)
+            .sub_unused(0)
             .attr("FIRST_WORD_FALL_THROUGH", "TRUE")
-            .test_manual_legacy("ALMOST_EMPTY_OFFSET:FWFT", "")
+            .test_bel_attr_bits(bcls::BRAM_V4::ALMOST_EMPTY_OFFSET)
             .multi_attr("ALMOST_EMPTY_OFFSET", MultiValue::Hex(2), 12);
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let tile = "BRAM";
     let tcid = tcls::BRAM;
-    for pin in ["RDCLK", "WRCLK", "RDEN", "WREN", "RST"] {
-        ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslots::FIFO, pin, false);
+    let bslot = bslots::BRAM;
+    for pin in [
+        bcls::BRAM_V4::CLKA,
+        bcls::BRAM_V4::CLKB,
+        bcls::BRAM_V4::ENA,
+        bcls::BRAM_V4::ENB,
+        bcls::BRAM_V4::SSRA,
+        bcls::BRAM_V4::SSRB,
+        bcls::BRAM_V4::REGCEA,
+        bcls::BRAM_V4::REGCEB,
+    ] {
+        ctx.collect_bel_input_inv_int_bi(&[tcls::INT; 4], tcid, bslot, pin);
     }
     for pin in [
-        "CLKA", "CLKB", "ENA", "ENB", "SSRA", "SSRB", "REGCEA", "REGCEB",
+        bcls::BRAM_V4::WEA[0],
+        bcls::BRAM_V4::WEA[1],
+        bcls::BRAM_V4::WEA[2],
+        bcls::BRAM_V4::WEA[3],
+        bcls::BRAM_V4::WEB[0],
+        bcls::BRAM_V4::WEB[1],
+        bcls::BRAM_V4::WEB[2],
+        bcls::BRAM_V4::WEB[3],
     ] {
-        ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslots::BRAM, pin, false);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
     }
-    for pin in [
-        "WEA0", "WEA1", "WEA2", "WEA3", "WEB0", "WEB1", "WEB2", "WEB3",
-    ] {
-        ctx.collect_inv(tile, "BRAM", pin);
-    }
-    ctx.collect_bit_bi_legacy(tile, "BRAM", "INVERT_CLK_DOA_REG", "FALSE", "TRUE");
-    ctx.collect_bit_bi_legacy(tile, "BRAM", "INVERT_CLK_DOB_REG", "FALSE", "TRUE");
-    ctx.collect_enum_legacy(tile, "BRAM", "DOA_REG", &["0", "1"]);
-    ctx.collect_enum_legacy(tile, "BRAM", "DOB_REG", &["0", "1"]);
+    ctx.collect_bel_attr_bi(tcid, bslot, bcls::BRAM_V4::INVERT_CLK_DOA_REG);
+    ctx.collect_bel_attr_bi(tcid, bslot, bcls::BRAM_V4::INVERT_CLK_DOB_REG);
+    ctx.collect_bel_attr_bi(tcid, bslot, bcls::BRAM_V4::DOA_REG);
+    ctx.collect_bel_attr_bi(tcid, bslot, bcls::BRAM_V4::DOB_REG);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::READ_WIDTH_A);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::READ_WIDTH_B);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::WRITE_WIDTH_A);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::WRITE_WIDTH_B);
+    ctx.collect_bel_attr_bi(tcid, bslot, bcls::BRAM_V4::RAM_EXTENSION_A_LOWER);
+    ctx.collect_bel_attr_bi(tcid, bslot, bcls::BRAM_V4::RAM_EXTENSION_B_LOWER);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::WRITE_MODE_A);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::WRITE_MODE_B);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::INIT_A);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::INIT_B);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::SRVAL_A);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::SRVAL_B);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::DATA);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::DATAP);
+
     for attr in [
-        "READ_WIDTH_A",
-        "READ_WIDTH_B",
-        "WRITE_WIDTH_A",
-        "WRITE_WIDTH_B",
+        bcls::BRAM_V4::EN_ECC_READ,
+        bcls::BRAM_V4::EN_ECC_WRITE,
+        bcls::BRAM_V4::SAVEDATA,
     ] {
-        ctx.get_diff_legacy(tile, "BRAM", attr, "0").assert_empty();
-        ctx.collect_enum_legacy(tile, "BRAM", attr, &["1", "2", "4", "9", "18", "36"]);
-    }
-    for attr in ["RAM_EXTENSION_A", "RAM_EXTENSION_B"] {
-        let d_none = ctx.get_diff_legacy(tile, "BRAM", attr, "NONE");
-        assert_eq!(d_none, ctx.get_diff_legacy(tile, "BRAM", attr, "UPPER"));
-        let d_lower = ctx.get_diff_legacy(tile, "BRAM", attr, "LOWER");
-        ctx.insert(
-            tile,
-            "BRAM",
-            attr,
-            xlat_enum_legacy(vec![("NONE_UPPER", d_none), ("LOWER", d_lower)]),
-        );
-    }
-    ctx.collect_enum_legacy(
-        tile,
-        "BRAM",
-        "WRITE_MODE_A",
-        &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"],
-    );
-    ctx.collect_enum_legacy(
-        tile,
-        "BRAM",
-        "WRITE_MODE_B",
-        &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"],
-    );
-    ctx.collect_bitvec_legacy(tile, "BRAM", "INIT_A", "");
-    ctx.collect_bitvec_legacy(tile, "BRAM", "INIT_B", "");
-    ctx.collect_bitvec_legacy(tile, "BRAM", "SRVAL_A", "");
-    ctx.collect_bitvec_legacy(tile, "BRAM", "SRVAL_B", "");
-    let mut diffs_data = vec![];
-    let mut diffs_datap = vec![];
-    for i in 0..0x40 {
-        diffs_data.extend(ctx.get_diffs_legacy(tile, "BRAM", format!("INIT_{i:02X}"), ""));
-    }
-    for i in 0..0x08 {
-        diffs_datap.extend(ctx.get_diffs_legacy(tile, "BRAM", format!("INITP_{i:02X}"), ""));
-    }
-    ctx.insert(tile, "BRAM", "DATA", xlat_bitvec_legacy(diffs_data));
-    ctx.insert(tile, "BRAM", "DATAP", xlat_bitvec_legacy(diffs_datap));
-
-    for attr in ["EN_ECC_READ", "EN_ECC_WRITE", "SAVEDATA"] {
-        ctx.get_diff_legacy(tile, "BRAM", attr, "FALSE")
+        ctx.get_diff_attr_bool_bi(tcid, bslot, attr, false)
             .assert_empty();
-        let diff = ctx.get_diff_legacy(tile, "BRAM", attr, "TRUE");
-        let mut bits: Vec<_> = diff.bits.into_iter().collect();
-        bits.sort();
-        ctx.insert(
-            tile,
-            "BRAM",
-            attr,
-            xlat_bitvec_legacy(
-                bits.into_iter()
-                    .map(|(k, v)| Diff {
-                        bits: [(k, v)].into_iter().collect(),
-                    })
-                    .collect(),
-            ),
-        );
+        let diff = ctx.get_diff_attr_bool_bi(tcid, bslot, attr, true);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, attr, xlat_bit_wide(diff));
     }
 
-    let ti = ctx.extract_bit_bi_legacy(tile, "FIFO", "FIRST_WORD_FALL_THROUGH", "FALSE", "TRUE");
-    ctx.insert(tile, "BRAM", "FIRST_WORD_FALL_THROUGH", ti);
+    ctx.collect_bel_attr_bi(tcid, bslot, bcls::BRAM_V4::FIRST_WORD_FALL_THROUGH);
     let mut diffs = vec![];
-    let item_ra = ctx.item(tile, "BRAM", "READ_WIDTH_A").clone();
-    let item_wb = ctx.item(tile, "BRAM", "WRITE_WIDTH_B").clone();
-    for val in ["4", "9", "18", "36"] {
-        let mut diff = ctx.get_diff_legacy(tile, "FIFO", "DATA_WIDTH", val);
-        diff.apply_enum_diff_legacy(&item_ra, val, "1");
-        diff.apply_enum_diff_legacy(&item_wb, val, "1");
-        diffs.push((val, diff));
-    }
-    ctx.insert(tile, "BRAM", "FIFO_WIDTH", xlat_enum_legacy(diffs));
-    ctx.get_diff_legacy(tile, "FIFO", "EN_ECC_READ", "FALSE")
-        .assert_empty();
-    ctx.get_diff_legacy(tile, "FIFO", "EN_ECC_READ", "TRUE")
-        .assert_empty();
-    ctx.get_diff_legacy(tile, "FIFO", "EN_ECC_WRITE", "FALSE")
-        .assert_empty();
-    ctx.get_diff_legacy(tile, "FIFO", "EN_ECC_WRITE", "TRUE")
-        .assert_empty();
-
-    let diffs = ctx.get_diffs_legacy(tile, "FIFO", "ALMOST_FULL_OFFSET:NFWFT", "");
-    assert_eq!(
-        diffs,
-        ctx.get_diffs_legacy(tile, "FIFO", "ALMOST_FULL_OFFSET:FWFT", "")
-    );
-    ctx.insert(
-        tile,
-        "BRAM",
-        "ALMOST_FULL_OFFSET",
-        xlat_bitvec_legacy(diffs),
-    );
-    let diffs = ctx.get_diffs_legacy(tile, "FIFO", "ALMOST_EMPTY_OFFSET:NFWFT", "");
-    assert_eq!(
-        diffs,
-        ctx.get_diffs_legacy(tile, "FIFO", "ALMOST_EMPTY_OFFSET:FWFT", "")
-    );
-    ctx.insert(
-        tile,
-        "BRAM",
-        "ALMOST_EMPTY_OFFSET",
-        xlat_bitvec_legacy(diffs),
-    );
-
-    let mut present_bram = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "1");
-    let mut present_fifo = ctx.get_diff_legacy(tile, "FIFO", "PRESENT", "1");
-    for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
-        present_bram.discard_bits_legacy(ctx.item(tile, "BRAM", attr));
-        present_fifo.discard_bits_legacy(ctx.item(tile, "BRAM", attr));
-    }
-    present_bram.apply_enum_diff_legacy(
-        ctx.item(tile, "BRAM", "WRITE_MODE_A"),
-        "WRITE_FIRST",
-        "READ_FIRST",
-    );
-    present_bram.apply_enum_diff_legacy(
-        ctx.item(tile, "BRAM", "WRITE_MODE_B"),
-        "WRITE_FIRST",
-        "READ_FIRST",
-    );
-    present_fifo.apply_enum_diff_legacy(
-        ctx.item(tile, "BRAM", "WRITE_MODE_A"),
-        "WRITE_FIRST",
-        "READ_FIRST",
-    );
-    present_fifo.apply_enum_diff_legacy(
-        ctx.item(tile, "BRAM", "WRITE_MODE_B"),
-        "WRITE_FIRST",
-        "READ_FIRST",
-    );
-    present_fifo.apply_enum_diff_legacy(ctx.item(tile, "BRAM", "DOA_REG"), "1", "0");
-    present_fifo.apply_enum_diff_legacy(ctx.item(tile, "BRAM", "DOB_REG"), "1", "0");
-    ctx.insert(
-        tile,
-        "BRAM",
-        "MODE",
-        xlat_enum_legacy(vec![("RAM", present_bram), ("FIFO", present_fifo)]),
-    );
-
-    let item = xlat_enum_legacy(vec![
-        ("NONE", Diff::default()),
+    let item_ra = ctx
+        .bel_attr_enum(tcid, bslot, bcls::BRAM_V4::READ_WIDTH_A)
+        .clone();
+    let item_wb = ctx
+        .bel_attr_enum(tcid, bslot, bcls::BRAM_V4::WRITE_WIDTH_B)
+        .clone();
+    for (val_fifo, val_port) in [
+        (enums::BRAM_V4_FIFO_WIDTH::_4, enums::BRAM_V4_DATA_WIDTH::_4),
+        (enums::BRAM_V4_FIFO_WIDTH::_9, enums::BRAM_V4_DATA_WIDTH::_9),
         (
-            "0",
-            ctx.get_diff_legacy(tile, "BRAM", "Ibram_ww_value", "0"),
+            enums::BRAM_V4_FIFO_WIDTH::_18,
+            enums::BRAM_V4_DATA_WIDTH::_18,
         ),
         (
-            "1",
-            ctx.get_diff_legacy(tile, "BRAM", "Ibram_ww_value", "1"),
+            enums::BRAM_V4_FIFO_WIDTH::_36,
+            enums::BRAM_V4_DATA_WIDTH::_36,
         ),
-    ]);
+    ] {
+        let mut diff = ctx.get_diff_attr_val(tcid, bslot, bcls::BRAM_V4::FIFO_WIDTH, val_fifo);
+        diff.apply_enum_diff(&item_ra, val_port, enums::BRAM_V4_DATA_WIDTH::_1);
+        diff.apply_enum_diff(&item_wb, val_port, enums::BRAM_V4_DATA_WIDTH::_1);
+        diffs.push((val_fifo, diff));
+    }
+    ctx.insert_bel_attr_enum(
+        tcid,
+        bslot,
+        bcls::BRAM_V4::FIFO_WIDTH,
+        xlat_enum_attr(diffs),
+    );
 
-    ctx.insert(tile, "BRAM", "WW_VALUE", item);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::ALMOST_EMPTY_OFFSET);
+    ctx.collect_bel_attr(tcid, bslot, bcls::BRAM_V4::ALMOST_FULL_OFFSET);
+
+    let mut present_bram = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
+    let mut present_fifo = ctx.get_diff_bel_special(tcid, bslot, specials::BRAM_FIFO);
+    for attr in [
+        bcls::BRAM_V4::INIT_A,
+        bcls::BRAM_V4::INIT_B,
+        bcls::BRAM_V4::SRVAL_A,
+        bcls::BRAM_V4::SRVAL_B,
+    ] {
+        present_bram.discard_polbits(ctx.bel_attr_bitvec(tcid, bslot, attr));
+        present_fifo.discard_polbits(ctx.bel_attr_bitvec(tcid, bslot, attr));
+    }
+    present_bram.apply_enum_diff(
+        ctx.bel_attr_enum(tcid, bslot, bcls::BRAM_V4::WRITE_MODE_A),
+        enums::BRAM_WRITE_MODE::WRITE_FIRST,
+        enums::BRAM_WRITE_MODE::READ_FIRST,
+    );
+    present_bram.apply_enum_diff(
+        ctx.bel_attr_enum(tcid, bslot, bcls::BRAM_V4::WRITE_MODE_B),
+        enums::BRAM_WRITE_MODE::WRITE_FIRST,
+        enums::BRAM_WRITE_MODE::READ_FIRST,
+    );
+    present_fifo.apply_enum_diff(
+        ctx.bel_attr_enum(tcid, bslot, bcls::BRAM_V4::WRITE_MODE_A),
+        enums::BRAM_WRITE_MODE::WRITE_FIRST,
+        enums::BRAM_WRITE_MODE::READ_FIRST,
+    );
+    present_fifo.apply_enum_diff(
+        ctx.bel_attr_enum(tcid, bslot, bcls::BRAM_V4::WRITE_MODE_B),
+        enums::BRAM_WRITE_MODE::WRITE_FIRST,
+        enums::BRAM_WRITE_MODE::READ_FIRST,
+    );
+    present_fifo.apply_bit_diff(
+        ctx.bel_attr_bit(tcid, bslot, bcls::BRAM_V4::DOA_REG),
+        true,
+        false,
+    );
+    present_fifo.apply_bit_diff(
+        ctx.bel_attr_bit(tcid, bslot, bcls::BRAM_V4::DOB_REG),
+        true,
+        false,
+    );
+    present_bram.assert_empty();
+    ctx.insert_bel_attr_bool(
+        tcid,
+        bslot,
+        bcls::BRAM_V4::FIFO_ENABLE,
+        xlat_bit(present_fifo),
+    );
+
+    let mut diffs_a = vec![(enums::BRAM_WW_VALUE::NONE, Diff::default())];
+    let mut diffs_b = vec![(enums::BRAM_WW_VALUE::NONE, Diff::default())];
+    for val in [enums::BRAM_WW_VALUE::_0, enums::BRAM_WW_VALUE::_1] {
+        let mut diff = ctx.get_diff_attr_val(tcid, bslot, bcls::BRAM_V4::WW_VALUE_A, val);
+        let diff_b = diff.split_bits_by(|bit| matches!(bit.bit.to_idx(), 29 | 30));
+        diffs_a.push((val, diff));
+        diffs_b.push((val, diff_b));
+    }
+
+    ctx.insert_bel_attr_enum(
+        tcid,
+        bslot,
+        bcls::BRAM_V4::WW_VALUE_A,
+        xlat_enum_attr(diffs_a),
+    );
+    ctx.insert_bel_attr_enum(
+        tcid,
+        bslot,
+        bcls::BRAM_V4::WW_VALUE_B,
+        xlat_enum_attr(diffs_b),
+    );
 }

@@ -70,7 +70,7 @@ pub struct PipNaming {
     pub wire_from: String,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+#[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct BelNaming {
     pub tiles: Vec<RawTileId>,
     pub pins: BTreeMap<String, BelPinNaming>,

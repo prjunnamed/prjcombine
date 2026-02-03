@@ -503,7 +503,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ("GTP", defs::bslots::GTP_DUAL),
         ("GTX", defs::bslots::GTX_DUAL),
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
             continue;
         };
         let mut bctx = ctx.bel(bel);
@@ -517,7 +517,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
         for &pin in GT_INVPINS {
-            bctx.mode(mode).mutex("USRCLK", "INV").test_inv(pin);
+            bctx.mode(mode).mutex("USRCLK", "INV").test_inv_legacy(pin);
         }
         if tile == "GTP" {
             for &attr in GTP_BOOL_ATTRS {
@@ -633,7 +633,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
             bctx.mode("CRC64")
                 .tile_mutex("CRC_MODE", "64")
-                .test_inv("CRCCLK");
+                .test_inv_legacy("CRCCLK");
             bctx.mode("CRC64")
                 .tile_mutex("CRC_MODE", "64")
                 .test_multi_attr_hex_legacy("CRC_INIT", 32);
@@ -648,7 +648,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
             bctx.mode("CRC32")
                 .tile_mutex("CRC_MODE", "32")
-                .test_inv("CRCCLK");
+                .test_inv_legacy("CRCCLK");
             bctx.mode("CRC32")
                 .tile_mutex("CRC_MODE", "32")
                 .test_multi_attr_hex_legacy("CRC_INIT", 32);
@@ -658,7 +658,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for (tile, bel) in [("GTP", "GTP_DUAL"), ("GTX", "GTX_DUAL")] {
-        if !ctx.has_tile(tile) {
+        if !ctx.has_tile_legacy(tile) {
             continue;
         }
         fn drp_bit(idx: usize, bit: usize) -> TileBit {
@@ -672,7 +672,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             TileBit::new(tile, frame, bit)
         }
         for i in 0..0x50 {
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("DRP{i:02X}"),
@@ -735,11 +735,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item_rx = ctx.extract_bit_legacy(tile, bel, "RXUSRCLK0", "1");
         let item_tx = ctx.extract_bit_legacy(tile, bel, "TXUSRCLK0", "1");
         assert_eq!(item_rx, item_tx);
-        ctx.insert(tile, bel, "USRCLK0", item_rx);
+        ctx.insert_legacy(tile, bel, "USRCLK0", item_rx);
         let item_rx = ctx.extract_bit_legacy(tile, bel, "RXUSRCLK1", "1");
         let item_tx = ctx.extract_bit_legacy(tile, bel, "TXUSRCLK1", "1");
         assert_eq!(item_rx, item_tx);
-        ctx.insert(tile, bel, "USRCLK1", item_rx);
+        ctx.insert_legacy(tile, bel, "USRCLK1", item_rx);
 
         for i in 0..4 {
             let bel = &format!("CRC32[{i}]");
@@ -752,11 +752,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let bel = &format!("CRC64[{i}]");
             let bel32 = &format!("CRC32[{ii}]", ii = i * 3);
             let item = ctx.extract_inv(tile, bel, "CRCCLK");
-            ctx.insert(tile, bel32, "INV.CRCCLK", item);
+            ctx.insert_legacy(tile, bel32, "INV.CRCCLK", item);
             let item = ctx.extract_bitvec_legacy(tile, bel, "CRC_INIT", "");
-            ctx.insert(tile, bel32, "CRC_INIT", item);
+            ctx.insert_legacy(tile, bel32, "CRC_INIT", item);
             let item = ctx.extract_bit_legacy(tile, bel, "PRESENT", "1");
-            ctx.insert(tile, bel32, "ENABLE64", item);
+            ctx.insert_legacy(tile, bel32, "ENABLE64", item);
         }
     }
 }

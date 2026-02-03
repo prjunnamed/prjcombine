@@ -215,6 +215,7 @@ impl Tokenizer {
         let typ_raw = self.ident()?;
         Ok(match typ_raw.to_string().as_str() {
             "bool" => ast::AttributeType::Bool,
+            "u32" => ast::AttributeType::U32,
             "bitvec" => {
                 let mut inner = self.brackets()?;
                 let width = inner.usize()?;

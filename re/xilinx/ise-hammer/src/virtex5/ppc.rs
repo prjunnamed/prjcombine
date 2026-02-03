@@ -108,7 +108,7 @@ pub fn add_fuzzers<'a>(
     backend: &'a IseBackend<'a>,
     devdata_only: bool,
 ) {
-    let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PPC") else {
+    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PPC") else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::PPC);
@@ -122,7 +122,7 @@ pub fn add_fuzzers<'a>(
             .commit();
 
         for &pin in PPC_INVPINS {
-            bctx.mode(mode).no_global("PPCCLKDLY").test_inv(pin);
+            bctx.mode(mode).no_global("PPCCLKDLY").test_inv_legacy(pin);
         }
         for &attr in PPC_BOOL_ATTRS {
             bctx.mode(mode)
@@ -149,7 +149,7 @@ pub fn add_fuzzers<'a>(
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
-    if !ctx.has_tile("PPC") {
+    if !ctx.has_tile_legacy("PPC") {
         return;
     }
     let tile = "PPC";
@@ -176,6 +176,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             .assert_empty();
     }
     let diff = ctx.get_diff_legacy(tile, bel, "CLOCK_DELAY", "FALSE");
-    let val = extract_bitvec_val_legacy(ctx.item(tile, bel, "CLOCK_DELAY"), &bits![0; 5], diff);
-    ctx.insert_device_data("PPC:CLOCK_DELAY", val);
+    let val = extract_bitvec_val_legacy(
+        ctx.item_legacy(tile, bel, "CLOCK_DELAY"),
+        &bits![0; 5],
+        diff,
+    );
+    ctx.insert_device_data_legacy("PPC:CLOCK_DELAY", val);
 }

@@ -258,6 +258,7 @@ impl TileClass {
                                     }
                                     writeln!(o, "\t\t\t\t];")?;
                                 }
+                                BelAttributeType::U32 => unreachable!(),
                             },
                             BelAttribute::Enum(ebits) => {
                                 let BelAttributeType::Enum(eid) = bcattr.typ else {
@@ -404,6 +405,7 @@ impl IntDb {
             BelAttributeType::BitVecArray(width, depth) => {
                 format!("bitvec[{width}][{depth}]")
             }
+            BelAttributeType::U32 => "u32".to_string(),
         }
     }
 
@@ -441,6 +443,7 @@ impl IntDb {
                 res.push(']');
                 res
             }
+            (BelAttributeType::U32, TableValue::U32(val)) => val.to_string(),
             _ => unreachable!(),
         }
     }

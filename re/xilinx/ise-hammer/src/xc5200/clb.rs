@@ -11,7 +11,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new_id(session, backend, tcls::CLB);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CLB);
     for i in 0..4 {
         let mut bctx = ctx.bel(bslots::LC[i]);
         let mode = if i.is_multiple_of(2) { "LC5A" } else { "LC5B" };
@@ -112,7 +112,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ))),
             ),
         ]);
-        ctx.insert_bel_attr_raw(tcid, bslot, bcls::LC::FF_MODE, item);
+        ctx.insert_bel_attr_enum(tcid, bslot, bcls::LC::FF_MODE, item);
         ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::LC::CK);
         let diff0 = ctx.get_diff_bel_special(tcid, bslot, specials::CKNOT_LATCH);
         let diff1 = ctx.get_diff_bel_special(tcid, bslot, specials::CK_LATCH);
@@ -133,7 +133,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.get_diff_attr_val(tcid, bslot, bcls::LC::MUX_DO, enums::LC_MUX_DO::F5O),
             ));
         }
-        ctx.insert_bel_attr_raw(tcid, bslot, bcls::LC::MUX_DO, xlat_enum_attr(diffs));
+        ctx.insert_bel_attr_enum(tcid, bslot, bcls::LC::MUX_DO, xlat_enum_attr(diffs));
         ctx.insert_bel_attr_bool(
             tcid,
             bslot,
@@ -144,5 +144,5 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..4 {
         ctx.collect_bel_attr(tcid, bslots::TBUF[i], bcls::TBUF::T_ENABLE);
     }
-    ctx.collect_bel_attr_bool_bi(tcid, bslots::PROGTIE, bcls::PROGTIE::VAL)
+    ctx.collect_bel_attr_bi(tcid, bslots::PROGTIE, bcls::PROGTIE::VAL);
 }

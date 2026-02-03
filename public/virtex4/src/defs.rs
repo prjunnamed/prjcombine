@@ -60,6 +60,104 @@ target_defs! {
         attribute YBMUX: SLICE_V4_YBMUX;
     }
 
+    enum BRAM_WRITE_MODE { WRITE_FIRST, READ_FIRST, NO_CHANGE }
+    enum BRAM_WW_VALUE { NONE, _0, _1 }
+    enum BRAM_V4_DATA_WIDTH { _1, _2, _4, _9, _18, _36 }
+    enum BRAM_V4_FIFO_WIDTH { _4, _9, _18, _36 }
+    bel_class BRAM_V4 {
+        input CLKA, CLKB;
+        input ENA, ENB;
+        input SSRA, SSRB;
+        input WEA[4], WEB[4];
+        input REGCEA, REGCEB;
+        input ADDRA[15], ADDRB[15];
+        input DIA[32], DIB[32];
+        input DIPA[4], DIPB[4];
+        output DOA[32], DOB[32];
+        output DOPA[4], DOPB[4];
+
+        // FIFO mode pin assignments:
+        // CLKA/ENA: RDCLK/RDEN
+        // CLKB/ENB: WRCLK/WREN
+        // SSRA: RST
+        // DIB/DIPB: DI/DIP
+        // DOA/DOPA: DO/DOP
+        // DOB0-3: RDCOUNT0-3
+        // DOB5: RDERR
+        // DOB6: ALMOSTEMPTY
+        // DOB7: EMPTY
+        // DOB8: FULL
+        // DOB9: ALMOSTFULL
+        // DOB10: WRERR
+        // DOB12-15: RDCOUNT8-11
+        // DOB16-19: WRCOUNT0-3
+        // DOB20-23: WRCOUNT4-7
+        // DOB24-27: RDCOUNT4-7
+        // DOB28-31: WRCOUNT8-11
+
+        attribute DATA: bitvec[0x4000];
+        attribute DATAP: bitvec[0x800];
+        attribute SAVEDATA: bitvec[64];
+        attribute INIT_A, INIT_B: bitvec[36];
+        attribute SRVAL_A, SRVAL_B: bitvec[36];
+        attribute READ_WIDTH_A, READ_WIDTH_B: BRAM_V4_DATA_WIDTH;
+        attribute WRITE_WIDTH_A, WRITE_WIDTH_B: BRAM_V4_DATA_WIDTH;
+        attribute WRITE_MODE_A, WRITE_MODE_B: BRAM_WRITE_MODE;
+
+        attribute WW_VALUE_A, WW_VALUE_B: BRAM_WW_VALUE;
+
+        attribute DOA_REG, DOB_REG: bool;
+        attribute INVERT_CLK_DOA_REG: bool;
+        attribute INVERT_CLK_DOB_REG: bool;
+
+        attribute RAM_EXTENSION_A_LOWER: bool;
+        attribute RAM_EXTENSION_B_LOWER: bool;
+
+        attribute EN_ECC_READ: bitvec[4];
+        attribute EN_ECC_WRITE: bitvec[4];
+
+        attribute FIFO_ENABLE: bool;
+        attribute FIFO_WIDTH: BRAM_V4_FIFO_WIDTH;
+        attribute FIRST_WORD_FALL_THROUGH: bool;
+        attribute ALMOST_EMPTY_OFFSET: bitvec[12];
+        attribute ALMOST_FULL_OFFSET: bitvec[12];
+    }
+
+    enum DSP_B_INPUT { DIRECT, CASCADE }
+    enum DSP_REG2 {_0, _1, _2 }
+    bel_class DSP_V4 {
+        input A[18];
+        input B[18];
+        input CARRYIN;
+        input CARRYINSEL[2];
+        input OPMODE[7];
+        input SUBTRACT;
+        input CLK;
+        input CEA, CEB, CEM, CEP, CECARRYIN, CECINSUB, CECTRL;
+        input RSTA, RSTB, RSTM, RSTP, RSTCARRYIN, RSTCTRL;
+        output P[48];
+
+        attribute AREG: DSP_REG2;
+        attribute BREG: DSP_REG2;
+        attribute MREG: bool;
+        attribute PREG: bool;
+        attribute OPMODEREG: bool;
+        attribute SUBTRACTREG: bool;
+        attribute CARRYINREG: bool;
+        attribute CARRYINSELREG: bool;
+        attribute B_INPUT: DSP_B_INPUT;
+        attribute UNK_ENABLE: bool;
+    }
+
+    bel_class DSP_C {
+        input C[48];
+        input CEC;
+        input RSTC;
+
+        attribute MUX_CLK: bitvec[1];
+        attribute CREG: bool;
+    }
+
     // TODO: enums, bel slots
 
     region_slot HCLK;
@@ -823,8 +921,11 @@ target_defs! {
             }
         }
 
-        bel_slot BRAM: legacy;
-        bel_slot FIFO: legacy;
+        if variant virtex4 {
+            bel_slot BRAM: BRAM_V4;
+        } else {
+            bel_slot BRAM: legacy;
+        }
 
         bel_slot BRAM_F: legacy;
         bel_slot BRAM_H[2]: legacy;
@@ -844,7 +945,12 @@ target_defs! {
             }
         }
 
-        bel_slot DSP[2]: legacy;
+        if variant virtex4 {
+            bel_slot DSP[2]: DSP_V4;
+        } else {
+            bel_slot DSP[2]: legacy;
+        }
+        bel_slot DSP_C: DSP_C;
         bel_slot TIEOFF_DSP: legacy;
         if variant virtex4 {
             tile_class DSP {

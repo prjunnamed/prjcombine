@@ -219,7 +219,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let tcid = self.backend.edev[tcrd].class;
         self.prop(ExtraTile::new(
             tcrd,
-            DiffKey::BelAttrBit(tcid, bslot, attr, 0),
+            DiffKey::BelAttrBit(tcid, bslot, attr, 0, true),
         ))
     }
 
@@ -457,7 +457,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         attr: BelAttributeId,
         val: bool,
     ) -> FuzzBuilderBelTestManual<'sm, 'b> {
-        let diff_key = DiffKey::BelAttrEnumBool(self.tile_class, self.bel, attr, val);
+        let diff_key = DiffKey::BelAttrBit(self.tile_class, self.bel, attr, 0, val);
         self.test_raw(diff_key)
     }
 
@@ -467,12 +467,12 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         attr: BelAttributeId,
         val: bool,
     ) -> FuzzBuilderBelTestManual<'sm, 'b> {
-        let diff_key = DiffKey::BelAttrEnumBool(self.tile_class, bslot, attr, val);
+        let diff_key = DiffKey::BelAttrBit(self.tile_class, bslot, attr, 0, val);
         self.test_raw(diff_key)
     }
 
     pub fn test_bel_attr_bits(self, attr: BelAttributeId) -> FuzzBuilderBelTestManual<'sm, 'b> {
-        let diff_key = DiffKey::BelAttrBit(self.tile_class, self.bel, attr, 0);
+        let diff_key = DiffKey::BelAttrBit(self.tile_class, self.bel, attr, 0, true);
         self.test_raw(diff_key)
     }
 
@@ -481,7 +481,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         bslot: BelSlotId,
         attr: BelAttributeId,
     ) -> FuzzBuilderBelTestManual<'sm, 'b> {
-        let diff_key = DiffKey::BelAttrBit(self.tile_class, bslot, attr, 0);
+        let diff_key = DiffKey::BelAttrBit(self.tile_class, bslot, attr, 0, true);
         self.test_raw(diff_key)
     }
 

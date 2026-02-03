@@ -30,7 +30,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         if !tcls.bels.contains_id(bslots::CLB) {
             continue;
         }
-        let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         let mut bctx = ctx.bel(bslots::CLB);
         let mode = "CLB";
         bctx.mode(mode)
@@ -391,11 +391,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pin("CIN")
                 .prop(Related::new(
                     Delta::new(0, -1, "CLB"),
-                    BelUnused::new(bslots::CLB),
+                    BelUnused::new(bslots::CLB, 0),
                 ))
                 .prop(Related::new(
                     Delta::new(0, 1, "CLB"),
-                    BelUnused::new(bslots::CLB),
+                    BelUnused::new(bslots::CLB, 0),
                 ))
                 .test_bel_attr_val(bcls::CLB::MUX_CIN, enums::CLB_MUX_CIN::COUT_N)
                 .related_pip(Delta::new(0, -1, "CLB"), "CIN_N", "COUT")
@@ -404,11 +404,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pin("CIN")
                 .prop(Related::new(
                     Delta::new(0, -1, "CLB"),
-                    BelUnused::new(bslots::CLB),
+                    BelUnused::new(bslots::CLB, 0),
                 ))
                 .prop(Related::new(
                     Delta::new(0, 1, "CLB"),
-                    BelUnused::new(bslots::CLB),
+                    BelUnused::new(bslots::CLB, 0),
                 ))
                 .test_bel_attr_val(bcls::CLB::MUX_CIN, enums::CLB_MUX_CIN::COUT_S)
                 .related_pip(Delta::new(0, 1, "CLB"), "CIN_S", "COUT")
@@ -451,8 +451,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::MUX_Y);
         ctx.collect_bel_attr_default(tcid, bslot, bcls::CLB::MUX_XQ, enums::CLB_MUX_XQ::FFX);
         ctx.collect_bel_attr_default(tcid, bslot, bcls::CLB::MUX_YQ, enums::CLB_MUX_YQ::FFY);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::CLB::FFX_SRVAL);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::CLB::FFY_SRVAL);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::CLB::FFX_SRVAL);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::CLB::FFY_SRVAL);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::FFX_CLK_INV);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::FFY_CLK_INV);
         ctx.collect_bel_attr_default(
@@ -478,9 +478,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_bel_attr(tcid, bslot, bcls::CLB::MUX_CIN);
             } else {
                 let item = ctx
-                    .bel_attr_raw(tcls::CLB, bslot, bcls::CLB::MUX_CIN)
+                    .bel_attr_enum(tcls::CLB, bslot, bcls::CLB::MUX_CIN)
                     .clone();
-                ctx.insert_bel_attr_raw(tcid, bslot, bcls::CLB::MUX_CIN, item);
+                ctx.insert_bel_attr_enum(tcid, bslot, bcls::CLB::MUX_CIN, item);
             }
         }
 
@@ -504,7 +504,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             enums::CLB_CARRY_PROP::CONST_1,
         );
         diff1.discard_bits_enum(ctx.bel_attr_enum(tcid, bslot, bcls::CLB::CARRY_FGEN));
-        ctx.insert_bel_attr_raw(
+        ctx.insert_bel_attr_enum(
             tcid,
             bslot,
             bcls::CLB::CARRY_FPROP,
@@ -522,7 +522,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             enums::CLB_CARRY_PROP::CONST_1,
         );
         if !kind.is_clb_xl() {
-            ctx.insert_bel_attr_raw(
+            ctx.insert_bel_attr_enum(
                 tcid,
                 bslot,
                 bcls::CLB::CARRY_GPROP,
@@ -540,7 +540,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             diff0.discard_bits_enum(ctx.bel_attr_enum(tcid, bslot, bcls::CLB::CARRY_FGEN));
             diff0.discard_bits_enum(ctx.bel_attr_enum(tcid, bslot, bcls::CLB::CARRY_FPROP));
-            ctx.insert_bel_attr_raw(
+            ctx.insert_bel_attr_enum(
                 tcid,
                 bslot,
                 bcls::CLB::CARRY_GPROP,

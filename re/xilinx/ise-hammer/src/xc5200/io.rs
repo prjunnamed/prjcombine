@@ -10,7 +10,7 @@ use crate::{
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     for tcid in [tcls::IO_W, tcls::IO_E, tcls::IO_S, tcls::IO_N] {
-        let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..4 {
             let mut bctx = ctx.bel(bslots::IO[i]);
             let mode = "IOB";
@@ -59,8 +59,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let bslot = bslots::IO[i];
             ctx.collect_bel_attr(tcid, bslot, bcls::IO::SLEW);
             ctx.collect_bel_attr_default(tcid, bslot, bcls::IO::PULL, enums::IO_PULL::NONE);
-            ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::DELAY_ENABLE);
-            ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::INV_I);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::IO::DELAY_ENABLE);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::IO::INV_I);
             ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::IO::T);
             if matches!(tcid, tcls::IO_W | tcls::IO_E) {
                 ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::IO::O);

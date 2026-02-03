@@ -180,7 +180,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         unreachable!()
     };
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CLK_BUFG");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "CLK_BUFG");
         for i in 0..32 {
             let mut bctx = ctx.bel(defs::bslots::BUFGCTRL[i]);
             bctx.build()
@@ -188,7 +188,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .mode("BUFGCTRL")
                 .commit();
             for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
-                bctx.mode("BUFGCTRL").test_inv(pin);
+                bctx.mode("BUFGCTRL").test_inv_legacy(pin);
             }
             bctx.mode("BUFGCTRL")
                 .test_enum_legacy("PRESELECT_I0", &["FALSE", "TRUE"]);
@@ -196,7 +196,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_enum_legacy("PRESELECT_I1", &["FALSE", "TRUE"]);
             bctx.mode("BUFGCTRL")
                 .test_enum_legacy("CREATE_EDGE", &["FALSE", "TRUE"]);
-            bctx.mode("BUFGCTRL").test_enum_legacy("INIT_OUT", &["0", "1"]);
+            bctx.mode("BUFGCTRL")
+                .test_enum_legacy("INIT_OUT", &["0", "1"]);
 
             for j in 0..2 {
                 for val in ["CKINT0", "CKINT1"] {
@@ -262,7 +263,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut ctx = FuzzCtx::new(session, backend, "HCLK");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK");
         let mut bctx = ctx.bel(defs::bslots::HCLK);
         for i in 0..10 {
             bctx.test_manual_legacy(format!("BUF.HCLK{i}"), "1")
@@ -283,7 +284,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CLK_HROW");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "CLK_HROW");
         let mut bctx = ctx.bel(defs::bslots::CLK_HROW);
         for lr in ['L', 'R'] {
             for i in 0..10 {
@@ -306,7 +307,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ("CLK_MGT_S", defs::bslots::CLK_MGT),
         ("CLK_MGT_N", defs::bslots::CLK_MGT),
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
             continue;
         };
         let mut bctx = ctx.bel(bel);
@@ -369,7 +370,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         "HCLK_IO_CMT_S",
         "HCLK_IO_CMT_N",
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
             continue;
         };
         let tcid = backend.edev.db.get_tile_class(tile);
@@ -381,7 +382,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 continue;
             }
             let mut bctx = ctx.bel(bel);
-            bctx.test_manual_legacy("PRESENT", "1").mode("BUFIO").commit();
+            bctx.test_manual_legacy("PRESENT", "1")
+                .mode("BUFIO")
+                .commit();
             bctx.mode("BUFIO")
                 .tile_mutex("BUFIO", format!("TEST_BUFIO{i}"))
                 .test_manual_legacy("ENABLE", "1")
@@ -492,7 +495,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut ctx = FuzzCtx::new(session, backend, "HCLK_CMT");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK_CMT");
         let mut bctx = ctx.bel(defs::bslots::HCLK_CMT_HCLK);
         for i in 0..10 {
             bctx.build()
@@ -510,7 +513,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
     }
-    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "HCLK_MGT_BUF") {
+    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "HCLK_MGT_BUF") {
         let mut bctx = ctx.bel(defs::bslots::HCLK_MGT_BUF);
         for i in 0..5 {
             let mut extra = None;
@@ -626,7 +629,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     diff = diff.combine(&!&inp_diffs[j]);
                     inps.push((format!("GCLK{j}"), diff));
                 }
-                ctx.insert(
+                ctx.insert_legacy(
                     tile,
                     bel,
                     format!("MUX.HCLK_{lr}{i}"),
@@ -635,7 +638,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
         for (i, diff) in inp_diffs.into_iter().enumerate() {
-            ctx.insert(tile, bel, format!("BUF.GCLK{i}"), xlat_bit_legacy(diff));
+            ctx.insert_legacy(tile, bel, format!("BUF.GCLK{i}"), xlat_bit_legacy(diff));
         }
     }
     for (tile, bel) in [
@@ -646,7 +649,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("CLK_MGT_S", "CLK_MGT"),
         ("CLK_MGT_N", "CLK_MGT"),
     ] {
-        if !ctx.has_tile(tile) {
+        if !ctx.has_tile_legacy(tile) {
             continue;
         }
         for i in 0..5 {
@@ -661,7 +664,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .peek_diff_legacy(tile, bel, "MUX.MUXBUS1", format!("MGT_{lr}{i}"))
                     .clone();
                 let (_, _, diff) = Diff::split(diff_a, diff_b);
-                ctx.insert(tile, bel, format!("BUF.MGT_{lr}{i}"), xlat_bit_legacy(diff));
+                ctx.insert_legacy(tile, bel, format!("BUF.MGT_{lr}{i}"), xlat_bit_legacy(diff));
             }
         }
         for i in 0..32 {
@@ -684,7 +687,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         format!("MGT_{lr}{j}"),
                     );
                     diff.apply_bit_diff_legacy(
-                        ctx.item(tile, bel, &format!("BUF.MGT_{lr}{j}")),
+                        ctx.item_legacy(tile, bel, &format!("BUF.MGT_{lr}{j}")),
                         true,
                         false,
                     );
@@ -717,7 +720,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ));
                 }
             }
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("MUX.MUXBUS{i}"),
@@ -741,7 +744,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tcid = edev.db.get_tile_class(tile);
         let tcls = &edev.db[tcid];
 
-        if !ctx.has_tile(tile) {
+        if !ctx.has_tile_legacy(tile) {
             continue;
         }
         let mut diffs = vec![];
@@ -758,9 +761,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let (_, _, enable) = Diff::split(diffs[0].1.clone(), diffs[1].1.clone());
         for (bel, mut diff) in diffs {
             diff = diff.combine(&!&enable);
-            ctx.insert(tile, bel, "ENABLE", xlat_bit_legacy(diff));
+            ctx.insert_legacy(tile, bel, "ENABLE", xlat_bit_legacy(diff));
         }
-        ctx.insert(tile, "IOCLK", "IOCLK_ENABLE", xlat_bit_wide_legacy(enable));
+        ctx.insert_legacy(tile, "IOCLK", "IOCLK_ENABLE", xlat_bit_wide_legacy(enable));
 
         if tile == "HCLK_IO" {
             for i in 0..2 {
@@ -795,7 +798,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     "NONE",
                     OcdMode::Mux,
                 );
-                ctx.insert(tile, "RCLK", format!("MUX.RCLK{i}"), item);
+                ctx.insert_legacy(tile, "RCLK", format!("MUX.RCLK{i}"), item);
             }
         } else {
             for i in 0..4 {
@@ -838,12 +841,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "HCLK_CMT";
         for i in 0..10 {
             let item = ctx.extract_bit_legacy(tile, "HCLK_CMT_HCLK", &format!("BUF.HCLK{i}"), "1");
-            ctx.insert(tile, bel, format!("BUF.HCLK{i}"), item);
+            ctx.insert_legacy(tile, bel, format!("BUF.HCLK{i}"), item);
             let item = ctx.extract_bit_legacy(tile, "HCLK_CMT_GIOB", &format!("BUF.GIOB{i}"), "1");
-            ctx.insert(tile, bel, format!("BUF.GIOB{i}"), item);
+            ctx.insert_legacy(tile, bel, format!("BUF.GIOB{i}"), item);
         }
     }
-    if ctx.has_tile("HCLK_MGT_BUF") {
+    if ctx.has_tile_legacy("HCLK_MGT_BUF") {
         let tile = "HCLK_MGT_BUF";
         let bel = "HCLK_MGT_BUF";
         for i in 0..5 {

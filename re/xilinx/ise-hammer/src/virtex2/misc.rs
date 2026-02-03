@@ -2,29 +2,29 @@ use std::collections::HashSet;
 
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
+    db::BelAttributeId,
     dir::DirHV,
     grid::{CellCoord, DieId, TileCoord},
 };
-use prjcombine_re_collector::{
-    diff::{Diff, OcdMode},
-    legacy::{
-        concat_bitvec_legacy, extract_bitvec_val_legacy, extract_bitvec_val_part_legacy,
-        xlat_bit_legacy, xlat_bit_wide_legacy, xlat_bitvec_legacy, xlat_enum_legacy,
-        xlat_enum_legacy_ocd,
-    },
+use prjcombine_re_collector::diff::{
+    Diff, DiffKey, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_bi,
+    xlat_bit_wide, xlat_bit_wide_bi,
 };
-use prjcombine_re_fpga_hammer::FuzzerProp;
+use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use prjcombine_types::{
     bitrect::BitRect as _,
     bits,
     bitvec::BitVec,
-    bsdata::{BitRectId, RectBitId, RectFrameId, TileBit, TileItem, TileItemKind},
+    bsdata::{BitRectId, RectBitId, RectFrameId, TileBit},
 };
 use prjcombine_virtex2::{
     chip::{ChipKind, IoDiffKind},
-    defs::{self, bslots, spartan3::tcls as tcls_s3, virtex2::tcls as tcls_v2},
+    defs::{
+        self, bcls, bslots, devdata, enums, spartan3::tcls as tcls_s3, tables::IOB_DATA, tslots,
+        virtex2::tcls as tcls_v2,
+    },
     iob::IobKind,
 };
 use prjcombine_xilinx_bitstream::{BitRect, Reg};
@@ -33,19 +33,44 @@ use crate::{
     backend::{IseBackend, Key, MultiValue},
     collector::CollectorCtx,
     generic::{
-        fbuild::{FuzzBuilderBase, FuzzCtx},
+        fbuild::{FuzzBuilderBase, FuzzCtx, FuzzCtxBel},
         iostd::{DciKind, DiffKind},
-        props::{DynProp, extra::ExtraReg, pip::PinFar, relation::TileRelation},
+        props::{DynProp, pip::PinFar},
     },
-    virtex2::io::get_iostds,
+    virtex2::{
+        io::{get_iostds, iostd_to_row},
+        specials,
+    },
 };
 
 #[derive(Copy, Clone, Debug)]
-struct IntRelation;
+struct ExtraTileInt;
 
-impl TileRelation for IntRelation {
-    fn resolve(&self, _backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
-        Some(tcrd.tile(defs::tslots::INT))
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileInt {
+    fn dyn_clone(&self) -> Box<DynProp<'b>> {
+        Box::new(ExtraTileInt)
+    }
+
+    fn apply<'a>(
+        &self,
+        backend: &IseBackend<'a>,
+        tcrd: TileCoord,
+        mut fuzzer: Fuzzer<IseBackend<'a>>,
+    ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
+        let tcrd = tcrd.tile(tslots::INT);
+        let tcid = backend.edev[tcrd].class;
+        let key = match fuzzer.info.features[0].key {
+            DiffKey::BelAttrBit(_, bslot, attr, bit, val) => {
+                DiffKey::BelAttrBit(tcid, bslot, attr, bit, val)
+            }
+            DiffKey::BelInputInv(_, bslot, inp, val) => DiffKey::BelInputInv(tcid, bslot, inp, val),
+            _ => unreachable!(),
+        };
+        fuzzer.info.features.push(FuzzerFeature {
+            key,
+            rects: backend.edev.tile_bits(tcrd),
+        });
+        Some((fuzzer, false))
     }
 }
 
@@ -81,7 +106,7 @@ pub fn add_fuzzers<'a>(
         unreachable!()
     };
 
-    let (ll, ul, lr, ur) = match edev.chip.kind {
+    let (cnr_sw, cnr_nw, cnr_se, cnr_ne) = match edev.chip.kind {
         ChipKind::Virtex2 => (
             tcls_v2::CNR_SW_V2,
             tcls_v2::CNR_NW_V2,
@@ -131,41 +156,53 @@ pub fn add_fuzzers<'a>(
         BitRect::RegPresent(DieId::from_idx(0), Reg::FakeFreezeDciNops),
     ]);
 
+    let global = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_s())
+        .tile(tslots::GLOBAL);
+
     if devdata_only {
-        let mut ctx = FuzzCtx::new_id(session, backend, ll);
+        let mut ctx = FuzzCtx::new(session, backend, cnr_sw);
+        let mut bctx = ctx.bel(bslots::MISC_SW);
         if !edev.chip.kind.is_virtex2() {
-            for (attr, vals) in [
-                ("SEND_VGG0", &["1", "0"][..]),
-                ("SEND_VGG1", &["1", "0"][..]),
-                ("SEND_VGG2", &["1", "0"][..]),
-                ("SEND_VGG3", &["1", "0"][..]),
-                ("VGG_SENDMAX", &["YES", "NO"][..]),
-            ] {
-                for &val in vals {
-                    let mut builder = ctx.build();
+            for i in 0..4 {
+                for (val, vname) in [(false, "0"), (true, "1")] {
+                    let mut builder = bctx.build();
                     if edev.chip.kind.is_spartan3a() {
-                        builder = builder.extra_tile_reg_attr(
-                            Reg::Cor1,
-                            "REG.COR1.S3A",
-                            "MISC",
-                            attr,
+                        builder = builder.extra_fixed_bel_attr_bits_base_bi(
+                            global,
+                            bslots::GLOBAL,
+                            bcls::GLOBAL::SEND_VGG,
+                            i,
                             val,
                         );
                     }
                     builder
-                        .test_manual("MISC", attr, val)
-                        .global(attr, val)
+                        .test_bel_attr_bits_base_bi(bcls::MISC_SW::SEND_VGG, i, val)
+                        .global(format!("SEND_VGG{i}"), vname)
                         .commit();
                 }
             }
+            for (val, vname) in [(false, "NO"), (true, "YES")] {
+                let mut builder = bctx.build();
+                if edev.chip.kind.is_spartan3a() {
+                    builder = builder.extra_fixed_bel_attr_bits_bi(
+                        global,
+                        bslots::GLOBAL,
+                        bcls::GLOBAL::VGG_SENDMAX,
+                        val,
+                    );
+                }
+                builder
+                    .test_bel_attr_bits_bi(bcls::MISC_SW::VGG_SENDMAX, val)
+                    .global("VGG_SENDMAX", vname)
+                    .commit();
+            }
         }
         if edev.chip.kind.is_virtex2() {
-            let mut ctx = FuzzCtx::new_id(session, backend, ll);
-            ctx.build()
+            bctx.build()
                 .prop(ForceBits(freeze_dci_btiles))
                 .global_mutex("DCI", "FREEZE")
                 .no_global("ENCRYPT")
-                .test_manual("MISC", "FREEZE_DCI", "1")
+                .test_bel_special(specials::FREEZE_DCI)
                 .global("FREEZEDCI", "YES")
                 .commit();
         }
@@ -173,119 +210,177 @@ pub fn add_fuzzers<'a>(
         return;
     }
 
-    let reg_cor = if edev.chip.kind.is_virtex2() {
-        "REG.COR"
-    } else if edev.chip.kind == ChipKind::Spartan3 {
-        "REG.COR.S3"
-    } else if edev.chip.kind == ChipKind::FpgaCore {
-        "REG.COR.FC"
-    } else {
-        "REG.COR.S3E"
-    };
-
-    fn fuzz_global(
-        ctx: &mut FuzzCtx,
-        bel: &'static str,
-        attr: &'static str,
-        vals: &'static [&'static str],
-    ) {
-        for &val in vals {
-            ctx.test_manual(bel, attr, val).global(attr, val).commit();
+    fn test_pull(bctx: &mut FuzzCtxBel, attr: BelAttributeId, opt: &'static str) {
+        for (val, vname) in [
+            (enums::IOB_PULL::NONE, "PULLNONE"),
+            (enums::IOB_PULL::PULLDOWN, "PULLDOWN"),
+            (enums::IOB_PULL::PULLUP, "PULLUP"),
+        ] {
+            bctx.build()
+                .test_bel_attr_val(attr, val)
+                .global(opt, vname)
+                .commit();
         }
     }
-    fn fuzz_pull(ctx: &mut FuzzCtx, bel: &'static str, attr: &'static str) {
-        fuzz_global(ctx, bel, attr, &["PULLNONE", "PULLDOWN", "PULLUP"]);
+    fn test_pullup(bctx: &mut FuzzCtxBel, attr: BelAttributeId, opt: &'static str) {
+        for (val, vname) in [
+            (enums::IOB_PULL::NONE, "PULLNONE"),
+            (enums::IOB_PULL::PULLUP, "PULLUP"),
+        ] {
+            bctx.build()
+                .test_bel_attr_val(attr, val)
+                .global(opt, vname)
+                .commit();
+        }
     }
 
     if edev.chip.kind == ChipKind::Spartan3 {
-        for tile in [ll, ul, lr, ur] {
-            let mut ctx = FuzzCtx::new_id(session, backend, tile);
-            for bel in defs::bslots::DCIRESET {
+        for tile in [cnr_sw, cnr_nw, cnr_se, cnr_ne] {
+            let mut ctx = FuzzCtx::new(session, backend, tile);
+            for bel in bslots::DCIRESET {
                 let mut bctx = ctx.bel(bel);
-                bctx.test_manual_legacy("PRESENT", "1").mode("DCIRESET").commit();
+                bctx.build()
+                    .test_bel_attr_bits(bcls::DCIRESET::ENABLE)
+                    .mode("DCIRESET")
+                    .commit();
             }
         }
     }
 
     // LL
     {
-        let mut ctx = FuzzCtx::new_id(session, backend, ll);
+        let mut ctx = FuzzCtx::new(session, backend, cnr_sw);
+        let mut bctx = ctx.bel(bslots::MISC_SW);
         // MISC
         if edev.chip.kind.is_virtex2() {
-            fuzz_global(&mut ctx, "MISC", "DISABLEBANDGAP", &["YES", "NO"]);
-            fuzz_global(&mut ctx, "MISC", "RAISEVGG", &["YES", "NO"]);
-            fuzz_global(&mut ctx, "MISC", "IBCLK_N2", &["1", "0"]);
-            fuzz_global(&mut ctx, "MISC", "IBCLK_N4", &["1", "0"]);
-            fuzz_global(&mut ctx, "MISC", "IBCLK_N8", &["1", "0"]);
-            fuzz_global(&mut ctx, "MISC", "IBCLK_N16", &["1", "0"]);
-            fuzz_global(&mut ctx, "MISC", "IBCLK_N32", &["1", "0"]);
-            for attr in ["ZCLK_N2", "ZCLK_N4", "ZCLK_N8", "ZCLK_N16", "ZCLK_N32"] {
-                for val in ["1", "0"] {
-                    ctx.build()
+            bctx.build().test_global_attr_bool_rename(
+                "DISABLEBANDGAP",
+                bcls::MISC_SW::DISABLE_BANDGAP,
+                "NO",
+                "YES",
+            );
+            bctx.build().test_global_attr_bool_rename(
+                "RAISEVGG",
+                bcls::MISC_SW::RAISE_VGG,
+                "NO",
+                "YES",
+            );
+            for (i, opt) in ["IBCLK_N2", "IBCLK_N4", "IBCLK_N8", "IBCLK_N16", "IBCLK_N32"]
+                .into_iter()
+                .enumerate()
+            {
+                for (val, vname) in [(false, "0"), (true, "1")] {
+                    bctx.build()
+                        .test_bel_attr_bits_base_bi(bcls::MISC_SW::BCLK_N_DIV2, i, val)
+                        .global(opt, vname)
+                        .commit()
+                }
+            }
+            for (i, opt) in ["ZCLK_N2", "ZCLK_N4", "ZCLK_N8", "ZCLK_N16", "ZCLK_N32"]
+                .into_iter()
+                .enumerate()
+            {
+                for (val, vname) in [(false, "0"), (true, "1")] {
+                    bctx.build()
                         .global_mutex("DCI", "NO")
-                        .test_manual("MISC", attr, val)
-                        .global(attr, val)
-                        .commit();
+                        .test_bel_attr_bits_base_bi(bcls::MISC_SW::ZCLK_N_DIV2, i, val)
+                        .global(opt, vname)
+                        .commit()
                 }
             }
             if edev.chip.kind.is_virtex2p() {
-                fuzz_global(&mut ctx, "MISC", "DISABLEVGGGENERATION", &["YES", "NO"]);
+                bctx.build().test_global_attr_bool_rename(
+                    "DISABLEVGGGENERATION",
+                    bcls::MISC_SW::DISABLE_VGG_GENERATION,
+                    "NO",
+                    "YES",
+                );
             }
         } else {
-            for (attr, vals) in [
-                ("SEND_VGG0", &["1", "0"][..]),
-                ("SEND_VGG1", &["1", "0"][..]),
-                ("SEND_VGG2", &["1", "0"][..]),
-                ("SEND_VGG3", &["1", "0"][..]),
-                ("VGG_SENDMAX", &["YES", "NO"][..]),
-                ("VGG_ENABLE_OFFCHIP", &["YES", "NO"][..]),
-            ] {
-                for &val in vals {
-                    let mut builder = ctx.build();
+            for i in 0..4 {
+                for (val, vname) in [(false, "0"), (true, "1")] {
+                    let mut builder = bctx.build();
                     if edev.chip.kind.is_spartan3a() {
-                        builder = builder.extra_tile_reg_attr(
-                            Reg::Cor1,
-                            "REG.COR1.S3A",
-                            "MISC",
-                            attr,
+                        builder = builder.extra_fixed_bel_attr_bits_base_bi(
+                            global,
+                            bslots::GLOBAL,
+                            bcls::GLOBAL::SEND_VGG,
+                            i,
                             val,
                         );
                     }
                     builder
-                        .test_manual("MISC", attr, val)
-                        .global(attr, val)
+                        .test_bel_attr_bits_base_bi(bcls::MISC_SW::SEND_VGG, i, val)
+                        .global(format!("SEND_VGG{i}"), vname)
+                        .commit();
+                }
+            }
+            for (attr, gattr, opt) in [
+                (
+                    bcls::MISC_SW::VGG_SENDMAX,
+                    bcls::GLOBAL::VGG_SENDMAX,
+                    "VGG_SENDMAX",
+                ),
+                (
+                    bcls::MISC_SW::VGG_ENABLE_OFFCHIP,
+                    bcls::GLOBAL::VGG_ENABLE_OFFCHIP,
+                    "VGG_ENABLE_OFFCHIP",
+                ),
+            ] {
+                for (val, vname) in [(false, "NO"), (true, "YES")] {
+                    let mut builder = bctx.build();
+                    if edev.chip.kind.is_spartan3a() {
+                        builder = builder.extra_fixed_bel_attr_bits_bi(
+                            global,
+                            bslots::GLOBAL,
+                            gattr,
+                            val,
+                        );
+                    }
+                    builder
+                        .test_bel_attr_bits_bi(attr, val)
+                        .global(opt, vname)
                         .commit();
                 }
             }
         }
         if edev.chip.kind == ChipKind::Spartan3 {
-            fuzz_global(&mut ctx, "MISC", "GATE_GHIGH", &["YES", "NO"]);
-            fuzz_global(&mut ctx, "MISC", "IDCI_OSC_SEL0", &["1", "0"]);
-            fuzz_global(&mut ctx, "MISC", "IDCI_OSC_SEL1", &["1", "0"]);
-            fuzz_global(&mut ctx, "MISC", "IDCI_OSC_SEL2", &["1", "0"]);
+            bctx.build().test_global_attr_bool_rename(
+                "GATE_GHIGH",
+                bcls::MISC_SW::GATE_GHIGH,
+                "NO",
+                "YES",
+            );
+            for (i, opt) in ["IDCI_OSC_SEL0", "IDCI_OSC_SEL1", "IDCI_OSC_SEL2"]
+                .into_iter()
+                .enumerate()
+            {
+                for (val, vname) in [(false, "0"), (true, "1")] {
+                    bctx.build()
+                        .test_bel_attr_bits_base_bi(bcls::MISC_SW::DCI_OSC_SEL, i, val)
+                        .global(opt, vname)
+                        .commit()
+                }
+            }
         }
         if edev.chip.kind.is_spartan3ea() {
-            fuzz_global(
-                &mut ctx,
-                "MISC",
-                "TEMPSENSOR",
-                &["NONE", "PGATE", "CGATE", "BG", "THERM"],
-            );
+            bctx.build()
+                .test_global_attr_rename("TEMPSENSOR", bcls::MISC_SW::TEMP_SENSOR);
         }
         if edev.chip.kind.is_spartan3a() {
-            fuzz_pull(&mut ctx, "MISC", "CCLK2PIN");
-            fuzz_pull(&mut ctx, "MISC", "MOSI2PIN");
+            test_pull(&mut bctx, bcls::MISC_SW::CCLK2_PULL, "CCLK2PIN");
+            test_pull(&mut bctx, bcls::MISC_SW::MOSI2_PULL, "MOSI2PIN");
         } else if edev.chip.kind != ChipKind::Spartan3E && edev.chip.kind != ChipKind::FpgaCore {
-            fuzz_pull(&mut ctx, "MISC", "M0PIN");
-            fuzz_pull(&mut ctx, "MISC", "M1PIN");
-            fuzz_pull(&mut ctx, "MISC", "M2PIN");
+            test_pull(&mut bctx, bcls::MISC_SW::M0_PULL, "M0PIN");
+            test_pull(&mut bctx, bcls::MISC_SW::M1_PULL, "M1PIN");
+            test_pull(&mut bctx, bcls::MISC_SW::M2_PULL, "M2PIN");
         }
         if edev.chip.kind.is_virtex2() {
-            ctx.build()
+            bctx.build()
                 .prop(ForceBits(freeze_dci_btiles))
                 .global_mutex("DCI", "FREEZE")
                 .no_global("ENCRYPT")
-                .test_manual("MISC", "FREEZE_DCI", "1")
+                .test_bel_special(specials::FREEZE_DCI)
                 .global("FREEZEDCI", "YES")
                 .commit();
         }
@@ -293,38 +388,46 @@ pub fn add_fuzzers<'a>(
 
     // UL
     {
-        let mut ctx = FuzzCtx::new_id(session, backend, ul);
+        let mut ctx = FuzzCtx::new(session, backend, cnr_nw);
+        let mut bctx = ctx.bel(bslots::MISC_NW);
         if edev.chip.kind != ChipKind::FpgaCore {
-            fuzz_global(&mut ctx, "MISC", "PROGPIN", &["PULLUP", "PULLNONE"]);
-            fuzz_pull(&mut ctx, "MISC", "TDIPIN");
+            test_pullup(&mut bctx, bcls::MISC_NW::PROG_PULL, "PROGPIN");
+            test_pull(&mut bctx, bcls::MISC_NW::TDI_PULL, "TDIPIN");
         }
         if edev.chip.kind.is_spartan3a() {
-            fuzz_pull(&mut ctx, "MISC", "TMSPIN");
+            test_pull(&mut bctx, bcls::MISC_NW::TMS_PULL, "TMSPIN");
         }
         if !edev.chip.kind.is_spartan3ea() && edev.chip.kind != ChipKind::FpgaCore {
-            fuzz_pull(&mut ctx, "MISC", "HSWAPENPIN");
+            test_pull(&mut bctx, bcls::MISC_NW::HSWAPEN_PULL, "HSWAPENPIN");
         }
-        for val in ["NO", "YES"] {
-            let mut builder = ctx.build();
+        for (val, vname) in [(false, "NO"), (true, "YES")] {
+            let mut builder = bctx.build();
             if edev.chip.kind.is_virtex2() {
                 let cnr_ne = edev.chip.corner(DirHV::NE);
-                builder = builder.extra_tile_fixed(cnr_ne, "MISC");
+                builder = builder.extra_fixed_bel_attr_bits_bi(
+                    cnr_ne,
+                    bslots::MISC_NE,
+                    bcls::MISC_NE::TEST_LL,
+                    val,
+                );
             }
             builder
-                .test_manual("MISC", "TEST_LL", val)
-                .global("TESTLL", val)
+                .test_bel_attr_bits_bi(bcls::MISC_NW::TEST_LL, val)
+                .global("TESTLL", vname)
                 .commit();
         }
 
-        let mut bctx = ctx.bel(defs::bslots::PMV);
+        let mut bctx = ctx.bel(bslots::PMV);
         bctx.build()
-            .test_manual_legacy("PRESENT", "1")
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
             .mode("PMV")
             .commit();
         if edev.chip.kind.is_spartan3a() {
-            let mut bctx = ctx.bel(defs::bslots::DNA_PORT);
+            let mut bctx = ctx.bel(bslots::DNA_PORT);
             bctx.build()
-                .test_manual_legacy("PRESENT", "1")
+                .null_bits()
+                .test_bel_special(specials::PRESENT)
                 .mode("DNA_PORT")
                 .commit();
         }
@@ -332,144 +435,170 @@ pub fn add_fuzzers<'a>(
 
     {
         // LR
-        let mut ctx = FuzzCtx::new_id(session, backend, lr);
+        let mut ctx = FuzzCtx::new(session, backend, cnr_se);
+        let mut bctx = ctx.bel(bslots::MISC_SE);
         if edev.chip.kind != ChipKind::FpgaCore {
-            fuzz_global(&mut ctx, "MISC", "DONEPIN", &["PULLUP", "PULLNONE"]);
+            test_pullup(&mut bctx, bcls::MISC_SE::DONE_PULL, "DONEPIN");
         }
         if !edev.chip.kind.is_spartan3a() && edev.chip.kind != ChipKind::FpgaCore {
-            fuzz_global(&mut ctx, "MISC", "CCLKPIN", &["PULLUP", "PULLNONE"]);
+            test_pullup(&mut bctx, bcls::MISC_SE::CCLK_PULL, "CCLKPIN");
         }
         if edev.chip.kind.is_virtex2() {
-            fuzz_global(&mut ctx, "MISC", "POWERDOWNPIN", &["PULLUP", "PULLNONE"]);
+            test_pullup(&mut bctx, bcls::MISC_SE::POWERDOWN_PULL, "POWERDOWNPIN");
         }
         if edev.chip.kind == ChipKind::FpgaCore {
-            for attr in ["ABUFF0", "ABUFF1", "ABUFF2", "ABUFF3"] {
-                for val in ["0", "1"] {
-                    ctx.test_manual("MISC", attr, val)
-                        .global(attr, val)
+            for (i, attr) in ["ABUFF0", "ABUFF1", "ABUFF2", "ABUFF3"]
+                .into_iter()
+                .enumerate()
+            {
+                for (val, vname) in [(false, "0"), (true, "1")] {
+                    bctx.build()
+                        .test_bel_attr_bits_base_bi(bcls::MISC_SE::ABUFF, i, val)
+                        .global(attr, vname)
                         .commit();
                 }
             }
         }
 
-        let mut bctx = ctx.bel(defs::bslots::STARTUP);
-        bctx.test_manual_legacy("PRESENT", "1").mode("STARTUP").commit();
+        let mut bctx = ctx.bel(bslots::STARTUP);
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
+            .mode("STARTUP")
+            .commit();
         bctx.mode("STARTUP")
             .null_bits()
-            .extra_tile(IntRelation, "STARTUP")
+            .prop(ExtraTileInt)
             .global("STARTUPCLK", "JTAGCLK")
-            .test_inv("CLK");
+            .test_bel_input_inv_auto(bcls::STARTUP::CLK);
         bctx.mode("STARTUP")
-            .extra_tile(IntRelation, "STARTUP")
+            .prop(ExtraTileInt)
             .no_pin("GSR")
-            .test_inv("GTS");
+            .test_bel_input_inv_auto(bcls::STARTUP::GTS);
         bctx.mode("STARTUP")
-            .extra_tile(IntRelation, "STARTUP")
+            .prop(ExtraTileInt)
             .no_pin("GTS")
-            .test_inv("GSR");
-        for attr in ["GTS_SYNC", "GSR_SYNC", "GWE_SYNC"] {
-            if !edev.chip.kind.is_virtex2() && attr == "GWE_SYNC" {
+            .test_bel_input_inv_auto(bcls::STARTUP::GSR);
+        for (attr, aname) in [
+            (bcls::STARTUP::GTS_SYNC, "GTS_SYNC"),
+            (bcls::STARTUP::GSR_SYNC, "GSR_SYNC"),
+            (bcls::STARTUP::GWE_SYNC, "GWE_SYNC"),
+        ] {
+            if !edev.chip.kind.is_virtex2() && attr == bcls::STARTUP::GWE_SYNC {
                 continue;
             }
-            for val in ["NO", "YES"] {
-                bctx.mode("STARTUP")
-                    .test_manual_legacy(attr, val)
-                    .global(attr, val)
-                    .commit();
-            }
+            bctx.mode("STARTUP")
+                .test_global_attr_bool_rename(aname, attr, "NO", "YES");
         }
-        let (reg, reg_name) = if edev.chip.kind.is_spartan3a() {
-            (Reg::Cor1, "REG.COR1.S3A")
-        } else {
-            (Reg::Cor0, reg_cor)
-        };
         if edev.chip.kind == ChipKind::Spartan3E {
             bctx.mode("STARTUP")
                 .null_bits()
-                .extra_tile_reg_attr(reg, reg_name, "STARTUP", "MULTIBOOT_ENABLE", "1")
-                .test_manual_legacy("MULTIBOOT_ENABLE", "1")
+                .extra_fixed_bel_attr_bits(global, bslots::GLOBAL, bcls::GLOBAL::MULTIBOOT_ENABLE)
+                .test_bel_special(specials::STARTUP_MULTIBOOT_ENABLE)
                 .pin("MBT")
                 .commit();
         }
-        for val in ["CCLK", "USERCLK", "JTAGCLK"] {
+        for (val, vname) in [
+            (enums::STARTUP_CLOCK::CCLK, "CCLK"),
+            (enums::STARTUP_CLOCK::USERCLK, "USERCLK"),
+            (enums::STARTUP_CLOCK::JTAGCLK, "JTAGCLK"),
+        ] {
             bctx.mode("STARTUP")
                 .null_bits()
-                .extra_tile_reg_attr(reg, reg_name, "STARTUP", "STARTUPCLK", val)
+                .extra_fixed_bel_attr_val(global, bslots::GLOBAL, bcls::GLOBAL::STARTUP_CLOCK, val)
                 .pin("CLK")
-                .test_manual_legacy("STARTUPCLK", val)
-                .global("STARTUPCLK", val)
+                .test_bel_special_val(specials::STARTUP_CLOCK, val)
+                .global("STARTUPCLK", vname)
                 .commit();
         }
 
-        let mut bctx = ctx.bel(defs::bslots::CAPTURE);
-        bctx.test_manual_legacy("PRESENT", "1").mode("CAPTURE").commit();
+        let mut bctx = ctx.bel(bslots::CAPTURE);
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
+            .mode("CAPTURE")
+            .commit();
         bctx.mode("CAPTURE")
             .null_bits()
-            .extra_tile(IntRelation, "CAPTURE")
-            .test_inv("CLK");
+            .prop(ExtraTileInt)
+            .test_bel_input_inv_auto(bcls::CAPTURE::CLK);
         bctx.mode("CAPTURE")
             .null_bits()
-            .extra_tile(IntRelation, "CAPTURE")
-            .test_inv("CAP");
+            .prop(ExtraTileInt)
+            .test_bel_input_inv_auto(bcls::CAPTURE::CAP);
         if edev.chip.kind.is_spartan3a() {
-            for val in ["FALSE", "TRUE"] {
+            for val in [false, true] {
                 bctx.mode("CAPTURE")
                     .null_bits()
-                    .extra_tile_reg_attr(Reg::Cor2, "REG.COR2.S3A", "CAPTURE", "ONESHOT", val)
-                    .test_manual_legacy("ONESHOT", val)
-                    .attr("ONESHOT", val)
+                    .extra_fixed_bel_attr_bits_bi(
+                        global,
+                        bslots::GLOBAL,
+                        bcls::GLOBAL::CAPTURE_ONESHOT,
+                        val,
+                    )
+                    .test_bel_special(specials::CAPTURE_ONESHOT)
+                    .attr("ONESHOT", if val { "TRUE" } else { "FALSE" })
                     .commit();
             }
         } else {
             bctx.mode("CAPTURE")
                 .null_bits()
-                .extra_tile_reg_attr(Reg::Cor0, reg_cor, "CAPTURE", "ONESHOT_ATTR", "ONE_SHOT")
-                .test_manual_legacy("ONESHOT_ATTR", "ONE_SHOT")
+                .extra_fixed_bel_attr_bits(global, bslots::GLOBAL, bcls::GLOBAL::CAPTURE_ONESHOT)
+                .test_bel_special(specials::CAPTURE_ONESHOT)
                 .attr("ONESHOT_ATTR", "ONE_SHOT")
                 .commit();
         }
 
-        let mut bctx = ctx.bel(defs::bslots::ICAP);
+        let mut bctx = ctx.bel(bslots::ICAP);
         if edev.chip.kind.is_spartan3a() {
             bctx.build()
                 .null_bits()
-                .extra_tile_reg_attr(Reg::Ctl0, "REG.CTL.S3A", "ICAP", "ENABLE", "1")
-                .test_manual_legacy("ENABLE", "1")
+                .extra_fixed_bel_attr_bits(global, bslots::GLOBAL, bcls::GLOBAL::ICAP_ENABLE)
+                .test_bel_attr_bits(bcls::ICAP::ENABLE)
                 .mode("ICAP")
                 .commit();
         } else if edev.chip.kind == ChipKind::Spartan3E {
             bctx.build()
                 .null_bits()
-                .test_manual_legacy("ENABLE", "1")
+                .test_bel_attr_bits(bcls::ICAP::ENABLE)
                 .mode("ICAP")
                 .commit();
         } else {
-            bctx.test_manual_legacy("ENABLE", "1").mode("ICAP").commit();
+            bctx.build()
+                .test_bel_attr_bits(bcls::ICAP::ENABLE)
+                .mode("ICAP")
+                .commit();
         }
         if edev.chip.kind == ChipKind::Spartan3E {
-            bctx.mode("ICAP").null_bits().test_inv("CLK");
-            bctx.mode("ICAP").null_bits().test_inv("CE");
-            bctx.mode("ICAP").null_bits().test_inv("WRITE");
+            bctx.mode("ICAP")
+                .null_bits()
+                .test_bel_input_inv_auto(bcls::ICAP::CLK);
+            bctx.mode("ICAP")
+                .null_bits()
+                .test_bel_input_inv_auto(bcls::ICAP::CE);
+            bctx.mode("ICAP")
+                .null_bits()
+                .test_bel_input_inv_auto(bcls::ICAP::WRITE);
         } else {
             bctx.mode("ICAP")
                 .null_bits()
-                .extra_tile(IntRelation, "ICAP")
-                .test_inv("CLK");
+                .prop(ExtraTileInt)
+                .test_bel_input_inv_auto(bcls::ICAP::CLK);
             bctx.mode("ICAP")
                 .null_bits()
-                .extra_tile(IntRelation, "ICAP")
-                .test_inv("CE");
+                .prop(ExtraTileInt)
+                .test_bel_input_inv_auto(bcls::ICAP::CE);
             bctx.mode("ICAP")
                 .null_bits()
-                .extra_tile(IntRelation, "ICAP")
-                .test_inv("WRITE");
+                .prop(ExtraTileInt)
+                .test_bel_input_inv_auto(bcls::ICAP::WRITE);
         }
 
         if edev.chip.kind.is_spartan3a() {
-            let mut bctx = ctx.bel(defs::bslots::SPI_ACCESS);
+            let mut bctx = ctx.bel(bslots::SPI_ACCESS);
             bctx.build()
-                .extra_tile(IntRelation, "SPI_ACCESS")
-                .test_manual_legacy("ENABLE", "1")
+                .prop(ExtraTileInt)
+                .test_bel_attr_bits(bcls::SPI_ACCESS::ENABLE)
                 .mode("SPI_ACCESS")
                 .commit();
         }
@@ -477,39 +606,45 @@ pub fn add_fuzzers<'a>(
 
     {
         // UR
-        let mut ctx = FuzzCtx::new_id(session, backend, ur);
+        let mut ctx = FuzzCtx::new(session, backend, cnr_ne);
+        let mut bctx = ctx.bel(bslots::MISC_NE);
         if edev.chip.kind != ChipKind::FpgaCore {
-            fuzz_pull(&mut ctx, "MISC", "TCKPIN");
-            fuzz_pull(&mut ctx, "MISC", "TDOPIN");
+            test_pull(&mut bctx, bcls::MISC_NE::TCK_PULL, "TCKPIN");
+            test_pull(&mut bctx, bcls::MISC_NE::TDO_PULL, "TDOPIN");
             if !edev.chip.kind.is_spartan3a() {
-                fuzz_pull(&mut ctx, "MISC", "TMSPIN");
+                test_pull(&mut bctx, bcls::MISC_NE::TMS_PULL, "TMSPIN");
             } else {
-                fuzz_pull(&mut ctx, "MISC", "MISO2PIN");
-                fuzz_pull(&mut ctx, "MISC", "CSO2PIN");
+                test_pull(&mut bctx, bcls::MISC_NE::MISO2_PULL, "MISO2PIN");
+                test_pull(&mut bctx, bcls::MISC_NE::CSO2_PULL, "CSO2PIN");
             }
         }
-        let mut bctx = ctx.bel(defs::bslots::BSCAN);
-        bctx.test_manual_legacy("PRESENT", "1").mode("BSCAN").commit();
-        bctx.build().test_manual_legacy("USERID", "").multi_global(
-            "USERID",
-            MultiValue::HexPrefix,
-            32,
-        );
+        let mut bctx = ctx.bel(bslots::BSCAN);
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
+            .mode("BSCAN")
+            .commit();
+        bctx.build()
+            .test_bel_attr_bits(bcls::BSCAN::USERCODE)
+            .multi_global("USERID", MultiValue::HexPrefix, 32);
         bctx.mode("BSCAN")
             .no_pin("TDO2")
-            .test_manual_legacy("TDO1", "1")
+            .test_bel_attr_bits(bcls::BSCAN::USER_TDO_ENABLE)
             .pin("TDO1")
-            .pin_int_pips("TDO1")
+            .pin_int_pips_input(bcls::BSCAN::TDO1)
             .commit();
         bctx.mode("BSCAN")
             .no_pin("TDO1")
-            .test_manual_legacy("TDO2", "1")
+            .test_bel_attr_bits(bcls::BSCAN::USER_TDO_ENABLE)
             .pin("TDO2")
-            .pin_int_pips("TDO2")
+            .pin_int_pips_input(bcls::BSCAN::TDO2)
             .commit();
         if edev.chip.kind.is_virtex2p() {
-            let mut bctx = ctx.bel(defs::bslots::JTAGPPC);
-            bctx.test_manual_legacy("PRESENT", "1").mode("JTAGPPC").commit();
+            let mut bctx = ctx.bel(bslots::JTAGPPC);
+            bctx.build()
+                .test_bel_attr_bits(bcls::JTAGPPC::ENABLE)
+                .mode("JTAGPPC")
+                .commit();
         }
     }
 
@@ -523,29 +658,49 @@ pub fn add_fuzzers<'a>(
         let int_ul = edev.chip.corner(DirHV::NW).cell.tile(defs::tslots::INT);
         let int_lr = edev.chip.corner(DirHV::SE).cell.tile(defs::tslots::INT);
         let int_ur = edev.chip.corner(DirHV::NE).cell.tile(defs::tslots::INT);
-        for val in ["NO", "YES"] {
+        for val in [false, true] {
             ctx.build()
-                .extra_tile_fixed(cnr_ll, "MISC")
-                .extra_tile_fixed(cnr_ul, "MISC")
-                .extra_tile_fixed(cnr_lr, "MISC")
-                .extra_tile_fixed(cnr_ur, "MISC")
-                .test_manual("MISC", "MISR_RESET", val)
-                .global("MISRRESET", val)
+                .extra_fixed_bel_attr_bits_bi(
+                    cnr_ll,
+                    bslots::MISR_FC,
+                    bcls::MISR_FC::MISR_RESET,
+                    val,
+                )
+                .extra_fixed_bel_attr_bits_bi(
+                    cnr_ul,
+                    bslots::MISR_FC,
+                    bcls::MISR_FC::MISR_RESET,
+                    val,
+                )
+                .extra_fixed_bel_attr_bits_bi(
+                    cnr_lr,
+                    bslots::MISR_FC,
+                    bcls::MISR_FC::MISR_RESET,
+                    val,
+                )
+                .extra_fixed_bel_attr_bits_bi(
+                    cnr_ur,
+                    bslots::MISR_FC,
+                    bcls::MISR_FC::MISR_RESET,
+                    val,
+                )
+                .test_global_special(specials::MISR_RESET)
+                .global("MISRRESET", if val { "YES" } else { "NO" })
                 .commit();
         }
         ctx.build()
             .global_mutex("MISR_CLOCK", "YUP")
-            .extra_tile_fixed(cnr_ll, "MISC")
-            .extra_tile_fixed(cnr_ul, "MISC")
-            .extra_tile_fixed(cnr_lr, "MISC")
-            .extra_tile_fixed(cnr_ur, "MISC")
-            .extra_tile_fixed(int_ll, "MISC")
-            .extra_tile_fixed(int_ul, "MISC")
-            .extra_tile_fixed(int_lr, "MISC")
-            .extra_tile_fixed(int_ur, "MISC")
-            .extra_tiles_by_bel(defs::bslots::HROW, "MISC")
-            .extra_tiles_by_bel(defs::bslots::HCLK, "MISC")
-            .test_manual("MISC", "MISR_CLOCK", "GCLK0")
+            .extra_fixed_bel_attr_bits(cnr_ll, bslots::MISR_FC, bcls::MISR_FC::MISR_CLOCK)
+            .extra_fixed_bel_attr_bits(cnr_ul, bslots::MISR_FC, bcls::MISR_FC::MISR_CLOCK)
+            .extra_fixed_bel_attr_bits(cnr_lr, bslots::MISR_FC, bcls::MISR_FC::MISR_CLOCK)
+            .extra_fixed_bel_attr_bits(cnr_ur, bslots::MISR_FC, bcls::MISR_FC::MISR_CLOCK)
+            .extra_fixed_bel_special(int_ll, bslots::MISR_FC, specials::MISR_CLOCK_GCLK0)
+            .extra_fixed_bel_special(int_ul, bslots::MISR_FC, specials::MISR_CLOCK_GCLK0)
+            .extra_fixed_bel_special(int_lr, bslots::MISR_FC, specials::MISR_CLOCK_GCLK0)
+            .extra_fixed_bel_special(int_ur, bslots::MISR_FC, specials::MISR_CLOCK_GCLK0)
+            .extra_tiles_by_bel_special(bslots::HROW, specials::MISR_CLOCK_GCLK0)
+            .extra_tiles_by_bel_special(bslots::HCLK, specials::MISR_CLOCK_GCLK0)
+            .test_global_special(specials::MISR_CLOCK_GCLK0)
             .global("MISRCLOCK", "GCLK0")
             .commit();
     }
@@ -568,20 +723,19 @@ pub fn add_fuzzers<'a>(
             unreachable!()
         };
         if !edev.chip.kind.is_spartan3ea() {
-            for (dir, tile_name, bel, bank) in [
-                (DirHV::NW, ul, 0, 7),
-                (DirHV::NW, ul, 1, 0),
-                (DirHV::NE, ur, 1, 1),
-                (DirHV::NE, ur, 0, 2),
-                (DirHV::SE, lr, 0, 3),
-                (DirHV::SE, lr, 1, 4),
-                (DirHV::SW, ll, 1, 5),
-                (DirHV::SW, ll, 0, 6),
+            for (dir, tile_name, bidx, bank) in [
+                (DirHV::NW, cnr_nw, 0, 7),
+                (DirHV::NW, cnr_nw, 1, 0),
+                (DirHV::NE, cnr_ne, 1, 1),
+                (DirHV::NE, cnr_ne, 0, 2),
+                (DirHV::SE, cnr_se, 0, 3),
+                (DirHV::SE, cnr_se, 1, 4),
+                (DirHV::SW, cnr_sw, 1, 5),
+                (DirHV::SW, cnr_sw, 0, 6),
             ] {
-                let mut ctx = FuzzCtx::new_id(session, backend, tile_name);
-                let mut bctx = ctx.bel(defs::bslots::DCI[bel]);
+                let mut ctx = FuzzCtx::new(session, backend, tile_name);
+                let mut bctx = ctx.bel(bslots::DCI[bidx]);
 
-                let bel_name = ["DCI[0]", "DCI[1]"][bel];
                 let mut btiles =
                     EntityVec::from_iter([edev.btile_term_h(edev.chip.corner(dir).cell)]);
                 if edev.chip.kind.is_virtex2() {
@@ -633,6 +787,7 @@ pub fn add_fuzzers<'a>(
                 let site = site.unwrap();
                 let site_other = site_other.unwrap();
                 for std in get_iostds(edev, false) {
+                    let rid = iostd_to_row(edev, &std);
                     if std.diff == DiffKind::True {
                         bctx.build()
                             .prop(ForceBits(btiles.clone()))
@@ -640,7 +795,14 @@ pub fn add_fuzzers<'a>(
                             .global_mutex("DIFF", "BANK")
                             .global_mutex("VREF", "NO")
                             .global_mutex("DCI", "YES")
-                            .test_manual_legacy("LVDSBIAS", std.name)
+                            .test_bel_attr_row(
+                                if edev.chip.kind.is_virtex2() {
+                                    bcls::DCI::V2_LVDSBIAS
+                                } else {
+                                    bcls::DCI::S3_LVDSBIAS
+                                },
+                                rid,
+                            )
                             .raw_diff(Key::SiteMode(site), None, "DIFFM")
                             .raw_diff(Key::SiteAttr(site, "OMUX".into()), None, "O1")
                             .raw_diff(Key::SiteAttr(site, "O1INV".into()), None, "O1")
@@ -667,14 +829,18 @@ pub fn add_fuzzers<'a>(
                             .raw(Key::SiteMode(site_vrn), None)
                             .raw(Key::SiteAttr(site, "IMUX".into()), "1")
                             .raw(Key::SitePin(site, "I".into()), true)
-                            .test_manual_legacy("DCI_TERM", std.name)
+                            .test_bel_special_row(specials::DCI_TERM, rid)
                             .raw_diff(Key::SiteMode(site), "IOB", "IOB")
                             .raw_diff(Key::SiteAttr(site, "IOATTRBOX".into()), "GTL", std.name)
                             .commit();
                     }
                 }
                 if edev.chip.kind == ChipKind::Spartan3 {
-                    for val in ["ASREQUIRED", "CONTINUOUS", "QUIET"] {
+                    for (spec, val) in [
+                        (specials::DCI_ASREQUIRED, "ASREQUIRED"),
+                        (specials::DCI_CONTINUOUS, "CONTINUOUS"),
+                        (specials::DCI_QUIET, "QUIET"),
+                    ] {
                         bctx.build()
                             .prop(ForceBits(btiles.clone()))
                             .raw(Key::Package, package.name.clone())
@@ -688,7 +854,7 @@ pub fn add_fuzzers<'a>(
                             .raw(Key::SiteMode(site_vrp), None)
                             .raw(Key::SiteMode(site_vrn), None)
                             .global("DCIUPDATEMODE", val)
-                            .test_manual_legacy("DCI_OUT", val)
+                            .test_bel_special(spec)
                             .raw_diff(Key::SiteMode(site), None, "IOB")
                             .raw_diff(Key::SiteAttr(site, "OMUX".into()), None, "O1")
                             .raw_diff(Key::SiteAttr(site, "O1INV".into()), None, "O1")
@@ -709,7 +875,7 @@ pub fn add_fuzzers<'a>(
                         .raw(Key::SitePin(site_other, "O1".into()), true)
                         .raw(Key::SiteMode(site_vrp), None)
                         .raw(Key::SiteMode(site_vrn), None)
-                        .test_manual_legacy("DCI_OUT", "1")
+                        .test_bel_special(specials::DCI_OUT)
                         .raw_diff(Key::SiteMode(site), None, "IOB")
                         .raw_diff(Key::SiteAttr(site, "OMUX".into()), None, "O1")
                         .raw_diff(Key::SiteAttr(site, "O1INV".into()), None, "O1")
@@ -731,7 +897,7 @@ pub fn add_fuzzers<'a>(
                         builder = builder.global("FREEZEDCI", "NO");
                     }
                     builder
-                        .test_manual_legacy("DCI_OUT_ALONE", "1")
+                        .test_bel_special(specials::DCI_OUT_ALONE)
                         .raw_diff(Key::SiteMode(site), None, "IOB")
                         .raw_diff(Key::SiteAttr(site, "OMUX".into()), None, "O1")
                         .raw_diff(Key::SiteAttr(site, "O1INV".into()), None, "O1")
@@ -757,7 +923,7 @@ pub fn add_fuzzers<'a>(
                         builder = builder.raw(Key::SiteMode(site_alt_vrn), None);
                     }
                     builder
-                        .test_manual_legacy("DCI_OUT_ALONE", "1")
+                        .test_bel_special(specials::DCI_OUT_ALONE)
                         .raw_diff(Key::SiteMode(site), None, "IOB")
                         .raw_diff(Key::SiteAttr(site, "OMUX".into()), None, "O1")
                         .raw_diff(Key::SiteAttr(site, "O1INV".into()), None, "O1")
@@ -768,42 +934,41 @@ pub fn add_fuzzers<'a>(
                 if edev.chip.kind == ChipKind::Spartan3 {
                     bctx.build()
                         .global_mutex("DCI", "PRESENT")
-                        .test_manual_legacy("PRESENT", "1")
+                        .test_bel_special(specials::PRESENT)
                         .mode("DCI")
                         .commit();
                     bctx.build()
                         .global_mutex("DCI", "PRESENT")
-                        .global_mutex("DCI_SELECT", bel_name)
+                        .global_mutex("DCI_SELECT", format!("DCI{bidx}"))
                         .mode("DCI")
-                        .test_manual_legacy("SELECT", "1")
+                        .test_bel_special(specials::DCI_SELECT)
                         .pip((PinFar, "DATA"), "DATA")
                         .commit();
                     for i in 0..13 {
-                        let name = format!("LVDSBIAS_OPT{i}");
                         let gname = format!("LVDSBIAS_OPT{i}_{bank}");
                         bctx.build()
                             .global_mutex("DIFF", "MANUAL")
-                            .test_manual_legacy(name, "1")
+                            .test_bel_attr_bits_base(bcls::DCI::S3_LVDSBIAS, i)
                             .global_diff(gname, "0", "1")
                             .commit();
                     }
                 } else {
                     bctx.build()
                         .global_mutex("DCI", "PRESENT")
-                        .test_manual_legacy("PRESENT", "1")
+                        .test_bel_special(specials::PRESENT)
                         .mode("DCI")
                         .commit();
                     bctx.build()
                         .global_mutex("DCI", "PRESENT_TEST")
                         .global("TESTDCI", "YES")
-                        .test_manual_legacy("PRESENT", "TEST")
+                        .test_bel_special(specials::DCI_TEST)
                         .mode("DCI")
                         .commit();
                 }
                 // ???
                 bctx.mode("DCI")
                     .global_mutex("DCI", "PRESENT")
-                    .test_manual_legacy("FORCE_DONE_HIGH", "#OFF")
+                    .test_bel_attr_bits_bi(bcls::DCI::FORCE_DONE_HIGH, false)
                     .attr("FORCE_DONE_HIGH", "#OFF")
                     .commit();
             }
@@ -812,7 +977,7 @@ pub fn add_fuzzers<'a>(
                 && !backend.device.name.ends_with("2vp4")
                 && !backend.device.name.ends_with("2vp7")
             {
-                let mut ctx = FuzzCtx::new_id(session, backend, ll);
+                let mut ctx = FuzzCtx::new(session, backend, cnr_sw);
                 let btiles = EntityVec::from_iter([
                     edev.btile_term_v(edev.chip.corner(DirHV::NW).cell),
                     edev.btile_term_v(edev.chip.corner(DirHV::NE).cell),
@@ -823,31 +988,65 @@ pub fn add_fuzzers<'a>(
                     edev.btile_term_h(edev.chip.corner(DirHV::SW).cell),
                     edev.btile_term_h(edev.chip.corner(DirHV::NW).cell),
                 ]);
-                for val in ["ASREQUIRED", "CONTINUOUS", "QUIET"] {
+                for (spec, val) in [
+                    (specials::DCI_ASREQUIRED, "ASREQUIRED"),
+                    (specials::DCI_CONTINUOUS, "CONTINUOUS"),
+                ] {
                     ctx.build()
+                        .null_bits()
                         .global_mutex("DCI", "GLOBAL_MODE")
-                        .prop(ForceBits(btiles.clone()))
-                        .test_manual("MISC", "DCIUPDATEMODE", val)
+                        .test_raw(DiffKey::GlobalSpecial(spec))
                         .global("DCIUPDATEMODE", val)
                         .commit();
                 }
+                ctx.build()
+                    .global_mutex("DCI", "GLOBAL_MODE")
+                    .prop(ForceBits(btiles.clone()))
+                    .test_raw(DiffKey::GlobalSpecial(specials::DCI_QUIET))
+                    .global("DCIUPDATEMODE", "QUIET")
+                    .commit();
             }
         } else {
             let banks = if edev.chip.kind == ChipKind::Spartan3E {
                 &[
-                    (ul, edev.btile_term_h(edev.chip.corner(DirHV::NW).cell), 0),
-                    (ur, edev.btile_term_h(edev.chip.corner(DirHV::NE).cell), 1),
-                    (lr, edev.btile_term_h(edev.chip.corner(DirHV::SE).cell), 2),
-                    (ll, edev.btile_term_h(edev.chip.corner(DirHV::SW).cell), 3),
+                    (
+                        cnr_nw,
+                        edev.btile_term_h(edev.chip.corner(DirHV::NW).cell),
+                        0,
+                    ),
+                    (
+                        cnr_ne,
+                        edev.btile_term_h(edev.chip.corner(DirHV::NE).cell),
+                        1,
+                    ),
+                    (
+                        cnr_se,
+                        edev.btile_term_h(edev.chip.corner(DirHV::SE).cell),
+                        2,
+                    ),
+                    (
+                        cnr_sw,
+                        edev.btile_term_h(edev.chip.corner(DirHV::SW).cell),
+                        3,
+                    ),
                 ][..]
             } else {
                 &[
-                    (ul, edev.btile_term_h(edev.chip.corner(DirHV::NW).cell), 0),
-                    (ll, edev.btile_term_h(edev.chip.corner(DirHV::SW).cell), 2),
+                    (
+                        cnr_nw,
+                        edev.btile_term_h(edev.chip.corner(DirHV::NW).cell),
+                        0,
+                    ),
+                    (
+                        cnr_sw,
+                        edev.btile_term_h(edev.chip.corner(DirHV::SW).cell),
+                        2,
+                    ),
                 ][..]
             };
             for &(tile_name, btile, bank) in banks {
-                let mut ctx = FuzzCtx::new_id(session, backend, tile_name);
+                let mut ctx = FuzzCtx::new(session, backend, tile_name);
+                let mut bctx = ctx.bel(bslots::BANK);
                 let mut btiles = EntityVec::from_iter([btile]);
                 match bank {
                     0 => {
@@ -915,16 +1114,17 @@ pub fn add_fuzzers<'a>(
                     "DIFFMTB"
                 };
                 for std in get_iostds(edev, false) {
+                    let rid = iostd_to_row(edev, &std);
                     if std.diff != DiffKind::True {
                         continue;
                     }
                     if std.name != "LVDS_25" || edev.chip.kind.is_spartan3a() {
-                        ctx.build()
+                        bctx.build()
                             .prop(ForceBits(btiles.clone()))
                             .raw(Key::Package, package.name.clone())
                             .global_mutex("DIFF", "BANK")
                             .global_mutex("VREF", "NO")
-                            .test_manual("BANK", "LVDSBIAS_0", std.name)
+                            .test_bel_special_row(specials::BANK_LVDSBIAS_0, rid)
                             .raw_diff(Key::SiteMode(site_a), None, diffm)
                             .raw_diff(Key::SiteAttr(site_a, "OMUX".into()), None, "O1")
                             .raw_diff(Key::SiteAttr(site_a, "O1INV".into()), None, "O1")
@@ -946,7 +1146,7 @@ pub fn add_fuzzers<'a>(
                     } else {
                         "RSDS_25"
                     };
-                    ctx.build()
+                    bctx.build()
                         .prop(ForceBits(btiles.clone()))
                         .raw(Key::Package, package.name.clone())
                         .global_mutex("DIFF", "BANK")
@@ -963,7 +1163,7 @@ pub fn add_fuzzers<'a>(
                             },
                         )
                         .raw(Key::SitePin(site_a, "O1".into()), true)
-                        .test_manual("BANK", "LVDSBIAS_1", std.name)
+                        .test_bel_special_row(specials::BANK_LVDSBIAS_1, rid)
                         .raw_diff(Key::SiteMode(site_b), None, diffm)
                         .raw_diff(Key::SiteAttr(site_b, "OMUX".into()), None, "O1")
                         .raw_diff(Key::SiteAttr(site_b, "O1INV".into()), None, "O1")
@@ -985,384 +1185,336 @@ pub fn add_fuzzers<'a>(
     }
 
     // config regs
-    if !edev.chip.kind.is_spartan3a() {
-        let mut ctx = FuzzCtx::new_null(session, backend);
+    let tcid = if edev.chip.kind.is_virtex2() {
+        tcls_v2::GLOBAL
+    } else if edev.chip.kind == ChipKind::Spartan3 {
+        tcls_s3::GLOBAL_S3
+    } else if edev.chip.kind == ChipKind::FpgaCore {
+        tcls_s3::GLOBAL_FC
+    } else if edev.chip.kind == ChipKind::Spartan3E {
+        tcls_s3::GLOBAL_S3E
+    } else {
+        tcls_s3::GLOBAL_S3A
+    };
+    let mut ctx = FuzzCtx::new(session, backend, tcid);
+    let mut bctx = ctx.bel(bslots::GLOBAL);
+
+    for (val, vname) in [
+        (enums::STARTUP_CYCLE::_1, "1"),
+        (enums::STARTUP_CYCLE::_2, "2"),
+        (enums::STARTUP_CYCLE::_3, "3"),
+        (enums::STARTUP_CYCLE::_4, "4"),
+        (enums::STARTUP_CYCLE::_5, "5"),
+        (enums::STARTUP_CYCLE::_6, "6"),
+        (enums::STARTUP_CYCLE::DONE, "DONE"),
+        (enums::STARTUP_CYCLE::KEEP, "KEEP"),
+    ] {
+        bctx.build()
+            .test_bel_attr_val(bcls::GLOBAL::GWE_CYCLE, val)
+            .global("GWE_CYCLE", vname)
+            .commit();
+        bctx.build()
+            .test_bel_attr_val(bcls::GLOBAL::GTS_CYCLE, val)
+            .global("GTS_CYCLE", vname)
+            .commit();
+        if val != enums::STARTUP_CYCLE::DONE
+            && (val != enums::STARTUP_CYCLE::KEEP || !edev.chip.kind.is_spartan3a())
         {
-            let reg = Reg::Cor0;
-            let reg_name = reg_cor;
-            for val in ["1", "2", "3", "4", "5", "6", "DONE", "KEEP"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "GWE_CYCLE", val)
-                    .global("GWE_CYCLE", val)
+            bctx.build()
+                .test_bel_attr_val(bcls::GLOBAL::DONE_CYCLE, val)
+                .global("DONE_CYCLE", vname)
+                .commit();
+        }
+    }
+    for (val, vname) in [
+        (enums::STARTUP_CYCLE::_0, "0"),
+        (enums::STARTUP_CYCLE::_1, "1"),
+        (enums::STARTUP_CYCLE::_2, "2"),
+        (enums::STARTUP_CYCLE::_3, "3"),
+        (enums::STARTUP_CYCLE::_4, "4"),
+        (enums::STARTUP_CYCLE::_5, "5"),
+        (enums::STARTUP_CYCLE::_6, "6"),
+        (enums::STARTUP_CYCLE::NOWAIT, "NOWAIT"),
+    ] {
+        if edev.chip.kind.is_spartan3a() && val == enums::STARTUP_CYCLE::_0 {
+            continue;
+        }
+        if edev.chip.kind != ChipKind::FpgaCore {
+            bctx.build()
+                .test_bel_attr_val(bcls::GLOBAL::LOCK_CYCLE, val)
+                .global("LCK_CYCLE", vname)
+                .commit();
+        }
+        if !edev.chip.kind.is_spartan3ea() && edev.chip.kind != ChipKind::FpgaCore {
+            // option is accepted on S3E, but doesn't do anything
+            bctx.build()
+                .global_mutex("DCI", "NO")
+                .test_bel_attr_val(bcls::GLOBAL::MATCH_CYCLE, val)
+                .global("MATCH_CYCLE", vname)
+                .commit();
+        }
+    }
+    bctx.build()
+        .test_global_attr_bool_rename("DRIVEDONE", bcls::GLOBAL::DRIVE_DONE, "NO", "YES");
+    bctx.build()
+        .test_global_attr_bool_rename("DONEPIPE", bcls::GLOBAL::DONE_PIPE, "NO", "YES");
+    if edev.chip.kind.is_spartan3a() {
+        bctx.build().test_global_attr_bool_rename(
+            "DRIVE_AWAKE",
+            bcls::GLOBAL::DRIVE_AWAKE,
+            "NO",
+            "YES",
+        );
+    }
+    if edev.chip.kind != ChipKind::FpgaCore && !edev.chip.kind.is_spartan3a() {
+        bctx.build().test_global_attr_bool_rename(
+            "DCMSHUTDOWN",
+            bcls::GLOBAL::DCM_SHUTDOWN,
+            "DISABLE",
+            "ENABLE",
+        );
+    }
+
+    if edev.chip.kind.is_virtex2() {
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::DCI_SHUTDOWN)
+            .global("DCISHUTDOWN", "ENABLE")
+            .commit();
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::DCI_SHUTDOWN)
+            .global("DCISHUTDOWN", "DISABLE")
+            .commit();
+        bctx.build().test_global_attr_bool_rename(
+            "POWERDOWNSTATUS",
+            bcls::GLOBAL::POWERDOWN_STATUS,
+            "DISABLE",
+            "ENABLE",
+        );
+    }
+    bctx.build()
+        .test_global_attr_bool_rename("CRC", bcls::GLOBAL::CRC_ENABLE, "DISABLE", "ENABLE");
+
+    if edev.chip.kind.is_virtex2() {
+        bctx.build()
+            .test_global_attr_rename("CONFIGRATE", bcls::GLOBAL::CONFIG_RATE_V2);
+    } else if !edev.chip.kind.is_spartan3ea() {
+        bctx.build()
+            .test_global_attr_rename("CONFIGRATE", bcls::GLOBAL::CONFIG_RATE_S3);
+    } else if edev.chip.kind == ChipKind::Spartan3E {
+        bctx.build()
+            .test_global_attr_rename("CONFIGRATE", bcls::GLOBAL::CONFIG_RATE_S3E);
+    }
+
+    if !edev.chip.kind.is_virtex2() && !edev.chip.kind.is_spartan3a() {
+        bctx.build()
+            .test_global_attr_rename("BUSCLKFREQ", bcls::GLOBAL::BUSCLK_FREQ);
+
+        if !edev.chip.kind.is_spartan3ea() {
+            bctx.build()
+                .test_global_attr_rename("VRDSEL", bcls::GLOBAL::S3_VRDSEL);
+        } else {
+            bctx.build()
+                .test_global_attr_rename("VRDSEL", bcls::GLOBAL::S3E_VRDSEL);
+        }
+    }
+    if edev.chip.kind.is_spartan3a() {
+        bctx.build()
+            .test_bel_attr_bits(bcls::GLOBAL::S3A_VRDSEL)
+            .multi_global("VRDSEL", MultiValue::Bin, 3);
+        bctx.build()
+            .test_global_attr_bool_rename("BPI_DIV8", bcls::GLOBAL::BPI_DIV8, "NO", "YES");
+        bctx.build().test_global_attr_bool_rename(
+            "RESET_ON_ERR",
+            bcls::GLOBAL::RESET_ON_ERR,
+            "NO",
+            "YES",
+        );
+        bctx.build().test_global_attr_bool_rename(
+            "ICAP_BYPASS",
+            bcls::GLOBAL::ICAP_BYPASS,
+            "NO",
+            "YES",
+        );
+    }
+
+    bctx.build()
+        .test_global_attr_bool_rename("GTS_USR_B", bcls::GLOBAL::GTS_USR_B, "NO", "YES");
+    bctx.build()
+        .test_global_attr_bool_rename("VGG_TEST", bcls::GLOBAL::VGG_TEST, "NO", "YES");
+    if !edev.chip.kind.is_spartan3a() {
+        bctx.build().test_global_attr_bool_rename(
+            "BCLK_TEST",
+            bcls::GLOBAL::BCLK_TEST,
+            "NO",
+            "YES",
+        );
+        for (val, vname) in [
+            (enums::SECURITY::NONE, "NONE"),
+            (enums::SECURITY::LEVEL1, "LEVEL1"),
+            (enums::SECURITY::LEVEL2, "LEVEL2"),
+        ] {
+            // disables FreezeDCI?
+            if edev.chip.kind == ChipKind::Virtex2 {
+                bctx.build()
+                    .global_mutex("DCI", "NO")
+                    .global("EARLYGHIGH", "YES")
+                    .test_bel_attr_val(bcls::GLOBAL::SECURITY, val)
+                    .global("SECURITY", vname)
                     .commit();
-                ctx.test_reg(reg, reg_name, "STARTUP", "GTS_CYCLE", val)
-                    .global("GTS_CYCLE", val)
-                    .commit();
-            }
-            for val in ["1", "2", "3", "4", "5", "6", "KEEP"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "DONE_CYCLE", val)
-                    .global("DONE_CYCLE", val)
-                    .commit();
-            }
-            for val in ["0", "1", "2", "3", "4", "5", "6", "NOWAIT"] {
-                if edev.chip.kind != ChipKind::FpgaCore {
-                    ctx.test_reg(reg, reg_name, "STARTUP", "LCK_CYCLE", val)
-                        .global("LCK_CYCLE", val)
-                        .commit();
-                }
-                if edev.chip.kind != ChipKind::Spartan3E && edev.chip.kind != ChipKind::FpgaCore {
-                    // option is accepted on S3E, but doesn't do anything
-                    ctx.build()
-                        .global_mutex("DCI", "NO")
-                        .test_reg(reg, reg_name, "STARTUP", "MATCH_CYCLE", val)
-                        .global("MATCH_CYCLE", val)
-                        .commit();
-                }
-            }
-            for val in ["NO", "YES"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "DRIVE_DONE", val)
-                    .global("DRIVEDONE", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "STARTUP", "DONE_PIPE", val)
-                    .global("DONEPIPE", val)
-                    .commit();
-            }
-            for val in ["ENABLE", "DISABLE"] {
-                if edev.chip.kind != ChipKind::FpgaCore {
-                    ctx.test_reg(reg, reg_name, "STARTUP", "DCM_SHUTDOWN", val)
-                        .global("DCMSHUTDOWN", val)
-                        .commit();
-                }
-                if edev.chip.kind.is_virtex2() {
-                    ctx.test_reg(reg, reg_name, "STARTUP", "DCI_SHUTDOWN", val)
-                        .global("DCISHUTDOWN", val)
-                        .commit();
-                    ctx.test_reg(reg, reg_name, "STARTUP", "POWERDOWN_STATUS", val)
-                        .global("POWERDOWNSTATUS", val)
-                        .commit();
-                }
-            }
-            let vals = if edev.chip.kind.is_virtex2() {
-                &[
-                    "4", "5", "7", "8", "9", "10", "13", "15", "20", "26", "30", "34", "41", "51",
-                    "55", "60", "130",
-                ][..]
-            } else if !edev.chip.kind.is_spartan3ea() {
-                &["6", "12", "25", "50", "3", "100"][..]
             } else {
-                &["1", "3", "6", "12", "25", "50"][..]
-            };
-            for &val in vals {
-                ctx.test_reg(reg, reg_name, "STARTUP", "CONFIG_RATE", val)
-                    .global("CONFIGRATE", val)
+                bctx.build()
+                    .global_mutex("DCI", "NO")
+                    .test_bel_attr_val(bcls::GLOBAL::SECURITY, val)
+                    .global("SECURITY", vname)
                     .commit();
-            }
-            for val in ["DISABLE", "ENABLE"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "CRC", val)
-                    .global("CRC", val)
-                    .commit();
-            }
-            if !edev.chip.kind.is_virtex2() {
-                for val in ["100", "25", "50", "200"] {
-                    ctx.test_reg(reg, reg_name, "STARTUP", "BUSCLK_FREQ", val)
-                        .global("BUSCLKFREQ", val)
-                        .commit();
-                }
-                let vals = if !edev.chip.kind.is_spartan3ea() {
-                    &["80", "90", "95", "100"]
-                } else {
-                    &["70", "75", "80", "90"]
-                };
-                for &val in vals {
-                    ctx.test_reg(reg, reg_name, "STARTUP", "VRDSEL", val)
-                        .global("VRDSEL", val)
-                        .commit();
-                }
             }
         }
 
-        {
-            let reg_name = if edev.chip.kind.is_virtex2() {
-                "REG.CTL"
-            } else {
-                "REG.CTL.S3"
-            };
-            let reg = Reg::Ctl0;
-            for val in ["NO", "YES"] {
-                ctx.test_reg(reg, reg_name, "MISC", "GTS_USR_B", val)
-                    .global("GTS_USR_B", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "MISC", "VGG_TEST", val)
-                    .global("VGG_TEST", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "MISC", "BCLK_TEST", val)
-                    .global("BCLK_TEST", val)
-                    .commit();
-            }
-            // persist not fuzzed — too much effort
-            for val in ["NONE", "LEVEL1", "LEVEL2"] {
-                // disables FreezeDCI?
-                if edev.chip.kind == ChipKind::Virtex2 {
-                    ctx.build()
-                        .global_mutex("DCI", "NO")
-                        .global("EARLYGHIGH", "YES")
-                        .test_reg(reg, reg_name, "MISC", "SECURITY", val)
-                        .global("SECURITY", val)
-                        .commit();
-                } else {
-                    ctx.build()
-                        .global_mutex("DCI", "NO")
-                        .test_reg(reg, reg_name, "MISC", "SECURITY", val)
-                        .global("SECURITY", val)
-                        .commit();
-                }
-            }
+        // persist not fuzzed — too much effort
 
-            if edev.chip.kind.is_virtex2() {
-                ctx.build()
-                    .global_mutex("DCI", "NO")
-                    .test_manual("MISC", "ENCRYPT", "YES")
-                    .global("ENCRYPT", "YES")
-                    .commit();
-            }
+        if edev.chip.kind.is_virtex2() {
+            bctx.build()
+                .null_bits()
+                .global_mutex("DCI", "NO")
+                .test_bel_special(specials::ENCRYPT)
+                .global("ENCRYPT", "YES")
+                .commit();
         }
     } else {
-        let mut ctx = FuzzCtx::new_null(session, backend);
-        {
-            let reg = Reg::Cor1;
-            let reg_name = "REG.COR1.S3A";
-            for val in ["NO", "YES"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "DRIVE_DONE", val)
-                    .global("DRIVEDONE", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "STARTUP", "DONE_PIPE", val)
-                    .global("DONEPIPE", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "STARTUP", "DRIVE_AWAKE", val)
-                    .global("DRIVE_AWAKE", val)
-                    .commit();
-            }
-            for val in ["DISABLE", "ENABLE"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "CRC", val)
-                    .global("CRC", val)
-                    .commit();
-            }
-            ctx.test_reg(reg, reg_name, "STARTUP", "VRDSEL", "")
-                .multi_global("VRDSEL", MultiValue::Bin, 3);
+        bctx.build().test_global_attr_bool_rename(
+            "MULTIBOOTMODE",
+            bcls::GLOBAL::MULTIBOOT_ENABLE,
+            "NO",
+            "YES",
+        );
+        bctx.build()
+            .test_global_attr_rename("SECURITY", bcls::GLOBAL::SECURITY);
+
+        // CONFIGRATE too annoying.
+        for val in 0..4 {
+            bctx.build()
+                .test_bel_attr_bitvec_u32(bcls::GLOBAL::CCLK_DLY, val)
+                .global("CCLK_DLY", val.to_string())
+                .commit();
+            bctx.build()
+                .test_bel_attr_bitvec_u32(bcls::GLOBAL::CCLK_SEP, val)
+                .global("CCLK_SEP", val.to_string())
+                .commit();
+            bctx.build()
+                .test_bel_attr_bitvec_u32(bcls::GLOBAL::CLK_SWITCH_OPT, val)
+                .global("CLK_SWITCH_OPT", val.to_string())
+                .commit();
         }
 
-        {
-            let reg = Reg::Cor2;
-            let reg_name = "REG.COR2.S3A";
-            for val in ["1", "2", "3", "4", "5", "6", "DONE", "KEEP"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "GWE_CYCLE", val)
-                    .global("GWE_CYCLE", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "STARTUP", "GTS_CYCLE", val)
-                    .global("GTS_CYCLE", val)
-                    .commit();
-            }
-            for val in ["1", "2", "3", "4", "5", "6"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "DONE_CYCLE", val)
-                    .global("DONE_CYCLE", val)
-                    .commit();
-            }
-            for val in ["1", "2", "3", "4", "5", "6", "NOWAIT"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "LCK_CYCLE", val)
-                    .global("LCK_CYCLE", val)
-                    .commit();
-            }
-            for val in ["NO", "YES"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "BPI_DIV8", val)
-                    .global("BPI_DIV8", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "STARTUP", "RESET_ON_ERR", val)
-                    .global("RESET_ON_ERR", val)
-                    .commit();
-            }
-            for val in ["NO", "YES"] {
-                ctx.test_reg(reg, reg_name, "ICAP", "BYPASS", val)
-                    .global("ICAP_BYPASS", val)
-                    .commit();
-            }
+        bctx.build().test_global_attr_bool_rename(
+            "BRAM_SKIP",
+            bcls::GLOBAL::BRAM_SKIP,
+            "NO",
+            "YES",
+        );
+        bctx.build().test_global_attr_bool_rename(
+            "TWO_ROUND",
+            bcls::GLOBAL::TWO_ROUND,
+            "NO",
+            "YES",
+        );
+
+        for val in 1..16 {
+            bctx.build()
+                .test_bel_attr_bitvec_u32(bcls::GLOBAL::HC_CYCLE, val)
+                .global("HC_CYCLE", val.to_string())
+                .commit();
         }
 
-        {
-            let reg = Reg::Ctl0;
-            let reg_name = "REG.CTL.S3A";
-            for val in ["NO", "YES"] {
-                ctx.test_reg(reg, reg_name, "MISC", "GTS_USR_B", val)
-                    .global("GTS_USR_B", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "MISC", "VGG_TEST", val)
-                    .global("VGG_TEST", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "MISC", "MULTIBOOT_ENABLE", val)
-                    .global("MULTIBOOTMODE", val)
-                    .commit();
-            }
-            // persist not fuzzed — too much effort
-            for val in ["NONE", "LEVEL1", "LEVEL2", "LEVEL3"] {
-                ctx.test_reg(reg, reg_name, "MISC", "SECURITY", val)
-                    .global("SECURITY", val)
-                    .commit();
-            }
+        bctx.build()
+            .test_global_attr_rename("SW_CLK", bcls::GLOBAL::SW_CLK);
+        bctx.build().test_global_attr_bool_rename(
+            "EN_SUSPEND",
+            bcls::GLOBAL::EN_SUSPEND,
+            "NO",
+            "YES",
+        );
+        bctx.build()
+            .test_global_attr_bool_rename("EN_PORB", bcls::GLOBAL::EN_PORB, "NO", "YES");
+        bctx.build().test_global_attr_bool_rename(
+            "SUSPEND_FILTER",
+            bcls::GLOBAL::SUSPEND_FILTER,
+            "NO",
+            "YES",
+        );
+        bctx.build().test_global_attr_bool_rename(
+            "EN_SW_GSR",
+            bcls::GLOBAL::EN_SW_GSR,
+            "NO",
+            "YES",
+        );
+        for val in 1..8 {
+            bctx.build()
+                .test_bel_attr_bitvec_u32(bcls::GLOBAL::WAKE_DELAY1, val)
+                .global("WAKE_DELAY1", val.to_string())
+                .commit();
+        }
+        for val in 1..32 {
+            bctx.build()
+                .test_bel_attr_bitvec_u32(bcls::GLOBAL::WAKE_DELAY2, val)
+                .global("WAKE_DELAY2", val.to_string())
+                .commit();
         }
 
-        {
-            let reg = Reg::CclkFrequency;
-            let reg_name = "REG.CCLK_FREQ";
-            for val in [
-                "6", "1", "3", "7", "8", "10", "12", "13", "17", "22", "25", "27", "33", "44",
-                "50", "100",
-            ] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "CONFIG_RATE", val)
-                    .global("CONFIGRATE", val)
-                    .commit();
-            }
-            for val in ["0", "1", "2", "3"] {
-                ctx.test_reg(reg, reg_name, "STARTUP", "CCLK_DLY", val)
-                    .global("CCLK_DLY", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "STARTUP", "CCLK_SEP", val)
-                    .global("CCLK_SEP", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "STARTUP", "CLK_SWITCH_OPT", val)
-                    .global("CLK_SWITCH_OPT", val)
-                    .commit();
-            }
-        }
+        bctx.build()
+            .test_bel_attr_bits(bcls::GLOBAL::SW_GWE_CYCLE)
+            .multi_global("SW_GWE_CYCLE", MultiValue::Dec(0), 10);
 
-        {
-            let reg = Reg::HcOpt;
-            let reg_name = "REG.HC_OPT";
-            for val in ["NO", "YES"] {
-                ctx.test_reg(reg, reg_name, "MISC", "BRAM_SKIP", val)
-                    .global("BRAM_SKIP", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "MISC", "TWO_ROUND", val)
-                    .global("TWO_ROUND", val)
-                    .commit();
-            }
-            for i in 1..16 {
-                let val = format!("{i}");
-                ctx.test_reg(reg, reg_name, "MISC", "HC_CYCLE", &val)
-                    .global("HC_CYCLE", &val)
-                    .commit();
-            }
-        }
+        bctx.build()
+            .test_bel_attr_bits(bcls::GLOBAL::SW_GTS_CYCLE)
+            .multi_global("SW_GTS_CYCLE", MultiValue::Dec(0), 10);
 
-        {
-            let reg = Reg::Powerdown;
-            let reg_name = "REG.POWERDOWN";
-            for val in ["STARTUPCLK", "INTERNALCLK"] {
-                ctx.test_reg(reg, reg_name, "MISC", "SW_CLK", val)
-                    .global("SW_CLK", val)
-                    .commit();
-            }
-            for val in ["NO", "YES"] {
-                ctx.test_reg(reg, reg_name, "MISC", "EN_SUSPEND", val)
-                    .global("EN_SUSPEND", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "MISC", "EN_PORB", val)
-                    .global("EN_PORB", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "MISC", "SUSPEND_FILTER", val)
-                    .global("SUSPEND_FILTER", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "MISC", "EN_SW_GSR", val)
-                    .global("EN_SW_GSR", val)
-                    .commit();
-            }
-            for i in 1..8 {
-                let val = format!("{i}");
-                ctx.test_reg(reg, reg_name, "MISC", "WAKE_DELAY1", &val)
-                    .global("WAKE_DELAY1", val)
-                    .commit();
-            }
-            for i in 1..32 {
-                let val = format!("{i}");
-                ctx.test_reg(reg, reg_name, "MISC", "WAKE_DELAY2", &val)
-                    .global("WAKE_DELAY2", val)
-                    .commit();
-            }
-        }
+        bctx.build().test_global_attr_bool_rename(
+            "TESTMODE_EN",
+            bcls::GLOBAL::TESTMODE_EN,
+            "NO",
+            "YES",
+        );
+        bctx.build().test_global_attr_bool_rename(
+            "NEXT_CONFIG_NEW_MODE",
+            bcls::GLOBAL::NEXT_CONFIG_NEW_MODE,
+            "NO",
+            "YES",
+        );
+        bctx.build()
+            .test_bel_attr_bits(bcls::GLOBAL::NEXT_CONFIG_BOOT_MODE)
+            .multi_global("NEXT_CONFIG_BOOT_MODE", MultiValue::Bin, 3);
+        bctx.build()
+            .test_bel_attr_bits(bcls::GLOBAL::BOOTVSEL)
+            .multi_global("BOOTVSEL", MultiValue::Bin, 3);
 
-        {
-            let reg = Reg::PuGwe;
-            let reg_name = "REG.PU_GWE";
-            ctx.test_reg(reg, reg_name, "MISC", "SW_GWE_CYCLE", "")
-                .multi_global("SW_GWE_CYCLE", MultiValue::Dec(0), 10);
-        }
+        bctx.build()
+            .test_bel_attr_bits(bcls::GLOBAL::NEXT_CONFIG_ADDR)
+            .multi_global("NEXT_CONFIG_ADDR", MultiValue::HexPrefix, 32);
 
-        {
-            let reg = Reg::PuGts;
-            let reg_name = "REG.PU_GTS";
-            ctx.test_reg(reg, reg_name, "MISC", "SW_GTS_CYCLE", "")
-                .multi_global("SW_GTS_CYCLE", MultiValue::Dec(0), 10);
-        }
-
-        {
-            let reg = Reg::Mode;
-            let reg_name = "REG.MODE";
-            for val in ["NO", "YES"] {
-                ctx.test_reg(reg, reg_name, "MISC", "TESTMODE_EN", val)
-                    .global("TESTMODE_EN", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "MISC", "NEXT_CONFIG_NEW_MODE", val)
-                    .global("NEXT_CONFIG_NEW_MODE", val)
-                    .commit();
-            }
-            ctx.test_reg(reg, reg_name, "MISC", "NEXT_CONFIG_BOOT_MODE", "")
-                .multi_global("NEXT_CONFIG_BOOT_MODE", MultiValue::Bin, 3);
-            ctx.test_reg(reg, reg_name, "MISC", "BOOTVSEL", "")
-                .multi_global("BOOTVSEL", MultiValue::Bin, 3);
-        }
-
-        {
-            ctx.build()
-                .prop(ExtraReg::new(
-                    vec![Reg::General1, Reg::General2],
-                    false,
-                    "REG.GENERAL".into(),
-                    Some("MISC".into()),
-                    Some("NEXT_CONFIG_ADDR".into()),
-                    Some("".into()),
-                ))
-                .test_manual("MISC", "NEXT_CONFIG_ADDR", "")
-                .multi_global("NEXT_CONFIG_ADDR", MultiValue::HexPrefix, 32);
-        }
-
-        {
-            let reg = Reg::SeuOpt;
-            let reg_name = "REG.SEU_OPT";
-            for val in ["NO", "YES"] {
-                ctx.test_reg(reg, reg_name, "MISC", "GLUTMASK", val)
-                    .global("GLUTMASK", val)
-                    .commit();
-                ctx.test_reg(reg, reg_name, "MISC", "POST_CRC_KEEP", val)
-                    .global("POST_CRC_KEEP", val)
-                    .commit();
-            }
-            for val in [
-                "6", "1", "3", "7", "8", "10", "12", "13", "17", "22", "25", "27", "33", "44",
-                "50", "100",
-            ] {
-                ctx.test_reg(reg, reg_name, "MISC", "POST_CRC_FREQ", val)
-                    .global("POST_CRC_FREQ", val)
-                    .commit();
-            }
-        }
+        bctx.build()
+            .test_global_attr_bool_rename("GLUTMASK", bcls::GLOBAL::GLUTMASK, "NO", "YES");
+        bctx.build().test_global_attr_bool_rename(
+            "POST_CRC_KEEP",
+            bcls::GLOBAL::POST_CRC_KEEP,
+            "NO",
+            "YES",
+        );
 
         for val in ["NO", "YES"] {
-            ctx.test_manual("NULL", "SPI2_EN", val)
+            ctx.build()
+                .null_bits()
+                .test_global_special(specials::NULL_SPI2_EN)
                 .global("SPI2_EN", val)
                 .commit();
-            ctx.test_manual("NULL", "BRAMMASK", val)
+            ctx.build()
+                .null_bits()
+                .test_global_special(specials::NULL_BRAMMASK)
                 .global("BRAMMASK", val)
                 .commit();
         }
-
-        // TODO
     }
 }
 
@@ -1370,368 +1522,370 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     let ExpandedDevice::Virtex2(edev) = ctx.edev else {
         unreachable!()
     };
-    let int_tiles = if edev.chip.kind.is_virtex2() {
-        &[tcls_v2::INT_CNR]
+    let int_tcid = if edev.chip.kind.is_virtex2() {
+        tcls_v2::INT_CNR
     } else if edev.chip.kind == ChipKind::FpgaCore {
-        &[tcls_s3::INT_CLB_FC]
+        tcls_s3::INT_CLB_FC
     } else {
-        &[tcls_s3::INT_CLB]
+        tcls_s3::INT_CLB
     };
-    let int_tile = edev.db.tile_classes.key(int_tiles[0]);
+    let int_tiles = &[int_tcid];
+    let vals_pull = &[
+        enums::IOB_PULL::NONE,
+        enums::IOB_PULL::PULLDOWN,
+        enums::IOB_PULL::PULLUP,
+    ];
+    let vals_pullup = &[enums::IOB_PULL::NONE, enums::IOB_PULL::PULLUP];
 
     let (cnr_sw, cnr_nw, cnr_se, cnr_ne) = match edev.chip.kind {
-        ChipKind::Virtex2 => ("CNR_SW_V2", "CNR_NW_V2", "CNR_SE_V2", "CNR_NE_V2"),
-        ChipKind::Virtex2P | ChipKind::Virtex2PX => {
-            ("CNR_SW_V2P", "CNR_NW_V2P", "CNR_SE_V2P", "CNR_NE_V2P")
-        }
-        ChipKind::Spartan3 => ("CNR_SW_S3", "CNR_NW_S3", "CNR_SE_S3", "CNR_NE_S3"),
-        ChipKind::FpgaCore => ("CNR_SW_FC", "CNR_NW_FC", "CNR_SE_FC", "CNR_NE_FC"),
-        ChipKind::Spartan3E => ("CNR_SW_S3E", "CNR_NW_S3E", "CNR_SE_S3E", "CNR_NE_S3E"),
-        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
-            ("CNR_SW_S3A", "CNR_NW_S3A", "CNR_SE_S3A", "CNR_NE_S3A")
-        }
+        ChipKind::Virtex2 => (
+            tcls_v2::CNR_SW_V2,
+            tcls_v2::CNR_NW_V2,
+            tcls_v2::CNR_SE_V2,
+            tcls_v2::CNR_NE_V2,
+        ),
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => (
+            tcls_v2::CNR_SW_V2P,
+            tcls_v2::CNR_NW_V2P,
+            tcls_v2::CNR_SE_V2P,
+            tcls_v2::CNR_NE_V2P,
+        ),
+        ChipKind::Spartan3 => (
+            tcls_s3::CNR_SW_S3,
+            tcls_s3::CNR_NW_S3,
+            tcls_s3::CNR_SE_S3,
+            tcls_s3::CNR_NE_S3,
+        ),
+        ChipKind::FpgaCore => (
+            tcls_s3::CNR_SW_FC,
+            tcls_s3::CNR_NW_FC,
+            tcls_s3::CNR_SE_FC,
+            tcls_s3::CNR_NE_FC,
+        ),
+        ChipKind::Spartan3E => (
+            tcls_s3::CNR_SW_S3E,
+            tcls_s3::CNR_NW_S3E,
+            tcls_s3::CNR_SE_S3E,
+            tcls_s3::CNR_NE_S3E,
+        ),
+        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => (
+            tcls_s3::CNR_SW_S3A,
+            tcls_s3::CNR_NW_S3A,
+            tcls_s3::CNR_SE_S3A,
+            tcls_s3::CNR_NE_S3A,
+        ),
     };
 
     if devdata_only {
-        let tile = cnr_sw;
-        let bel = "MISC";
+        let tcid = cnr_sw;
+        let bslot = bslots::MISC_SW;
         if !edev.chip.kind.is_virtex2() {
-            let sendmax = ctx.collect_bit_bi_default_legacy(tile, bel, "VGG_SENDMAX", "NO", "YES");
-            ctx.insert_device_data("MISC:VGG_SENDMAX_DEFAULT", [sendmax]);
-            let (_, vgg0) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG0", "0", "1");
-            let (_, vgg1) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG1", "0", "1");
-            let (_, vgg2) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG2", "0", "1");
-            let (_, vgg3) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG3", "0", "1");
-            ctx.insert_device_data("MISC:SEND_VGG_DEFAULT", [vgg0, vgg1, vgg2, vgg3]);
+            let sm = ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::VGG_SENDMAX);
+            let sv = ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::SEND_VGG);
             if edev.chip.kind.is_spartan3a() {
-                let tile = "REG.COR1.S3A";
-                let sendmax =
-                    ctx.collect_bit_bi_default_legacy(tile, bel, "VGG_SENDMAX", "NO", "YES");
-                ctx.insert_device_data("MISC:VGG_SENDMAX_DEFAULT", [sendmax]);
-                let (_, vgg0) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG0", "0", "1");
-                let (_, vgg1) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG1", "0", "1");
-                let (_, vgg2) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG2", "0", "1");
-                let (_, vgg3) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG3", "0", "1");
-                ctx.insert_device_data("MISC:SEND_VGG_DEFAULT", [vgg0, vgg1, vgg2, vgg3]);
+                let tcid = tcls_s3::GLOBAL_S3A;
+                let bslot = bslots::GLOBAL;
+
+                assert_eq!(
+                    sm,
+                    ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::VGG_SENDMAX)
+                );
+                assert_eq!(
+                    sv,
+                    ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::SEND_VGG)
+                );
+            }
+            assert!(sm[0]);
+            if edev.chip.kind.is_spartan3a() {
+                assert_eq!(sv, bits![1, 1, 1, 1]);
+            } else if edev.chip.kind == ChipKind::FpgaCore {
+                assert_eq!(sv, bits![0, 0, 0, 0]);
+            } else {
+                assert_eq!(sv, bits![0, 0, 0, 1]);
             }
         }
         if edev.chip.kind.is_virtex2() {
-            let diff = ctx.get_diff_legacy(tile, bel, "FREEZE_DCI", "1");
+            let diff = ctx.get_diff_bel_special(tcid, bslot, specials::FREEZE_DCI);
             let diff = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(4)]));
             let mut freeze_dci_nops = 0;
             for (bit, val) in diff.bits {
                 assert!(val);
                 freeze_dci_nops |= 1 << bit.bit.to_idx();
             }
-            ctx.insert_device_data("FREEZE_DCI_NOPS", freeze_dci_nops);
+            ctx.insert_devdata_u32(devdata::FREEZE_DCI_NOPS, freeze_dci_nops);
 
             let is_double_grestore = ctx.empty_bs.die[DieId::from_idx(0)]
                 .regs
                 .get(&Reg::FakeDoubleGrestore)
                 == Some(&1);
-            ctx.insert_device_data("DOUBLE_GRESTORE", BitVec::repeat(is_double_grestore, 1));
+            ctx.insert_devdata_bool(devdata::DOUBLE_GRESTORE, is_double_grestore);
         }
 
         return;
     }
 
     if edev.chip.kind == ChipKind::Spartan3 {
-        for tile in [cnr_sw, cnr_nw, cnr_se, cnr_ne] {
-            for bel in ["DCIRESET[0]", "DCIRESET[1]"] {
-                let diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-                ctx.insert(tile, bel, "ENABLE", xlat_bit_legacy(diff));
+        for tcid in [cnr_sw, cnr_nw, cnr_se, cnr_ne] {
+            for bslot in bslots::DCIRESET {
+                ctx.collect_bel_attr(tcid, bslot, bcls::DCIRESET::ENABLE);
             }
         }
     }
 
-    // LL
-    let tile = cnr_sw;
-    let bel = "MISC";
-    if edev.chip.kind.is_virtex2() {
-        ctx.collect_bit_bi_legacy(tile, bel, "DISABLEBANDGAP", "NO", "YES");
-        ctx.collect_bit_wide_bi_legacy(tile, bel, "RAISEVGG", "NO", "YES");
-        let item = xlat_bitvec_legacy(vec![
-            ctx.get_diff_legacy(tile, bel, "ZCLK_N2", "1"),
-            ctx.get_diff_legacy(tile, bel, "ZCLK_N4", "1"),
-            ctx.get_diff_legacy(tile, bel, "ZCLK_N8", "1"),
-            ctx.get_diff_legacy(tile, bel, "ZCLK_N16", "1"),
-            ctx.get_diff_legacy(tile, bel, "ZCLK_N32", "1"),
-        ]);
-        ctx.insert(tile, bel, "ZCLK_DIV2", item);
-        let item = xlat_bitvec_legacy(vec![
-            ctx.get_diff_legacy(tile, bel, "IBCLK_N2", "1"),
-            ctx.get_diff_legacy(tile, bel, "IBCLK_N4", "1"),
-            ctx.get_diff_legacy(tile, bel, "IBCLK_N8", "1"),
-            ctx.get_diff_legacy(tile, bel, "IBCLK_N16", "1"),
-            ctx.get_diff_legacy(tile, bel, "IBCLK_N32", "1"),
-        ]);
-        ctx.insert(tile, bel, "BCLK_DIV2", item);
-        for attr in [
-            "ZCLK_N2",
-            "ZCLK_N4",
-            "ZCLK_N8",
-            "ZCLK_N16",
-            "ZCLK_N32",
-            "IBCLK_N2",
-            "IBCLK_N4",
-            "IBCLK_N8",
-            "IBCLK_N16",
-            "IBCLK_N32",
-        ] {
-            ctx.get_diff_legacy(tile, bel, attr, "0").assert_empty();
+    {
+        // LL
+        let tcid = cnr_sw;
+        let bslot = bslots::MISC_SW;
+        if edev.chip.kind.is_virtex2() {
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::DISABLE_BANDGAP);
+            let item = xlat_bit_wide_bi(
+                ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::MISC_SW::RAISE_VGG, false),
+                ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::MISC_SW::RAISE_VGG, true),
+            );
+            ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::MISC_SW::RAISE_VGG, item);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::BCLK_N_DIV2);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::ZCLK_N_DIV2);
+            if edev.chip.kind.is_virtex2p() {
+                ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::DISABLE_VGG_GENERATION);
+            }
+        } else {
+            let sm = ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::VGG_SENDMAX);
+            let sv = ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::SEND_VGG);
+            let veo = ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::VGG_ENABLE_OFFCHIP);
+            if edev.chip.kind.is_spartan3a() {
+                let tcid = tcls_s3::GLOBAL_S3A;
+                let bslot = bslots::GLOBAL;
+
+                assert_eq!(
+                    sm,
+                    ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::VGG_SENDMAX)
+                );
+                assert_eq!(
+                    sv,
+                    ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::SEND_VGG)
+                );
+                assert_eq!(
+                    veo,
+                    ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::VGG_ENABLE_OFFCHIP)
+                );
+            }
+            assert!(sm[0]);
+            assert!(!veo[0]);
+            if edev.chip.kind.is_spartan3a() {
+                assert_eq!(sv, bits![1, 1, 1, 1]);
+            } else if edev.chip.kind == ChipKind::FpgaCore {
+                assert_eq!(sv, bits![0, 0, 0, 0]);
+            } else {
+                assert_eq!(sv, bits![0, 0, 0, 1]);
+            }
         }
-        if edev.chip.kind.is_virtex2p() {
-            ctx.collect_bit_bi_legacy(tile, bel, "DISABLEVGGGENERATION", "NO", "YES");
+        if edev.chip.kind == ChipKind::Spartan3 {
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::GATE_GHIGH);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SW::DCI_OSC_SEL);
         }
-    } else {
-        let sendmax = ctx.collect_bit_bi_default_legacy(tile, bel, "VGG_SENDMAX", "NO", "YES");
-        ctx.insert_device_data("MISC:VGG_SENDMAX_DEFAULT", [sendmax]);
-        assert!(!ctx.collect_bit_bi_default_legacy(tile, bel, "VGG_ENABLE_OFFCHIP", "NO", "YES"));
-        let (item0, vgg0) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG0", "0", "1");
-        let (item1, vgg1) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG1", "0", "1");
-        let (item2, vgg2) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG2", "0", "1");
-        let (item3, vgg3) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG3", "0", "1");
-        ctx.insert_device_data("MISC:SEND_VGG_DEFAULT", [vgg0, vgg1, vgg2, vgg3]);
-        let item = concat_bitvec_legacy([item0, item1, item2, item3]);
-        ctx.insert(tile, bel, "SEND_VGG", item);
+        if edev.chip.kind.is_spartan3ea() {
+            ctx.collect_bel_attr(tcid, bslot, bcls::MISC_SW::TEMP_SENSOR);
+        }
         if edev.chip.kind.is_spartan3a() {
-            let tile = "REG.COR1.S3A";
-            let sendmax = ctx.collect_bit_bi_default_legacy(tile, bel, "VGG_SENDMAX", "NO", "YES");
-            ctx.insert_device_data("MISC:VGG_SENDMAX_DEFAULT", [sendmax]);
-            assert!(!ctx.collect_bit_bi_default_legacy(
-                tile,
-                bel,
-                "VGG_ENABLE_OFFCHIP",
-                "NO",
-                "YES"
-            ));
-            let (item0, vgg0) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG0", "0", "1");
-            let (item1, vgg1) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG1", "0", "1");
-            let (item2, vgg2) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG2", "0", "1");
-            let (item3, vgg3) = ctx.extract_bit_bi_default_legacy(tile, bel, "SEND_VGG3", "0", "1");
-            ctx.insert_device_data("MISC:SEND_VGG_DEFAULT", [vgg0, vgg1, vgg2, vgg3]);
-            let item = concat_bitvec_legacy([item0, item1, item2, item3]);
-            ctx.insert(tile, bel, "SEND_VGG", item);
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_SW::CCLK2_PULL, vals_pull);
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_SW::MOSI2_PULL, vals_pull);
+        } else if edev.chip.kind != ChipKind::Spartan3E && edev.chip.kind != ChipKind::FpgaCore {
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_SW::M0_PULL, vals_pull);
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_SW::M1_PULL, vals_pull);
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_SW::M2_PULL, vals_pull);
         }
-    }
-    if edev.chip.kind == ChipKind::Spartan3 {
-        let item = xlat_bitvec_legacy(vec![
-            ctx.get_diff_legacy(tile, bel, "IDCI_OSC_SEL0", "1"),
-            ctx.get_diff_legacy(tile, bel, "IDCI_OSC_SEL1", "1"),
-            ctx.get_diff_legacy(tile, bel, "IDCI_OSC_SEL2", "1"),
-        ]);
-        ctx.insert(tile, bel, "DCI_OSC_SEL", item);
-        for attr in ["IDCI_OSC_SEL0", "IDCI_OSC_SEL1", "IDCI_OSC_SEL2"] {
-            ctx.get_diff_legacy(tile, bel, attr, "0").assert_empty();
+        if edev.chip.kind.is_virtex2() {
+            let diff = ctx.get_diff_bel_special(tcid, bslot, specials::FREEZE_DCI);
+            let diff = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(4)]));
+            let mut freeze_dci_nops = 0;
+            for (bit, val) in diff.bits {
+                assert!(val);
+                freeze_dci_nops |= 1 << bit.bit.to_idx();
+            }
+            ctx.insert_devdata_u32(devdata::FREEZE_DCI_NOPS, freeze_dci_nops);
         }
-        ctx.collect_bit_bi_legacy(tile, bel, "GATE_GHIGH", "NO", "YES");
-    }
-    if edev.chip.kind.is_spartan3ea() {
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "TEMPSENSOR",
-            &["NONE", "PGATE", "CGATE", "BG", "THERM"],
-        );
-    }
-    if edev.chip.kind.is_spartan3a() {
-        ctx.collect_enum_legacy(tile, bel, "CCLK2PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "MOSI2PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-    } else if edev.chip.kind != ChipKind::Spartan3E && edev.chip.kind != ChipKind::FpgaCore {
-        ctx.collect_enum_legacy(tile, bel, "M0PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "M1PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "M2PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-    }
-    if edev.chip.kind.is_virtex2() {
-        let diff = ctx.get_diff_legacy(tile, bel, "FREEZE_DCI", "1");
-        let diff = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(4)]));
-        let mut freeze_dci_nops = 0;
-        for (bit, val) in diff.bits {
-            assert!(val);
-            freeze_dci_nops |= 1 << bit.bit.to_idx();
-        }
-        ctx.insert_device_data("FREEZE_DCI_NOPS", freeze_dci_nops);
     }
 
-    // UL
-    let tile = cnr_nw;
-    let bel = "MISC";
-    if edev.chip.kind != ChipKind::FpgaCore {
-        ctx.collect_enum_legacy(tile, bel, "PROGPIN", &["PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "TDIPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-    }
-    if edev.chip.kind.is_spartan3a() {
-        ctx.collect_enum_legacy(tile, bel, "TMSPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-    }
-    if !edev.chip.kind.is_spartan3ea() && edev.chip.kind != ChipKind::FpgaCore {
-        ctx.collect_enum_legacy(tile, bel, "HSWAPENPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-    }
-    ctx.collect_bit_bi_legacy(tile, bel, "TEST_LL", "NO", "YES");
-
-    ctx.get_diff_legacy(tile, "PMV", "PRESENT", "1")
-        .assert_empty();
-    if edev.chip.kind.is_spartan3a() {
-        ctx.get_diff_legacy(tile, "DNA_PORT", "PRESENT", "1")
-            .assert_empty();
+    {
+        // UL
+        let tcid = cnr_nw;
+        let bslot = bslots::MISC_NW;
+        if edev.chip.kind != ChipKind::FpgaCore {
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_NW::PROG_PULL, vals_pullup);
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_NW::TDI_PULL, vals_pull);
+        }
+        if edev.chip.kind.is_spartan3a() {
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_NW::TMS_PULL, vals_pull);
+        }
+        if !edev.chip.kind.is_spartan3ea() && edev.chip.kind != ChipKind::FpgaCore {
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_NW::HSWAPEN_PULL, vals_pull);
+        }
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_NW::TEST_LL);
     }
 
     // LR
-    let tile = cnr_se;
-    let tcid = edev.db.get_tile_class(tile);
-    let bel = "MISC";
-    if edev.chip.kind != ChipKind::FpgaCore {
-        ctx.collect_enum_legacy(tile, bel, "DONEPIN", &["PULLUP", "PULLNONE"]);
-    }
-    if !edev.chip.kind.is_spartan3a() && edev.chip.kind != ChipKind::FpgaCore {
-        ctx.collect_enum_legacy(tile, bel, "CCLKPIN", &["PULLUP", "PULLNONE"]);
-    }
-    if edev.chip.kind.is_virtex2() {
-        ctx.collect_enum_legacy(tile, bel, "POWERDOWNPIN", &["PULLUP", "PULLNONE"]);
-    }
-    if edev.chip.kind == ChipKind::FpgaCore {
-        let mut items = vec![];
-        for attr in ["ABUFF0", "ABUFF1", "ABUFF2", "ABUFF3"] {
-            items.push(ctx.extract_bit_bi_legacy(tile, bel, attr, "0", "1"));
+    let tcid = cnr_se;
+    {
+        let bslot = bslots::MISC_SE;
+        if edev.chip.kind != ChipKind::FpgaCore {
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_SE::DONE_PULL, vals_pullup);
         }
-        ctx.insert(tile, bel, "ABUFF", concat_bitvec_legacy(items));
+        if !edev.chip.kind.is_spartan3a() && edev.chip.kind != ChipKind::FpgaCore {
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_SE::CCLK_PULL, vals_pullup);
+        }
+        if edev.chip.kind.is_virtex2() {
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_SE::POWERDOWN_PULL, vals_pullup);
+        }
+        if edev.chip.kind == ChipKind::FpgaCore {
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_SE::ABUFF);
+        }
     }
-    let bel = "STARTUP";
-    let bslot = bslots::STARTUP;
-    ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-        .assert_empty();
-    let item = ctx.extract_bit_bi_legacy(int_tile, bel, "CLKINV", "CLK", "CLK_B");
-    ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "CLK", item.as_bit());
-    let item = if edev.chip.kind.is_virtex2() {
-        // caution: invert
-        ctx.extract_bit_bi_legacy(int_tile, bel, "GTSINV", "GTS_B", "GTS")
-    } else {
-        ctx.extract_bit_bi_legacy(int_tile, bel, "GTSINV", "GTS", "GTS_B")
-    };
-    ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "GTS", item.as_bit());
-    let item = ctx.extract_bit_bi_legacy(int_tile, bel, "GSRINV", "GSR", "GSR_B");
-    ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "GSR", item.as_bit());
-    let diff0_gts = ctx.get_diff_legacy(tile, bel, "GTSINV", "GTS");
-    let diff1_gts = ctx.get_diff_legacy(tile, bel, "GTSINV", "GTS_B");
-    assert_eq!(diff0_gts, diff1_gts);
-    let diff0_gsr = ctx.get_diff_legacy(tile, bel, "GSRINV", "GSR");
-    let diff1_gsr = ctx.get_diff_legacy(tile, bel, "GSRINV", "GSR_B");
-    assert_eq!(diff0_gsr, diff1_gsr);
-    assert_eq!(diff0_gts, diff0_gsr);
-    ctx.insert(tile, bel, "GTS_GSR_ENABLE", xlat_bit_legacy(diff0_gsr));
-    ctx.collect_bit_bi_legacy(tile, bel, "GTS_SYNC", "NO", "YES");
-    ctx.collect_bit_bi_legacy(tile, bel, "GSR_SYNC", "NO", "YES");
-    if edev.chip.kind.is_virtex2() {
-        ctx.collect_bit_bi_legacy(tile, bel, "GWE_SYNC", "NO", "YES");
+    {
+        let bslot = bslots::STARTUP;
+        for pin in [bcls::STARTUP::CLK, bcls::STARTUP::GTS, bcls::STARTUP::GSR] {
+            let item = xlat_bit_bi(
+                ctx.get_diff_bel_input_inv(int_tcid, bslot, pin, false),
+                ctx.get_diff_bel_input_inv(int_tcid, bslot, pin, true),
+            );
+            ctx.insert_bel_input_inv_int(int_tiles, tcid, bslot, pin, item);
+        }
+        let diff0_gts = ctx.get_diff_bel_input_inv(tcid, bslot, bcls::STARTUP::GTS, false);
+        let diff1_gts = ctx.get_diff_bel_input_inv(tcid, bslot, bcls::STARTUP::GTS, true);
+        assert_eq!(diff0_gts, diff1_gts);
+        let diff0_gsr = ctx.get_diff_bel_input_inv(tcid, bslot, bcls::STARTUP::GSR, false);
+        let diff1_gsr = ctx.get_diff_bel_input_inv(tcid, bslot, bcls::STARTUP::GSR, true);
+        assert_eq!(diff0_gsr, diff1_gsr);
+        assert_eq!(diff0_gts, diff0_gsr);
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            bcls::STARTUP::USER_GTS_GSR_ENABLE,
+            xlat_bit(diff0_gsr),
+        );
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::STARTUP::GTS_SYNC);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::STARTUP::GSR_SYNC);
+        if edev.chip.kind.is_virtex2() {
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::STARTUP::GWE_SYNC);
+        }
     }
-    let bel = "CAPTURE";
-    let bslot = bslots::CAPTURE;
-    ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-        .assert_empty();
-    let item = ctx.extract_bit_bi_legacy(int_tile, bel, "CLKINV", "CLK", "CLK_B");
-    ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "CLK", item.as_bit());
-    let item = ctx.extract_bit_bi_legacy(int_tile, bel, "CAPINV", "CAP", "CAP_B");
-    ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "CAP", item.as_bit());
-    let bel = "ICAP";
-    let bslot = bslots::ICAP;
+    {
+        let bslot = bslots::CAPTURE;
+        for pin in [bcls::CAPTURE::CLK, bcls::CAPTURE::CAP] {
+            let item = xlat_bit_bi(
+                ctx.get_diff_bel_input_inv(int_tcid, bslot, pin, false),
+                ctx.get_diff_bel_input_inv(int_tcid, bslot, pin, true),
+            );
+            ctx.insert_bel_input_inv_int(int_tiles, tcid, bslot, pin, item);
+        }
+    }
     if edev.chip.kind != ChipKind::Spartan3E {
-        let item = ctx.extract_bit_bi_legacy(int_tile, bel, "CLKINV", "CLK", "CLK_B");
-        ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "CLK", item.as_bit());
-        // caution: inverted
-        let item = ctx.extract_bit_bi_legacy(int_tile, bel, "CEINV", "CE_B", "CE");
-        ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "CE", item.as_bit());
-        // caution: inverted
-        let item = ctx.extract_bit_bi_legacy(int_tile, bel, "WRITEINV", "WRITE_B", "WRITE");
-        ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "WRITE", item.as_bit());
+        let bslot = bslots::ICAP;
+        for pin in [bcls::ICAP::CLK, bcls::ICAP::CE, bcls::ICAP::WRITE] {
+            let item = xlat_bit_bi(
+                ctx.get_diff_bel_input_inv(int_tcid, bslot, pin, false),
+                ctx.get_diff_bel_input_inv(int_tcid, bslot, pin, true),
+            );
+            ctx.insert_bel_input_inv_int(int_tiles, tcid, bslot, pin, item);
+        }
         if !edev.chip.kind.is_spartan3a() {
-            ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
+            ctx.collect_bel_attr(tcid, bslot, bcls::ICAP::ENABLE);
         }
     }
     if edev.chip.kind.is_spartan3a() {
-        let bel = "SPI_ACCESS";
         let bslot = bslots::SPI_ACCESS;
-        ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-        let mut diff = ctx.get_diff_legacy(int_tile, bel, "ENABLE", "1");
-        diff.discard_bits(&[ctx.item_int_inv_legacy(int_tiles, tcid, bslot, "MOSI").bit]);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SPI_ACCESS::ENABLE);
+        let mut diff = ctx.get_diff_attr_bit(int_tcid, bslot, bcls::SPI_ACCESS::ENABLE, 0);
+        diff.discard_bits(&[ctx
+            .item_int_inv(int_tiles, tcid, bslot, bcls::SPI_ACCESS::MOSI)
+            .bit]);
         diff.assert_empty();
     }
 
     // UR
-    let tile = cnr_ne;
-    let bel = "MISC";
-    if edev.chip.kind != ChipKind::FpgaCore {
-        ctx.collect_enum_legacy(tile, bel, "TCKPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "TDOPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        if !edev.chip.kind.is_spartan3a() {
-            ctx.collect_enum_legacy(tile, bel, "TMSPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        } else {
-            ctx.collect_enum_legacy(tile, bel, "MISO2PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-            ctx.collect_enum_legacy(tile, bel, "CSO2PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
+    let tcid = cnr_ne;
+    {
+        let bslot = bslots::MISC_NE;
+        if edev.chip.kind != ChipKind::FpgaCore {
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_NE::TCK_PULL, vals_pull);
+            ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_NE::TDO_PULL, vals_pull);
+            if !edev.chip.kind.is_spartan3a() {
+                ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_NE::TMS_PULL, vals_pull);
+            } else {
+                ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_NE::MISO2_PULL, vals_pull);
+                ctx.collect_bel_attr_subset(tcid, bslot, bcls::MISC_NE::CSO2_PULL, vals_pull);
+            }
+        }
+        if edev.chip.kind.is_virtex2() {
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISC_NE::TEST_LL);
         }
     }
-    if edev.chip.kind.is_virtex2() {
-        ctx.collect_bit_bi_legacy(tile, bel, "TEST_LL", "NO", "YES");
+    {
+        let bslot = bslots::BSCAN;
+        ctx.collect_bel_attr(tcid, bslot, bcls::BSCAN::USERCODE);
+        let diff = ctx.get_diff_attr_bit(tcid, bslot, bcls::BSCAN::USER_TDO_ENABLE, 0);
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::BSCAN::USER_TDO_ENABLE,
+            xlat_bit_wide(diff),
+        );
     }
-    let bel = "BSCAN";
-    ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-        .assert_empty();
-    ctx.collect_bitvec_legacy(tile, bel, "USERID", "");
-    let diff = ctx.get_diff_legacy(tile, bel, "TDO1", "1");
-    assert_eq!(diff, ctx.get_diff_legacy(tile, bel, "TDO2", "1"));
-    let mut bits: Vec<_> = diff.bits.into_iter().collect();
-    bits.sort();
-    ctx.insert(
-        tile,
-        bel,
-        "TDO_ENABLE",
-        xlat_bitvec_legacy(
-            bits.into_iter()
-                .map(|(k, v)| Diff {
-                    bits: [(k, v)].into_iter().collect(),
-                })
-                .collect(),
-        ),
-    );
 
     if edev.chip.kind.is_virtex2p() {
-        let bel = "JTAGPPC";
-        let diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-        ctx.insert(tile, bel, "ENABLE", xlat_bit_legacy(diff));
+        let bslot = bslots::JTAGPPC;
+        ctx.collect_bel_attr(tcid, bslot, bcls::JTAGPPC::ENABLE);
     }
 
     if edev.chip.kind == ChipKind::FpgaCore {
-        for tile in ["CNR_SW_FC", "CNR_NW_FC", "CNR_SE_FC", "CNR_NE_FC"] {
-            let bel = "MISC";
-            ctx.collect_bit_legacy(tile, bel, "MISR_CLOCK", "GCLK0");
-            ctx.collect_bit_bi_legacy(tile, bel, "MISR_RESET", "NO", "YES");
+        for tcid in [
+            tcls_s3::CNR_SW_FC,
+            tcls_s3::CNR_NW_FC,
+            tcls_s3::CNR_SE_FC,
+            tcls_s3::CNR_NE_FC,
+        ] {
+            let bslot = bslots::MISR_FC;
+            ctx.collect_bel_attr(tcid, bslot, bcls::MISR_FC::MISR_CLOCK);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::MISR_FC::MISR_RESET);
         }
         // could be verified, but meh; they just route given GCLK to CLK3 of every corner tile.
-        ctx.get_diff_legacy("INT_CLB_FC", "MISC", "MISR_CLOCK", "GCLK0");
-        ctx.get_diff_legacy("HCLK", "MISC", "MISR_CLOCK", "GCLK0");
-        ctx.get_diff_legacy("CLKQC_S3", "MISC", "MISR_CLOCK", "GCLK0");
+        ctx.get_diff_bel_special(
+            tcls_s3::INT_CLB_FC,
+            bslots::MISR_FC,
+            specials::MISR_CLOCK_GCLK0,
+        );
+        ctx.get_diff_bel_special(tcls_s3::HCLK, bslots::HCLK, specials::MISR_CLOCK_GCLK0);
+        ctx.get_diff_bel_special(tcls_s3::CLKQC_S3, bslots::HROW, specials::MISR_CLOCK_GCLK0);
     }
 
     // I/O bank misc control
     if !skip_io && edev.chip.kind != ChipKind::FpgaCore {
         if !edev.chip.kind.is_spartan3ea() {
-            for (tile, bel) in [
-                (cnr_nw, "DCI[0]"),
-                (cnr_nw, "DCI[1]"),
-                (cnr_ne, "DCI[1]"),
-                (cnr_ne, "DCI[0]"),
-                (cnr_se, "DCI[0]"),
-                (cnr_se, "DCI[1]"),
-                (cnr_sw, "DCI[1]"),
-                (cnr_sw, "DCI[0]"),
+            let lvdsbias = if edev.chip.kind.is_virtex2() {
+                bcls::DCI::V2_LVDSBIAS
+            } else {
+                bcls::DCI::S3_LVDSBIAS
+            };
+            for (tcid, idx) in [
+                (cnr_nw, 0),
+                (cnr_nw, 1),
+                (cnr_ne, 1),
+                (cnr_ne, 0),
+                (cnr_se, 0),
+                (cnr_se, 1),
+                (cnr_sw, 1),
+                (cnr_sw, 0),
             ] {
+                let bslot = bslots::DCI[idx];
                 // LVDS
                 let mut vals = vec![];
                 for std in get_iostds(edev, false) {
+                    let rid = iostd_to_row(edev, &std);
                     if std.diff != DiffKind::True {
                         continue;
                     }
-                    let diff = ctx.get_diff_legacy(tile, bel, "LVDSBIAS", std.name);
+                    let diff = ctx.get_diff_bel_attr_row(tcid, bslot, lvdsbias, rid);
                     vals.push((
-                        std.name,
+                        rid,
                         diff.filter_rects(&if edev.chip.kind.is_virtex2() {
                             EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)])
                         } else {
@@ -1739,209 +1893,224 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         }),
                     ));
                 }
-                vals.push(("OFF", Diff::default()));
-                let prefix = match edev.chip.kind {
-                    ChipKind::Virtex2 => "IOSTD:V2:LVDSBIAS",
-                    ChipKind::Virtex2P | ChipKind::Virtex2PX => "IOSTD:V2P:LVDSBIAS",
-                    ChipKind::Spartan3 => "IOSTD:S3:LVDSBIAS",
+                vals.push((IOB_DATA::OFF, Diff::default()));
+                let field = match edev.chip.kind {
+                    ChipKind::Virtex2 => IOB_DATA::V2_LVDSBIAS,
+                    ChipKind::Virtex2P | ChipKind::Virtex2PX => IOB_DATA::V2P_LVDSBIAS,
+                    ChipKind::Spartan3 => IOB_DATA::S3_LVDSBIAS,
                     _ => unreachable!(),
                 };
 
-                let item = if edev.chip.kind == ChipKind::Spartan3 {
-                    xlat_bitvec_legacy(
-                        (0..13)
-                            .rev()
-                            .map(|i| {
-                                ctx.get_diff_legacy(tile, bel, format!("LVDSBIAS_OPT{i}"), "1")
-                            })
-                            .collect(),
-                    )
+                if edev.chip.kind == ChipKind::Spartan3 {
+                    ctx.collect_bel_attr(tcid, bslot, lvdsbias);
                 } else {
-                    TileItem::from_bitvec_inv(
-                        match bel {
-                            "DCI[0]" => vec![
-                                TileBit::new(0, 3, 48),
-                                TileBit::new(0, 2, 48),
-                                TileBit::new(0, 3, 47),
-                                TileBit::new(0, 2, 47),
-                                TileBit::new(0, 3, 46),
-                                TileBit::new(0, 2, 46),
-                                TileBit::new(0, 3, 45),
-                                TileBit::new(0, 2, 45),
-                                TileBit::new(0, 3, 44),
+                    ctx.insert_bel_attr_bitvec(
+                        tcid,
+                        bslot,
+                        lvdsbias,
+                        match idx {
+                            0 => vec![
+                                TileBit::new(0, 3, 48).pos(),
+                                TileBit::new(0, 2, 48).pos(),
+                                TileBit::new(0, 3, 47).pos(),
+                                TileBit::new(0, 2, 47).pos(),
+                                TileBit::new(0, 3, 46).pos(),
+                                TileBit::new(0, 2, 46).pos(),
+                                TileBit::new(0, 3, 45).pos(),
+                                TileBit::new(0, 2, 45).pos(),
+                                TileBit::new(0, 3, 44).pos(),
                             ],
-                            "DCI[1]" => vec![
-                                TileBit::new(1, 12, 8),
-                                TileBit::new(1, 12, 6),
-                                TileBit::new(1, 12, 7),
-                                TileBit::new(1, 12, 10),
-                                TileBit::new(1, 12, 11),
-                                TileBit::new(1, 12, 9),
-                                TileBit::new(1, 13, 9),
-                                TileBit::new(1, 13, 11),
-                                TileBit::new(1, 13, 7),
+                            1 => vec![
+                                TileBit::new(1, 12, 8).pos(),
+                                TileBit::new(1, 12, 6).pos(),
+                                TileBit::new(1, 12, 7).pos(),
+                                TileBit::new(1, 12, 10).pos(),
+                                TileBit::new(1, 12, 11).pos(),
+                                TileBit::new(1, 12, 9).pos(),
+                                TileBit::new(1, 13, 9).pos(),
+                                TileBit::new(1, 13, 11).pos(),
+                                TileBit::new(1, 13, 7).pos(),
                             ],
                             _ => unreachable!(),
                         },
-                        false,
-                    )
-                };
-                let base = BitVec::repeat(false, item.bits.len());
-                for (name, diff) in vals {
-                    let val = extract_bitvec_val_legacy(&item, &base, diff);
-                    ctx.insert_misc_data(format!("{prefix}:{name}"), val)
+                    );
                 }
-                ctx.insert(tile, bel, "LVDSBIAS", item);
+                let item = ctx.bel_attr_bitvec(tcid, bslot, lvdsbias).to_vec();
+                let base = BitVec::repeat(false, item.len());
+                for (rid, diff) in vals {
+                    let val = extract_bitvec_val(&item, &base, diff);
+                    ctx.insert_table_bitvec(IOB_DATA, rid, field, val);
+                }
 
                 // DCI
-                let diff_fdh = !ctx.get_diff_legacy(tile, bel, "FORCE_DONE_HIGH", "#OFF");
+                let diff_fdh =
+                    !ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::DCI::FORCE_DONE_HIGH, false);
                 if edev.chip.kind.is_virtex2() {
-                    let diff = ctx.get_diff_legacy(tile, bel, "DCI_OUT", "1").filter_rects(
-                        &EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)]),
-                    );
-                    let diff_p = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-                    let diff_t = ctx.get_diff_legacy(tile, bel, "PRESENT", "TEST");
+                    let diff = ctx
+                        .get_diff_bel_special(tcid, bslot, specials::DCI_OUT)
+                        .filter_rects(&EntityVec::from_iter([
+                            BitRectId::from_idx(0),
+                            BitRectId::from_idx(1),
+                        ]));
+                    let diff_p = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
+                    let diff_t = ctx.get_diff_bel_special(tcid, bslot, specials::DCI_TEST);
                     assert_eq!(diff_p, diff.combine(&diff_fdh));
-                    ctx.insert(tile, bel, "ENABLE", xlat_bit_legacy(diff));
+                    ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCI::ENABLE, xlat_bit(diff));
                     let diff_t = diff_t.combine(&!diff_p);
-                    ctx.insert(tile, bel, "TEST_ENABLE", xlat_bit_legacy(diff_t));
+                    ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCI::TEST_ENABLE, xlat_bit(diff_t));
                 } else {
                     let diff_ar = ctx
-                        .get_diff_legacy(tile, bel, "DCI_OUT", "ASREQUIRED")
+                        .get_diff_bel_special(tcid, bslot, specials::DCI_ASREQUIRED)
                         .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                     let diff_c = ctx
-                        .get_diff_legacy(tile, bel, "DCI_OUT", "CONTINUOUS")
+                        .get_diff_bel_special(tcid, bslot, specials::DCI_CONTINUOUS)
                         .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                     let diff_q = ctx
-                        .get_diff_legacy(tile, bel, "DCI_OUT", "QUIET")
+                        .get_diff_bel_special(tcid, bslot, specials::DCI_QUIET)
                         .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
-                    let diff_p = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
+                    let diff_p = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
                     assert_eq!(diff_c, diff_ar);
                     let diff_q = diff_q.combine(&!&diff_c);
                     let diff_p = diff_p.combine(&!&diff_c).combine(&!&diff_fdh);
-                    ctx.insert(tile, bel, "ENABLE", xlat_bit_legacy(diff_c));
-                    ctx.insert(tile, bel, "QUIET", xlat_bit_legacy(diff_q));
-                    ctx.insert(tile, bel, "TEST_ENABLE", xlat_bit_legacy(diff_p));
+                    ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCI::ENABLE, xlat_bit(diff_c));
+                    ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCI::QUIET, xlat_bit(diff_q));
+                    ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCI::TEST_ENABLE, xlat_bit(diff_p));
                 }
-                ctx.insert(tile, bel, "FORCE_DONE_HIGH", xlat_bit_legacy(diff_fdh));
+                ctx.insert_bel_attr_bool(
+                    tcid,
+                    bslot,
+                    bcls::DCI::FORCE_DONE_HIGH,
+                    xlat_bit(diff_fdh),
+                );
 
                 // DCI TERM stuff
                 let (pmask_term_vcc, pmask_term_split, nmask_term_split) =
                     if edev.chip.kind == ChipKind::Spartan3 {
-                        let frame = if tile == cnr_sw {
-                            match bel {
-                                "DCI[0]" => 1,
-                                "DCI[1]" => 0,
+                        let frame = if tcid == cnr_sw {
+                            match idx {
+                                0 => 1,
+                                1 => 0,
                                 _ => unreachable!(),
                             }
                         } else {
-                            match bel {
-                                "DCI[0]" => 0,
-                                "DCI[1]" => 1,
+                            match idx {
+                                0 => 0,
+                                1 => 1,
                                 _ => unreachable!(),
                             }
                         };
                         (
-                            TileItem::from_bitvec_inv(
-                                vec![
-                                    TileBit::new(0, frame, 51),
-                                    TileBit::new(0, frame, 52),
-                                    TileBit::new(0, frame, 53),
-                                    TileBit::new(0, frame, 54),
-                                ],
-                                false,
-                            ),
-                            TileItem::from_bitvec_inv(
-                                vec![
-                                    TileBit::new(0, frame, 56),
-                                    TileBit::new(0, frame, 57),
-                                    TileBit::new(0, frame, 58),
-                                    TileBit::new(0, frame, 59),
-                                ],
-                                false,
-                            ),
-                            TileItem::from_bitvec_inv(
-                                vec![
-                                    TileBit::new(0, frame, 46),
-                                    TileBit::new(0, frame, 47),
-                                    TileBit::new(0, frame, 48),
-                                    TileBit::new(0, frame, 49),
-                                ],
-                                false,
-                            ),
+                            vec![
+                                TileBit::new(0, frame, 51).pos(),
+                                TileBit::new(0, frame, 52).pos(),
+                                TileBit::new(0, frame, 53).pos(),
+                                TileBit::new(0, frame, 54).pos(),
+                            ],
+                            vec![
+                                TileBit::new(0, frame, 56).pos(),
+                                TileBit::new(0, frame, 57).pos(),
+                                TileBit::new(0, frame, 58).pos(),
+                                TileBit::new(0, frame, 59).pos(),
+                            ],
+                            vec![
+                                TileBit::new(0, frame, 46).pos(),
+                                TileBit::new(0, frame, 47).pos(),
+                                TileBit::new(0, frame, 48).pos(),
+                                TileBit::new(0, frame, 49).pos(),
+                            ],
                         )
                     } else {
                         (
-                            TileItem::from_bitvec_inv(
-                                match bel {
-                                    "DCI[0]" => vec![
-                                        TileBit::new(0, 3, 36),
-                                        TileBit::new(0, 2, 36),
-                                        TileBit::new(0, 3, 35),
-                                        TileBit::new(0, 2, 35),
-                                        TileBit::new(0, 3, 34),
-                                    ],
-                                    "DCI[1]" => vec![
-                                        TileBit::new(1, 8, 8),
-                                        TileBit::new(1, 8, 6),
-                                        TileBit::new(1, 8, 7),
-                                        TileBit::new(1, 8, 11),
-                                        TileBit::new(1, 8, 10),
-                                    ],
-                                    _ => unreachable!(),
-                                },
-                                false,
-                            ),
-                            TileItem::from_bitvec_inv(
-                                match bel {
-                                    "DCI[0]" => vec![
-                                        TileBit::new(0, 2, 34),
-                                        TileBit::new(0, 3, 33),
-                                        TileBit::new(0, 2, 33),
-                                        TileBit::new(0, 3, 32),
-                                        TileBit::new(0, 2, 32),
-                                    ],
-                                    "DCI[1]" => vec![
-                                        TileBit::new(1, 8, 9),
-                                        TileBit::new(1, 9, 9),
-                                        TileBit::new(1, 9, 11),
-                                        TileBit::new(1, 9, 7),
-                                        TileBit::new(1, 9, 10),
-                                    ],
-                                    _ => unreachable!(),
-                                },
-                                false,
-                            ),
-                            TileItem::from_bitvec_inv(
-                                match bel {
-                                    "DCI[0]" => vec![
-                                        TileBit::new(0, 2, 39),
-                                        TileBit::new(0, 3, 38),
-                                        TileBit::new(0, 2, 38),
-                                        TileBit::new(0, 3, 37),
-                                        TileBit::new(0, 2, 37),
-                                    ],
-                                    "DCI[1]" => vec![
-                                        TileBit::new(1, 11, 11),
-                                        TileBit::new(1, 11, 7),
-                                        TileBit::new(1, 11, 10),
-                                        TileBit::new(1, 11, 8),
-                                        TileBit::new(1, 11, 6),
-                                    ],
-                                    _ => unreachable!(),
-                                },
-                                false,
-                            ),
+                            match idx {
+                                0 => vec![
+                                    TileBit::new(0, 3, 36).pos(),
+                                    TileBit::new(0, 2, 36).pos(),
+                                    TileBit::new(0, 3, 35).pos(),
+                                    TileBit::new(0, 2, 35).pos(),
+                                    TileBit::new(0, 3, 34).pos(),
+                                ],
+                                1 => vec![
+                                    TileBit::new(1, 8, 8).pos(),
+                                    TileBit::new(1, 8, 6).pos(),
+                                    TileBit::new(1, 8, 7).pos(),
+                                    TileBit::new(1, 8, 11).pos(),
+                                    TileBit::new(1, 8, 10).pos(),
+                                ],
+                                _ => unreachable!(),
+                            },
+                            match idx {
+                                0 => vec![
+                                    TileBit::new(0, 2, 34).pos(),
+                                    TileBit::new(0, 3, 33).pos(),
+                                    TileBit::new(0, 2, 33).pos(),
+                                    TileBit::new(0, 3, 32).pos(),
+                                    TileBit::new(0, 2, 32).pos(),
+                                ],
+                                1 => vec![
+                                    TileBit::new(1, 8, 9).pos(),
+                                    TileBit::new(1, 9, 9).pos(),
+                                    TileBit::new(1, 9, 11).pos(),
+                                    TileBit::new(1, 9, 7).pos(),
+                                    TileBit::new(1, 9, 10).pos(),
+                                ],
+                                _ => unreachable!(),
+                            },
+                            match idx {
+                                0 => vec![
+                                    TileBit::new(0, 2, 39).pos(),
+                                    TileBit::new(0, 3, 38).pos(),
+                                    TileBit::new(0, 2, 38).pos(),
+                                    TileBit::new(0, 3, 37).pos(),
+                                    TileBit::new(0, 2, 37).pos(),
+                                ],
+                                1 => vec![
+                                    TileBit::new(1, 11, 11).pos(),
+                                    TileBit::new(1, 11, 7).pos(),
+                                    TileBit::new(1, 11, 10).pos(),
+                                    TileBit::new(1, 11, 8).pos(),
+                                    TileBit::new(1, 11, 6).pos(),
+                                ],
+                                _ => unreachable!(),
+                            },
                         )
                     };
-                let item_en = ctx.item(tile, bel, "ENABLE").clone();
-                let prefix = match edev.chip.kind {
-                    ChipKind::Virtex2 => "IOSTD:V2",
-                    ChipKind::Virtex2P | ChipKind::Virtex2PX => "IOSTD:V2P",
-                    ChipKind::Spartan3 => "IOSTD:S3",
+                let item_en = ctx.bel_attr_bit(tcid, bslot, bcls::DCI::ENABLE);
+                let (
+                    attr_pmask_term_vcc,
+                    attr_pmask_term_split,
+                    attr_nmask_term_split,
+                    field_pmask_term_vcc,
+                    field_pmask_term_split,
+                    field_nmask_term_split,
+                ) = match edev.chip.kind {
+                    ChipKind::Virtex2 => (
+                        bcls::DCI::V2_PMASK_TERM_VCC,
+                        bcls::DCI::V2_PMASK_TERM_SPLIT,
+                        bcls::DCI::V2_NMASK_TERM_SPLIT,
+                        IOB_DATA::V2_PMASK_TERM_VCC,
+                        IOB_DATA::V2_PMASK_TERM_SPLIT,
+                        IOB_DATA::V2_NMASK_TERM_SPLIT,
+                    ),
+                    ChipKind::Virtex2P | ChipKind::Virtex2PX => (
+                        bcls::DCI::V2_PMASK_TERM_VCC,
+                        bcls::DCI::V2_PMASK_TERM_SPLIT,
+                        bcls::DCI::V2_NMASK_TERM_SPLIT,
+                        IOB_DATA::V2P_PMASK_TERM_VCC,
+                        IOB_DATA::V2P_PMASK_TERM_SPLIT,
+                        IOB_DATA::V2P_NMASK_TERM_SPLIT,
+                    ),
+                    ChipKind::Spartan3 => (
+                        bcls::DCI::S3_PMASK_TERM_VCC,
+                        bcls::DCI::S3_PMASK_TERM_SPLIT,
+                        bcls::DCI::S3_NMASK_TERM_SPLIT,
+                        IOB_DATA::S3_PMASK_TERM_VCC,
+                        IOB_DATA::S3_PMASK_TERM_SPLIT,
+                        IOB_DATA::S3_NMASK_TERM_SPLIT,
+                    ),
                     _ => unreachable!(),
                 };
                 for std in get_iostds(edev, false) {
+                    let rid = iostd_to_row(edev, &std);
                     if std.name.starts_with("DIFF_") {
                         continue;
                     }
@@ -1949,7 +2118,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         DciKind::None | DciKind::Output | DciKind::OutputHalf => (),
                         DciKind::InputVcc | DciKind::BiVcc => {
                             let mut diff = ctx
-                                .get_diff_legacy(tile, bel, "DCI_TERM", std.name)
+                                .get_diff_bel_special_row(tcid, bslot, specials::DCI_TERM, rid)
                                 .filter_rects(&if edev.chip.kind.is_virtex2() {
                                     EntityVec::from_iter([
                                         BitRectId::from_idx(0),
@@ -1958,37 +2127,32 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                                 } else {
                                     EntityVec::from_iter([BitRectId::from_idx(0)])
                                 });
-                            diff.apply_bit_diff_legacy(&item_en, true, false);
-                            let val = extract_bitvec_val_part_legacy(
+                            diff.apply_bit_diff(item_en, true, false);
+                            let val = extract_bitvec_val_part(
                                 &pmask_term_vcc,
-                                &BitVec::repeat(false, pmask_term_vcc.bits.len()),
+                                &BitVec::repeat(false, pmask_term_vcc.len()),
                                 &mut diff,
                             );
-                            ctx.insert_misc_data(
-                                format!("{prefix}:PMASK_TERM_VCC:{stdname}", stdname = std.name),
-                                val,
-                            );
+                            ctx.insert_table_bitvec(IOB_DATA, rid, field_pmask_term_vcc, val);
                             diff.assert_empty();
                         }
                         DciKind::InputSplit | DciKind::BiSplit => {
                             if std.diff == DiffKind::True {
-                                ctx.insert_misc_data(
-                                    format!(
-                                        "{prefix}:PMASK_TERM_SPLIT:{stdname}",
-                                        stdname = std.name
-                                    ),
-                                    BitVec::repeat(false, pmask_term_split.bits.len()),
+                                ctx.insert_table_bitvec(
+                                    IOB_DATA,
+                                    rid,
+                                    field_pmask_term_split,
+                                    BitVec::repeat(false, pmask_term_split.len()),
                                 );
-                                ctx.insert_misc_data(
-                                    format!(
-                                        "{prefix}:NMASK_TERM_SPLIT:{stdname}",
-                                        stdname = std.name
-                                    ),
-                                    BitVec::repeat(false, nmask_term_split.bits.len()),
+                                ctx.insert_table_bitvec(
+                                    IOB_DATA,
+                                    rid,
+                                    field_nmask_term_split,
+                                    BitVec::repeat(false, nmask_term_split.len()),
                                 );
                             } else {
                                 let mut diff = ctx
-                                    .get_diff_legacy(tile, bel, "DCI_TERM", std.name)
+                                    .get_diff_bel_special_row(tcid, bslot, specials::DCI_TERM, rid)
                                     .filter_rects(&if edev.chip.kind.is_virtex2() {
                                         EntityVec::from_iter([
                                             BitRectId::from_idx(0),
@@ -1997,73 +2161,68 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                                     } else {
                                         EntityVec::from_iter([BitRectId::from_idx(0)])
                                     });
-                                diff.apply_bit_diff_legacy(&item_en, true, false);
-                                let val = extract_bitvec_val_part_legacy(
+                                diff.apply_bit_diff(item_en, true, false);
+                                let val = extract_bitvec_val_part(
                                     &pmask_term_split,
-                                    &BitVec::repeat(false, pmask_term_split.bits.len()),
+                                    &BitVec::repeat(false, pmask_term_split.len()),
                                     &mut diff,
                                 );
-                                ctx.insert_misc_data(
-                                    format!(
-                                        "{prefix}:PMASK_TERM_SPLIT:{stdname}",
-                                        stdname = std.name
-                                    ),
-                                    val,
-                                );
-                                let val = extract_bitvec_val_part_legacy(
+                                ctx.insert_table_bitvec(IOB_DATA, rid, field_pmask_term_split, val);
+                                let val = extract_bitvec_val_part(
                                     &nmask_term_split,
-                                    &BitVec::repeat(false, nmask_term_split.bits.len()),
+                                    &BitVec::repeat(false, nmask_term_split.len()),
                                     &mut diff,
                                 );
-                                ctx.insert_misc_data(
-                                    format!(
-                                        "{prefix}:NMASK_TERM_SPLIT:{stdname}",
-                                        stdname = std.name
-                                    ),
-                                    val,
-                                );
+                                ctx.insert_table_bitvec(IOB_DATA, rid, field_nmask_term_split, val);
                                 diff.assert_empty();
                             }
                         }
                         _ => unreachable!(),
                     }
                 }
-                ctx.insert_misc_data(
-                    format!("{prefix}:PMASK_TERM_VCC:OFF"),
-                    BitVec::repeat(false, pmask_term_vcc.bits.len()),
+                ctx.insert_table_bitvec(
+                    IOB_DATA,
+                    IOB_DATA::OFF,
+                    field_pmask_term_vcc,
+                    BitVec::repeat(false, pmask_term_vcc.len()),
                 );
-                ctx.insert_misc_data(
-                    format!("{prefix}:PMASK_TERM_SPLIT:OFF"),
-                    BitVec::repeat(false, pmask_term_split.bits.len()),
+                ctx.insert_table_bitvec(
+                    IOB_DATA,
+                    IOB_DATA::OFF,
+                    field_pmask_term_split,
+                    BitVec::repeat(false, pmask_term_split.len()),
                 );
-                ctx.insert_misc_data(
-                    format!("{prefix}:NMASK_TERM_SPLIT:OFF"),
-                    BitVec::repeat(false, nmask_term_split.bits.len()),
+                ctx.insert_table_bitvec(
+                    IOB_DATA,
+                    IOB_DATA::OFF,
+                    field_nmask_term_split,
+                    BitVec::repeat(false, nmask_term_split.len()),
                 );
 
-                ctx.insert(tile, bel, "PMASK_TERM_VCC", pmask_term_vcc);
-                ctx.insert(tile, bel, "PMASK_TERM_SPLIT", pmask_term_split);
-                ctx.insert(tile, bel, "NMASK_TERM_SPLIT", nmask_term_split);
+                ctx.insert_bel_attr_bitvec(tcid, bslot, attr_pmask_term_vcc, pmask_term_vcc);
+                ctx.insert_bel_attr_bitvec(tcid, bslot, attr_pmask_term_split, pmask_term_split);
+                ctx.insert_bel_attr_bitvec(tcid, bslot, attr_nmask_term_split, nmask_term_split);
             }
 
             if edev.chip.kind == ChipKind::Spartan3 {
-                for tile in [cnr_sw, cnr_nw, cnr_se, cnr_ne] {
-                    let item = xlat_enum_legacy(vec![
-                        ("DCI0", ctx.get_diff_legacy(tile, "DCI[0]", "SELECT", "1")),
-                        ("DCI1", ctx.get_diff_legacy(tile, "DCI[1]", "SELECT", "1")),
-                    ]);
-                    ctx.insert(tile, "MISC", "DCI_TEST_MUX", item);
+                for tcid in [cnr_sw, cnr_nw, cnr_se, cnr_ne] {
+                    let item = xlat_bit_bi(
+                        ctx.get_diff_bel_special(tcid, bslots::DCI[0], specials::DCI_SELECT),
+                        ctx.get_diff_bel_special(tcid, bslots::DCI[1], specials::DCI_SELECT),
+                    );
+                    ctx.insert_bel_attr_bool(
+                        tcid,
+                        bslots::MISC_CNR_S3,
+                        bcls::MISC_CNR_S3::MUX_DCI_TEST,
+                        item,
+                    );
                 }
             }
             if edev.chip.kind.is_virtex2p()
                 && !ctx.device.name.ends_with("2vp4")
                 && !ctx.device.name.ends_with("2vp7")
             {
-                ctx.get_diff_legacy(cnr_sw, "MISC", "DCIUPDATEMODE", "ASREQUIRED")
-                    .assert_empty();
-                ctx.get_diff_legacy(cnr_sw, "MISC", "DCIUPDATEMODE", "CONTINUOUS")
-                    .assert_empty();
-                let diff = ctx.get_diff_legacy(cnr_sw, "MISC", "DCIUPDATEMODE", "QUIET");
+                let diff = ctx.get_diff_raw(&DiffKey::GlobalSpecial(specials::DCI_QUIET));
                 let diff0 = diff.filter_rects(&EntityVec::from_iter([
                     BitRectId::from_idx(8),
                     BitRectId::from_idx(0),
@@ -2084,319 +2243,303 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 ]));
                 let diff6 = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(6)]));
                 let diff7 = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(7)]));
-                ctx.insert(cnr_nw, "DCI[1]", "QUIET", xlat_bit_legacy(diff0));
-                ctx.insert(cnr_ne, "DCI[1]", "QUIET", xlat_bit_legacy(diff1));
-                ctx.insert(cnr_ne, "DCI[0]", "QUIET", xlat_bit_legacy(diff2));
-                ctx.insert(cnr_se, "DCI[0]", "QUIET", xlat_bit_legacy(diff3));
-                ctx.insert(cnr_se, "DCI[1]", "QUIET", xlat_bit_legacy(diff4));
-                ctx.insert(cnr_sw, "DCI[1]", "QUIET", xlat_bit_legacy(diff5));
-                ctx.insert(cnr_sw, "DCI[0]", "QUIET", xlat_bit_legacy(diff6));
-                ctx.insert(cnr_nw, "DCI[0]", "QUIET", xlat_bit_legacy(diff7));
+                ctx.insert_bel_attr_bool(cnr_nw, bslots::DCI[1], bcls::DCI::QUIET, xlat_bit(diff0));
+                ctx.insert_bel_attr_bool(cnr_ne, bslots::DCI[1], bcls::DCI::QUIET, xlat_bit(diff1));
+                ctx.insert_bel_attr_bool(cnr_ne, bslots::DCI[0], bcls::DCI::QUIET, xlat_bit(diff2));
+                ctx.insert_bel_attr_bool(cnr_se, bslots::DCI[0], bcls::DCI::QUIET, xlat_bit(diff3));
+                ctx.insert_bel_attr_bool(cnr_se, bslots::DCI[1], bcls::DCI::QUIET, xlat_bit(diff4));
+                ctx.insert_bel_attr_bool(cnr_sw, bslots::DCI[1], bcls::DCI::QUIET, xlat_bit(diff5));
+                ctx.insert_bel_attr_bool(cnr_sw, bslots::DCI[0], bcls::DCI::QUIET, xlat_bit(diff6));
+                ctx.insert_bel_attr_bool(cnr_nw, bslots::DCI[0], bcls::DCI::QUIET, xlat_bit(diff7));
             }
 
-            let tile = cnr_sw;
-            let bel = "DCI[0]";
+            let tcid = cnr_sw;
+            let bslot = bslots::DCI[0];
             let mut diff = ctx
-                .get_diff_legacy(tile, bel, "DCI_OUT_ALONE", "1")
+                .get_diff_bel_special(tcid, bslot, specials::DCI_OUT_ALONE)
                 .filter_rects(&if edev.chip.kind.is_virtex2() {
                     EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)])
                 } else {
                     EntityVec::from_iter([BitRectId::from_idx(0)])
                 });
-            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+            diff.apply_bit_diff(
+                ctx.bel_attr_bit(tcid, bslot, bcls::DCI::ENABLE),
+                true,
+                false,
+            );
             if edev.chip.dci_io_alt.contains_key(&5) {
-                let bel = "DCI[1]";
+                let bslot = bslots::DCI[1];
                 let mut alt_diff = ctx
-                    .get_diff_legacy(tile, bel, "DCI_OUT_ALONE", "1")
+                    .get_diff_bel_special(tcid, bslot, specials::DCI_OUT_ALONE)
                     .filter_rects(&if edev.chip.kind.is_virtex2() {
                         EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)])
                     } else {
                         EntityVec::from_iter([BitRectId::from_idx(0)])
                     });
-                alt_diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+                alt_diff.apply_bit_diff(
+                    ctx.bel_attr_bit(tcid, bslot, bcls::DCI::ENABLE),
+                    true,
+                    false,
+                );
                 alt_diff = alt_diff.combine(&!&diff);
-                ctx.insert(tile, "MISC", "DCI_ALTVR", xlat_bit_legacy(alt_diff));
+                ctx.insert_bel_attr_bool(
+                    tcid,
+                    bslots::MISC_SW,
+                    bcls::MISC_SW::DCI_ALTVR,
+                    xlat_bit(alt_diff),
+                );
             }
             if edev.chip.kind.is_virtex2() {
-                diff.apply_bitvec_diff_legacy(
-                    ctx.item(tile, "MISC", "ZCLK_DIV2"),
+                diff.apply_bitvec_diff(
+                    ctx.bel_attr_bitvec(tcid, bslots::MISC_SW, bcls::MISC_SW::ZCLK_N_DIV2),
                     &bits![0, 0, 0, 1, 0],
                     &BitVec::repeat(false, 5),
                 );
             }
-            ctx.insert(tile, "MISC", "DCI_CLK_ENABLE", xlat_bit_legacy(diff));
+            ctx.insert_bel_attr_bool(
+                tcid,
+                bslots::MISC_SW,
+                bcls::MISC_SW::DCI_CLK_ENABLE,
+                xlat_bit(diff),
+            );
         } else {
             let banks = if edev.chip.kind == ChipKind::Spartan3E {
                 vec![
                     (
                         cnr_nw,
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 0, 44),
-                                TileBit::new(0, 0, 39),
-                                TileBit::new(0, 0, 38),
-                                TileBit::new(0, 0, 37),
-                                TileBit::new(0, 0, 36),
-                                TileBit::new(0, 0, 27),
-                                TileBit::new(0, 0, 26),
-                                TileBit::new(0, 0, 25),
-                                TileBit::new(0, 0, 24),
-                                TileBit::new(0, 0, 23),
-                                TileBit::new(0, 0, 22),
-                            ],
-                            false,
-                        ),
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 0, 45),
-                                TileBit::new(0, 0, 43),
-                                TileBit::new(0, 0, 42),
-                                TileBit::new(0, 0, 41),
-                                TileBit::new(0, 0, 40),
-                                TileBit::new(0, 0, 35),
-                                TileBit::new(0, 0, 34),
-                                TileBit::new(0, 0, 33),
-                                TileBit::new(0, 0, 32),
-                                TileBit::new(0, 0, 29),
-                                TileBit::new(0, 0, 28),
-                            ],
-                            false,
-                        ),
+                        vec![
+                            TileBit::new(0, 0, 44).pos(),
+                            TileBit::new(0, 0, 39).pos(),
+                            TileBit::new(0, 0, 38).pos(),
+                            TileBit::new(0, 0, 37).pos(),
+                            TileBit::new(0, 0, 36).pos(),
+                            TileBit::new(0, 0, 27).pos(),
+                            TileBit::new(0, 0, 26).pos(),
+                            TileBit::new(0, 0, 25).pos(),
+                            TileBit::new(0, 0, 24).pos(),
+                            TileBit::new(0, 0, 23).pos(),
+                            TileBit::new(0, 0, 22).pos(),
+                        ],
+                        vec![
+                            TileBit::new(0, 0, 45).pos(),
+                            TileBit::new(0, 0, 43).pos(),
+                            TileBit::new(0, 0, 42).pos(),
+                            TileBit::new(0, 0, 41).pos(),
+                            TileBit::new(0, 0, 40).pos(),
+                            TileBit::new(0, 0, 35).pos(),
+                            TileBit::new(0, 0, 34).pos(),
+                            TileBit::new(0, 0, 33).pos(),
+                            TileBit::new(0, 0, 32).pos(),
+                            TileBit::new(0, 0, 29).pos(),
+                            TileBit::new(0, 0, 28).pos(),
+                        ],
                     ),
                     (
                         cnr_ne,
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 1, 10),
-                                TileBit::new(0, 1, 48),
-                                TileBit::new(0, 1, 47),
-                                TileBit::new(0, 1, 46),
-                                TileBit::new(0, 1, 45),
-                                TileBit::new(0, 1, 38),
-                                TileBit::new(0, 1, 37),
-                                TileBit::new(0, 1, 36),
-                                TileBit::new(0, 1, 35),
-                                TileBit::new(0, 1, 34),
-                                TileBit::new(0, 1, 33),
-                            ],
-                            false,
-                        ),
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 1, 11),
-                                TileBit::new(0, 1, 9),
-                                TileBit::new(0, 1, 51),
-                                TileBit::new(0, 1, 50),
-                                TileBit::new(0, 1, 49),
-                                TileBit::new(0, 1, 44),
-                                TileBit::new(0, 1, 43),
-                                TileBit::new(0, 1, 42),
-                                TileBit::new(0, 1, 41),
-                                TileBit::new(0, 1, 40),
-                                TileBit::new(0, 1, 39),
-                            ],
-                            false,
-                        ),
+                        vec![
+                            TileBit::new(0, 1, 10).pos(),
+                            TileBit::new(0, 1, 48).pos(),
+                            TileBit::new(0, 1, 47).pos(),
+                            TileBit::new(0, 1, 46).pos(),
+                            TileBit::new(0, 1, 45).pos(),
+                            TileBit::new(0, 1, 38).pos(),
+                            TileBit::new(0, 1, 37).pos(),
+                            TileBit::new(0, 1, 36).pos(),
+                            TileBit::new(0, 1, 35).pos(),
+                            TileBit::new(0, 1, 34).pos(),
+                            TileBit::new(0, 1, 33).pos(),
+                        ],
+                        vec![
+                            TileBit::new(0, 1, 11).pos(),
+                            TileBit::new(0, 1, 9).pos(),
+                            TileBit::new(0, 1, 51).pos(),
+                            TileBit::new(0, 1, 50).pos(),
+                            TileBit::new(0, 1, 49).pos(),
+                            TileBit::new(0, 1, 44).pos(),
+                            TileBit::new(0, 1, 43).pos(),
+                            TileBit::new(0, 1, 42).pos(),
+                            TileBit::new(0, 1, 41).pos(),
+                            TileBit::new(0, 1, 40).pos(),
+                            TileBit::new(0, 1, 39).pos(),
+                        ],
                     ),
                     (
                         cnr_se,
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 1, 12),
-                                TileBit::new(0, 1, 7),
-                                TileBit::new(0, 1, 36),
-                                TileBit::new(0, 1, 35),
-                                TileBit::new(0, 1, 34),
-                                TileBit::new(0, 1, 27),
-                                TileBit::new(0, 1, 26),
-                                TileBit::new(0, 1, 25),
-                                TileBit::new(0, 1, 24),
-                                TileBit::new(0, 1, 23),
-                                TileBit::new(0, 1, 22),
-                            ],
-                            false,
-                        ),
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 1, 13),
-                                TileBit::new(0, 1, 11),
-                                TileBit::new(0, 1, 10),
-                                TileBit::new(0, 1, 9),
-                                TileBit::new(0, 1, 8),
-                                TileBit::new(0, 1, 33),
-                                TileBit::new(0, 1, 32),
-                                TileBit::new(0, 1, 31),
-                                TileBit::new(0, 1, 30),
-                                TileBit::new(0, 1, 29),
-                                TileBit::new(0, 1, 28),
-                            ],
-                            false,
-                        ),
+                        vec![
+                            TileBit::new(0, 1, 12).pos(),
+                            TileBit::new(0, 1, 7).pos(),
+                            TileBit::new(0, 1, 36).pos(),
+                            TileBit::new(0, 1, 35).pos(),
+                            TileBit::new(0, 1, 34).pos(),
+                            TileBit::new(0, 1, 27).pos(),
+                            TileBit::new(0, 1, 26).pos(),
+                            TileBit::new(0, 1, 25).pos(),
+                            TileBit::new(0, 1, 24).pos(),
+                            TileBit::new(0, 1, 23).pos(),
+                            TileBit::new(0, 1, 22).pos(),
+                        ],
+                        vec![
+                            TileBit::new(0, 1, 13).pos(),
+                            TileBit::new(0, 1, 11).pos(),
+                            TileBit::new(0, 1, 10).pos(),
+                            TileBit::new(0, 1, 9).pos(),
+                            TileBit::new(0, 1, 8).pos(),
+                            TileBit::new(0, 1, 33).pos(),
+                            TileBit::new(0, 1, 32).pos(),
+                            TileBit::new(0, 1, 31).pos(),
+                            TileBit::new(0, 1, 30).pos(),
+                            TileBit::new(0, 1, 29).pos(),
+                            TileBit::new(0, 1, 28).pos(),
+                        ],
                     ),
                     (
                         cnr_sw,
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 1, 31),
-                                TileBit::new(0, 1, 26),
-                                TileBit::new(0, 1, 25),
-                                TileBit::new(0, 1, 24),
-                                TileBit::new(0, 1, 23),
-                                TileBit::new(0, 1, 38),
-                                TileBit::new(0, 1, 37),
-                                TileBit::new(0, 1, 36),
-                                TileBit::new(0, 1, 35),
-                                TileBit::new(0, 1, 34),
-                                TileBit::new(0, 1, 33),
-                            ],
-                            false,
-                        ),
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 1, 32),
-                                TileBit::new(0, 1, 30),
-                                TileBit::new(0, 1, 29),
-                                TileBit::new(0, 1, 28),
-                                TileBit::new(0, 1, 27),
-                                TileBit::new(0, 1, 22),
-                                TileBit::new(0, 1, 43),
-                                TileBit::new(0, 1, 42),
-                                TileBit::new(0, 1, 41),
-                                TileBit::new(0, 1, 40),
-                                TileBit::new(0, 1, 39),
-                            ],
-                            false,
-                        ),
+                        vec![
+                            TileBit::new(0, 1, 31).pos(),
+                            TileBit::new(0, 1, 26).pos(),
+                            TileBit::new(0, 1, 25).pos(),
+                            TileBit::new(0, 1, 24).pos(),
+                            TileBit::new(0, 1, 23).pos(),
+                            TileBit::new(0, 1, 38).pos(),
+                            TileBit::new(0, 1, 37).pos(),
+                            TileBit::new(0, 1, 36).pos(),
+                            TileBit::new(0, 1, 35).pos(),
+                            TileBit::new(0, 1, 34).pos(),
+                            TileBit::new(0, 1, 33).pos(),
+                        ],
+                        vec![
+                            TileBit::new(0, 1, 32).pos(),
+                            TileBit::new(0, 1, 30).pos(),
+                            TileBit::new(0, 1, 29).pos(),
+                            TileBit::new(0, 1, 28).pos(),
+                            TileBit::new(0, 1, 27).pos(),
+                            TileBit::new(0, 1, 22).pos(),
+                            TileBit::new(0, 1, 43).pos(),
+                            TileBit::new(0, 1, 42).pos(),
+                            TileBit::new(0, 1, 41).pos(),
+                            TileBit::new(0, 1, 40).pos(),
+                            TileBit::new(0, 1, 39).pos(),
+                        ],
                     ),
                 ]
             } else {
                 vec![
                     (
                         cnr_nw,
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 1, 62),
-                                TileBit::new(0, 1, 60),
-                                TileBit::new(0, 1, 55),
-                                TileBit::new(0, 1, 54),
-                                TileBit::new(0, 1, 53),
-                                TileBit::new(0, 1, 52),
-                                TileBit::new(0, 1, 45),
-                                TileBit::new(0, 1, 44),
-                                TileBit::new(0, 1, 43),
-                                TileBit::new(0, 1, 42),
-                                TileBit::new(0, 1, 41),
-                                TileBit::new(0, 1, 40),
-                            ],
-                            false,
-                        ),
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 1, 63),
-                                TileBit::new(0, 1, 61),
-                                TileBit::new(0, 1, 59),
-                                TileBit::new(0, 1, 58),
-                                TileBit::new(0, 1, 57),
-                                TileBit::new(0, 1, 56),
-                                TileBit::new(0, 1, 51),
-                                TileBit::new(0, 1, 50),
-                                TileBit::new(0, 1, 49),
-                                TileBit::new(0, 1, 48),
-                                TileBit::new(0, 1, 47),
-                                TileBit::new(0, 1, 46),
-                            ],
-                            false,
-                        ),
+                        vec![
+                            TileBit::new(0, 1, 62).pos(),
+                            TileBit::new(0, 1, 60).pos(),
+                            TileBit::new(0, 1, 55).pos(),
+                            TileBit::new(0, 1, 54).pos(),
+                            TileBit::new(0, 1, 53).pos(),
+                            TileBit::new(0, 1, 52).pos(),
+                            TileBit::new(0, 1, 45).pos(),
+                            TileBit::new(0, 1, 44).pos(),
+                            TileBit::new(0, 1, 43).pos(),
+                            TileBit::new(0, 1, 42).pos(),
+                            TileBit::new(0, 1, 41).pos(),
+                            TileBit::new(0, 1, 40).pos(),
+                        ],
+                        vec![
+                            TileBit::new(0, 1, 63).pos(),
+                            TileBit::new(0, 1, 61).pos(),
+                            TileBit::new(0, 1, 59).pos(),
+                            TileBit::new(0, 1, 58).pos(),
+                            TileBit::new(0, 1, 57).pos(),
+                            TileBit::new(0, 1, 56).pos(),
+                            TileBit::new(0, 1, 51).pos(),
+                            TileBit::new(0, 1, 50).pos(),
+                            TileBit::new(0, 1, 49).pos(),
+                            TileBit::new(0, 1, 48).pos(),
+                            TileBit::new(0, 1, 47).pos(),
+                            TileBit::new(0, 1, 46).pos(),
+                        ],
                     ),
                     (
                         cnr_sw,
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 1, 32),
-                                TileBit::new(0, 0, 27),
-                                TileBit::new(0, 0, 31),
-                                TileBit::new(0, 1, 30),
-                                TileBit::new(0, 1, 36),
-                                TileBit::new(0, 1, 28),
-                                TileBit::new(0, 0, 10),
-                                TileBit::new(0, 1, 11),
-                                TileBit::new(0, 1, 34),
-                                TileBit::new(0, 1, 33),
-                                TileBit::new(0, 1, 10),
-                                TileBit::new(0, 0, 9),
-                            ],
-                            false,
-                        ),
-                        TileItem::from_bitvec_inv(
-                            vec![
-                                TileBit::new(0, 1, 27),
-                                TileBit::new(0, 0, 28),
-                                TileBit::new(0, 0, 26),
-                                TileBit::new(0, 1, 26),
-                                TileBit::new(0, 1, 62),
-                                TileBit::new(0, 1, 63),
-                                TileBit::new(0, 0, 30),
-                                TileBit::new(0, 1, 9),
-                                TileBit::new(0, 1, 35),
-                                TileBit::new(0, 0, 29),
-                                TileBit::new(0, 0, 62),
-                                TileBit::new(0, 0, 6),
-                            ],
-                            false,
-                        ),
+                        vec![
+                            TileBit::new(0, 1, 32).pos(),
+                            TileBit::new(0, 0, 27).pos(),
+                            TileBit::new(0, 0, 31).pos(),
+                            TileBit::new(0, 1, 30).pos(),
+                            TileBit::new(0, 1, 36).pos(),
+                            TileBit::new(0, 1, 28).pos(),
+                            TileBit::new(0, 0, 10).pos(),
+                            TileBit::new(0, 1, 11).pos(),
+                            TileBit::new(0, 1, 34).pos(),
+                            TileBit::new(0, 1, 33).pos(),
+                            TileBit::new(0, 1, 10).pos(),
+                            TileBit::new(0, 0, 9).pos(),
+                        ],
+                        vec![
+                            TileBit::new(0, 1, 27).pos(),
+                            TileBit::new(0, 0, 28).pos(),
+                            TileBit::new(0, 0, 26).pos(),
+                            TileBit::new(0, 1, 26).pos(),
+                            TileBit::new(0, 1, 62).pos(),
+                            TileBit::new(0, 1, 63).pos(),
+                            TileBit::new(0, 0, 30).pos(),
+                            TileBit::new(0, 1, 9).pos(),
+                            TileBit::new(0, 1, 35).pos(),
+                            TileBit::new(0, 0, 29).pos(),
+                            TileBit::new(0, 0, 62).pos(),
+                            TileBit::new(0, 0, 6).pos(),
+                        ],
                     ),
                 ]
             };
-            for (tile, lvdsbias_0, lvdsbias_1) in banks {
-                let bel = "BANK";
-                let prefix = if edev.chip.kind == ChipKind::Spartan3E {
-                    "IOSTD:S3E:LVDSBIAS"
+            for (tcid, lvdsbias_0, lvdsbias_1) in banks {
+                let bslot = bslots::BANK;
+                let field = if edev.chip.kind == ChipKind::Spartan3E {
+                    IOB_DATA::S3E_LVDSBIAS
                 } else {
-                    "IOSTD:S3A.TB:LVDSBIAS"
+                    IOB_DATA::S3A_LVDSBIAS
                 };
-                let kind = edev.db.get_tile_class(tile);
-                let tcrd = edev.tile_index[kind][0];
+                let tcrd = edev.tile_index[tcid][0];
                 let btile = edev.btile_term_h(tcrd.cell);
                 let base: BitVec = lvdsbias_0
-                    .bits
                     .iter()
                     .map(|bit| {
                         ctx.empty_bs
-                            .get_bit(btile.xlat_pos_fwd((bit.frame, bit.bit)))
+                            .get_bit(btile.xlat_pos_fwd((bit.bit.frame, bit.bit.bit)))
                     })
                     .collect();
 
                 for std in get_iostds(edev, false) {
+                    let rid = iostd_to_row(edev, &std);
                     if std.diff != DiffKind::True {
                         continue;
                     }
                     if std.name != "LVDS_25" || edev.chip.kind.is_spartan3a() {
                         let diff_0 = ctx
-                            .get_diff_legacy(tile, bel, "LVDSBIAS_0", std.name)
+                            .get_diff_bel_special_row(tcid, bslot, specials::BANK_LVDSBIAS_0, rid)
                             .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
-                        let val_0 = extract_bitvec_val_legacy(&lvdsbias_0, &base, diff_0);
-                        ctx.insert_misc_data(format!("{prefix}:{sn}", sn = std.name), val_0)
+                        let val_0 = extract_bitvec_val(&lvdsbias_0, &base, diff_0);
+                        ctx.insert_table_bitvec(IOB_DATA, rid, field, val_0);
                     }
                     let diff_1 = ctx
-                        .get_diff_legacy(tile, bel, "LVDSBIAS_1", std.name)
+                        .get_diff_bel_special_row(tcid, bslot, specials::BANK_LVDSBIAS_1, rid)
                         .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
-                    let val_1 = extract_bitvec_val_legacy(&lvdsbias_1, &base, diff_1);
-                    ctx.insert_misc_data(format!("{prefix}:{sn}", sn = std.name), val_1)
+                    let val_1 = extract_bitvec_val(&lvdsbias_1, &base, diff_1);
+                    ctx.insert_table_bitvec(IOB_DATA, rid, field, val_1);
                 }
-                ctx.insert_misc_data(format!("{prefix}:OFF"), base);
-                ctx.insert(tile, bel, "LVDSBIAS_0", lvdsbias_0);
-                ctx.insert(tile, bel, "LVDSBIAS_1", lvdsbias_1);
+                ctx.insert_table_bitvec(IOB_DATA, IOB_DATA::OFF, field, base);
+                let attr = if edev.chip.kind == ChipKind::Spartan3E {
+                    bcls::BANK::S3E_LVDSBIAS
+                } else {
+                    bcls::BANK::S3A_LVDSBIAS
+                };
+                ctx.insert_bel_attr_bitvec(tcid, bslot, attr, [lvdsbias_0, lvdsbias_1].concat());
             }
         }
 
         if edev.chip.kind.is_spartan3ea() {
-            for (tile, btile) in [
+            for (tcid, btile) in [
                 (cnr_sw, edev.btile_term_h(edev.chip.corner(DirHV::SW).cell)),
                 (cnr_nw, edev.btile_term_h(edev.chip.corner(DirHV::NW).cell)),
                 (cnr_se, edev.btile_term_h(edev.chip.corner(DirHV::SE).cell)),
                 (cnr_ne, edev.btile_term_h(edev.chip.corner(DirHV::NE).cell)),
             ] {
-                let bel = "MISC";
                 let mut diff = Diff::default();
                 let BitRect::Main(_, _, width, _, height, _) = btile else {
                     unreachable!()
@@ -2418,18 +2561,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         }
                     }
                 }
-                if tile == cnr_sw {
-                    for attr in ["SEND_VGG", "VGG_SENDMAX"] {
-                        diff.discard_bits_legacy(ctx.item(tile, bel, attr));
+                if tcid == cnr_sw {
+                    for attr in [bcls::MISC_SW::SEND_VGG, bcls::MISC_SW::VGG_SENDMAX] {
+                        diff.discard_polbits(ctx.bel_attr_bitvec(tcid, bslots::MISC_SW, attr));
                     }
                 }
                 if edev.chip.kind == ChipKind::Spartan3E {
-                    for attr in ["LVDSBIAS_0", "LVDSBIAS_1"] {
-                        diff.discard_bits_legacy(ctx.item(tile, "BANK", attr));
-                    }
+                    diff.discard_polbits(ctx.bel_attr_bitvec(
+                        tcid,
+                        bslots::BANK,
+                        bcls::BANK::S3E_LVDSBIAS,
+                    ));
                 }
                 if !diff.bits.is_empty() {
-                    ctx.insert(tile, bel, "UNK_ALWAYS_SET", xlat_bit_wide_legacy(diff));
+                    assert_eq!(tcid, cnr_sw);
+                    ctx.insert_bel_attr_bitvec(
+                        tcid,
+                        bslots::MISC_SW,
+                        bcls::MISC_SW::UNK_ALWAYS_SET,
+                        xlat_bit_wide(diff),
+                    );
                 }
             }
         }
@@ -2437,272 +2588,287 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
 
     // config regs
     if !edev.chip.kind.is_spartan3a() {
-        let tile = if edev.chip.kind.is_virtex2() {
-            "REG.COR"
+        let tcid = if edev.chip.kind.is_virtex2() {
+            tcls_v2::GLOBAL
         } else if edev.chip.kind == ChipKind::Spartan3 {
-            "REG.COR.S3"
+            tcls_s3::GLOBAL_S3
         } else if edev.chip.kind == ChipKind::FpgaCore {
-            "REG.COR.FC"
+            tcls_s3::GLOBAL_FC
         } else {
-            "REG.COR.S3E"
+            tcls_s3::GLOBAL_S3E
         };
-        let bel = "STARTUP";
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "GWE_CYCLE",
-            &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
+        let bslot = bslots::GLOBAL;
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            bcls::GLOBAL::GWE_CYCLE,
+            &[
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::DONE,
+                enums::STARTUP_CYCLE::KEEP,
+            ],
         );
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "GTS_CYCLE",
-            &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            bcls::GLOBAL::GTS_CYCLE,
+            &[
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::DONE,
+                enums::STARTUP_CYCLE::KEEP,
+            ],
         );
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "DONE_CYCLE",
-            &["1", "2", "3", "4", "5", "6", "KEEP"],
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            bcls::GLOBAL::DONE_CYCLE,
+            &[
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::KEEP,
+            ],
         );
+
         if edev.chip.kind != ChipKind::FpgaCore {
-            ctx.collect_enum_legacy(
-                tile,
-                bel,
-                "LCK_CYCLE",
-                &["0", "1", "2", "3", "4", "5", "6", "NOWAIT"],
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                bcls::GLOBAL::LOCK_CYCLE,
+                &[
+                    enums::STARTUP_CYCLE::_0,
+                    enums::STARTUP_CYCLE::_1,
+                    enums::STARTUP_CYCLE::_2,
+                    enums::STARTUP_CYCLE::_3,
+                    enums::STARTUP_CYCLE::_4,
+                    enums::STARTUP_CYCLE::_5,
+                    enums::STARTUP_CYCLE::_6,
+                    enums::STARTUP_CYCLE::NOWAIT,
+                ],
             );
         }
         if edev.chip.kind != ChipKind::Spartan3E && edev.chip.kind != ChipKind::FpgaCore {
-            ctx.collect_enum_legacy(
-                tile,
-                bel,
-                "MATCH_CYCLE",
-                &["0", "1", "2", "3", "4", "5", "6", "NOWAIT"],
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                bcls::GLOBAL::MATCH_CYCLE,
+                &[
+                    enums::STARTUP_CYCLE::_0,
+                    enums::STARTUP_CYCLE::_1,
+                    enums::STARTUP_CYCLE::_2,
+                    enums::STARTUP_CYCLE::_3,
+                    enums::STARTUP_CYCLE::_4,
+                    enums::STARTUP_CYCLE::_5,
+                    enums::STARTUP_CYCLE::_6,
+                    enums::STARTUP_CYCLE::NOWAIT,
+                ],
             );
         }
-        ctx.collect_enum_legacy(tile, bel, "STARTUPCLK", &["CCLK", "USERCLK", "JTAGCLK"]);
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::STARTUP_CLOCK);
         if edev.chip.kind == ChipKind::Spartan3E {
-            ctx.collect_bit_legacy(tile, bel, "MULTIBOOT_ENABLE", "1");
-        }
-        let vals = if edev.chip.kind.is_virtex2() {
-            &[
-                "4", "5", "7", "8", "9", "10", "13", "15", "20", "26", "30", "34", "41", "51",
-                "55", "60", "130",
-            ][..]
-        } else if !edev.chip.kind.is_spartan3ea() {
-            &["3", "6", "12", "25", "50", "100"][..]
-        } else {
-            &["1", "3", "6", "12", "25", "50"][..]
-        };
-        ctx.collect_enum_legacy_ocd(tile, bel, "CONFIG_RATE", vals, OcdMode::BitOrder);
-        if !edev.chip.kind.is_virtex2() {
-            ctx.collect_enum_legacy(tile, bel, "BUSCLK_FREQ", &["25", "50", "100", "200"]);
-        }
-        ctx.collect_bit_bi_legacy(tile, bel, "DRIVE_DONE", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "DONE_PIPE", "NO", "YES");
-        if edev.chip.kind != ChipKind::FpgaCore {
-            ctx.collect_bit_bi_legacy(tile, bel, "DCM_SHUTDOWN", "DISABLE", "ENABLE");
+            ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::MULTIBOOT_ENABLE);
         }
         if edev.chip.kind.is_virtex2() {
-            ctx.collect_bit_bi_legacy(tile, bel, "POWERDOWN_STATUS", "DISABLE", "ENABLE");
-            ctx.get_diff_legacy(tile, bel, "DCI_SHUTDOWN", "ENABLE")
-                .assert_empty();
-            ctx.get_diff_legacy(tile, bel, "DCI_SHUTDOWN", "DISABLE")
-                .assert_empty();
+            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::CONFIG_RATE_V2, OcdMode::BitOrder);
+        } else if !edev.chip.kind.is_spartan3ea() {
+            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::CONFIG_RATE_S3, OcdMode::BitOrder);
+        } else {
+            ctx.collect_bel_attr_ocd(
+                tcid,
+                bslot,
+                bcls::GLOBAL::CONFIG_RATE_S3E,
+                OcdMode::BitOrder,
+            );
+        };
+        if !edev.chip.kind.is_virtex2() {
+            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::BUSCLK_FREQ, OcdMode::BitOrder);
         }
-        ctx.collect_bit_bi_legacy(tile, bel, "CRC", "DISABLE", "ENABLE");
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DRIVE_DONE);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DONE_PIPE);
+        if edev.chip.kind != ChipKind::FpgaCore {
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DCM_SHUTDOWN);
+        }
+        if edev.chip.kind.is_virtex2() {
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::POWERDOWN_STATUS);
+        }
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::CRC_ENABLE);
         if matches!(edev.chip.kind, ChipKind::Spartan3 | ChipKind::FpgaCore) {
-            ctx.collect_enum_legacy(tile, bel, "VRDSEL", &["100", "95", "90", "80"]);
+            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::S3_VRDSEL, OcdMode::BitOrder);
         } else if edev.chip.kind == ChipKind::Spartan3E {
             // ??? 70 == 75?
-            let d70 = ctx.get_diff_legacy(tile, bel, "VRDSEL", "70");
-            let d75 = ctx.get_diff_legacy(tile, bel, "VRDSEL", "75");
-            let d80 = ctx.get_diff_legacy(tile, bel, "VRDSEL", "80");
-            let d90 = ctx.get_diff_legacy(tile, bel, "VRDSEL", "90");
-            assert_eq!(d70, d75);
-            ctx.insert(
-                tile,
-                bel,
-                "VRDSEL",
-                xlat_enum_legacy_ocd(
-                    vec![("70_75", d70), ("80", d80), ("90", d90)],
-                    OcdMode::BitOrder,
-                ),
-            );
+            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::S3E_VRDSEL, OcdMode::BitOrder);
         }
 
-        let bel = "CAPTURE";
-        let item = ctx.extract_bit_legacy(tile, bel, "ONESHOT_ATTR", "ONE_SHOT");
-        ctx.insert(tile, bel, "ONESHOT", item);
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::CAPTURE_ONESHOT);
 
-        let tile = if edev.chip.kind.is_virtex2() {
-            "REG.CTL"
-        } else {
-            "REG.CTL.S3"
-        };
-        let bel = "MISC";
-        ctx.collect_bit_bi_legacy(tile, bel, "GTS_USR_B", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "VGG_TEST", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "BCLK_TEST", "NO", "YES");
-        ctx.collect_enum_legacy(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::GTS_USR_B);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::VGG_TEST);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::BCLK_TEST);
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            bcls::GLOBAL::SECURITY,
+            &[
+                enums::SECURITY::NONE,
+                enums::SECURITY::LEVEL1,
+                enums::SECURITY::LEVEL2,
+            ],
+        );
         // these are too much trouble to deal with the normal way.
-        ctx.insert(
-            tile,
-            bel,
-            "PERSIST",
-            TileItem::from_bit_inv(TileBit::new(0, 0, 3), false),
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            bcls::GLOBAL::PERSIST,
+            TileBit::new(1, 0, 3).pos(),
         );
     } else {
-        let tile = "REG.COR1.S3A";
-        let bel = "STARTUP";
-        ctx.collect_enum_legacy(tile, bel, "STARTUPCLK", &["CCLK", "USERCLK", "JTAGCLK"]);
-        ctx.collect_bit_bi_legacy(tile, bel, "DRIVE_DONE", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "DONE_PIPE", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "DRIVE_AWAKE", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "CRC", "DISABLE", "ENABLE");
-        ctx.collect_bitvec_legacy(tile, bel, "VRDSEL", "");
+        let tcid = tcls_s3::GLOBAL_S3A;
+        let bslot = bslots::GLOBAL;
 
-        let tile = "REG.COR2.S3A";
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "GWE_CYCLE",
-            &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
-        );
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "GTS_CYCLE",
-            &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
-        );
-        ctx.collect_enum_legacy(tile, bel, "DONE_CYCLE", &["1", "2", "3", "4", "5", "6"]);
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "LCK_CYCLE",
-            &["1", "2", "3", "4", "5", "6", "NOWAIT"],
-        );
-        ctx.collect_bit_bi_legacy(tile, "CAPTURE", "ONESHOT", "FALSE", "TRUE");
-        ctx.collect_bit_bi_legacy(tile, bel, "BPI_DIV8", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "RESET_ON_ERR", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, "ICAP", "BYPASS", "NO", "YES");
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::STARTUP_CLOCK);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DRIVE_DONE);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DONE_PIPE);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DRIVE_AWAKE);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::CRC_ENABLE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::S3A_VRDSEL);
 
-        let tile = "REG.CTL.S3A";
-        let bel = "MISC";
-        ctx.collect_bit_bi_legacy(tile, bel, "GTS_USR_B", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "VGG_TEST", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "MULTIBOOT_ENABLE", "NO", "YES");
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "SECURITY",
-            &["NONE", "LEVEL1", "LEVEL2", "LEVEL3"],
-        );
-        // too much trouble to deal with in normal ways.
-        ctx.insert(
-            tile,
-            bel,
-            "PERSIST",
-            TileItem::from_bit_inv(TileBit::new(0, 0, 3), false),
-        );
-        ctx.collect_bit_legacy(tile, "ICAP", "ENABLE", "1");
-
-        let tile = "REG.CCLK_FREQ";
-        let bel = "STARTUP";
-        let mut item = ctx.extract_enum_legacy_ocd(
-            tile,
-            bel,
-            "CONFIG_RATE",
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            bcls::GLOBAL::GWE_CYCLE,
             &[
-                "6", "1", "3", "7", "8", "10", "12", "13", "17", "22", "25", "27", "33", "44",
-                "50", "100",
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::DONE,
+                enums::STARTUP_CYCLE::KEEP,
             ],
-            OcdMode::BitOrder,
         );
-        // a little fixup.
-        assert_eq!(item.bits.len(), 9);
-        assert_eq!(item.bits[8], TileBit::new(0, 0, 8));
-        item.bits.push(TileBit::new(0, 0, 9));
-        let TileItemKind::Enum { ref mut values } = item.kind else {
-            unreachable!()
-        };
-        for val in values.values_mut() {
-            val.push(false);
-        }
-        ctx.insert(tile, bel, "CONFIG_RATE", item);
-        ctx.collect_enum_legacy_int(tile, bel, "CCLK_DLY", 0..4, 0);
-        ctx.collect_enum_legacy_int(tile, bel, "CCLK_SEP", 0..4, 0);
-        ctx.collect_enum_legacy_int(tile, bel, "CLK_SWITCH_OPT", 0..4, 0);
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            bcls::GLOBAL::GTS_CYCLE,
+            &[
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::DONE,
+                enums::STARTUP_CYCLE::KEEP,
+            ],
+        );
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            bcls::GLOBAL::DONE_CYCLE,
+            &[
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+            ],
+        );
 
-        let tile = "REG.HC_OPT";
-        let bel = "MISC";
-        ctx.collect_bit_bi_legacy(tile, bel, "BRAM_SKIP", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "TWO_ROUND", "NO", "YES");
-        ctx.collect_enum_legacy_int(tile, bel, "HC_CYCLE", 1..16, 0);
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            bcls::GLOBAL::LOCK_CYCLE,
+            &[
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::NOWAIT,
+            ],
+        );
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::CAPTURE_ONESHOT);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::BPI_DIV8);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::RESET_ON_ERR);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::ICAP_BYPASS);
 
-        let tile = "REG.POWERDOWN";
-        let bel = "MISC";
-        ctx.collect_enum_legacy(tile, bel, "SW_CLK", &["STARTUPCLK", "INTERNALCLK"]);
-        ctx.collect_bit_bi_legacy(tile, bel, "EN_SUSPEND", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "EN_PORB", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "EN_SW_GSR", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "SUSPEND_FILTER", "NO", "YES");
-        ctx.collect_enum_legacy_int(tile, bel, "WAKE_DELAY1", 1..8, 0);
-        ctx.collect_enum_legacy_int(tile, bel, "WAKE_DELAY2", 1..32, 0);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::GTS_USR_B);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::VGG_TEST);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::MULTIBOOT_ENABLE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::SECURITY);
+        // too much trouble to deal with in normal ways.
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            bcls::GLOBAL::PERSIST,
+            TileBit::new(2, 0, 3).pos(),
+        );
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::ICAP_ENABLE);
 
-        let tile = "REG.PU_GWE";
-        ctx.collect_bitvec_legacy(tile, bel, "SW_GWE_CYCLE", "");
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::GLOBAL::CONFIG_RATE_DIV,
+            (0..10).map(|i| TileBit::new(3, 0, i).pos()).collect(),
+        );
+        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::CCLK_DLY, 0..4);
+        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::CCLK_SEP, 0..4);
+        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::CLK_SWITCH_OPT, 0..4);
 
-        let tile = "REG.PU_GTS";
-        ctx.collect_bitvec_legacy(tile, bel, "SW_GTS_CYCLE", "");
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::BRAM_SKIP);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::TWO_ROUND);
+        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::HC_CYCLE, 1..16);
 
-        let tile = "REG.MODE";
-        let bel = "MISC";
-        ctx.collect_bitvec_legacy(tile, bel, "BOOTVSEL", "");
-        ctx.collect_bitvec_legacy(tile, bel, "NEXT_CONFIG_BOOT_MODE", "");
-        ctx.collect_bit_bi_legacy(tile, bel, "NEXT_CONFIG_NEW_MODE", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "TESTMODE_EN", "NO", "YES");
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::SW_CLK);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::EN_SUSPEND);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::EN_PORB);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::EN_SW_GSR);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::SUSPEND_FILTER);
+        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::WAKE_DELAY1, 1..8);
+        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::WAKE_DELAY2, 1..32);
 
-        let tile = "REG.GENERAL";
-        ctx.collect_bitvec_legacy(tile, bel, "NEXT_CONFIG_ADDR", "");
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::SW_GWE_CYCLE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::SW_GTS_CYCLE);
 
-        let tile = "REG.SEU_OPT";
-        let bel = "MISC";
-        ctx.collect_bit_bi_legacy(tile, bel, "GLUTMASK", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "POST_CRC_KEEP", "NO", "YES");
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::BOOTVSEL);
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::NEXT_CONFIG_BOOT_MODE);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::NEXT_CONFIG_NEW_MODE);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::TESTMODE_EN);
+
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::NEXT_CONFIG_ADDR);
+
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::GLUTMASK);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::POST_CRC_KEEP);
 
         // too much effort to include in the automatic fuzzer
-        ctx.insert(
-            tile,
-            bel,
-            "POST_CRC_EN",
-            TileItem::from_bit_inv(TileBit::new(0, 0, 0), false),
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            bcls::GLOBAL::POST_CRC_EN,
+            TileBit::new(11, 0, 0).pos(),
         );
-
-        let mut item = ctx.extract_enum_legacy_ocd(
-            tile,
-            bel,
-            "POST_CRC_FREQ",
-            &[
-                "6", "1", "3", "7", "8", "10", "12", "13", "17", "22", "25", "27", "33", "44",
-                "50", "100",
-            ],
-            OcdMode::BitOrder,
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::GLOBAL::POST_CRC_FREQ_DIV,
+            (0..10).map(|i| TileBit::new(11, 0, 4 + i).pos()).collect(),
         );
-        // a little fixup.
-        assert_eq!(item.bits.len(), 9);
-        assert_eq!(item.bits[8], TileBit::new(0, 0, 12));
-        item.bits.push(TileBit::new(0, 0, 13));
-        let TileItemKind::Enum { ref mut values } = item.kind else {
-            unreachable!()
-        };
-        for val in values.values_mut() {
-            val.push(false);
-        }
-        ctx.insert(tile, bel, "POST_CRC_FREQ", item);
-
-        // TODO
     }
 
     if edev.chip.kind.is_virtex2() {
@@ -2710,6 +2876,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             .regs
             .get(&Reg::FakeDoubleGrestore)
             == Some(&1);
-        ctx.insert_device_data("DOUBLE_GRESTORE", BitVec::repeat(is_double_grestore, 1));
+        ctx.insert_devdata_bool(devdata::DOUBLE_GRESTORE, is_double_grestore);
     }
 }

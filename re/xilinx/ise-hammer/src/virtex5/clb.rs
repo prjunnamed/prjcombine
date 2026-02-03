@@ -77,7 +77,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     } else {
         ["CLBLL", "CLBLM"]
     } {
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile_name) else {
+        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile_name) else {
             continue;
         };
         let bk_x = if mode == Mode::Spartan6 {
@@ -151,22 +151,30 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("DI")
                         .test_enum_legacy("CDI1MUX", &["CI", "DMC31", "DI"]);
                 }
-                bctx.mode("SLICEM").attr("A6LUT", "#RAM:0").test_enum_legacy(
-                    "A6RAMMODE",
-                    &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
-                );
-                bctx.mode("SLICEM").attr("B6LUT", "#RAM:0").test_enum_legacy(
-                    "B6RAMMODE",
-                    &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
-                );
-                bctx.mode("SLICEM").attr("C6LUT", "#RAM:0").test_enum_legacy(
-                    "C6RAMMODE",
-                    &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
-                );
-                bctx.mode("SLICEM").attr("D6LUT", "#RAM:0").test_enum_legacy(
-                    "D6RAMMODE",
-                    &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
-                );
+                bctx.mode("SLICEM")
+                    .attr("A6LUT", "#RAM:0")
+                    .test_enum_legacy(
+                        "A6RAMMODE",
+                        &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
+                    );
+                bctx.mode("SLICEM")
+                    .attr("B6LUT", "#RAM:0")
+                    .test_enum_legacy(
+                        "B6RAMMODE",
+                        &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
+                    );
+                bctx.mode("SLICEM")
+                    .attr("C6LUT", "#RAM:0")
+                    .test_enum_legacy(
+                        "C6RAMMODE",
+                        &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
+                    );
+                bctx.mode("SLICEM")
+                    .attr("D6LUT", "#RAM:0")
+                    .test_enum_legacy(
+                        "D6RAMMODE",
+                        &["SPRAM32", "SPRAM64", "DPRAM32", "DPRAM64", "SRL16", "SRL32"],
+                    );
             }
 
             if !is_x {
@@ -434,7 +442,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("AFF", "#FF")
                 .pin("AQ")
                 .test_enum_legacy("SYNC_ATTR", &["SYNC", "ASYNC"]);
-            bctx.mode(bk_x).attr("AFF", "#FF").pin("AQ").test_inv("CLK");
+            bctx.mode(bk_x)
+                .attr("AFF", "#FF")
+                .pin("AQ")
+                .test_inv_legacy("CLK");
             match mode {
                 Mode::Virtex5 => {
                     bctx.mode(bk_x)
@@ -790,7 +801,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_enum_legacy(tile, bel, "WEMUX", &["WE", "CE"]);
                 for attr in ["WA7USED", "WA8USED"] {
                     let diff = ctx.get_diff_legacy(tile, bel, attr, "0");
-                    ctx.insert(tile, bel, attr, xlat_bit_legacy(diff));
+                    ctx.insert_legacy(tile, bel, attr, xlat_bit_legacy(diff));
                 }
                 let di_muxes = match mode {
                     Mode::Virtex5 | Mode::Spartan6 => [
@@ -808,7 +819,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let d_byp = ctx.get_diff_legacy(tile, bel, attr, byp);
                     let d_alt = ctx.get_diff_legacy(tile, bel, attr, alt_shift);
                     assert_eq!(d_alt, ctx.get_diff_legacy(tile, bel, attr, alt_ram));
-                    ctx.insert(
+                    ctx.insert_legacy(
                         tile,
                         bel,
                         attr,
@@ -827,7 +838,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let d_srl32 = ctx.get_diff_legacy(tile, bel, sattr, "SRL32");
                     assert_eq!(d_ram32, ctx.get_diff_legacy(tile, bel, sattr, "DPRAM32"));
                     assert_eq!(d_ram64, ctx.get_diff_legacy(tile, bel, sattr, "DPRAM64"));
-                    ctx.insert(
+                    ctx.insert_legacy(
                         tile,
                         bel,
                         dattr,
@@ -852,7 +863,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("CIN", ctx.get_diff_legacy(tile, bel, "CINUSED", "1")),
                     ("PRECYINIT", Diff::default()),
                 ]);
-                ctx.insert(tile, bel, "CYINIT", item);
+                ctx.insert_legacy(tile, bel, "CYINIT", item);
             }
 
             // misc muxes
@@ -1043,7 +1054,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ] {
                         let d_o5 = ctx.get_diff_legacy(tile, bel, attr, "IN_A");
                         let d_byp = ctx.get_diff_legacy(tile, bel, attr, "IN_B");
-                        ctx.insert(
+                        ctx.insert_legacy(
                             tile,
                             bel,
                             attr,
@@ -1061,26 +1072,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let ff_sync = ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "SYNC");
             ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "ASYNC")
                 .assert_empty();
-            ctx.insert(tile, bel, "FF_SR_SYNC", xlat_bit_legacy(ff_sync));
+            ctx.insert_legacy(tile, bel, "FF_SR_SYNC", xlat_bit_legacy(ff_sync));
             ctx.collect_inv(tile, bel, "CLK");
             if mode == Mode::Virtex5 {
                 let revused = ctx.get_diff_legacy(tile, bel, "REVUSED", "0");
-                ctx.insert(tile, bel, "FF_REV_ENABLE", xlat_bit_legacy(revused));
+                ctx.insert_legacy(tile, bel, "FF_REV_ENABLE", xlat_bit_legacy(revused));
             }
             if matches!(mode, Mode::Virtex5 | Mode::Spartan6) {
                 let ceused = ctx.get_diff_legacy(tile, bel, "CEUSED", "0");
-                ctx.insert(tile, bel, "FF_CE_ENABLE", xlat_bit_legacy(ceused));
+                ctx.insert_legacy(tile, bel, "FF_CE_ENABLE", xlat_bit_legacy(ceused));
                 let srused = ctx.get_diff_legacy(tile, bel, "SRUSED", "0");
-                ctx.insert(tile, bel, "FF_SR_ENABLE", xlat_bit_legacy(srused));
+                ctx.insert_legacy(tile, bel, "FF_SR_ENABLE", xlat_bit_legacy(srused));
             } else {
                 ctx.get_diff_legacy(tile, bel, "CEUSEDMUX", "1")
                     .assert_empty();
                 ctx.get_diff_legacy(tile, bel, "SRUSEDMUX", "0")
                     .assert_empty();
                 let ceused = ctx.get_diff_legacy(tile, bel, "CEUSEDMUX", "IN");
-                ctx.insert(tile, bel, "FF_CE_ENABLE", xlat_bit_legacy(ceused));
+                ctx.insert_legacy(tile, bel, "FF_CE_ENABLE", xlat_bit_legacy(ceused));
                 let srused = ctx.get_diff_legacy(tile, bel, "SRUSEDMUX", "IN");
-                ctx.insert(tile, bel, "FF_SR_ENABLE", xlat_bit_legacy(srused));
+                ctx.insert_legacy(tile, bel, "FF_SR_ENABLE", xlat_bit_legacy(srused));
             }
             if mode != Mode::Virtex6 {
                 let ff_latch = ctx.get_diff_legacy(tile, bel, "AFF", "#LATCH");
@@ -1094,14 +1105,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, attr, "OR2L"));
                     }
                 }
-                ctx.insert(tile, bel, "FF_LATCH", xlat_bit_legacy(ff_latch));
+                ctx.insert_legacy(tile, bel, "FF_LATCH", xlat_bit_legacy(ff_latch));
             } else {
                 for attr in ["AFF", "BFF", "CFF", "DFF"] {
                     ctx.get_diff_legacy(tile, bel, attr, "#FF").assert_empty();
                     let ff_latch = ctx.get_diff_legacy(tile, bel, attr, "#LATCH");
                     assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, attr, "AND2L"));
                     assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, attr, "OR2L"));
-                    ctx.insert(
+                    ctx.insert_legacy(
                         tile,
                         bel,
                         format!("{attr}_LATCH"),

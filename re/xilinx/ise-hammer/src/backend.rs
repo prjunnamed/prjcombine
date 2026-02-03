@@ -1,4 +1,5 @@
 use prjcombine_entity::EntityVec;
+use prjcombine_interconnect::db::BelInputId;
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ExpandedGrid, RowId, TileCoord, WireCoord,
 };
@@ -78,6 +79,7 @@ pub enum Value<'a> {
     FromPin(&'a str, String),
     Bel(BelCoord),
     Special(SpecialId),
+    BelInput(BelInputId),
 }
 
 impl From<Option<core::convert::Infallible>> for Value<'_> {
@@ -125,6 +127,12 @@ impl From<u32> for Value<'_> {
 impl From<SpecialId> for Value<'_> {
     fn from(value: SpecialId) -> Self {
         Self::Special(value)
+    }
+}
+
+impl From<BelInputId> for Value<'_> {
+    fn from(value: BelInputId) -> Self {
+        Self::BelInput(value)
     }
 }
 

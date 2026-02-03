@@ -53,7 +53,7 @@ const EMAC_HEX_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new(session, backend, "EMAC") else {
+    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "EMAC") else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::EMAC);
@@ -70,7 +70,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    if !ctx.has_tile("EMAC") {
+    if !ctx.has_tile_legacy("EMAC") {
         return;
     }
     let tile = "EMAC";

@@ -179,9 +179,543 @@ target_defs! {
         attribute RSTTYPE: BRAM_RSTTYPE;
     }
 
-    // TODO: enums and bel classes
-    // TODO: IOI, IOB
-    // TODO: DCM
+    enum IOI_MUX_TSBYPASS { GND, T }
+    enum IOI_MUX_FFI { NONE, IBUF, PAIR_IQ1, PAIR_IQ2 }
+    enum IOI_MUX_MISR_CLOCK { NONE, OTCLK1, OTCLK2 }
+    enum IOI_MUX_O { NONE, O1, O2, FFO1, FFO2, FFODDR }
+    enum IOI_MUX_OCE { NONE, OCE, PCI_CE }
+    enum IOI_MUX_T { NONE, T1, T2, FFT1, FFT2, FFTDDR }
+    enum IOI_MUX_FFO1 { O1, PAIR_FFO2 }
+    enum IOI_MUX_FFO2 { O2, PAIR_FFO1 }
+    bel_class IOI {
+        input ICLK1, ICLK2, ICE;
+        input O1, O2, T1, T2;
+        input OTCLK1, OTCLK2, OCE, TCE;
+        input SR, REV;
+        output I, IQ1, IQ2, CLKPAD, T;
+        // spartan3a only
+        input S1, S2, S3;
+
+        pad PAD: inout;
+
+        // input path
+        attribute FFI1_INIT, FFI2_INIT: bitvec[1];
+        attribute FFI1_SRVAL, FFI2_SRVAL: bitvec[1];
+        attribute FFI_LATCH: bool;
+        attribute FFI_SR_SYNC: bool;
+        attribute FFI_SR_ENABLE: bool;
+        attribute FFI_REV_ENABLE: bool;
+        attribute I_DELAY_ENABLE: bool;
+        attribute I_TSBYPASS_ENABLE: bool;
+        attribute IQ_DELAY_ENABLE: bool;
+        attribute IQ_TSBYPASS_ENABLE: bool;
+        attribute READBACK_I: bitvec[1];
+        attribute MUX_TSBYPASS: IOI_MUX_TSBYPASS;
+        // spartan3e+ only
+        attribute MUX_FFI: IOI_MUX_FFI;
+
+        // spartan3a W/E edges only (S/N have it in IOB)
+        attribute DELAY_VARIABLE: bool;
+        attribute DELAY_COMMON: bitvec[1];
+        attribute IQ_DELAY: bitvec[2];
+        attribute I_DELAY: bitvec[3];
+
+        // output path
+        attribute FFO_INIT: bitvec[1];
+        attribute FFO1_SRVAL, FFO2_SRVAL: bitvec[1];
+        attribute FFO1_LATCH, FFO2_LATCH: bool;
+        attribute FFO_SR_SYNC: bool;
+        attribute FFO_SR_ENABLE: bool;
+        attribute FFO_REV_ENABLE: bool;
+        attribute MUX_O: IOI_MUX_O;
+        // spartan3e+ only
+        attribute MUX_OCE: IOI_MUX_OCE;
+        // according to data sheet, doesn't work on spartan3e?
+        attribute MUX_FFO1: IOI_MUX_FFO1;
+        attribute MUX_FFO2: IOI_MUX_FFO2;
+
+        // T path
+        attribute FFT_INIT: bitvec[1];
+        attribute FFT1_SRVAL, FFT2_SRVAL: bitvec[1];
+        attribute FFT1_LATCH, FFT2_LATCH: bool;
+        attribute FFT_SR_SYNC: bool;
+        attribute FFT_SR_ENABLE: bool;
+        attribute FFT_REV_ENABLE: bool;
+        attribute MUX_T: IOI_MUX_T;
+
+        // spartan3e+
+        attribute MUX_MISR_CLOCK: IOI_MUX_MISR_CLOCK;
+        attribute MISR_ENABLE: bool;
+        attribute MISR_RESET: bool;
+    }
+
+    bel_class IREG {
+        input CLK, SR, REV, CE;
+        output I, IQ, CLKPAD;
+
+        pad PAD: input;
+
+        attribute FF_INIT: bitvec[1];
+        attribute FF_SRVAL: bitvec[1];
+        attribute FF_LATCH: bool;
+        attribute FF_SR_SYNC: bool;
+        attribute FF_SR_ENABLE: bool;
+        attribute FF_REV_ENABLE: bool;
+        attribute O2I_ENABLE: bool;
+        attribute O2IQ_ENABLE: bool;
+        attribute O2I_O2IQ_ENABLE: bool;
+        attribute I_DELAY_ENABLE: bool;
+        attribute IQ_DELAY_ENABLE: bool;
+        // why is this 14 bits? I have no meowing idea.
+        attribute DELAY_ENABLE: bitvec[14];
+        attribute READBACK_I: bitvec[1];
+    }
+
+    enum OREG_MUX_O { NONE, O, OQ }
+    bel_class OREG {
+        input O, CLK, SR, REV, CE;
+
+        pad PAD: output;
+
+        attribute FF_INIT: bitvec[1];
+        attribute FF_SRVAL: bitvec[1];
+        attribute FF_LATCH: bool;
+        attribute FF_SR_SYNC: bool;
+        attribute FF_SR_ENABLE: bool;
+        attribute FF_REV_ENABLE: bool;
+        attribute MUX_O: OREG_MUX_O;
+    }
+
+    enum IOB_PULL { NONE, PULLUP, PULLDOWN, KEEPER }
+    enum IOB_IBUF_MODE {
+        NONE,
+        VREF,
+        DIFF,
+
+        // not present on spartan3e and up
+        CMOS,
+
+        // spartan3e only; _HV is 2.5V and up
+        CMOS_LV,
+        CMOS_HV,
+
+        // spartan3a only
+        CMOS_VCCINT,
+        CMOS_VCCAUX,
+        CMOS_VCCO,
+        LOOPBACK_O,
+        LOOPBACK_T,
+    }
+    enum IOB_SUSPEND {
+        _3STATE,
+        _3STATE_PULLUP,
+        _3STATE_PULLDOWN,
+        _3STATE_KEEPER,
+        DRIVE_LAST_VALUE,
+    }
+    enum IOB_DCI_MODE { NONE, OUTPUT, OUTPUT_HALF, TERM_VCC, TERM_SPLIT }
+    bel_class IOB {
+        attribute PULL: IOB_PULL;
+        attribute VREF: bool;
+        // not present on spartan3e and up
+        attribute VR: bool;
+        // virtex2p only
+        attribute BREFCLK: bool;
+        // spartan3a only
+        attribute PCI_CLAMP: bool;
+        attribute PCI_INPUT: bool;
+        attribute SUSPEND: IOB_SUSPEND;
+
+        attribute IBUF_MODE: IOB_IBUF_MODE;
+        // spartan3e and up only; note that spartan3a W/E has it in the IOI tile instead
+        attribute DELAY_COMMON: bitvec[1];
+        attribute IQ_DELAY: bitvec[2];
+        attribute I_DELAY: bitvec[3];
+        // spartan3a only
+        attribute DELAY_VARIABLE: bool;
+
+        // ??? spartan3e input-only pads only
+        attribute IBUF_ENABLE: bool;
+
+        attribute OUTPUT_ENABLE: bitvec[2];
+        attribute DISABLE_GTS: bool;
+        // not present on spartan3e and up
+        // TODO: this field is currently 4 bits, but looks like it should be 3 bits.
+        // Seems there's a bit tied to TERM_VCC mode?
+        attribute DCI_MODE: IOB_DCI_MODE;
+        // virtex2p, spartan3 only
+        attribute DCIUPDATEMODE_ASREQUIRED: bool;
+        // spartan3e and up only
+        attribute OUTPUT_DIFF_GROUP: bitvec[1];
+
+        // these come from tables
+
+        attribute V2_PDRIVE: bitvec[5];
+        attribute V2_NDRIVE: bitvec[5];
+        attribute V2_SLEW: bitvec[4];
+        attribute V2_OUTPUT_MISC: bitvec[1];
+        attribute V2_OUTPUT_DIFF: bitvec[6];
+
+        attribute V2P_PDRIVE: bitvec[4];
+        attribute V2P_NDRIVE: bitvec[5];
+        attribute V2P_SLEW: bitvec[5];
+        attribute V2P_OUTPUT_MISC: bitvec[2];
+        attribute V2P_OUTPUT_DIFF: bitvec[4];
+
+        attribute S3_PDRIVE: bitvec[4];
+        attribute S3_NDRIVE: bitvec[4];
+        attribute S3_SLEW: bitvec[5];
+        attribute S3_OUTPUT_MISC: bitvec[2];
+        attribute S3_OUTPUT_DIFF: bitvec[3];
+
+        attribute S3E_PDRIVE: bitvec[4];
+        attribute S3E_NDRIVE: bitvec[4];
+        attribute S3E_SLEW: bitvec[6];
+        attribute S3E_OUTPUT_MISC: bitvec[1];
+        attribute S3E_OUTPUT_DIFF: bitvec[2];
+
+        attribute S3A_PDRIVE: bitvec[3];
+        attribute S3A_NDRIVE: bitvec[3];
+        attribute S3A_PSLEW: bitvec[4];
+        attribute S3A_NSLEW: bitvec[4];
+        attribute S3A_OUTPUT_DIFF: bitvec[4];
+    }
+
+    bel_class IBUF {
+        attribute ENABLE: bool;
+        attribute O2IPAD_ENABLE: bool;
+    }
+
+    bel_class OBUF {
+        attribute ENABLE: bitvec[2];
+        attribute MISR_ENABLE: bool;
+    }
+
+    bel_class DCI {
+        input DCI_CLK, DCI_RESET;
+        input HI_LO_P, HI_LO_N;
+        output SCLK;
+        output ADDRESS[3];
+        output DATA;
+        output N_OR_P;
+        output UPDATE;
+        output IOUPDATE;
+        output DCI_DONE;
+        attribute ENABLE: bool;
+        attribute TEST_ENABLE: bool;
+        attribute FORCE_DONE_HIGH: bool;
+
+        attribute V2_PMASK_TERM_SPLIT: bitvec[5];
+        attribute V2_NMASK_TERM_SPLIT: bitvec[5];
+        attribute V2_PMASK_TERM_VCC: bitvec[5];
+        attribute V2_LVDSBIAS: bitvec[9];
+
+        attribute S3_PMASK_TERM_SPLIT: bitvec[4];
+        attribute S3_NMASK_TERM_SPLIT: bitvec[4];
+        attribute S3_PMASK_TERM_VCC: bitvec[4];
+        attribute S3_LVDSBIAS: bitvec[13];
+
+        // virtex2p and spartan3 only
+        attribute QUIET: bool;
+    }
+
+    bel_class DCIRESET {
+        input RST;
+        attribute ENABLE: bool;
+    }
+
+    bel_class BANK {
+        attribute S3E_LVDSBIAS: bitvec[11][2];
+        attribute S3A_LVDSBIAS: bitvec[12][2];
+    }
+
+    table IOB_DATA {
+        field V2_PDRIVE: bitvec[5];
+        field V2_NDRIVE: bitvec[5];
+        field V2_SLEW: bitvec[4];
+        field V2_OUTPUT_MISC: bitvec[1];
+        field V2_OUTPUT_DIFF: bitvec[6];
+        field V2_PMASK_TERM_SPLIT: bitvec[5];
+        field V2_NMASK_TERM_SPLIT: bitvec[5];
+        field V2_PMASK_TERM_VCC: bitvec[5];
+        field V2_LVDSBIAS: bitvec[9];
+
+        field V2P_PDRIVE: bitvec[4];
+        field V2P_NDRIVE: bitvec[5];
+        field V2P_SLEW: bitvec[5];
+        field V2P_OUTPUT_MISC: bitvec[2];
+        field V2P_OUTPUT_DIFF: bitvec[4];
+        field V2P_PMASK_TERM_SPLIT: bitvec[5];
+        field V2P_NMASK_TERM_SPLIT: bitvec[5];
+        field V2P_PMASK_TERM_VCC: bitvec[5];
+        field V2P_LVDSBIAS: bitvec[9];
+
+        field S3_PDRIVE: bitvec[4];
+        field S3_NDRIVE: bitvec[4];
+        field S3_SLEW: bitvec[5];
+        field S3_OUTPUT_MISC: bitvec[2];
+        field S3_OUTPUT_DIFF: bitvec[3];
+        field S3_PMASK_TERM_SPLIT: bitvec[4];
+        field S3_NMASK_TERM_SPLIT: bitvec[4];
+        field S3_PMASK_TERM_VCC: bitvec[4];
+        field S3_LVDSBIAS: bitvec[13];
+
+        field S3E_PDRIVE: bitvec[4];
+        field S3E_NDRIVE: bitvec[4];
+        field S3E_SLEW: bitvec[6];
+        field S3E_OUTPUT_MISC: bitvec[1];
+        field S3E_OUTPUT_DIFF: bitvec[2];
+        field S3E_LVDSBIAS: bitvec[11];
+
+        field S3A_WE_PDRIVE: bitvec[3];
+        field S3A_WE_NDRIVE: bitvec[3];
+        field S3A_SN_PDRIVE: bitvec[3];
+        field S3A_SN_NDRIVE: bitvec[3];
+        field S3A_PSLEW: bitvec[4];
+        field S3A_2V5_NSLEW: bitvec[4];
+        field S3A_3V3_NSLEW: bitvec[4];
+        field S3A_OUTPUT_DIFF: bitvec[4];
+        field S3A_LVDSBIAS: bitvec[12];
+
+        // specials
+        row OFF;
+        row SLEW_SLOW_3V3;
+        row SLEW_SLOW_LV;
+        row SLEW_FAST;
+        row SLEW_QUIETIO;
+        row VR;
+        row DIFF_TERM;
+
+        // push-pull I/O standards
+        row LVCMOS12, LVCMOS12_2, LVCMOS12_4, LVCMOS12_6;
+        row LVCMOS15, LVCMOS15_2, LVCMOS15_4, LVCMOS15_6, LVCMOS15_8, LVCMOS15_12, LVCMOS15_16;
+        row LVCMOS18, LVCMOS18_2, LVCMOS18_4, LVCMOS18_6, LVCMOS18_8, LVCMOS18_12, LVCMOS18_16;
+        row LVCMOS25, LVCMOS25_2, LVCMOS25_4, LVCMOS25_6, LVCMOS25_8, LVCMOS25_12, LVCMOS25_16, LVCMOS25_24;
+        row LVCMOS33, LVCMOS33_2, LVCMOS33_4, LVCMOS33_6, LVCMOS33_8, LVCMOS33_12, LVCMOS33_16, LVCMOS33_24;
+        row LVTTL, LVTTL_2, LVTTL_4, LVTTL_6, LVTTL_8, LVTTL_12, LVTTL_16, LVTTL_24;
+        row PCI33_3, PCI66_3, PCIX;
+
+        // DCI output
+        row LVDCI_15, LVDCI_18, LVDCI_25, LVDCI_33;
+        row LVDCI_DV2_15, LVDCI_DV2_18, LVDCI_DV2_25, LVDCI_DV2_33;
+        // VREF-based with DCI output
+        row HSLVDCI_15, HSLVDCI_18, HSLVDCI_25, HSLVDCI_33;
+
+        // VREF-based
+        row GTL, GTLP, AGP;
+        row SSTL18_I, SSTL18_II;
+        row SSTL2_I, SSTL2_II;
+        row SSTL3_I, SSTL3_II;
+        row HSTL_I, HSTL_II, HSTL_III, HSTL_IV;
+        row HSTL_I_18, HSTL_II_18, HSTL_III_18, HSTL_IV_18;
+        // with DCI
+        row GTL_DCI, GTLP_DCI;
+        row SSTL18_I_DCI, SSTL18_II_DCI;
+        row SSTL2_I_DCI, SSTL2_II_DCI;
+        row SSTL3_I_DCI, SSTL3_II_DCI;
+        row HSTL_I_DCI, HSTL_II_DCI, HSTL_III_DCI, HSTL_IV_DCI;
+        row HSTL_I_DCI_18, HSTL_II_DCI_18, HSTL_III_DCI_18, HSTL_IV_DCI_18;
+
+        // pseudo-differential
+        row DIFF_SSTL18_I, DIFF_SSTL18_II;
+        row DIFF_SSTL2_I, DIFF_SSTL2_II;
+        row DIFF_SSTL3_I, DIFF_SSTL3_II;
+        row DIFF_HSTL_I, DIFF_HSTL_II, DIFF_HSTL_III;
+        row DIFF_HSTL_I_18, DIFF_HSTL_II_18, DIFF_HSTL_III_18;
+        row LVPECL_25, LVPECL_33;
+        row BLVDS_25;
+        // with DCI
+        row DIFF_SSTL18_II_DCI;
+        row DIFF_SSTL2_II_DCI;
+        row DIFF_HSTL_II_DCI;
+        row DIFF_HSTL_II_DCI_18;
+
+        // true differential
+        row LVDS_25, LVDS_33;
+        row LVDSEXT_25, LVDSEXT_33;
+        row MINI_LVDS_25, MINI_LVDS_33;
+        row HT_25;
+        row RSDS_25, RSDS_33;
+        row PPDS_25, PPDS_33;
+        row TMDS_33;
+        // with DCI
+        row LVDS_25_DCI, LVDS_33_DCI;
+        row LVDSEXT_25_DCI, LVDSEXT_33_DCI;
+    }
+
+    table IOB_I_DELAY {
+        field DELAY_WSN: bitvec[4];
+        field DELAY_E: bitvec[4];
+
+        row DLY1;
+        row DLY2;
+        row DLY3;
+        row DLY4;
+        row DLY5;
+        row DLY6;
+        row DLY7;
+        row DLY8;
+        row DLY9;
+        row DLY10;
+        row DLY11;
+        row DLY12;
+        row DLY13;
+    }
+
+    table IOB_IQ_DELAY {
+        field DELAY_WSN: bitvec[3];
+        field DELAY_E: bitvec[3];
+
+        row DLY1;
+        row DLY2;
+        row DLY3;
+        row DLY4;
+        row DLY5;
+        row DLY6;
+        row DLY7;
+    }
+
+    enum DCM_CLKDV_MODE { HALF, INT }
+    enum DCM_FREQUENCY_MODE { LOW, HIGH }
+    enum DCM_DSS_MODE { SPREAD_2, SPREAD_4, SPREAD_6, SPREAD_8 }
+    enum DCM_PS_MODE { CLKIN, CLKFB }
+    enum DCM_TEST_OSC { _90, _180, _270, _360 }
+    bel_class DCM {
+        input CLKIN, CLKFB, RST;
+        input PSCLK, PSEN, PSINCDEC;
+        input STSADRS[5];
+        input FREEZEDLL, FREEZEDFS, DSSEN;
+        input CTLMODE, CTLGO, CTLOSC1, CTLOSC2, CTLSEL[3];
+        output CLK0, CLK90, CLK180, CLK270;
+        output CLK2X, CLK2X180, CLKDV;
+        output CLKFX, CLKFX180, CONCUR;
+        output LOCKED, PSDONE;
+        output STATUS[8];
+
+        // common between V2 and S3E
+
+        attribute OUT_CLK0_ENABLE: bool;
+        attribute OUT_CLK90_ENABLE: bool;
+        attribute OUT_CLK180_ENABLE: bool;
+        attribute OUT_CLK270_ENABLE: bool;
+        attribute OUT_CLK2X_ENABLE: bool;
+        attribute OUT_CLK2X180_ENABLE: bool;
+        attribute OUT_CLKDV_ENABLE: bool;
+        attribute OUT_CLKFX_ENABLE: bool;
+        // not present on s3e (uses OUT_CLKFX_ENABLE for both instead)
+        attribute OUT_CLKFX180_ENABLE: bool;
+        attribute OUT_CONCUR_ENABLE: bool;
+
+        attribute CLKDV_COUNT_MAX: bitvec[4];
+        attribute CLKDV_COUNT_FALL: bitvec[4];
+        attribute CLKDV_COUNT_FALL_2: bitvec[4];
+        attribute CLKDV_PHASE_RISE: bitvec[2];
+        attribute CLKDV_PHASE_FALL: bitvec[2];
+        attribute CLKDV_MODE: DCM_CLKDV_MODE;
+
+        attribute DESKEW_ADJUST: bitvec[4];
+        attribute CLKIN_IOB: bool;
+        attribute CLKFB_IOB: bool;
+        attribute CLKIN_DIVIDE_BY_2: bool;
+        attribute CLK_FEEDBACK_2X: bool;
+
+        attribute DLL_ENABLE: bool;
+        attribute DLL_FREQUENCY_MODE: DCM_FREQUENCY_MODE;
+
+        attribute DFS_ENABLE: bool;
+        attribute DFS_FEEDBACK: bool;
+        attribute DFS_FREQUENCY_MODE: DCM_FREQUENCY_MODE;
+
+        attribute PHASE_SHIFT: bitvec[8];
+        attribute PHASE_SHIFT_NEGATIVE: bool;
+        attribute PS_ENABLE: bool;
+
+        attribute STARTUP_WAIT: bool;
+
+        // V2 only
+
+        attribute V2_REG_COM: bitvec[32];
+        attribute V2_REG_DFS: bitvec[32];
+        attribute V2_REG_DLLC: bitvec[32];
+        attribute V2_REG_DLLS: bitvec[32];
+        attribute V2_REG_MISC: bitvec[32];
+        attribute S3_REG_MISC: bitvec[12];
+
+        attribute V2_CLKFX_MULTIPLY: bitvec[12];
+        attribute V2_CLKFX_DIVIDE: bitvec[12];
+        attribute V2_DUTY_CYCLE_CORRECTION: bitvec[4];
+
+        attribute DSS_ENABLE: bool;
+        attribute DSS_MODE: DCM_DSS_MODE;
+        attribute CLKFB_ENABLE: bool;
+        attribute STATUS1_ENABLE: bool;
+        attribute STATUS7_ENABLE: bool;
+
+        attribute PL_CENTERED: bool;
+        attribute PS_CENTERED: bool;
+        attribute PS_MODE: DCM_PS_MODE;
+        attribute SEL_PL_DLY: bitvec[2];
+
+        attribute COIN_WINDOW: bitvec[2];
+        attribute NON_STOP: bool;
+        attribute V2_EN_DUMMY_OSC: bitvec[3];
+        attribute EN_DUMMY_OSC_OR_NON_STOP: bool;
+        attribute EN_OSC_COARSE: bool;
+        attribute FACTORY_JF1: bitvec[8];
+        attribute FACTORY_JF2: bitvec[8];
+        attribute TEST_ENABLE: bool;
+        attribute TEST_OSC: DCM_TEST_OSC;
+        attribute ZD2_BY1: bool;
+
+        attribute V2_VBG_SEL: bitvec[3];
+        attribute V2_VBG_PD: bitvec[2];
+
+        // virtex2p and spartan3 only
+        attribute ZD1_BY1: bool;
+        attribute RESET_PS_SEL: bool;
+
+        // spartan3 only
+        attribute CFG_DLL_LP: bitvec[3];
+        attribute CFG_DLL_PS: bitvec[9];
+        attribute S3_EN_DUMMY_OSC: bool;
+        attribute EN_OLD_OSCCTL: bool;
+        attribute EN_PWCTL: bool;
+        attribute EN_RELRST_B: bool;
+        attribute EXTENDED_FLUSH_TIME: bool;
+        attribute EXTENDED_HALT_TIME: bool;
+        attribute EXTENDED_RUN_TIME: bool;
+        attribute INVERT_ZD1_CUSTOM: bool;
+        attribute LPON_B_DFS: bitvec[2];
+        attribute M1D1: bool;
+        attribute MIS1: bool;
+        attribute SEL_HSYNC_B: bitvec[2];
+        attribute SPLY_IDC: bitvec[2];
+        attribute TRIM_LP_B: bool;
+        attribute VREG_PROBE: bitvec[5];
+
+        // S3E only
+
+        attribute PS_VARIABLE: bool;
+
+        attribute S3E_REG_DFS_C: bitvec[3];
+        attribute S3E_REG_DFS_S: bitvec[76];
+        attribute S3E_REG_DLL_C: bitvec[32];
+        attribute S3E_REG_DLL_S: bitvec[32];
+        attribute S3E_REG_INTERFACE: bitvec[16];
+        attribute S3E_REG_VREG: bitvec[20];
+
+        attribute S3E_CLKFX_MULTIPLY: bitvec[8];
+        attribute S3E_CLKFX_DIVIDE: bitvec[8];
+        attribute S3E_DUTY_CYCLE_CORRECTION: bool;
+
+        attribute S3E_VBG_SEL: bitvec[4];
+
+        attribute UNK_PERIOD_LF: bitvec[2];
+        attribute UNK_PERIOD_NOT_HF: bitvec[1];
+    }
+    device_data DCM_DESKEW_ADJUST: bitvec[4];
+    device_data DCM_V2_VBG_SEL: bitvec[3];
+    device_data DCM_V2_VBG_PD: bitvec[2];
 
     bel_class BUFGMUX {
         input I0, I1;
@@ -221,7 +755,261 @@ target_defs! {
     }
     device_data PCILOGICSE_DELAY: PCILOGICSE_DELAY;
 
-    // TODO: corner stuff
+    bel_class STARTUP {
+        input CLK;
+        input GSR, GTS;
+        // spartan3e only
+        input MBT;
+
+        attribute USER_GTS_GSR_ENABLE: bool;
+        attribute GTS_SYNC: bool;
+        attribute GSR_SYNC: bool;
+        // virtex2 only (and probably doesn't really exist)
+        attribute GWE_SYNC: bool;
+    }
+
+    bel_class CAPTURE {
+        input CLK;
+        input CAP;
+    }
+
+    bel_class ICAP {
+        input CLK, CE, WRITE;
+        input I[8];
+        output BUSY;
+        output O[8];
+
+        attribute ENABLE: bool;
+    }
+
+    bel_class SPI_ACCESS {
+        input CLK, CSB, MOSI;
+        output MISO;
+
+        attribute ENABLE: bool;
+    }
+
+    bel_class PMV {
+        input A[6];
+        input EN;
+        output O;
+    }
+
+    bel_class DNA_PORT {
+        input CLK, DIN, READ, SHIFT;
+        output DOUT;
+    }
+
+    bel_class BSCAN {
+        input TDO1, TDO2;
+        output DRCK1, DRCK2;
+        output SEL1, SEL2;
+        output TDI;
+        output RESET, CAPTURE, SHIFT, UPDATE;
+        // spartan3a only
+        output TCK, TMS;
+
+        // presumably one bit per TDO, but unknown which is which
+        attribute USER_TDO_ENABLE: bitvec[2];
+        attribute USERCODE: bitvec[32];
+    }
+
+    bel_class JTAGPPC {
+        input TDOPPC, TDOTSPPC;
+        output TCK, TMS, TDIPPC;
+        attribute ENABLE: bool;
+    }
+
+    enum MISC_TEMP_SENSOR { NONE, THERM, PGATE, BG, CGATE }
+    bel_class MISC_SW {
+        // not present on spartan3e and up (shared I/O instead)
+        pad M0, M1, M2: input;
+        // spartan3a only
+        pad CCLK2: output;
+        pad MOSI2: output;
+
+        attribute M0_PULL: IOB_PULL;
+        attribute M1_PULL: IOB_PULL;
+        attribute M2_PULL: IOB_PULL;
+        attribute CCLK2_PULL: IOB_PULL;
+        attribute MOSI2_PULL: IOB_PULL;
+        attribute DCI_CLK_ENABLE: bool;
+        // virtex2 (not virtex2p) only
+        attribute DCI_ALTVR: bool;
+
+        // virtex2 misc
+        attribute BCLK_N_DIV2: bitvec[5];
+        attribute ZCLK_N_DIV2: bitvec[5];
+        attribute DISABLE_BANDGAP: bool;
+        attribute DISABLE_VGG_GENERATION: bool;
+        attribute RAISE_VGG: bitvec[2];
+
+        // spartan3 misc
+        attribute DCI_OSC_SEL: bitvec[3];
+        attribute GATE_GHIGH: bool;
+        attribute SEND_VGG: bitvec[4];
+        attribute VGG_ENABLE_OFFCHIP: bool;
+        attribute VGG_SENDMAX: bool;
+        // spartan3e and up only
+        attribute TEMP_SENSOR: MISC_TEMP_SENSOR;
+        // spartan3a only
+        attribute UNK_ALWAYS_SET: bitvec[4];
+    }
+
+    bel_class MISC_SE {
+        pad CCLK, DONE: inout;
+        // virtex2 only
+        pad POWERDOWN_B: input;
+        // spartan3a only
+        pad SUSPEND: input;
+
+        attribute CCLK_PULL: IOB_PULL;
+        attribute DONE_PULL: IOB_PULL;
+        attribute POWERDOWN_PULL: IOB_PULL;
+
+        // fpgacore only
+        attribute ABUFF: bitvec[4];
+    }
+
+    bel_class MISC_NW {
+        // HSWAPEN not present on spartan3e and up (shared I/O instead)
+        pad HSWAPEN: input;
+        pad PROG_B: input;
+        pad TDI: input;
+        // spartan3a only (is at MISC_NE otherwise)
+        pad TMS: input;
+
+        attribute HSWAPEN_PULL: IOB_PULL;
+        attribute PROG_PULL: IOB_PULL;
+        attribute TDI_PULL: IOB_PULL;
+        attribute TMS_PULL: IOB_PULL;
+        attribute TEST_LL: bool;
+    }
+
+    bel_class MISC_NE {
+        // on spartan3a, TMS is at MISC_NW instead
+        pad TCK, TMS: input;
+        pad TDO: output;
+
+        // spartan3a only
+        pad CSO2: output;
+        pad MISO2: input;
+
+        attribute TCK_PULL: IOB_PULL;
+        attribute TMS_PULL: IOB_PULL;
+        attribute TDO_PULL: IOB_PULL;
+        attribute CSO2_PULL: IOB_PULL;
+        attribute MISO2_PULL: IOB_PULL;
+        // virtex2 only
+        attribute TEST_LL: bool;
+    }
+
+    bel_class MISC_CNR_S3 {
+        attribute MUX_DCI_TEST: bitvec[1];
+        attribute DCM_ENABLE: bool;
+    }
+
+    bel_class MISR_FC {
+        input CLK;
+        attribute MISR_CLOCK: bool;
+        attribute MISR_RESET: bool;
+    }
+
+    enum STARTUP_CYCLE { _0, _1, _2, _3, _4, _5, _6, DONE, KEEP, NOWAIT }
+    enum STARTUP_CLOCK { CCLK, USERCLK, JTAGCLK }
+    enum CONFIG_RATE_V2 { _4, _5, _7, _8, _9, _10, _13, _15, _20, _26, _30, _34, _41, _51, _55, _60, _130 }
+    enum CONFIG_RATE_S3 { _3, _6, _12, _25, _50, _100 }
+    enum CONFIG_RATE_S3E { _1, _3, _6, _12, _25, _50 }
+    enum CONFIG_RATE_S3A { _6, _1, _3, _7, _8, _10, _12, _13, _17, _22, _25, _27, _33, _44, _50, _100 }
+    enum BUSCLK_FREQ { _25, _50, _100, _200 }
+    enum S3_VRDSEL { _80, _90, _95, _100 }
+    enum S3E_VRDSEL { _70, _80, _90 }
+    enum SECURITY { NONE, LEVEL1, LEVEL2, LEVEL3 }
+    enum SW_CLK { INTERNALCLK, STARTUPCLK }
+    bel_class GLOBAL {
+        // COR
+        attribute GWE_CYCLE: STARTUP_CYCLE;
+        attribute GTS_CYCLE: STARTUP_CYCLE;
+        attribute LOCK_CYCLE: STARTUP_CYCLE;
+        attribute MATCH_CYCLE: STARTUP_CYCLE;
+        attribute DONE_CYCLE: STARTUP_CYCLE;
+        attribute STARTUP_CLOCK: STARTUP_CLOCK;
+        attribute CONFIG_RATE_V2: CONFIG_RATE_V2;
+        attribute CONFIG_RATE_S3: CONFIG_RATE_S3;
+        attribute CONFIG_RATE_S3E: CONFIG_RATE_S3E;
+        attribute CONFIG_RATE_S3A: CONFIG_RATE_S3A;
+        attribute CAPTURE_ONESHOT: bool;
+        attribute DRIVE_DONE: bool;
+        attribute DONE_PIPE: bool;
+        attribute DCM_SHUTDOWN: bool;
+        attribute POWERDOWN_STATUS: bool;
+        attribute CRC_ENABLE: bool;
+        // spartan3 and up only
+        attribute BUSCLK_FREQ: BUSCLK_FREQ;
+        attribute S3_VRDSEL: S3_VRDSEL;
+        attribute S3E_VRDSEL: S3E_VRDSEL;
+        // spartan3e only
+        attribute MULTIBOOT_ENABLE: bool;
+
+        // CTL
+        attribute GTS_USR_B: bool;
+        attribute VGG_TEST: bool;
+        attribute BCLK_TEST: bool;
+        attribute SECURITY: SECURITY;
+        attribute PERSIST: bool;
+        // spartan3a only
+        attribute ICAP_ENABLE: bool;
+
+        // spartan3a and up only
+        attribute S3A_VRDSEL: bitvec[3];
+        attribute SEND_VGG: bitvec[4];
+        attribute VGG_ENABLE_OFFCHIP: bool;
+        attribute VGG_SENDMAX: bool;
+        attribute DRIVE_AWAKE: bool;
+        attribute BPI_DIV8: bool;
+        attribute ICAP_BYPASS: bool;
+        attribute RESET_ON_ERR: bool;
+        // CONFIG_RATE = 400 / (CONFIG_RATE_DIV + 1)
+        attribute CONFIG_RATE_DIV: bitvec[10];
+        attribute CCLK_DLY: bitvec[2];
+        attribute CCLK_SEP: bitvec[2];
+        attribute CLK_SWITCH_OPT: bitvec[2];
+
+        // HC_OPT
+        attribute HC_CYCLE: bitvec[4];
+        attribute TWO_ROUND: bool;
+        attribute BRAM_SKIP: bool;
+
+        // POWERDOWN
+        attribute SW_CLK: SW_CLK;
+        attribute EN_PORB: bool;
+        attribute EN_SUSPEND: bool;
+        attribute EN_SW_GSR: bool;
+        attribute SUSPEND_FILTER: bool;
+        attribute WAKE_DELAY1: bitvec[3];
+        attribute WAKE_DELAY2: bitvec[5];
+        attribute SW_GWE_CYCLE: bitvec[10];
+        attribute SW_GTS_CYCLE: bitvec[10];
+
+        // MODE
+        attribute BOOTVSEL: bitvec[3];
+        attribute NEXT_CONFIG_BOOT_MODE: bitvec[3];
+        attribute NEXT_CONFIG_NEW_MODE: bool;
+        attribute TESTMODE_EN: bool;
+
+        attribute NEXT_CONFIG_ADDR: bitvec[32];
+
+        // SEU_OPT
+        attribute POST_CRC_EN: bool;
+        attribute GLUTMASK: bool;
+        attribute POST_CRC_KEEP: bool;
+        // FREQ = 400 / (POST_CRC_FREQ + 1)
+        attribute POST_CRC_FREQ_DIV: bitvec[10];
+    }
+
+    device_data IDCODE: bitvec[32];
+    device_data DOUBLE_GRESTORE: bool;
+    device_data FREEZE_DCI_NOPS: u32;
 
     enum GT_DATA_WIDTH { _1, _2, _4 }
     enum GT_SEQ_LEN { _1, _2, _3, _4 }
@@ -1244,28 +2032,31 @@ target_defs! {
     }
 
     if variant virtex2 {
-        bitrect MAIN = vertical (22, rev 80);
-        bitrect CLK = vertical (4, rev 80);
-        bitrect CLK_SN = vertical (4, rev 16);
-        bitrect HCLK = vertical (22, rev 1);
-        bitrect TERM_H = vertical (4, rev 80);
-        bitrect TERM_V = vertical (22, rev 12);
-        bitrect BRAM_DATA = vertical (64, rev 320);
+        bitrect MAIN = vertical (rev 22, rev 80);
+        bitrect CLK = vertical (rev 4, rev 80);
+        bitrect CLK_SN = vertical (rev 4, rev 16);
+        bitrect HCLK = vertical (rev 22, rev 1);
+        bitrect TERM_H = vertical (rev 4, rev 80);
+        bitrect TERM_V = vertical (rev 22, rev 12);
+        bitrect BRAM_DATA = vertical (rev 64, rev 320);
     } else {
-        bitrect MAIN = vertical (19, rev 64);
-        bitrect CLK = vertical (1, rev 64);
-        bitrect CLK_SN = vertical (1, rev 16);
-        bitrect CLK_LL = vertical (2, rev 64);
-        bitrect CLK_SN_LL = vertical (2, rev 16);
-        bitrect HCLK = vertical (19, rev 1);
-        bitrect TERM_H = vertical (2, rev 64);
-        bitrect TERM_V_S3 = vertical (19, rev 5);
-        bitrect TERM_V_S3A = vertical (19, rev 6);
-        bitrect LLV_S = vertical (19, rev 1);
-        bitrect LLV_N = vertical (19, rev 2);
-        bitrect LLV = vertical (19, rev 3);
-        bitrect BRAM_DATA = vertical (76, rev 256);
+        bitrect MAIN = vertical (rev 19, rev 64);
+        bitrect CLK = vertical (rev 1, rev 64);
+        bitrect CLK_SN = vertical (rev 1, rev 16);
+        bitrect CLK_LL = vertical (rev 2, rev 64);
+        bitrect CLK_SN_LL = vertical (rev 2, rev 16);
+        bitrect HCLK = vertical (rev 19, rev 1);
+        bitrect TERM_H = vertical (rev 2, rev 64);
+        bitrect TERM_V_S3 = vertical (rev 19, rev 5);
+        bitrect TERM_V_S3A = vertical (rev 19, rev 6);
+        bitrect LLV_S = vertical (rev 19, rev 1);
+        bitrect LLV_N = vertical (rev 19, rev 2);
+        bitrect LLV = vertical (rev 19, rev 3);
+        bitrect BRAM_DATA = vertical (rev 76, rev 256);
     }
+
+    bitrect REG32 = horizontal (1, rev 32);
+    bitrect REG16 = horizontal (1, rev 16);
 
     tile_slot INT {
         bel_slot INT: routing;
@@ -1339,9 +2130,9 @@ target_defs! {
             bitrect MAIN: MAIN;
         }
 
-        bel_slot IOI[4]: legacy;
-        bel_slot IBUF[4]: legacy;
-        bel_slot OBUF[4]: legacy;
+        bel_slot IOI[4]: IOI;
+        bel_slot IREG[4]: IREG;
+        bel_slot OREG[4]: OREG;
         if variant virtex2 {
             tile_class IOI, IOI_CLK_S, IOI_CLK_N { // TODO: possible to merge?
                 cell CELL;
@@ -1380,7 +2171,7 @@ target_defs! {
             }
         }
 
-        bel_slot DCM: legacy;
+        bel_slot DCM: DCM;
         bel_slot DCM_INT: routing;
         if variant virtex2 {
             tile_class DCM_V2, DCM_V2P {
@@ -1437,20 +2228,24 @@ target_defs! {
             }
         }
 
-        bel_slot DCI[2]: legacy;
-        bel_slot DCIRESET[2]: legacy;
-        bel_slot STARTUP: legacy;
-        bel_slot CAPTURE: legacy;
-        bel_slot ICAP: legacy;
-        bel_slot SPI_ACCESS: legacy;
-        bel_slot PMV: legacy;
-        bel_slot DNA_PORT: legacy;
-        bel_slot BSCAN: legacy;
-        bel_slot JTAGPPC: legacy;
-        // TODO: move
-        bel_slot BREFCLK_INT: legacy;
+        bel_slot DCI[2]: DCI;
+        bel_slot DCIRESET[2]: DCIRESET;
+        bel_slot STARTUP: STARTUP;
+        bel_slot CAPTURE: CAPTURE;
+        bel_slot ICAP: ICAP;
+        bel_slot SPI_ACCESS: SPI_ACCESS;
+        bel_slot PMV: PMV;
+        bel_slot DNA_PORT: DNA_PORT;
+        bel_slot BSCAN: BSCAN;
+        bel_slot JTAGPPC: JTAGPPC;
         bel_slot RANDOR_OUT: RANDOR_OUT;
-        bel_slot MISR: legacy;
+        bel_slot MISC_CNR_S3: MISC_CNR_S3;
+        bel_slot MISR_FC: MISR_FC;
+        bel_slot MISC_SW: MISC_SW;
+        bel_slot MISC_SE: MISC_SE;
+        bel_slot MISC_NW: MISC_NW;
+        bel_slot MISC_NE: MISC_NE;
+        bel_slot BANK: BANK;
         if variant virtex2 {
             tile_class
                 CNR_SW_V2,
@@ -1568,6 +2363,9 @@ target_defs! {
     }
 
     tile_slot IOB {
+        bel_slot IOB[8]: IOB;
+        bel_slot IBUF[4]: IBUF;
+        bel_slot OBUF[4]: OBUF;
         if variant virtex2 {
             tile_class IOB_V2_SW2, IOB_V2_SE2 {
                 cell CELL[2];
@@ -1870,6 +2668,38 @@ target_defs! {
             tile_class RANDOR_INIT_FC {
                 bitrect MAIN: MAIN;
                 bel RANDOR_INIT;
+            }
+        }
+    }
+
+    tile_slot GLOBAL {
+        bel_slot GLOBAL: GLOBAL;
+        if variant virtex2 {
+            tile_class GLOBAL {
+                bitrect COR: REG32;
+                bitrect CTL: REG32;
+                bel GLOBAL;
+            }
+        } else {
+            tile_class GLOBAL_S3, GLOBAL_FC, GLOBAL_S3E {
+                bitrect COR: REG32;
+                bitrect CTL: REG32;
+                bel GLOBAL;
+            }
+            tile_class GLOBAL_S3A {
+                bitrect COR1: REG16;
+                bitrect COR2: REG16;
+                bitrect CTL: REG16;
+                bitrect CCLK_FREQ: REG16;
+                bitrect HC_OPT: REG16;
+                bitrect POWERDOWN: REG16;
+                bitrect PU_GWE: REG16;
+                bitrect PU_GTS: REG16;
+                bitrect MODE: REG16;
+                bitrect GENERAL1: REG16;
+                bitrect GENERAL2: REG16;
+                bitrect SEU_OPT: REG16;
+                bel GLOBAL;
             }
         }
     }

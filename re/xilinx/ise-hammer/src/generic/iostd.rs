@@ -25,12 +25,12 @@ pub struct Iostd {
     pub vref: Option<u16>,
     pub diff: DiffKind,
     pub dci: DciKind,
-    pub drive: &'static [&'static str],
+    pub drive: &'static [u8],
     pub input_only: bool,
 }
 
 impl Iostd {
-    pub const fn cmos(name: &'static str, vcco: u16, drive: &'static [&'static str]) -> Iostd {
+    pub const fn cmos(name: &'static str, vcco: u16, drive: &'static [u8]) -> Iostd {
         Iostd {
             name,
             vcco: Some(vcco),

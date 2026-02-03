@@ -1406,11 +1406,11 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[Ti
                     .skip_muxes(&[wires::LONG_H[2], wires::LONG_H[3]])
                     .force_pip(
                         TileWireCoord::new_idx(0, wires::LONG_H[2]),
-                        TileWireCoord::new_idx(0, wires::SINGLE_V[3]),
+                        TileWireCoord::new_idx(0, wires::SINGLE_V[3]).pos(),
                     )
                     .force_pip(
                         TileWireCoord::new_idx(0, wires::LONG_H[3]),
-                        TileWireCoord::new_idx(0, wires::SINGLE_V[4]),
+                        TileWireCoord::new_idx(0, wires::SINGLE_V[4]).pos(),
                     );
             }
             for (wt, wf) in [

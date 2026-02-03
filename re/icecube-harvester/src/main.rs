@@ -2211,7 +2211,13 @@ impl PartContext<'_> {
     fn inject_lut0_cascade(&mut self, harvester: &mut Harvester<BitOwner>) {
         let tcid = self.chip.kind.tile_class_plb();
         harvester.force_tiled(
-            DiffKey::BelAttrBit(tcid, defs::bslots::LC[0], defs::bcls::LC::LTIN_ENABLE, 0),
+            DiffKey::BelAttrBit(
+                tcid,
+                defs::bslots::LC[0],
+                defs::bcls::LC::LTIN_ENABLE,
+                0,
+                true,
+            ),
             BTreeMap::from_iter([(TileBit::new(0, 0, 50), true)]),
         );
     }
@@ -2349,7 +2355,7 @@ impl PartContext<'_> {
                 };
                 for (i, &bit) in bits.iter().enumerate() {
                     harvester.force_tiled(
-                        DiffKey::BelAttrBit(tcid, bslot, defs::bcls::IOI::PIN_TYPE, i),
+                        DiffKey::BelAttrBit(tcid, bslot, defs::bcls::IOI::PIN_TYPE, i, true),
                         BTreeMap::from_iter([(bit.bit, !bit.inv)]),
                     );
                 }

@@ -99,8 +99,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let ntile = namer.ngrid.name_tile(tcrd, "BRAM", [name]);
                 let bx = bram_grid.xlut[col];
                 let by = bram_grid.ylut[row];
-                ntile.add_bel(defs::bslots::BRAM, format!("RAMB16_X{bx}Y{by}"));
-                ntile.add_bel(defs::bslots::FIFO, format!("FIFO16_X{bx}Y{by}"));
+                ntile.add_bel_multi(
+                    defs::bslots::BRAM,
+                    [format!("RAMB16_X{bx}Y{by}"), format!("FIFO16_X{bx}Y{by}")],
+                );
             }
             tcls::DSP => {
                 let name = format!("DSP_X{x}Y{y}");

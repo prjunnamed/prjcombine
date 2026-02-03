@@ -7,14 +7,14 @@ use prjcombine_interconnect::{
 
 use crate::{
     chip::{ChipKind, ColumnIoKind, RowIoKind},
-    defs,
+    defs::{self, bslots},
 };
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum IobDiff {
     None,
-    True(usize),
-    Comp(usize),
+    True(BelSlotId),
+    Comp(BelSlotId),
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -27,10 +27,10 @@ pub enum IobKind {
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct IobData {
-    pub index: usize,
-    pub tile: CellSlotId,
-    pub iob: TileIobId,
-    pub bel: BelSlotId,
+    pub iob: BelSlotId,
+    pub cell: CellSlotId,
+    pub iob_id: TileIobId,
+    pub ioi: BelSlotId,
     pub diff: IobDiff,
     pub kind: IobKind,
 }
@@ -39,108 +39,108 @@ pub struct IobData {
 pub struct IobTileData {
     pub tcid: TileClassId,
     pub edge: Dir,
-    pub tiles: usize,
+    pub cells: usize,
     pub iobs: Vec<IobData>,
 }
 
 fn iob(tile: usize, iob: usize) -> IobData {
     IobData {
-        index: 0,
+        iob: bslots::IOB[0],
         kind: IobKind::Iob,
         diff: IobDiff::None,
-        tile: CellSlotId::from_idx(tile),
-        iob: TileIobId::from_idx(iob),
-        bel: defs::bslots::IOI[iob],
+        cell: CellSlotId::from_idx(tile),
+        iob_id: TileIobId::from_idx(iob),
+        ioi: defs::bslots::IOI[iob],
     }
 }
 fn iobt(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
-        index: 0,
+        iob: bslots::IOB[0],
         kind: IobKind::Iob,
-        diff: IobDiff::True(other),
-        tile: CellSlotId::from_idx(tile),
-        iob: TileIobId::from_idx(iob),
-        bel: defs::bslots::IOI[iob],
+        diff: IobDiff::True(bslots::IOB[other]),
+        cell: CellSlotId::from_idx(tile),
+        iob_id: TileIobId::from_idx(iob),
+        ioi: defs::bslots::IOI[iob],
     }
 }
 fn iobc(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
-        index: 0,
+        iob: bslots::IOB[0],
         kind: IobKind::Iob,
-        diff: IobDiff::Comp(other),
-        tile: CellSlotId::from_idx(tile),
-        iob: TileIobId::from_idx(iob),
-        bel: defs::bslots::IOI[iob],
+        diff: IobDiff::Comp(bslots::IOB[other]),
+        cell: CellSlotId::from_idx(tile),
+        iob_id: TileIobId::from_idx(iob),
+        ioi: defs::bslots::IOI[iob],
     }
 }
 fn ibuf(tile: usize, iob: usize) -> IobData {
     IobData {
-        index: 0,
+        iob: bslots::IOB[0],
         kind: IobKind::Ibuf,
         diff: IobDiff::None,
-        tile: CellSlotId::from_idx(tile),
-        iob: TileIobId::from_idx(iob),
-        bel: defs::bslots::IOI[iob],
+        cell: CellSlotId::from_idx(tile),
+        iob_id: TileIobId::from_idx(iob),
+        ioi: defs::bslots::IOI[iob],
     }
 }
 fn ibuft(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
-        index: 0,
+        iob: bslots::IOB[0],
         kind: IobKind::Ibuf,
-        diff: IobDiff::True(other),
-        tile: CellSlotId::from_idx(tile),
-        iob: TileIobId::from_idx(iob),
-        bel: defs::bslots::IOI[iob],
+        diff: IobDiff::True(bslots::IOB[other]),
+        cell: CellSlotId::from_idx(tile),
+        iob_id: TileIobId::from_idx(iob),
+        ioi: defs::bslots::IOI[iob],
     }
 }
 fn ibufc(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
-        index: 0,
+        iob: bslots::IOB[0],
         kind: IobKind::Ibuf,
-        diff: IobDiff::Comp(other),
-        tile: CellSlotId::from_idx(tile),
-        iob: TileIobId::from_idx(iob),
-        bel: defs::bslots::IOI[iob],
+        diff: IobDiff::Comp(bslots::IOB[other]),
+        cell: CellSlotId::from_idx(tile),
+        iob_id: TileIobId::from_idx(iob),
+        ioi: defs::bslots::IOI[iob],
     }
 }
 fn fc_ibuf(tile: usize, iob: usize) -> IobData {
     IobData {
-        index: 0,
+        iob: bslots::IOB[0],
         kind: IobKind::Ibuf,
         diff: IobDiff::None,
-        tile: CellSlotId::from_idx(tile),
-        iob: TileIobId::from_idx(iob),
-        bel: defs::bslots::IBUF[iob],
+        cell: CellSlotId::from_idx(tile),
+        iob_id: TileIobId::from_idx(iob),
+        ioi: defs::bslots::IBUF[iob],
     }
 }
 fn fc_obuf(tile: usize, iob: usize) -> IobData {
     IobData {
-        index: 0,
+        iob: bslots::IOB[0],
         kind: IobKind::Obuf,
         diff: IobDiff::None,
-        tile: CellSlotId::from_idx(tile),
-        iob: TileIobId::from_idx(iob),
-        bel: defs::bslots::OBUF[iob - 4],
+        cell: CellSlotId::from_idx(tile),
+        iob_id: TileIobId::from_idx(iob + 4),
+        ioi: defs::bslots::OBUF[iob],
     }
 }
 fn clkt(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
-        index: 0,
+        iob: bslots::IOB[0],
         kind: IobKind::Clk,
-        diff: IobDiff::True(other),
-        tile: CellSlotId::from_idx(tile),
-        iob: TileIobId::from_idx(iob),
-        bel: defs::bslots::IOI[iob],
+        diff: IobDiff::True(bslots::IOB[other]),
+        cell: CellSlotId::from_idx(tile),
+        iob_id: TileIobId::from_idx(iob),
+        ioi: defs::bslots::IOI[iob],
     }
 }
 fn clkc(tile: usize, iob: usize, other: usize) -> IobData {
     IobData {
-        index: 0,
+        iob: bslots::IOB[0],
         kind: IobKind::Clk,
-        diff: IobDiff::Comp(other),
-        tile: CellSlotId::from_idx(tile),
-        iob: TileIobId::from_idx(iob),
-        bel: defs::bslots::IOI[iob],
+        diff: IobDiff::Comp(bslots::IOB[other]),
+        cell: CellSlotId::from_idx(tile),
+        iob_id: TileIobId::from_idx(iob),
+        ioi: defs::bslots::IOI[iob],
     }
 }
 
@@ -518,7 +518,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2_NW2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2_NW2,
                 edge: Dir::N,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(0, 3, 1),
                     iobt(0, 2, 0),
@@ -531,7 +531,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2_NE2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2_NE2,
                 edge: Dir::N,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(0, 3, 1),
                     iobt(0, 2, 0),
@@ -544,7 +544,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2_EN2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2_EN2,
                 edge: Dir::E,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(1, 3, 1),
                     iobt(1, 2, 0),
@@ -557,7 +557,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2_ES2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2_ES2,
                 edge: Dir::E,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(1, 3, 1),
                     iobt(1, 2, 0),
@@ -570,7 +570,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2_SE2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2_SE2,
                 edge: Dir::S,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(1, 3, 1),
                     iobt(1, 2, 0),
@@ -583,7 +583,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2_SW2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2_SW2,
                 edge: Dir::S,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(1, 3, 1),
                     iobt(1, 2, 0),
@@ -596,7 +596,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2_WS2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2_WS2,
                 edge: Dir::W,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobt(0, 0, 1),
                     iobc(0, 1, 0),
@@ -609,7 +609,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2_WN2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2_WN2,
                 edge: Dir::W,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobt(0, 0, 1),
                     iobc(0, 1, 0),
@@ -624,31 +624,31 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2P_NW1 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_NW1,
                 edge: Dir::N,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iob(0, 2), iobc(0, 1, 2), iobt(0, 0, 1)],
             },
             defs::virtex2::tcls::IOB_V2P_NW1_ALT => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_NW1_ALT,
                 edge: Dir::N,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iobc(0, 2, 1), iobt(0, 1, 0), iob(0, 0)],
             },
             defs::virtex2::tcls::IOB_V2P_NE1 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_NE1,
                 edge: Dir::N,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iobc(0, 3, 1), iobt(0, 2, 0), iob(0, 1)],
             },
             defs::virtex2::tcls::IOB_V2P_NE1_ALT => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_NE1_ALT,
                 edge: Dir::N,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iob(0, 3), iobc(0, 2, 2), iobt(0, 1, 1)],
             },
             defs::virtex2::tcls::IOB_V2P_NW2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_NW2,
                 edge: Dir::N,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(0, 3, 1),
                     iobt(0, 2, 0),
@@ -661,7 +661,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2P_NE2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_NE2,
                 edge: Dir::N,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(0, 3, 1),
                     iobt(0, 2, 0),
@@ -674,7 +674,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2P_NE2_CLK => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_NE2_CLK,
                 edge: Dir::N,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(0, 3, 1),
                     iobt(0, 2, 0),
@@ -687,7 +687,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2P_EN2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_EN2,
                 edge: Dir::E,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(1, 3, 1),
                     iobt(1, 2, 0),
@@ -700,7 +700,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2P_ES2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_ES2,
                 edge: Dir::E,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(1, 3, 1),
                     iobt(1, 2, 0),
@@ -713,31 +713,31 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2P_SE1 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_SE1,
                 edge: Dir::S,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iob(0, 2), iobc(0, 1, 2), iobt(0, 0, 1)],
             },
             defs::virtex2::tcls::IOB_V2P_SE1_ALT => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_SE1_ALT,
                 edge: Dir::S,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iobc(0, 2, 1), iobt(0, 1, 0), iob(0, 0)],
             },
             defs::virtex2::tcls::IOB_V2P_SW1 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_SW1,
                 edge: Dir::S,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iobc(0, 3, 1), iobt(0, 2, 0), iob(0, 1)],
             },
             defs::virtex2::tcls::IOB_V2P_SW1_ALT => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_SW1_ALT,
                 edge: Dir::S,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iob(0, 3), iobc(0, 2, 2), iobt(0, 1, 1)],
             },
             defs::virtex2::tcls::IOB_V2P_SE2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_SE2,
                 edge: Dir::S,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(1, 3, 1),
                     iobt(1, 2, 0),
@@ -750,7 +750,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2P_SW2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_SW2,
                 edge: Dir::S,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(1, 3, 1),
                     iobt(1, 2, 0),
@@ -763,7 +763,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2P_SE2_CLK => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_SE2_CLK,
                 edge: Dir::S,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     clkc(1, 3, 1),
                     clkt(1, 2, 0),
@@ -776,7 +776,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2P_WS2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_WS2,
                 edge: Dir::W,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobt(0, 0, 1),
                     iobc(0, 1, 0),
@@ -789,7 +789,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::virtex2::tcls::IOB_V2P_WN2 => IobTileData {
                 tcid: defs::virtex2::tcls::IOB_V2P_WN2,
                 edge: Dir::W,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobt(0, 0, 1),
                     iobc(0, 1, 0),
@@ -807,7 +807,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3_N2 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3_N2,
                 edge: Dir::N,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iob(0, 2),
                     iobc(0, 1, 2),
@@ -819,13 +819,13 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3_E1 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3_E1,
                 edge: Dir::E,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iobc(0, 1, 1), iobt(0, 0, 0)],
             },
             defs::spartan3::tcls::IOB_S3_S2 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3_S2,
                 edge: Dir::S,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iob(1, 2),
                     iobc(1, 1, 2),
@@ -837,7 +837,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3_W1 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3_W1,
                 edge: Dir::W,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iobc(0, 0, 1), iobt(0, 1, 0)],
             },
 
@@ -845,61 +845,61 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_FC_N => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_FC_N,
                 edge: Dir::N,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![
                     fc_ibuf(0, 3),
-                    fc_obuf(0, 7),
+                    fc_obuf(0, 3),
                     fc_ibuf(0, 2),
-                    fc_obuf(0, 6),
+                    fc_obuf(0, 2),
                     fc_ibuf(0, 1),
-                    fc_obuf(0, 5),
+                    fc_obuf(0, 1),
                     fc_ibuf(0, 0),
-                    fc_obuf(0, 4),
+                    fc_obuf(0, 0),
                 ],
             },
             defs::spartan3::tcls::IOB_FC_E => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_FC_E,
                 edge: Dir::E,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![
                     fc_ibuf(0, 3),
-                    fc_obuf(0, 7),
+                    fc_obuf(0, 3),
                     fc_ibuf(0, 2),
-                    fc_obuf(0, 6),
+                    fc_obuf(0, 2),
                     fc_ibuf(0, 1),
-                    fc_obuf(0, 5),
+                    fc_obuf(0, 1),
                     fc_ibuf(0, 0),
-                    fc_obuf(0, 4),
+                    fc_obuf(0, 0),
                 ],
             },
             defs::spartan3::tcls::IOB_FC_S => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_FC_S,
                 edge: Dir::S,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![
-                    ibuf(0, 3),
-                    fc_obuf(0, 7),
-                    ibuf(0, 2),
-                    fc_obuf(0, 6),
-                    ibuf(0, 1),
-                    fc_obuf(0, 5),
-                    ibuf(0, 0),
-                    fc_obuf(0, 4),
+                    fc_ibuf(0, 3),
+                    fc_obuf(0, 3),
+                    fc_ibuf(0, 2),
+                    fc_obuf(0, 2),
+                    fc_ibuf(0, 1),
+                    fc_obuf(0, 1),
+                    fc_ibuf(0, 0),
+                    fc_obuf(0, 0),
                 ],
             },
             defs::spartan3::tcls::IOB_FC_W => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_FC_W,
                 edge: Dir::W,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![
-                    ibuf(0, 0),
-                    fc_obuf(0, 4),
-                    ibuf(0, 1),
-                    fc_obuf(0, 5),
-                    ibuf(0, 2),
-                    fc_obuf(0, 6),
-                    ibuf(0, 3),
-                    fc_obuf(0, 7),
+                    fc_ibuf(0, 0),
+                    fc_obuf(0, 0),
+                    fc_ibuf(0, 1),
+                    fc_obuf(0, 1),
+                    fc_ibuf(0, 2),
+                    fc_obuf(0, 2),
+                    fc_ibuf(0, 3),
+                    fc_obuf(0, 3),
                 ],
             },
 
@@ -907,19 +907,19 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3E_N1 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_N1,
                 edge: Dir::N,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iob(0, 2)],
             },
             defs::spartan3::tcls::IOB_S3E_N2 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_N2,
                 edge: Dir::N,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![iobc(0, 1, 1), iobt(0, 0, 0), ibuf(1, 2)],
             },
             defs::spartan3::tcls::IOB_S3E_N3 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_N3,
                 edge: Dir::N,
-                tiles: 3,
+                cells: 3,
                 iobs: vec![
                     iobc(0, 1, 1),
                     iobt(0, 0, 0),
@@ -931,7 +931,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3E_N4 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_N4,
                 edge: Dir::N,
-                tiles: 4,
+                cells: 4,
                 iobs: vec![
                     iobc(0, 1, 1),
                     iobt(0, 0, 0),
@@ -945,25 +945,25 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3E_E1 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_E1,
                 edge: Dir::E,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iob(0, 2)],
             },
             defs::spartan3::tcls::IOB_S3E_E2 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_E2,
                 edge: Dir::E,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![iobc(0, 1, 1), iobt(0, 0, 0)],
             },
             defs::spartan3::tcls::IOB_S3E_E3 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_E3,
                 edge: Dir::E,
-                tiles: 3,
+                cells: 3,
                 iobs: vec![ibuf(2, 2), iob(1, 2), iobc(0, 1, 3), iobt(0, 0, 2)],
             },
             defs::spartan3::tcls::IOB_S3E_E4 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_E4,
                 edge: Dir::E,
-                tiles: 4,
+                cells: 4,
                 iobs: vec![
                     ibuf(3, 2),
                     iobc(2, 1, 2),
@@ -975,19 +975,19 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3E_S1 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_S1,
                 edge: Dir::S,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iob(0, 2)],
             },
             defs::spartan3::tcls::IOB_S3E_S2 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_S2,
                 edge: Dir::S,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![iobc(1, 1, 1), iobt(1, 0, 0), ibuf(0, 2)],
             },
             defs::spartan3::tcls::IOB_S3E_S3 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_S3,
                 edge: Dir::S,
-                tiles: 3,
+                cells: 3,
                 iobs: vec![
                     iobc(2, 1, 1),
                     iobt(2, 0, 0),
@@ -999,7 +999,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3E_S4 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_S4,
                 edge: Dir::S,
-                tiles: 4,
+                cells: 4,
                 iobs: vec![
                     iobc(3, 1, 1),
                     iobt(3, 0, 0),
@@ -1013,25 +1013,25 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3E_W1 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_W1,
                 edge: Dir::W,
-                tiles: 1,
+                cells: 1,
                 iobs: vec![iob(0, 2)],
             },
             defs::spartan3::tcls::IOB_S3E_W2 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_W2,
                 edge: Dir::W,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![iobc(1, 1, 1), iobt(1, 0, 0)],
             },
             defs::spartan3::tcls::IOB_S3E_W3 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_W3,
                 edge: Dir::W,
-                tiles: 3,
+                cells: 3,
                 iobs: vec![ibuf(0, 2), iob(1, 2), iobc(2, 1, 3), iobt(2, 0, 2)],
             },
             defs::spartan3::tcls::IOB_S3E_W4 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3E_W4,
                 edge: Dir::W,
-                tiles: 4,
+                cells: 4,
                 iobs: vec![
                     ibuf(0, 2),
                     iobc(1, 1, 2),
@@ -1045,7 +1045,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3A_N2 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3A_N2,
                 edge: Dir::N,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(0, 0, 1),
                     iobt(0, 1, 0),
@@ -1057,7 +1057,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3A_E4 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3A_E4,
                 edge: Dir::E,
-                tiles: 4,
+                cells: 4,
                 iobs: vec![
                     ibufc(3, 1, 1),
                     ibuft(3, 0, 0),
@@ -1072,7 +1072,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3A_S2 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3A_S2,
                 edge: Dir::S,
-                tiles: 2,
+                cells: 2,
                 iobs: vec![
                     iobc(1, 1, 1),
                     iobt(1, 0, 0),
@@ -1084,7 +1084,7 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
             defs::spartan3::tcls::IOB_S3A_W4 => IobTileData {
                 tcid: defs::spartan3::tcls::IOB_S3A_W4,
                 edge: Dir::W,
-                tiles: 4,
+                cells: 4,
                 iobs: vec![
                     ibufc(0, 0, 1),
                     ibuft(0, 1, 0),
@@ -1100,7 +1100,13 @@ pub fn get_iob_data(kind: ChipKind, tcid: TileClassId) -> IobTileData {
         }
     };
     for (i, iob) in data.iobs.iter_mut().enumerate() {
-        iob.index = i;
+        if let Some(idx) = bslots::IREG.index_of(iob.ioi) {
+            iob.iob = bslots::IBUF[idx];
+        } else if let Some(idx) = bslots::OREG.index_of(iob.ioi) {
+            iob.iob = bslots::OBUF[idx];
+        } else {
+            iob.iob = bslots::IOB[i];
+        }
     }
     data
 }

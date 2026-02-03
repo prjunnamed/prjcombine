@@ -62,7 +62,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllColumnIo {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
-        let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         let tcls_index = &backend.edev.db_index[tcid];
         for (&wire_to, ins) in &tcls_index.pips_bwd {
             for &wire_from in ins {
@@ -186,7 +186,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let intdb = ctx.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
-        if !ctx.has_tile_id(tcid) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
         for (bslot, bel) in &tcls.bels {

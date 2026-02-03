@@ -407,6 +407,7 @@ impl Context {
                 };
                 BelAttributeType::Enum(eid)
             }
+            ast::AttributeType::U32 => BelAttributeType::U32,
         })
     }
 
@@ -962,6 +963,9 @@ impl Context {
                         bits.push(self.eval_pol_tile_bit(tcls, bit)?);
                     }
                     match cattr.typ {
+                        BelAttributeType::U32 => {
+                            error_at(name.span(), "u32 not allowed in attributes")?
+                        }
                         BelAttributeType::Enum(_) => error_at(name.span(), "missing enum values")?,
                         BelAttributeType::Bool => {
                             if bits.len() != 1 {

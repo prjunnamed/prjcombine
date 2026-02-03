@@ -10,12 +10,14 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new(session, backend, "CCM") else {
+    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "CCM") else {
         return;
     };
     for idx in 0..2 {
         let mut bctx = ctx.bel(defs::bslots::PMCD[idx]);
-        bctx.test_manual_legacy("PRESENT", "1").mode("PMCD").commit();
+        bctx.test_manual_legacy("PRESENT", "1")
+            .mode("PMCD")
+            .commit();
         for pin in ["CLKA", "CLKB", "CLKC", "CLKD"] {
             bctx.mode("PMCD")
                 .test_manual_legacy(format!("{pin}_ENABLE"), "1")
@@ -23,9 +25,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
         for pin in ["REL", "RST"] {
-            bctx.mode("PMCD").test_inv(pin);
+            bctx.mode("PMCD").test_inv_legacy(pin);
         }
-        bctx.mode("PMCD").test_enum_legacy("EN_REL", &["FALSE", "TRUE"]);
+        bctx.mode("PMCD")
+            .test_enum_legacy("EN_REL", &["FALSE", "TRUE"]);
         bctx.mode("PMCD")
             .test_enum_legacy("RST_DEASSERT_CLK", &["CLKA", "CLKB", "CLKC", "CLKD"]);
         bctx.mode("PMCD")
@@ -146,7 +149,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "ENOSC0", "ENOSC1", "ENOSC2", "OUTSEL0", "OUTSEL1", "OUTSEL2", "HFSEL0", "HFSEL1",
             "HFSEL2", "RST", "SELSKEW", "FREEZE",
         ] {
-            bctx.mode("DPM").test_inv(pin);
+            bctx.mode("DPM").test_inv_legacy(pin);
         }
         bctx.mode("DPM")
             .tile_mutex("VREG", "DPM")
@@ -273,7 +276,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     };
     let tile = "CCM";
     let tcid = tcls::CCM;
-    if !ctx.has_tile_id(tcid) {
+    if !ctx.has_tcls(tcid) {
         return;
     }
     for bslot in [bslots::PMCD[0], bslots::PMCD[1]] {
@@ -362,7 +365,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff = ctx.get_diff_legacy(tile, bel, pin, "REL_INT");
                 diffs.push(("REL_INT".to_string(), diff));
             }
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("MUX.{pin}"),
@@ -433,7 +436,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 diffs.push((format!("CKINT{abc}{i}"), diff));
             }
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("MUX.{pin}"),
@@ -443,7 +446,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for bel in ["PMCD[0]", "PMCD[1]", "DPM"] {
         let vreg_enable = ctx.extract_bit_bi_legacy(tile, bel, "CCM_VREG_ENABLE", "FALSE", "TRUE");
-        ctx.insert(tile, "CCM", "VREG_ENABLE", vreg_enable);
+        ctx.insert_legacy(tile, "CCM", "VREG_ENABLE", vreg_enable);
         // ???
         for attr in ["CCM_VBG_SEL", "CCM_VBG_PD", "CCM_VREG_PHASE_MARGIN"] {
             for diff in ctx.get_diffs_legacy(tile, bel, attr, "") {

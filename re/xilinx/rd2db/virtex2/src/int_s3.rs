@@ -2,16 +2,20 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{
-        BelInfo, BelInput, BelPin, IntDb, LegacyBel, Mux, SwitchBox, SwitchBoxItem, TileWireCoord,
-    },
+    db::{Bel, BelInfo, BelInput, IntDb, Mux, SwitchBox, SwitchBoxItem, TileWireCoord},
     dir::{Dir, DirMap},
 };
-use prjcombine_re_xilinx_naming::db::{BelNaming, BelPinNaming, NamingDb, RawTileId, WireNaming};
+use prjcombine_re_xilinx_naming::db::{
+    BelNaming, BelPinNaming, NamingDb, RawTileId, TileClassNaming, WireNaming,
+};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
-use prjcombine_virtex2::defs::{
-    self, bcls, bslots,
-    spartan3::{ccls, tcls, wires},
+use prjcombine_virtex2::{
+    chip::ChipKind,
+    defs::{
+        self, bcls, bslots,
+        spartan3::{ccls, tcls, wires},
+    },
+    iob::get_iob_tiles,
 };
 
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, PipMode};
@@ -1377,7 +1381,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             pips.pips.retain(|&(wt, wf), &mut mode| {
                 if let Some(idx) = wires::IMUX_CLK.index_of(wf.wire) {
                     new_pips.push((
-                        (wt, TileWireCoord::new_idx(0, wires::IMUX_CLK_OPTINV[idx])),
+                        (
+                            wt,
+                            TileWireCoord::new_idx(0, wires::IMUX_CLK_OPTINV[idx]).neg(),
+                        ),
                         mode,
                     ));
                     false
@@ -1483,25 +1490,25 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     } else if rd.family == "fpgacore" {
         let bels_ioi = [
             builder
-                .bel_indexed(bslots::IBUF[0], "IBUF", 0)
+                .bel_indexed(bslots::IREG[0], "IBUF", 0)
                 .extra_int_out_force(
                     "CLKPAD",
                     TileWireCoord::new_idx(0, wires::OUT_CLKPAD[0]),
                     "IOIS_IBUF0",
                 ),
             builder
-                .bel_indexed(bslots::IBUF[1], "IBUF", 1)
+                .bel_indexed(bslots::IREG[1], "IBUF", 1)
                 .extra_int_out_force(
                     "CLKPAD",
                     TileWireCoord::new_idx(0, wires::OUT_CLKPAD[1]),
                     "IOIS_IBUF1",
                 ),
-            builder.bel_indexed(bslots::IBUF[2], "IBUF", 2),
-            builder.bel_indexed(bslots::IBUF[3], "IBUF", 3),
-            builder.bel_indexed(bslots::OBUF[0], "OBUF", 0),
-            builder.bel_indexed(bslots::OBUF[1], "OBUF", 1),
-            builder.bel_indexed(bslots::OBUF[2], "OBUF", 2),
-            builder.bel_indexed(bslots::OBUF[3], "OBUF", 3),
+            builder.bel_indexed(bslots::IREG[2], "IBUF", 2),
+            builder.bel_indexed(bslots::IREG[3], "IBUF", 3),
+            builder.bel_indexed(bslots::OREG[0], "OBUF", 0),
+            builder.bel_indexed(bslots::OREG[1], "OBUF", 1),
+            builder.bel_indexed(bslots::OREG[2], "OBUF", 2),
+            builder.bel_indexed(bslots::OREG[3], "OBUF", 3),
         ];
         builder.extract_int_bels_id(tcls::IOI_FC, "LIOIS", "IOI_FC_W", &bels_ioi);
         builder.extract_int_bels_id(tcls::IOI_FC, "RIOIS", "IOI_FC_E", &bels_ioi);
@@ -1804,6 +1811,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder.bel_indexed(bslots::DCI[1], "DCI", 5),
                 builder.bel_indexed(bslots::DCIRESET[0], "DCIRESET", 6),
                 builder.bel_indexed(bslots::DCIRESET[1], "DCIRESET", 5),
+                builder.bel_virtual(bslots::MISC_CNR_S3),
+                builder.bel_virtual(bslots::MISC_SW),
             ],
         );
         builder.extract_int_bels_id(
@@ -1818,6 +1827,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder.bel_single(bslots::STARTUP, "STARTUP"),
                 builder.bel_single(bslots::CAPTURE, "CAPTURE"),
                 builder.bel_single(bslots::ICAP, "ICAP"),
+                builder.bel_virtual(bslots::MISC_CNR_S3),
+                builder.bel_virtual(bslots::MISC_SE),
             ],
         );
         builder.extract_int_bels_id(
@@ -1830,6 +1841,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder.bel_indexed(bslots::DCIRESET[0], "DCIRESET", 7),
                 builder.bel_indexed(bslots::DCIRESET[1], "DCIRESET", 0),
                 builder.bel_single(bslots::PMV, "PMV"),
+                builder.bel_virtual(bslots::MISC_CNR_S3),
+                builder.bel_virtual(bslots::MISC_NW),
             ],
         );
         builder.extract_int_bels_id(
@@ -1845,10 +1858,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder
                     .bel_virtual(bslots::RANDOR_OUT)
                     .extra_int_out("O", &["UR_CARRY_IN"]),
+                builder.bel_virtual(bslots::MISC_CNR_S3),
+                builder.bel_virtual(bslots::MISC_NE),
             ],
         );
     } else if rd.family == "fpgacore" {
-        builder.extract_int_bels_id(tcls::CNR_SW_FC, "LL", "CNR_SW_FC", &[]);
+        builder.extract_int_bels_id(
+            tcls::CNR_SW_FC,
+            "LL",
+            "CNR_SW_FC",
+            &[builder.bel_virtual(bslots::MISC_SW)],
+        );
         builder.extract_int_bels_id(
             tcls::CNR_SE_FC,
             "LR",
@@ -1857,13 +1877,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder.bel_single(bslots::STARTUP, "STARTUP"),
                 builder.bel_single(bslots::CAPTURE, "CAPTURE"),
                 builder.bel_single(bslots::ICAP, "ICAP"),
+                builder.bel_virtual(bslots::MISC_SE),
             ],
         );
         builder.extract_int_bels_id(
             tcls::CNR_NW_FC,
             "UL",
             "CNR_NW_FC",
-            &[builder.bel_single(bslots::PMV, "PMV")],
+            &[
+                builder.bel_single(bslots::PMV, "PMV"),
+                builder.bel_virtual(bslots::MISC_NW),
+            ],
         );
         builder.extract_int_bels_id(
             tcls::CNR_NE_FC,
@@ -1874,6 +1898,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder
                     .bel_virtual(bslots::RANDOR_OUT)
                     .extra_int_out("O", &["UR_CARRY_IN"]),
+                builder.bel_virtual(bslots::MISC_NE),
             ],
         );
         for (tcid, nn) in [
@@ -1882,13 +1907,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             (tcls::CNR_NW_FC, "CNR_NW_FC"),
             (tcls::CNR_NE_FC, "CNR_NE_FC"),
         ] {
-            let mut bel = LegacyBel::default();
-            bel.pins.insert(
-                "CLK".into(),
-                BelPin::new_in(TileWireCoord::new_idx(0, wires::IMUX_CLK[3])),
+            let mut bel = Bel::default();
+            bel.inputs.insert(
+                bcls::MISR_FC::CLK,
+                BelInput::Fixed(TileWireCoord::new_idx(0, wires::IMUX_CLK_OPTINV[3]).pos()),
             );
             let tcls = &mut builder.db.tile_classes[tcid];
-            tcls.bels.insert(bslots::MISR, BelInfo::Legacy(bel));
+            tcls.bels.insert(bslots::MISR_FC, BelInfo::Bel(bel));
             let pin_naming = BelPinNaming {
                 tile: RawTileId::from_idx(0),
                 name: "CNR_CLK3".into(),
@@ -1903,10 +1928,18 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             };
             bel_naming.pins.insert("CLK".into(), pin_naming);
             let naming = builder.ndb.tile_class_namings.get_mut(nn).unwrap().1;
-            naming.bels.insert(bslots::MISR, bel_naming);
+            naming.bels.insert(bslots::MISR_FC, bel_naming);
         }
     } else if rd.family == "spartan3e" {
-        builder.extract_int_bels_id(tcls::CNR_SW_S3E, "LL", "CNR_SW_S3E", &[]);
+        builder.extract_int_bels_id(
+            tcls::CNR_SW_S3E,
+            "LL",
+            "CNR_SW_S3E",
+            &[
+                builder.bel_virtual(bslots::MISC_SW),
+                builder.bel_virtual(bslots::BANK),
+            ],
+        );
         builder.extract_int_bels_id(
             tcls::CNR_SE_S3E,
             "LR",
@@ -1919,13 +1952,19 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     TileWireCoord::new_idx(0, wires::IMUX_DATA[2]),
                     "CNR_DATA_IN2",
                 ),
+                builder.bel_virtual(bslots::MISC_SE),
+                builder.bel_virtual(bslots::BANK),
             ],
         );
         builder.extract_int_bels_id(
             tcls::CNR_NW_S3E,
             "UL",
             "CNR_NW_S3E",
-            &[builder.bel_single(bslots::PMV, "PMV")],
+            &[
+                builder.bel_single(bslots::PMV, "PMV"),
+                builder.bel_virtual(bslots::MISC_NW),
+                builder.bel_virtual(bslots::BANK),
+            ],
         );
         builder.extract_int_bels_id(
             tcls::CNR_NE_S3E,
@@ -1936,10 +1975,20 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder
                     .bel_virtual(bslots::RANDOR_OUT)
                     .extra_int_out("O", &["UR_CARRY_IN"]),
+                builder.bel_virtual(bslots::MISC_NE),
+                builder.bel_virtual(bslots::BANK),
             ],
         );
     } else {
-        builder.extract_int_bels_id(tcls::CNR_SW_S3A, "LL", "CNR_SW_S3A", &[]);
+        builder.extract_int_bels_id(
+            tcls::CNR_SW_S3A,
+            "LL",
+            "CNR_SW_S3A",
+            &[
+                builder.bel_virtual(bslots::MISC_SW),
+                builder.bel_virtual(bslots::BANK),
+            ],
+        );
         builder.extract_int_bels_id(
             tcls::CNR_SE_S3A,
             "LR",
@@ -1949,6 +1998,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder.bel_single(bslots::CAPTURE, "CAPTURE"),
                 builder.bel_single(bslots::ICAP, "ICAP"),
                 builder.bel_single(bslots::SPI_ACCESS, "SPI_ACCESS"),
+                builder.bel_virtual(bslots::MISC_SE),
             ],
         );
         builder.extract_int_bels_id(
@@ -1958,6 +2008,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             &[
                 builder.bel_single(bslots::PMV, "PMV"),
                 builder.bel_single(bslots::DNA_PORT, "DNA_PORT"),
+                builder.bel_virtual(bslots::MISC_NW),
+                builder.bel_virtual(bslots::BANK),
             ],
         );
         builder.extract_int_bels_id(
@@ -1969,8 +2021,40 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 builder
                     .bel_virtual(bslots::RANDOR_OUT)
                     .extra_int_out("O", &["UR_CARRY_IN"]),
+                builder.bel_virtual(bslots::MISC_NE),
             ],
         );
+    }
+    for tcid in [
+        tcls::CNR_SE_S3,
+        tcls::CNR_SE_FC,
+        tcls::CNR_SE_S3E,
+        tcls::CNR_SE_S3A,
+    ] {
+        if let Some(bel) = builder.db.tile_classes[tcid].bels.get_mut(bslots::ICAP) {
+            let BelInfo::Bel(bel) = bel else {
+                unreachable!()
+            };
+            for pin in [bcls::ICAP::CE, bcls::ICAP::WRITE] {
+                let BelInput::Fixed(wire) = bel.inputs[pin] else {
+                    unreachable!()
+                };
+                bel.inputs[pin] = BelInput::Fixed(!wire);
+            }
+        }
+        if let Some(bel) = builder.db.tile_classes[tcid]
+            .bels
+            .get_mut(bslots::SPI_ACCESS)
+        {
+            let BelInfo::Bel(bel) = bel else {
+                unreachable!()
+            };
+            let pin = bcls::SPI_ACCESS::CSB;
+            let BelInput::Fixed(wire) = bel.inputs[pin] else {
+                unreachable!()
+            };
+            bel.inputs[pin] = BelInput::Fixed(!wire);
+        }
     }
 
     for tkn in [
@@ -3101,6 +3185,35 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         bslots::GLOBALSIG_HCLK,
         BelInfo::Bel(Default::default()),
     );
+
+    let kind = if rd.family == "spartan3" {
+        ChipKind::Spartan3
+    } else if rd.family == "fpgacore" {
+        ChipKind::FpgaCore
+    } else if rd.family == "spartan3e" {
+        ChipKind::Spartan3E
+    } else {
+        ChipKind::Spartan3A
+    };
+    for itd in get_iob_tiles(kind) {
+        let tcid = itd.tcid;
+        let mut naming = TileClassNaming::default();
+        if kind == ChipKind::FpgaCore {
+            for bslot in bslots::IBUF.into_iter().chain(bslots::OBUF) {
+                builder.insert_tcls_bel(tcid, bslot, BelInfo::Bel(Default::default()));
+                naming.bels.insert(bslot, Default::default());
+            }
+        } else {
+            for i in 0..itd.iobs.len() {
+                builder.insert_tcls_bel(tcid, bslots::IOB[i], BelInfo::Bel(Default::default()));
+                naming.bels.insert(bslots::IOB[i], Default::default());
+            }
+        }
+        builder
+            .ndb
+            .tile_class_namings
+            .insert(builder.db.tile_classes.key(tcid).into(), naming);
+    }
 
     builder.build()
 }

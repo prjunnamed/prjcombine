@@ -1,17 +1,15 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::HashSet;
 
-use prjcombine_re_collector::{
-    diff::Diff,
-    legacy::{extract_bitvec_val_legacy, xlat_bit_legacy, xlat_bitvec_legacy},
-};
+use prjcombine_entity::EntityPartVec;
+use prjcombine_interconnect::db::BelAttributeEnum;
+use prjcombine_re_collector::diff::{Diff, extract_bitvec_val, xlat_bit, xlat_bitvec};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::{
-    bits,
-    bitvec::BitVec,
-    bsdata::{TileItem, TileItemKind},
+use prjcombine_types::{bits, bitvec::BitVec};
+use prjcombine_virtex2::{
+    chip::Dcms,
+    defs::{self, bcls, bslots, devdata, enums, spartan3::tcls},
 };
-use prjcombine_virtex2::{chip::Dcms, defs, defs::bslots, defs::spartan3::tcls};
 
 use crate::{
     backend::{IseBackend, MultiValue, PinFromKind},
@@ -20,6 +18,7 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::relation::DeltaSlot,
     },
+    virtex2::specials,
 };
 
 pub fn add_fuzzers<'a>(
@@ -28,16 +27,16 @@ pub fn add_fuzzers<'a>(
     devdata_only: bool,
 ) {
     if devdata_only {
-        let mut ctx = FuzzCtx::new_id(session, backend, tcls::DCM_S3E_NE);
+        let mut ctx = FuzzCtx::new(session, backend, tcls::DCM_S3E_NE);
         let mut bctx = ctx.bel(bslots::DCM);
         bctx.build()
             .global_mutex("DCM", "ENABLE")
-            .test_manual_legacy("ENABLE", "1")
+            .test_bel_special(specials::PRESENT)
             .mode("DCM")
             .commit();
         return;
     }
-    for (tile, vreg) in [
+    for (tcid, vreg) in [
         (
             tcls::DCM_S3E_SW,
             Some((tcls::DCM_S3E_SE, DeltaSlot::new(1, 0, defs::tslots::BEL))),
@@ -59,26 +58,30 @@ pub fn add_fuzzers<'a>(
             Some((tcls::DCM_S3E_ES, DeltaSlot::new(0, -1, defs::tslots::BEL))),
         ),
     ] {
-        let vreg_tile = if let Some((vreg, _)) = vreg {
+        let vreg_tcid = if let Some((vreg, _)) = vreg {
             vreg
         } else {
-            tile
+            tcid
         };
-        let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         let mut bctx = ctx.bel(bslots::DCM);
         let mode = "DCM";
 
         let mut builder = bctx.build().global_mutex("DCM", "ENABLE").global_mutex(
-            backend.edev.db.tile_classes.key(vreg_tile),
-            backend.edev.db.tile_classes.key(tile),
+            backend.edev.db.tile_classes.key(vreg_tcid),
+            backend.edev.db.tile_classes.key(tcid),
         );
         if let Some((_, ref vreg)) = vreg {
-            builder = builder.extra_tile_attr(vreg.clone(), "DCM_VREG", "ENABLE", "1");
+            builder = builder.extra_tile_bel_special(
+                vreg.clone(),
+                bslots::DCM,
+                specials::DCM_VREG_ENABLE,
+            );
         }
         builder
-            .test_manual_legacy("ENABLE", "1")
+            .test_bel_special(specials::PRESENT)
             .mode(mode)
             .commit();
 
@@ -89,17 +92,50 @@ pub fn add_fuzzers<'a>(
                 .global("VBG_SEL1", "0")
                 .global("VBG_SEL2", "0")
                 .global("VBG_SEL3", "0")
-                .test_manual_legacy("ENABLE", "OPT_BASE")
+                .test_bel_special(specials::DCM_OPT_BASE)
                 .mode(mode)
                 .commit();
-            for opt in ["VBG_SEL0", "VBG_SEL1", "VBG_SEL2", "VBG_SEL3"] {
+            for spec in [
+                specials::DCM_VBG_SEL0,
+                specials::DCM_VBG_SEL1,
+                specials::DCM_VBG_SEL2,
+                specials::DCM_VBG_SEL3,
+            ] {
                 bctx.build()
                     .global_mutex("DCM", "ENABLE_OPT")
-                    .global("VBG_SEL0", if opt == "VBG_SEL0" { "1" } else { "0" })
-                    .global("VBG_SEL1", if opt == "VBG_SEL1" { "1" } else { "0" })
-                    .global("VBG_SEL2", if opt == "VBG_SEL2" { "1" } else { "0" })
-                    .global("VBG_SEL3", if opt == "VBG_SEL3" { "1" } else { "0" })
-                    .test_manual_legacy("ENABLE", opt)
+                    .global(
+                        "VBG_SEL0",
+                        if spec == specials::DCM_VBG_SEL0 {
+                            "1"
+                        } else {
+                            "0"
+                        },
+                    )
+                    .global(
+                        "VBG_SEL1",
+                        if spec == specials::DCM_VBG_SEL1 {
+                            "1"
+                        } else {
+                            "0"
+                        },
+                    )
+                    .global(
+                        "VBG_SEL2",
+                        if spec == specials::DCM_VBG_SEL2 {
+                            "1"
+                        } else {
+                            "0"
+                        },
+                    )
+                    .global(
+                        "VBG_SEL3",
+                        if spec == specials::DCM_VBG_SEL3 {
+                            "1"
+                        } else {
+                            "0"
+                        },
+                    )
+                    .test_bel_special(spec)
                     .mode(mode)
                     .commit();
             }
@@ -108,78 +144,86 @@ pub fn add_fuzzers<'a>(
         bctx.build()
             .global_mutex("DCM", "CFG")
             .mode(mode)
-            .test_manual_legacy("DLL_C", "")
+            .test_bel_attr_bits(bcls::DCM::S3E_REG_DLL_C)
             .multi_global_xy("CFG_DLL_C_*", MultiValue::Bin, 32);
         bctx.build()
             .global_mutex("DCM", "CFG")
             .mode(mode)
-            .test_manual_legacy("DLL_S", "")
+            .test_bel_attr_bits(bcls::DCM::S3E_REG_DLL_S)
             .multi_global_xy("CFG_DLL_S_*", MultiValue::Bin, 32);
         bctx.build()
             .global_mutex("DCM", "CFG")
             .mode(mode)
-            .test_manual_legacy("DFS_C", "")
+            .test_bel_attr_bits(bcls::DCM::S3E_REG_DFS_C)
             .multi_global_xy("CFG_DFS_C_*", MultiValue::Bin, 12);
         bctx.build()
             .global_mutex("DCM", "CFG")
             .mode(mode)
-            .test_manual_legacy("DFS_S", "")
+            .test_bel_attr_bits(bcls::DCM::S3E_REG_DFS_S)
             .multi_global_xy("CFG_DFS_S_*", MultiValue::Bin, 76);
         bctx.build()
             .global_mutex("DCM", "CFG")
             .mode(mode)
-            .test_manual_legacy("INTERFACE", "")
+            .test_bel_attr_bits(bcls::DCM::S3E_REG_INTERFACE)
             .multi_global_xy("CFG_INTERFACE_*", MultiValue::Bin, 16);
         if vreg.is_none() {
             bctx.build()
                 .global_mutex("DCM", "CFG")
                 .mode(mode)
-                .test_manual_legacy("VREG", "")
+                .test_bel_attr_bits(bcls::DCM::S3E_REG_VREG)
                 .multi_global_xy("CFG_REG_*", MultiValue::Bin, 36);
         }
         for pin in [
-            "RST",
-            "PSCLK",
-            "PSEN",
-            "PSINCDEC",
-            "DSSEN",
-            "CTLMODE",
-            "CTLSEL0",
-            "CTLSEL1",
-            "CTLSEL2",
-            "CTLOSC1",
-            "CTLOSC2",
-            "CTLGO",
-            "STSADRS0",
-            "STSADRS1",
-            "STSADRS2",
-            "STSADRS3",
-            "STSADRS4",
-            "FREEZEDFS",
-            "FREEZEDLL",
+            bcls::DCM::RST,
+            bcls::DCM::PSCLK,
+            bcls::DCM::PSEN,
+            bcls::DCM::PSINCDEC,
+            bcls::DCM::DSSEN,
+            bcls::DCM::CTLMODE,
+            bcls::DCM::CTLSEL[0],
+            bcls::DCM::CTLSEL[1],
+            bcls::DCM::CTLSEL[2],
+            bcls::DCM::CTLOSC1,
+            bcls::DCM::CTLOSC2,
+            bcls::DCM::CTLGO,
+            bcls::DCM::STSADRS[0],
+            bcls::DCM::STSADRS[1],
+            bcls::DCM::STSADRS[2],
+            bcls::DCM::STSADRS[3],
+            bcls::DCM::STSADRS[4],
+            bcls::DCM::FREEZEDFS,
+            bcls::DCM::FREEZEDLL,
         ] {
             bctx.mode(mode)
                 .global_mutex("DCM", "USE")
                 .global_mutex("PSCLK", "DCM")
-                .test_inv(pin);
+                .test_bel_input_inv_auto(pin);
         }
 
-        for pin in [
-            "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV", "CLKFX", "CLKFX180",
-            "CONCUR",
+        for (attr, pin) in [
+            (bcls::DCM::OUT_CLK0_ENABLE, "CLK0"),
+            (bcls::DCM::OUT_CLK90_ENABLE, "CLK90"),
+            (bcls::DCM::OUT_CLK180_ENABLE, "CLK180"),
+            (bcls::DCM::OUT_CLK270_ENABLE, "CLK270"),
+            (bcls::DCM::OUT_CLK2X_ENABLE, "CLK2X"),
+            (bcls::DCM::OUT_CLK2X180_ENABLE, "CLK2X180"),
+            (bcls::DCM::OUT_CLKDV_ENABLE, "CLKDV"),
+            (bcls::DCM::OUT_CLKFX_ENABLE, "CLKFX"),
+            (bcls::DCM::OUT_CLKFX180_ENABLE, "CLKFX180"),
+            (bcls::DCM::OUT_CONCUR_ENABLE, "CONCUR"),
         ] {
             bctx.mode(mode)
                 .global_mutex("DCM", "PINS")
                 .mutex("PIN", pin)
                 .no_pin("CLKFB")
-                .test_manual_legacy(pin, "1")
+                .test_bel_attr_bits(attr)
                 .pin(pin)
                 .commit();
             bctx.mode(mode)
                 .global_mutex("DCM", "PINS")
                 .mutex("PIN", pin)
                 .pin("CLKFB")
-                .test_manual_legacy(pin, "1.CLKFB")
+                .test_bel_attr_special(attr, specials::DCM_PIN_CLKFB)
                 .pin(pin)
                 .commit();
             if pin != "CLKFX" && pin != "CLKFX180" && pin != "CONCUR" {
@@ -188,14 +232,15 @@ pub fn add_fuzzers<'a>(
                     .mutex("PIN", format!("{pin}.CLKFX"))
                     .pin("CLKFX")
                     .pin("CLKFB")
-                    .test_manual_legacy(pin, "1.CLKFX")
+                    .test_bel_attr_special(attr, specials::DCM_PIN_CLKFX)
                     .pin(pin)
                     .commit();
             }
         }
         bctx.mode(mode)
+            .null_bits()
             .global_mutex("DCM", "PINS")
-            .test_manual_legacy("CLKFB", "1")
+            .test_bel_attr_bits(bcls::DCM::CLKFB_ENABLE)
             .pin("CLKFB")
             .commit();
         bctx.mode(mode)
@@ -203,7 +248,7 @@ pub fn add_fuzzers<'a>(
             .pin("CLKIN")
             .pin("CLKFB")
             .pin_from("CLKFB", PinFromKind::Bufg)
-            .test_manual_legacy("CLKIN_IOB", "1")
+            .test_bel_attr_bits(bcls::DCM::CLKIN_IOB)
             .pin_from("CLKIN", PinFromKind::Bufg, PinFromKind::Iob)
             .commit();
         bctx.mode(mode)
@@ -211,108 +256,138 @@ pub fn add_fuzzers<'a>(
             .pin("CLKIN")
             .pin("CLKFB")
             .pin_from("CLKIN", PinFromKind::Bufg)
-            .test_manual_legacy("CLKFB_IOB", "1")
+            .test_bel_attr_bits(bcls::DCM::CLKFB_IOB)
             .pin_from("CLKFB", PinFromKind::Bufg, PinFromKind::Iob)
             .commit();
 
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_enum_legacy("DLL_FREQUENCY_MODE", &["LOW", "HIGH"]);
+            .test_bel_attr(bcls::DCM::DLL_FREQUENCY_MODE);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_enum_legacy("DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
+            .test_bel_attr(bcls::DCM::DFS_FREQUENCY_MODE);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
             .global("GTS_CYCLE", "1")
             .global("DONE_CYCLE", "1")
             .global("LCK_CYCLE", "NOWAIT")
-            .test_enum_legacy("STARTUP_WAIT", &["STARTUP_WAIT"]);
+            .test_bel_attr_bits(bcls::DCM::STARTUP_WAIT)
+            .attr("STARTUP_WAIT", "STARTUP_WAIT")
+            .commit();
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_enum_legacy("DUTY_CYCLE_CORRECTION", &["FALSE", "TRUE"]);
+            .test_bel_attr_bool_rename(
+                "DUTY_CYCLE_CORRECTION",
+                bcls::DCM::S3E_DUTY_CYCLE_CORRECTION,
+                "FALSE",
+                "TRUE",
+            );
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_multi_attr_dec("DESKEW_ADJUST", 4);
+            .test_bel_attr_multi(bcls::DCM::DESKEW_ADJUST, MultiValue::Dec(0));
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_enum_legacy("CLKIN_DIVIDE_BY_2", &["CLKIN_DIVIDE_BY_2"]);
+            .test_bel_attr_bits(bcls::DCM::CLKIN_DIVIDE_BY_2)
+            .attr("CLKIN_DIVIDE_BY_2", "CLKIN_DIVIDE_BY_2")
+            .commit();
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_enum_legacy("CLK_FEEDBACK", &["1X", "2X"]);
+            .test_bel_attr_bool_rename("CLK_FEEDBACK", bcls::DCM::CLK_FEEDBACK_2X, "1X", "2X");
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_manual_legacy("CLKFX_MULTIPLY", "")
+            .test_bel_attr_bits(bcls::DCM::S3E_CLKFX_MULTIPLY)
             .multi_attr("CLKFX_MULTIPLY", MultiValue::Dec(1), 8);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_manual_legacy("CLKFX_DIVIDE", "")
+            .test_bel_attr_bits(bcls::DCM::S3E_CLKFX_DIVIDE)
             .multi_attr("CLKFX_DIVIDE", MultiValue::Dec(1), 8);
         bctx.mode(mode)
+            .null_bits()
             .global_mutex("DCM", "USE")
             .pin("CLK0")
             .no_pin("CLKFB")
-            .test_manual_legacy("VERY_HIGH_FREQUENCY", "1")
+            .test_bel_special(specials::DCM_VERY_HIGH_FREQUENCY)
             .attr("VERY_HIGH_FREQUENCY", "VERY_HIGH_FREQUENCY")
             .commit();
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
             .pin("CLK0")
             .pin("CLKFB")
-            .test_manual_legacy("VERY_HIGH_FREQUENCY", "1.CLKFB")
+            .test_bel_special(specials::DCM_VERY_HIGH_FREQUENCY_CLKFB)
             .attr("VERY_HIGH_FREQUENCY", "VERY_HIGH_FREQUENCY")
             .commit();
-
+        for (spec, val) in [
+            (specials::DCM_CLKOUT_PHASE_SHIFT_NONE, "NONE"),
+            (specials::DCM_CLKOUT_PHASE_SHIFT_FIXED, "FIXED"),
+            (specials::DCM_CLKOUT_PHASE_SHIFT_VARIABLE, "VARIABLE"),
+        ] {
+            bctx.mode(mode)
+                .global_mutex("DCM", "USE")
+                .pin("CLK0")
+                .test_bel_special(spec)
+                .attr("CLKOUT_PHASE_SHIFT", val)
+                .commit();
+        }
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .pin("CLK0")
-            .test_enum_legacy("CLKOUT_PHASE_SHIFT", &["NONE", "FIXED", "VARIABLE"]);
+            .test_bel_attr_bits(bcls::DCM::PHASE_SHIFT)
+            .multi_attr("PHASE_SHIFT", MultiValue::Dec(0), 7);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_multi_attr_dec("PHASE_SHIFT", 7);
-        bctx.mode(mode)
-            .global_mutex("DCM", "USE")
-            .test_manual_legacy("PHASE_SHIFT", "-1")
+            .test_bel_special(specials::DCM_PHASE_SHIFT_N1)
             .attr("PHASE_SHIFT", "-1")
             .commit();
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_manual_legacy("PHASE_SHIFT", "-255")
+            .test_bel_special(specials::DCM_PHASE_SHIFT_N255)
             .attr("PHASE_SHIFT", "-255")
             .commit();
 
-        bctx.mode(mode).global_mutex("DCM", "USE").test_enum_legacy(
-            "CLKDV_DIVIDE",
-            &[
-                "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
-            ],
-        );
-        for dll_mode in ["LOW", "HIGH"] {
-            for val in ["1_5", "2_5", "3_5", "4_5", "5_5", "6_5", "7_5"] {
+        for val in 2..=16 {
+            bctx.mode(mode)
+                .global_mutex("DCM", "USE")
+                .test_bel_special_u32(specials::DCM_CLKDV_DIVIDE_INT, val)
+                .attr("CLKDV_DIVIDE", val.to_string())
+                .commit();
+        }
+        for (spec, dll_mode) in [
+            (specials::DCM_CLKDV_DIVIDE_HALF_LOW, "LOW"),
+            (specials::DCM_CLKDV_DIVIDE_HALF_HIGH, "HIGH"),
+        ] {
+            for val in 1..=7 {
                 bctx.mode(mode)
                     .global_mutex("DCM", "USE")
                     .attr("DLL_FREQUENCY_MODE", dll_mode)
                     .attr("X_CLKIN_PERIOD", "")
-                    .test_manual_legacy("CLKDV_DIVIDE", format!("{val}.{dll_mode}"))
-                    .attr("CLKDV_DIVIDE", val)
+                    .test_bel_special_u32(spec, val)
+                    .attr("CLKDV_DIVIDE", format!("{val}_5"))
                     .commit();
             }
         }
-        bctx.mode(mode)
-            .global_mutex("DCM", "USE")
-            .attr("CLKIN_DIVIDE_BY_2", "")
-            .attr("CLKFX_MULTIPLY", "")
-            .attr("CLKFX_DIVIDE", "")
-            .pin("CLK0")
-            .no_pin("CLKFX")
-            .test_enum_legacy(
-                "X_CLKIN_PERIOD",
-                &["1.0", "4.99", "5.0", "24.99", "25.0", "200.99"],
-            );
+        for (spec, val) in [
+            (specials::DCM_X_CLKIN_PERIOD_1P0, "1.0"),
+            (specials::DCM_X_CLKIN_PERIOD_4P99, "4.99"),
+            (specials::DCM_X_CLKIN_PERIOD_5P0, "5.0"),
+            (specials::DCM_X_CLKIN_PERIOD_24P99, "24.99"),
+            (specials::DCM_X_CLKIN_PERIOD_25P0, "25.0"),
+            (specials::DCM_X_CLKIN_PERIOD_200P99, "200.99"),
+        ] {
+            bctx.mode(mode)
+                .global_mutex("DCM", "USE")
+                .attr("CLKIN_DIVIDE_BY_2", "")
+                .attr("CLKFX_MULTIPLY", "")
+                .attr("CLKFX_DIVIDE", "")
+                .pin("CLK0")
+                .no_pin("CLKFX")
+                .test_bel_special(spec)
+                .attr("X_CLKIN_PERIOD", val)
+                .commit();
+        }
         if vreg.is_none() {
             bctx.mode(mode)
                 .global_mutex("DCM", "USE_VREG")
                 .pin("CLK0")
-                .test_manual_legacy("X_CLKIN_PERIOD", "201.0")
+                .test_bel_special(specials::DCM_X_CLKIN_PERIOD_201P0)
                 .attr("X_CLKIN_PERIOD", "201.0")
                 .commit();
         }
@@ -324,35 +399,43 @@ pub fn add_fuzzers<'a>(
             bctx.mode(mode)
                 .null_bits()
                 .global_mutex("DCM", "USE")
-                .test_manual_legacy(pin, "1")
+                .test_bel_special(specials::DCM_PIN_DUMMY)
                 .pin(pin)
                 .commit();
         }
         bctx.mode(mode)
             .null_bits()
             .global_mutex("DCM", "USE")
-            .test_enum_legacy(
-                "DSS_MODE",
-                &["NONE", "SPREAD_2", "SPREAD_4", "SPREAD_6", "SPREAD_8"],
-            );
+            .test_bel_attr(bcls::DCM::DSS_MODE);
         bctx.mode(mode)
             .null_bits()
             .global_mutex("DCM", "USE")
-            .test_enum_legacy(
-                "FACTORY_JF1",
-                &[
-                    "0X80", "0XC0", "0XE0", "0XF0", "0XF8", "0XFC", "0XFE", "0XFF",
-                ],
-            );
-        bctx.mode(mode)
-            .null_bits()
-            .global_mutex("DCM", "USE")
-            .test_enum_legacy(
-                "FACTORY_JF2",
-                &[
-                    "0X80", "0XC0", "0XE0", "0XF0", "0XF8", "0XFC", "0XFE", "0XFF",
-                ],
-            );
+            .test_bel_attr_bits_bi(bcls::DCM::DSS_ENABLE, false)
+            .attr("DSS_MODE", "NONE")
+            .commit();
+        for (val, vname) in [
+            (0x00, "0X80"),
+            (0x40, "0XC0"),
+            (0x60, "0XE0"),
+            (0x70, "0XF0"),
+            (0x78, "0XF8"),
+            (0x7c, "0XFC"),
+            (0x7e, "0XFE"),
+            (0x7f, "0XFF"),
+        ] {
+            bctx.mode(mode)
+                .null_bits()
+                .global_mutex("DCM", "USE")
+                .test_bel_attr_u32(bcls::DCM::FACTORY_JF1, val)
+                .attr("FACTORY_JF1", vname)
+                .commit();
+            bctx.mode(mode)
+                .null_bits()
+                .global_mutex("DCM", "USE")
+                .test_bel_attr_u32(bcls::DCM::FACTORY_JF2, val)
+                .attr("FACTORY_JF2", vname)
+                .commit();
+        }
     }
 }
 
@@ -361,76 +444,76 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         unreachable!()
     };
     if devdata_only {
-        let tile = "DCM_S3E_NE";
-        let bel = "DCM";
-        let mut present = ctx.get_diff_legacy(tile, bel, "ENABLE", "1");
-        let item = ctx.item(tile, bel, "DESKEW_ADJUST");
-        let val = extract_bitvec_val_legacy(
+        let tcid = tcls::DCM_S3E_NE;
+        let bslot = bslots::DCM;
+        let mut present = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
+        let item = ctx.bel_attr_bitvec(tcid, bslot, bcls::DCM::DESKEW_ADJUST);
+        let val = extract_bitvec_val(
             item,
             &bits![0; 4],
-            present.split_bits(&item.bits.iter().copied().collect()),
+            present.split_bits(&item.iter().map(|bit| bit.bit).collect()),
         );
-        ctx.insert_device_data("DCM:DESKEW_ADJUST", val);
+        ctx.insert_devdata_bitvec(devdata::DCM_DESKEW_ADJUST, val);
         return;
     }
     for (tcid, vreg) in [
-        (tcls::DCM_S3E_SW, Some("DCM_S3E_SE")),
+        (tcls::DCM_S3E_SW, Some(tcls::DCM_S3E_SE)),
         (tcls::DCM_S3E_SE, None),
-        (tcls::DCM_S3E_NW, Some("DCM_S3E_NE")),
+        (tcls::DCM_S3E_NW, Some(tcls::DCM_S3E_NE)),
         (tcls::DCM_S3E_NE, None),
-        (tcls::DCM_S3E_WS, Some("DCM_S3E_WN")),
+        (tcls::DCM_S3E_WS, Some(tcls::DCM_S3E_WN)),
         (tcls::DCM_S3E_WN, None),
         (tcls::DCM_S3E_ES, None),
-        (tcls::DCM_S3E_EN, Some("DCM_S3E_ES")),
+        (tcls::DCM_S3E_EN, Some(tcls::DCM_S3E_ES)),
     ] {
-        let bel = "DCM";
         let bslot = bslots::DCM;
-        if !ctx.has_tile_id(tcid) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
-        let tile = edev.db.tile_classes.key(tcid);
         for pin in [
-            "RST",
-            "PSEN",
-            "PSINCDEC",
-            "CTLMODE",
-            "CTLSEL0",
-            "CTLSEL1",
-            "CTLSEL2",
-            "CTLOSC1",
-            "CTLOSC2",
-            "CTLGO",
-            "STSADRS0",
-            "STSADRS1",
-            "STSADRS2",
-            "STSADRS3",
-            "STSADRS4",
-            "FREEZEDFS",
-            "FREEZEDLL",
+            bcls::DCM::RST,
+            bcls::DCM::PSEN,
+            bcls::DCM::PSINCDEC,
+            bcls::DCM::CTLMODE,
+            bcls::DCM::CTLSEL[0],
+            bcls::DCM::CTLSEL[1],
+            bcls::DCM::CTLSEL[2],
+            bcls::DCM::CTLOSC1,
+            bcls::DCM::CTLOSC2,
+            bcls::DCM::CTLGO,
+            bcls::DCM::STSADRS[0],
+            bcls::DCM::STSADRS[1],
+            bcls::DCM::STSADRS[2],
+            bcls::DCM::STSADRS[3],
+            bcls::DCM::STSADRS[4],
+            bcls::DCM::FREEZEDFS,
+            bcls::DCM::FREEZEDLL,
         ] {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
         }
-        ctx.collect_int_inv_legacy(&[tcls::INT_DCM], tcid, bslot, "PSCLK", false);
-        ctx.get_diff_legacy(tile, bel, "DSSENINV", "DSSEN")
+        ctx.collect_bel_input_inv_int_bi(&[tcls::INT_DCM], tcid, bslot, bcls::DCM::PSCLK);
+        ctx.get_diff_bel_input_inv(tcid, bslot, bcls::DCM::DSSEN, false)
             .assert_empty();
-        ctx.get_diff_legacy(tile, bel, "DSSENINV", "DSSEN_B")
+        ctx.get_diff_bel_input_inv(tcid, bslot, bcls::DCM::DSSEN, true)
             .assert_empty();
 
-        let mut present = ctx.get_diff_legacy(tile, bel, "ENABLE", "1");
+        let mut present = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
 
         // TODO: VREG ENABLE etc
         if vreg.is_none() {
-            let base = ctx.get_diff_legacy(tile, bel, "ENABLE", "OPT_BASE");
+            let base = ctx.get_diff_bel_special(tcid, bslot, specials::DCM_OPT_BASE);
             let mut diffs = vec![];
-            for bit in 0..4 {
-                diffs.push(
-                    ctx.get_diff_legacy(tile, bel, "ENABLE", format!("VBG_SEL{bit}"))
-                        .combine(&!&base),
-                );
+            for spec in [
+                specials::DCM_VBG_SEL0,
+                specials::DCM_VBG_SEL1,
+                specials::DCM_VBG_SEL2,
+                specials::DCM_VBG_SEL3,
+            ] {
+                diffs.push(ctx.get_diff_bel_special(tcid, bslot, spec).combine(&!&base));
             }
-            ctx.insert(tile, "DCM_VREG", "VBG_SEL", xlat_bitvec_legacy(diffs));
+            ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_VBG_SEL, xlat_bitvec(diffs));
 
-            let mut cfg_vreg = ctx.get_diffs_legacy(tile, bel, "VREG", "");
+            let mut cfg_vreg = ctx.get_diffs_attr_bits(tcid, bslot, bcls::DCM::S3E_REG_VREG, 36);
             for i in 0..16 {
                 cfg_vreg[i].assert_empty();
             }
@@ -440,16 +523,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 .iter()
                 .flat_map(|x| x.bits.keys().copied())
                 .collect();
-            ctx.insert(tile, "DCM_VREG", "VREG", xlat_bitvec_legacy(cfg_vreg));
+            ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_REG_VREG, xlat_bitvec(cfg_vreg));
 
             let mut vreg_enable = present.split_bits(&vreg_bits);
             if edev.chip.kind.is_spartan3a() || edev.chip.dcms != Some(Dcms::Two) {
-                let diff = ctx.get_diff_legacy(tile, "DCM_VREG", "ENABLE", "1");
+                let diff = ctx.get_diff_bel_special(tcid, bslot, specials::DCM_VREG_ENABLE);
                 assert_eq!(vreg_enable, diff);
             }
 
-            vreg_enable.apply_bitvec_diff_legacy(
-                ctx.item(tile, "DCM_VREG", "VBG_SEL"),
+            vreg_enable.apply_bitvec_diff(
+                ctx.bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_VBG_SEL),
                 &bits![0, 1, 0, 1],
                 &bits![0; 4],
             );
@@ -457,8 +540,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let mut base_vreg = BitVec::repeat(false, 20);
             base_vreg.set(0, true);
             base_vreg.set(6, true);
-            vreg_enable.apply_bitvec_diff_legacy(
-                ctx.item(tile, "DCM_VREG", "VREG"),
+            vreg_enable.apply_bitvec_diff(
+                ctx.bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_REG_VREG),
                 &base_vreg,
                 &bits![0; 20],
             );
@@ -466,11 +549,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             vreg_enable.assert_empty();
         }
 
-        let mut cfg_dll_c = ctx.get_diffs_legacy(tile, bel, "DLL_C", "");
-        let mut cfg_dll_s = ctx.get_diffs_legacy(tile, bel, "DLL_S", "");
-        let mut cfg_dfs_c = ctx.get_diffs_legacy(tile, bel, "DFS_C", "");
-        let mut cfg_dfs_s = ctx.get_diffs_legacy(tile, bel, "DFS_S", "");
-        let mut cfg_interface = ctx.get_diffs_legacy(tile, bel, "INTERFACE", "");
+        let mut cfg_dll_c = ctx.get_diffs_attr_bits(tcid, bslot, bcls::DCM::S3E_REG_DLL_C, 32);
+        let mut cfg_dll_s = ctx.get_diffs_attr_bits(tcid, bslot, bcls::DCM::S3E_REG_DLL_S, 32);
+        let mut cfg_dfs_c = ctx.get_diffs_attr_bits(tcid, bslot, bcls::DCM::S3E_REG_DFS_C, 12);
+        let mut cfg_dfs_s = ctx.get_diffs_attr_bits(tcid, bslot, bcls::DCM::S3E_REG_DFS_S, 76);
+        let mut cfg_interface =
+            ctx.get_diffs_attr_bits(tcid, bslot, bcls::DCM::S3E_REG_INTERFACE, 16);
 
         for i in 0..9 {
             cfg_dfs_c[i].assert_empty();
@@ -481,206 +565,247 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         cfg_dfs_c.reverse();
         cfg_dfs_s.reverse();
         cfg_interface.reverse();
-        let cfg_dll_c = xlat_bitvec_legacy(cfg_dll_c);
-        let cfg_dll_s = xlat_bitvec_legacy(cfg_dll_s);
-        let cfg_dfs_c = xlat_bitvec_legacy(cfg_dfs_c);
-        let cfg_dfs_s = xlat_bitvec_legacy(cfg_dfs_s);
-        let cfg_interface = xlat_bitvec_legacy(cfg_interface);
+        let cfg_dll_c = xlat_bitvec(cfg_dll_c);
+        let cfg_dll_s = xlat_bitvec(cfg_dll_s);
+        let cfg_dfs_c = xlat_bitvec(cfg_dfs_c);
+        let cfg_dfs_s = xlat_bitvec(cfg_dfs_s);
+        let cfg_interface = xlat_bitvec(cfg_interface);
 
-        ctx.collect_bit_bi_legacy(tile, bel, "DUTY_CYCLE_CORRECTION", "FALSE", "TRUE");
-        ctx.collect_bit_legacy(tile, bel, "STARTUP_WAIT", "STARTUP_WAIT");
-        ctx.collect_bit_legacy(tile, bel, "CLKIN_DIVIDE_BY_2", "CLKIN_DIVIDE_BY_2");
-        ctx.collect_enum_legacy(tile, bel, "CLK_FEEDBACK", &["1X", "2X"]);
-        ctx.collect_enum_legacy(tile, bel, "DLL_FREQUENCY_MODE", &["LOW", "HIGH"]);
-        ctx.collect_enum_legacy(tile, bel, "DFS_FREQUENCY_MODE", &["LOW", "HIGH"]);
-        ctx.collect_bitvec_legacy(tile, bel, "DESKEW_ADJUST", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CLKFX_MULTIPLY", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CLKFX_DIVIDE", "");
-        ctx.collect_bit_legacy(tile, bel, "CLKIN_IOB", "1");
-        ctx.collect_bit_legacy(tile, bel, "CLKFB_IOB", "1");
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::DCM::S3E_DUTY_CYCLE_CORRECTION);
+        ctx.collect_bel_attr(tcid, bslot, bcls::DCM::STARTUP_WAIT);
+        ctx.collect_bel_attr(tcid, bslot, bcls::DCM::CLKIN_DIVIDE_BY_2);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::DCM::CLK_FEEDBACK_2X);
+        ctx.collect_bel_attr(tcid, bslot, bcls::DCM::DLL_FREQUENCY_MODE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::DCM::DFS_FREQUENCY_MODE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::DCM::DESKEW_ADJUST);
+        ctx.collect_bel_attr(tcid, bslot, bcls::DCM::S3E_CLKFX_MULTIPLY);
+        ctx.collect_bel_attr(tcid, bslot, bcls::DCM::S3E_CLKFX_DIVIDE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::DCM::CLKIN_IOB);
+        ctx.collect_bel_attr(tcid, bslot, bcls::DCM::CLKFB_IOB);
 
-        ctx.get_diff_legacy(tile, bel, "CLKFB", "1").assert_empty();
-
-        for pin in [
-            "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV",
+        for attr in [
+            bcls::DCM::OUT_CLK0_ENABLE,
+            bcls::DCM::OUT_CLK90_ENABLE,
+            bcls::DCM::OUT_CLK180_ENABLE,
+            bcls::DCM::OUT_CLK270_ENABLE,
+            bcls::DCM::OUT_CLK2X_ENABLE,
+            bcls::DCM::OUT_CLK2X180_ENABLE,
+            bcls::DCM::OUT_CLKDV_ENABLE,
         ] {
-            let diff = ctx.get_diff_legacy(tile, bel, pin, "1");
-            let diff_fb = ctx.get_diff_legacy(tile, bel, pin, "1.CLKFB");
-            let diff_fx = ctx.get_diff_legacy(tile, bel, pin, "1.CLKFX");
+            let diff = ctx.get_diff_attr_bit(tcid, bslot, attr, 0);
+            let diff_fb = ctx.get_diff_attr_special(tcid, bslot, attr, specials::DCM_PIN_CLKFB);
+            let diff_fx = ctx.get_diff_attr_special(tcid, bslot, attr, specials::DCM_PIN_CLKFX);
             let diff_fx = diff_fx.combine(&!&diff_fb);
             let diff_fb = diff_fb.combine(&!&diff);
-            ctx.insert(tile, bel, format!("ENABLE.{pin}"), xlat_bit_legacy(diff));
-            ctx.insert(tile, bel, "DLL_ENABLE", xlat_bit_legacy(diff_fb));
-            ctx.insert(tile, bel, "DFS_FEEDBACK", xlat_bit_legacy(diff_fx));
+            ctx.insert_bel_attr_bool(tcid, bslot, attr, xlat_bit(diff));
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCM::DLL_ENABLE, xlat_bit(diff_fb));
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCM::DFS_FEEDBACK, xlat_bit(diff_fx));
         }
 
-        ctx.get_diff_legacy(tile, bel, "VERY_HIGH_FREQUENCY", "1")
-            .assert_empty();
-        let diff = ctx.get_diff_legacy(tile, bel, "VERY_HIGH_FREQUENCY", "1.CLKFB");
-        ctx.insert(tile, bel, "DLL_ENABLE", xlat_bit_legacy(!diff));
+        let diff = ctx.get_diff_bel_special(tcid, bslot, specials::DCM_VERY_HIGH_FREQUENCY_CLKFB);
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCM::DLL_ENABLE, xlat_bit(!diff));
 
         let (_, _, dfs_en) = Diff::split(
-            ctx.peek_diff_legacy(tile, bel, "CLKFX", "1").clone(),
-            ctx.peek_diff_legacy(tile, bel, "CONCUR", "1").clone(),
+            ctx.peek_diff_attr_bit(tcid, bslot, bcls::DCM::OUT_CLKFX_ENABLE, 0)
+                .clone(),
+            ctx.peek_diff_attr_bit(tcid, bslot, bcls::DCM::OUT_CONCUR_ENABLE, 0)
+                .clone(),
         );
-        for pin in ["CLKFX", "CLKFX180", "CONCUR"] {
-            let diff = ctx.get_diff_legacy(tile, bel, pin, "1");
-            let diff_fb = ctx.get_diff_legacy(tile, bel, pin, "1.CLKFB");
+        for attr in [
+            bcls::DCM::OUT_CLKFX_ENABLE,
+            bcls::DCM::OUT_CLKFX180_ENABLE,
+            bcls::DCM::OUT_CONCUR_ENABLE,
+        ] {
+            let diff = ctx.get_diff_attr_bit(tcid, bslot, attr, 0);
+            let diff_fb = ctx.get_diff_attr_special(tcid, bslot, attr, specials::DCM_PIN_CLKFB);
             assert_eq!(diff, diff_fb);
             let diff = diff.combine(&!&dfs_en);
-            let pin = if pin == "CONCUR" { pin } else { "CLKFX" };
-            ctx.insert(tile, bel, format!("ENABLE.{pin}"), xlat_bit_legacy(diff));
+            let attr = if attr == bcls::DCM::OUT_CONCUR_ENABLE {
+                attr
+            } else {
+                bcls::DCM::OUT_CLKFX_ENABLE
+            };
+            ctx.insert_bel_attr_bool(tcid, bslot, attr, xlat_bit(diff));
         }
-        ctx.insert(tile, bel, "DFS_ENABLE", xlat_bit_legacy(dfs_en));
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCM::DFS_ENABLE, xlat_bit(dfs_en));
 
-        let item = ctx.item(tile, bel, "DESKEW_ADJUST");
-        let val = extract_bitvec_val_legacy(
+        let item = ctx.bel_attr_bitvec(tcid, bslot, bcls::DCM::DESKEW_ADJUST);
+        let val = extract_bitvec_val(
             item,
             &bits![0; 4],
-            present.split_bits(&item.bits.iter().copied().collect()),
+            present.split_bits(&item.iter().map(|bit| bit.bit).collect()),
         );
-        ctx.insert_device_data("DCM:DESKEW_ADJUST", val);
+        ctx.insert_devdata_bitvec(devdata::DCM_DESKEW_ADJUST, val);
 
-        let mut diffs = vec![ctx.get_diff_legacy(tile, bel, "PHASE_SHIFT", "-255")];
-        diffs.extend(ctx.get_diffs_legacy(tile, bel, "PHASE_SHIFT", ""));
-        let item = xlat_bitvec_legacy(diffs);
-        let mut diff = ctx.get_diff_legacy(tile, bel, "PHASE_SHIFT", "-1");
-        diff.apply_bitvec_diff_int_legacy(&item, 2, 0);
-        ctx.insert(tile, bel, "PHASE_SHIFT", item);
-        ctx.insert(tile, bel, "PHASE_SHIFT_NEGATIVE", xlat_bit_legacy(diff));
+        let mut diffs = vec![ctx.get_diff_bel_special(tcid, bslot, specials::DCM_PHASE_SHIFT_N255)];
+        diffs.extend(ctx.get_diffs_attr_bits(tcid, bslot, bcls::DCM::PHASE_SHIFT, 7));
+        let item = xlat_bitvec(diffs);
+        let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::DCM_PHASE_SHIFT_N1);
+        diff.apply_bitvec_diff_int(&item, 2, 0);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCM::PHASE_SHIFT, item);
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCM::PHASE_SHIFT_NEGATIVE, xlat_bit(diff));
 
-        ctx.get_diff_legacy(tile, bel, "CLKOUT_PHASE_SHIFT", "NONE")
+        ctx.get_diff_bel_special(tcid, bslot, specials::DCM_CLKOUT_PHASE_SHIFT_NONE)
             .assert_empty();
-        let diff_f = ctx.get_diff_legacy(tile, bel, "CLKOUT_PHASE_SHIFT", "FIXED");
-        let diff_v = ctx.get_diff_legacy(tile, bel, "CLKOUT_PHASE_SHIFT", "VARIABLE");
+        let diff_f = ctx.get_diff_bel_special(tcid, bslot, specials::DCM_CLKOUT_PHASE_SHIFT_FIXED);
+        let diff_v =
+            ctx.get_diff_bel_special(tcid, bslot, specials::DCM_CLKOUT_PHASE_SHIFT_VARIABLE);
         let diff_v = diff_v.combine(&!&diff_f);
-        ctx.insert(tile, bel, "PS_ENABLE", xlat_bit_legacy(diff_f));
-        ctx.insert(tile, bel, "PS_VARIABLE", xlat_bit_legacy(diff_v));
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCM::PS_ENABLE, xlat_bit(diff_f));
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCM::PS_VARIABLE, xlat_bit(diff_v));
 
         for (attr, bits) in [
-            ("CLKDV_COUNT_MAX", &cfg_dll_c.bits[1..5]),
-            ("CLKDV_COUNT_FALL", &cfg_dll_c.bits[5..9]),
-            ("CLKDV_COUNT_FALL_2", &cfg_dll_c.bits[9..13]),
-            ("CLKDV_PHASE_RISE", &cfg_dll_c.bits[13..15]),
-            ("CLKDV_PHASE_FALL", &cfg_dll_c.bits[15..17]),
+            (bcls::DCM::CLKDV_COUNT_MAX, &cfg_dll_c[1..5]),
+            (bcls::DCM::CLKDV_COUNT_FALL, &cfg_dll_c[5..9]),
+            (bcls::DCM::CLKDV_COUNT_FALL_2, &cfg_dll_c[9..13]),
+            (bcls::DCM::CLKDV_PHASE_RISE, &cfg_dll_c[13..15]),
+            (bcls::DCM::CLKDV_PHASE_FALL, &cfg_dll_c[15..17]),
         ] {
-            ctx.insert(
-                tile,
-                bel,
-                attr,
-                TileItem {
-                    bits: bits.to_vec(),
-                    kind: TileItemKind::BitVec {
-                        invert: bits![0; bits.len()],
-                    },
-                },
-            );
+            ctx.insert_bel_attr_bitvec(tcid, bslot, attr, bits.to_vec());
         }
-        ctx.insert(
-            tile,
-            bel,
-            "CLKDV_MODE",
-            TileItem {
-                bits: cfg_dll_c.bits[17..18].to_vec(),
-                kind: TileItemKind::Enum {
-                    values: BTreeMap::from_iter([
-                        ("HALF".to_string(), bits![0]),
-                        ("INT".to_string(), bits![1]),
-                    ]),
-                },
+        ctx.insert_bel_attr_enum(
+            tcid,
+            bslot,
+            bcls::DCM::CLKDV_MODE,
+            BelAttributeEnum {
+                bits: vec![cfg_dll_c[17].bit],
+                values: EntityPartVec::from_iter([
+                    (enums::DCM_CLKDV_MODE::HALF, bits![0]),
+                    (enums::DCM_CLKDV_MODE::INT, bits![1]),
+                ]),
             },
         );
 
-        let clkdv_count_max = ctx.item(tile, bel, "CLKDV_COUNT_MAX").clone();
-        let clkdv_count_fall = ctx.item(tile, bel, "CLKDV_COUNT_FALL").clone();
-        let clkdv_count_fall_2 = ctx.item(tile, bel, "CLKDV_COUNT_FALL_2").clone();
-        let clkdv_phase_fall = ctx.item(tile, bel, "CLKDV_PHASE_FALL").clone();
-        let clkdv_mode = ctx.item(tile, bel, "CLKDV_MODE").clone();
+        let clkdv_count_max = ctx
+            .bel_attr_bitvec(tcid, bslot, bcls::DCM::CLKDV_COUNT_MAX)
+            .to_vec();
+        let clkdv_count_fall = ctx
+            .bel_attr_bitvec(tcid, bslot, bcls::DCM::CLKDV_COUNT_FALL)
+            .to_vec();
+        let clkdv_count_fall_2 = ctx
+            .bel_attr_bitvec(tcid, bslot, bcls::DCM::CLKDV_COUNT_FALL_2)
+            .to_vec();
+        let clkdv_phase_fall = ctx
+            .bel_attr_bitvec(tcid, bslot, bcls::DCM::CLKDV_PHASE_FALL)
+            .to_vec();
+        let clkdv_mode = ctx
+            .bel_attr_enum(tcid, bslot, bcls::DCM::CLKDV_MODE)
+            .clone();
         for i in 2..=16 {
-            let mut diff = ctx.get_diff_legacy(tile, bel, "CLKDV_DIVIDE", format!("{i}"));
-            diff.apply_bitvec_diff_int_legacy(&clkdv_count_max, i - 1, 1);
-            diff.apply_bitvec_diff_int_legacy(&clkdv_count_fall, (i - 1) / 2, 0);
-            diff.apply_bitvec_diff_int_legacy(&clkdv_phase_fall, (i % 2) * 2, 0);
+            let mut diff =
+                ctx.get_diff_bel_special_u32(tcid, bslot, specials::DCM_CLKDV_DIVIDE_INT, i as u32);
+            diff.apply_bitvec_diff_int(&clkdv_count_max, i - 1, 1);
+            diff.apply_bitvec_diff_int(&clkdv_count_fall, (i - 1) / 2, 0);
+            diff.apply_bitvec_diff_int(&clkdv_phase_fall, (i % 2) * 2, 0);
             diff.assert_empty();
         }
         for i in 1..=7 {
-            let mut diff = ctx.get_diff_legacy(tile, bel, "CLKDV_DIVIDE", format!("{i}_5.LOW"));
-            diff.apply_enum_diff_legacy(&clkdv_mode, "HALF", "INT");
-            diff.apply_bitvec_diff_int_legacy(&clkdv_count_max, 2 * i, 1);
-            diff.apply_bitvec_diff_int_legacy(&clkdv_count_fall, i / 2, 0);
-            diff.apply_bitvec_diff_int_legacy(&clkdv_count_fall_2, 3 * i / 2 + 1, 0);
-            diff.apply_bitvec_diff_int_legacy(&clkdv_phase_fall, (i % 2) * 2 + 1, 0);
+            let mut diff = ctx.get_diff_bel_special_u32(
+                tcid,
+                bslot,
+                specials::DCM_CLKDV_DIVIDE_HALF_LOW,
+                i as u32,
+            );
+            diff.apply_enum_diff(
+                &clkdv_mode,
+                enums::DCM_CLKDV_MODE::HALF,
+                enums::DCM_CLKDV_MODE::INT,
+            );
+            diff.apply_bitvec_diff_int(&clkdv_count_max, 2 * i, 1);
+            diff.apply_bitvec_diff_int(&clkdv_count_fall, i / 2, 0);
+            diff.apply_bitvec_diff_int(&clkdv_count_fall_2, 3 * i / 2 + 1, 0);
+            diff.apply_bitvec_diff_int(&clkdv_phase_fall, (i % 2) * 2 + 1, 0);
             diff.assert_empty();
-            let mut diff = ctx.get_diff_legacy(tile, bel, "CLKDV_DIVIDE", format!("{i}_5.HIGH"));
-            diff.apply_enum_diff_legacy(&clkdv_mode, "HALF", "INT");
-            diff.apply_bitvec_diff_int_legacy(&clkdv_count_max, 2 * i, 1);
-            diff.apply_bitvec_diff_int_legacy(&clkdv_count_fall, (i - 1) / 2, 0);
-            diff.apply_bitvec_diff_int_legacy(&clkdv_count_fall_2, (3 * i).div_ceil(2), 0);
-            diff.apply_bitvec_diff_int_legacy(&clkdv_phase_fall, (i % 2) * 2, 0);
+            let mut diff = ctx.get_diff_bel_special_u32(
+                tcid,
+                bslot,
+                specials::DCM_CLKDV_DIVIDE_HALF_HIGH,
+                i as u32,
+            );
+            diff.apply_enum_diff(
+                &clkdv_mode,
+                enums::DCM_CLKDV_MODE::HALF,
+                enums::DCM_CLKDV_MODE::INT,
+            );
+            diff.apply_bitvec_diff_int(&clkdv_count_max, 2 * i, 1);
+            diff.apply_bitvec_diff_int(&clkdv_count_fall, (i - 1) / 2, 0);
+            diff.apply_bitvec_diff_int(&clkdv_count_fall_2, (3 * i).div_ceil(2), 0);
+            diff.apply_bitvec_diff_int(&clkdv_phase_fall, (i % 2) * 2, 0);
             diff.assert_empty();
         }
 
-        ctx.get_diff_legacy(tile, bel, "X_CLKIN_PERIOD", "1.0")
+        ctx.get_diff_bel_special(tcid, bslot, specials::DCM_X_CLKIN_PERIOD_1P0)
             .assert_empty();
-        ctx.get_diff_legacy(tile, bel, "X_CLKIN_PERIOD", "4.99")
+        ctx.get_diff_bel_special(tcid, bslot, specials::DCM_X_CLKIN_PERIOD_4P99)
             .assert_empty();
-        let diff_a = ctx.get_diff_legacy(tile, bel, "X_CLKIN_PERIOD", "5.0");
+        let diff_a = ctx.get_diff_bel_special(tcid, bslot, specials::DCM_X_CLKIN_PERIOD_5P0);
         assert_eq!(
             diff_a,
-            ctx.get_diff_legacy(tile, bel, "X_CLKIN_PERIOD", "24.99")
+            ctx.get_diff_bel_special(tcid, bslot, specials::DCM_X_CLKIN_PERIOD_24P99)
         );
-        let diff_b = ctx.get_diff_legacy(tile, bel, "X_CLKIN_PERIOD", "25.0");
+        let diff_b = ctx.get_diff_bel_special(tcid, bslot, specials::DCM_X_CLKIN_PERIOD_25P0);
         assert_eq!(
             diff_b,
-            ctx.get_diff_legacy(tile, bel, "X_CLKIN_PERIOD", "200.99")
+            ctx.get_diff_bel_special(tcid, bslot, specials::DCM_X_CLKIN_PERIOD_200P99)
         );
         if vreg.is_none() {
-            let diff_c = ctx.get_diff_legacy(tile, bel, "X_CLKIN_PERIOD", "201.0");
+            let diff_c = ctx.get_diff_bel_special(tcid, bslot, specials::DCM_X_CLKIN_PERIOD_201P0);
             let mut diff_c = diff_c.combine(&!&diff_b);
-            diff_c.apply_bitvec_diff_legacy(
-                ctx.item(tile, "DCM_VREG", "VBG_SEL"),
+            diff_c.apply_bitvec_diff(
+                ctx.bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_VBG_SEL),
                 &bits![0, 1, 1, 0],
                 &bits![0, 1, 0, 1],
             );
             diff_c.assert_empty();
         }
         let mut diff_b = diff_b.combine(&!&diff_a);
-        ctx.insert(tile, bel, "PERIOD_NOT_HF", xlat_bit_legacy(!diff_a));
-        ctx.insert(
-            tile,
-            bel,
-            "PERIOD_LF",
-            TileItem {
-                bits: vec![cfg_dll_s.bits[7], cfg_dll_s.bits[17]],
-                kind: TileItemKind::BitVec {
-                    invert: bits![0; 2],
-                },
-            },
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCM::UNK_PERIOD_NOT_HF, xlat_bit(!diff_a));
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::DCM::UNK_PERIOD_LF,
+            vec![cfg_dll_s[7], cfg_dll_s[17]],
         );
-        diff_b.apply_bitvec_diff_legacy(
-            ctx.item(tile, bel, "PERIOD_LF"),
+        diff_b.apply_bitvec_diff(
+            ctx.bel_attr_bitvec(tcid, bslot, bcls::DCM::UNK_PERIOD_LF),
             &bits![1; 2],
             &bits![0; 2],
         );
         diff_b.assert_empty();
 
-        ctx.insert(tile, bel, "DLL_C", cfg_dll_c);
-        ctx.insert(tile, bel, "DLL_S", cfg_dll_s);
-        ctx.insert(tile, bel, "DFS_C", cfg_dfs_c);
-        ctx.insert(tile, bel, "DFS_S", cfg_dfs_s);
-        ctx.insert(tile, bel, "INTERFACE", cfg_interface);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_REG_DLL_C, cfg_dll_c);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_REG_DLL_S, cfg_dll_s);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_REG_DFS_C, cfg_dfs_c);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_REG_DFS_S, cfg_dfs_s);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_REG_INTERFACE, cfg_interface);
 
-        present.apply_bit_diff_legacy(ctx.item(tile, bel, "DUTY_CYCLE_CORRECTION"), true, false);
-        present.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "CLKDV_COUNT_MAX"), 1, 0);
-        present.apply_enum_diff_legacy(ctx.item(tile, bel, "CLKDV_MODE"), "INT", "HALF");
-        present.apply_bit_diff_legacy(ctx.item(tile, bel, "PERIOD_NOT_HF"), true, false);
+        present.apply_bit_diff(
+            ctx.bel_attr_bit(tcid, bslot, bcls::DCM::S3E_DUTY_CYCLE_CORRECTION),
+            true,
+            false,
+        );
+        present.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, bcls::DCM::CLKDV_COUNT_MAX),
+            1,
+            0,
+        );
+        present.apply_enum_diff(
+            ctx.bel_attr_enum(tcid, bslot, bcls::DCM::CLKDV_MODE),
+            enums::DCM_CLKDV_MODE::INT,
+            enums::DCM_CLKDV_MODE::HALF,
+        );
+        present.apply_bit_diff(
+            ctx.bel_attr_bit(tcid, bslot, bcls::DCM::UNK_PERIOD_NOT_HF),
+            true,
+            false,
+        );
 
         let mut base_interface = BitVec::repeat(false, 16);
         base_interface.set(9, true);
         base_interface.set(10, true);
         base_interface.set(13, true);
-        present.apply_bitvec_diff_legacy(
-            ctx.item(tile, "DCM", "INTERFACE"),
+        present.apply_bitvec_diff(
+            ctx.bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_REG_INTERFACE),
             &base_interface,
             &bits![0; 16],
         );
@@ -697,8 +822,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         base_dfs_s.set(52, true);
         base_dfs_s.set(64, true);
         base_dfs_s.set(68, true);
-        present.apply_bitvec_diff_legacy(
-            ctx.item(tile, "DCM", "DFS_S"),
+        present.apply_bitvec_diff(
+            ctx.bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_REG_DFS_S),
             &base_dfs_s,
             &bits![0; 76],
         );
@@ -706,8 +831,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let mut base_dll_s = BitVec::repeat(false, 32);
         base_dll_s.set(0, true);
         base_dll_s.set(6, true);
-        present.apply_bitvec_diff_legacy(
-            ctx.item(tile, "DCM", "DLL_S"),
+        present.apply_bitvec_diff(
+            ctx.bel_attr_bitvec(tcid, bslot, bcls::DCM::S3E_REG_DLL_S),
             &base_dll_s,
             &bits![0; 32],
         );

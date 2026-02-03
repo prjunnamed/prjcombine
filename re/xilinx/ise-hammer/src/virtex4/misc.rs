@@ -39,15 +39,15 @@ impl TileRelation for HclkDcm {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CFG");
+        let mut ctx = FuzzCtx::new_legacy(session, backend, "CFG");
         for val in ["0", "1", "2", "3"] {
-            ctx.test_manual("MISC", "PROBESEL", val)
+            ctx.test_manual_legacy("MISC", "PROBESEL", val)
                 .global("PROBESEL", val)
                 .commit();
         }
         for attr in ["CCLKPIN", "DONEPIN", "POWERDOWNPIN", "PROGPIN", "INITPIN"] {
             for val in ["PULLUP", "PULLNONE"] {
-                ctx.test_manual("MISC", attr, val)
+                ctx.test_manual_legacy("MISC", attr, val)
                     .global(attr, val)
                     .commit();
             }
@@ -67,7 +67,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "TMSPIN",
         ] {
             for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
-                ctx.test_manual("MISC", attr, val)
+                ctx.test_manual_legacy("MISC", attr, val)
                     .global(attr, val)
                     .commit();
             }
@@ -75,13 +75,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         for i in 0..4 {
             let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
-            bctx.test_manual_legacy("PRESENT", "1").mode("BSCAN").commit();
+            bctx.test_manual_legacy("PRESENT", "1")
+                .mode("BSCAN")
+                .commit();
         }
-        ctx.test_manual("BSCAN_COMMON", "USERID", "").multi_global(
-            "USERID",
-            MultiValue::HexPrefix,
-            32,
-        );
+        ctx.test_manual_legacy("BSCAN_COMMON", "USERID", "")
+            .multi_global("USERID", MultiValue::HexPrefix, 32);
 
         for i in 0..2 {
             let mut bctx = ctx.bel(defs::bslots::ICAP[i]);
@@ -91,9 +90,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_manual_legacy("PRESENT", "1")
                 .mode("ICAP")
                 .commit();
-            bctx.mode("ICAP").test_inv("CLK");
-            bctx.mode("ICAP").test_inv("CE");
-            bctx.mode("ICAP").test_inv("WRITE");
+            bctx.mode("ICAP").test_inv_legacy("CLK");
+            bctx.mode("ICAP").test_inv_legacy("CE");
+            bctx.mode("ICAP").test_inv_legacy("WRITE");
             bctx.mode("ICAP")
                 .bel_unused(obel)
                 .test_enum_legacy("ICAP_WIDTH", &["X8", "X32"]);
@@ -110,7 +109,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         {
             let mut bctx = ctx.bel(defs::bslots::STARTUP);
-            bctx.test_manual_legacy("PRESENT", "1").mode("STARTUP").commit();
+            bctx.test_manual_legacy("PRESENT", "1")
+                .mode("STARTUP")
+                .commit();
             for pin in [
                 "CLK",
                 "GTS",
@@ -120,7 +121,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 "USRDONETS",
                 "USRDONEO",
             ] {
-                bctx.mode("STARTUP").test_inv(pin);
+                bctx.mode("STARTUP").test_inv_legacy(pin);
             }
             bctx.mode("STARTUP")
                 .no_pin("GSR")
@@ -138,7 +139,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
             for attr in ["GSR_SYNC", "GWE_SYNC", "GTS_SYNC"] {
                 for val in ["YES", "NO"] {
-                    bctx.test_manual_legacy(attr, val).global(attr, val).commit();
+                    bctx.test_manual_legacy(attr, val)
+                        .global(attr, val)
+                        .commit();
                 }
             }
             for val in ["CCLK", "USERCLK", "JTAGCLK"] {
@@ -154,7 +157,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         {
             let mut bctx = ctx.bel(defs::bslots::JTAGPPC);
-            bctx.test_manual_legacy("PRESENT", "1").mode("JTAGPPC").commit();
+            bctx.test_manual_legacy("PRESENT", "1")
+                .mode("JTAGPPC")
+                .commit();
         }
 
         {
@@ -168,14 +173,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         {
             let mut bctx = ctx.bel(defs::bslots::DCIRESET);
-            bctx.test_manual_legacy("PRESENT", "1").mode("DCIRESET").commit();
+            bctx.test_manual_legacy("PRESENT", "1")
+                .mode("DCIRESET")
+                .commit();
         }
 
         {
             let mut bctx = ctx.bel(defs::bslots::CAPTURE);
-            bctx.test_manual_legacy("PRESENT", "1").mode("CAPTURE").commit();
-            bctx.mode("CAPTURE").test_inv("CLK");
-            bctx.mode("CAPTURE").test_inv("CAP");
+            bctx.test_manual_legacy("PRESENT", "1")
+                .mode("CAPTURE")
+                .commit();
+            bctx.mode("CAPTURE").test_inv_legacy("CLK");
+            bctx.mode("CAPTURE").test_inv_legacy("CAP");
             bctx.mode("CAPTURE")
                 .null_bits()
                 .extra_tile_reg(Reg::Cor0, "REG.COR", "CAPTURE")
@@ -195,20 +204,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     {
         let mut ctx = FuzzCtx::new_null(session, backend);
         for val in ["1", "2", "3", "4", "5", "6", "DONE", "KEEP"] {
-            ctx.test_reg(Reg::Cor0, "REG.COR", "STARTUP", "GWE_CYCLE", val)
+            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "GWE_CYCLE", val)
                 .global("GWE_CYCLE", val)
                 .commit();
-            ctx.test_reg(Reg::Cor0, "REG.COR", "STARTUP", "GTS_CYCLE", val)
+            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "GTS_CYCLE", val)
                 .global("GTS_CYCLE", val)
                 .commit();
         }
         for val in ["1", "2", "3", "4", "5", "6", "KEEP"] {
-            ctx.test_reg(Reg::Cor0, "REG.COR", "STARTUP", "DONE_CYCLE", val)
+            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DONE_CYCLE", val)
                 .global("DONE_CYCLE", val)
                 .commit();
         }
         for val in ["0", "1", "2", "3", "4", "5", "6", "NOWAIT"] {
-            ctx.test_reg(Reg::Cor0, "REG.COR", "STARTUP", "LCK_CYCLE", val)
+            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "LCK_CYCLE", val)
                 .global("LCK_CYCLE", val)
                 .commit();
             ctx.build()
@@ -218,10 +227,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
         for val in ["NO", "YES"] {
-            ctx.test_reg(Reg::Cor0, "REG.COR", "STARTUP", "DRIVE_DONE", val)
+            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DRIVE_DONE", val)
                 .global("DRIVEDONE", val)
                 .commit();
-            ctx.test_reg(Reg::Cor0, "REG.COR", "STARTUP", "DONE_PIPE", val)
+            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DONE_PIPE", val)
                 .global("DONEPIPE", val)
                 .commit();
         }
@@ -229,18 +238,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "4", "5", "7", "8", "9", "10", "13", "15", "20", "26", "30", "34", "41", "51", "55",
             "60", "130",
         ] {
-            ctx.test_reg(Reg::Cor0, "REG.COR", "STARTUP", "CONFIG_RATE", val)
+            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "CONFIG_RATE", val)
                 .global("CONFIGRATE", val)
                 .commit();
         }
         for val in ["DISABLE", "ENABLE"] {
-            ctx.test_reg(Reg::Cor0, "REG.COR", "STARTUP", "CRC", val)
+            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "CRC", val)
                 .global("CRC", val)
                 .commit();
-            ctx.test_reg(Reg::Cor0, "REG.COR", "STARTUP", "DCM_SHUTDOWN", val)
+            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DCM_SHUTDOWN", val)
                 .global("DCMSHUTDOWN", val)
                 .commit();
-            ctx.test_reg(Reg::Cor0, "REG.COR", "STARTUP", "POWERDOWN_STATUS", val)
+            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "POWERDOWN_STATUS", val)
                 .global("POWERDOWNSTATUS", val)
                 .commit();
         }
@@ -249,22 +258,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     {
         let mut ctx = FuzzCtx::new_null(session, backend);
         for val in ["NO", "YES"] {
-            ctx.test_reg(Reg::Ctl0, "REG.CTL", "MISC", "GTS_USR_B", val)
+            ctx.test_reg_legacy(Reg::Ctl0, "REG.CTL", "MISC", "GTS_USR_B", val)
                 .global("GTS_USR_B", val)
                 .commit();
-            ctx.test_reg(Reg::Ctl0, "REG.CTL", "MISC", "VGG_TEST", val)
+            ctx.test_reg_legacy(Reg::Ctl0, "REG.CTL", "MISC", "VGG_TEST", val)
                 .global("VGG_TEST", val)
                 .commit();
-            ctx.test_reg(Reg::Ctl0, "REG.CTL", "MISC", "EN_VTEST", val)
+            ctx.test_reg_legacy(Reg::Ctl0, "REG.CTL", "MISC", "EN_VTEST", val)
                 .global("EN_VTEST", val)
                 .commit();
-            ctx.test_reg(Reg::Ctl0, "REG.CTL", "MISC", "ENCRYPT", val)
+            ctx.test_reg_legacy(Reg::Ctl0, "REG.CTL", "MISC", "ENCRYPT", val)
                 .global("ENCRYPT", val)
                 .commit();
         }
         // persist not fuzzed — too much effort
         for val in ["NONE", "LEVEL1", "LEVEL2"] {
-            ctx.test_reg(Reg::Ctl0, "REG.CTL", "MISC", "SECURITY", val)
+            ctx.test_reg_legacy(Reg::Ctl0, "REG.CTL", "MISC", "SECURITY", val)
                 .global("SECURITY", val)
                 .commit();
         }
@@ -274,18 +283,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         // TODO: more crap
         let mut ctx = FuzzCtx::new_null(session, backend);
         for val in ["NO", "YES"] {
-            ctx.test_manual("NULL", "DISABLE_BANDGAP", val)
+            ctx.test_manual_legacy("NULL", "DISABLE_BANDGAP", val)
                 .global("DISABLEBANDGAP", val)
                 .commit();
         }
         for val in ["DISABLE", "ENABLE"] {
-            ctx.test_manual("NULL", "DCI_SHUTDOWN", val)
+            ctx.test_manual_legacy("NULL", "DCI_SHUTDOWN", val)
                 .global("DCISHUTDOWN", val)
                 .commit();
         }
     }
 
-    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "SYSMON") {
+    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "SYSMON") {
         let mut bctx = ctx.bel(defs::bslots::SYSMON);
         let mode = "MONITOR";
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
@@ -311,7 +320,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "SEA",
             "SEB",
         ] {
-            bctx.mode(mode).test_inv(pin);
+            bctx.mode(mode).test_inv_legacy(pin);
         }
         for (attr, len) in [
             ("DCLK_DIVID_2", 1),
@@ -396,12 +405,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "BSCAN[0]", "BSCAN[1]", "BSCAN[2]", "BSCAN[3]", "JTAGPPC", "DCIRESET", "ICAP[0]", "ICAP[1]",
     ] {
         let item = ctx.extract_bit_legacy(tile, bel, "PRESENT", "1");
-        ctx.insert(tile, bel, "ENABLE", item);
+        ctx.insert_legacy(tile, bel, "ENABLE", item);
     }
 
     let bel = "BSCAN_COMMON";
     let item = xlat_bitvec_legacy(ctx.get_diffs_legacy(tile, bel, "USERID", ""));
-    ctx.insert(tile, bel, "USERID", item);
+    ctx.insert_legacy(tile, bel, "USERID", item);
 
     let bel = "STARTUP";
     let bslot = bslots::STARTUP;
@@ -424,14 +433,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let item0 = ctx.extract_bit_legacy(tile, bel, "PIN.GSR", "1");
     let item1 = ctx.extract_bit_legacy(tile, bel, "PIN.GTS", "1");
     assert_eq!(item0, item1);
-    ctx.insert(tile, "STARTUP", "GTS_GSR_ENABLE", item0);
+    ctx.insert_legacy(tile, "STARTUP", "GTS_GSR_ENABLE", item0);
     let item = ctx.extract_bit_legacy(tile, bel, "PIN.USRCCLKO", "1");
-    ctx.insert(tile, "STARTUP", "USRCCLK_ENABLE", item);
+    ctx.insert_legacy(tile, "STARTUP", "USRCCLK_ENABLE", item);
 
     let item0 = ctx.extract_enum_legacy(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X32"]);
     let item1 = ctx.extract_enum_legacy(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X32"]);
     assert_eq!(item0, item1);
-    ctx.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
+    ctx.insert_legacy(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
     for bslot in bslots::ICAP {
         for pin in ["CLK", "CE", "WRITE"] {
             ctx.collect_int_inv_legacy(&[tcls::INT; 16], tcid, bslot, pin, false);
@@ -506,7 +515,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_bit_bi_legacy(tile, bel, "ENCRYPT", "NO", "YES");
     ctx.collect_enum_legacy(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
     // these are too much trouble to deal with the normal way.
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "PERSIST",
@@ -515,7 +524,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             kind: TileItemKind::BitVec { invert: bits![0] },
         },
     );
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "GLUTMASK",
@@ -524,7 +533,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             kind: TileItemKind::BitVec { invert: bits![1] },
         },
     );
-    ctx.insert(
+    ctx.insert_legacy(
         tile,
         bel,
         "ICAP_SELECT",
@@ -541,7 +550,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         },
     );
 
-    if ctx.has_tile_id(tcls::SYSMON) {
+    if ctx.has_tcls(tcls::SYSMON) {
         let tcid = tcls::SYSMON;
         let tile = "SYSMON";
         let bslot = bslots::SYSMON;
@@ -578,7 +587,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("PROM_DATA", 0),
         ] {
             ctx.collect_bitvec_legacy(tile, bel, attr, "");
-            present.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, attr), val, 0);
+            present.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, attr), val, 0);
         }
         present.assert_empty();
 
@@ -605,7 +614,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             diffs.push((format!("GIOB{i}"), diff));
         }
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             "MUX.CONVST",

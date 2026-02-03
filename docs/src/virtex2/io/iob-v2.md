@@ -2,13 +2,7 @@
 
 TODO: document
 
-{{misc virtex2 iostd-drive}}
-{{misc virtex2 iostd-slew}}
-{{misc virtex2 iostd-output-misc}}
-{{misc virtex2 iostd-output-diff}}
-{{misc virtex2 iostd-lvdsbias}}
-{{misc virtex2 iostd-dci-term-split}}
-{{misc virtex2 iostd-dci-term-vcc}}
+{{table virtex2 IOB_DATA}}
 
 {{tile virtex2 IOB_V2_NW2}}
 {{tile virtex2 IOB_V2_NE2}}

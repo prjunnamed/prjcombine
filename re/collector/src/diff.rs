@@ -8,8 +8,8 @@ use prjcombine_entity::{
 };
 use prjcombine_interconnect::{
     db::{
-        BelAttribute, BelAttributeEnum, BelAttributeId, BelInputId, BelSlotId, ConnectorSlotId,
-        EnumValueId, PolTileWireCoord, TableRowId, TileClassId, TileWireCoord,
+        BelAttributeEnum, BelAttributeId, BelInputId, BelSlotId, ConnectorSlotId, EnumValueId,
+        PolTileWireCoord, TableRowId, TileClassId, TileWireCoord,
     },
     grid::{BelCoord, PolWireCoord, WireCoord},
 };
@@ -54,9 +54,10 @@ impl std::fmt::Debug for FeatureId {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub enum DiffKey {
     Legacy(FeatureId),
-    BelAttrBit(TileClassId, BelSlotId, BelAttributeId, usize),
+    BelAttrBit(TileClassId, BelSlotId, BelAttributeId, usize, bool),
     BelAttrValue(TileClassId, BelSlotId, BelAttributeId, EnumValueId),
     BelAttrBitVec(TileClassId, BelSlotId, BelAttributeId, BitVec),
+    BelAttrU32(TileClassId, BelSlotId, BelAttributeId, u32),
     BelAttrValueSpecial(
         TileClassId,
         BelSlotId,
@@ -64,13 +65,22 @@ pub enum DiffKey {
         EnumValueId,
         SpecialId,
     ),
-    BelAttrEnumBool(TileClassId, BelSlotId, BelAttributeId, bool),
+    BelAttrRow(TileClassId, BelSlotId, BelAttributeId, TableRowId),
     BelAttrSpecial(TileClassId, BelSlotId, BelAttributeId, SpecialId),
     BelAttrSpecialBit(TileClassId, BelSlotId, BelAttributeId, SpecialId, usize),
     BelSpecial(TileClassId, BelSlotId, SpecialId),
     BelSpecialVal(TileClassId, BelSlotId, SpecialId, EnumValueId),
     BelSpecialBit(TileClassId, BelSlotId, SpecialId, usize),
+    BelSpecialU32(TileClassId, BelSlotId, SpecialId, u32),
     BelSpecialRow(TileClassId, BelSlotId, SpecialId, TableRowId),
+    BelSpecialSpecialSpecialRow(
+        TileClassId,
+        BelSlotId,
+        SpecialId,
+        SpecialId,
+        SpecialId,
+        TableRowId,
+    ),
     BelSpecialString(TileClassId, BelSlotId, SpecialId, String),
     BelInputInv(TileClassId, BelSlotId, BelInputId, bool),
     GlobalSpecial(SpecialId),
@@ -177,6 +187,8 @@ impl Diff {
     }
 
     pub fn apply_bitvec_diff(&mut self, bits: &[PolTileBit], from: &BitVec, to: &BitVec) {
+        assert_eq!(bits.len(), from.len());
+        assert_eq!(bits.len(), to.len());
         for (idx, &pbit) in bits.iter().enumerate() {
             if from[idx] != to[idx] {
                 match self.bits.entry(pbit.bit) {
@@ -508,15 +520,15 @@ pub fn xlat_enum_raw<K: Clone + Debug + Eq + PartialEq + Ord + PartialOrd>(
     }
 }
 
-pub fn xlat_enum_attr_ocd(diffs: Vec<(EnumValueId, Diff)>, ocd: OcdMode) -> BelAttribute {
+pub fn xlat_enum_attr_ocd(diffs: Vec<(EnumValueId, Diff)>, ocd: OcdMode) -> BelAttributeEnum {
     let edata = xlat_enum_raw(diffs, ocd);
-    BelAttribute::Enum(BelAttributeEnum {
+    BelAttributeEnum {
         bits: edata.bits,
         values: edata.values.into_iter().collect(),
-    })
+    }
 }
 
-pub fn xlat_enum_attr(diffs: Vec<(EnumValueId, Diff)>) -> BelAttribute {
+pub fn xlat_enum_attr(diffs: Vec<(EnumValueId, Diff)>) -> BelAttributeEnum {
     xlat_enum_attr_ocd(diffs, OcdMode::ValueOrder)
 }
 
@@ -643,4 +655,11 @@ pub fn extract_bitvec_val(bits: &[PolTileBit], base: &BitVec, diff: Diff) -> Bit
         res.set(bitidx, val ^ bits[bitidx].inv);
     }
     res
+}
+
+pub fn enum_ocd_swap_bits<K: Ord>(item: &mut EnumData<K>, a: usize, b: usize) {
+    item.bits.swap(a, b);
+    for val in item.values.values_mut() {
+        val.swap(a, b);
+    }
 }

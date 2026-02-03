@@ -607,8 +607,8 @@ impl IntMaker<'_> {
                     || wires::SDNODE.contains(wt.wire)
                     || wires::QLNODE.contains(wt.wire)
                 {
-                    let nwf = self.sng_fixup_map.get(&wf).copied().unwrap_or(wf);
-                    ((wt, nwf), mode)
+                    let nwf = self.sng_fixup_map.get(&wf.tw).copied().unwrap_or(wf.tw);
+                    ((wt, nwf.pos()), mode)
                 } else {
                     ((wt, wf), mode)
                 }

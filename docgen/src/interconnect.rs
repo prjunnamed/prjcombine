@@ -1229,6 +1229,7 @@ fn gen_bels(tcgen: &mut TileClassGen, buf: &mut String, bcid: BelClassId, bslots
                         }
                     }
                 }
+                BelAttributeType::U32 => unreachable!(),
             }
         }
 
@@ -1773,6 +1774,9 @@ fn gen_table(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tid: TableId)
                         )
                         .unwrap();
                     }
+                    TableValue::U32(val) => {
+                        writeln!(buf, r#"<td>{val}</td>"#).unwrap();
+                    }
                 }
             } else {
                 writeln!(buf, r#"<td>-</td>"#).unwrap();
@@ -1843,6 +1847,9 @@ pub fn gen_devdata(
                             val = intdb.enum_classes[ecid].values[*vid]
                         )
                         .unwrap();
+                    }
+                    TableValue::U32(val) => {
+                        writeln!(buf, r#"<td>{val}</td>"#).unwrap();
                     }
                 }
             } else {

@@ -944,7 +944,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
         let tcls_index = &backend.edev.db_index[tcid];
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         for (&wire_to, ins) in &tcls_index.pips_bwd {
@@ -1071,10 +1071,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 if wire_to.wire == wires::IMUX_CLB_F4 && wire_from.wire == wires::SPECIAL_CLB_CIN {
                     ctx.build()
-                        .prop(BaseBelMode::new(bslots::CLB, "CLB".into()))
+                        .prop(BaseBelMode::new(bslots::CLB, 0, "CLB".into()))
                         .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
                         .prop(FuzzBelAttr::new(
                             bslots::CLB,
+                            0,
                             "F4MUX".into(),
                             "".into(),
                             "CIN".into(),
@@ -1087,12 +1088,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     ctx.build()
                         .prop(Related::new(
                             DeltaSlot::new(-1, 0, tslots::MAIN),
-                            BaseBelMode::new(bslots::CLB, "CLB".into()),
+                            BaseBelMode::new(bslots::CLB, 0, "CLB".into()),
                         ))
                         .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
                         .prop(Related::new(
                             DeltaSlot::new(-1, 0, tslots::MAIN),
-                            FuzzBelAttr::new(bslots::CLB, "G3MUX".into(), "".into(), "CIN".into()),
+                            FuzzBelAttr::new(
+                                bslots::CLB,
+                                0,
+                                "G3MUX".into(),
+                                "".into(),
+                                "CIN".into(),
+                            ),
                         ))
                         .prop(WireMutexExclusive::new(wire_to))
                         .commit();
@@ -1103,13 +1110,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     ctx.build()
                         .prop(Related::new(
                             DeltaSlot::new(0, 1, tslots::MAIN),
-                            BaseBelMode::new(bslots::CLB, "CLB".into()),
+                            BaseBelMode::new(bslots::CLB, 0, "CLB".into()),
                         ))
                         .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
                         .prop(Related::new(
                             DeltaSlot::new(0, 1, tslots::MAIN),
                             FuzzBelAttr::new(
                                 bslots::CLB,
+                                0,
                                 "G2MUX".into(),
                                 "".into(),
                                 "COUT0".into(),
@@ -1128,9 +1136,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let bel = bslots::TBUF[idx];
                     ctx.build()
                         .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
-                        .prop(FuzzBelMode::new(bel, "".into(), "TBUF".into()))
+                        .prop(FuzzBelMode::new(bel, 0, "".into(), "TBUF".into()))
                         .prop(FuzzBelAttr::new(
                             bel,
+                            0,
                             "TBUFATTR".into(),
                             "".into(),
                             "WAND".into(),
@@ -1147,10 +1156,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 {
                     let bel = bslots::IO[idx];
                     ctx.build()
-                        .prop(BaseBelMode::new(bel, "IOB".into()))
-                        .prop(BaseBelAttr::new(bel, "OUTMUX".into(), "O".into()))
+                        .prop(BaseBelMode::new(bel, 0, "IOB".into()))
+                        .prop(BaseBelAttr::new(bel, 0, "OUTMUX".into(), "O".into()))
                         .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
-                        .prop(FuzzBelAttr::new(bel, "TRI".into(), "T".into(), "".into()))
+                        .prop(FuzzBelAttr::new(
+                            bel,
+                            0,
+                            "TRI".into(),
+                            "T".into(),
+                            "".into(),
+                        ))
                         .prop(WireMutexExclusive::new(wire_to))
                         .commit();
                     continue;
@@ -1213,20 +1228,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     if let Some(idx) = wires::IMUX_IO_T.index_of(wire_to.wire) {
                         let bel = bslots::IO[idx];
                         builder = builder
-                            .prop(BaseBelMode::new(bel, "IOB".into()))
-                            .prop(BaseBelAttr::new(bel, "TRI".into(), "T".into()))
-                            .prop(BaseBelPin::new(bel, "T".into()));
+                            .prop(BaseBelMode::new(bel, 0, "IOB".into()))
+                            .prop(BaseBelAttr::new(bel, 0, "TRI".into(), "T".into()))
+                            .prop(BaseBelPin::new(bel, 0, "T".into()));
                         if edev.chip.kind != ChipKind::Xc4000E {
                             builder =
-                                builder.prop(BaseBelAttr::new(bel, "OUTMUX".into(), "O".into()));
+                                builder.prop(BaseBelAttr::new(bel, 0, "OUTMUX".into(), "O".into()));
                         }
                     }
 
                     if let Some(idx) = wires::IMUX_TBUF_I.index_of(wire_to.wire) {
                         let bel = bslots::TBUF[idx];
-                        builder = builder.prop(BaseBelMode::new(bel, "TBUF".into())).prop(
+                        builder = builder.prop(BaseBelMode::new(bel, 0, "TBUF".into())).prop(
                             FuzzBelAttr::new(
                                 bel,
+                                0,
                                 "TBUFATTR".into(),
                                 "WANDT".into(),
                                 "WORAND".into(),
@@ -1236,9 +1252,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     if let Some(idx) = wires::IMUX_TBUF_T.index_of(wire_to.wire) {
                         let bel = bslots::TBUF[idx];
                         builder = builder
-                            .prop(FuzzBelMode::new(bel, "".into(), "TBUF".into()))
+                            .prop(FuzzBelMode::new(bel, 0, "".into(), "TBUF".into()))
                             .prop(FuzzBelAttr::new(
                                 bel,
+                                0,
                                 "TBUFATTR".into(),
                                 "".into(),
                                 "WANDT".into(),
@@ -1395,7 +1412,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let kind = edev.chip.kind;
     let intdb = edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
-        if !ctx.has_tile(tcname) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
         for bel in tcls.bels.values() {
@@ -1661,7 +1678,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 assert!(got_empty);
                                 if tcls.bels.contains_id(bel) {
                                     assert!(tcname.starts_with(filter));
-                                    ctx.insert_bel_attr_raw(
+                                    ctx.insert_bel_attr_enum(
                                         tcid,
                                         bel,
                                         bcls::IO::MUX_OFF_D,
@@ -1678,9 +1695,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         bits: [(bit, val)].into_iter().collect(),
                                     };
                                     for (io_tcid, io_tcname, _) in &intdb.tile_classes {
-                                        if io_tcname.starts_with(filter) && ctx.has_tile_id(io_tcid)
-                                        {
-                                            ctx.insert_bel_attr_raw(
+                                        if io_tcname.starts_with(filter) && ctx.has_tcls(io_tcid) {
+                                            ctx.insert_bel_attr_enum(
                                                 io_tcid,
                                                 bel,
                                                 bcls::IO::MUX_OFF_D,

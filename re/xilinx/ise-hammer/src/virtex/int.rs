@@ -568,7 +568,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
         let tcls_index = &backend.edev.db_index[tcid];
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
+        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tcname) else {
             continue;
         };
         for (&wire_to, ins) in &tcls_index.pips_bwd {
@@ -586,9 +586,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     for i in 0..4 {
                         props.push(Box::new(BaseBelMode::new(
                             defs::bslots::IO[i],
+                            0,
                             ["EMPTYIOB", "IOB", "IOB", "IOB"][i].into(),
                         )));
-                        props.push(Box::new(BaseBelPin::new(defs::bslots::IO[i], "I".into())));
+                        props.push(Box::new(BaseBelPin::new(
+                            defs::bslots::IO[i],
+                            0,
+                            "I".into(),
+                        )));
                     }
                     let clb_id = intdb.get_tile_class("CLB");
                     let clb_index = &backend.edev.db_index[clb_id];
@@ -635,7 +640,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     };
                     let mut builder = ctx
                         .build()
-                        .test_manual("INT", &mux_name, in_name)
+                        .test_manual_legacy("INT", &mux_name, in_name)
                         .prop(FuzzIntPip::new(wire_to, wire_from));
                     for prop in &props {
                         builder = builder.prop_box(prop.clone());
@@ -820,7 +825,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         }
                     }
                     props.push(Box::new(FuzzIntPip::new(wire_to, wire_from)));
-                    let mut builder = ctx.build().test_manual("INT", &mux_name, &in_name);
+                    let mut builder = ctx.build().test_manual_legacy("INT", &mux_name, &in_name);
                     for prop in &props {
                         builder = builder.prop_box(prop.clone());
                     }
@@ -888,7 +893,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     };
 
                     props.push(Box::new(FuzzIntPip::new(wire_to, wire_from)));
-                    let mut builder = ctx.build().test_manual("INT", &mux_name, &in_name);
+                    let mut builder = ctx.build().test_manual_legacy("INT", &mux_name, &in_name);
                     for prop in &props {
                         builder = builder.prop_box(prop.clone());
                     }
@@ -1033,6 +1038,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             for i in 0..4 {
                                 props.push(Box::new(BaseBelMode::new(
                                     defs::bslots::IO[i],
+                                    0,
                                     [
                                         "EMPTYIOB",
                                         "IOB",
@@ -1047,10 +1053,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 )));
                                 props.push(Box::new(BaseBelPin::new(
                                     defs::bslots::IO[i],
+                                    0,
                                     "I".into(),
                                 )));
                                 props.push(Box::new(BaseBelPin::new(
                                     defs::bslots::IO[i],
+                                    0,
                                     "IQ".into(),
                                 )));
                             }
@@ -1058,9 +1066,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         } else if let Some(pin) = in_wire_name.strip_prefix("OUT_BSCAN_") {
                             props.push(Box::new(BaseBelMode::new(
                                 defs::bslots::BSCAN,
+                                0,
                                 "BSCAN".into(),
                             )));
-                            props.push(Box::new(BaseBelPin::new(defs::bslots::BSCAN, pin.into())));
+                            props.push(Box::new(BaseBelPin::new(
+                                defs::bslots::BSCAN,
+                                0,
+                                pin.into(),
+                            )));
                             break 'll_src_pin;
                         } else if wires::OUT_BUFGCE_O.contains(wire_from.wire)
                             || wires::OUT_CLKPAD.contains(wire_from.wire)
@@ -1087,7 +1100,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let mut props = props.clone();
                     props.push(Box::new(FuzzIntPip::new(wire_to, wire_from)));
 
-                    let mut builder = ctx.build().test_manual("INT", &mux_name, &in_name);
+                    let mut builder = ctx.build().test_manual_legacy("INT", &mux_name, &in_name);
                     for prop in &props {
                         builder = builder.prop_box(prop.clone());
                     }
@@ -1098,9 +1111,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 if let Some(pin) = out_name.strip_prefix("IMUX_STARTUP_") {
                     props.push(Box::new(BaseBelMode::new(
                         defs::bslots::STARTUP,
+                        0,
                         "STARTUP".into(),
                     )));
-                    props.push(Box::new(BaseBelPin::new(defs::bslots::STARTUP, pin.into())));
+                    props.push(Box::new(BaseBelPin::new(
+                        defs::bslots::STARTUP,
+                        0,
+                        pin.into(),
+                    )));
                 }
                 let mut alt_out_wire = None;
                 if out_name.starts_with("IMUX_DLL") {
@@ -1125,6 +1143,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 if let Some(idx) = wires::IMUX_BUFGCE_CLK.index_of(wire_to.wire) {
                     props.push(Box::new(FuzzBelMode::new(
                         defs::bslots::BUFG[idx],
+                        0,
                         "".into(),
                         "GCLK".into(),
                     )));
@@ -1245,9 +1264,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         && (wires::OUT_CLKPAD.contains(wire_from.wire)
                             || wires::OUT_IOFB.contains(wire_from.wire))
                     {
-                        let mut builder =
-                            ctx.build()
-                                .test_manual("INT", &mux_name, format!("{in_name}.NOALT"));
+                        let mut builder = ctx.build().test_manual_legacy(
+                            "INT",
+                            &mux_name,
+                            format!("{in_name}.NOALT"),
+                        );
                         for prop in &props {
                             builder = builder.prop_box(prop.clone());
                         }
@@ -1255,7 +1276,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         props.push(Box::new(BaseIntPip::new(alt_out, wire_from)));
                     }
 
-                    let mut builder = ctx.build().test_manual("INT", &mux_name, &in_name);
+                    let mut builder = ctx.build().test_manual_legacy("INT", &mux_name, &in_name);
                     for prop in &props {
                         builder = builder.prop_box(prop.clone());
                     }
@@ -1274,7 +1295,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     };
     let intdb = edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
-        if !ctx.has_tile(tcname) {
+        if !ctx.has_tile_legacy(tcname) {
             continue;
         }
         for (bslot, bel) in &tcls.bels {
@@ -1314,11 +1335,31 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 );
                                 let (alt, noalt, common) = Diff::split(diff, noalt_diff);
                                 if mux_name.contains("CLKIN") {
-                                    ctx.insert(tcname, "DLL", "CLKIN_PAD", xlat_bit_legacy(noalt));
-                                    ctx.insert(tcname, "DLL", "CLKFB_PAD", xlat_bit_legacy(!alt));
+                                    ctx.insert_legacy(
+                                        tcname,
+                                        "DLL",
+                                        "CLKIN_PAD",
+                                        xlat_bit_legacy(noalt),
+                                    );
+                                    ctx.insert_legacy(
+                                        tcname,
+                                        "DLL",
+                                        "CLKFB_PAD",
+                                        xlat_bit_legacy(!alt),
+                                    );
                                 } else {
-                                    ctx.insert(tcname, "DLL", "CLKFB_PAD", xlat_bit_legacy(noalt));
-                                    ctx.insert(tcname, "DLL", "CLKIN_PAD", xlat_bit_legacy(!alt));
+                                    ctx.insert_legacy(
+                                        tcname,
+                                        "DLL",
+                                        "CLKFB_PAD",
+                                        xlat_bit_legacy(noalt),
+                                    );
+                                    ctx.insert_legacy(
+                                        tcname,
+                                        "DLL",
+                                        "CLKIN_PAD",
+                                        xlat_bit_legacy(!alt),
+                                    );
                                 }
                                 diff = common;
                             }
@@ -1343,7 +1384,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     println!("UMM {out_name} {in_name} BUF IS EMPTY");
                                     continue;
                                 }
-                                ctx.insert(
+                                ctx.insert_legacy(
                                     tcname,
                                     bel,
                                     format!("BUF.{out_name}.{in_name}"),
@@ -1415,8 +1456,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 inps.push(("NONE".to_string(), Diff::default()));
                             }
                             let item = xlat_enum_legacy_ocd(inps, OcdMode::Mux);
-                            ctx.insert(tcname, bel, mux_name, item);
-                            ctx.insert(
+                            ctx.insert_legacy(tcname, bel, mux_name, item);
+                            ctx.insert_legacy(
                                 tcname,
                                 bel,
                                 format!("DRIVE.{out_name}"),
@@ -1441,7 +1482,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 }
                                 println!("UMMM MUX {tcname} {mux_name} is empty");
                             }
-                            ctx.insert(tcname, bel, mux_name, item);
+                            ctx.insert_legacy(tcname, bel, mux_name, item);
                         }
                     }
                     SwitchBoxItem::Pass(pass) => {
@@ -1471,7 +1512,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                         let item = xlat_bit_legacy(diff);
                         let name = format!("PASS.{out_name}.{in_name}");
-                        ctx.insert(tcname, bel, name, item);
+                        ctx.insert_legacy(tcname, bel, name, item);
                     }
                     SwitchBoxItem::BiPass(pass) => {
                         let a_name = intdb.wires.key(pass.a.wire);
@@ -1503,7 +1544,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 &in_name,
                             );
                             let item = xlat_bit_legacy(diff);
-                            ctx.insert(tcname, bel, &name, item);
+                            ctx.insert_legacy(tcname, bel, &name, item);
                         }
                     }
                     SwitchBoxItem::PermaBuf(_) => (),

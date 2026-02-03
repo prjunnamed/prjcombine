@@ -84,7 +84,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         unreachable!()
     };
     for (tcid, _, tcls) in &backend.edev.db.tile_classes {
-        let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         for i in 0..2 {
@@ -257,7 +257,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         unreachable!()
     };
     for (tcid, tile, tcls) in &edev.db.tile_classes {
-        if !ctx.has_tile_id(tcid) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
         for i in 0..2 {
@@ -272,8 +272,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 &[enums::IO_SLEW::FAST, enums::IO_SLEW::SLOW],
             );
             ctx.collect_bel_attr_default(tcid, bslot, bcls::IO::PULL, enums::IO_PULL::NONE);
-            ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::IFF_SRVAL);
-            ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::OFF_SRVAL);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::IO::IFF_SRVAL);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::IO::OFF_SRVAL);
             ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::IO::IK);
             ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::IO::OK);
             ctx.collect_bel_input_inv(tcid, bslot, bcls::IO::T);
@@ -323,7 +323,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .bits
                     .retain(|bit, _| !diff_o1not.bits.contains_key(bit));
                 let diff_oq = diff_oq.combine(&!&diff_off_used);
-                ctx.insert_bel_attr_raw(
+                ctx.insert_bel_attr_enum(
                     tcid,
                     bslot,
                     bcls::IO::MUX_O,
@@ -355,7 +355,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 );
 
                 ctx.collect_bel_attr(tcid, bslot, bcls::IO::MUX_OFF_D);
-                ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::OFF_D_INV);
+                ctx.collect_bel_attr_bi(tcid, bslot, bcls::IO::OFF_D_INV);
 
                 let mut diff_oq =
                     ctx.get_diff_attr_val(tcid, bslot, bcls::IO::MUX_O, enums::IO_MUX_O::OQ);
@@ -394,7 +394,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .bits
                     .retain(|bit, _| !diff_o1.bits.contains_key(bit));
                 diff_oq = diff_oq.combine(&!&diff_off_used);
-                ctx.insert_bel_attr_raw(
+                ctx.insert_bel_attr_enum(
                     tcid,
                     bslot,
                     bcls::IO::MUX_O,

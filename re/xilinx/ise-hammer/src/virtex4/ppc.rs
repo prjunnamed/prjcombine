@@ -68,7 +68,7 @@ const EMAC_INVPINS: &[&str] = &[
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     let tile = "PPC";
-    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
         return;
     };
     let tcid = intdb.get_tile_class(tile);
@@ -102,7 +102,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             if wires::IMUX_IMUX.contains(wire.wire) {
                 continue;
             }
-            bctx.mode(mode).prop(ForceBitRects).test_inv(pin);
+            bctx.mode(mode).prop(ForceBitRects).test_inv_legacy(pin);
         }
         if slot == bslots::PPC {
             bctx.mode(mode)
@@ -115,7 +115,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "PPC";
     let tcid = tcls::PPC;
-    if !ctx.has_tile_id(tcid) {
+    if !ctx.has_tcls(tcid) {
         return;
     }
     let tcls = &ctx.edev.db[tcid];

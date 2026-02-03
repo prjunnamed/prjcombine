@@ -23,7 +23,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         "CLK_S_VE_2DLL",
         "CLK_N_VE_2DLL",
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
             continue;
         };
         for i in 0..2 {
@@ -72,7 +72,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     for tile in ["CLKV_CLKV", "CLKV_GCLKV", "CLKV_NULL"] {
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
             continue;
         };
 
@@ -97,7 +97,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             ("CLKV_BRAM_S", defs::bslots::CLKV_BRAM_S),
             ("CLKV_BRAM_N", defs::bslots::CLKV_BRAM_N),
         ] {
-            let mut ctx = FuzzCtx::new(session, backend, tile);
+            let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
             let mut bctx = ctx.bel(slot);
             for lr in ['L', 'R'] {
                 for i in 0..4 {
@@ -111,7 +111,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     for tile in ["BRAM_W", "BRAM_E"] {
-        let mut ctx = FuzzCtx::new(session, backend, tile);
+        let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
         let mut bctx = ctx.bel(defs::bslots::CLKV_BRAM);
         for lr in ['L', 'R'] {
             for i in 0..4 {
@@ -130,7 +130,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ("GCLKC", defs::bslots::GCLKC),
         ("BRAM_CLKH", defs::bslots::BRAM_CLKH),
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
             continue;
         };
         let mut bctx = ctx.bel(bel);
@@ -155,7 +155,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "CLK_N_VE_4DLL",
         "CLK_N_VE_2DLL",
     ] {
-        if !ctx.has_tile(tile) {
+        if !ctx.has_tile_legacy(tile) {
             continue;
         }
         for i in 0..2 {
@@ -166,7 +166,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff = ctx.get_diff_legacy(tile, bel, "DELAY", val);
                 diffs.push(!diff);
             }
-            ctx.insert(tile, bel, "DELAY", xlat_bitvec_legacy(diffs));
+            ctx.insert_legacy(tile, bel, "DELAY", xlat_bitvec_legacy(diffs));
             let iostds = if !tile.ends_with("DLL") {
                 &[
                     ("CMOS", "LVTTL"),
@@ -213,7 +213,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for &(val, iostd) in iostds {
                 diffs.push((val, ctx.get_diff_legacy(tile, bel, "IOATTRBOX", iostd)));
             }
-            ctx.insert(tile, bel, "IBUF", xlat_enum_legacy(diffs));
+            ctx.insert_legacy(tile, bel, "IBUF", xlat_enum_legacy(diffs));
         }
         for i in 0..2 {
             let bel = format!("BUFG[{i}]");
@@ -223,12 +223,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let d1 = ctx.get_diff_legacy(tile, bel, "CEMUX", "CE_B");
             assert_eq!(d1, ctx.get_diff_legacy(tile, bel, "CEMUX", "0"));
             let item = xlat_bit_bi_legacy(d0, d1);
-            ctx.insert(tile, bel, "INV.CE", item);
+            ctx.insert_legacy(tile, bel, "INV.CE", item);
             ctx.collect_bit_bi_legacy(tile, bel, "DISABLE_ATTR", "LOW", "HIGH");
         }
     }
     for tile in ["CLKV_CLKV", "CLKV_GCLKV"] {
-        if !ctx.has_tile(tile) {
+        if !ctx.has_tile_legacy(tile) {
             continue;
         }
         let bel = "CLKV";
@@ -246,7 +246,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let item =
                         ctx.extract_bit_wide_legacy(tile, bel, &format!("BUF.GCLK_{lr}{i}"), "1");
                     if is_s2 {
-                        ctx.insert(tile, bel, format!("BUF.GCLK{i}"), item);
+                        ctx.insert_legacy(tile, bel, format!("BUF.GCLK{i}"), item);
                     } else {
                         assert!(item.bits.is_empty());
                     }

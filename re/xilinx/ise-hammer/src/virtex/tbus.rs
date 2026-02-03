@@ -33,7 +33,7 @@ impl TileRelation for ClbTbusRight {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     for tcid in [tcls::CLB, tcls::IO_W, tcls::IO_E] {
-        let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for (i, out_a, out_b) in [(0, "BUS0", "BUS2"), (1, "BUS1", "BUS3")] {
             let mut bctx = ctx.bel(bslots::TBUF[i]);
             bctx.mode("TBUF")
@@ -87,7 +87,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
                 assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
                 let item = xlat_bit_bi_legacy(d0, d1);
-                ctx.insert(tile, bel, format!("INV.{pin}"), item);
+                ctx.insert_legacy(tile, bel, format!("INV.{pin}"), item);
             }
             for attr in ["OUT_A", "OUT_B"] {
                 ctx.collect_bit_legacy(tile, bel, attr, "1");

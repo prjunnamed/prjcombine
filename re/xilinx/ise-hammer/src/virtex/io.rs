@@ -227,7 +227,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
     for side in ['W', 'E', 'S', 'N'] {
         let tile = format!("IO_{side}");
-        let mut ctx = FuzzCtx::new(session, backend, &tile);
+        let mut ctx = FuzzCtx::new_legacy(session, backend, &tile);
         for i in 0..4 {
             if i == 0 || (i == 3 && matches!(side, 'S' | 'N')) {
                 continue;
@@ -523,7 +523,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("DLLFB")
                             .pin("I")
                             .prop(VirtexIsDllIob(defs::bslots::IO[i], true))
-                            .extra_tile_attr_fixed(clkbt, bel_clk, "IBUF", "CMOS")
+                            .extra_tile_attr_fixed_legacy(clkbt, bel_clk, "IBUF", "CMOS")
                             .test_manual_legacy("ISTD", iostd)
                             .attr("IOATTRBOX", iostd)
                             .attr("DLLFBUSED", "0")
@@ -540,7 +540,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("DLLFB")
                             .pin("I")
                             .prop(VirtexIsDllIob(defs::bslots::IO[i], true))
-                            .extra_tile_attr_fixed(clkbt, bel_clk, "IBUF", "VREF")
+                            .extra_tile_attr_fixed_legacy(clkbt, bel_clk, "IBUF", "VREF")
                             .test_manual_legacy("ISTD", iostd)
                             .attr("IOATTRBOX", iostd)
                             .attr("DLLFBUSED", "0")
@@ -558,8 +558,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for val in ["0", "1"] {
             ctx.build()
                 .global_mutex("DRIVE", "GLOBAL")
-                .extra_tiles_by_bel(defs::bslots::IO[0], "IOB_ALL")
-                .test_manual("IOB_ALL", attr, val)
+                .extra_tiles_by_bel_legacy(defs::bslots::IO[0], "IOB_ALL")
+                .test_manual_legacy("IOB_ALL", attr, val)
                 .global(attr, val)
                 .commit();
         }
@@ -604,7 +604,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .get_diff_legacy(tile, bel, "SHORTEN_JTAG_CHAIN", "0")
                 .combine(&!&present);
             let item = xlat_bit_legacy(!diff);
-            ctx.insert(tile, bel, "SHORTEN_JTAG_CHAIN", item);
+            ctx.insert_legacy(tile, bel, "SHORTEN_JTAG_CHAIN", item);
             for (pin, pin_b, pinmux) in [
                 ("SR", "SR_B", "SRMUX"),
                 ("ICE", "ICE_B", "ICEMUX"),
@@ -618,46 +618,46 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff1 = ctx.get_diff_legacy(tile, bel, pinmux, "0");
                 assert_eq!(diff1, ctx.get_diff_legacy(tile, bel, pinmux, pin_b));
                 let item = xlat_bit_bi_legacy(diff0, diff1);
-                ctx.insert(tile, bel, format!("INV.{pin}"), item);
+                ctx.insert_legacy(tile, bel, format!("INV.{pin}"), item);
             }
             for iot in ['I', 'O', 'T'] {
                 let item = ctx.extract_bit_bi_legacy(tile, bel, &format!("{iot}CKINV"), "1", "0");
-                ctx.insert(tile, bel, format!("INV.{iot}FF.CLK"), item);
+                ctx.insert_legacy(tile, bel, format!("INV.{iot}FF.CLK"), item);
                 let item = ctx.extract_bit_legacy(tile, bel, &format!("{iot}INITMUX"), "0");
-                ctx.insert(tile, bel, format!("{iot}FF_SR_ENABLE"), item);
+                ctx.insert_legacy(tile, bel, format!("{iot}FF_SR_ENABLE"), item);
             }
             let item = ctx.extract_bit_bi_legacy(tile, bel, "IFFINITATTR", "LOW", "HIGH");
-            ctx.insert(tile, bel, "IFF_INIT", item);
+            ctx.insert_legacy(tile, bel, "IFF_INIT", item);
             let item = ctx.extract_bit_bi_legacy(tile, bel, "OFFATTRBOX", "LOW", "HIGH");
-            ctx.insert(tile, bel, "OFF_INIT", item);
+            ctx.insert_legacy(tile, bel, "OFF_INIT", item);
             let item = ctx.extract_bit_bi_legacy(tile, bel, "TFFATTRBOX", "LOW", "HIGH");
-            ctx.insert(tile, bel, "TFF_INIT", item);
+            ctx.insert_legacy(tile, bel, "TFF_INIT", item);
             ctx.get_diff_legacy(tile, bel, "FFATTRBOX", "ASYNC")
                 .assert_empty();
             let mut diff = ctx.get_diff_legacy(tile, bel, "FFATTRBOX", "SYNC");
             for iot in ['I', 'O', 'T'] {
-                let init = ctx.item(tile, bel, &format!("{iot}FF_INIT"));
+                let init = ctx.item_legacy(tile, bel, &format!("{iot}FF_INIT"));
                 let init_bit = init.bits[0];
                 let item = xlat_bitvec_legacy(vec![diff.split_bits_by(|bit| {
                     bit.rect == init_bit.rect
                         && bit.frame.to_idx().abs_diff(init_bit.frame.to_idx()) == 1
                         && bit.bit == init_bit.bit
                 })]);
-                ctx.insert(tile, bel, format!("{iot}FF_SR_SYNC"), item);
+                ctx.insert_legacy(tile, bel, format!("{iot}FF_SR_SYNC"), item);
             }
             diff.assert_empty();
             let item = ctx.extract_bit_bi_legacy(tile, bel, "IFF", "#FF", "#LATCH");
-            ctx.insert(tile, bel, "IFF_LATCH", item);
+            ctx.insert_legacy(tile, bel, "IFF_LATCH", item);
             let item = ctx.extract_bit_bi_legacy(tile, bel, "OFF", "#FF", "#LATCH");
-            ctx.insert(tile, bel, "OFF_LATCH", item);
+            ctx.insert_legacy(tile, bel, "OFF_LATCH", item);
             let item = ctx.extract_bit_bi_legacy(tile, bel, "TFF", "#FF", "#LATCH");
-            ctx.insert(tile, bel, "TFF_LATCH", item);
+            ctx.insert_legacy(tile, bel, "TFF_LATCH", item);
             let item = ctx.extract_bit_bi_legacy(tile, bel, "IMUX", "1", "0");
-            ctx.insert(tile, bel, "I_DELAY_ENABLE", item);
+            ctx.insert_legacy(tile, bel, "I_DELAY_ENABLE", item);
             let item = ctx.extract_bit_bi_legacy(tile, bel, "IFFMUX", "1", "0");
-            ctx.insert(tile, bel, "IFF_DELAY_ENABLE", item);
+            ctx.insert_legacy(tile, bel, "IFF_DELAY_ENABLE", item);
 
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 "READBACK_IFF",
@@ -678,7 +678,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     false,
                 ),
             );
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 "READBACK_OFF",
@@ -699,7 +699,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     false,
                 ),
             );
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 "READBACK_TFF",
@@ -727,13 +727,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut diff = ctx.get_diff_legacy(tile, bel, "TSEL", "0");
             let diff_ioi =
                 diff.split_bits_by(|bit| bit.frame.to_idx() < 48 && bit.bit.to_idx() == 16);
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 "TMUX",
                 xlat_enum_legacy(vec![("T", Diff::default()), ("TFF", diff_ioi)]),
             );
-            ctx.insert(
+            ctx.insert_legacy(
                 tile_iob,
                 bel,
                 "TMUX",
@@ -744,13 +744,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .combine(&!ctx.get_diff_legacy(tile, bel, "OUTMUX", "1"));
             let diff_ioi =
                 diff.split_bits_by(|bit| bit.frame.to_idx() < 48 && bit.bit.to_idx() == 16);
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 "OMUX",
                 xlat_enum_legacy(vec![("O", Diff::default()), ("OFF", diff_ioi)]),
             );
-            ctx.insert(
+            ctx.insert_legacy(
                 tile_iob,
                 bel,
                 "OMUX",
@@ -759,7 +759,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             // IOB
 
-            ctx.insert(
+            ctx.insert_legacy(
                 tile_iob,
                 bel,
                 "READBACK_I",
@@ -782,12 +782,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 &["PULLDOWN", "PULLUP", "KEEPER"],
                 "NONE",
             );
-            ctx.insert(tile_iob, bel, "PULL", item);
+            ctx.insert_legacy(tile_iob, bel, "PULL", item);
 
             if has_any_vref(edev, ctx.device, ctx.db, tile, defs::bslots::IO[i]).is_some() {
                 let diff =
                     present.combine(&!&ctx.get_diff_legacy(tile, bel, "PRESENT", "NOT_VREF"));
-                ctx.insert(tile_iob, bel, "VREF", xlat_bit_legacy(diff));
+                ctx.insert_legacy(tile_iob, bel, "VREF", xlat_bit_legacy(diff));
             }
 
             let mut diffs_istd = vec![];
@@ -823,7 +823,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 diffs_iostd_misc_vec.push((iostd, diff_c));
             }
             diffs_istd.push(("NONE", Diff::default()));
-            ctx.insert(tile_iob, bel, "IBUF", xlat_enum_legacy(diffs_istd));
+            ctx.insert_legacy(tile_iob, bel, "IBUF", xlat_enum_legacy(diffs_istd));
 
             let mut pdrive = vec![None; 4];
             let mut ndrive = vec![None; 5];
@@ -889,7 +889,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     }
                                 })
                                 .collect();
-                            ctx.insert_misc_data(
+                            ctx.insert_misc_data_legacy(
                                 format!("IOSTD:{tag}:PDRIVE:{iostd}.{drive}"),
                                 pdrive_val,
                             );
@@ -904,7 +904,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     }
                                 })
                                 .collect();
-                            ctx.insert_misc_data(
+                            ctx.insert_misc_data_legacy(
                                 format!("IOSTD:{tag}:NDRIVE:{iostd}.{drive}"),
                                 ndrive_val,
                             );
@@ -930,7 +930,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 }
                             })
                             .collect();
-                        ctx.insert_misc_data(format!("IOSTD:{tag}:PDRIVE:{iostd}"), pdrive_val);
+                        ctx.insert_misc_data_legacy(
+                            format!("IOSTD:{tag}:PDRIVE:{iostd}"),
+                            pdrive_val,
+                        );
                         let ndrive_val: BitVec = ndrive
                             .iter()
                             .map(|&(bit, inv)| {
@@ -943,14 +946,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             })
                             .collect();
                         diff = diff.combine(&!&diffs_iostd_misc[iostd]);
-                        ctx.insert_misc_data(format!("IOSTD:{tag}:NDRIVE:{iostd}"), ndrive_val);
+                        ctx.insert_misc_data_legacy(
+                            format!("IOSTD:{tag}:NDRIVE:{iostd}"),
+                            ndrive_val,
+                        );
                         slews.push((format!("{iostd}.{slew}"), diff.split_bits(&slew_bits)));
                         ostd_misc.push((iostd, diff))
                     }
                 }
             }
 
-            ctx.insert(
+            ctx.insert_legacy(
                 tile_iob,
                 bel,
                 "PDRIVE",
@@ -961,7 +967,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     },
                 },
             );
-            ctx.insert(
+            ctx.insert_legacy(
                 tile_iob,
                 bel,
                 "NDRIVE",
@@ -982,10 +988,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     unreachable!()
                 };
                 for (name, val) in values {
-                    ctx.insert_misc_data(format!("IOSTD:{tag}:{attr}:{name}"), val);
+                    ctx.insert_misc_data_legacy(format!("IOSTD:{tag}:{attr}:{name}"), val);
                 }
                 let item = TileItem::from_bitvec_inv(item.bits, false);
-                ctx.insert(tile_iob, bel, attr, item);
+                ctx.insert_legacy(tile_iob, bel, attr, item);
             }
         }
     }

@@ -163,7 +163,7 @@ pub fn finish(geom: GeomDb, mut bitdb: CollectorData) -> Database {
     assert_eq!(geom.ints.len(), 1);
     let mut int = geom.ints.into_values().next().unwrap();
 
-    let bsdata = std::mem::take(&mut bitdb.bsdata);
+    assert!(bitdb.bsdata.is_empty());
     bitdb.insert_into(&mut int, false);
 
     Database {
@@ -171,6 +171,5 @@ pub fn finish(geom: GeomDb, mut bitdb: CollectorData) -> Database {
         bonds,
         devices: parts,
         int,
-        bsdata,
     }
 }

@@ -57,7 +57,7 @@ const DSP48E1_TIEPINS: &[&str] = &[
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let tile = "DSP";
-    let mut ctx = FuzzCtx::new(session, backend, tile);
+    let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
     for i in 0..2 {
         let bel_other = defs::bslots::DSP[i ^ 1];
         let mut bctx = ctx.bel(defs::bslots::DSP[i]);
@@ -68,7 +68,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .mode(mode)
             .commit();
         for &pin in DSP48E1_INVPINS {
-            bctx.mode(mode).test_inv(pin);
+            bctx.mode(mode).test_inv_legacy(pin);
         }
         let bel_tie = defs::bslots::TIEOFF_DSP;
         for &pin in DSP48E1_TIEPINS {
@@ -136,7 +136,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_enum_legacy(attr, &["0", "1"]);
         }
         for attr in ["A_INPUT", "B_INPUT"] {
-            bctx.mode(mode).test_enum_legacy(attr, &["DIRECT", "CASCADE"]);
+            bctx.mode(mode)
+                .test_enum_legacy(attr, &["DIRECT", "CASCADE"]);
         }
         bctx.mode(mode)
             .test_enum_legacy("USE_PATTERN_DETECT", &["PATDET", "NO_PATDET"]);
@@ -150,7 +151,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("DREG", "0")
             .attr("ADREG", "0")
             .test_enum_legacy("USE_DPORT", &["FALSE", "TRUE"]);
-        bctx.mode(mode).test_enum_legacy("SEL_PATTERN", &["PATTERN", "C"]);
+        bctx.mode(mode)
+            .test_enum_legacy("SEL_PATTERN", &["PATTERN", "C"]);
         bctx.mode(mode).test_enum_legacy(
             "SEL_MASK",
             &["MASK", "C", "ROUNDING_MODE1", "ROUNDING_MODE2"],
@@ -174,7 +176,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let attr = format!("MUX.{pin}");
             let gnd = ctx.get_diff_legacy(tile, bel, &attr, "GND");
             let vcc = ctx.get_diff_legacy(tile, bel, &attr, "VCC");
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 attr,
@@ -218,7 +220,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let d0 = ctx.get_diff_legacy(tile, bel, "USE_MULT", "NONE");
         let d1 = ctx.get_diff_legacy(tile, bel, "USE_MULT", "MULTIPLY");
         assert_eq!(d1, ctx.get_diff_legacy(tile, bel, "USE_MULT", "DYNAMIC"));
-        ctx.insert(tile, bel, "USE_MULT", xlat_bit_bi_legacy(d0, d1));
+        ctx.insert_legacy(tile, bel, "USE_MULT", xlat_bit_bi_legacy(d0, d1));
         ctx.collect_bit_bi_legacy(tile, bel, "USE_DPORT", "FALSE", "TRUE");
         ctx.collect_enum_legacy(tile, bel, "SEL_PATTERN", &["PATTERN", "C"]);
         ctx.collect_enum_legacy(

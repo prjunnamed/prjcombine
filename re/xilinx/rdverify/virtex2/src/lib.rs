@@ -3,12 +3,12 @@ use std::collections::HashMap;
 use prjcombine_entity::{EntityBundleItemIndex, EntityId};
 use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem, TileWireCoord},
-    grid::{BelCoord, EdgeIoCoord},
+    grid::BelCoord,
 };
 use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{LegacyBelContext, RawWireCoord, SitePinDir, Verifier};
+use prjcombine_re_xilinx_rdverify::{RawWireCoord, SitePinDir, Verifier};
 use prjcombine_virtex2::{
     chip::{ChipKind, ColumnKind},
     defs::{
@@ -20,14 +20,6 @@ use prjcombine_virtex2::{
 mod clb;
 mod clk;
 mod io;
-
-fn get_bel_iob<'a>(
-    endev: &ExpandedNamedDevice,
-    vrf: &Verifier<'a>,
-    crd: EdgeIoCoord,
-) -> LegacyBelContext<'a> {
-    vrf.get_legacy_bel(endev.chip.get_io_loc(crd))
-}
 
 fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoord) {
     let mut bel = vrf
@@ -47,7 +39,7 @@ fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoord
             bel.claim_net(&[bel.wire(pin)]);
             bel.claim_pip(bel.wire(pin), bel.wire_far(pin));
             let obel = bcrd.with_col(endev.chip.col_clk - 1).bel(oslot);
-            bel.verify_net(&[bel.wire_far(pin), bel.bel_wire_far(obel, "I")]);
+            bel.verify_net(&[bel.wire_far(pin), bel.bel_wire_far(obel, "BREFCLK")]);
         }
     } else {
         bel = bel
@@ -225,7 +217,6 @@ fn verify_dsp(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoord) {
-    let slot_name = endev.edev.db.bel_slots.key(bcrd.slot);
     match bcrd.slot {
         bslots::INT => {
             let crd = vrf.get_tile_crds(endev.edev.get_tile_by_bel(bcrd)).unwrap()
@@ -250,7 +241,15 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
         | bslots::DSP_TESTMUX
         | bslots::HROW
         | bslots::HCLK
-        | bslots::DCMCONN => (),
+        | bslots::DCMCONN
+        | bslots::MISC_CNR_S3
+        | bslots::MISC_SW
+        | bslots::MISC_SE
+        | bslots::MISC_NW
+        | bslots::MISC_NE
+        | bslots::BANK
+        | bslots::MISR_FC
+        | bslots::GLOBAL => (),
         _ if bslots::SLICE.contains(bcrd.slot) => {
             if endev.chip.kind.is_virtex2() {
                 clb::verify_slice_v2(endev, vrf, bcrd);
@@ -274,32 +273,27 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
         bslots::MULT_INT => verify_mult_int(endev, vrf, bcrd),
         bslots::DSP => verify_dsp(endev, vrf, bcrd),
 
-        _ if slot_name.starts_with("IO") => io::verify_ioi(endev, vrf, bcrd),
-        _ if bslots::IBUF.contains(bcrd.slot) => {
-            let idx = bslots::IBUF.index_of(bcrd.slot).unwrap();
-            let bel = &vrf.get_legacy_bel(bcrd);
+        _ if bslots::IOI.contains(bcrd.slot) => io::verify_ioi(endev, vrf, bcrd),
+        _ if bslots::IREG.contains(bcrd.slot) => {
+            let idx = bslots::IREG.index_of(bcrd.slot).unwrap();
+            let mut bel = vrf
+                .verify_bel(bcrd)
+                .kind("IBUF")
+                .skip_out(bcls::IREG::CLKPAD);
             if (bcrd.col == endev.chip.col_clk - 1 || bcrd.col == endev.chip.col_clk) && idx < 2 {
-                vrf.claim_pip(bel.wire("CLKPAD"), bel.wire("I"));
+                bel.claim_pip(bel.wire("CLKPAD"), bel.wire("I"));
             }
-            vrf.verify_legacy_bel(bel, "IBUF", &[], &["CLKPAD"]);
+            bel.commit();
         }
-        _ if slot_name.starts_with("OBUF") => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "OBUF", &[], &[]);
+        _ if bslots::OREG.contains(bcrd.slot) => {
+            vrf.verify_bel(bcrd).kind("OBUF").commit();
         }
-        bslots::BREFCLK_INT => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            let slot = if bel.row == endev.edev.chip.row_s() {
-                bslots::IOI[2]
-            } else {
-                bslots::IOI[0]
-            };
-            let obel = vrf.find_bel_sibling(bel, slot);
-            vrf.claim_pip(bel.wire("BREFCLK"), obel.wire_far("I"));
-        }
+        _ if bslots::IOB.contains(bcrd.slot) => (),
+        _ if bslots::IBUF.contains(bcrd.slot) => (),
+        _ if bslots::OBUF.contains(bcrd.slot) => (),
         bslots::PCILOGICSE => io::verify_pcilogicse(endev, vrf, bcrd),
 
-        _ if slot_name.starts_with("BUFGMUX") => clk::verify_bufgmux(endev, vrf, bcrd),
+        _ if bslots::BUFGMUX.contains(bcrd.slot) => clk::verify_bufgmux(endev, vrf, bcrd),
         bslots::GT | bslots::GT10 => verify_gt(endev, vrf, bcrd),
         bslots::STARTUP
         | bslots::CAPTURE
@@ -308,24 +302,22 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
         | bslots::JTAGPPC
         | bslots::PMV
         | bslots::DNA_PORT => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, slot_name, &[], &[]);
+            vrf.verify_bel(bcrd).commit();
         }
         bslots::PCILOGIC => vrf.verify_bel(bcrd).commit(),
         bslots::PPC405 => {
             vrf.verify_bel(bcrd).commit();
         }
         bslots::DCM => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "DCM", &[], &[]);
+            vrf.verify_bel(bcrd).commit();
             if endev.chip.kind.is_virtex2p() {
                 // just some detritus.
                 let data29 = RawWireCoord {
-                    crd: bel.crd(),
+                    crd: vrf.bel_rcrd(bcrd),
                     wire: "BRAM_IOIS_DATA29",
                 };
                 let vcc = RawWireCoord {
-                    crd: bel.crd(),
+                    crd: vrf.bel_rcrd(bcrd),
                     wire: "BRAM_IOIS_VCC_WIRE",
                 };
                 vrf.claim_net(&[data29]);
@@ -333,12 +325,12 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
             }
         }
         bslots::ICAP => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "ICAP", &[], &[]);
+            let mut bel = vrf.verify_bel(bcrd);
             if endev.chip.kind == ChipKind::Spartan3E {
                 // eh.
-                vrf.claim_net(&[bel.wire("I2")]);
+                bel.claim_net(&[bel.wire("I2")]);
             }
+            bel.commit();
         }
         bslots::GLOBALSIG_HCLK => {
             vrf.verify_bel(bcrd).kind("GLOBALSIG").commit();
@@ -349,15 +341,9 @@ fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
         _ if bslots::GLOBALSIG_BUFG.contains(bcrd.slot) => {
             clk::verify_globalsig_bufg(endev, vrf, bcrd);
         }
-        _ if bslots::DCIRESET.contains(bcrd.slot) => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "DCIRESET", &[], &[]);
+        _ if bslots::DCIRESET.contains(bcrd.slot) || bslots::DCI.contains(bcrd.slot) => {
+            vrf.verify_bel(bcrd).commit();
         }
-        _ if bslots::DCI.contains(bcrd.slot) => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "DCI", &[], &[]);
-        }
-        bslots::MISR => (),
 
         _ => println!("MEOW {}", bcrd.to_string(endev.edev.db)),
     }

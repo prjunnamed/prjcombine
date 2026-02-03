@@ -830,7 +830,7 @@ fn skip_pip(
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, _, tcls) in &intdb.tile_classes {
-        let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         for (bslot, bel) in &tcls.bels {
@@ -884,7 +884,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let intdb = ctx.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
-        if !ctx.has_tile_id(tcid) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
         for (bslot, bel) in &tcls.bels {

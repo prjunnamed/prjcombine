@@ -3,7 +3,7 @@ use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord,
 };
 use prjcombine_types::bsdata::BitRectId;
-use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
+use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom, Reg};
 
 use crate::{
     chip::{Chip, ChipKind},
@@ -233,6 +233,28 @@ impl ExpandedDevice<'_> {
         let tcls = &self.db.tile_classes[tile.class];
         if tcls.bitrects.is_empty() {
             EntityVec::new()
+        } else if tcrd.slot == defs::tslots::GLOBAL {
+            if self.chip.kind.is_spartan3a() {
+                EntityVec::from_iter([
+                    BitRect::Reg(tcrd.die, Reg::Cor1),
+                    BitRect::Reg(tcrd.die, Reg::Cor2),
+                    BitRect::Reg(tcrd.die, Reg::Ctl0),
+                    BitRect::Reg(tcrd.die, Reg::CclkFrequency),
+                    BitRect::Reg(tcrd.die, Reg::HcOpt),
+                    BitRect::Reg(tcrd.die, Reg::Powerdown),
+                    BitRect::Reg(tcrd.die, Reg::PuGwe),
+                    BitRect::Reg(tcrd.die, Reg::PuGts),
+                    BitRect::Reg(tcrd.die, Reg::Mode),
+                    BitRect::Reg(tcrd.die, Reg::General1),
+                    BitRect::Reg(tcrd.die, Reg::General2),
+                    BitRect::Reg(tcrd.die, Reg::SeuOpt),
+                ])
+            } else {
+                EntityVec::from_iter([
+                    BitRect::Reg(tcrd.die, Reg::Cor0),
+                    BitRect::Reg(tcrd.die, Reg::Ctl0),
+                ])
+            }
         } else if tcls.bels.contains_id(defs::bslots::BRAM) {
             EntityVec::from_iter([
                 self.btile_main(tcrd.delta(0, 0)),

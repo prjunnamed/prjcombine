@@ -589,8 +589,8 @@ impl IntMaker<'_> {
             .iter()
             .map(|(&(wt, wf), &mode)| {
                 if wires::INODE.contains(wt.wire) || wires::SDQNODE.contains(wt.wire) {
-                    let nwf = self.sng_fixup_map.get(&wf).copied().unwrap_or(wf);
-                    ((wt, nwf), mode)
+                    let nwf = self.sng_fixup_map.get(&wf.tw).copied().unwrap_or(wf.tw);
+                    ((wt, nwf.pos()), mode)
                 } else {
                     ((wt, wf), mode)
                 }

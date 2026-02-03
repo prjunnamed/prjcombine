@@ -1062,14 +1062,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             pips.pips.insert(
                 (
                     TileWireCoord::new_idx(0, wires::IMUX_DLL_CLKIN),
-                    TileWireCoord::new_idx(2, wires::OUT_CLKPAD[i]),
+                    TileWireCoord::new_idx(2, wires::OUT_CLKPAD[i]).pos(),
                 ),
                 PipMode::Mux,
             );
             pips.pips.insert(
                 (
                     TileWireCoord::new_idx(0, wires::IMUX_DLL_CLKFB),
-                    TileWireCoord::new_idx(2, wires::OUT_CLKPAD[i]),
+                    TileWireCoord::new_idx(2, wires::OUT_CLKPAD[i]).pos(),
                 ),
                 PipMode::Mux,
             );
@@ -1079,14 +1079,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 pips.pips.insert(
                     (
                         TileWireCoord::new_idx(0, wires::IMUX_DLL_CLKIN),
-                        TileWireCoord::new_idx(2, wires::OUT_IOFB[i]),
+                        TileWireCoord::new_idx(2, wires::OUT_IOFB[i]).pos(),
                     ),
                     PipMode::Mux,
                 );
                 pips.pips.insert(
                     (
                         TileWireCoord::new_idx(0, wires::IMUX_DLL_CLKFB),
-                        TileWireCoord::new_idx(2, wires::OUT_IOFB[i]),
+                        TileWireCoord::new_idx(2, wires::OUT_IOFB[i]).pos(),
                     ),
                     PipMode::Mux,
                 );
@@ -1095,7 +1095,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 pips.pips.insert(
                     (
                         TileWireCoord::new_idx(0, wires::IMUX_DLL_CLKIN),
-                        TileWireCoord::new_idx(3, wires::OUT_DLL_CLK2X),
+                        TileWireCoord::new_idx(3, wires::OUT_DLL_CLK2X).pos(),
                     ),
                     PipMode::Mux,
                 );
@@ -1103,7 +1103,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 pips.pips.insert(
                     (
                         TileWireCoord::new_idx(0, wires::IMUX_DLL_CLKFB),
-                        TileWireCoord::new_idx(0, wires::OUT_DLL_CLK2X),
+                        TileWireCoord::new_idx(0, wires::OUT_DLL_CLK2X).pos(),
                     ),
                     PipMode::Mux,
                 );

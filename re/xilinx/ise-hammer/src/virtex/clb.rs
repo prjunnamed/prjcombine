@@ -6,7 +6,7 @@ use prjcombine_virtex::defs;
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new(session, backend, "CLB");
+    let mut ctx = FuzzCtx::new_legacy(session, backend, "CLB");
     for i in 0..2 {
         let mut bctx = ctx.bel(defs::bslots::SLICE[i]);
         let mode = "SLICE";
@@ -220,7 +220,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "CLB";
     for bel in ["SLICE[0]", "SLICE[1]"] {
         let item = ctx.extract_bit_bi_legacy(tile, bel, "CKINV", "1", "0");
-        ctx.insert(tile, bel, "INV.CLK", item);
+        ctx.insert_legacy(tile, bel, "INV.CLK", item);
         for (pinmux, pin, pin_b) in [
             ("BXMUX", "BX", "BX_B"),
             ("BYMUX", "BY", "BY_B"),
@@ -231,7 +231,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
             let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
             assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
-            ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bit_bi_legacy(d0, d1));
+            ctx.insert_legacy(tile, bel, format!("INV.{pin}"), xlat_bit_bi_legacy(d0, d1));
         }
 
         ctx.collect_bitvec_legacy(tile, bel, "F", "#LUT");
@@ -256,7 +256,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         assert_eq!(d_1, ctx.get_diff_legacy(tile, bel, "CY0G", "1"));
         assert_eq!(d_f1_g1, ctx.get_diff_legacy(tile, bel, "CY0G", "G1"));
         assert_eq!(d_prod, ctx.get_diff_legacy(tile, bel, "CY0G", "PROD"));
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             "CY0",
@@ -271,7 +271,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         // muxes
         let yb_by = ctx.get_diff_legacy(tile, bel, "YBMUX", "0");
         let yb_cy = ctx.get_diff_legacy(tile, bel, "YBMUX", "1");
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             "YBMUX",
@@ -279,7 +279,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         let dx_bx = ctx.get_diff_legacy(tile, bel, "DXMUX", "0");
         let dx_x = ctx.get_diff_legacy(tile, bel, "DXMUX", "1");
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             "DXMUX",
@@ -287,7 +287,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         let dy_by = ctx.get_diff_legacy(tile, bel, "DYMUX", "0");
         let dy_y = ctx.get_diff_legacy(tile, bel, "DYMUX", "1");
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             "DYMUX",
@@ -300,16 +300,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let ff_sync = ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "SYNC");
         ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "ASYNC")
             .assert_empty();
-        ctx.insert(tile, bel, "FF_SR_SYNC", xlat_bit_legacy(ff_sync));
+        ctx.insert_legacy(tile, bel, "FF_SR_SYNC", xlat_bit_legacy(ff_sync));
 
         let revused = ctx.get_diff_legacy(tile, bel, "REVUSED", "0");
-        ctx.insert(tile, bel, "FF_REV_ENABLE", xlat_bit_legacy(revused));
+        ctx.insert_legacy(tile, bel, "FF_REV_ENABLE", xlat_bit_legacy(revused));
 
         let ff_latch = ctx.get_diff_legacy(tile, bel, "FFX", "#LATCH");
         assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, "FFY", "#LATCH"));
         ctx.get_diff_legacy(tile, bel, "FFX", "#FF").assert_empty();
         ctx.get_diff_legacy(tile, bel, "FFY", "#FF").assert_empty();
-        ctx.insert(tile, bel, "FF_LATCH", xlat_bit_legacy(ff_latch));
+        ctx.insert_legacy(tile, bel, "FF_LATCH", xlat_bit_legacy(ff_latch));
 
         ctx.collect_bit_bi_legacy(tile, bel, "INITX", "LOW", "HIGH");
         ctx.collect_bit_bi_legacy(tile, bel, "INITY", "LOW", "HIGH");
@@ -321,7 +321,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("SLICE[1]", "READBACK_XQ", 2, 16),
         ("SLICE[1]", "READBACK_YQ", 8, 16),
     ] {
-        ctx.insert(
+        ctx.insert_legacy(
             tile,
             bel,
             attr,

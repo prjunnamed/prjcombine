@@ -11,7 +11,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new_id(session, backend, tcls::DSP);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::DSP);
     let mode = "DSP48A";
     let mut bctx = ctx.bel(bslots::DSP);
     bctx.build()
@@ -44,7 +44,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for (aid, _, attr) in &ctx.edev.db.bel_classes[bcls::DSP].attributes {
         if attr.typ == BelAttributeType::Bool {
-            ctx.collect_bel_attr_bool_bi(tcid, bslot, aid);
+            ctx.collect_bel_attr_bi(tcid, bslot, aid);
         } else {
             ctx.collect_bel_attr(tcid, bslot, aid);
         }

@@ -166,8 +166,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::MUX_YQ);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::MUX_DX);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::MUX_DY);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::CLB::FFX_SRVAL);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::CLB::FFY_SRVAL);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::CLB::FFX_SRVAL);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::CLB::FFY_SRVAL);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::FFX_EC_ENABLE);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::FFY_EC_ENABLE);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::FFX_SR_ENABLE);
@@ -193,24 +193,24 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             (enums::CLB_CARRY_ADDSUB::ADDSUB, bit0),
             (enums::CLB_CARRY_ADDSUB::SUB, Diff::default()),
         ]);
-        ctx.insert_bel_attr_raw(tcid, bslot, bcls::CLB::CARRY_ADDSUB, item);
+        ctx.insert_bel_attr_enum(tcid, bslot, bcls::CLB::CARRY_ADDSUB, item);
         let item = xlat_enum_attr(vec![
             (enums::CLB_CARRY_PROP::XOR, bit3),
             (enums::CLB_CARRY_PROP::CONST_1, bit2),
             (enums::CLB_CARRY_PROP::CONST_0, Diff::default()),
         ]);
-        ctx.insert_bel_attr_raw(tcid, bslot, bcls::CLB::CARRY_FPROP, item);
+        ctx.insert_bel_attr_enum(tcid, bslot, bcls::CLB::CARRY_FPROP, item);
         let item = xlat_enum_attr(vec![
             (enums::CLB_CARRY_FGEN::F1, bit4.combine(&bit5)),
             (enums::CLB_CARRY_FGEN::F3_INV, bit5),
             (enums::CLB_CARRY_FGEN::CONST_OP2_ENABLE, Diff::default()),
         ]);
-        ctx.insert_bel_attr_raw(tcid, bslot, bcls::CLB::CARRY_FGEN, item);
+        ctx.insert_bel_attr_enum(tcid, bslot, bcls::CLB::CARRY_FGEN, item);
         let item = xlat_enum_attr(vec![
             (enums::CLB_CARRY_PROP::XOR, bit6),
             (enums::CLB_CARRY_PROP::CONST_1, Diff::default()),
         ]);
-        ctx.insert_bel_attr_raw(tcid, bslot, bcls::CLB::CARRY_GPROP, item);
+        ctx.insert_bel_attr_enum(tcid, bslot, bcls::CLB::CARRY_GPROP, item);
         ctx.insert_bel_attr_bool(tcid, bslot, bcls::CLB::CARRY_OP2_ENABLE, xlat_bit(bit7));
 
         if !ctx.device.name.ends_with('d') {
@@ -232,7 +232,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 (enums::CLB_RAM_DIMS::_16X2, Diff::default()),
                 (enums::CLB_RAM_DIMS::_32X1, diff),
             ]);
-            ctx.insert_bel_attr_raw(tcid, bslot, bcls::CLB::RAM_DIMS, item);
+            ctx.insert_bel_attr_enum(tcid, bslot, bcls::CLB::RAM_DIMS, item);
         }
     }
 }

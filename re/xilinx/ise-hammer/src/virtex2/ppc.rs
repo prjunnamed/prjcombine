@@ -45,7 +45,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ForceBitRects {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     for tcid in [tcls::PPC_W, tcls::PPC_E] {
-        let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         let mut bctx = ctx.bel(bslots::PPC405);
@@ -85,7 +85,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for tcid in [tcls::PPC_W, tcls::PPC_E] {
-        if !ctx.has_tile_id(tcid) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
         let bslot = bslots::PPC405;

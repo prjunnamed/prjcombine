@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new_id(session, backend, tcls::CLB);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CLB);
     let bk_l = "SLICEL";
     let bk_m = "SLICEM";
     for i in 0..4 {
@@ -415,18 +415,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         // LUT RAM
         let is_m = matches!(idx, 0 | 2);
         if is_m {
-            ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE_V4::F_SHIFT_ENABLE, false)
+            ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::SLICE_V4::F_SHIFT_ENABLE, false)
                 .assert_empty();
-            ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE_V4::G_SHIFT_ENABLE, false)
+            ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::SLICE_V4::G_SHIFT_ENABLE, false)
                 .assert_empty();
             let f_ram = ctx.get_diff_attr_bit(tcid, bslot, bcls::SLICE_V4::F_RAM_ENABLE, 0);
             let g_ram = ctx.get_diff_attr_bit(tcid, bslot, bcls::SLICE_V4::G_RAM_ENABLE, 0);
             let (f_ram, g_ram, ram) = Diff::split(f_ram, g_ram);
             ctx.insert_bel_attr_bool(tcid, bslot, bcls::SLICE_V4::FF_SR_ENABLE, xlat_bit(!ram));
             let f_shift_d =
-                ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE_V4::F_SHIFT_ENABLE, true);
+                ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::SLICE_V4::F_SHIFT_ENABLE, true);
             let g_shift_d =
-                ctx.get_diff_attr_bool(tcid, bslot, bcls::SLICE_V4::G_SHIFT_ENABLE, true);
+                ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::SLICE_V4::G_SHIFT_ENABLE, true);
             let f_shift = f_ram.combine(&f_shift_d);
             let g_shift = g_ram.combine(&g_shift_d);
             ctx.insert_bel_attr_bool(tcid, bslot, bcls::SLICE_V4::F_RAM_ENABLE, xlat_bit(f_ram));
@@ -463,13 +463,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         // FFs
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE_V4::FF_SR_SYNC);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE_V4::FF_LATCH);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE_V4::FF_SR_SYNC);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE_V4::FF_LATCH);
         ctx.collect_bel_attr(tcid, bslot, bcls::SLICE_V4::FF_REV_ENABLE);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE_V4::FFX_SRVAL);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE_V4::FFY_SRVAL);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE_V4::FFX_INIT);
-        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::SLICE_V4::FFY_INIT);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE_V4::FFX_SRVAL);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE_V4::FFY_SRVAL);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE_V4::FFX_INIT);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE_V4::FFY_INIT);
 
         // inverts
         let int = tcls::INT;

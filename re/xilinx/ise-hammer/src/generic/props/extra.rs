@@ -65,17 +65,24 @@ impl KeyMaker for ExtraKeyBelAttrValue {
 pub struct ExtraKeyBelAttrBits {
     pub bel: BelSlotId,
     pub attr: BelAttributeId,
+    pub base: usize,
+    pub val: bool,
 }
 
 impl ExtraKeyBelAttrBits {
-    pub fn new(bel: BelSlotId, attr: BelAttributeId) -> Self {
-        Self { bel, attr }
+    pub fn new(bel: BelSlotId, attr: BelAttributeId, base: usize, val: bool) -> Self {
+        Self {
+            bel,
+            attr,
+            base,
+            val,
+        }
     }
 }
 
 impl KeyMaker for ExtraKeyBelAttrBits {
     fn make_key(&self, _backend: &IseBackend, _main_key: &DiffKey, tcid: TileClassId) -> DiffKey {
-        DiffKey::BelAttrBit(tcid, self.bel, self.attr, 0)
+        DiffKey::BelAttrBit(tcid, self.bel, self.attr, self.base, self.val)
     }
 }
 

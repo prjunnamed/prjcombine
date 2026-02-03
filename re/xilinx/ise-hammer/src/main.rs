@@ -1,3 +1,5 @@
+#![recursion_limit = "1024"]
+
 use clap::Parser;
 use prjcombine_interconnect::db::TileWireCoord;
 use prjcombine_interconnect::dir::DirV;
@@ -686,7 +688,14 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
             for i in 0..32 {
                 idcode.push((val & 1 << i) != 0);
             }
-            ctx.insert_device_data(format!("IDCODE:{die}"), idcode);
+            match gedev {
+                ExpandedDevice::Virtex2(_) => {
+                    ctx.insert_devdata_bitvec(prjcombine_virtex2::defs::devdata::IDCODE, idcode);
+                }
+                _ => {
+                    ctx.insert_device_data_legacy(format!("IDCODE:{die}"), idcode);
+                }
+            }
         }
     }
     for (&dir, gtzbs) in &ctx.empty_bs.gtz {
@@ -698,7 +707,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
         for i in 0..32 {
             idcode.push((gtzbs.idcode & 1 << i) != 0);
         }
-        ctx.insert_device_data(format!("IDCODE:{which}"), idcode);
+        ctx.insert_device_data_legacy(format!("IDCODE:{which}"), idcode);
     }
 
     for (key, data) in diffs {

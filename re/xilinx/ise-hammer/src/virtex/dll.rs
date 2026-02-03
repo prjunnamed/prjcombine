@@ -128,14 +128,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         unreachable!()
     };
     for tile in ["DLL_S", "DLL_N", "DLLP_S", "DLLP_N", "DLLS_S", "DLLS_N"] {
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
             continue;
         };
         let mut bctx = ctx.bel(defs::bslots::DLL);
         let cnr_tl = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_n())
             .tile(defs::tslots::MAIN);
         bctx.build()
-            .extra_tile_attr_fixed(cnr_tl, "MISC", "DLL_ENABLE", "1")
+            .extra_tile_attr_fixed_legacy(cnr_tl, "MISC", "DLL_ENABLE", "1")
             .global_mutex_here("DLL")
             .test_manual_legacy("PRESENT", "1")
             .mode("DLL")
@@ -153,19 +153,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("DLL", "USE")
             .test_enum_legacy("DUTY_ATTR", &["FALSE", "TRUE"]);
         for attr in ["JF_ZD1_ATTR", "JF_ZD2_ATTR"] {
-            bctx.mode("DLL").global_mutex("DLL", "USE").test_enum_legacy(
-                attr,
+            bctx.mode("DLL")
+                .global_mutex("DLL", "USE")
+                .test_enum_legacy(
+                    attr,
+                    &[
+                        "0X80", "0XC0", "0XE0", "0XF0", "0XF8", "0XFC", "0XFE", "0XFF",
+                    ],
+                );
+        }
+        bctx.mode("DLL")
+            .global_mutex("DLL", "USE")
+            .test_enum_legacy(
+                "DIVIDE_ATTR",
                 &[
-                    "0X80", "0XC0", "0XE0", "0XF0", "0XF8", "0XFC", "0XFE", "0XFF",
+                    "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
+                    "16",
                 ],
             );
-        }
-        bctx.mode("DLL").global_mutex("DLL", "USE").test_enum_legacy(
-            "DIVIDE_ATTR",
-            &[
-                "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
-            ],
-        );
         for i in 1..8 {
             bctx.mode("DLL")
                 .global_mutex("DLL", "USE")
@@ -221,7 +226,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode("DLL")
                     .global_mutex_here("DLL")
                     .prop(DeviceSide(DirH::W))
-                    .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BL", "1")
+                    .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BL", "1")
                     .null_bits()
                     .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                     .attr("STARTUP_ATTR", "STARTUP_WAIT")
@@ -230,7 +235,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode("DLL")
                     .global_mutex_here("DLL")
                     .prop(DeviceSide(DirH::E))
-                    .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BR", "1")
+                    .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BR", "1")
                     .null_bits()
                     .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                     .attr("STARTUP_ATTR", "STARTUP_WAIT")
@@ -239,7 +244,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode("DLL")
                     .global_mutex_here("DLL")
                     .prop(DeviceSide(DirH::W))
-                    .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TL", "1")
+                    .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TL", "1")
                     .null_bits()
                     .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                     .attr("STARTUP_ATTR", "STARTUP_WAIT")
@@ -247,7 +252,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode("DLL")
                     .global_mutex_here("DLL")
                     .prop(DeviceSide(DirH::E))
-                    .extra_tile_reg_attr(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TR", "1")
+                    .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TR", "1")
                     .null_bits()
                     .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                     .attr("STARTUP_ATTR", "STARTUP_WAIT")
@@ -258,8 +263,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new_null(session, backend);
     for val in ["90", "180", "270", "360"] {
         ctx.build()
-            .extra_tiles_by_bel(defs::bslots::DLL, "DLL")
-            .test_manual("DLL", "TEST_OSC", val)
+            .extra_tiles_by_bel_legacy(defs::bslots::DLL, "DLL")
+            .test_manual_legacy("DLL", "TEST_OSC", val)
             .global("TESTOSC", val)
             .commit();
     }
@@ -267,7 +272,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for tile in ["DLL_S", "DLL_N", "DLLP_S", "DLLP_N", "DLLS_S", "DLLS_N"] {
-        if !ctx.has_tile(tile) {
+        if !ctx.has_tile_legacy(tile) {
             continue;
         }
         let bel = "DLL";
@@ -280,7 +285,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             &BitVec::repeat(true, 4),
             &BitVec::repeat(false, 4),
         );
-        ctx.insert(tile, bel, "DUTY_CYCLE_CORRECTION", item);
+        ctx.insert_legacy(tile, bel, "DUTY_CYCLE_CORRECTION", item);
 
         ctx.collect_bit_legacy(tile, bel, "HIGH_FREQUENCY", "1");
 
@@ -289,7 +294,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let d1 = ctx.get_diff_legacy(tile, bel, "RSTMUX", "RST_B");
         assert_eq!(d1, ctx.get_diff_legacy(tile, bel, "RSTMUX", "0"));
         let item = xlat_bit_bi_legacy(d0, d1);
-        ctx.insert(tile, bel, "INV.RST", item);
+        ctx.insert_legacy(tile, bel, "INV.RST", item);
 
         let item_jf2 =
             TileItem::from_bitvec_inv((0..8).map(|bit| TileBit::new(0, 17, bit)).collect(), false);
@@ -306,8 +311,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             present.apply_bitvec_diff_int_legacy(item, base, 0xf0);
         }
-        ctx.insert(tile, bel, "FACTORY_JF2", item_jf2);
-        ctx.insert(tile, bel, "FACTORY_JF1", item_jf1);
+        ctx.insert_legacy(tile, bel, "FACTORY_JF2", item_jf2);
+        ctx.insert_legacy(tile, bel, "FACTORY_JF1", item_jf1);
 
         let clkdv_count_max =
             TileItem::from_bitvec_inv((4..8).map(|bit| TileBit::new(0, 18, bit)).collect(), false);
@@ -355,12 +360,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         present.apply_bitvec_diff_int_legacy(&clkdv_count_max, 1, 0);
         present.apply_enum_diff_legacy(&clkdv_mode, "INT", "HALF");
-        ctx.insert(tile, bel, "CLKDV_COUNT_MAX", clkdv_count_max);
-        ctx.insert(tile, bel, "CLKDV_COUNT_FALL", clkdv_count_fall);
-        ctx.insert(tile, bel, "CLKDV_COUNT_FALL_2", clkdv_count_fall_2);
-        ctx.insert(tile, bel, "CLKDV_PHASE_RISE", clkdv_phase_rise);
-        ctx.insert(tile, bel, "CLKDV_PHASE_FALL", clkdv_phase_fall);
-        ctx.insert(tile, bel, "CLKDV_MODE", clkdv_mode);
+        ctx.insert_legacy(tile, bel, "CLKDV_COUNT_MAX", clkdv_count_max);
+        ctx.insert_legacy(tile, bel, "CLKDV_COUNT_FALL", clkdv_count_fall);
+        ctx.insert_legacy(tile, bel, "CLKDV_COUNT_FALL_2", clkdv_count_fall_2);
+        ctx.insert_legacy(tile, bel, "CLKDV_PHASE_RISE", clkdv_phase_rise);
+        ctx.insert_legacy(tile, bel, "CLKDV_PHASE_FALL", clkdv_phase_fall);
+        ctx.insert_legacy(tile, bel, "CLKDV_MODE", clkdv_mode);
 
         ctx.collect_bit_bi_legacy(tile, bel, "CFG_O_14", "0", "1");
         ctx.collect_bit_bi_legacy(tile, bel, "LVL1_MUX_20", "0", "1");
@@ -374,11 +379,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("1X", ctx.get_diff_legacy(tile, bel, "CLK_FEEDBACK_2X", "0")),
             ("2X", ctx.get_diff_legacy(tile, bel, "CLK_FEEDBACK_2X", "1")),
         ]);
-        ctx.insert(tile, bel, "CLK_FEEDBACK", item);
+        ctx.insert_legacy(tile, bel, "CLK_FEEDBACK", item);
 
-        present.apply_bit_diff_legacy(ctx.item(tile, bel, "CFG_O_14"), true, false);
+        present.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "CFG_O_14"), true, false);
         if ctx.device.name.ends_with('e') {
-            ctx.insert(tile, bel, "ENABLE", xlat_bit_legacy(present));
+            ctx.insert_legacy(tile, bel, "ENABLE", xlat_bit_legacy(present));
         } else {
             present.assert_empty();
         }

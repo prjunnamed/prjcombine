@@ -542,21 +542,19 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for (tcid, tkn) in [(defs::tcls::CLEXL, "CLEXL"), (defs::tcls::CLEXM, "CLEXM")] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            builder.extract_xtile_bels_id(
-                tcid,
-                xy,
-                &[],
-                &[xy.delta(-1, 0)],
-                tkn,
-                &[
-                    builder
-                        .bel_xy(defs::bslots::SLICE[0], "SLICE", 0, 0)
-                        .pins_name_only(&["CIN"])
-                        .pin_name_only("COUT", 1),
-                    builder.bel_xy(defs::bslots::SLICE[1], "SLICE", 1, 0),
-                ],
-                false,
-            );
+            let bels = [
+                builder
+                    .bel_xy(defs::bslots::SLICE[0], "SLICE", 0, 0)
+                    .pins_name_only(&["CIN"])
+                    .pin_name_only("COUT", 1),
+                builder.bel_xy(defs::bslots::SLICE[1], "SLICE", 1, 0),
+            ];
+            builder
+                .xtile_id(tcid, tkn, xy)
+                .num_cells(1)
+                .bels(bels)
+                .ref_int(xy.delta(-1, 0), 0)
+                .extract();
         }
     }
 

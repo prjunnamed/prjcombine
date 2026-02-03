@@ -343,7 +343,7 @@ const GTX_HEX_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTX") else {
+    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "GTX") else {
         return;
     };
     for i in 0..4 {
@@ -352,7 +352,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mode = "GTXE1";
         bctx.build()
             .bel_unused(bel_other)
-            .extra_tile_attr(
+            .extra_tile_attr_legacy(
                 Delta::new(0, 0, "HCLK"),
                 "HCLK",
                 if i < 2 {
@@ -366,7 +366,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .mode(mode)
             .commit();
         for &pin in GTX_INVPINS {
-            bctx.mode(mode).test_inv(pin);
+            bctx.mode(mode).test_inv_legacy(pin);
         }
         for &attr in GTX_BOOL_ATTRS {
             bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
@@ -475,8 +475,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for i in 0..2 {
         let mut bctx = ctx.bel(defs::bslots::BUFDS[i]);
         let mode = "IBUFDS_GTXE1";
-        bctx.mode(mode).test_enum_legacy("CLKCM_CFG", &["FALSE", "TRUE"]);
-        bctx.mode(mode).test_enum_legacy("CLKRCV_TRST", &["FALSE", "TRUE"]);
+        bctx.mode(mode)
+            .test_enum_legacy("CLKCM_CFG", &["FALSE", "TRUE"]);
+        bctx.mode(mode)
+            .test_enum_legacy("CLKRCV_TRST", &["FALSE", "TRUE"]);
         bctx.mode(mode).test_multi_attr_bin("REFCLKOUT_DLY", 10);
         for (val, pin) in [
             ("O", "O"),
@@ -540,7 +542,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "GTX";
-    if !ctx.has_tile(tile) {
+    if !ctx.has_tile_legacy(tile) {
         return;
     }
     for i in 0..4 {
@@ -552,7 +554,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             TileBit::new(tile, frame, bit)
         }
         for addr in 0..0x50 {
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("DRP{addr:02X}"),
@@ -598,7 +600,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff_perfclk = ctx
                 .get_diff_legacy(tile, bel, attr_static, "PERFCLK")
                 .combine(&!&diff_grefclk);
-            ctx.insert(
+            ctx.insert_legacy(
                 tile,
                 bel,
                 format!("{rxtx}PLLREFSEL_TESTCLK"),
@@ -623,7 +625,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 diff_cas_clk.split_bits(&diff_grefclk.bits.keys().copied().collect()),
             ));
             diffs.push(("TESTCLK", diff_grefclk));
-            ctx.insert(tile, bel, attr_static, xlat_enum_legacy(diffs));
+            ctx.insert_legacy(tile, bel, attr_static, xlat_enum_legacy(diffs));
             ctx.collect_enum_default_legacy(
                 tile,
                 bel,
@@ -632,7 +634,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "STATIC",
             );
         }
-        ctx.insert(tile, bel, "PMA_CAS_CLK_EN", xlat_bit_legacy(diff_cas_clk));
+        ctx.insert_legacy(tile, bel, "PMA_CAS_CLK_EN", xlat_bit_legacy(diff_cas_clk));
     }
     for i in 0..2 {
         let bel = &format!("BUFDS[{i}]");

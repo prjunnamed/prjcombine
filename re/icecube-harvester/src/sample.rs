@@ -277,6 +277,7 @@ pub fn make_sample(
                                     defs::bslots::IOI[io],
                                     defs::bcls::IOI::PIN_TYPE,
                                     0,
+                                    true,
                                 ),
                             );
                         }
@@ -300,6 +301,7 @@ pub fn make_sample(
                                 defs::bslots::LC[dst_lc],
                                 defs::bcls::LC::LTIN_ENABLE,
                                 0,
+                                true,
                             ),
                         );
                         int_source.insert(iwb, (src_inst, InstPin::Simple("O".to_string())));
@@ -361,7 +363,7 @@ pub fn make_sample(
                         let tcid = edev.chip.kind.tile_class_bram();
                         sample.add_tiled_pattern(
                             &tiles,
-                            DiffKey::BelAttrBit(tcid, defs::bslots::BRAM, which, 0),
+                            DiffKey::BelAttrBit(tcid, defs::bslots::BRAM, which, 0, true),
                         );
                     }
                     (GenericNet::CascAddr(cell, idx), GenericNet::Int(iwb)) => {
@@ -404,7 +406,7 @@ pub fn make_sample(
                         let tcid = edev.chip.kind.tile_class_bram();
                         sample.add_tiled_pattern(
                             &tiles,
-                            DiffKey::BelAttrBit(tcid, defs::bslots::BRAM, which, 0),
+                            DiffKey::BelAttrBit(tcid, defs::bslots::BRAM, which, 0, true),
                         );
                     }
                     (GenericNet::Gbout(..), GenericNet::GlobalPadIn(_)) => {
@@ -563,6 +565,7 @@ pub fn make_sample(
                                         defs::bslots::LC[lc],
                                         defs::bcls::LC::LUT_INIT,
                                         i,
+                                        true,
                                     ),
                                 );
                             }
@@ -615,6 +618,7 @@ pub fn make_sample(
                             defs::bslots::LC[lc],
                             defs::bcls::LC::CARRY_ENABLE,
                             0,
+                            true,
                         ),
                     );
                 }
@@ -662,6 +666,7 @@ pub fn make_sample(
                                         ioi.slot,
                                         defs::bcls::IOI::PIN_TYPE,
                                         i,
+                                        true,
                                     ),
                                 );
                             }
@@ -679,6 +684,7 @@ pub fn make_sample(
                                     ioi.slot,
                                     defs::bcls::IOI::OUTPUT_ENABLE,
                                     0,
+                                    true,
                                 ),
                             );
                             if is_lvds {
@@ -689,6 +695,7 @@ pub fn make_sample(
                                         defs::bslots::IOI[idx ^ 1],
                                         defs::bcls::IOI::OUTPUT_ENABLE,
                                         0,
+                                        true,
                                     ),
                                 );
                             }
@@ -748,6 +755,7 @@ pub fn make_sample(
                                                     defs::bslots::PLL65,
                                                     attr65,
                                                     0,
+                                                    true,
                                                 )
                                             } else {
                                                 DiffKey::BelAttrBit(
@@ -755,6 +763,7 @@ pub fn make_sample(
                                                     defs::bslots::PLL40,
                                                     attr40,
                                                     0,
+                                                    true,
                                                 )
                                             },
                                         );
@@ -770,6 +779,7 @@ pub fn make_sample(
                                         defs::bslots::IOB_PAIR,
                                         defs::bcls::IOB_PAIR::LATCH_GLOBAL_OUT,
                                         0,
+                                        true,
                                     ),
                                 );
                             }
@@ -824,6 +834,7 @@ pub fn make_sample(
                                         _ => unreachable!(),
                                     },
                                     0,
+                                    true,
                                 ),
                             );
                         } else {
@@ -886,6 +897,7 @@ pub fn make_sample(
                                             _ => unreachable!(),
                                         },
                                         0,
+                                        true,
                                     ),
                                 );
                             }
@@ -921,6 +933,7 @@ pub fn make_sample(
                                 defs::bslots::IOB_PAIR,
                                 defs::bcls::IOB_PAIR::LVDS_INPUT,
                                 0,
+                                true,
                             ),
                         );
                         let oiob = iob.bel(defs::bslots::IOB[idx ^ 1]);
@@ -986,6 +999,7 @@ pub fn make_sample(
                                     iob.slot,
                                     defs::bcls::IOB::IBUF_ENABLE,
                                     0,
+                                    true,
                                 ),
                             );
                         }
@@ -1004,6 +1018,7 @@ pub fn make_sample(
                             defs::bslots::LC[lc],
                             defs::bcls::LC::FF_ENABLE,
                             0,
+                            true,
                         ),
                     );
                     if let Some(rest) = kind.strip_prefix('N') {
@@ -1030,6 +1045,7 @@ pub fn make_sample(
                                     defs::bslots::LC[lc],
                                     defs::bcls::LC::FF_SR_VALUE,
                                     0,
+                                    true,
                                 ),
                             );
                         }
@@ -1041,6 +1057,7 @@ pub fn make_sample(
                                     defs::bslots::LC[lc],
                                     defs::bcls::LC::FF_SR_ASYNC,
                                     0,
+                                    true,
                                 ),
                             );
                         }
@@ -1052,6 +1069,7 @@ pub fn make_sample(
                                     defs::bslots::LC[lc],
                                     defs::bcls::LC::FF_SR_VALUE,
                                     0,
+                                    true,
                                 ),
                             );
                             sample.add_tiled_pattern_single(
@@ -1061,6 +1079,7 @@ pub fn make_sample(
                                     defs::bslots::LC[lc],
                                     defs::bcls::LC::FF_SR_ASYNC,
                                     0,
+                                    true,
                                 ),
                             );
                         }
@@ -1185,6 +1204,7 @@ pub fn make_sample(
                                 defs::bslots::BRAM,
                                 defs::bcls::BRAM::ENABLE,
                                 0,
+                                true,
                             ),
                         );
                     }
@@ -1239,6 +1259,7 @@ pub fn make_sample(
                                                 defs::bslots::BRAM,
                                                 defs::bcls::BRAM::INIT,
                                                 bit,
+                                                true,
                                             ),
                                         );
                                     }
@@ -1319,6 +1340,7 @@ pub fn make_sample(
                             defs::bslots::IOI[1],
                             defs::bcls::IOI::PIN_TYPE,
                             0,
+                            true,
                         ),
                     );
                     if edev.chip.kind == ChipKind::Ice40P01 {
@@ -1351,6 +1373,7 @@ pub fn make_sample(
                                 iob_a.slot,
                                 defs::bcls::IOB::IBUF_ENABLE,
                                 0,
+                                true,
                             ),
                         );
                     }
@@ -1362,6 +1385,7 @@ pub fn make_sample(
                                 defs::bslots::IOI[1],
                                 defs::bcls::IOI::OUTPUT_ENABLE,
                                 0,
+                                true,
                             ),
                         );
                     }
@@ -1376,6 +1400,7 @@ pub fn make_sample(
                                 defs::bslots::IOI[0],
                                 defs::bcls::IOI::PIN_TYPE,
                                 0,
+                                true,
                             ),
                         );
                     }
@@ -1390,6 +1415,7 @@ pub fn make_sample(
                                         defs::bslots::IOI[1],
                                         defs::bcls::IOI::PIN_TYPE,
                                         1,
+                                        true,
                                     ),
                                 );
                                 if edev.chip.kind == ChipKind::Ice40P01 {
@@ -1400,6 +1426,7 @@ pub fn make_sample(
                                             defs::bslots::IOB_PAIR,
                                             defs::bcls::IOB_PAIR::LATCH_GLOBAL_OUT,
                                             0,
+                                            true,
                                         ),
                                     );
                                 } else if edev.chip.kind.is_ice65() {
@@ -1410,6 +1437,7 @@ pub fn make_sample(
                                             defs::bslots::PLL65,
                                             defs::bcls::PLL65::LATCH_GLOBAL_OUT_A,
                                             0,
+                                            true,
                                         ),
                                     );
                                 } else {
@@ -1420,6 +1448,7 @@ pub fn make_sample(
                                             defs::bslots::PLL40,
                                             defs::bcls::PLL40::LATCH_GLOBAL_OUT_A,
                                             0,
+                                            true,
                                         ),
                                     );
                                 }
@@ -1435,6 +1464,7 @@ pub fn make_sample(
                                         defs::bslots::IOI[0],
                                         defs::bcls::IOI::PIN_TYPE,
                                         1,
+                                        true,
                                     ),
                                 );
                                 if edev.chip.kind == ChipKind::Ice40P01 {
@@ -1445,6 +1475,7 @@ pub fn make_sample(
                                             defs::bslots::IOB_PAIR,
                                             defs::bcls::IOB_PAIR::LATCH_GLOBAL_OUT,
                                             0,
+                                            true,
                                         ),
                                     );
                                 } else if edev.chip.kind.is_ice65() {
@@ -1455,6 +1486,7 @@ pub fn make_sample(
                                             defs::bslots::PLL65,
                                             defs::bcls::PLL65::LATCH_GLOBAL_OUT_B,
                                             0,
+                                            true,
                                         ),
                                     );
                                 } else {
@@ -1465,6 +1497,7 @@ pub fn make_sample(
                                             defs::bslots::PLL40,
                                             defs::bcls::PLL40::LATCH_GLOBAL_OUT_B,
                                             0,
+                                            true,
                                         ),
                                     );
                                 }
@@ -1494,6 +1527,7 @@ pub fn make_sample(
                                         bslot,
                                         bcls.attributes.get(prop).unwrap().0,
                                         i,
+                                        true,
                                     ),
                                 );
                             }
@@ -1524,6 +1558,7 @@ pub fn make_sample(
                                             bslot,
                                             bcls.attributes.get(prop).unwrap().0,
                                             i,
+                                            true,
                                         ),
                                     );
                                 }
@@ -1554,6 +1589,7 @@ pub fn make_sample(
                                         bslot,
                                         defs::bcls::PLL65::DELAY_ADJUSTMENT_MODE_DYNAMIC,
                                         0,
+                                        true,
                                     ),
                                 );
                             }
@@ -1594,6 +1630,7 @@ pub fn make_sample(
                                         defs::bslots::LC[j],
                                         defs::bcls::LC::LUT_INIT,
                                         k,
+                                        true,
                                     ),
                                 );
                             }
@@ -1604,6 +1641,7 @@ pub fn make_sample(
                                     defs::bslots::LC[j],
                                     defs::bcls::LC::LTIN_ENABLE,
                                     0,
+                                    true,
                                 ),
                             );
                         }
@@ -1620,6 +1658,7 @@ pub fn make_sample(
                                     defs::bslots::LC[0],
                                     defs::bcls::LC::LUT_INIT,
                                     k,
+                                    true,
                                 ),
                             );
                         }
@@ -1630,6 +1669,7 @@ pub fn make_sample(
                                 defs::bslots::LC[0],
                                 defs::bcls::LC::LTIN_ENABLE,
                                 0,
+                                true,
                             ),
                         );
                     }
@@ -1655,6 +1695,7 @@ pub fn make_sample(
                                             defs::bslots::MAC16,
                                             bcls.attributes.get(&prop.to_uppercase()).unwrap().0,
                                             i,
+                                            true,
                                         ),
                                     );
                                 }
@@ -1680,6 +1721,7 @@ pub fn make_sample(
                                 defs::bslots::HFOSC,
                                 defs::bcls::HFOSC::TRIM_FABRIC,
                                 0,
+                                true,
                             ),
                         );
                     }
@@ -1697,6 +1739,7 @@ pub fn make_sample(
                                     defs::bslots::HFOSC,
                                     defs::bcls::HFOSC::CLKHF_DIV,
                                     i,
+                                    true,
                                 ),
                             );
                         }
@@ -1720,6 +1763,7 @@ pub fn make_sample(
                                 defs::bslots::LFOSC,
                                 defs::bcls::LFOSC::TRIM_FABRIC,
                                 0,
+                                true,
                             ),
                         );
                     }
@@ -1739,6 +1783,7 @@ pub fn make_sample(
                             defs::bslots::LED_DRV_CUR,
                             defs::bcls::LED_DRV_CUR::ENABLE,
                             0,
+                            true,
                         ),
                     );
                     if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
@@ -1751,6 +1796,7 @@ pub fn make_sample(
                                 defs::bslots::LED_DRV_CUR,
                                 defs::bcls::LED_DRV_CUR::TRIM_FABRIC,
                                 0,
+                                true,
                             ),
                         );
                     }
@@ -1779,7 +1825,7 @@ pub fn make_sample(
                                 got_any = true;
                                 sample.add_tiled_pattern_single(
                                     &tiles,
-                                    DiffKey::BelAttrBit(tcid, defs::bslots::RGB_DRV, attr, i),
+                                    DiffKey::BelAttrBit(tcid, defs::bslots::RGB_DRV, attr, i, true),
                                 );
                             }
                         }
@@ -1794,6 +1840,7 @@ pub fn make_sample(
                                     defs::bslots::RGB_DRV,
                                     defs::bcls::RGB_DRV::CURRENT_MODE,
                                     0,
+                                    true,
                                 ),
                             );
                         }
@@ -1805,6 +1852,7 @@ pub fn make_sample(
                                 defs::bslots::RGB_DRV,
                                 defs::bcls::RGB_DRV::ENABLE,
                                 0,
+                                true,
                             ),
                         );
                     } else {
@@ -1816,6 +1864,7 @@ pub fn make_sample(
                                     defs::bslots::RGB_DRV,
                                     defs::bcls::RGB_DRV::ENABLE,
                                     0,
+                                    true,
                                 ),
                             );
                         }
@@ -1844,6 +1893,7 @@ pub fn make_sample(
                                         defs::bslots::IR_DRV,
                                         defs::bcls::IR_DRV::IR_CURRENT,
                                         i,
+                                        true,
                                     ),
                                 );
                             } else {
@@ -1854,6 +1904,7 @@ pub fn make_sample(
                                         defs::bslots::IR_DRV,
                                         defs::bcls::IR_DRV::IR_CURRENT,
                                         i,
+                                        true,
                                     ),
                                 );
                             }
@@ -1884,6 +1935,7 @@ pub fn make_sample(
                                         defs::bslots::IR500_DRV,
                                         defs::bcls::IR500_DRV::BARCODE_CURRENT,
                                         i,
+                                        true,
                                     ),
                                 );
                             } else {
@@ -1894,6 +1946,7 @@ pub fn make_sample(
                                         defs::bslots::IR500_DRV,
                                         defs::bcls::IR500_DRV::IR400_CURRENT,
                                         i - 4,
+                                        true,
                                     ),
                                 );
                             }
@@ -1906,7 +1959,7 @@ pub fn make_sample(
                     ] {
                         sample.add_tiled_pattern_single(
                             &tiles,
-                            DiffKey::BelAttrBit(tcid, defs::bslots::IR500_DRV, attr, 0),
+                            DiffKey::BelAttrBit(tcid, defs::bslots::IR500_DRV, attr, 0, true),
                         );
                     }
                     if inst.props["CURRENT_MODE"] == "0b1" {
@@ -1936,6 +1989,7 @@ pub fn make_sample(
                                     defs::bslots::IR500_DRV,
                                     defs::bcls::IR500_DRV::IR400_CURRENT,
                                     i,
+                                    true,
                                 ),
                             );
                         }
@@ -1947,6 +2001,7 @@ pub fn make_sample(
                             defs::bslots::IR500_DRV,
                             defs::bcls::IR500_DRV::IR400_ENABLE,
                             0,
+                            true,
                         ),
                     );
                     if inst.props["CURRENT_MODE"] == "0b1" {
@@ -1976,6 +2031,7 @@ pub fn make_sample(
                                     defs::bslots::IR500_DRV,
                                     defs::bcls::IR500_DRV::BARCODE_CURRENT,
                                     i,
+                                    true,
                                 ),
                             );
                         }
@@ -1987,6 +2043,7 @@ pub fn make_sample(
                             defs::bslots::IR500_DRV,
                             defs::bcls::IR500_DRV::BARCODE_ENABLE,
                             0,
+                            true,
                         ),
                     );
                     if inst.props["CURRENT_MODE"] == "0b1" {
@@ -2016,6 +2073,7 @@ pub fn make_sample(
                                         defs::bslots::SPRAM[i],
                                         defs::bcls::SPRAM::ENABLE,
                                         0,
+                                        true,
                                     ),
                                 );
                             }
@@ -2041,6 +2099,7 @@ pub fn make_sample(
                                     defs::bslots::FILTER[i],
                                     defs::bcls::FILTER::ENABLE,
                                     0,
+                                    true,
                                 ),
                             );
                         }
@@ -2107,6 +2166,7 @@ pub fn make_sample(
                                                 defs::bslots::IOB_PAIR,
                                                 defs::bcls::IOB_PAIR::HARDIP_DEDICATED_OUT,
                                                 0,
+                                                true,
                                             ),
                                         );
                                     } else {
@@ -2118,6 +2178,7 @@ pub fn make_sample(
                                                     [defs::bslots::IOI.index_of(ioi.slot).unwrap()],
                                                 defs::bcls::IOB::HARDIP_DEDICATED_OUT,
                                                 0,
+                                                true,
                                             ),
                                         );
                                     }
@@ -2133,6 +2194,7 @@ pub fn make_sample(
                                                 defs::bslots::IOB_PAIR,
                                                 defs::bcls::IOB_PAIR::HARDIP_FABRIC_IN,
                                                 0,
+                                                true,
                                             ),
                                         );
                                     } else {
@@ -2144,6 +2206,7 @@ pub fn make_sample(
                                                     [defs::bslots::IOI.index_of(ioi.slot).unwrap()],
                                                 defs::bcls::IOB::HARDIP_FABRIC_IN,
                                                 0,
+                                                true,
                                             ),
                                         );
                                     }
@@ -2191,6 +2254,7 @@ pub fn make_sample(
                                             defs::bslots::IOI[ioi],
                                             defs::bcls::IOI::PIN_TYPE,
                                             3,
+                                            true,
                                         ),
                                     );
                                     sample.add_tiled_pattern_single(
@@ -2200,6 +2264,7 @@ pub fn make_sample(
                                             defs::bslots::IOI[ioi],
                                             defs::bcls::IOI::PIN_TYPE,
                                             4,
+                                            true,
                                         ),
                                     );
                                 }
@@ -2241,6 +2306,7 @@ pub fn make_sample(
                                             defs::bslots::IOI[ioi],
                                             defs::bcls::IOI::PIN_TYPE,
                                             0,
+                                            true,
                                         ),
                                     );
                                 }
@@ -2266,6 +2332,7 @@ pub fn make_sample(
                                                 .unwrap()
                                                 .0,
                                             0,
+                                            true,
                                         ),
                                     );
                                 }
@@ -2293,6 +2360,7 @@ pub fn make_sample(
                     defs::bslots::IR500_DRV,
                     defs::bcls::IR500_DRV::CURRENT_MODE,
                     0,
+                    true,
                 ),
             );
         }
@@ -2306,6 +2374,7 @@ pub fn make_sample(
                     defs::bslots::LED_DRV_CUR,
                     defs::bcls::LED_DRV_CUR::TRIM_FABRIC,
                     0,
+                    true,
                 ),
             );
         }
@@ -2362,6 +2431,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 defs::bslots::LC[lc],
                 defs::bcls::LC::LTIN_ENABLE,
                 0,
+                true,
             ));
         }
         for i in 0..16 {
@@ -2370,6 +2440,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 defs::bslots::LC[lc],
                 defs::bcls::LC::LUT_INIT,
                 i,
+                true,
             ));
         }
         for attr in [
@@ -2378,7 +2449,13 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
             defs::bcls::LC::FF_SR_VALUE,
             defs::bcls::LC::FF_SR_ASYNC,
         ] {
-            result.push(DiffKey::BelAttrBit(tcid, defs::bslots::LC[lc], attr, 0));
+            result.push(DiffKey::BelAttrBit(
+                tcid,
+                defs::bslots::LC[lc],
+                attr,
+                0,
+                true,
+            ));
         }
     }
     for val in [
@@ -2418,30 +2495,35 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 defs::bslots::BRAM,
                 defs::bcls::BRAM::CASCADE_OUT_WADDR,
                 0,
+                true,
             ));
             result.push(DiffKey::BelAttrBit(
                 tcid,
                 defs::bslots::BRAM,
                 defs::bcls::BRAM::CASCADE_OUT_RADDR,
                 0,
+                true,
             ));
             result.push(DiffKey::BelAttrBit(
                 tcid,
                 defs::bslots::BRAM,
                 defs::bcls::BRAM::CASCADE_IN_WADDR,
                 0,
+                true,
             ));
             result.push(DiffKey::BelAttrBit(
                 tcid,
                 defs::bslots::BRAM,
                 defs::bcls::BRAM::CASCADE_IN_RADDR,
                 0,
+                true,
             ));
             result.push(DiffKey::BelAttrBit(
                 tcid,
                 defs::bslots::BRAM,
                 defs::bcls::BRAM::ENABLE,
                 0,
+                true,
             ));
             result.push(DiffKey::BelAttrValue(
                 tcid,
@@ -2497,6 +2579,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     defs::bslots::BRAM,
                     defs::bcls::BRAM::INIT,
                     i,
+                    true,
                 ));
             }
         }
@@ -2528,6 +2611,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     defs::bslots::IOI[io],
                     defs::bcls::IOI::PIN_TYPE,
                     i,
+                    true,
                 ));
             }
             if edev.chip.kind.is_ultra() {
@@ -2536,6 +2620,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     defs::bslots::IOI[io],
                     defs::bcls::IOI::OUTPUT_ENABLE,
                     0,
+                    true,
                 ));
             }
         }
@@ -2562,6 +2647,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     bel,
                     defs::bcls::IOB::IBUF_ENABLE,
                     0,
+                    true,
                 ));
             }
             if edev.chip.kind.is_ultra()
@@ -2571,7 +2657,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     defs::bcls::IOB::HARDIP_FABRIC_IN,
                     defs::bcls::IOB::HARDIP_DEDICATED_OUT,
                 ] {
-                    result.push(DiffKey::BelAttrBit(tcid, bel, attr, 0));
+                    result.push(DiffKey::BelAttrBit(tcid, bel, attr, 0, true));
                 }
             }
             if edge == Dir::W && edev.chip.kind.has_vref() {
@@ -2626,7 +2712,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                         defs::bcls::IOB::PULLUP_6P8K,
                         defs::bcls::IOB::PULLUP_10K,
                     ] {
-                        result.push(DiffKey::BelAttrBit(tcid, bel, attr, 0));
+                        result.push(DiffKey::BelAttrBit(tcid, bel, attr, 0, true));
                     }
                     result.push(DiffKey::BelAttrSpecial(
                         tcid,
@@ -2672,6 +2758,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 defs::bslots::IOB_PAIR,
                 defs::bcls::IOB_PAIR::LVDS_INPUT,
                 0,
+                true,
             ));
         }
         if has_latch_global_out {
@@ -2680,6 +2767,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 defs::bslots::IOB_PAIR,
                 defs::bcls::IOB_PAIR::LATCH_GLOBAL_OUT,
                 0,
+                true,
             ));
         }
         if edev.chip.kind == ChipKind::Ice40R04 {
@@ -2688,12 +2776,14 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 defs::bslots::IOB_PAIR,
                 defs::bcls::IOB_PAIR::HARDIP_FABRIC_IN,
                 0,
+                true,
             ));
             result.push(DiffKey::BelAttrBit(
                 tcid,
                 defs::bslots::IOB_PAIR,
                 defs::bcls::IOB_PAIR::HARDIP_DEDICATED_OUT,
                 0,
+                true,
             ));
         }
         if edev.chip.kind.is_ultra() {
@@ -2707,7 +2797,13 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     defs::bcls::IOB_PAIR::SDA_INPUT_DELAYED,
                     defs::bcls::IOB_PAIR::SDA_OUTPUT_DELAYED,
                 ] {
-                    result.push(DiffKey::BelAttrBit(tcid, defs::bslots::IOB_PAIR, attr, 0));
+                    result.push(DiffKey::BelAttrBit(
+                        tcid,
+                        defs::bslots::IOB_PAIR,
+                        attr,
+                        0,
+                        true,
+                    ));
                 }
             }
         }
@@ -2746,6 +2842,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     defs::bslots::PLL65,
                     defs::bcls::PLL65::DELAY_ADJUSTMENT_MODE_DYNAMIC,
                     0,
+                    true,
                 ));
                 for (attr, width) in [
                     (defs::bcls::PLL65::FIXED_DELAY_ADJUSTMENT, 4),
@@ -2758,7 +2855,13 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     (defs::bcls::PLL65::LATCH_GLOBAL_OUT_B, 1),
                 ] {
                     for i in 0..width {
-                        result.push(DiffKey::BelAttrBit(tcid, defs::bslots::PLL65, attr, i));
+                        result.push(DiffKey::BelAttrBit(
+                            tcid,
+                            defs::bslots::PLL65,
+                            attr,
+                            i,
+                            true,
+                        ));
                     }
                 }
             } else {
@@ -2810,7 +2913,13 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     (defs::bcls::PLL40::TEST_MODE, 1),
                 ] {
                     for i in 0..width {
-                        result.push(DiffKey::BelAttrBit(tcid, defs::bslots::PLL40, attr, i));
+                        result.push(DiffKey::BelAttrBit(
+                            tcid,
+                            defs::bslots::PLL40,
+                            attr,
+                            i,
+                            true,
+                        ));
                     }
                 }
                 if edev.chip.kind != ChipKind::Ice40P01 {
@@ -2818,7 +2927,13 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                         defs::bcls::PLL40::LATCH_GLOBAL_OUT_A,
                         defs::bcls::PLL40::LATCH_GLOBAL_OUT_B,
                     ] {
-                        result.push(DiffKey::BelAttrBit(tcid, defs::bslots::PLL40, attr, 0));
+                        result.push(DiffKey::BelAttrBit(
+                            tcid,
+                            defs::bslots::PLL40,
+                            attr,
+                            0,
+                            true,
+                        ));
                     }
                 }
             }
@@ -2830,7 +2945,13 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 defs::bcls::PLL40::LATCH_GLOBAL_OUT_A,
                 defs::bcls::PLL40::LATCH_GLOBAL_OUT_B,
             ] {
-                result.push(DiffKey::BelAttrBit(tcid, defs::bslots::PLL40, attr, 0));
+                result.push(DiffKey::BelAttrBit(
+                    tcid,
+                    defs::bslots::PLL40,
+                    attr,
+                    0,
+                    true,
+                ));
             }
         }
     }
@@ -2842,30 +2963,35 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
             defs::bslots::HFOSC,
             defs::bcls::HFOSC::CLKHF_DIV,
             0,
+            true,
         ));
         result.push(DiffKey::BelAttrBit(
             tcid_globals,
             defs::bslots::HFOSC,
             defs::bcls::HFOSC::CLKHF_DIV,
             1,
+            true,
         ));
         result.push(DiffKey::BelAttrBit(
             tcid_globals,
             defs::bslots::HFOSC,
             defs::bcls::HFOSC::TRIM_FABRIC,
             0,
+            true,
         ));
         result.push(DiffKey::BelAttrBit(
             tcid_globals,
             defs::bslots::LFOSC,
             defs::bcls::LFOSC::TRIM_FABRIC,
             0,
+            true,
         ));
         result.push(DiffKey::BelAttrBit(
             tcid_globals,
             defs::bslots::LED_DRV_CUR,
             defs::bcls::LED_DRV_CUR::TRIM_FABRIC,
             0,
+            true,
         ));
 
         // DRV
@@ -2874,6 +3000,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
             defs::bslots::RGB_DRV,
             defs::bcls::RGB_DRV::ENABLE,
             0,
+            true,
         ));
         for attr in [
             defs::bcls::RGB_DRV::RGB0_CURRENT,
@@ -2886,6 +3013,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     defs::bslots::RGB_DRV,
                     attr,
                     j,
+                    true,
                 ));
             }
         }
@@ -2895,6 +3023,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 defs::bslots::LED_DRV_CUR,
                 defs::bcls::LED_DRV_CUR::ENABLE,
                 0,
+                true,
             ));
             for j in 0..10 {
                 result.push(DiffKey::BelAttrBit(
@@ -2902,6 +3031,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                     defs::bslots::IR_DRV,
                     defs::bcls::IR_DRV::IR_CURRENT,
                     j,
+                    true,
                 ));
             }
         } else {
@@ -2910,6 +3040,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 defs::bslots::RGB_DRV,
                 defs::bcls::RGB_DRV::CURRENT_MODE,
                 0,
+                true,
             ));
             if edev.chip.kind == ChipKind::Ice40T01 {
                 for attr in [
@@ -2923,6 +3054,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                         defs::bslots::IR500_DRV,
                         attr,
                         0,
+                        true,
                     ));
                 }
                 for j in 0..8 {
@@ -2931,6 +3063,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                         defs::bslots::IR500_DRV,
                         defs::bcls::IR500_DRV::IR400_CURRENT,
                         j,
+                        true,
                     ));
                 }
                 for j in 0..4 {
@@ -2939,6 +3072,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                         defs::bslots::IR500_DRV,
                         defs::bcls::IR500_DRV::BARCODE_CURRENT,
                         j,
+                        true,
                     ));
                 }
             }
@@ -2972,7 +3106,13 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 (defs::bcls::MAC16::B_SIGNED, 1),
             ] {
                 for i in 0..width {
-                    result.push(DiffKey::BelAttrBit(tcid, defs::bslots::MAC16, attr, i));
+                    result.push(DiffKey::BelAttrBit(
+                        tcid,
+                        defs::bslots::MAC16,
+                        attr,
+                        i,
+                        true,
+                    ));
                 }
             }
         }
@@ -2985,6 +3125,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 slot,
                 defs::bcls::SPRAM::ENABLE,
                 0,
+                true,
             ));
         }
         for slot in defs::bslots::FILTER {
@@ -2993,6 +3134,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
                 slot,
                 defs::bcls::FILTER::ENABLE,
                 0,
+                true,
             ));
         }
     }

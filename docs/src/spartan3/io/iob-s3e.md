@@ -2,11 +2,10 @@
 
 TODO: document
 
-{{misc spartan3e iostd-drive}}
-{{misc spartan3e iostd-slew}}
-{{misc spartan3e iostd-output-misc}}
-{{misc spartan3e iostd-output-diff}}
-{{misc spartan3e iostd-lvdsbias}}
+{{table spartan3 IOB_DATA}}
+
+{{table spartan3 IOB_I_DELAY}}
+{{table spartan3 IOB_IQ_DELAY}}
 
 {{tile spartan3 IOB_S3E_N1}}
 {{tile spartan3 IOB_S3E_N2}}
