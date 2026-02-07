@@ -1319,19 +1319,117 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for dy in 0..4 {
             intf_xy.push((xy.delta(-1, dy), n));
         }
-        builder.extract_xtile_bels_intf_id(
-            tcls::BRAM,
-            xy,
-            &[],
-            &[],
-            &intf_xy,
-            "BRAM",
-            &[
-                builder.bel_xy(bslots::BRAM_F, "RAMB16", 0, 0),
-                builder.bel_xy(bslots::BRAM_H[0], "RAMB8", 0, 0),
-                builder.bel_xy(bslots::BRAM_H[1], "RAMB8", 0, 1),
-            ],
-        );
+        let mut bels = vec![];
+        for i in 0..2 {
+            let mut bel = builder.bel_xy(bslots::BRAM[i], "RAMB8", 0, i).manual();
+            for (ab, rw) in [('A', "WR"), ('B', "RD")] {
+                for j in 0..13 {
+                    bel = bel.pin_rename(format!("ADDR{ab}{rw}ADDR{j}"), format!("ADDR{ab}{j}"));
+                }
+                for j in 0..16 {
+                    bel = bel
+                        .pin_rename(format!("DI{ab}DI{j}"), format!("DI{ab}{j}"))
+                        .pin_rename(format!("DO{ab}DO{j}"), format!("DO{ab}{j}"));
+                }
+                for j in 0..2 {
+                    bel = bel
+                        .pin_rename(format!("DIP{ab}DIP{j}"), format!("DIP{ab}{j}"))
+                        .pin_rename(format!("DOP{ab}DOP{j}"), format!("DOP{ab}{j}"));
+                }
+                for pin in ["CLK", "EN"] {
+                    bel = bel.pin_rename(format!("{pin}{ab}{rw}{pin}"), format!("{pin}{ab}"));
+                }
+            }
+            bel = bel
+                .pin_rename("WEAWEL0", "WEA0")
+                .pin_rename("WEAWEL1", "WEA1")
+                .pin_rename("WEBWEU0", "WEB0")
+                .pin_rename("WEBWEU1", "WEB1")
+                .pin_rename("RSTBRST", "RSTB")
+                .pin_rename("REGCEBREGCE", "REGCEB");
+            if i == 0 {
+                bel = bel.sub_xy(rd, "RAMB16", 0, 0);
+                for ab in ['A', 'B'] {
+                    for j in 0..14 {
+                        bel = bel.pin_rename(format!("ADDR{ab}{j}"), format!("RAMB16_ADDR{ab}{j}"));
+                    }
+                    for j in 0..32 {
+                        bel = bel
+                            .pin_rename(format!("DI{ab}{j}"), format!("RAMB16_DI{ab}{j}"))
+                            .pin_rename(format!("DO{ab}{j}"), format!("RAMB16_DO{ab}{j}"));
+                    }
+                    for j in 0..4 {
+                        bel = bel
+                            .pin_rename(format!("DIP{ab}{j}"), format!("RAMB16_DIP{ab}{j}"))
+                            .pin_rename(format!("DOP{ab}{j}"), format!("RAMB16_DOP{ab}{j}"))
+                            .pin_rename(format!("WE{ab}{j}"), format!("RAMB16_WE{ab}{j}"));
+                    }
+                    for pin in ["CLK", "EN", "REGCE", "RST"] {
+                        bel = bel.pin_rename(format!("{pin}{ab}"), format!("RAMB16_{pin}{ab}"));
+                    }
+                }
+            }
+            bels.push(bel);
+        }
+        let mut xt = builder
+            .xtile_id(tcls::BRAM, "BRAM", xy)
+            .num_cells(4)
+            .bels(bels);
+        for (i, &(xy, naming)) in intf_xy.iter().enumerate() {
+            xt = xt.ref_single(xy, i, naming);
+        }
+        let mut xt = xt.extract();
+        for ab in ['A', 'B'] {
+            for i in 0..14 {
+                let pin = xt.bels[0]
+                    .0
+                    .pins
+                    .remove(&format!("RAMB16_ADDR{ab}{i}"))
+                    .unwrap();
+                assert_eq!(
+                    pin,
+                    xt.bels[i / 13].0.pins[&format!("ADDR{ab}{ii}", ii = i % 13)]
+                );
+            }
+            for i in 0..32 {
+                for pn in ["DI", "DO"] {
+                    let pin = xt.bels[0]
+                        .0
+                        .pins
+                        .remove(&format!("RAMB16_{pn}{ab}{i}"))
+                        .unwrap();
+                    assert_eq!(
+                        pin,
+                        xt.bels[i / 16].0.pins[&format!("{pn}{ab}{ii}", ii = i % 16)]
+                    );
+                }
+            }
+            for i in 0..4 {
+                for pn in ["DIP", "DOP", "WE"] {
+                    let pin = xt.bels[0]
+                        .0
+                        .pins
+                        .remove(&format!("RAMB16_{pn}{ab}{i}"))
+                        .unwrap();
+                    assert_eq!(
+                        pin,
+                        xt.bels[i / 2].0.pins[&format!("{pn}{ab}{ii}", ii = i % 2)]
+                    );
+                }
+            }
+            for pn in ["CLK", "EN", "REGCE", "RST"] {
+                let pin = xt.bels[0]
+                    .0
+                    .pins
+                    .remove(&format!("RAMB16_{pn}{ab}"))
+                    .unwrap();
+                assert_eq!(pin, xt.bels[0].0.pins[&format!("{pn}{ab}")]);
+            }
+        }
+        for (i, (bel, naming)) in xt.bels.into_iter().enumerate() {
+            builder.insert_tcls_bel(tcls::BRAM, bslots::BRAM[i], BelInfo::Legacy(bel));
+            builder.insert_bel_naming("BRAM", bslots::BRAM[i], naming);
+        }
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("MACCSITE2").iter().next() {

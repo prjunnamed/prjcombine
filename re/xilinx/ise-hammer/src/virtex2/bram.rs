@@ -136,7 +136,7 @@ pub fn add_fuzzers<'a>(
                     .attr("INIT_B", "0")
                     .attr("SRVAL_A", "0")
                     .attr("SRVAL_B", "0")
-                    .test_bel_attr(attr);
+                    .test_bel_attr_auto(attr);
                 let aname = backend.edev.db.bel_classes[bcls::BRAM].attributes.key(attr);
                 bctx.mode(mode)
                     .null_bits()
@@ -152,7 +152,7 @@ pub fn add_fuzzers<'a>(
                 bctx.mode(mode)
                     .attr("DATA_WIDTH_A", "36")
                     .attr("DATA_WIDTH_B", "36")
-                    .test_bel_attr(attr);
+                    .test_bel_attr_auto(attr);
             }
             if chip_kind == ChipKind::Spartan3ADsp {
                 bctx.mode(mode)
@@ -377,7 +377,7 @@ pub fn add_fuzzers<'a>(
             ] {
                 bctx.mode(mode).test_bel_attr_bool_auto(attr, "0", "1");
             }
-            bctx.mode(mode).test_bel_attr(bcls::MULT::B_INPUT);
+            bctx.mode(mode).test_bel_attr_auto(bcls::MULT::B_INPUT);
         }
     }
 }

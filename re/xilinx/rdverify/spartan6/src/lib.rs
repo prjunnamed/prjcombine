@@ -55,6 +55,76 @@ fn verify_dsp(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     bel.commit();
 }
 
+fn verify_bram(vrf: &mut Verifier, bcrd: BelCoord) {
+    let mut bel = vrf
+        .verify_bel(bcrd)
+        .kind("RAMB8BWER")
+        .rename_in(bcls::BRAM::CLKA, "CLKAWRCLK")
+        .rename_in(bcls::BRAM::CLKB, "CLKBRDCLK")
+        .rename_in(bcls::BRAM::ENA, "ENAWREN")
+        .rename_in(bcls::BRAM::ENB, "ENBRDEN")
+        .rename_in(bcls::BRAM::REGCEB, "REGCEBREGCE")
+        .rename_in(bcls::BRAM::RSTB, "RSTBRST");
+    for j in 0..13 {
+        bel = bel
+            .rename_in(bcls::BRAM::ADDRA[j], format!("ADDRAWRADDR{j}"))
+            .rename_in(bcls::BRAM::ADDRB[j], format!("ADDRBRDADDR{j}"));
+    }
+    for j in 0..16 {
+        bel = bel
+            .rename_in(bcls::BRAM::DIA[j], format!("DIADI{j}"))
+            .rename_in(bcls::BRAM::DIB[j], format!("DIBDI{j}"))
+            .rename_out(bcls::BRAM::DOA[j], format!("DOADO{j}"))
+            .rename_out(bcls::BRAM::DOB[j], format!("DOBDO{j}"));
+    }
+    for j in 0..2 {
+        bel = bel
+            .rename_in(bcls::BRAM::DIPA[j], format!("DIPADIP{j}"))
+            .rename_in(bcls::BRAM::DIPB[j], format!("DIPBDIP{j}"))
+            .rename_in(bcls::BRAM::WEA[j], format!("WEAWEL{j}"))
+            .rename_in(bcls::BRAM::WEB[j], format!("WEBWEU{j}"))
+            .rename_out(bcls::BRAM::DOPA[j], format!("DOPADOP{j}"))
+            .rename_out(bcls::BRAM::DOPB[j], format!("DOPBDOP{j}"));
+    }
+    bel.commit();
+
+    if bcrd.slot == bslots::BRAM[0] {
+        let mut pins_in = vec![];
+        let mut pins_out = vec![];
+        for ab in ['A', 'B'] {
+            for j in 0..14 {
+                pins_in.push(format!("ADDR{ab}{j}"));
+            }
+            for j in 0..32 {
+                pins_in.push(format!("DI{ab}{j}"));
+                pins_out.push(format!("DO{ab}{j}"));
+            }
+            for j in 0..4 {
+                pins_in.push(format!("DIP{ab}{j}"));
+                pins_in.push(format!("WE{ab}{j}"));
+                pins_out.push(format!("DOP{ab}{j}"));
+            }
+            for pin in ["CLK", "EN", "REGCE", "RST"] {
+                pins_in.push(format!("{pin}{ab}"));
+            }
+        }
+        let mut bel = vrf.verify_bel(bcrd).sub(1).kind("RAMB16BWER").skip_auto();
+        for pin in &pins_in {
+            let rpin = &format!("RAMB16_{pin}");
+            bel = bel.extra_in_rename(pin, rpin);
+            bel.claim_net(&[bel.wire(rpin)]);
+            bel.claim_pip(bel.wire(rpin), bel.wire_far(rpin));
+        }
+        for pin in &pins_out {
+            let rpin = &format!("RAMB16_{pin}");
+            bel = bel.extra_out_rename(pin, rpin);
+            bel.claim_net(&[bel.wire(rpin)]);
+            bel.claim_pip(bel.wire_far(rpin), bel.wire(rpin));
+        }
+        bel.commit();
+    }
+}
+
 fn verify_ilogic(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let mut pins = vec![
         ("TFB", SitePinDir::In),
@@ -1127,17 +1197,11 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         | bslots::MISC_SE
         | bslots::MISC_NW
         | bslots::MISC_NE
-        | bslots::GLUTMASK_HCLK => {}
+        | bslots::GLUTMASK_HCLK
+        | bslots::GLOBAL => {}
         _ if bcrd.slot == bslots::SLICE[0] => verify_sliceml(endev, vrf, bcrd),
         _ if bcrd.slot == bslots::SLICE[1] => vrf.verify_bel(bcrd).kind("SLICEX").commit(),
-        bslots::BRAM_F => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "RAMB16BWER", &[], &[]);
-        }
-        _ if bslots::BRAM_H.contains(bcrd.slot) => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "RAMB8BWER", &[], &[]);
-        }
+        _ if bslots::BRAM.contains(bcrd.slot) => verify_bram(vrf, bcrd),
         bslots::DSP => verify_dsp(endev, vrf, bcrd),
         bslots::PCIE => vrf.verify_bel(bcrd).kind("PCIE_A1").commit(),
 

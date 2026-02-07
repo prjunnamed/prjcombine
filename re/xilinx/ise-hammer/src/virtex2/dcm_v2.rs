@@ -330,10 +330,10 @@ pub fn add_fuzzers<'a>(
 
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_bel_attr(bcls::DCM::DLL_FREQUENCY_MODE);
+        .test_bel_attr_auto(bcls::DCM::DLL_FREQUENCY_MODE);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
-        .test_bel_attr(bcls::DCM::DFS_FREQUENCY_MODE);
+        .test_bel_attr_auto(bcls::DCM::DFS_FREQUENCY_MODE);
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
         .global("GTS_CYCLE", "1")
@@ -390,7 +390,7 @@ pub fn add_fuzzers<'a>(
     bctx.mode(mode)
         .mutex("MODE", "SIMPLE")
         .attr("CLKOUT_PHASE_SHIFT", "NONE")
-        .test_bel_attr(bcls::DCM::DSS_MODE);
+        .test_bel_attr_auto(bcls::DCM::DSS_MODE);
     bctx.mode(mode)
         .null_bits()
         .mutex("MODE", "SIMPLE")

@@ -137,7 +137,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("CIN")
             .pin("BX")
             .pin("COUT")
-            .test_bel_attr(bcls::SLICE::CYINIT);
+            .test_bel_attr_auto(bcls::SLICE::CYINIT);
         bctx.mode(bk_l)
             .attr("F", "#LUT:0")
             .attr("CY0F", "0")
@@ -147,7 +147,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("COUTUSED", "0")
             .pin("BX")
             .pin("COUT")
-            .test_bel_attr(bcls::SLICE::CYSELF);
+            .test_bel_attr_auto(bcls::SLICE::CYSELF);
         bctx.mode(bk_l)
             .attr("G", "#LUT:0")
             .attr("CY0G", "0")
@@ -157,7 +157,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("COUTUSED", "0")
             .pin("BX")
             .pin("COUT")
-            .test_bel_attr(bcls::SLICE::CYSELG);
+            .test_bel_attr_auto(bcls::SLICE::CYSELG);
         bctx.mode(bk_l)
             .attr("CYINIT", "BX")
             .attr("BXINV", "BX")
@@ -172,7 +172,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("BX")
             .pin("X")
             .pin("COUT")
-            .test_bel_attr(bcls::SLICE::CY0F);
+            .test_bel_attr_auto(bcls::SLICE::CY0F);
         bctx.mode(bk_l)
             .attr("CYINIT", "BX")
             .attr("BXINV", "BX")
@@ -189,7 +189,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("BY")
             .pin("Y")
             .pin("COUT")
-            .test_bel_attr(bcls::SLICE::CY0G);
+            .test_bel_attr_auto(bcls::SLICE::CY0G);
 
         // various muxes
         bctx.mode(bk_l)
@@ -200,7 +200,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("XUSED", "0")
             .pin("X")
             .pin("BX")
-            .test_bel_attr(bcls::SLICE::FXMUX);
+            .test_bel_attr_auto(bcls::SLICE::FXMUX);
         if edev.chip.kind.is_virtex2() {
             for (val, vname) in [
                 (enums::SLICE_GYMUX::G, "G"),
@@ -249,7 +249,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("SOPOUTUSED", "0")
                 .pin("SOPIN")
                 .pin("SOPOUT")
-                .test_bel_attr(bcls::SLICE::SOPEXTSEL);
+                .test_bel_attr_auto(bcls::SLICE::SOPEXTSEL);
         } else {
             for (val, vname) in [
                 (enums::SLICE_GYMUX::G, "G"),

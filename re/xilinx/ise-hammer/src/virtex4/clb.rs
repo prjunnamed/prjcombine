@@ -61,7 +61,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("CIN")
             .pin("BX")
             .pin("COUT")
-            .test_bel_attr(bcls::SLICE_V4::CYINIT);
+            .test_bel_attr_auto(bcls::SLICE_V4::CYINIT);
         bctx.mode(bk_l)
             .attr("CYINIT", "BX")
             .attr("BXINV", "BX_B")
@@ -75,7 +75,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("BX")
             .pin("XMUX")
             .pin("COUT")
-            .test_bel_attr(bcls::SLICE_V4::CY0F);
+            .test_bel_attr_auto(bcls::SLICE_V4::CY0F);
         bctx.mode(bk_l)
             .attr("CYINIT", "BX")
             .attr("BXINV", "BX_B")
@@ -91,7 +91,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("BY")
             .pin("YMUX")
             .pin("COUT")
-            .test_bel_attr(bcls::SLICE_V4::CY0G);
+            .test_bel_attr_auto(bcls::SLICE_V4::CY0G);
 
         // various muxes
         bctx.mode(bk_l)
@@ -102,7 +102,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("X")
             .pin("XMUX")
             .pin("BX")
-            .test_bel_attr(bcls::SLICE_V4::FXMUX);
+            .test_bel_attr_auto(bcls::SLICE_V4::FXMUX);
         bctx.mode(bk_l)
             .attr("F", "#LUT:0")
             .attr("G", "#LUT:0")
@@ -117,7 +117,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("YMUX")
             .pin("BX")
             .pin("BY")
-            .test_bel_attr(bcls::SLICE_V4::GYMUX);
+            .test_bel_attr_auto(bcls::SLICE_V4::GYMUX);
         for (vname, val_f5, val_fxor) in [
             ("BX", enums::SLICE_V4_DXMUX::BX, enums::SLICE_V4_DXMUX::BX),
             ("X", enums::SLICE_V4_DXMUX::X, enums::SLICE_V4_DXMUX::X),

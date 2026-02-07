@@ -280,7 +280,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 bcls::GT10::CHAN_BOND_MODE => {
                     bctx.mode(mode)
-                        .test_bel_attr_default(aid, enums::GT_CHAN_BOND_MODE::NONE);
+                        .test_bel_attr_auto_default(aid, enums::GT_CHAN_BOND_MODE::NONE);
                 }
                 bcls::GT10::CLK_COR_REPEAT_WAIT
                 | bcls::GT10::CLK_COR_ADJ_MAX
@@ -314,7 +314,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 _ => match attr.typ {
                     BelAttributeType::Enum(_) => {
-                        bctx.mode(mode).test_bel_attr(aid);
+                        bctx.mode(mode).test_bel_attr_auto(aid);
                     }
                     BelAttributeType::Bool => {
                         bctx.mode(mode)

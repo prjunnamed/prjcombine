@@ -2,6 +2,11 @@ use prjcombine_re_collector::specials;
 
 specials![
     PRESENT,
+    BRAM_RAMB16,
+    BRAM_RAMB16_NARROW,
+    BRAM_RAMB16_WIDE,
+    BRAM_RAMB8_FIXUP,
+    BRAM_BW_EN,
     BUFIO2_2CLK,
     BUFIO2_CMT_ENABLE,
     BUFPLL_BUFPLL0,

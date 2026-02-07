@@ -58,7 +58,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                     let mut val = bits![0; 8];
                     val.set(bidx, true);
                     bctx.mode("FG")
-                        .test_bel_attr_special_bit(attr, spec, bidx)
+                        .test_bel_attr_special_bits(attr, spec, bidx)
                         .equate_fixed(aname, inps, val)
                         .commit();
                 }
@@ -68,7 +68,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             let mut val = bits![0; 16];
             val.set(bidx, true);
             bctx.mode("F")
-                .test_bel_attr_special_bit(bcls::CLB::F, specials::CLB_LUT_EQ_ABCD, bidx)
+                .test_bel_attr_special_bits(bcls::CLB::F, specials::CLB_LUT_EQ_ABCD, bidx)
                 .equate_fixed("F", &["A", "B", "C", "D"], val)
                 .commit();
         }

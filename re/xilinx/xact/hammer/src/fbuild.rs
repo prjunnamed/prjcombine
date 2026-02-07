@@ -494,13 +494,14 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.test_raw(diff_key)
     }
 
-    pub fn test_bel_attr_special_bit(
+    pub fn test_bel_attr_special_bits(
         self,
         attr: BelAttributeId,
         special: SpecialId,
-        bit: usize,
+        base: usize,
     ) -> FuzzBuilderBelTestManual<'sm, 'b> {
-        let diff_key = DiffKey::BelAttrSpecialBit(self.tile_class, self.bel, attr, special, bit);
+        let diff_key =
+            DiffKey::BelAttrSpecialBit(self.tile_class, self.bel, attr, special, base, true);
         self.test_raw(diff_key)
     }
 

@@ -29,7 +29,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .test_bel_attr_bool_rename(aname, aid, "0", "1");
         } else {
-            bctx.mode(mode).test_bel_attr(aid);
+            bctx.mode(mode).test_bel_attr_auto(aid);
         }
     }
 }

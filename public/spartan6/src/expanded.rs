@@ -4,7 +4,7 @@ use prjcombine_interconnect::{
     grid::{BelCoord, CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord},
 };
 use prjcombine_types::bsdata::BitRectId;
-use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
+use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom, Reg};
 use std::collections::{BTreeSet, HashMap};
 
 use crate::{
@@ -85,7 +85,28 @@ impl ExpandedDevice<'_> {
 
     pub fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, BitRect> {
         let tile = &self[tcrd];
-        if tile.class == defs::tcls::BRAM {
+        if tcrd.slot == defs::tslots::GLOBAL {
+            EntityVec::from_iter([
+                BitRect::Reg(tcrd.die, Reg::Cor1),
+                BitRect::Reg(tcrd.die, Reg::Cor2),
+                BitRect::Reg(tcrd.die, Reg::Ctl0),
+                BitRect::Reg(tcrd.die, Reg::CclkFrequency),
+                BitRect::Reg(tcrd.die, Reg::HcOpt),
+                BitRect::Reg(tcrd.die, Reg::Powerdown),
+                BitRect::Reg(tcrd.die, Reg::PuGwe),
+                BitRect::Reg(tcrd.die, Reg::PuGts),
+                BitRect::Reg(tcrd.die, Reg::Mode),
+                BitRect::Reg(tcrd.die, Reg::General1),
+                BitRect::Reg(tcrd.die, Reg::General2),
+                BitRect::Reg(tcrd.die, Reg::General3),
+                BitRect::Reg(tcrd.die, Reg::General4),
+                BitRect::Reg(tcrd.die, Reg::General5),
+                BitRect::Reg(tcrd.die, Reg::SeuOpt),
+                BitRect::Reg(tcrd.die, Reg::EyeMask),
+                BitRect::Reg(tcrd.die, Reg::Timer),
+                BitRect::Reg(tcrd.die, Reg::Testmode),
+            ])
+        } else if tile.class == defs::tcls::BRAM {
             EntityVec::from_iter([
                 self.btile_main(tcrd.col, tcrd.row),
                 self.btile_main(tcrd.col, tcrd.row + 1),

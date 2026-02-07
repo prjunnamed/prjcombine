@@ -101,6 +101,19 @@ impl Collector<'_, '_> {
             .collect()
     }
 
+    pub fn get_diffs_attr_special_bits(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        spec: SpecialId,
+        bits: usize,
+    ) -> Vec<Diff> {
+        (0..bits)
+            .map(|idx| self.get_diff_attr_special_bit(tcid, bslot, attr, spec, idx))
+            .collect()
+    }
+
     pub fn get_diff_attr_special(
         &mut self,
         tcid: TileClassId,
@@ -111,6 +124,20 @@ impl Collector<'_, '_> {
         self.get_diff_raw(&DiffKey::BelAttrSpecial(tcid, bslot, attr, spec))
     }
 
+    pub fn get_diff_attr_special_bit_bi(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        spec: SpecialId,
+        bit: usize,
+        val: bool,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelAttrSpecialBit(
+            tcid, bslot, attr, spec, bit, val,
+        ))
+    }
+
     pub fn get_diff_attr_special_bit(
         &mut self,
         tcid: TileClassId,
@@ -119,7 +146,9 @@ impl Collector<'_, '_> {
         spec: SpecialId,
         bit: usize,
     ) -> Diff {
-        self.get_diff_raw(&DiffKey::BelAttrSpecialBit(tcid, bslot, attr, spec, bit))
+        self.get_diff_raw(&DiffKey::BelAttrSpecialBit(
+            tcid, bslot, attr, spec, bit, true,
+        ))
     }
 
     pub fn get_diff_attr_val(

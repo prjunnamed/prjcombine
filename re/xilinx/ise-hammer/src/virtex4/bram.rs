@@ -75,7 +75,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("INIT_B", "0")
                 .attr("SRVAL_A", "0")
                 .attr("SRVAL_B", "0")
-                .test_bel_attr(attr);
+                .test_bel_attr_auto(attr);
             bctx.mode(mode)
                 .null_bits()
                 .global_mutex("BRAM", "NOPE")
@@ -105,7 +105,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
                 .sub_unused(1)
-                .test_bel_attr(attr);
+                .test_bel_attr_auto(attr);
         }
         for attr in [
             bcls::BRAM_V4::INIT_A,

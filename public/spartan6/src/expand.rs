@@ -697,6 +697,14 @@ impl Expander<'_, '_> {
         self.egrid.add_tile_single_id(cell, defs::tcls::INTF);
     }
 
+    fn fill_global(&mut self) {
+        self.egrid.add_tile_id(
+            CellCoord::new(self.die, self.chip.col_w(), self.chip.row_s()),
+            defs::tcls::GLOBAL,
+            &[],
+        );
+    }
+
     fn fill_frame_info(&mut self) {
         for (_, cd) in &self.chip.columns {
             let width = match cd.kind {
@@ -872,6 +880,7 @@ impl Chip {
         expander.fill_dsp();
         expander.fill_cle();
         expander.fill_hclk();
+        expander.fill_global();
         expander.fill_frame_info();
         expander.fill_iob_frame_info();
 

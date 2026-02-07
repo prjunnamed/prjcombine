@@ -61,7 +61,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_bel_input_inv_auto(pin);
         }
         for attr in [bcls::DSP_V4::AREG, bcls::DSP_V4::BREG] {
-            bctx.mode(mode).test_bel_attr(attr);
+            bctx.mode(mode).test_bel_attr_auto(attr);
         }
         for attr in [
             bcls::DSP_V4::MREG,
@@ -73,7 +73,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.mode(mode).test_bel_attr_bool_auto(attr, "0", "1");
         }
-        bctx.mode(mode).test_bel_attr(bcls::DSP_V4::B_INPUT);
+        bctx.mode(mode).test_bel_attr_auto(bcls::DSP_V4::B_INPUT);
         for (spec, vname) in [(specials::DSP_CREG_0, "0"), (specials::DSP_CREG_1, "1")] {
             bctx.build()
                 .mode(mode)

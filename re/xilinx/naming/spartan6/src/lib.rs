@@ -473,9 +473,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, "BRAM", [format!("BRAMSITE2_X{x}Y{y}")]);
                 let bx = namer.bram_grid.xlut[col];
                 let by = namer.bram_grid.ylut[row] * 2;
-                ntile.add_bel(bslots::BRAM_F, format!("RAMB16_X{bx}Y{by}"));
-                ntile.add_bel(bslots::BRAM_H[0], format!("RAMB8_X{bx}Y{by}"));
-                ntile.add_bel(bslots::BRAM_H[1], format!("RAMB8_X{bx}Y{by}", by = by + 1));
+                ntile.add_bel_multi(
+                    bslots::BRAM[0],
+                    [format!("RAMB8_X{bx}Y{by}"), format!("RAMB16_X{bx}Y{by}")],
+                );
+                ntile.add_bel(bslots::BRAM[1], format!("RAMB8_X{bx}Y{by}", by = by + 1));
             }
             tcls::DSP => {
                 let x = col.to_idx();
@@ -1220,6 +1222,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             tcls::HCLK_CLEXM => (),
             tcls::HCLK_IOI => (),
             tcls::HCLK_GTP => (),
+            tcls::GLOBAL => (),
             _ => unreachable!(),
         }
     }

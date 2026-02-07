@@ -249,6 +249,18 @@ impl State {
             }
             return Ok(());
         }
+        if diffs.len() != 1
+            && let DiffKey::BelAttrSpecialBit(tcid, bslot, attr, spec, base, val) = key
+        {
+            for (idx, diff) in diffs.into_iter().enumerate() {
+                self.insert_diff(
+                    DiffKey::BelAttrSpecialBit(tcid, bslot, attr, spec, base + idx, val),
+                    vec![diff],
+                    fuzzers.clone(),
+                )?;
+            }
+            return Ok(());
+        }
         match self.features.entry(key) {
             btree_map::Entry::Occupied(mut e) => {
                 let v = e.get();

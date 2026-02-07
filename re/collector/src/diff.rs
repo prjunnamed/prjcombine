@@ -67,7 +67,14 @@ pub enum DiffKey {
     ),
     BelAttrRow(TileClassId, BelSlotId, BelAttributeId, TableRowId),
     BelAttrSpecial(TileClassId, BelSlotId, BelAttributeId, SpecialId),
-    BelAttrSpecialBit(TileClassId, BelSlotId, BelAttributeId, SpecialId, usize),
+    BelAttrSpecialBit(
+        TileClassId,
+        BelSlotId,
+        BelAttributeId,
+        SpecialId,
+        usize,
+        bool,
+    ),
     BelAttrSpecialValue(
         TileClassId,
         BelSlotId,

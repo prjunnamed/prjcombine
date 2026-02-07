@@ -77,7 +77,66 @@ target_defs! {
         attribute MUX_DOUT: SLICE_MUX_DOUT;
     }
 
+    enum BRAM_RAM_MODE { SP, TDP, SDP }
+    enum BRAM_DATA_WIDTH { _0, _1, _2, _4, _9, _18, _36 }
+    enum BRAM_WRITE_MODE { WRITE_FIRST, READ_FIRST, NO_CHANGE }
     enum BRAM_RSTTYPE { SYNC, ASYNC }
+    enum BRAM_RST_PRIORITY { SR, CE }
+    // The 9kbit blockram.  Two of them in the same tile can be put together to
+    // make a 18kbit blockram (the two halves are much more independent than
+    // on the virtex series, and so will be treated as separate bels).
+    bel_class BRAM {
+        input CLKA, CLKB, ENA, ENB, RSTA, RSTB, REGCEA, REGCEB;
+        input ADDRA[13], ADDRB[13];
+        input WEA[2], WEB[2];
+        input DIA[16], DIB[16];
+        input DIPA[2], DIPB[2];
+        output DOA[16], DOB[16];
+        output DOPA[2], DOPB[2];
+
+        // for SDP mode:
+        // - for control signals, port A is write, port B is read (opposite from virtex!);
+        // - DIA/DIPA/WEA become low bits, DIB/DIPB/WEB become the high bits of write port
+        // - DOA/DOPA become low bits, DOB/DOPB become the high bits of read port
+
+        // when combined together to a 18-kbit blockram:
+        // - for data and WE: BRAM[0] provides low bits and BRAM[1] provides high bits of the combined bus
+        // - for CLK, EN, RST, REGCE, and ADDR: BRAM[0] inputs are used
+        // - for all data widths other than 36, BRAM[1].ADDR[0] provides the extra address bit used
+        //   to select between the two BRAMs (0 being BRAM[0], 1 being BRAM[1])
+        // - thus, BRAM[1].ADDR[0] can be simply stuffed in between BRAM[0].ADDR[3] and BRAM[0].ADDR[4]
+        //   as address bit 4 (appropriately swizzling DATA and DATAP of course)
+        // - ISE, in its infinite wisdom, does something more batshit (avoiding the swizzle unless
+        //   strictly necessary, ie. when any port has width of 36)
+
+        // NOTE: those are not represented via bel pin inversions, because in RAMB16 mode they need
+        // to be set on *both* bels, including the one that doesn't have control inputs connected
+        attribute CLKA_INV, CLKB_INV: bool;
+        attribute ENA_INV, ENB_INV: bool;
+        attribute RSTA_INV, RSTB_INV: bool;
+        attribute REGCEA_INV, REGCEB_INV: bool;
+
+        attribute COMBINE: bool;
+        attribute RAM_MODE: BRAM_RAM_MODE;
+        attribute DATA_WIDTH_A, DATA_WIDTH_B: BRAM_DATA_WIDTH;
+        attribute WRITE_MODE_A, WRITE_MODE_B: BRAM_WRITE_MODE;
+        attribute DOA_REG, DOB_REG: bool;
+        attribute EN_RSTRAM_A, EN_RSTRAM_B: bool;
+        attribute RSTTYPE_A, RSTTYPE_B: BRAM_RSTTYPE;
+        attribute RST_PRIORITY_A, RST_PRIORITY_B: BRAM_RST_PRIORITY;
+        attribute INIT_A, INIT_B: bitvec[18];
+        attribute SRVAL_A, SRVAL_B: bitvec[18];
+
+        // ???
+        attribute BW_EN_A, BW_EN_B: bool;
+        attribute DDEL_A, DDEL_B: bitvec[3];
+        attribute WDEL_A, WDEL_B: bitvec[3];
+        attribute EN_WEAK_WRITE_A, EN_WEAK_WRITE_B: bool;
+        attribute WEAK_WRITE_VAL_A, WEAK_WRITE_VAL_B: bitvec[1];
+
+        attribute DATA: bitvec[0x2000];
+        attribute DATAP: bitvec[0x400];
+    }
 
     enum DSP_B_INPUT { DIRECT, CASCADE }
     enum DSP_CARRYINSEL { CARRYIN, OPMODE5 }
@@ -109,8 +168,6 @@ target_defs! {
         attribute CARRYOUTREG: bool;
         attribute RSTTYPE: BRAM_RSTTYPE;
     }
-
-    // TODO: enums, bel slots
 
     bel_class ILOGIC {
         output FABRICOUT;
@@ -1554,7 +1611,7 @@ target_defs! {
         attribute USERCODE: bitvec[32];
     }
 
-    bel_class GLOBALS {
+    bel_class GLOBAL {
         // TODO
     }
 
@@ -1778,6 +1835,8 @@ target_defs! {
     bitrect IOB = vertical (1, 128);
     bitrect CLK = vertical (1, 384);
 
+    bitrect REG16 = horizontal (1, rev 16);
+
     tile_slot INT {
         bel_slot INT: routing;
 
@@ -1812,8 +1871,7 @@ target_defs! {
             bitrect MAIN: CLEXM;
         }
 
-        bel_slot BRAM_F: legacy;
-        bel_slot BRAM_H[2]: legacy;
+        bel_slot BRAM[2]: BRAM;
         tile_class BRAM {
             cell CELL[4];
             bitrect MAIN[4]: BRAM;
@@ -2043,6 +2101,31 @@ target_defs! {
         {
             cell CELL;
             bitrect MAIN: CLK_V;
+        }
+    }
+
+    tile_slot GLOBAL {
+        bel_slot GLOBAL: GLOBAL;
+        tile_class GLOBAL {
+            bitrect COR1: REG16;
+            bitrect COR2: REG16;
+            bitrect CTL: REG16;
+            bitrect CCLK_FREQ: REG16;
+            bitrect HC_OPT: REG16;
+            bitrect POWERDOWN: REG16;
+            bitrect PU_GWE: REG16;
+            bitrect PU_GTS: REG16;
+            bitrect MODE: REG16;
+            bitrect GENERAL1: REG16;
+            bitrect GENERAL2: REG16;
+            bitrect GENERAL3: REG16;
+            bitrect GENERAL4: REG16;
+            bitrect GENERAL5: REG16;
+            bitrect SEU_OPT: REG16;
+            bitrect EYE_MASK: REG16;
+            bitrect TIMER: REG16;
+            bitrect TESTMODE: REG16;
+            bel GLOBAL;
         }
     }
 

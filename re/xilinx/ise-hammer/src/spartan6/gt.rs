@@ -258,7 +258,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     );
                 }
                 BelAttributeType::Enum(_) => {
-                    bctx.mode(mode).test_bel_attr(aid);
+                    bctx.mode(mode).test_bel_attr_auto(aid);
                 }
                 _ => unreachable!(),
             },

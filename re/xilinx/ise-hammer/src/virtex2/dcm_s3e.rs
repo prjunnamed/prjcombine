@@ -262,10 +262,10 @@ pub fn add_fuzzers<'a>(
 
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_bel_attr(bcls::DCM::DLL_FREQUENCY_MODE);
+            .test_bel_attr_auto(bcls::DCM::DLL_FREQUENCY_MODE);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
-            .test_bel_attr(bcls::DCM::DFS_FREQUENCY_MODE);
+            .test_bel_attr_auto(bcls::DCM::DFS_FREQUENCY_MODE);
         bctx.mode(mode)
             .global_mutex("DCM", "USE")
             .global("GTS_CYCLE", "1")
@@ -406,7 +406,7 @@ pub fn add_fuzzers<'a>(
         bctx.mode(mode)
             .null_bits()
             .global_mutex("DCM", "USE")
-            .test_bel_attr(bcls::DCM::DSS_MODE);
+            .test_bel_attr_auto(bcls::DCM::DSS_MODE);
         bctx.mode(mode)
             .null_bits()
             .global_mutex("DCM", "USE")

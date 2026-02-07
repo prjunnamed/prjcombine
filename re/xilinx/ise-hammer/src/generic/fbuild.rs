@@ -280,6 +280,13 @@ pub trait FuzzBuilderBase<'b>: Sized {
         ))
     }
 
+    fn extra_tiles_by_bel_attr_bits(self, slot: BelSlotId, attr: BelAttributeId) -> Self {
+        self.prop(ExtraTilesByBel::new(
+            slot,
+            ExtraKeyBelAttrBits::new(slot, attr, 0, true),
+        ))
+    }
+
     fn extra_tiles_by_bel_attr_val(
         self,
         slot: BelSlotId,
@@ -1078,6 +1085,29 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.test_raw(key)
     }
 
+    pub fn test_bel_attr_special_bits(
+        self,
+        attr: BelAttributeId,
+        special: SpecialId,
+        base: usize,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let diff_key =
+            DiffKey::BelAttrSpecialBit(self.tile_class, self.bel, attr, special, base, true);
+        self.test_raw(diff_key)
+    }
+
+    pub fn test_bel_attr_special_bits_bi(
+        self,
+        attr: BelAttributeId,
+        special: SpecialId,
+        base: usize,
+        val: bool,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let diff_key =
+            DiffKey::BelAttrSpecialBit(self.tile_class, self.bel, attr, special, base, val);
+        self.test_raw(diff_key)
+    }
+
     pub fn test_bel_attr_special_val(
         self,
         attr: BelAttributeId,
@@ -1126,6 +1156,39 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         };
         let name = self.backend.edev.db[bcid].attributes.key(attr);
         self.test_bel_attr_bool_rename(name, attr, val0, val1);
+    }
+
+    pub fn test_bel_attr_bool_special_rename(
+        &mut self,
+        rattr: impl Into<String>,
+        attr: BelAttributeId,
+        spec: SpecialId,
+        val0: impl Into<String>,
+        val1: impl Into<String>,
+    ) {
+        let rattr = rattr.into();
+        self.clone()
+            .test_bel_attr_special_bits_bi(attr, spec, 0, false)
+            .attr(&rattr, val0)
+            .commit();
+        self.clone()
+            .test_bel_attr_special_bits_bi(attr, spec, 0, true)
+            .attr(rattr, val1)
+            .commit();
+    }
+
+    pub fn test_bel_attr_bool_special_auto(
+        &mut self,
+        attr: BelAttributeId,
+        spec: SpecialId,
+        val0: impl Into<String>,
+        val1: impl Into<String>,
+    ) {
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let name = self.backend.edev.db[bcid].attributes.key(attr);
+        self.test_bel_attr_bool_special_rename(name, attr, spec, val0, val1);
     }
 
     pub fn test_global_attr_bool_rename(
@@ -1188,6 +1251,35 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         }
     }
 
+    pub fn test_bel_attr_special_rename(
+        mut self,
+        rattr: impl AsRef<str>,
+        attr: BelAttributeId,
+        spec: SpecialId,
+    ) {
+        let rattr = rattr.as_ref();
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let BelAttributeType::Enum(ecid) = self.backend.edev.db[bcid].attributes[attr].typ else {
+            unreachable!()
+        };
+        let ecls = &self.backend.edev.db[ecid];
+        for (vid, val) in &ecls.values {
+            let mut val = val.strip_prefix('_').unwrap_or(&val[..]);
+            if val == "CONST_0" {
+                val = "0";
+            }
+            if val == "CONST_1" {
+                val = "1";
+            }
+            self.clone()
+                .test_bel_attr_special_val(attr, spec, vid)
+                .attr(rattr, val)
+                .commit();
+        }
+    }
+
     pub fn test_bel_attr_default_rename(
         mut self,
         rattr: impl AsRef<str>,
@@ -1245,7 +1337,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         );
     }
 
-    pub fn test_bel_attr(self, attr: BelAttributeId) {
+    pub fn test_bel_attr_auto(self, attr: BelAttributeId) {
         let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
             unreachable!()
         };
@@ -1253,7 +1345,15 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.test_bel_attr_rename(rattr, attr)
     }
 
-    pub fn test_bel_attr_default(self, attr: BelAttributeId, val: EnumValueId) {
+    pub fn test_bel_attr_special_auto(self, attr: BelAttributeId, spec: SpecialId) {
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let rattr = self.backend.edev.db[bcid].attributes.key(attr);
+        self.test_bel_attr_special_rename(rattr, attr, spec)
+    }
+
+    pub fn test_bel_attr_auto_default(self, attr: BelAttributeId, val: EnumValueId) {
         let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
             unreachable!()
         };

@@ -61,7 +61,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .mode("OCT_CALIBRATE")
             .commit();
         bctx.mode("OCT_CALIBRATE")
-            .test_bel_attr(bcls::OCT_CAL::ACCESS_MODE);
+            .test_bel_attr_auto(bcls::OCT_CAL::ACCESS_MODE);
         for (val, vname) in [
             (enums::OCT_CAL_VREF_VALUE::_0P25, "0.25"),
             (enums::OCT_CAL_VREF_VALUE::_0P5, "0.5"),

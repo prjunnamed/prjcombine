@@ -121,7 +121,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bcls::MCB::PORT_CONFIG => {
                 bctx.mode(mode)
                     .global_mutex("MCB", "TEST")
-                    .test_bel_attr_default(aid, enums::MCB_PORT_CONFIG::B32_B32_X32_X32_X32_X32);
+                    .test_bel_attr_auto_default(
+                        aid,
+                        enums::MCB_PORT_CONFIG::B32_B32_X32_X32_X32_X32,
+                    );
                 for mask in 0..16 {
                     bctx.mode(mode)
                         .global_mutex("MCB", "TEST")
@@ -171,12 +174,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         bctx.mode(mode)
                             .global_mutex("MCB", "TEST")
                             .attr("MEM_TYPE", mt)
-                            .test_bel_attr_default(aid, vid);
+                            .test_bel_attr_auto_default(aid, vid);
                     } else {
                         bctx.mode(mode)
                             .global_mutex("MCB", "TEST")
                             .attr("MEM_TYPE", mt)
-                            .test_bel_attr(aid);
+                            .test_bel_attr_auto(aid);
                     }
                 }
             }
@@ -193,12 +196,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     bctx.mode(mode)
                         .global_mutex("MCB", "TEST")
                         .attr("MEM_TYPE", mt)
-                        .test_bel_attr_default(aid, vid);
+                        .test_bel_attr_auto_default(aid, vid);
                 } else {
                     bctx.mode(mode)
                         .global_mutex("MCB", "TEST")
                         .attr("MEM_TYPE", mt)
-                        .test_bel_attr(aid);
+                        .test_bel_attr_auto(aid);
                 }
             }
             bcls::MCB::MEM_DDR2_3_HIGH_TEMP_SR | bcls::MCB::MEM_DDR2_3_PA_SR => {
@@ -209,12 +212,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         bctx.mode(mode)
                             .global_mutex("MCB", "TEST")
                             .attr("MEM_TYPE", mt)
-                            .test_bel_attr_default(aid, vid);
+                            .test_bel_attr_auto_default(aid, vid);
                     } else {
                         bctx.mode(mode)
                             .global_mutex("MCB", "TEST")
                             .attr("MEM_TYPE", mt)
-                            .test_bel_attr(aid);
+                            .test_bel_attr_auto(aid);
                     }
                 }
             }
@@ -233,12 +236,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     bctx.mode(mode)
                         .global_mutex("MCB", "TEST")
                         .attr("MEM_TYPE", mt)
-                        .test_bel_attr_default(aid, vid);
+                        .test_bel_attr_auto_default(aid, vid);
                 } else {
                     bctx.mode(mode)
                         .global_mutex("MCB", "TEST")
                         .attr("MEM_TYPE", mt)
-                        .test_bel_attr(aid);
+                        .test_bel_attr_auto(aid);
                 }
             }
             bcls::MCB::MEM_MDDR_ODS | bcls::MCB::MEM_MOBILE_PA_SR | bcls::MCB::MEM_MOBILE_TC_SR => {
@@ -249,12 +252,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     bctx.mode(mode)
                         .global_mutex("MCB", "TEST")
                         .attr("MEM_TYPE", mt)
-                        .test_bel_attr_default(aid, vid);
+                        .test_bel_attr_auto_default(aid, vid);
                 } else {
                     bctx.mode(mode)
                         .global_mutex("MCB", "TEST")
                         .attr("MEM_TYPE", mt)
-                        .test_bel_attr(aid);
+                        .test_bel_attr_auto(aid);
                 }
             }
             _ => {
@@ -263,11 +266,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 {
                     bctx.mode(mode)
                         .global_mutex("MCB", "TEST")
-                        .test_bel_attr_default(aid, vid);
+                        .test_bel_attr_auto_default(aid, vid);
                 } else {
                     bctx.mode(mode)
                         .global_mutex("MCB", "TEST")
-                        .test_bel_attr(aid);
+                        .test_bel_attr_auto(aid);
                 }
             }
         }

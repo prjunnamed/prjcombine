@@ -14,9 +14,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for i in 0..4 {
             let mut bctx = ctx.bel(bslots::IO[i]);
             let mode = "IOB";
-            bctx.mode(mode).test_bel_attr(bcls::IO::SLEW);
+            bctx.mode(mode).test_bel_attr_auto(bcls::IO::SLEW);
             bctx.mode(mode)
-                .test_bel_attr_default(bcls::IO::PULL, enums::IO_PULL::NONE);
+                .test_bel_attr_auto_default(bcls::IO::PULL, enums::IO_PULL::NONE);
             bctx.mode(mode)
                 .attr("DELAYMUX", "NODELAY")
                 .pin("I")

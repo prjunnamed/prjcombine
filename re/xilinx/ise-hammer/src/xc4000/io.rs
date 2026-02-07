@@ -103,7 +103,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .commit();
             }
             bctx.mode(mode)
-                .test_bel_attr_default(bcls::IO::PULL, enums::IO_PULL::NONE);
+                .test_bel_attr_auto_default(bcls::IO::PULL, enums::IO_PULL::NONE);
             bctx.mode(mode)
                 .test_bel_attr_bool_rename("ISR", bcls::IO::IFF_SRVAL, "RESET", "SET");
             bctx.mode(mode)

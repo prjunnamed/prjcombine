@@ -113,7 +113,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode("BUFGMUX")
                 .test_bel_input_inv_auto(bcls::BUFGMUX::S);
             bctx.mode("BUFGMUX")
-                .test_bel_attr(bcls::BUFGMUX::CLK_SEL_TYPE);
+                .test_bel_attr_auto(bcls::BUFGMUX::CLK_SEL_TYPE);
             bctx.mode("BUFGMUX").test_bel_attr_bool_rename(
                 "DISABLE_ATTR",
                 bcls::BUFGMUX::INIT_OUT,
@@ -315,7 +315,7 @@ pub fn add_fuzzers<'a>(
                 .test_bel_attr_bool_auto(bcls::BUFIO2::DIVIDE_BYPASS, "FALSE", "TRUE");
             bctx.mode("BUFIO2")
                 .attr("DIVIDE_BYPASS", "FALSE")
-                .test_bel_attr(bcls::BUFIO2::DIVIDE);
+                .test_bel_attr_auto(bcls::BUFIO2::DIVIDE);
             for (val, vname) in &backend.edev.db[enums::BUFIO2_DIVIDE].values {
                 bctx.mode("BUFIO2_2CLK")
                     .attr("POS_EDGE", "")
@@ -580,7 +580,7 @@ pub fn add_fuzzers<'a>(
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB")
                 .mode("BUFPLL_MCB")
-                .test_bel_attr_default(bcls::BUFPLL::LOCK_SRC, enums::BUFPLL_LOCK_SRC::NONE);
+                .test_bel_attr_auto_default(bcls::BUFPLL::LOCK_SRC, enums::BUFPLL_LOCK_SRC::NONE);
 
             if is_we {
                 bctx.build()
