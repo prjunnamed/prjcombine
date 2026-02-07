@@ -166,27 +166,19 @@
 
 <tr><td>INTF</td><td>INTF, INTF_IOI, INTF_CMT, INTF_CMT_IOI</td><td>INTF_INT, INTF_TESTMUX</td></tr>
 
-<tr><td>BEL</td><td>CLEXL, CLEXM, BRAM, DSP, IOI_WE, IOI_SN, CMT_DCM, CMT_PLL, MCB, PCIE, GTP, PCILOGICSE, CNR_SW, CNR_NW, CNR_SE, CNR_NE, CLKC</td><td>SLICE[0], SLICE[1], BRAM_F, BRAM_H[0], BRAM_H[1], DSP, ILOGIC[0], ILOGIC[1], OLOGIC[0], OLOGIC[1], IODELAY[0], IODELAY[1], IOICLK[0], IOICLK[1], IOI, DCM[0], DCM[1], PLL, CMT, MCB, PCIE, GTP, BUFDS[0], BUFDS[1], PCILOGICSE, OCT_CAL[0], OCT_CAL[1], OCT_CAL[2], OCT_CAL[3], OCT_CAL[4], OCT_CAL[5], PMV, DNA_PORT, ICAP, SPI_ACCESS, SUSPEND_SYNC, POST_CRC_INTERNAL, STARTUP, SLAVE_SPI, BSCAN[0], BSCAN[1], BSCAN[2], BSCAN[3], BUFGMUX[0], BUFGMUX[1], BUFGMUX[2], BUFGMUX[3], BUFGMUX[4], BUFGMUX[5], BUFGMUX[6], BUFGMUX[7], BUFGMUX[8], BUFGMUX[9], BUFGMUX[10], BUFGMUX[11], BUFGMUX[12], BUFGMUX[13], BUFGMUX[14], BUFGMUX[15], CLKC, CLKC_BUFPLL, MCB_TIE_CLK, MCB_TIE_DQS0, MCB_TIE_DQS1, TIEOFF_IOI, TIEOFF_PLL, TIEOFF_CLK, TIEOFF_DQS0, TIEOFF_DQS1, IPAD_CLKP[0], IPAD_CLKP[1], IPAD_CLKN[0], IPAD_CLKN[1], IPAD_RXP[0], IPAD_RXP[1], IPAD_RXN[0], IPAD_RXN[1], OPAD_TXP[0], OPAD_TXP[1], OPAD_TXN[0], OPAD_TXN[1], GTP_BUF</td></tr>
+<tr><td>BEL</td><td>CLEXL, CLEXM, BRAM, DSP, IOI_WE, IOI_SN, CMT_DCM, CMT_PLL, MCB, PCIE, GTP, PCILOGICSE, CNR_SW, CNR_NW, CNR_SE, CNR_NE, CLKC</td><td>SLICE[0], SLICE[1], BRAM_F, BRAM_H[0], BRAM_H[1], DSP, ILOGIC[0], ILOGIC[1], OLOGIC[0], OLOGIC[1], IODELAY[0], IODELAY[1], IOICLK[0], IOICLK[1], IOI, DCM[0], DCM[1], CMT_VREG, PLL, CMT_INT, MCB, PCIE, GTP, PCILOGICSE, OCT_CAL[0], OCT_CAL[1], OCT_CAL[2], OCT_CAL[3], OCT_CAL[4], OCT_CAL[5], PMV, DNA_PORT, ICAP, SPI_ACCESS, SUSPEND_SYNC, POST_CRC_INTERNAL, STARTUP, SLAVE_SPI, BSCAN[0], BSCAN[1], BSCAN[2], BSCAN[3], MISR_CNR_H, MISR_CNR_V, BANK[0], BANK[1], BANK[2], BANK[3], BANK[4], BANK[5], MISC_SW, MISC_SE, MISC_NW, MISC_NE, BUFGMUX[0], BUFGMUX[1], BUFGMUX[2], BUFGMUX[3], BUFGMUX[4], BUFGMUX[5], BUFGMUX[6], BUFGMUX[7], BUFGMUX[8], BUFGMUX[9], BUFGMUX[10], BUFGMUX[11], BUFGMUX[12], BUFGMUX[13], BUFGMUX[14], BUFGMUX[15], CLKC_INT, TIEOFF_IOI</td></tr>
 
 <tr><td>IOB</td><td>IOB</td><td>IOB[0], IOB[1]</td></tr>
 
 <tr><td>HCLK</td><td>HCLK</td><td>HCLK</td></tr>
 
-<tr><td>HCLK_BEL</td><td>HCLK_CLEXL, HCLK_CLEXM, HCLK_IOI, HCLK_GTP</td><td></td></tr>
+<tr><td>HCLK_BEL</td><td>HCLK_CLEXL, HCLK_CLEXM, HCLK_IOI, HCLK_GTP</td><td>GLUTMASK_HCLK</td></tr>
 
-<tr><td>HCLK_ROW</td><td>HCLK_ROW</td><td>BUFH_W[0], BUFH_W[1], BUFH_W[2], BUFH_W[3], BUFH_W[4], BUFH_W[5], BUFH_W[6], BUFH_W[7], BUFH_W[8], BUFH_W[9], BUFH_W[10], BUFH_W[11], BUFH_W[12], BUFH_W[13], BUFH_W[14], BUFH_W[15], BUFH_E[0], BUFH_E[1], BUFH_E[2], BUFH_E[3], BUFH_E[4], BUFH_E[5], BUFH_E[6], BUFH_E[7], BUFH_E[8], BUFH_E[9], BUFH_E[10], BUFH_E[11], BUFH_E[12], BUFH_E[13], BUFH_E[14], BUFH_E[15], HCLK_ROW</td></tr>
+<tr><td>HCLK_ROW</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
 
-<tr><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td><td>REG_INT, BUFIO2[0], BUFIO2[1], BUFIO2[2], BUFIO2[3], BUFIO2[4], BUFIO2[5], BUFIO2[6], BUFIO2[7], BUFIO2FB[0], BUFIO2FB[1], BUFIO2FB[2], BUFIO2FB[3], BUFIO2FB[4], BUFIO2FB[5], BUFIO2FB[6], BUFIO2FB[7], BUFPLL[0], BUFPLL[1], BUFPLL_MCB, BUFPLL_OUT, BUFPLL_INS_WE, BUFPLL_INS_SN, BUFIO2_INS, BUFIO2_CKPIN, BUFPLL_BUF, GTP_H_BUF, TIEOFF_REG</td></tr>
+<tr><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td><td>CLK_INT, BUFIO2[0], BUFIO2[1], BUFIO2[2], BUFIO2[3], BUFIO2[4], BUFIO2[5], BUFIO2[6], BUFIO2[7], BUFIO2FB[0], BUFIO2FB[1], BUFIO2FB[2], BUFIO2FB[3], BUFIO2FB[4], BUFIO2FB[5], BUFIO2FB[6], BUFIO2FB[7], BUFPLL, MISR_CLK</td></tr>
 
-<tr><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_S, DCM_BUFPLL_BUF_S_MID, DCM_BUFPLL_BUF_N, DCM_BUFPLL_BUF_N_MID, PLL_BUFPLL_OUT0, PLL_BUFPLL_OUT1, PLL_BUFPLL_S, PLL_BUFPLL_N</td><td>DCM_BUFPLL_BUF_S, DCM_BUFPLL_BUF_S_MID, DCM_BUFPLL_BUF_N, DCM_BUFPLL_BUF_N_MID, PLL_BUFPLL</td></tr>
-
-<tr><td>IOI_CLK</td><td>IOI_CLK_SN, IOI_CLK_WE</td><td>IOI_CLK_SN, IOI_CLK_WE, IOI_CLK_WE_TERM</td></tr>
-
-<tr><td>CLK_BUF</td><td>HCLK_V_MIDBUF, HCLK_H_MIDBUF, CKPIN_V_MIDBUF, CKPIN_H_MIDBUF, CLKPIN_BUF</td><td>HCLK_V_MIDBUF, HCLK_H_MIDBUF, CKPIN_V_MIDBUF, CKPIN_H_MIDBUF, CLKPIN_BUF</td></tr>
-
-<tr><td>PCI_CE_TRUNK_BUF</td><td>PCI_CE_TRUNK_BUF</td><td>PCI_CE_TRUNK_BUF</td></tr>
-
-<tr><td>PCI_CE_BUF</td><td>PCI_CE_V_BUF, PCI_CE_H_BUF, PCI_CE_SPLIT</td><td>PCI_CE_V_BUF, PCI_CE_H_BUF, PCI_CE_SPLIT</td></tr>
+<tr><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_S, DCM_BUFPLL_BUF_S_MID, DCM_BUFPLL_BUF_N, DCM_BUFPLL_BUF_N_MID, PLL_BUFPLL_OUT0_S, PLL_BUFPLL_OUT0_N, PLL_BUFPLL_OUT1_S, PLL_BUFPLL_OUT1_N, PLL_BUFPLL_S, PLL_BUFPLL_N</td><td>CMT_BUF</td></tr>
 
 </tbody>
 
@@ -209,9 +201,9 @@
 
 <tr><td>INTF_TESTMUX</td><td>routing</td><td>INTF</td><td>INTF, INTF_IOI, INTF_CMT, INTF_CMT_IOI</td></tr>
 
-<tr><td>SLICE[0]</td><td>legacy</td><td>BEL</td><td>CLEXL, CLEXM</td></tr>
+<tr><td>SLICE[0]</td><td>SLICE</td><td>BEL</td><td>CLEXL, CLEXM</td></tr>
 
-<tr><td>SLICE[1]</td><td>legacy</td><td>BEL</td><td>CLEXL, CLEXM</td></tr>
+<tr><td>SLICE[1]</td><td>SLICE</td><td>BEL</td><td>CLEXL, CLEXM</td></tr>
 
 <tr><td>BRAM_F</td><td>legacy</td><td>BEL</td><td>BRAM</td></tr>
 
@@ -239,301 +231,169 @@
 
 <tr><td>IOI</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
-<tr><td>DCM[0]</td><td>legacy</td><td>BEL</td><td>CMT_DCM</td></tr>
+<tr><td>DCM[0]</td><td>DCM</td><td>BEL</td><td>CMT_DCM</td></tr>
 
-<tr><td>DCM[1]</td><td>legacy</td><td>BEL</td><td>CMT_DCM</td></tr>
+<tr><td>DCM[1]</td><td>DCM</td><td>BEL</td><td>CMT_DCM</td></tr>
 
-<tr><td>PLL</td><td>legacy</td><td>BEL</td><td>CMT_PLL</td></tr>
+<tr><td>CMT_VREG</td><td>CMT_VREG</td><td>BEL</td><td>CMT_DCM</td></tr>
 
-<tr><td>CMT</td><td>legacy</td><td>BEL</td><td>CMT_DCM, CMT_PLL</td></tr>
+<tr><td>PLL</td><td>PLL</td><td>BEL</td><td>CMT_PLL</td></tr>
 
-<tr><td>MCB</td><td>legacy</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>CMT_INT</td><td>routing</td><td>BEL</td><td>CMT_DCM, CMT_PLL</td></tr>
 
-<tr><td>PCIE</td><td>legacy</td><td>BEL</td><td>PCIE</td></tr>
+<tr><td>MCB</td><td>MCB</td><td>BEL</td><td>MCB</td></tr>
 
-<tr><td>GTP</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>PCIE</td><td>PCIE</td><td>BEL</td><td>PCIE</td></tr>
 
-<tr><td>BUFDS[0]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>GTP</td><td>GTP</td><td>BEL</td><td>GTP</td></tr>
 
-<tr><td>BUFDS[1]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>PCILOGICSE</td><td>PCILOGICSE</td><td>BEL</td><td>PCILOGICSE</td></tr>
 
-<tr><td>PCILOGICSE</td><td>legacy</td><td>BEL</td><td>PCILOGICSE</td></tr>
+<tr><td>OCT_CAL[0]</td><td>OCT_CAL</td><td>BEL</td><td>CNR_NW</td></tr>
 
-<tr><td>OCT_CAL[0]</td><td>legacy</td><td>BEL</td><td>CNR_NW</td></tr>
+<tr><td>OCT_CAL[1]</td><td>OCT_CAL</td><td>BEL</td><td>CNR_SE</td></tr>
 
-<tr><td>OCT_CAL[1]</td><td>legacy</td><td>BEL</td><td>CNR_SE</td></tr>
+<tr><td>OCT_CAL[2]</td><td>OCT_CAL</td><td>BEL</td><td>CNR_SW</td></tr>
 
-<tr><td>OCT_CAL[2]</td><td>legacy</td><td>BEL</td><td>CNR_SW</td></tr>
+<tr><td>OCT_CAL[3]</td><td>OCT_CAL</td><td>BEL</td><td>CNR_SW</td></tr>
 
-<tr><td>OCT_CAL[3]</td><td>legacy</td><td>BEL</td><td>CNR_SW</td></tr>
+<tr><td>OCT_CAL[4]</td><td>OCT_CAL</td><td>BEL</td><td>CNR_NW</td></tr>
 
-<tr><td>OCT_CAL[4]</td><td>legacy</td><td>BEL</td><td>CNR_NW</td></tr>
+<tr><td>OCT_CAL[5]</td><td>OCT_CAL</td><td>BEL</td><td>CNR_NE</td></tr>
 
-<tr><td>OCT_CAL[5]</td><td>legacy</td><td>BEL</td><td>CNR_NE</td></tr>
+<tr><td>PMV</td><td>PMV</td><td>BEL</td><td>CNR_NW</td></tr>
 
-<tr><td>PMV</td><td>legacy</td><td>BEL</td><td>CNR_NW</td></tr>
+<tr><td>DNA_PORT</td><td>DNA_PORT</td><td>BEL</td><td>CNR_NW</td></tr>
 
-<tr><td>DNA_PORT</td><td>legacy</td><td>BEL</td><td>CNR_NW</td></tr>
+<tr><td>ICAP</td><td>ICAP</td><td>BEL</td><td>CNR_SE</td></tr>
 
-<tr><td>ICAP</td><td>legacy</td><td>BEL</td><td>CNR_SE</td></tr>
+<tr><td>SPI_ACCESS</td><td>SPI_ACCESS</td><td>BEL</td><td>CNR_SE</td></tr>
 
-<tr><td>SPI_ACCESS</td><td>legacy</td><td>BEL</td><td>CNR_SE</td></tr>
+<tr><td>SUSPEND_SYNC</td><td>SUSPEND_SYNC</td><td>BEL</td><td>CNR_SE</td></tr>
 
-<tr><td>SUSPEND_SYNC</td><td>legacy</td><td>BEL</td><td>CNR_SE</td></tr>
+<tr><td>POST_CRC_INTERNAL</td><td>POST_CRC_INTERNAL</td><td>BEL</td><td>CNR_SE</td></tr>
 
-<tr><td>POST_CRC_INTERNAL</td><td>legacy</td><td>BEL</td><td>CNR_SE</td></tr>
+<tr><td>STARTUP</td><td>STARTUP</td><td>BEL</td><td>CNR_SE</td></tr>
 
-<tr><td>STARTUP</td><td>legacy</td><td>BEL</td><td>CNR_SE</td></tr>
+<tr><td>SLAVE_SPI</td><td>SLAVE_SPI</td><td>BEL</td><td>CNR_SE</td></tr>
 
-<tr><td>SLAVE_SPI</td><td>legacy</td><td>BEL</td><td>CNR_SE</td></tr>
+<tr><td>BSCAN[0]</td><td>BSCAN</td><td>BEL</td><td>CNR_NE</td></tr>
 
-<tr><td>BSCAN[0]</td><td>legacy</td><td>BEL</td><td>CNR_NE</td></tr>
+<tr><td>BSCAN[1]</td><td>BSCAN</td><td>BEL</td><td>CNR_NE</td></tr>
 
-<tr><td>BSCAN[1]</td><td>legacy</td><td>BEL</td><td>CNR_NE</td></tr>
+<tr><td>BSCAN[2]</td><td>BSCAN</td><td>BEL</td><td>CNR_NE</td></tr>
 
-<tr><td>BSCAN[2]</td><td>legacy</td><td>BEL</td><td>CNR_NE</td></tr>
+<tr><td>BSCAN[3]</td><td>BSCAN</td><td>BEL</td><td>CNR_NE</td></tr>
 
-<tr><td>BSCAN[3]</td><td>legacy</td><td>BEL</td><td>CNR_NE</td></tr>
+<tr><td>MISR_CNR_H</td><td>MISR</td><td>BEL</td><td>CNR_SW, CNR_NW, CNR_SE, CNR_NE</td></tr>
 
-<tr><td>BUFGMUX[0]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>MISR_CNR_V</td><td>MISR</td><td>BEL</td><td>CNR_SW, CNR_NW, CNR_SE, CNR_NE</td></tr>
 
-<tr><td>BUFGMUX[1]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BANK[0]</td><td>BANK</td><td>BEL</td><td>CNR_NW</td></tr>
 
-<tr><td>BUFGMUX[2]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BANK[1]</td><td>BANK</td><td>BEL</td><td>CNR_SE</td></tr>
 
-<tr><td>BUFGMUX[3]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BANK[2]</td><td>BANK</td><td>BEL</td><td>CNR_SW</td></tr>
 
-<tr><td>BUFGMUX[4]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BANK[3]</td><td>BANK</td><td>BEL</td><td>CNR_SW</td></tr>
 
-<tr><td>BUFGMUX[5]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BANK[4]</td><td>BANK</td><td>BEL</td><td>CNR_NW</td></tr>
 
-<tr><td>BUFGMUX[6]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BANK[5]</td><td>BANK</td><td>BEL</td><td>CNR_NE</td></tr>
 
-<tr><td>BUFGMUX[7]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>MISC_SW</td><td>MISC_SW</td><td>BEL</td><td>CNR_SW</td></tr>
 
-<tr><td>BUFGMUX[8]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>MISC_SE</td><td>MISC_SE</td><td>BEL</td><td>CNR_SE</td></tr>
 
-<tr><td>BUFGMUX[9]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>MISC_NW</td><td>MISC_NW</td><td>BEL</td><td>CNR_NW</td></tr>
 
-<tr><td>BUFGMUX[10]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>MISC_NE</td><td>MISC_NE</td><td>BEL</td><td>CNR_NE</td></tr>
 
-<tr><td>BUFGMUX[11]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX[0]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
 
-<tr><td>BUFGMUX[12]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX[1]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
 
-<tr><td>BUFGMUX[13]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX[2]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
 
-<tr><td>BUFGMUX[14]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX[3]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
 
-<tr><td>BUFGMUX[15]</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX[4]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
 
-<tr><td>CLKC</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX[5]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
 
-<tr><td>CLKC_BUFPLL</td><td>legacy</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX[6]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
 
-<tr><td>MCB_TIE_CLK</td><td>legacy</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>BUFGMUX[7]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
 
-<tr><td>MCB_TIE_DQS0</td><td>legacy</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>BUFGMUX[8]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
 
-<tr><td>MCB_TIE_DQS1</td><td>legacy</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>BUFGMUX[9]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
+
+<tr><td>BUFGMUX[10]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
+
+<tr><td>BUFGMUX[11]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
+
+<tr><td>BUFGMUX[12]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
+
+<tr><td>BUFGMUX[13]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
+
+<tr><td>BUFGMUX[14]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
+
+<tr><td>BUFGMUX[15]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
+
+<tr><td>CLKC_INT</td><td>routing</td><td>BEL</td><td>CLKC</td></tr>
 
 <tr><td>TIEOFF_IOI</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
-<tr><td>TIEOFF_PLL</td><td>legacy</td><td>BEL</td><td>CMT_PLL</td></tr>
+<tr><td>IOB[0]</td><td>IOB</td><td>IOB</td><td>IOB</td></tr>
 
-<tr><td>TIEOFF_CLK</td><td>legacy</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>IOB[1]</td><td>IOB</td><td>IOB</td><td>IOB</td></tr>
 
-<tr><td>TIEOFF_DQS0</td><td>legacy</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>HCLK</td><td>routing</td><td>HCLK</td><td>HCLK</td></tr>
 
-<tr><td>TIEOFF_DQS1</td><td>legacy</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>GLUTMASK_HCLK</td><td>GLUTMASK_HCLK</td><td>HCLK_BEL</td><td>HCLK_CLEXL, HCLK_CLEXM, HCLK_IOI, HCLK_GTP</td></tr>
 
-<tr><td>IPAD_CLKP[0]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>HCLK_ROW</td><td>routing</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
 
-<tr><td>IPAD_CLKP[1]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>CLK_INT</td><td>routing</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>IPAD_CLKN[0]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2[0]</td><td>BUFIO2</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>IPAD_CLKN[1]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2[1]</td><td>BUFIO2</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>IPAD_RXP[0]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2[2]</td><td>BUFIO2</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>IPAD_RXP[1]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2[3]</td><td>BUFIO2</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>IPAD_RXN[0]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2[4]</td><td>BUFIO2</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>IPAD_RXN[1]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2[5]</td><td>BUFIO2</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>OPAD_TXP[0]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2[6]</td><td>BUFIO2</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>OPAD_TXP[1]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2[7]</td><td>BUFIO2</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>OPAD_TXN[0]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2FB[0]</td><td>BUFIO2FB</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>OPAD_TXN[1]</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2FB[1]</td><td>BUFIO2FB</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>GTP_BUF</td><td>legacy</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFIO2FB[2]</td><td>BUFIO2FB</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>IOB[0]</td><td>legacy</td><td>IOB</td><td>IOB</td></tr>
+<tr><td>BUFIO2FB[3]</td><td>BUFIO2FB</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>IOB[1]</td><td>legacy</td><td>IOB</td><td>IOB</td></tr>
+<tr><td>BUFIO2FB[4]</td><td>BUFIO2FB</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>HCLK</td><td>legacy</td><td>HCLK</td><td>HCLK</td></tr>
+<tr><td>BUFIO2FB[5]</td><td>BUFIO2FB</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFH_W[0]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFIO2FB[6]</td><td>BUFIO2FB</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFH_W[1]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFIO2FB[7]</td><td>BUFIO2FB</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFH_W[2]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFPLL</td><td>BUFPLL</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFH_W[3]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>MISR_CLK</td><td>MISR</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
 
-<tr><td>BUFH_W[4]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[5]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[6]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[7]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[8]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[9]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[10]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[11]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[12]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[13]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[14]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_W[15]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[0]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[1]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[2]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[3]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[4]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[5]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[6]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[7]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[8]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[9]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[10]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[11]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[12]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[13]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[14]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>BUFH_E[15]</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>HCLK_ROW</td><td>legacy</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
-
-<tr><td>REG_INT</td><td>routing</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2[0]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2[1]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2[2]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2[3]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2[4]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2[5]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2[6]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2[7]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2FB[0]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2FB[1]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2FB[2]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2FB[3]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2FB[4]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2FB[5]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2FB[6]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2FB[7]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFPLL[0]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFPLL[1]</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFPLL_MCB</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFPLL_OUT</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFPLL_INS_WE</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E</td></tr>
-
-<tr><td>BUFPLL_INS_SN</td><td>legacy</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2_INS</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFIO2_CKPIN</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>BUFPLL_BUF</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>GTP_H_BUF</td><td>legacy</td><td>CLK</td><td>CLK_S, CLK_N</td></tr>
-
-<tr><td>TIEOFF_REG</td><td>legacy</td><td>CLK</td><td>CLK_W, CLK_E, CLK_S, CLK_N</td></tr>
-
-<tr><td>DCM_BUFPLL_BUF_S</td><td>legacy</td><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_S</td></tr>
-
-<tr><td>DCM_BUFPLL_BUF_S_MID</td><td>legacy</td><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_S_MID</td></tr>
-
-<tr><td>DCM_BUFPLL_BUF_N</td><td>legacy</td><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_N</td></tr>
-
-<tr><td>DCM_BUFPLL_BUF_N_MID</td><td>legacy</td><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_N_MID</td></tr>
-
-<tr><td>PLL_BUFPLL</td><td>legacy</td><td>CMT_BUF</td><td>PLL_BUFPLL_OUT0, PLL_BUFPLL_OUT1</td></tr>
-
-<tr><td>IOI_CLK_SN</td><td>legacy</td><td>IOI_CLK</td><td>IOI_CLK_SN</td></tr>
-
-<tr><td>IOI_CLK_WE</td><td>legacy</td><td>IOI_CLK</td><td>IOI_CLK_WE</td></tr>
-
-<tr><td>IOI_CLK_WE_TERM</td><td>legacy</td><td>IOI_CLK</td><td>IOI_CLK_WE</td></tr>
-
-<tr><td>HCLK_V_MIDBUF</td><td>legacy</td><td>CLK_BUF</td><td>HCLK_V_MIDBUF</td></tr>
-
-<tr><td>HCLK_H_MIDBUF</td><td>legacy</td><td>CLK_BUF</td><td>HCLK_H_MIDBUF</td></tr>
-
-<tr><td>CKPIN_V_MIDBUF</td><td>legacy</td><td>CLK_BUF</td><td>CKPIN_V_MIDBUF</td></tr>
-
-<tr><td>CKPIN_H_MIDBUF</td><td>legacy</td><td>CLK_BUF</td><td>CKPIN_H_MIDBUF</td></tr>
-
-<tr><td>CLKPIN_BUF</td><td>legacy</td><td>CLK_BUF</td><td>CLKPIN_BUF</td></tr>
-
-<tr><td>PCI_CE_TRUNK_BUF</td><td>legacy</td><td>PCI_CE_TRUNK_BUF</td><td>PCI_CE_TRUNK_BUF</td></tr>
-
-<tr><td>PCI_CE_V_BUF</td><td>legacy</td><td>PCI_CE_BUF</td><td>PCI_CE_V_BUF</td></tr>
-
-<tr><td>PCI_CE_H_BUF</td><td>legacy</td><td>PCI_CE_BUF</td><td>PCI_CE_H_BUF</td></tr>
-
-<tr><td>PCI_CE_SPLIT</td><td>legacy</td><td>PCI_CE_BUF</td><td>PCI_CE_SPLIT</td></tr>
+<tr><td>CMT_BUF</td><td>routing</td><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_S, DCM_BUFPLL_BUF_S_MID, DCM_BUFPLL_BUF_N, DCM_BUFPLL_BUF_N_MID, PLL_BUFPLL_OUT0_S, PLL_BUFPLL_OUT0_N, PLL_BUFPLL_OUT1_S, PLL_BUFPLL_OUT1_N, PLL_BUFPLL_S, PLL_BUFPLL_N</td></tr>
 
 </tbody>
 
@@ -558,6 +418,14 @@
 
 <tr><td>N</td><td>S</td><td>PASS_N, TERM_N</td></tr>
 
+<tr><td>CMT_PREV</td><td>CMT_NEXT</td><td>CMT_PREV</td></tr>
+
+<tr><td>CMT_NEXT</td><td>CMT_PREV</td><td>CMT_NEXT</td></tr>
+
+<tr><td>CMT_S</td><td>CMT_N</td><td>CMT_S</td></tr>
+
+<tr><td>CMT_N</td><td>CMT_S</td><td>CMT_N</td></tr>
+
 </tbody>
 
 </table>
@@ -573,9 +441,17 @@
 </thead>
 
 <tbody>
-<tr><td>HCLK</td><td></td></tr>
+<tr><td>GLOBAL</td><td>GCLK[0], GCLK[1], GCLK[2], GCLK[3], GCLK[4], GCLK[5], GCLK[6], GCLK[7], GCLK[8], GCLK[9], GCLK[10], GCLK[11], GCLK[12], GCLK[13], GCLK[14], GCLK[15]</td></tr>
 
-<tr><td>LEAF</td><td>GCLK[0], GCLK[1], GCLK[2], GCLK[3], GCLK[4], GCLK[5], GCLK[6], GCLK[7], GCLK[8], GCLK[9], GCLK[10], GCLK[11], GCLK[12], GCLK[13], GCLK[14], GCLK[15]</td></tr>
+<tr><td>PLLCLK</td><td>PLLCLK[0], PLLCLK[1], PLLCE[0], PLLCE[1]</td></tr>
+
+<tr><td>IOCLK</td><td>IOCLK[0], IOCLK[1], IOCLK[2], IOCLK[3], IOCE[0], IOCE[1], IOCE[2], IOCE[3], GTPCLK[0], GTPCLK[1], GTPCLK[2], GTPCLK[3], GTPFB[0], GTPFB[1], GTPFB[2], GTPFB[3]</td></tr>
+
+<tr><td>DIVCLK_CMT</td><td>DIVCLK_CMT_W[0], DIVCLK_CMT_W[1], DIVCLK_CMT_W[2], DIVCLK_CMT_W[3], DIVCLK_CMT_E[0], DIVCLK_CMT_E[1], DIVCLK_CMT_E[2], DIVCLK_CMT_E[3], DIVCLK_CMT_V[0], DIVCLK_CMT_V[1], DIVCLK_CMT_V[2], DIVCLK_CMT_V[3], DIVCLK_CMT_V[4], DIVCLK_CMT_V[5], DIVCLK_CMT_V[6], DIVCLK_CMT_V[7], IOFBCLK_CMT_W[0], IOFBCLK_CMT_W[1], IOFBCLK_CMT_W[2], IOFBCLK_CMT_W[3], IOFBCLK_CMT_E[0], IOFBCLK_CMT_E[1], IOFBCLK_CMT_E[2], IOFBCLK_CMT_E[3], IOFBCLK_CMT_V[0], IOFBCLK_CMT_V[1], IOFBCLK_CMT_V[2], IOFBCLK_CMT_V[3], IOFBCLK_CMT_V[4], IOFBCLK_CMT_V[5], IOFBCLK_CMT_V[6], IOFBCLK_CMT_V[7]</td></tr>
+
+<tr><td>HROW</td><td>HCLK_ROW[0], HCLK_ROW[1], HCLK_ROW[2], HCLK_ROW[3], HCLK_ROW[4], HCLK_ROW[5], HCLK_ROW[6], HCLK_ROW[7], HCLK_ROW[8], HCLK_ROW[9], HCLK_ROW[10], HCLK_ROW[11], HCLK_ROW[12], HCLK_ROW[13], HCLK_ROW[14], HCLK_ROW[15]</td></tr>
+
+<tr><td>LEAF</td><td>HCLK[0], HCLK[1], HCLK[2], HCLK[3], HCLK[4], HCLK[5], HCLK[6], HCLK[7], HCLK[8], HCLK[9], HCLK[10], HCLK[11], HCLK[12], HCLK[13], HCLK[14], HCLK[15]</td></tr>
 
 </tbody>
 
@@ -599,37 +475,37 @@
 
 <tr><td>TIE_1</td><td>tie 1</td></tr>
 
-<tr><td>GCLK[0]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[0]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[1]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[1]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[2]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[2]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[3]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[3]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[4]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[4]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[5]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[5]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[6]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[6]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[7]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[7]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[8]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[8]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[9]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[9]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[10]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[10]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[11]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[11]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[12]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[12]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[13]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[13]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[14]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[14]</td><td>regional LEAF</td></tr>
 
-<tr><td>GCLK[15]</td><td>regional LEAF</td></tr>
+<tr><td>HCLK[15]</td><td>regional LEAF</td></tr>
 
 <tr><td>SNG_W0[0]</td><td>mux</td></tr>
 
@@ -1622,6 +1498,526 @@
 <tr><td>IMUX_CLK_GCLK[0]</td><td>mux</td></tr>
 
 <tr><td>IMUX_CLK_GCLK[1]</td><td>mux</td></tr>
+
+<tr><td>IOCLK[0]</td><td>regional IOCLK</td></tr>
+
+<tr><td>IOCLK[1]</td><td>regional IOCLK</td></tr>
+
+<tr><td>IOCLK[2]</td><td>regional IOCLK</td></tr>
+
+<tr><td>IOCLK[3]</td><td>regional IOCLK</td></tr>
+
+<tr><td>IOCE[0]</td><td>regional IOCLK</td></tr>
+
+<tr><td>IOCE[1]</td><td>regional IOCLK</td></tr>
+
+<tr><td>IOCE[2]</td><td>regional IOCLK</td></tr>
+
+<tr><td>IOCE[3]</td><td>regional IOCLK</td></tr>
+
+<tr><td>PLLCLK[0]</td><td>regional PLLCLK</td></tr>
+
+<tr><td>PLLCLK[1]</td><td>regional PLLCLK</td></tr>
+
+<tr><td>PLLCE[0]</td><td>regional PLLCLK</td></tr>
+
+<tr><td>PLLCE[1]</td><td>regional PLLCLK</td></tr>
+
+<tr><td>GTPCLK[0]</td><td>regional IOCLK</td></tr>
+
+<tr><td>GTPCLK[1]</td><td>regional IOCLK</td></tr>
+
+<tr><td>GTPCLK[2]</td><td>regional IOCLK</td></tr>
+
+<tr><td>GTPCLK[3]</td><td>regional IOCLK</td></tr>
+
+<tr><td>GTPFB[0]</td><td>regional IOCLK</td></tr>
+
+<tr><td>GTPFB[1]</td><td>regional IOCLK</td></tr>
+
+<tr><td>GTPFB[2]</td><td>regional IOCLK</td></tr>
+
+<tr><td>GTPFB[3]</td><td>regional IOCLK</td></tr>
+
+<tr><td>IMUX_BUFIO2_I[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2_I[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2_I[2]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2_I[3]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2_IB[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2_IB[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2_IB[2]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2_IB[3]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2FB[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2FB[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2FB[2]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFIO2FB[3]</td><td>mux</td></tr>
+
+<tr><td>OUT_DIVCLK[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DIVCLK[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DIVCLK[2]</td><td>bel</td></tr>
+
+<tr><td>OUT_DIVCLK[3]</td><td>bel</td></tr>
+
+<tr><td>DIVCLK_CLKC[0]</td><td>mux</td></tr>
+
+<tr><td>DIVCLK_CLKC[1]</td><td>mux</td></tr>
+
+<tr><td>DIVCLK_CLKC[2]</td><td>mux</td></tr>
+
+<tr><td>DIVCLK_CLKC[3]</td><td>mux</td></tr>
+
+<tr><td>DIVCLK_CLKC[4]</td><td>mux</td></tr>
+
+<tr><td>DIVCLK_CLKC[5]</td><td>mux</td></tr>
+
+<tr><td>DIVCLK_CLKC[6]</td><td>mux</td></tr>
+
+<tr><td>DIVCLK_CLKC[7]</td><td>mux</td></tr>
+
+<tr><td>DIVCLK_CMT_W[0]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_W[1]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_W[2]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_W[3]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_E[0]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_E[1]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_E[2]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_E[3]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_V[0]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_V[1]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_V[2]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_V[3]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_V[4]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_V[5]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_V[6]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>DIVCLK_CMT_V[7]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_W[0]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_W[1]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_W[2]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_W[3]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_E[0]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_E[1]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_E[2]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_E[3]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_V[0]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_V[1]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_V[2]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_V[3]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_V[4]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_V[5]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_V[6]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>IOFBCLK_CMT_V[7]</td><td>regional DIVCLK_CMT</td></tr>
+
+<tr><td>OUT_CLKPAD_I[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_CLKPAD_I[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_CLKPAD_DFB[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_CLKPAD_DFB[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB0[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB0[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB1[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB1[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_CLKPAD_DQSP</td><td>bel</td></tr>
+
+<tr><td>OUT_CLKPAD_DQSN</td><td>bel</td></tr>
+
+<tr><td>IMUX_BUFG[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[2]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[3]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[4]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[5]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[6]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[7]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[8]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[9]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[10]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[11]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[12]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[13]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[14]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFG[15]</td><td>mux</td></tr>
+
+<tr><td>GCLK[0]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[1]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[2]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[3]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[4]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[5]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[6]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[7]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[8]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[9]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[10]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[11]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[12]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[13]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[14]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[15]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>HCLK_ROW[0]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[1]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[2]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[3]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[4]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[5]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[6]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[7]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[8]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[9]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[10]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[11]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[12]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[13]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[14]</td><td>regional HROW</td></tr>
+
+<tr><td>HCLK_ROW[15]</td><td>regional HROW</td></tr>
+
+<tr><td>CMT_OUT[0]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[1]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[2]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[3]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[4]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[5]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[6]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[7]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[8]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[9]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[10]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[11]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[12]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[13]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[14]</td><td>mux</td></tr>
+
+<tr><td>CMT_OUT[15]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[0]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[1]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[2]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[3]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[4]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[5]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[6]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[7]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[8]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[9]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[10]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[11]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[12]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[13]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[14]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_O[15]</td><td>mux</td></tr>
+
+<tr><td>CMT_CLKC_I[0]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[1]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[2]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[3]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[4]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[5]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[6]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[7]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[8]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[9]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[10]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[11]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[12]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[13]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[14]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_CLKC_I[15]</td><td>branch CMT_PREV</td></tr>
+
+<tr><td>CMT_BUFPLL_H_CLKOUT[0]</td><td>mux</td></tr>
+
+<tr><td>CMT_BUFPLL_H_CLKOUT[1]</td><td>mux</td></tr>
+
+<tr><td>CMT_BUFPLL_H_LOCKED[0]</td><td>mux</td></tr>
+
+<tr><td>CMT_BUFPLL_H_LOCKED[1]</td><td>mux</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_S[0]</td><td>multi_root</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_S[1]</td><td>multi_root</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_S[2]</td><td>multi_root</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_S[3]</td><td>multi_root</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_S[4]</td><td>multi_root</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_S[5]</td><td>multi_root</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[0]</td><td>multi_branch CMT_N</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[1]</td><td>multi_branch CMT_N</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[2]</td><td>multi_branch CMT_N</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[3]</td><td>multi_branch CMT_N</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[4]</td><td>multi_branch CMT_N</td></tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[5]</td><td>multi_branch CMT_N</td></tr>
+
+<tr><td>CMT_BUFPLL_V_LOCKED_S[0]</td><td>multi_root</td></tr>
+
+<tr><td>CMT_BUFPLL_V_LOCKED_S[1]</td><td>multi_root</td></tr>
+
+<tr><td>CMT_BUFPLL_V_LOCKED_S[2]</td><td>multi_root</td></tr>
+
+<tr><td>CMT_BUFPLL_V_LOCKED_N[0]</td><td>multi_branch CMT_N</td></tr>
+
+<tr><td>CMT_BUFPLL_V_LOCKED_N[1]</td><td>multi_branch CMT_N</td></tr>
+
+<tr><td>CMT_BUFPLL_V_LOCKED_N[2]</td><td>multi_branch CMT_N</td></tr>
+
+<tr><td>IMUX_BUFPLL_PLLIN[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFPLL_PLLIN[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFPLL_LOCKED[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_BUFPLL_LOCKED[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_DCM_CLKIN[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_DCM_CLKIN[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_DCM_CLKFB[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_DCM_CLKFB[1]</td><td>mux</td></tr>
+
+<tr><td>OMUX_DCM_SKEWCLKIN1[0]</td><td>mux</td></tr>
+
+<tr><td>OMUX_DCM_SKEWCLKIN1[1]</td><td>mux</td></tr>
+
+<tr><td>OMUX_DCM_SKEWCLKIN2[0]</td><td>mux</td></tr>
+
+<tr><td>OMUX_DCM_SKEWCLKIN2[1]</td><td>mux</td></tr>
+
+<tr><td>OUT_DCM_CLK0[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK0[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK90[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK90[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK180[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK180[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK270[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK270[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK2X[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK2X[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK2X180[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLK2X180[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLKDV[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLKDV[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLKFX[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLKFX[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLKFX180[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CLKFX180[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CONCUR[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DCM_CONCUR[1]</td><td>bel</td></tr>
+
+<tr><td>IMUX_PLL_CLKIN1</td><td>mux</td></tr>
+
+<tr><td>IMUX_PLL_CLKIN2</td><td>mux</td></tr>
+
+<tr><td>IMUX_PLL_CLKFB</td><td>mux</td></tr>
+
+<tr><td>TEST_PLL_CLKIN</td><td>bel</td></tr>
+
+<tr><td>OMUX_PLL_SKEWCLKIN1</td><td>mux</td></tr>
+
+<tr><td>OMUX_PLL_SKEWCLKIN2</td><td>mux</td></tr>
+
+<tr><td>OUT_PLL_CLKOUT[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUT[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUT[2]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUT[3]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUT[4]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUT[5]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUTDCM[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUTDCM[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUTDCM[2]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUTDCM[3]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUTDCM[4]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKOUTDCM[5]</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKFBOUT</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_CLKFBDCM</td><td>bel</td></tr>
+
+<tr><td>OUT_PLL_LOCKED</td><td>bel</td></tr>
+
+<tr><td>OMUX_PLL_SKEWCLKIN1_BUF</td><td>mux</td></tr>
+
+<tr><td>OMUX_PLL_SKEWCLKIN2_BUF</td><td>mux</td></tr>
+
+<tr><td>CMT_TEST_CLK</td><td>mux</td></tr>
 
 </tbody>
 
@@ -2933,6 +3329,174 @@
 <tr><td>IMUX_LOGICIN62_S</td>
 <td>→ IMUX_LOGICIN62_BOUNCE</td>
 <td>← IMUX_LOGICIN60_BOUNCE</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h2 id="connectors--cmt_prev"><a class="header" href="#connectors--cmt_prev">Connectors — CMT_PREV</a></h2>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>CMT_PREV</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>CMT_CLKC_I[0]</td>
+<td>→ CMT_CLKC_O[0]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[1]</td>
+<td>→ CMT_CLKC_O[1]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[2]</td>
+<td>→ CMT_CLKC_O[2]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[3]</td>
+<td>→ CMT_CLKC_O[3]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[4]</td>
+<td>→ CMT_CLKC_O[4]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[5]</td>
+<td>→ CMT_CLKC_O[5]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[6]</td>
+<td>→ CMT_CLKC_O[6]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[7]</td>
+<td>→ CMT_CLKC_O[7]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[8]</td>
+<td>→ CMT_CLKC_O[8]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[9]</td>
+<td>→ CMT_CLKC_O[9]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[10]</td>
+<td>→ CMT_CLKC_O[10]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[11]</td>
+<td>→ CMT_CLKC_O[11]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[12]</td>
+<td>→ CMT_CLKC_O[12]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[13]</td>
+<td>→ CMT_CLKC_O[13]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[14]</td>
+<td>→ CMT_CLKC_O[14]</td>
+</tr>
+
+<tr><td>CMT_CLKC_I[15]</td>
+<td>→ CMT_CLKC_O[15]</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h2 id="connectors--cmt_next"><a class="header" href="#connectors--cmt_next">Connectors — CMT_NEXT</a></h2>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>CMT_NEXT</th>
+</tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<h2 id="connectors--cmt_s"><a class="header" href="#connectors--cmt_s">Connectors — CMT_S</a></h2>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>CMT_S</th>
+</tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<h2 id="connectors--cmt_n"><a class="header" href="#connectors--cmt_n">Connectors — CMT_N</a></h2>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>CMT_N</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[0]</td>
+<td>→ CMT_BUFPLL_V_CLKOUT_S[0]</td>
+</tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[1]</td>
+<td>→ CMT_BUFPLL_V_CLKOUT_S[1]</td>
+</tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[2]</td>
+<td>→ CMT_BUFPLL_V_CLKOUT_S[2]</td>
+</tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[3]</td>
+<td>→ CMT_BUFPLL_V_CLKOUT_S[3]</td>
+</tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[4]</td>
+<td>→ CMT_BUFPLL_V_CLKOUT_S[4]</td>
+</tr>
+
+<tr><td>CMT_BUFPLL_V_CLKOUT_N[5]</td>
+<td>→ CMT_BUFPLL_V_CLKOUT_S[5]</td>
+</tr>
+
+<tr><td>CMT_BUFPLL_V_LOCKED_N[0]</td>
+<td>→ CMT_BUFPLL_V_LOCKED_S[0]</td>
+</tr>
+
+<tr><td>CMT_BUFPLL_V_LOCKED_N[1]</td>
+<td>→ CMT_BUFPLL_V_LOCKED_S[1]</td>
+</tr>
+
+<tr><td>CMT_BUFPLL_V_LOCKED_N[2]</td>
+<td>→ CMT_BUFPLL_V_LOCKED_S[2]</td>
 </tr>
 
 </tbody>

@@ -154,221 +154,496 @@
                         <h1 id="south-east"><a class="header" href="#south-east">South-east</a></h1>
 <h2 id="tile-cnr_se"><a class="header" href="#tile-cnr_se">Tile CNR_SE</a></h2>
 <p>Cells: 2</p>
-<h3 id="bel-oct_cal1"><a class="header" href="#bel-oct_cal1">Bel OCT_CAL[1]</a></h3>
+<h3 id="bels-oct_cal"><a class="header" href="#bels-oct_cal">Bels OCT_CAL</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 CNR_SE bel OCT_CAL[1]</caption>
+<caption>spartan6 CNR_SE bel OCT_CAL pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>OCT_CAL[1]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>S0</td><td>input</td><td>CELL[0].IMUX_LOGICIN[29]</td></tr>
+<tr><td>S[0]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[29]</td></tr>
 
-<tr><td>S1</td><td>input</td><td>CELL[0].IMUX_LOGICIN[32]</td></tr>
+<tr><td>S[1]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[32]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-icap"><a class="header" href="#bel-icap">Bel ICAP</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 CNR_SE bel ICAP</caption>
+<caption>spartan6 CNR_SE bel OCT_CAL attribute bits</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Attribute</th><th>OCT_CAL[1]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>BUSY</td><td>output</td><td>CELL[0].OUT_BEL[3]</td></tr>
+<tr><td>VREF_VALUE</td><td><a href="#spartan6-CNR_SE-OCT_CAL[1]-VREF_VALUE">[enum: OCT_CAL_VREF_VALUE]</a></td></tr>
 
-<tr><td>CE</td><td>input</td><td>CELL[0].IMUX_LOGICIN[7]</td></tr>
-
-<tr><td>CLK</td><td>input</td><td>CELL[0].IMUX_CLK[1]</td></tr>
-
-<tr><td>I0</td><td>input</td><td>CELL[0].IMUX_LOGICIN[16]</td></tr>
-
-<tr><td>I1</td><td>input</td><td>CELL[0].IMUX_LOGICIN[5]</td></tr>
-
-<tr><td>I10</td><td>input</td><td>CELL[0].IMUX_LOGICIN[54]</td></tr>
-
-<tr><td>I11</td><td>input</td><td>CELL[0].IMUX_LOGICIN[48]</td></tr>
-
-<tr><td>I12</td><td>input</td><td>CELL[0].IMUX_LOGICIN[23]</td></tr>
-
-<tr><td>I13</td><td>input</td><td>CELL[0].IMUX_LOGICIN[57]</td></tr>
-
-<tr><td>I14</td><td>input</td><td>CELL[0].IMUX_LOGICIN[44]</td></tr>
-
-<tr><td>I15</td><td>input</td><td>CELL[0].IMUX_LOGICIN[4]</td></tr>
-
-<tr><td>I2</td><td>input</td><td>CELL[0].IMUX_LOGICIN[12]</td></tr>
-
-<tr><td>I3</td><td>input</td><td>CELL[0].IMUX_LOGICIN[47]</td></tr>
-
-<tr><td>I4</td><td>input</td><td>CELL[0].IMUX_LOGICIN[20]</td></tr>
-
-<tr><td>I5</td><td>input</td><td>CELL[0].IMUX_LOGICIN[45]</td></tr>
-
-<tr><td>I6</td><td>input</td><td>CELL[0].IMUX_LOGICIN[36]</td></tr>
-
-<tr><td>I7</td><td>input</td><td>CELL[0].IMUX_LOGICIN[17]</td></tr>
-
-<tr><td>I8</td><td>input</td><td>CELL[0].IMUX_LOGICIN[25]</td></tr>
-
-<tr><td>I9</td><td>input</td><td>CELL[0].IMUX_LOGICIN[34]</td></tr>
-
-<tr><td>O0</td><td>output</td><td>CELL[0].OUT_BEL[4]</td></tr>
-
-<tr><td>O1</td><td>output</td><td>CELL[0].OUT_BEL[5]</td></tr>
-
-<tr><td>O10</td><td>output</td><td>CELL[0].OUT_BEL[14]</td></tr>
-
-<tr><td>O11</td><td>output</td><td>CELL[0].OUT_BEL[15]</td></tr>
-
-<tr><td>O12</td><td>output</td><td>CELL[0].OUT_BEL[16]</td></tr>
-
-<tr><td>O13</td><td>output</td><td>CELL[0].OUT_BEL[17]</td></tr>
-
-<tr><td>O14</td><td>output</td><td>CELL[0].OUT_BEL[18]</td></tr>
-
-<tr><td>O15</td><td>output</td><td>CELL[0].OUT_BEL[19]</td></tr>
-
-<tr><td>O2</td><td>output</td><td>CELL[0].OUT_BEL[6]</td></tr>
-
-<tr><td>O3</td><td>output</td><td>CELL[0].OUT_BEL[7]</td></tr>
-
-<tr><td>O4</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
-
-<tr><td>O5</td><td>output</td><td>CELL[0].OUT_BEL[9]</td></tr>
-
-<tr><td>O6</td><td>output</td><td>CELL[0].OUT_BEL[10]</td></tr>
-
-<tr><td>O7</td><td>output</td><td>CELL[0].OUT_BEL[11]</td></tr>
-
-<tr><td>O8</td><td>output</td><td>CELL[0].OUT_BEL[12]</td></tr>
-
-<tr><td>O9</td><td>output</td><td>CELL[0].OUT_BEL[13]</td></tr>
-
-<tr><td>WRITE</td><td>input</td><td>CELL[0].IMUX_LOGICIN[42]</td></tr>
+<tr><td>ACCESS_MODE</td><td><a href="#spartan6-CNR_SE-OCT_CAL[1]-ACCESS_MODE">[enum: OCT_CAL_ACCESS_MODE]</a></td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-spi_access"><a class="header" href="#bel-spi_access">Bel SPI_ACCESS</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 CNR_SE bel SPI_ACCESS</caption>
+<caption>spartan6 CNR_SE enum OCT_CAL_VREF_VALUE</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr id="spartan6-CNR_SE-OCT_CAL[1]-VREF_VALUE"><th>OCT_CAL[1].VREF_VALUE</th><td id="spartan6-CNR_SE-OCT_CAL[1]-VREF_VALUE[1]"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][53]">MAIN[0][22][53]</a></td><td id="spartan6-CNR_SE-OCT_CAL[1]-VREF_VALUE[0]"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][52]">MAIN[0][22][52]</a></td></tr>
 
 </thead>
 
 <tbody>
-<tr><td>CLK</td><td>input</td><td>CELL[0].IMUX_CLK[0]</td></tr>
+<tr><td>NONE</td><td>0</td><td>0</td></tr>
 
-<tr><td>CSB</td><td>input</td><td>CELL[0].IMUX_LOGICIN[24]</td></tr>
+<tr><td>_0P25</td><td>0</td><td>1</td></tr>
 
-<tr><td>MISO</td><td>output</td><td>CELL[0].OUT_BEL[1]</td></tr>
+<tr><td>_0P5</td><td>1</td><td>1</td></tr>
 
-<tr><td>MOSI</td><td>input</td><td>CELL[0].IMUX_SR[0]</td></tr>
+<tr><td>_0P75</td><td>1</td><td>0</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-suspend_sync"><a class="header" href="#bel-suspend_sync">Bel SUSPEND_SYNC</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 CNR_SE bel SUSPEND_SYNC</caption>
+<caption>spartan6 CNR_SE enum OCT_CAL_ACCESS_MODE</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr id="spartan6-CNR_SE-OCT_CAL[1]-ACCESS_MODE"><th>OCT_CAL[1].ACCESS_MODE</th><td id="spartan6-CNR_SE-OCT_CAL[1]-ACCESS_MODE[0]"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][54]">MAIN[0][22][54]</a></td></tr>
 
 </thead>
 
 <tbody>
-<tr><td>CLK</td><td>input</td><td>CELL[1].IMUX_CLK[0]</td></tr>
+<tr><td>STATIC</td><td>0</td></tr>
 
-<tr><td>SACK</td><td>input</td><td>CELL[1].IMUX_SR[0]</td></tr>
-
-<tr><td>SREQ</td><td>output</td><td>CELL[1].OUT_BEL[0]</td></tr>
+<tr><td>USER</td><td>1</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-post_crc_internal"><a class="header" href="#bel-post_crc_internal">Bel POST_CRC_INTERNAL</a></h3>
+<h3 id="bels-icap"><a class="header" href="#bels-icap">Bels ICAP</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 CNR_SE bel POST_CRC_INTERNAL</caption>
+<caption>spartan6 CNR_SE bel ICAP pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>ICAP</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>CRCERROR</td><td>output</td><td>CELL[1].OUT_BEL[8]</td></tr>
+<tr><td>CLK</td><td>in</td><td>CELL[0].IMUX_CLK[1]</td></tr>
+
+<tr><td>CE</td><td>in</td><td>CELL[0].IMUX_LOGICIN[7]</td></tr>
+
+<tr><td>WRITE</td><td>in</td><td>CELL[0].IMUX_LOGICIN[42]</td></tr>
+
+<tr><td>I[0]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[16]</td></tr>
+
+<tr><td>I[1]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[5]</td></tr>
+
+<tr><td>I[2]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[12]</td></tr>
+
+<tr><td>I[3]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[47]</td></tr>
+
+<tr><td>I[4]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[20]</td></tr>
+
+<tr><td>I[5]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[45]</td></tr>
+
+<tr><td>I[6]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[36]</td></tr>
+
+<tr><td>I[7]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[17]</td></tr>
+
+<tr><td>I[8]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[25]</td></tr>
+
+<tr><td>I[9]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[34]</td></tr>
+
+<tr><td>I[10]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[54]</td></tr>
+
+<tr><td>I[11]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[48]</td></tr>
+
+<tr><td>I[12]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[23]</td></tr>
+
+<tr><td>I[13]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[57]</td></tr>
+
+<tr><td>I[14]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[44]</td></tr>
+
+<tr><td>I[15]</td><td>in</td><td>CELL[0].IMUX_LOGICIN[4]</td></tr>
+
+<tr><td>BUSY</td><td>out</td><td>CELL[0].OUT_BEL[3]</td></tr>
+
+<tr><td>O[0]</td><td>out</td><td>CELL[0].OUT_BEL[4]</td></tr>
+
+<tr><td>O[1]</td><td>out</td><td>CELL[0].OUT_BEL[5]</td></tr>
+
+<tr><td>O[2]</td><td>out</td><td>CELL[0].OUT_BEL[6]</td></tr>
+
+<tr><td>O[3]</td><td>out</td><td>CELL[0].OUT_BEL[7]</td></tr>
+
+<tr><td>O[4]</td><td>out</td><td>CELL[0].OUT_BEL[8]</td></tr>
+
+<tr><td>O[5]</td><td>out</td><td>CELL[0].OUT_BEL[9]</td></tr>
+
+<tr><td>O[6]</td><td>out</td><td>CELL[0].OUT_BEL[10]</td></tr>
+
+<tr><td>O[7]</td><td>out</td><td>CELL[0].OUT_BEL[11]</td></tr>
+
+<tr><td>O[8]</td><td>out</td><td>CELL[0].OUT_BEL[12]</td></tr>
+
+<tr><td>O[9]</td><td>out</td><td>CELL[0].OUT_BEL[13]</td></tr>
+
+<tr><td>O[10]</td><td>out</td><td>CELL[0].OUT_BEL[14]</td></tr>
+
+<tr><td>O[11]</td><td>out</td><td>CELL[0].OUT_BEL[15]</td></tr>
+
+<tr><td>O[12]</td><td>out</td><td>CELL[0].OUT_BEL[16]</td></tr>
+
+<tr><td>O[13]</td><td>out</td><td>CELL[0].OUT_BEL[17]</td></tr>
+
+<tr><td>O[14]</td><td>out</td><td>CELL[0].OUT_BEL[18]</td></tr>
+
+<tr><td>O[15]</td><td>out</td><td>CELL[0].OUT_BEL[19]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-startup"><a class="header" href="#bel-startup">Bel STARTUP</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 CNR_SE bel STARTUP</caption>
+<caption>spartan6 CNR_SE bel ICAP attribute bits</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Attribute</th><th>ICAP</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>CFGCLK</td><td>output</td><td>CELL[1].OUT_BEL[2]</td></tr>
-
-<tr><td>CFGMCLK</td><td>output</td><td>CELL[1].OUT_BEL[1]</td></tr>
-
-<tr><td>CLK</td><td>input</td><td>CELL[1].IMUX_CLK[1]</td></tr>
-
-<tr><td>EOS</td><td>output</td><td>CELL[1].OUT_BEL[3]</td></tr>
-
-<tr><td>GSR</td><td>input</td><td>CELL[1].IMUX_SR[1]</td></tr>
-
-<tr><td>GTS</td><td>input</td><td>CELL[1].IMUX_LOGICIN[24]</td></tr>
-
-<tr><td>KEYCLEARB</td><td>input</td><td>CELL[1].IMUX_LOGICIN[1]</td></tr>
+<tr><td>ENABLE</td><td id="spartan6-CNR_SE-ICAP-ENABLE"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][8]">MAIN[1][22][8]</a></td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-slave_spi"><a class="header" href="#bel-slave_spi">Bel SLAVE_SPI</a></h3>
+<h3 id="bels-spi_access"><a class="header" href="#bels-spi_access">Bels SPI_ACCESS</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 CNR_SE bel SLAVE_SPI</caption>
+<caption>spartan6 CNR_SE bel SPI_ACCESS pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>SPI_ACCESS</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>CMPACTIVEB</td><td>output</td><td>CELL[1].OUT_BEL[7]</td></tr>
+<tr><td>CLK</td><td>in</td><td>CELL[0].IMUX_CLK[0]</td></tr>
 
-<tr><td>CMPCLK</td><td>output</td><td>CELL[1].OUT_BEL[4]</td></tr>
+<tr><td>CSB</td><td>in</td><td>CELL[0].IMUX_LOGICIN[24]</td></tr>
 
-<tr><td>CMPCSB</td><td>output</td><td>CELL[1].OUT_BEL[5]</td></tr>
+<tr><td>MOSI</td><td>in</td><td>CELL[0].IMUX_SR[0]</td></tr>
 
-<tr><td>CMPMISO</td><td>input</td><td>CELL[1].IMUX_LOGICIN[15]</td></tr>
+<tr><td>MISO</td><td>out</td><td>CELL[0].OUT_BEL[1]</td></tr>
 
-<tr><td>CMPMOSI</td><td>output</td><td>CELL[1].OUT_BEL[6]</td></tr>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel SPI_ACCESS attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>SPI_ACCESS</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>ENABLE</td><td id="spartan6-CNR_SE-SPI_ACCESS-ENABLE"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][7]">MAIN[1][22][7]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-suspend_sync"><a class="header" href="#bels-suspend_sync">Bels SUSPEND_SYNC</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel SUSPEND_SYNC pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>SUSPEND_SYNC</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CLK</td><td>in</td><td>CELL[1].IMUX_CLK[0]</td></tr>
+
+<tr><td>SACK</td><td>in</td><td>CELL[1].IMUX_SR[0]</td></tr>
+
+<tr><td>SREQ</td><td>out</td><td>CELL[1].OUT_BEL[0]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel SUSPEND_SYNC attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>SUSPEND_SYNC</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>ENABLE</td><td id="spartan6-CNR_SE-SUSPEND_SYNC-ENABLE"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][2]">MAIN[1][22][2]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-post_crc_internal"><a class="header" href="#bels-post_crc_internal">Bels POST_CRC_INTERNAL</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel POST_CRC_INTERNAL pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>POST_CRC_INTERNAL</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CRCERROR</td><td>out</td><td>CELL[1].OUT_BEL[8]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-startup"><a class="header" href="#bels-startup">Bels STARTUP</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel STARTUP pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>STARTUP</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CLK</td><td>in</td><td>CELL[1].IMUX_CLK[1]</td></tr>
+
+<tr><td>GSR</td><td>in</td><td>CELL[1].IMUX_SR[1]</td></tr>
+
+<tr><td>GTS</td><td>in</td><td>CELL[1].IMUX_LOGICIN[24]</td></tr>
+
+<tr><td>KEYCLEARB</td><td>in</td><td>CELL[1].IMUX_LOGICIN[1]</td></tr>
+
+<tr><td>EOS</td><td>out</td><td>CELL[1].OUT_BEL[3]</td></tr>
+
+<tr><td>CFGCLK</td><td>out</td><td>CELL[1].OUT_BEL[2]</td></tr>
+
+<tr><td>CFGMCLK</td><td>out</td><td>CELL[1].OUT_BEL[1]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel STARTUP attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>STARTUP</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>USER_GTS_GSR_ENABLE</td><td id="spartan6-CNR_SE-STARTUP-USER_GTS_GSR_ENABLE"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][4]">MAIN[1][22][4]</a></td></tr>
+
+<tr><td>GTS_SYNC</td><td id="spartan6-CNR_SE-STARTUP-GTS_SYNC"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][6]">MAIN[1][22][6]</a></td></tr>
+
+<tr><td>GSR_SYNC</td><td id="spartan6-CNR_SE-STARTUP-GSR_SYNC"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][5]">MAIN[1][22][5]</a></td></tr>
+
+<tr><td>CFGCLK_ENABLE</td><td id="spartan6-CNR_SE-STARTUP-CFGCLK_ENABLE"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][0]">MAIN[1][22][0]</a></td></tr>
+
+<tr><td>CFGMCLK_ENABLE</td><td id="spartan6-CNR_SE-STARTUP-CFGMCLK_ENABLE"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][1]">MAIN[1][22][1]</a></td></tr>
+
+<tr><td>KEYCLEARB_ENABLE</td><td id="spartan6-CNR_SE-STARTUP-KEYCLEARB_ENABLE"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][9]">MAIN[1][22][9]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-slave_spi"><a class="header" href="#bels-slave_spi">Bels SLAVE_SPI</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel SLAVE_SPI pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>SLAVE_SPI</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CMPMISO</td><td>in</td><td>CELL[1].IMUX_LOGICIN[15]</td></tr>
+
+<tr><td>CMPACTIVEB</td><td>out</td><td>CELL[1].OUT_BEL[7]</td></tr>
+
+<tr><td>CMPCLK</td><td>out</td><td>CELL[1].OUT_BEL[4]</td></tr>
+
+<tr><td>CMPCSB</td><td>out</td><td>CELL[1].OUT_BEL[5]</td></tr>
+
+<tr><td>CMPMOSI</td><td>out</td><td>CELL[1].OUT_BEL[6]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misr"><a class="header" href="#bels-misr">Bels MISR</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel MISR pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISR_CNR_H</th><th>MISR_CNR_V</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel MISR attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISR_CNR_H</th><th>MISR_CNR_V</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>ENABLE</td><td id="spartan6-CNR_SE-MISR_CNR_H-ENABLE"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][12]">MAIN[1][22][12]</a></td><td id="spartan6-CNR_SE-MISR_CNR_V-ENABLE"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][10]">MAIN[1][22][10]</a></td></tr>
+
+<tr><td>RESET</td><td id="spartan6-CNR_SE-MISR_CNR_H-RESET"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][13]">MAIN[1][22][13]</a></td><td id="spartan6-CNR_SE-MISR_CNR_V-RESET"><a href="#spartan6-CNR_SE-bit-MAIN[1][22][11]">MAIN[1][22][11]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-bank"><a class="header" href="#bels-bank">Bels BANK</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel BANK pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>BANK[1]</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel BANK attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>BANK[1]</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misc_se"><a class="header" href="#bels-misc_se">Bels MISC_SE</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel MISC_SE pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISC_SE</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE bel MISC_SE attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISC_SE</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>DONE_PULL</td><td><a href="#spartan6-CNR_SE-MISC_SE-DONE_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>CMP_CS_PULL</td><td><a href="#spartan6-CNR_SE-MISC_SE-CMP_CS_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>CCLK2_PULL</td><td><a href="#spartan6-CNR_SE-MISC_SE-CCLK2_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>MOSI2_PULL</td><td><a href="#spartan6-CNR_SE-MISC_SE-MOSI2_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>GLUTMASK_IOB</td><td id="spartan6-CNR_SE-MISC_SE-GLUTMASK_IOB"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][51]">MAIN[0][22][51]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE enum IOB_PULL</caption>
+<thead>
+<tr id="spartan6-CNR_SE-MISC_SE-DONE_PULL"><th>MISC_SE.DONE_PULL</th><td id="spartan6-CNR_SE-MISC_SE-DONE_PULL[0]"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][63]">MAIN[0][22][63]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SE enum IOB_PULL</caption>
+<thead>
+<tr id="spartan6-CNR_SE-MISC_SE-CMP_CS_PULL"><th>MISC_SE.CMP_CS_PULL</th><td id="spartan6-CNR_SE-MISC_SE-CMP_CS_PULL[1]"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][60]">MAIN[0][22][60]</a></td><td id="spartan6-CNR_SE-MISC_SE-CMP_CS_PULL[0]"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][61]">MAIN[0][22][61]</a></td></tr>
+
+<tr id="spartan6-CNR_SE-MISC_SE-CCLK2_PULL"><th>MISC_SE.CCLK2_PULL</th><td id="spartan6-CNR_SE-MISC_SE-CCLK2_PULL[1]"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][56]">MAIN[0][22][56]</a></td><td id="spartan6-CNR_SE-MISC_SE-CCLK2_PULL[0]"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][57]">MAIN[0][22][57]</a></td></tr>
+
+<tr id="spartan6-CNR_SE-MISC_SE-MOSI2_PULL"><th>MISC_SE.MOSI2_PULL</th><td id="spartan6-CNR_SE-MISC_SE-MOSI2_PULL[1]"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][58]">MAIN[0][22][58]</a></td><td id="spartan6-CNR_SE-MISC_SE-MOSI2_PULL[0]"><a href="#spartan6-CNR_SE-bit-MAIN[0][22][59]">MAIN[0][22][59]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td><td>0</td></tr>
+
+<tr><td>PULLDOWN</td><td>1</td><td>1</td></tr>
 
 </tbody>
 
@@ -391,83 +666,83 @@
 
 <tr><td>CELL[0].IMUX_SR[0]</td><td>SPI_ACCESS.MOSI</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[4]</td><td>ICAP.I15</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[4]</td><td>ICAP.I[15]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[5]</td><td>ICAP.I1</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[5]</td><td>ICAP.I[1]</td></tr>
 
 <tr><td>CELL[0].IMUX_LOGICIN[7]</td><td>ICAP.CE</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[12]</td><td>ICAP.I2</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[12]</td><td>ICAP.I[2]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[16]</td><td>ICAP.I0</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[16]</td><td>ICAP.I[0]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[17]</td><td>ICAP.I7</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[17]</td><td>ICAP.I[7]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[20]</td><td>ICAP.I4</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[20]</td><td>ICAP.I[4]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[23]</td><td>ICAP.I12</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[23]</td><td>ICAP.I[12]</td></tr>
 
 <tr><td>CELL[0].IMUX_LOGICIN[24]</td><td>SPI_ACCESS.CSB</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[25]</td><td>ICAP.I8</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[25]</td><td>ICAP.I[8]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[29]</td><td>OCT_CAL[1].S0</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[29]</td><td>OCT_CAL[1].S[0]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[32]</td><td>OCT_CAL[1].S1</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[32]</td><td>OCT_CAL[1].S[1]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[34]</td><td>ICAP.I9</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[34]</td><td>ICAP.I[9]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[36]</td><td>ICAP.I6</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[36]</td><td>ICAP.I[6]</td></tr>
 
 <tr><td>CELL[0].IMUX_LOGICIN[42]</td><td>ICAP.WRITE</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[44]</td><td>ICAP.I14</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[44]</td><td>ICAP.I[14]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[45]</td><td>ICAP.I5</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[45]</td><td>ICAP.I[5]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[47]</td><td>ICAP.I3</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[47]</td><td>ICAP.I[3]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[48]</td><td>ICAP.I11</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[48]</td><td>ICAP.I[11]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[54]</td><td>ICAP.I10</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[54]</td><td>ICAP.I[10]</td></tr>
 
-<tr><td>CELL[0].IMUX_LOGICIN[57]</td><td>ICAP.I13</td></tr>
+<tr><td>CELL[0].IMUX_LOGICIN[57]</td><td>ICAP.I[13]</td></tr>
 
 <tr><td>CELL[0].OUT_BEL[1]</td><td>SPI_ACCESS.MISO</td></tr>
 
 <tr><td>CELL[0].OUT_BEL[3]</td><td>ICAP.BUSY</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[4]</td><td>ICAP.O0</td></tr>
+<tr><td>CELL[0].OUT_BEL[4]</td><td>ICAP.O[0]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[5]</td><td>ICAP.O1</td></tr>
+<tr><td>CELL[0].OUT_BEL[5]</td><td>ICAP.O[1]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[6]</td><td>ICAP.O2</td></tr>
+<tr><td>CELL[0].OUT_BEL[6]</td><td>ICAP.O[2]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[7]</td><td>ICAP.O3</td></tr>
+<tr><td>CELL[0].OUT_BEL[7]</td><td>ICAP.O[3]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[8]</td><td>ICAP.O4</td></tr>
+<tr><td>CELL[0].OUT_BEL[8]</td><td>ICAP.O[4]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[9]</td><td>ICAP.O5</td></tr>
+<tr><td>CELL[0].OUT_BEL[9]</td><td>ICAP.O[5]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[10]</td><td>ICAP.O6</td></tr>
+<tr><td>CELL[0].OUT_BEL[10]</td><td>ICAP.O[6]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[11]</td><td>ICAP.O7</td></tr>
+<tr><td>CELL[0].OUT_BEL[11]</td><td>ICAP.O[7]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[12]</td><td>ICAP.O8</td></tr>
+<tr><td>CELL[0].OUT_BEL[12]</td><td>ICAP.O[8]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[13]</td><td>ICAP.O9</td></tr>
+<tr><td>CELL[0].OUT_BEL[13]</td><td>ICAP.O[9]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[14]</td><td>ICAP.O10</td></tr>
+<tr><td>CELL[0].OUT_BEL[14]</td><td>ICAP.O[10]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[15]</td><td>ICAP.O11</td></tr>
+<tr><td>CELL[0].OUT_BEL[15]</td><td>ICAP.O[11]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[16]</td><td>ICAP.O12</td></tr>
+<tr><td>CELL[0].OUT_BEL[16]</td><td>ICAP.O[12]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[17]</td><td>ICAP.O13</td></tr>
+<tr><td>CELL[0].OUT_BEL[17]</td><td>ICAP.O[13]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[18]</td><td>ICAP.O14</td></tr>
+<tr><td>CELL[0].OUT_BEL[18]</td><td>ICAP.O[14]</td></tr>
 
-<tr><td>CELL[0].OUT_BEL[19]</td><td>ICAP.O15</td></tr>
+<tr><td>CELL[0].OUT_BEL[19]</td><td>ICAP.O[15]</td></tr>
 
 <tr><td>CELL[1].IMUX_CLK[0]</td><td>SUSPEND_SYNC.CLK</td></tr>
 
@@ -572,7 +847,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][63]" title="MAIN[0][22][63]">
+<a href="#spartan6-CNR_SE-MISC_SE-DONE_PULL[0]">MISC_SE:  DONE_PULL bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -638,7 +915,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][61]" title="MAIN[0][22][61]">
+<a href="#spartan6-CNR_SE-MISC_SE-CMP_CS_PULL[0]">MISC_SE:  CMP_CS_PULL bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -671,7 +950,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][60]" title="MAIN[0][22][60]">
+<a href="#spartan6-CNR_SE-MISC_SE-CMP_CS_PULL[1]">MISC_SE:  CMP_CS_PULL bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -704,7 +985,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][59]" title="MAIN[0][22][59]">
+<a href="#spartan6-CNR_SE-MISC_SE-MOSI2_PULL[0]">MISC_SE:  MOSI2_PULL bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -737,7 +1020,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][58]" title="MAIN[0][22][58]">
+<a href="#spartan6-CNR_SE-MISC_SE-MOSI2_PULL[1]">MISC_SE:  MOSI2_PULL bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -770,7 +1055,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][57]" title="MAIN[0][22][57]">
+<a href="#spartan6-CNR_SE-MISC_SE-CCLK2_PULL[0]">MISC_SE:  CCLK2_PULL bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -803,7 +1090,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][56]" title="MAIN[0][22][56]">
+<a href="#spartan6-CNR_SE-MISC_SE-CCLK2_PULL[1]">MISC_SE:  CCLK2_PULL bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -869,7 +1158,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][54]" title="MAIN[0][22][54]">
+<a href="#spartan6-CNR_SE-OCT_CAL[1]-ACCESS_MODE[0]">OCT_CAL[1]:  ACCESS_MODE bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -902,7 +1193,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][53]" title="MAIN[0][22][53]">
+<a href="#spartan6-CNR_SE-OCT_CAL[1]-VREF_VALUE[1]">OCT_CAL[1]:  VREF_VALUE bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -935,7 +1228,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][52]" title="MAIN[0][22][52]">
+<a href="#spartan6-CNR_SE-OCT_CAL[1]-VREF_VALUE[0]">OCT_CAL[1]:  VREF_VALUE bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -968,7 +1263,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[0][22][51]" title="MAIN[0][22][51]">
+<a href="#spartan6-CNR_SE-MISC_SE-GLUTMASK_IOB">MISC_SE:  GLUTMASK_IOB</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4381,7 +4678,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][13]" title="MAIN[1][22][13]">
+<a href="#spartan6-CNR_SE-MISR_CNR_H-RESET">MISR_CNR_H:  RESET</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4414,7 +4713,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][12]" title="MAIN[1][22][12]">
+<a href="#spartan6-CNR_SE-MISR_CNR_H-ENABLE">MISR_CNR_H:  ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4447,7 +4748,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][11]" title="MAIN[1][22][11]">
+<a href="#spartan6-CNR_SE-MISR_CNR_V-RESET">MISR_CNR_V:  RESET</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4480,7 +4783,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][10]" title="MAIN[1][22][10]">
+<a href="#spartan6-CNR_SE-MISR_CNR_V-ENABLE">MISR_CNR_V:  ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4513,7 +4818,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][9]" title="MAIN[1][22][9]">
+<a href="#spartan6-CNR_SE-STARTUP-KEYCLEARB_ENABLE">STARTUP:  KEYCLEARB_ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4546,7 +4853,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][8]" title="MAIN[1][22][8]">
+<a href="#spartan6-CNR_SE-ICAP-ENABLE">ICAP:  ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4579,7 +4888,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][7]" title="MAIN[1][22][7]">
+<a href="#spartan6-CNR_SE-SPI_ACCESS-ENABLE">SPI_ACCESS:  ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4612,7 +4923,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][6]" title="MAIN[1][22][6]">
+<a href="#spartan6-CNR_SE-STARTUP-GTS_SYNC">STARTUP:  GTS_SYNC</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4645,7 +4958,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][5]" title="MAIN[1][22][5]">
+<a href="#spartan6-CNR_SE-STARTUP-GSR_SYNC">STARTUP:  GSR_SYNC</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4678,7 +4993,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][4]" title="MAIN[1][22][4]">
+<a href="#spartan6-CNR_SE-STARTUP-USER_GTS_GSR_ENABLE">STARTUP:  USER_GTS_GSR_ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4744,7 +5061,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][2]" title="MAIN[1][22][2]">
+<a href="#spartan6-CNR_SE-SUSPEND_SYNC-ENABLE">SUSPEND_SYNC:  ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4777,7 +5096,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][1]" title="MAIN[1][22][1]">
+<a href="#spartan6-CNR_SE-STARTUP-CFGMCLK_ENABLE">STARTUP:  CFGMCLK_ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4810,86 +5131,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan6 CNR_SE rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="23">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-<th>F6</th>
-<th>F7</th>
-<th>F8</th>
-<th>F9</th>
-<th>F10</th>
-<th>F11</th>
-<th>F12</th>
-<th>F13</th>
-<th>F14</th>
-<th>F15</th>
-<th>F16</th>
-<th>F17</th>
-<th>F18</th>
-<th>F19</th>
-<th>F20</th>
-<th>F21</th>
-<th>F22</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B63</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B63">
-<a href="#tile-spartan6-CNR_SE-MISC:DONEPIN">MISC:DONEPIN[0]</a>
+<td id="spartan6-CNR_SE-bit-MAIN[1][22][0]" title="MAIN[1][22][0]">
+<a href="#spartan6-CNR_SE-STARTUP-CFGCLK_ENABLE">STARTUP:  CFGCLK_ENABLE</a>
 </td>
-</tr>
-
-<tr><td>B62</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -4897,2280 +5141,6 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B61</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B61">
-<a href="#tile-spartan6-CNR_SE-MISC:SS_BPIN">MISC:SS_BPIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B60</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B60">
-<a href="#tile-spartan6-CNR_SE-MISC:SS_BPIN">MISC:SS_BPIN[1]</a>
-</td>
-</tr>
-
-<tr><td>B59</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B59">
-<a href="#tile-spartan6-CNR_SE-MISC:MOSI2PIN">MISC:MOSI2PIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B58</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B58">
-<a href="#tile-spartan6-CNR_SE-MISC:MOSI2PIN">MISC:MOSI2PIN[1]</a>
-</td>
-</tr>
-
-<tr><td>B57</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B57">
-<a href="#tile-spartan6-CNR_SE-MISC:CCLK2PIN">MISC:CCLK2PIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B56</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B56">
-<a href="#tile-spartan6-CNR_SE-MISC:CCLK2PIN">MISC:CCLK2PIN[1]</a>
-</td>
-</tr>
-
-<tr><td>B55</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B54</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B54">
-<a href="#tile-spartan6-CNR_SE-OCT_CAL[1]:ACCESS_MODE">OCT_CAL[1]:ACCESS_MODE[0]</a>
-</td>
-</tr>
-
-<tr><td>B53</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B53">
-<a href="#tile-spartan6-CNR_SE-OCT_CAL1:VREF_VALUE">OCT_CAL1:VREF_VALUE[1]</a>
-</td>
-</tr>
-
-<tr><td>B52</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B52">
-<a href="#tile-spartan6-CNR_SE-OCT_CAL1:VREF_VALUE">OCT_CAL1:VREF_VALUE[0]</a>
-</td>
-</tr>
-
-<tr><td>B51</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B51">
-<a href="#tile-spartan6-CNR_SE-MISC:GLUTMASK_IOB">MISC:GLUTMASK_IOB</a>
-</td>
-</tr>
-
-<tr><td>B50</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B49</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B48</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B47</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B46</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B45</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B44</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B43</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B42</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B41</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B40</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B39</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B38</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B37</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B36</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B35</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B34</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B33</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B32</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B31</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B30</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B29</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B28</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B27</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B26</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<caption>spartan6 CNR_SE rect R1</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="23">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-<th>F6</th>
-<th>F7</th>
-<th>F8</th>
-<th>F9</th>
-<th>F10</th>
-<th>F11</th>
-<th>F12</th>
-<th>F13</th>
-<th>F14</th>
-<th>F15</th>
-<th>F16</th>
-<th>F17</th>
-<th>F18</th>
-<th>F19</th>
-<th>F20</th>
-<th>F21</th>
-<th>F22</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B13">
-<a href="#tile-spartan6-CNR_SE-MISC:MISR_H_RESET">MISC:MISR_H_RESET</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B12">
-<a href="#tile-spartan6-CNR_SE-MISC:MISR_H_ENABLE">MISC:MISR_H_ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B11">
-<a href="#tile-spartan6-CNR_SE-MISC:MISR_V_RESET">MISC:MISR_V_RESET</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B10">
-<a href="#tile-spartan6-CNR_SE-MISC:MISR_V_ENABLE">MISC:MISR_V_ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B9">
-<a href="#tile-spartan6-CNR_SE-STARTUP:PIN.KEYCLEARB">STARTUP:PIN.KEYCLEARB</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B8">
-<a href="#tile-spartan6-CNR_SE-ICAP:ENABLE">ICAP:ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B7">
-<a href="#tile-spartan6-CNR_SE-SPI_ACCESS:ENABLE">SPI_ACCESS:ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B6">
-<a href="#tile-spartan6-CNR_SE-STARTUP:GTS_SYNC">STARTUP:GTS_SYNC</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B5">
-<a href="#tile-spartan6-CNR_SE-STARTUP:GSR_SYNC">STARTUP:GSR_SYNC</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B4">
-<a href="#tile-spartan6-CNR_SE-STARTUP:GTS_GSR_ENABLE">STARTUP:GTS_GSR_ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B2">
-<a href="#tile-spartan6-CNR_SE-SUSPEND_SYNC:ENABLE">SUSPEND_SYNC:ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B1">
-<a href="#tile-spartan6-CNR_SE-STARTUP:PIN.CFGMCLK">STARTUP:PIN.CFGMCLK</a>
-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R1.F22.B0">
-<a href="#tile-spartan6-CNR_SE-STARTUP:PIN.CFGCLK">STARTUP:PIN.CFGCLK</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SE-ICAP:ENABLE">ICAP:ENABLE</th>
-<th>1.F22.B8</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-MISC:GLUTMASK_IOB">MISC:GLUTMASK_IOB</th>
-<th>0.F22.B51</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-MISC:MISR_H_ENABLE">MISC:MISR_H_ENABLE</th>
-<th>1.F22.B12</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-MISC:MISR_H_RESET">MISC:MISR_H_RESET</th>
-<th>1.F22.B13</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-MISC:MISR_V_ENABLE">MISC:MISR_V_ENABLE</th>
-<th>1.F22.B10</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-MISC:MISR_V_RESET">MISC:MISR_V_RESET</th>
-<th>1.F22.B11</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-SPI_ACCESS:ENABLE">SPI_ACCESS:ENABLE</th>
-<th>1.F22.B7</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-STARTUP:GSR_SYNC">STARTUP:GSR_SYNC</th>
-<th>1.F22.B5</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-STARTUP:GTS_GSR_ENABLE">STARTUP:GTS_GSR_ENABLE</th>
-<th>1.F22.B4</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-STARTUP:GTS_SYNC">STARTUP:GTS_SYNC</th>
-<th>1.F22.B6</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-STARTUP:PIN.CFGCLK">STARTUP:PIN.CFGCLK</th>
-<th>1.F22.B0</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-STARTUP:PIN.CFGMCLK">STARTUP:PIN.CFGMCLK</th>
-<th>1.F22.B1</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-STARTUP:PIN.KEYCLEARB">STARTUP:PIN.KEYCLEARB</th>
-<th>1.F22.B9</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-SUSPEND_SYNC:ENABLE">SUSPEND_SYNC:ENABLE</th>
-<th>1.F22.B2</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SE-MISC:CCLK2PIN">MISC:CCLK2PIN</th>
-<th>0.F22.B56</th>
-<th>0.F22.B57</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-MISC:MOSI2PIN">MISC:MOSI2PIN</th>
-<th>0.F22.B58</th>
-<th>0.F22.B59</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SE-MISC:SS_BPIN">MISC:SS_BPIN</th>
-<th>0.F22.B60</th>
-<th>0.F22.B61</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PULLDOWN</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SE-MISC:DONEPIN">MISC:DONEPIN</th>
-<th>0.F22.B63</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SE-OCT_CAL1:VREF_VALUE">OCT_CAL1:VREF_VALUE</th>
-<th>0.F22.B53</th>
-<th>0.F22.B52</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>0.25</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>0.75</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>0.5</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SE-OCT_CAL[1]:ACCESS_MODE">OCT_CAL[1]:ACCESS_MODE</th>
-<th>0.F22.B54</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>STATIC</td>
-<td>0</td>
-</tr>
-
-<tr><td>USER</td>
-<td>1</td>
 </tr>
 
 </tbody>

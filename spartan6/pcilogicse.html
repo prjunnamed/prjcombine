@@ -154,21 +154,113 @@
                         <h1 id="hard-pci-logic"><a class="header" href="#hard-pci-logic">Hard PCI logic</a></h1>
 <h2 id="tile-pcilogicse"><a class="header" href="#tile-pcilogicse">Tile PCILOGICSE</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-pcilogicse"><a class="header" href="#bel-pcilogicse">Bel PCILOGICSE</a></h3>
+<h3 id="bels-pcilogicse"><a class="header" href="#bels-pcilogicse">Bels PCILOGICSE</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 PCILOGICSE bel PCILOGICSE</caption>
+<caption>spartan6 PCILOGICSE bel PCILOGICSE pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>PCILOGICSE</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>I1</td><td>input</td><td>IMUX_LOGICIN[24]</td></tr>
+<tr><td>I1</td><td>in</td><td>IMUX_LOGICIN[24]</td></tr>
 
-<tr><td>I2</td><td>input</td><td>IMUX_LOGICIN[7]</td></tr>
+<tr><td>I2</td><td>in</td><td>IMUX_LOGICIN[7]</td></tr>
 
-<tr><td>I3</td><td>input</td><td>IMUX_LOGICIN[5]</td></tr>
+<tr><td>I3</td><td>in</td><td>IMUX_LOGICIN[5]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 PCILOGICSE bel PCILOGICSE attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>PCILOGICSE</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>ENABLE</td><td id="spartan6-PCILOGICSE-PCILOGICSE-ENABLE"><a href="#spartan6-PCILOGICSE-bit-MAIN[22][5]">MAIN[22][5]</a></td></tr>
+
+<tr><td>PCI_CE_DELAY</td><td><a href="#spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY">[enum: PCILOGICSE_PCI_CE_DELAY]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 PCILOGICSE enum PCILOGICSE_PCI_CE_DELAY</caption>
+<thead>
+<tr id="spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY"><th>PCILOGICSE.PCI_CE_DELAY</th><td id="spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY[4]"><a href="#spartan6-PCILOGICSE-bit-MAIN[22][4]">MAIN[22][4]</a></td><td id="spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY[3]"><a href="#spartan6-PCILOGICSE-bit-MAIN[22][3]">MAIN[22][3]</a></td><td id="spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY[2]"><a href="#spartan6-PCILOGICSE-bit-MAIN[22][2]">MAIN[22][2]</a></td><td id="spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY[1]"><a href="#spartan6-PCILOGICSE-bit-MAIN[22][1]">MAIN[22][1]</a></td><td id="spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY[0]"><a href="#spartan6-PCILOGICSE-bit-MAIN[22][0]">MAIN[22][0]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>TAP2</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>TAP3</td><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>TAP4</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>TAP5</td><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>TAP6</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>TAP7</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>TAP8</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>TAP9</td><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+
+<tr><td>TAP10</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>TAP11</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>TAP12</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>TAP13</td><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>TAP14</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>TAP15</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>TAP16</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>TAP17</td><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+
+<tr><td>TAP18</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>TAP19</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>TAP20</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>TAP21</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>TAP22</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>TAP23</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>TAP24</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>TAP25</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+
+<tr><td>TAP26</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>TAP27</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>TAP28</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>TAP29</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>TAP30</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>TAP31</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
 
 </tbody>
 
@@ -2176,7 +2268,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-PCILOGICSE-bit-MAIN[22][5]" title="MAIN[22][5]">
+<a href="#spartan6-PCILOGICSE-PCILOGICSE-ENABLE">PCILOGICSE:  ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2209,7 +2303,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-PCILOGICSE-bit-MAIN[22][4]" title="MAIN[22][4]">
+<a href="#spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY[4]">PCILOGICSE:  PCI_CE_DELAY bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2242,7 +2338,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-PCILOGICSE-bit-MAIN[22][3]" title="MAIN[22][3]">
+<a href="#spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY[3]">PCILOGICSE:  PCI_CE_DELAY bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2275,7 +2373,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-PCILOGICSE-bit-MAIN[22][2]" title="MAIN[22][2]">
+<a href="#spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY[2]">PCILOGICSE:  PCI_CE_DELAY bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2308,7 +2408,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-PCILOGICSE-bit-MAIN[22][1]" title="MAIN[22][1]">
+<a href="#spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY[1]">PCILOGICSE:  PCI_CE_DELAY bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2341,587 +2443,31 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan6 PCILOGICSE rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="23">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-<th>F6</th>
-<th>F7</th>
-<th>F8</th>
-<th>F9</th>
-<th>F10</th>
-<th>F11</th>
-<th>F12</th>
-<th>F13</th>
-<th>F14</th>
-<th>F15</th>
-<th>F16</th>
-<th>F17</th>
-<th>F18</th>
-<th>F19</th>
-<th>F20</th>
-<th>F21</th>
-<th>F22</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B5">
-<a href="#tile-spartan6-PCILOGICSE-PCILOGICSE:ENABLE">PCILOGICSE:ENABLE</a>
+<td id="spartan6-PCILOGICSE-bit-MAIN[22][0]" title="MAIN[22][0]">
+<a href="#spartan6-PCILOGICSE-PCILOGICSE-PCI_CE_DELAY[0]">PCILOGICSE:  PCI_CE_DELAY bit 0</a>
 </td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B4">
-<a href="#tile-spartan6-PCILOGICSE-PCILOGICSE:PCI_CE_DELAY">PCILOGICSE:PCI_CE_DELAY[4]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B3">
-<a href="#tile-spartan6-PCILOGICSE-PCILOGICSE:PCI_CE_DELAY">PCILOGICSE:PCI_CE_DELAY[3]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B2">
-<a href="#tile-spartan6-PCILOGICSE-PCILOGICSE:PCI_CE_DELAY">PCILOGICSE:PCI_CE_DELAY[2]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B1">
-<a href="#tile-spartan6-PCILOGICSE-PCILOGICSE:PCI_CE_DELAY">PCILOGICSE:PCI_CE_DELAY[1]</a>
-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F22.B0">
-<a href="#tile-spartan6-PCILOGICSE-PCILOGICSE:PCI_CE_DELAY">PCILOGICSE:PCI_CE_DELAY[0]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-PCILOGICSE-PCILOGICSE:ENABLE">PCILOGICSE:ENABLE</th>
-<th>0.F22.B5</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-PCILOGICSE-PCILOGICSE:PCI_CE_DELAY">PCILOGICSE:PCI_CE_DELAY</th>
-<th>0.F22.B4</th>
-<th>0.F22.B3</th>
-<th>0.F22.B2</th>
-<th>0.F22.B1</th>
-<th>0.F22.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>TAP31</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP30</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP29</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP28</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP27</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP26</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP25</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP24</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP23</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP22</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP21</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP20</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP19</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP18</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP17</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP16</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP15</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP14</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP13</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP12</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP11</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP10</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP9</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP8</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP7</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP6</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP5</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP4</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TAP3</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>TAP2</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-pci_ce_trunk_buf"><a class="header" href="#tile-pci_ce_trunk_buf">Tile PCI_CE_TRUNK_BUF</a></h2>
-<p>Cells: 0</p>
-<h3 id="bel-pci_ce_trunk_buf"><a class="header" href="#bel-pci_ce_trunk_buf">Bel PCI_CE_TRUNK_BUF</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 PCI_CE_TRUNK_BUF bel PCI_CE_TRUNK_BUF</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-pci_ce_split"><a class="header" href="#tile-pci_ce_split">Tile PCI_CE_SPLIT</a></h2>
-<p>Cells: 0</p>
-<h3 id="bel-pci_ce_split"><a class="header" href="#bel-pci_ce_split">Bel PCI_CE_SPLIT</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 PCI_CE_SPLIT bel PCI_CE_SPLIT</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-pci_ce_h_buf"><a class="header" href="#tile-pci_ce_h_buf">Tile PCI_CE_H_BUF</a></h2>
-<p>Cells: 0</p>
-<h3 id="bel-pci_ce_h_buf"><a class="header" href="#bel-pci_ce_h_buf">Bel PCI_CE_H_BUF</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 PCI_CE_H_BUF bel PCI_CE_H_BUF</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-pci_ce_v_buf"><a class="header" href="#tile-pci_ce_v_buf">Tile PCI_CE_V_BUF</a></h2>
-<p>Cells: 0</p>
-<h3 id="bel-pci_ce_v_buf"><a class="header" href="#bel-pci_ce_v_buf">Bel PCI_CE_V_BUF</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 PCI_CE_V_BUF bel PCI_CE_V_BUF</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
 </tbody>
 
 </table>
 </div>
 
 <h2 id="pci_ce_delay"><a class="header" href="#pci_ce_delay"><code>PCI_CE_DELAY</code></a></h2>
+<h2 id="device-data-pci-ce-delay"><a class="header" href="#device-data-pci-ce-delay">Device data pci-ce-delay</a></h2>
 <div class="table-wrapper">
 <table>
+<caption>spartan6 device data pci-ce-delay</caption>
 <thead>
-<tr><th rowspan="2">Device</th>
-<th rowspan="2">PCI_CE_DELAY</th>
-</tr>
-
-<tr>
+<tr><th>Device</th>
+<th>PCILOGICSE_PCI_CE_DELAY</th>
 </tr>
 
 </thead>

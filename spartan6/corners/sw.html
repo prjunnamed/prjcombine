@@ -154,38 +154,302 @@
                         <h1 id="south-west"><a class="header" href="#south-west">South-west</a></h1>
 <h2 id="tile-cnr_sw"><a class="header" href="#tile-cnr_sw">Tile CNR_SW</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-oct_cal2"><a class="header" href="#bel-oct_cal2">Bel OCT_CAL[2]</a></h3>
+<h3 id="bels-oct_cal"><a class="header" href="#bels-oct_cal">Bels OCT_CAL</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 CNR_SW bel OCT_CAL[2]</caption>
+<caption>spartan6 CNR_SW bel OCT_CAL pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>OCT_CAL[2]</th><th>OCT_CAL[3]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>S0</td><td>input</td><td>IMUX_LOGICIN[29]</td></tr>
+<tr><td>S[0]</td><td>in</td><td>IMUX_LOGICIN[29]</td><td>IMUX_LOGICIN[15]</td></tr>
 
-<tr><td>S1</td><td>input</td><td>IMUX_LOGICIN[32]</td></tr>
+<tr><td>S[1]</td><td>in</td><td>IMUX_LOGICIN[32]</td><td>IMUX_LOGICIN[7]</td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-oct_cal3"><a class="header" href="#bel-oct_cal3">Bel OCT_CAL[3]</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 CNR_SW bel OCT_CAL[3]</caption>
+<caption>spartan6 CNR_SW bel OCT_CAL attribute bits</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Attribute</th><th>OCT_CAL[2]</th><th>OCT_CAL[3]</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>S0</td><td>input</td><td>IMUX_LOGICIN[15]</td></tr>
+<tr><td>VREF_VALUE</td><td><a href="#spartan6-CNR_SW-OCT_CAL[2]-VREF_VALUE">[enum: OCT_CAL_VREF_VALUE]</a></td><td><a href="#spartan6-CNR_SW-OCT_CAL[3]-VREF_VALUE">[enum: OCT_CAL_VREF_VALUE]</a></td></tr>
 
-<tr><td>S1</td><td>input</td><td>IMUX_LOGICIN[7]</td></tr>
+<tr><td>ACCESS_MODE</td><td><a href="#spartan6-CNR_SW-OCT_CAL[2]-ACCESS_MODE">[enum: OCT_CAL_ACCESS_MODE]</a></td><td><a href="#spartan6-CNR_SW-OCT_CAL[3]-ACCESS_MODE">[enum: OCT_CAL_ACCESS_MODE]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SW enum OCT_CAL_VREF_VALUE</caption>
+<thead>
+<tr id="spartan6-CNR_SW-OCT_CAL[2]-VREF_VALUE"><th>OCT_CAL[2].VREF_VALUE</th><td id="spartan6-CNR_SW-OCT_CAL[2]-VREF_VALUE[1]"><a href="#spartan6-CNR_SW-bit-MAIN[23][28]">MAIN[23][28]</a></td><td id="spartan6-CNR_SW-OCT_CAL[2]-VREF_VALUE[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][27]">MAIN[23][27]</a></td></tr>
+
+<tr id="spartan6-CNR_SW-OCT_CAL[3]-VREF_VALUE"><th>OCT_CAL[3].VREF_VALUE</th><td id="spartan6-CNR_SW-OCT_CAL[3]-VREF_VALUE[1]"><a href="#spartan6-CNR_SW-bit-MAIN[23][25]">MAIN[23][25]</a></td><td id="spartan6-CNR_SW-OCT_CAL[3]-VREF_VALUE[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][24]">MAIN[23][24]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>0</td></tr>
+
+<tr><td>_0P25</td><td>0</td><td>1</td></tr>
+
+<tr><td>_0P5</td><td>1</td><td>1</td></tr>
+
+<tr><td>_0P75</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SW enum OCT_CAL_ACCESS_MODE</caption>
+<thead>
+<tr id="spartan6-CNR_SW-OCT_CAL[2]-ACCESS_MODE"><th>OCT_CAL[2].ACCESS_MODE</th><td id="spartan6-CNR_SW-OCT_CAL[2]-ACCESS_MODE[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][63]">MAIN[23][63]</a></td></tr>
+
+<tr id="spartan6-CNR_SW-OCT_CAL[3]-ACCESS_MODE"><th>OCT_CAL[3].ACCESS_MODE</th><td id="spartan6-CNR_SW-OCT_CAL[3]-ACCESS_MODE[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][62]">MAIN[23][62]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>STATIC</td><td>0</td></tr>
+
+<tr><td>USER</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misr"><a class="header" href="#bels-misr">Bels MISR</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SW bel MISR pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISR_CNR_H</th><th>MISR_CNR_V</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SW bel MISR attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISR_CNR_H</th><th>MISR_CNR_V</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>ENABLE</td><td id="spartan6-CNR_SW-MISR_CNR_H-ENABLE"><a href="#spartan6-CNR_SW-bit-MAIN[23][22]">MAIN[23][22]</a></td><td id="spartan6-CNR_SW-MISR_CNR_V-ENABLE"><a href="#spartan6-CNR_SW-bit-MAIN[23][20]">MAIN[23][20]</a></td></tr>
+
+<tr><td>RESET</td><td id="spartan6-CNR_SW-MISR_CNR_H-RESET"><a href="#spartan6-CNR_SW-bit-MAIN[23][23]">MAIN[23][23]</a></td><td id="spartan6-CNR_SW-MISR_CNR_V-RESET"><a href="#spartan6-CNR_SW-bit-MAIN[23][21]">MAIN[23][21]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-bank"><a class="header" href="#bels-bank">Bels BANK</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SW bel BANK pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>BANK[2]</th><th>BANK[3]</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SW bel BANK attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>BANK[2]</th><th>BANK[3]</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>LVDSBIAS[0] bit 0</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][29]">MAIN[23][29]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 1</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][1]"><a href="#spartan6-CNR_SW-bit-MAIN[23][30]">MAIN[23][30]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 2</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][2]"><a href="#spartan6-CNR_SW-bit-MAIN[23][31]">MAIN[23][31]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 3</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][3]"><a href="#spartan6-CNR_SW-bit-MAIN[23][32]">MAIN[23][32]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 4</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][4]"><a href="#spartan6-CNR_SW-bit-MAIN[23][33]">MAIN[23][33]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 5</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][5]"><a href="#spartan6-CNR_SW-bit-MAIN[23][34]">MAIN[23][34]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 6</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][6]"><a href="#spartan6-CNR_SW-bit-MAIN[23][35]">MAIN[23][35]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 7</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][7]"><a href="#spartan6-CNR_SW-bit-MAIN[23][36]">MAIN[23][36]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 8</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][8]"><a href="#spartan6-CNR_SW-bit-MAIN[23][37]">MAIN[23][37]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 9</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][9]"><a href="#spartan6-CNR_SW-bit-MAIN[23][38]">MAIN[23][38]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 10</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][10]"><a href="#spartan6-CNR_SW-bit-MAIN[23][39]">MAIN[23][39]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[0] bit 11</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][11]"><a href="#spartan6-CNR_SW-bit-MAIN[23][40]">MAIN[23][40]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 0</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][41]">MAIN[23][41]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 1</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][1]"><a href="#spartan6-CNR_SW-bit-MAIN[23][42]">MAIN[23][42]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 2</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][2]"><a href="#spartan6-CNR_SW-bit-MAIN[23][43]">MAIN[23][43]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 3</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][3]"><a href="#spartan6-CNR_SW-bit-MAIN[23][44]">MAIN[23][44]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 4</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][4]"><a href="#spartan6-CNR_SW-bit-MAIN[23][45]">MAIN[23][45]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 5</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][5]"><a href="#spartan6-CNR_SW-bit-MAIN[23][46]">MAIN[23][46]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 6</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][6]"><a href="#spartan6-CNR_SW-bit-MAIN[23][47]">MAIN[23][47]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 7</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][7]"><a href="#spartan6-CNR_SW-bit-MAIN[23][48]">MAIN[23][48]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 8</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][8]"><a href="#spartan6-CNR_SW-bit-MAIN[23][49]">MAIN[23][49]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 9</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][9]"><a href="#spartan6-CNR_SW-bit-MAIN[23][50]">MAIN[23][50]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 10</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][10]"><a href="#spartan6-CNR_SW-bit-MAIN[23][51]">MAIN[23][51]</a></td><td>-</td></tr>
+
+<tr><td>LVDSBIAS[1] bit 11</td><td id="spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][11]"><a href="#spartan6-CNR_SW-bit-MAIN[23][52]">MAIN[23][52]</a></td><td>-</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misc_sw"><a class="header" href="#bels-misc_sw">Bels MISC_SW</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SW bel MISC_SW pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISC_SW</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SW bel MISC_SW attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISC_SW</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>PROG_PULL</td><td><a href="#spartan6-CNR_SW-MISC_SW-PROG_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>MISO2_PULL</td><td><a href="#spartan6-CNR_SW-MISC_SW-MISO2_PULL">[enum: IOB_PULL]</a></td></tr>
+
+<tr><td>LEAKER_GAIN_OPTIONS bit 0</td><td id="spartan6-CNR_SW-MISC_SW-LEAKER_GAIN_OPTIONS[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][7]">MAIN[23][7]</a></td></tr>
+
+<tr><td>LEAKER_GAIN_OPTIONS bit 1</td><td id="spartan6-CNR_SW-MISC_SW-LEAKER_GAIN_OPTIONS[1]"><a href="#spartan6-CNR_SW-bit-MAIN[23][6]">MAIN[23][6]</a></td></tr>
+
+<tr><td>LEAKER_GAIN_OPTIONS bit 2</td><td id="spartan6-CNR_SW-MISC_SW-LEAKER_GAIN_OPTIONS[2]"><a href="#spartan6-CNR_SW-bit-MAIN[23][5]">MAIN[23][5]</a></td></tr>
+
+<tr><td>LEAKER_GAIN_OPTIONS bit 3</td><td id="spartan6-CNR_SW-MISC_SW-LEAKER_GAIN_OPTIONS[3]"><a href="#spartan6-CNR_SW-bit-MAIN[23][4]">MAIN[23][4]</a></td></tr>
+
+<tr><td>LEAKER_SLOPE_OPTIONS bit 0</td><td id="spartan6-CNR_SW-MISC_SW-LEAKER_SLOPE_OPTIONS[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][3]">MAIN[23][3]</a></td></tr>
+
+<tr><td>LEAKER_SLOPE_OPTIONS bit 1</td><td id="spartan6-CNR_SW-MISC_SW-LEAKER_SLOPE_OPTIONS[1]"><a href="#spartan6-CNR_SW-bit-MAIN[23][2]">MAIN[23][2]</a></td></tr>
+
+<tr><td>LEAKER_SLOPE_OPTIONS bit 2</td><td id="spartan6-CNR_SW-MISC_SW-LEAKER_SLOPE_OPTIONS[2]"><a href="#spartan6-CNR_SW-bit-MAIN[23][1]">MAIN[23][1]</a></td></tr>
+
+<tr><td>LEAKER_SLOPE_OPTIONS bit 3</td><td id="spartan6-CNR_SW-MISC_SW-LEAKER_SLOPE_OPTIONS[3]"><a href="#spartan6-CNR_SW-bit-MAIN[23][0]">MAIN[23][0]</a></td></tr>
+
+<tr><td>VBG_SLOPE_OPTIONS bit 0</td><td id="spartan6-CNR_SW-MISC_SW-VBG_SLOPE_OPTIONS[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][15]">MAIN[23][15]</a></td></tr>
+
+<tr><td>VBG_SLOPE_OPTIONS bit 1</td><td id="spartan6-CNR_SW-MISC_SW-VBG_SLOPE_OPTIONS[1]"><a href="#spartan6-CNR_SW-bit-MAIN[23][14]">MAIN[23][14]</a></td></tr>
+
+<tr><td>VBG_SLOPE_OPTIONS bit 2</td><td id="spartan6-CNR_SW-MISC_SW-VBG_SLOPE_OPTIONS[2]"><a href="#spartan6-CNR_SW-bit-MAIN[23][13]">MAIN[23][13]</a></td></tr>
+
+<tr><td>VBG_SLOPE_OPTIONS bit 3</td><td id="spartan6-CNR_SW-MISC_SW-VBG_SLOPE_OPTIONS[3]"><a href="#spartan6-CNR_SW-bit-MAIN[23][12]">MAIN[23][12]</a></td></tr>
+
+<tr><td>VGG_SLOPE_OPTIONS bit 0</td><td id="spartan6-CNR_SW-MISC_SW-VGG_SLOPE_OPTIONS[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][11]">MAIN[23][11]</a></td></tr>
+
+<tr><td>VGG_SLOPE_OPTIONS bit 1</td><td id="spartan6-CNR_SW-MISC_SW-VGG_SLOPE_OPTIONS[1]"><a href="#spartan6-CNR_SW-bit-MAIN[23][10]">MAIN[23][10]</a></td></tr>
+
+<tr><td>VGG_SLOPE_OPTIONS bit 2</td><td id="spartan6-CNR_SW-MISC_SW-VGG_SLOPE_OPTIONS[2]"><a href="#spartan6-CNR_SW-bit-MAIN[23][9]">MAIN[23][9]</a></td></tr>
+
+<tr><td>VGG_SLOPE_OPTIONS bit 3</td><td id="spartan6-CNR_SW-MISC_SW-VGG_SLOPE_OPTIONS[3]"><a href="#spartan6-CNR_SW-bit-MAIN[23][8]">MAIN[23][8]</a></td></tr>
+
+<tr><td>VGG_TEST_OPTIONS bit 0</td><td id="spartan6-CNR_SW-MISC_SW-VGG_TEST_OPTIONS[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][18]">MAIN[23][18]</a></td></tr>
+
+<tr><td>VGG_TEST_OPTIONS bit 1</td><td id="spartan6-CNR_SW-MISC_SW-VGG_TEST_OPTIONS[1]"><a href="#spartan6-CNR_SW-bit-MAIN[23][17]">MAIN[23][17]</a></td></tr>
+
+<tr><td>VGG_TEST_OPTIONS bit 2</td><td id="spartan6-CNR_SW-MISC_SW-VGG_TEST_OPTIONS[2]"><a href="#spartan6-CNR_SW-bit-MAIN[23][16]">MAIN[23][16]</a></td></tr>
+
+<tr><td>VGG_COMP_OPTION bit 0</td><td id="spartan6-CNR_SW-MISC_SW-VGG_COMP_OPTION[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][19]">MAIN[23][19]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SW enum IOB_PULL</caption>
+<thead>
+<tr id="spartan6-CNR_SW-MISC_SW-PROG_PULL"><th>MISC_SW.PROG_PULL</th><td id="spartan6-CNR_SW-MISC_SW-PROG_PULL[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][56]">MAIN[23][56]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 CNR_SW enum IOB_PULL</caption>
+<thead>
+<tr id="spartan6-CNR_SW-MISC_SW-MISO2_PULL"><th>MISC_SW.MISO2_PULL</th><td id="spartan6-CNR_SW-MISC_SW-MISO2_PULL[1]"><a href="#spartan6-CNR_SW-bit-MAIN[23][59]">MAIN[23][59]</a></td><td id="spartan6-CNR_SW-MISC_SW-MISO2_PULL[0]"><a href="#spartan6-CNR_SW-bit-MAIN[23][58]">MAIN[23][58]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>1</td></tr>
+
+<tr><td>PULLUP</td><td>0</td><td>0</td></tr>
+
+<tr><td>PULLDOWN</td><td>1</td><td>1</td></tr>
 
 </tbody>
 
@@ -202,13 +466,13 @@
 </thead>
 
 <tbody>
-<tr><td>IMUX_LOGICIN[7]</td><td>OCT_CAL[3].S1</td></tr>
+<tr><td>IMUX_LOGICIN[7]</td><td>OCT_CAL[3].S[1]</td></tr>
 
-<tr><td>IMUX_LOGICIN[15]</td><td>OCT_CAL[3].S0</td></tr>
+<tr><td>IMUX_LOGICIN[15]</td><td>OCT_CAL[3].S[0]</td></tr>
 
-<tr><td>IMUX_LOGICIN[29]</td><td>OCT_CAL[2].S0</td></tr>
+<tr><td>IMUX_LOGICIN[29]</td><td>OCT_CAL[2].S[0]</td></tr>
 
-<tr><td>IMUX_LOGICIN[32]</td><td>OCT_CAL[2].S1</td></tr>
+<tr><td>IMUX_LOGICIN[32]</td><td>OCT_CAL[2].S[1]</td></tr>
 
 </tbody>
 
@@ -282,7 +546,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][63]" title="MAIN[23][63]">
+<a href="#spartan6-CNR_SW-OCT_CAL[2]-ACCESS_MODE[0]">OCT_CAL[2]:  ACCESS_MODE bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -315,7 +581,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][62]" title="MAIN[23][62]">
+<a href="#spartan6-CNR_SW-OCT_CAL[3]-ACCESS_MODE[0]">OCT_CAL[3]:  ACCESS_MODE bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -414,7 +682,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][59]" title="MAIN[23][59]">
+<a href="#spartan6-CNR_SW-MISC_SW-MISO2_PULL[1]">MISC_SW:  MISO2_PULL bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -447,7 +717,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][58]" title="MAIN[23][58]">
+<a href="#spartan6-CNR_SW-MISC_SW-MISO2_PULL[0]">MISC_SW:  MISO2_PULL bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -513,7 +785,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][56]" title="MAIN[23][56]">
+<a href="#spartan6-CNR_SW-MISC_SW-PROG_PULL[0]">MISC_SW:  PROG_PULL bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -645,7 +919,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][52]" title="MAIN[23][52]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][11]">BANK[2]:  LVDSBIAS[1] bit 11</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -678,7 +954,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][51]" title="MAIN[23][51]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][10]">BANK[2]:  LVDSBIAS[1] bit 10</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -711,7 +989,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][50]" title="MAIN[23][50]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][9]">BANK[2]:  LVDSBIAS[1] bit 9</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -744,7 +1024,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][49]" title="MAIN[23][49]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][8]">BANK[2]:  LVDSBIAS[1] bit 8</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -777,7 +1059,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][48]" title="MAIN[23][48]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][7]">BANK[2]:  LVDSBIAS[1] bit 7</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -810,7 +1094,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][47]" title="MAIN[23][47]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][6]">BANK[2]:  LVDSBIAS[1] bit 6</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -843,7 +1129,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][46]" title="MAIN[23][46]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][5]">BANK[2]:  LVDSBIAS[1] bit 5</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -876,7 +1164,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][45]" title="MAIN[23][45]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][4]">BANK[2]:  LVDSBIAS[1] bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -909,7 +1199,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][44]" title="MAIN[23][44]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][3]">BANK[2]:  LVDSBIAS[1] bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -942,7 +1234,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][43]" title="MAIN[23][43]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][2]">BANK[2]:  LVDSBIAS[1] bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -975,7 +1269,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][42]" title="MAIN[23][42]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][1]">BANK[2]:  LVDSBIAS[1] bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1008,7 +1304,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][41]" title="MAIN[23][41]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[1][0]">BANK[2]:  LVDSBIAS[1] bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1041,7 +1339,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][40]" title="MAIN[23][40]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][11]">BANK[2]:  LVDSBIAS[0] bit 11</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1074,7 +1374,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][39]" title="MAIN[23][39]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][10]">BANK[2]:  LVDSBIAS[0] bit 10</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1107,7 +1409,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][38]" title="MAIN[23][38]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][9]">BANK[2]:  LVDSBIAS[0] bit 9</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1140,7 +1444,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][37]" title="MAIN[23][37]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][8]">BANK[2]:  LVDSBIAS[0] bit 8</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1173,7 +1479,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][36]" title="MAIN[23][36]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][7]">BANK[2]:  LVDSBIAS[0] bit 7</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1206,7 +1514,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][35]" title="MAIN[23][35]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][6]">BANK[2]:  LVDSBIAS[0] bit 6</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1239,7 +1549,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][34]" title="MAIN[23][34]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][5]">BANK[2]:  LVDSBIAS[0] bit 5</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1272,7 +1584,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][33]" title="MAIN[23][33]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][4]">BANK[2]:  LVDSBIAS[0] bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1305,7 +1619,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][32]" title="MAIN[23][32]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][3]">BANK[2]:  LVDSBIAS[0] bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1338,7 +1654,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][31]" title="MAIN[23][31]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][2]">BANK[2]:  LVDSBIAS[0] bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1371,7 +1689,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][30]" title="MAIN[23][30]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][1]">BANK[2]:  LVDSBIAS[0] bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1404,7 +1724,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][29]" title="MAIN[23][29]">
+<a href="#spartan6-CNR_SW-BANK[2]-LVDSBIAS[0][0]">BANK[2]:  LVDSBIAS[0] bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1437,7 +1759,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][28]" title="MAIN[23][28]">
+<a href="#spartan6-CNR_SW-OCT_CAL[2]-VREF_VALUE[1]">OCT_CAL[2]:  VREF_VALUE bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1470,7 +1794,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][27]" title="MAIN[23][27]">
+<a href="#spartan6-CNR_SW-OCT_CAL[2]-VREF_VALUE[0]">OCT_CAL[2]:  VREF_VALUE bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1536,7 +1862,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][25]" title="MAIN[23][25]">
+<a href="#spartan6-CNR_SW-OCT_CAL[3]-VREF_VALUE[1]">OCT_CAL[3]:  VREF_VALUE bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1569,7 +1897,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][24]" title="MAIN[23][24]">
+<a href="#spartan6-CNR_SW-OCT_CAL[3]-VREF_VALUE[0]">OCT_CAL[3]:  VREF_VALUE bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1602,7 +1932,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][23]" title="MAIN[23][23]">
+<a href="#spartan6-CNR_SW-MISR_CNR_H-RESET">MISR_CNR_H:  RESET</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1635,7 +1967,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][22]" title="MAIN[23][22]">
+<a href="#spartan6-CNR_SW-MISR_CNR_H-ENABLE">MISR_CNR_H:  ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1668,7 +2002,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][21]" title="MAIN[23][21]">
+<a href="#spartan6-CNR_SW-MISR_CNR_V-RESET">MISR_CNR_V:  RESET</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1701,7 +2037,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][20]" title="MAIN[23][20]">
+<a href="#spartan6-CNR_SW-MISR_CNR_V-ENABLE">MISR_CNR_V:  ENABLE</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1734,7 +2072,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][19]" title="MAIN[23][19]">
+<a href="#spartan6-CNR_SW-MISC_SW-VGG_COMP_OPTION[0]">MISC_SW:  VGG_COMP_OPTION bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1767,7 +2107,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][18]" title="MAIN[23][18]">
+<a href="#spartan6-CNR_SW-MISC_SW-VGG_TEST_OPTIONS[0]">MISC_SW:  VGG_TEST_OPTIONS bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1800,7 +2142,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][17]" title="MAIN[23][17]">
+<a href="#spartan6-CNR_SW-MISC_SW-VGG_TEST_OPTIONS[1]">MISC_SW:  VGG_TEST_OPTIONS bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1833,7 +2177,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][16]" title="MAIN[23][16]">
+<a href="#spartan6-CNR_SW-MISC_SW-VGG_TEST_OPTIONS[2]">MISC_SW:  VGG_TEST_OPTIONS bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1866,7 +2212,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][15]" title="MAIN[23][15]">
+<a href="#spartan6-CNR_SW-MISC_SW-VBG_SLOPE_OPTIONS[0]">MISC_SW:  VBG_SLOPE_OPTIONS bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1899,7 +2247,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][14]" title="MAIN[23][14]">
+<a href="#spartan6-CNR_SW-MISC_SW-VBG_SLOPE_OPTIONS[1]">MISC_SW:  VBG_SLOPE_OPTIONS bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1932,7 +2282,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][13]" title="MAIN[23][13]">
+<a href="#spartan6-CNR_SW-MISC_SW-VBG_SLOPE_OPTIONS[2]">MISC_SW:  VBG_SLOPE_OPTIONS bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1965,7 +2317,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][12]" title="MAIN[23][12]">
+<a href="#spartan6-CNR_SW-MISC_SW-VBG_SLOPE_OPTIONS[3]">MISC_SW:  VBG_SLOPE_OPTIONS bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1998,7 +2352,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][11]" title="MAIN[23][11]">
+<a href="#spartan6-CNR_SW-MISC_SW-VGG_SLOPE_OPTIONS[0]">MISC_SW:  VGG_SLOPE_OPTIONS bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2031,7 +2387,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][10]" title="MAIN[23][10]">
+<a href="#spartan6-CNR_SW-MISC_SW-VGG_SLOPE_OPTIONS[1]">MISC_SW:  VGG_SLOPE_OPTIONS bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2064,7 +2422,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][9]" title="MAIN[23][9]">
+<a href="#spartan6-CNR_SW-MISC_SW-VGG_SLOPE_OPTIONS[2]">MISC_SW:  VGG_SLOPE_OPTIONS bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2097,7 +2457,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][8]" title="MAIN[23][8]">
+<a href="#spartan6-CNR_SW-MISC_SW-VGG_SLOPE_OPTIONS[3]">MISC_SW:  VGG_SLOPE_OPTIONS bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2130,7 +2492,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][7]" title="MAIN[23][7]">
+<a href="#spartan6-CNR_SW-MISC_SW-LEAKER_GAIN_OPTIONS[0]">MISC_SW:  LEAKER_GAIN_OPTIONS bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2163,7 +2527,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][6]" title="MAIN[23][6]">
+<a href="#spartan6-CNR_SW-MISC_SW-LEAKER_GAIN_OPTIONS[1]">MISC_SW:  LEAKER_GAIN_OPTIONS bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2196,7 +2562,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][5]" title="MAIN[23][5]">
+<a href="#spartan6-CNR_SW-MISC_SW-LEAKER_GAIN_OPTIONS[2]">MISC_SW:  LEAKER_GAIN_OPTIONS bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2229,7 +2597,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][4]" title="MAIN[23][4]">
+<a href="#spartan6-CNR_SW-MISC_SW-LEAKER_GAIN_OPTIONS[3]">MISC_SW:  LEAKER_GAIN_OPTIONS bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2262,7 +2632,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][3]" title="MAIN[23][3]">
+<a href="#spartan6-CNR_SW-MISC_SW-LEAKER_SLOPE_OPTIONS[0]">MISC_SW:  LEAKER_SLOPE_OPTIONS bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2295,7 +2667,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][2]" title="MAIN[23][2]">
+<a href="#spartan6-CNR_SW-MISC_SW-LEAKER_SLOPE_OPTIONS[1]">MISC_SW:  LEAKER_SLOPE_OPTIONS bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2328,7 +2702,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan6-CNR_SW-bit-MAIN[23][1]" title="MAIN[23][1]">
+<a href="#spartan6-CNR_SW-MISC_SW-LEAKER_SLOPE_OPTIONS[2]">MISC_SW:  LEAKER_SLOPE_OPTIONS bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2361,2187 +2737,15 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-### Bitstream
-<div class="table-wrapper">
-<table>
-<caption>spartan6 CNR_SW rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="24">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-<th>F6</th>
-<th>F7</th>
-<th>F8</th>
-<th>F9</th>
-<th>F10</th>
-<th>F11</th>
-<th>F12</th>
-<th>F13</th>
-<th>F14</th>
-<th>F15</th>
-<th>F16</th>
-<th>F17</th>
-<th>F18</th>
-<th>F19</th>
-<th>F20</th>
-<th>F21</th>
-<th>F22</th>
-<th>F23</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B63</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B63">
-<a href="#tile-spartan6-CNR_SW-OCT_CAL[2]:ACCESS_MODE">OCT_CAL[2]:ACCESS_MODE[0]</a>
+<td id="spartan6-CNR_SW-bit-MAIN[23][0]" title="MAIN[23][0]">
+<a href="#spartan6-CNR_SW-MISC_SW-LEAKER_SLOPE_OPTIONS[3]">MISC_SW:  LEAKER_SLOPE_OPTIONS bit 3</a>
 </td>
-</tr>
-
-<tr><td>B62</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B62">
-<a href="#tile-spartan6-CNR_SW-OCT_CAL[3]:ACCESS_MODE">OCT_CAL[3]:ACCESS_MODE[0]</a>
-</td>
-</tr>
-
-<tr><td>B61</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B60</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B59</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B59">
-<a href="#tile-spartan6-CNR_SW-MISC:MISO2PIN">MISC:MISO2PIN[1]</a>
-</td>
-</tr>
-
-<tr><td>B58</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B58">
-<a href="#tile-spartan6-CNR_SW-MISC:MISO2PIN">MISC:MISO2PIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B57</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B56</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B56">
-<a href="#tile-spartan6-CNR_SW-MISC:PROGPIN">MISC:PROGPIN[0]</a>
-</td>
-</tr>
-
-<tr><td>B55</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B54</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B53</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B52</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B52">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[11]</a>
-</td>
-</tr>
-
-<tr><td>B51</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B51">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[10]</a>
-</td>
-</tr>
-
-<tr><td>B50</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B50">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[9]</a>
-</td>
-</tr>
-
-<tr><td>B49</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B49">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[8]</a>
-</td>
-</tr>
-
-<tr><td>B48</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B48">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[7]</a>
-</td>
-</tr>
-
-<tr><td>B47</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B47">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[6]</a>
-</td>
-</tr>
-
-<tr><td>B46</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B46">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[5]</a>
-</td>
-</tr>
-
-<tr><td>B45</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B45">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[4]</a>
-</td>
-</tr>
-
-<tr><td>B44</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B44">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[3]</a>
-</td>
-</tr>
-
-<tr><td>B43</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B43">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[2]</a>
-</td>
-</tr>
-
-<tr><td>B42</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B42">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[1]</a>
-</td>
-</tr>
-
-<tr><td>B41</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B41">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1[0]</a>
-</td>
-</tr>
-
-<tr><td>B40</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B40">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[11]</a>
-</td>
-</tr>
-
-<tr><td>B39</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B39">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[10]</a>
-</td>
-</tr>
-
-<tr><td>B38</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B38">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[9]</a>
-</td>
-</tr>
-
-<tr><td>B37</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B37">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[8]</a>
-</td>
-</tr>
-
-<tr><td>B36</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B36">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[7]</a>
-</td>
-</tr>
-
-<tr><td>B35</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B35">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[6]</a>
-</td>
-</tr>
-
-<tr><td>B34</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B34">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[5]</a>
-</td>
-</tr>
-
-<tr><td>B33</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B33">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[4]</a>
-</td>
-</tr>
-
-<tr><td>B32</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B32">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[3]</a>
-</td>
-</tr>
-
-<tr><td>B31</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B31">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[2]</a>
-</td>
-</tr>
-
-<tr><td>B30</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B30">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[1]</a>
-</td>
-</tr>
-
-<tr><td>B29</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B29">
-<a href="#tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0[0]</a>
-</td>
-</tr>
-
-<tr><td>B28</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B28">
-<a href="#tile-spartan6-CNR_SW-OCT_CAL2:VREF_VALUE">OCT_CAL2:VREF_VALUE[1]</a>
-</td>
-</tr>
-
-<tr><td>B27</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B27">
-<a href="#tile-spartan6-CNR_SW-OCT_CAL2:VREF_VALUE">OCT_CAL2:VREF_VALUE[0]</a>
-</td>
-</tr>
-
-<tr><td>B26</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B25">
-<a href="#tile-spartan6-CNR_SW-OCT_CAL3:VREF_VALUE">OCT_CAL3:VREF_VALUE[1]</a>
-</td>
-</tr>
-
-<tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B24">
-<a href="#tile-spartan6-CNR_SW-OCT_CAL3:VREF_VALUE">OCT_CAL3:VREF_VALUE[0]</a>
-</td>
-</tr>
-
-<tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B23">
-<a href="#tile-spartan6-CNR_SW-MISC:MISR_H_RESET">MISC:MISR_H_RESET</a>
-</td>
-</tr>
-
-<tr><td>B22</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B22">
-<a href="#tile-spartan6-CNR_SW-MISC:MISR_H_ENABLE">MISC:MISR_H_ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B21">
-<a href="#tile-spartan6-CNR_SW-MISC:MISR_V_RESET">MISC:MISR_V_RESET</a>
-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B20">
-<a href="#tile-spartan6-CNR_SW-MISC:MISR_V_ENABLE">MISC:MISR_V_ENABLE</a>
-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B19">
-<a href="#tile-spartan6-CNR_SW-MISC:VGG_COMP_OPTION">MISC:VGG_COMP_OPTION</a>
-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B18">
-<a href="#tile-spartan6-CNR_SW-MISC:VGG_TEST_OPTIONS">MISC:VGG_TEST_OPTIONS[0]</a>
-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B17">
-<a href="#tile-spartan6-CNR_SW-MISC:VGG_TEST_OPTIONS">MISC:VGG_TEST_OPTIONS[1]</a>
-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B16">
-<a href="#tile-spartan6-CNR_SW-MISC:VGG_TEST_OPTIONS">MISC:VGG_TEST_OPTIONS[2]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B15">
-<a href="#tile-spartan6-CNR_SW-MISC:VBG_SLOPE_OPTIONS">MISC:VBG_SLOPE_OPTIONS[0]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B14">
-<a href="#tile-spartan6-CNR_SW-MISC:VBG_SLOPE_OPTIONS">MISC:VBG_SLOPE_OPTIONS[1]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B13">
-<a href="#tile-spartan6-CNR_SW-MISC:VBG_SLOPE_OPTIONS">MISC:VBG_SLOPE_OPTIONS[2]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B12">
-<a href="#tile-spartan6-CNR_SW-MISC:VBG_SLOPE_OPTIONS">MISC:VBG_SLOPE_OPTIONS[3]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B11">
-<a href="#tile-spartan6-CNR_SW-MISC:VGG_SLOPE_OPTIONS">MISC:VGG_SLOPE_OPTIONS[0]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B10">
-<a href="#tile-spartan6-CNR_SW-MISC:VGG_SLOPE_OPTIONS">MISC:VGG_SLOPE_OPTIONS[1]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B9">
-<a href="#tile-spartan6-CNR_SW-MISC:VGG_SLOPE_OPTIONS">MISC:VGG_SLOPE_OPTIONS[2]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B8">
-<a href="#tile-spartan6-CNR_SW-MISC:VGG_SLOPE_OPTIONS">MISC:VGG_SLOPE_OPTIONS[3]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B7">
-<a href="#tile-spartan6-CNR_SW-MISC:LEAKER_GAIN_OPTIONS">MISC:LEAKER_GAIN_OPTIONS[0]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B6">
-<a href="#tile-spartan6-CNR_SW-MISC:LEAKER_GAIN_OPTIONS">MISC:LEAKER_GAIN_OPTIONS[1]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B5">
-<a href="#tile-spartan6-CNR_SW-MISC:LEAKER_GAIN_OPTIONS">MISC:LEAKER_GAIN_OPTIONS[2]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B4">
-<a href="#tile-spartan6-CNR_SW-MISC:LEAKER_GAIN_OPTIONS">MISC:LEAKER_GAIN_OPTIONS[3]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B3">
-<a href="#tile-spartan6-CNR_SW-MISC:LEAKER_SLOPE_OPTIONS">MISC:LEAKER_SLOPE_OPTIONS[0]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B2">
-<a href="#tile-spartan6-CNR_SW-MISC:LEAKER_SLOPE_OPTIONS">MISC:LEAKER_SLOPE_OPTIONS[1]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B1">
-<a href="#tile-spartan6-CNR_SW-MISC:LEAKER_SLOPE_OPTIONS">MISC:LEAKER_SLOPE_OPTIONS[2]</a>
-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F23.B0">
-<a href="#tile-spartan6-CNR_SW-MISC:LEAKER_SLOPE_OPTIONS">MISC:LEAKER_SLOPE_OPTIONS[3]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SW-BANK:LVDSBIAS_0">BANK:LVDSBIAS_0</th>
-<th>0.F23.B40</th>
-<th>0.F23.B39</th>
-<th>0.F23.B38</th>
-<th>0.F23.B37</th>
-<th>0.F23.B36</th>
-<th>0.F23.B35</th>
-<th>0.F23.B34</th>
-<th>0.F23.B33</th>
-<th>0.F23.B32</th>
-<th>0.F23.B31</th>
-<th>0.F23.B30</th>
-<th>0.F23.B29</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SW-BANK:LVDSBIAS_1">BANK:LVDSBIAS_1</th>
-<th>0.F23.B52</th>
-<th>0.F23.B51</th>
-<th>0.F23.B50</th>
-<th>0.F23.B49</th>
-<th>0.F23.B48</th>
-<th>0.F23.B47</th>
-<th>0.F23.B46</th>
-<th>0.F23.B45</th>
-<th>0.F23.B44</th>
-<th>0.F23.B43</th>
-<th>0.F23.B42</th>
-<th>0.F23.B41</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[11]</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SW-MISC:LEAKER_GAIN_OPTIONS">MISC:LEAKER_GAIN_OPTIONS</th>
-<th>0.F23.B4</th>
-<th>0.F23.B5</th>
-<th>0.F23.B6</th>
-<th>0.F23.B7</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SW-MISC:LEAKER_SLOPE_OPTIONS">MISC:LEAKER_SLOPE_OPTIONS</th>
-<th>0.F23.B0</th>
-<th>0.F23.B1</th>
-<th>0.F23.B2</th>
-<th>0.F23.B3</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SW-MISC:VBG_SLOPE_OPTIONS">MISC:VBG_SLOPE_OPTIONS</th>
-<th>0.F23.B12</th>
-<th>0.F23.B13</th>
-<th>0.F23.B14</th>
-<th>0.F23.B15</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SW-MISC:VGG_SLOPE_OPTIONS">MISC:VGG_SLOPE_OPTIONS</th>
-<th>0.F23.B8</th>
-<th>0.F23.B9</th>
-<th>0.F23.B10</th>
-<th>0.F23.B11</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SW-MISC:MISO2PIN">MISC:MISO2PIN</th>
-<th>0.F23.B59</th>
-<th>0.F23.B58</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PULLDOWN</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SW-MISC:MISR_H_ENABLE">MISC:MISR_H_ENABLE</th>
-<th>0.F23.B22</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SW-MISC:MISR_H_RESET">MISC:MISR_H_RESET</th>
-<th>0.F23.B23</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SW-MISC:MISR_V_ENABLE">MISC:MISR_V_ENABLE</th>
-<th>0.F23.B20</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SW-MISC:MISR_V_RESET">MISC:MISR_V_RESET</th>
-<th>0.F23.B21</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SW-MISC:VGG_COMP_OPTION">MISC:VGG_COMP_OPTION</th>
-<th>0.F23.B19</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SW-MISC:PROGPIN">MISC:PROGPIN</th>
-<th>0.F23.B56</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>PULLUP</td>
-<td>0</td>
-</tr>
-
-<tr><td>PULLNONE</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SW-MISC:VGG_TEST_OPTIONS">MISC:VGG_TEST_OPTIONS</th>
-<th>0.F23.B16</th>
-<th>0.F23.B17</th>
-<th>0.F23.B18</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SW-OCT_CAL2:VREF_VALUE">OCT_CAL2:VREF_VALUE</th>
-<th>0.F23.B28</th>
-<th>0.F23.B27</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SW-OCT_CAL3:VREF_VALUE">OCT_CAL3:VREF_VALUE</th>
-<th>0.F23.B25</th>
-<th>0.F23.B24</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>0.25</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>0.75</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>0.5</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-CNR_SW-OCT_CAL[2]:ACCESS_MODE">OCT_CAL[2]:ACCESS_MODE</th>
-<th>0.F23.B63</th>
-</tr>
-
-<tr><th id="tile-spartan6-CNR_SW-OCT_CAL[3]:ACCESS_MODE">OCT_CAL[3]:ACCESS_MODE</th>
-<th>0.F23.B62</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>STATIC</td>
-<td>0</td>
-</tr>
-
-<tr><td>USER</td>
-<td>1</td>
 </tr>
 
 </tbody>

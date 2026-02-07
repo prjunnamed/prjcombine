@@ -168,7 +168,13 @@
 
 <tr><td>CE0</td><td>input</td><td>IMUX_LOGICIN[62]</td></tr>
 
+<tr><td>CFB0</td><td>output</td><td>OUT_CLKPAD_CFB0[0]</td></tr>
+
+<tr><td>CFB1</td><td>output</td><td>OUT_CLKPAD_CFB1[0]</td></tr>
+
 <tr><td>CLKDIV</td><td>input</td><td>IMUX_CLK[1]</td></tr>
+
+<tr><td>DFB</td><td>output</td><td>OUT_CLKPAD_DFB[0]</td></tr>
 
 <tr><td>FABRICOUT</td><td>output</td><td>OUT_BEL[7]</td></tr>
 
@@ -203,7 +209,13 @@
 
 <tr><td>CE0</td><td>input</td><td>IMUX_LOGICIN[38]</td></tr>
 
+<tr><td>CFB0</td><td>output</td><td>OUT_CLKPAD_CFB0[1]</td></tr>
+
+<tr><td>CFB1</td><td>output</td><td>OUT_CLKPAD_CFB1[1]</td></tr>
+
 <tr><td>CLKDIV</td><td>input</td><td>IMUX_CLK[0]</td></tr>
+
+<tr><td>DFB</td><td>output</td><td>OUT_CLKPAD_DFB[1]</td></tr>
 
 <tr><td>FABRICOUT</td><td>output</td><td>OUT_BEL[0]</td></tr>
 
@@ -367,6 +379,10 @@
 
 <tr><td>CLK</td><td>input</td><td>IMUX_CLK[0]</td></tr>
 
+<tr><td>DQSOUTN</td><td>output</td><td>OUT_CLKPAD_DQSN</td></tr>
+
+<tr><td>DQSOUTP</td><td>output</td><td>OUT_CLKPAD_DQSP</td></tr>
+
 <tr><td>INC</td><td>input</td><td>IMUX_LOGICIN[58]</td></tr>
 
 <tr><td>LOAD</td><td>output</td><td>OUT_BEL[16]</td></tr>
@@ -428,6 +444,30 @@
 </thead>
 
 <tbody>
+<tr><td>IOCE0</td><td>input</td><td>IOCE[0]</td></tr>
+
+<tr><td>IOCE1</td><td>input</td><td>IOCE[1]</td></tr>
+
+<tr><td>IOCE2</td><td>input</td><td>IOCE[2]</td></tr>
+
+<tr><td>IOCE3</td><td>input</td><td>IOCE[3]</td></tr>
+
+<tr><td>IOCLK0</td><td>input</td><td>IOCLK[0]</td></tr>
+
+<tr><td>IOCLK1</td><td>input</td><td>IOCLK[1]</td></tr>
+
+<tr><td>IOCLK2</td><td>input</td><td>IOCLK[2]</td></tr>
+
+<tr><td>IOCLK3</td><td>input</td><td>IOCLK[3]</td></tr>
+
+<tr><td>PLLCE0</td><td>input</td><td>PLLCE[0]</td></tr>
+
+<tr><td>PLLCE1</td><td>input</td><td>PLLCE[1]</td></tr>
+
+<tr><td>PLLCLK0</td><td>input</td><td>PLLCLK[0]</td></tr>
+
+<tr><td>PLLCLK1</td><td>input</td><td>PLLCLK[1]</td></tr>
+
 </tbody>
 
 </table>
@@ -589,6 +629,46 @@
 <tr><td>OUT_BEL[16]</td><td>IODELAY[1].LOAD</td></tr>
 
 <tr><td>OUT_BEL[17]</td><td>IODELAY[0].LOAD</td></tr>
+
+<tr><td>IOCLK[0]</td><td>IOI.IOCLK0</td></tr>
+
+<tr><td>IOCLK[1]</td><td>IOI.IOCLK1</td></tr>
+
+<tr><td>IOCLK[2]</td><td>IOI.IOCLK2</td></tr>
+
+<tr><td>IOCLK[3]</td><td>IOI.IOCLK3</td></tr>
+
+<tr><td>IOCE[0]</td><td>IOI.IOCE0</td></tr>
+
+<tr><td>IOCE[1]</td><td>IOI.IOCE1</td></tr>
+
+<tr><td>IOCE[2]</td><td>IOI.IOCE2</td></tr>
+
+<tr><td>IOCE[3]</td><td>IOI.IOCE3</td></tr>
+
+<tr><td>PLLCLK[0]</td><td>IOI.PLLCLK0</td></tr>
+
+<tr><td>PLLCLK[1]</td><td>IOI.PLLCLK1</td></tr>
+
+<tr><td>PLLCE[0]</td><td>IOI.PLLCE0</td></tr>
+
+<tr><td>PLLCE[1]</td><td>IOI.PLLCE1</td></tr>
+
+<tr><td>OUT_CLKPAD_DFB[0]</td><td>ILOGIC[0].DFB</td></tr>
+
+<tr><td>OUT_CLKPAD_DFB[1]</td><td>ILOGIC[1].DFB</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB0[0]</td><td>ILOGIC[0].CFB0</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB0[1]</td><td>ILOGIC[1].CFB0</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB1[0]</td><td>ILOGIC[0].CFB1</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB1[1]</td><td>ILOGIC[1].CFB1</td></tr>
+
+<tr><td>OUT_CLKPAD_DQSP</td><td>IODELAY[1].DQSOUTP</td></tr>
+
+<tr><td>OUT_CLKPAD_DQSN</td><td>IODELAY[1].DQSOUTN</td></tr>
 
 </tbody>
 
@@ -7919,7 +7999,13 @@ non-inverted
 
 <tr><td>CE0</td><td>input</td><td>IMUX_LOGICIN[62]</td></tr>
 
+<tr><td>CFB0</td><td>output</td><td>OUT_CLKPAD_CFB0[0]</td></tr>
+
+<tr><td>CFB1</td><td>output</td><td>OUT_CLKPAD_CFB1[0]</td></tr>
+
 <tr><td>CLKDIV</td><td>input</td><td>IMUX_CLK[1]</td></tr>
+
+<tr><td>DFB</td><td>output</td><td>OUT_CLKPAD_DFB[0]</td></tr>
 
 <tr><td>FABRICOUT</td><td>output</td><td>OUT_BEL[7]</td></tr>
 
@@ -7954,7 +8040,13 @@ non-inverted
 
 <tr><td>CE0</td><td>input</td><td>IMUX_LOGICIN[38]</td></tr>
 
+<tr><td>CFB0</td><td>output</td><td>OUT_CLKPAD_CFB0[1]</td></tr>
+
+<tr><td>CFB1</td><td>output</td><td>OUT_CLKPAD_CFB1[1]</td></tr>
+
 <tr><td>CLKDIV</td><td>input</td><td>IMUX_CLK[0]</td></tr>
+
+<tr><td>DFB</td><td>output</td><td>OUT_CLKPAD_DFB[1]</td></tr>
 
 <tr><td>FABRICOUT</td><td>output</td><td>OUT_BEL[0]</td></tr>
 
@@ -8118,6 +8210,10 @@ non-inverted
 
 <tr><td>CLK</td><td>input</td><td>IMUX_CLK[0]</td></tr>
 
+<tr><td>DQSOUTN</td><td>output</td><td>OUT_CLKPAD_DQSN</td></tr>
+
+<tr><td>DQSOUTP</td><td>output</td><td>OUT_CLKPAD_DQSP</td></tr>
+
 <tr><td>INC</td><td>input</td><td>IMUX_LOGICIN[58]</td></tr>
 
 <tr><td>LOAD</td><td>output</td><td>OUT_BEL[16]</td></tr>
@@ -8179,6 +8275,30 @@ non-inverted
 </thead>
 
 <tbody>
+<tr><td>IOCE0</td><td>input</td><td>IOCE[0]</td></tr>
+
+<tr><td>IOCE1</td><td>input</td><td>IOCE[1]</td></tr>
+
+<tr><td>IOCE2</td><td>input</td><td>IOCE[2]</td></tr>
+
+<tr><td>IOCE3</td><td>input</td><td>IOCE[3]</td></tr>
+
+<tr><td>IOCLK0</td><td>input</td><td>IOCLK[0]</td></tr>
+
+<tr><td>IOCLK1</td><td>input</td><td>IOCLK[1]</td></tr>
+
+<tr><td>IOCLK2</td><td>input</td><td>IOCLK[2]</td></tr>
+
+<tr><td>IOCLK3</td><td>input</td><td>IOCLK[3]</td></tr>
+
+<tr><td>PLLCE0</td><td>input</td><td>PLLCE[0]</td></tr>
+
+<tr><td>PLLCE1</td><td>input</td><td>PLLCE[1]</td></tr>
+
+<tr><td>PLLCLK0</td><td>input</td><td>PLLCLK[0]</td></tr>
+
+<tr><td>PLLCLK1</td><td>input</td><td>PLLCLK[1]</td></tr>
+
 </tbody>
 
 </table>
@@ -8340,6 +8460,46 @@ non-inverted
 <tr><td>OUT_BEL[16]</td><td>IODELAY[1].LOAD</td></tr>
 
 <tr><td>OUT_BEL[17]</td><td>IODELAY[0].LOAD</td></tr>
+
+<tr><td>IOCLK[0]</td><td>IOI.IOCLK0</td></tr>
+
+<tr><td>IOCLK[1]</td><td>IOI.IOCLK1</td></tr>
+
+<tr><td>IOCLK[2]</td><td>IOI.IOCLK2</td></tr>
+
+<tr><td>IOCLK[3]</td><td>IOI.IOCLK3</td></tr>
+
+<tr><td>IOCE[0]</td><td>IOI.IOCE0</td></tr>
+
+<tr><td>IOCE[1]</td><td>IOI.IOCE1</td></tr>
+
+<tr><td>IOCE[2]</td><td>IOI.IOCE2</td></tr>
+
+<tr><td>IOCE[3]</td><td>IOI.IOCE3</td></tr>
+
+<tr><td>PLLCLK[0]</td><td>IOI.PLLCLK0</td></tr>
+
+<tr><td>PLLCLK[1]</td><td>IOI.PLLCLK1</td></tr>
+
+<tr><td>PLLCE[0]</td><td>IOI.PLLCE0</td></tr>
+
+<tr><td>PLLCE[1]</td><td>IOI.PLLCE1</td></tr>
+
+<tr><td>OUT_CLKPAD_DFB[0]</td><td>ILOGIC[0].DFB</td></tr>
+
+<tr><td>OUT_CLKPAD_DFB[1]</td><td>ILOGIC[1].DFB</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB0[0]</td><td>ILOGIC[0].CFB0</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB0[1]</td><td>ILOGIC[1].CFB0</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB1[0]</td><td>ILOGIC[0].CFB1</td></tr>
+
+<tr><td>OUT_CLKPAD_CFB1[1]</td><td>ILOGIC[1].CFB1</td></tr>
+
+<tr><td>OUT_CLKPAD_DQSP</td><td>IODELAY[1].DQSOUTP</td></tr>
+
+<tr><td>OUT_CLKPAD_DQSN</td><td>IODELAY[1].DQSOUTN</td></tr>
 
 </tbody>
 
@@ -15655,32 +15815,38 @@ non-inverted
 </div>
 
 <h2 id="tile-iob"><a class="header" href="#tile-iob">Tile IOB</a></h2>
-<p>Cells: 0</p>
-<h3 id="bel-iob0"><a class="header" href="#bel-iob0">Bel IOB[0]</a></h3>
+<p>Cells: 1</p>
+<h3 id="bels-iob"><a class="header" href="#bels-iob">Bels IOB</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 IOB bel IOB[0]</caption>
+<caption>spartan6 IOB bel IOB pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>IOB[0]</th><th>IOB[1]</th></tr>
 
 </thead>
 
 <tbody>
+<tr><td>I</td><td>out</td><td>OUT_CLKPAD_I[0]</td><td>OUT_CLKPAD_I[1]</td></tr>
+
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-iob1"><a class="header" href="#bel-iob1">Bel IOB[1]</a></h3>
+<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 IOB bel IOB[1]</caption>
+<caption>spartan6 IOB bel wires</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Wire</th><th>Pins</th></tr>
 
 </thead>
 
 <tbody>
+<tr><td>OUT_CLKPAD_I[0]</td><td>IOB[0].I</td></tr>
+
+<tr><td>OUT_CLKPAD_I[1]</td><td>IOB[1].I</td></tr>
+
 </tbody>
 
 </table>
@@ -17502,72 +17668,6 @@ non-inverted
 <td>0</td>
 </tr>
 
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-ioi_clk_we"><a class="header" href="#tile-ioi_clk_we">Tile IOI_CLK_WE</a></h2>
-<p>Cells: 0</p>
-<h3 id="bel-ioi_clk_we"><a class="header" href="#bel-ioi_clk_we">Bel IOI_CLK_WE</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 IOI_CLK_WE bel IOI_CLK_WE</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bel-ioi_clk_we_term"><a class="header" href="#bel-ioi_clk_we_term">Bel IOI_CLK_WE_TERM</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 IOI_CLK_WE bel IOI_CLK_WE_TERM</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-ioi_clk_sn"><a class="header" href="#tile-ioi_clk_sn">Tile IOI_CLK_SN</a></h2>
-<p>Cells: 0</p>
-<h3 id="bel-ioi_clk_sn"><a class="header" href="#bel-ioi_clk_sn">Bel IOI_CLK_SN</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 IOI_CLK_SN bel IOI_CLK_SN</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-clkpin_buf"><a class="header" href="#tile-clkpin_buf">Tile CLKPIN_BUF</a></h2>
-<p>Cells: 0</p>
-<h3 id="bel-clkpin_buf"><a class="header" href="#bel-clkpin_buf">Bel CLKPIN_BUF</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 CLKPIN_BUF bel CLKPIN_BUF</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
 </tbody>
 
 </table>
