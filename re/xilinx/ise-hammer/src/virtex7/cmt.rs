@@ -178,7 +178,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("PHASER_IN_ADV").test_multi_attr_bin(attr, width);
         }
         for (attr, width) in [("FINE_DELAY", 6), ("SEL_CLK_OFFSET", 3)] {
-            bctx.mode("PHASER_IN_ADV").test_multi_attr_dec(attr, width);
+            bctx.mode("PHASER_IN_ADV")
+                .test_multi_attr_dec_legacy(attr, width);
         }
         bctx.mode("PHASER_IN_ADV")
             .mutex("MUX.PHASEREFCLK", "DQS_PAD")
@@ -240,7 +241,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("TEST_OPT", "")
             .test_multi_attr_bin("PO", 3);
         for (attr, width) in [("COARSE_DELAY", 6), ("FINE_DELAY", 6), ("OCLK_DELAY", 6)] {
-            bctx.mode("PHASER_OUT_ADV").test_multi_attr_dec(attr, width);
+            bctx.mode("PHASER_OUT_ADV")
+                .test_multi_attr_dec_legacy(attr, width);
         }
         let bel_cmt = if i < 2 {
             defs::bslots::CMT_B
@@ -295,7 +297,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_multi_attr_hex_legacy(attr, width);
         }
         for (attr, width) in [("LOCK_CNT", 10), ("LOCK_FB_DLY", 5), ("LOCK_REF_DLY", 5)] {
-            bctx.mode("PHASER_REF").test_multi_attr_dec(attr, width);
+            bctx.mode("PHASER_REF")
+                .test_multi_attr_dec_legacy(attr, width);
         }
     }
     {
@@ -341,7 +344,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             ("EVENTS_DELAY", 6),
             ("AO_TOGGLE", 4),
         ] {
-            bctx.mode("PHY_CONTROL").test_multi_attr_dec(attr, width);
+            bctx.mode("PHY_CONTROL")
+                .test_multi_attr_dec_legacy(attr, width);
         }
         for (attr, width) in [("AO_WRLVL_EN", 4), ("SPARE", 1)] {
             bctx.mode("PHY_CONTROL").test_multi_attr_bin(attr, width);
@@ -595,13 +599,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .mutex("MODE", "TEST")
                 .global_xy(use_calc, "NO")
-                .test_multi_attr_dec(attr, width);
+                .test_multi_attr_dec_legacy(attr, width);
         }
         if bel == defs::bslots::MMCM[0] {
             bctx.mode(mode)
                 .mutex("MODE", "TEST")
                 .global_xy(use_calc, "NO")
-                .test_multi_attr_dec("CLKBURST_CNT", 4);
+                .test_multi_attr_dec_legacy("CLKBURST_CNT", 4);
             bctx.mode(mode)
                 .mutex("MODE", "TEST_SS")
                 .global_xy(use_calc, "NO")

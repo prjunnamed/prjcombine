@@ -1740,7 +1740,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_enum_legacy(attr, &vals);
         }
         for &(attr, width) in GTP_CHANNEL_DEC_ATTRS {
-            bctx.mode(mode).test_multi_attr_dec(attr, width);
+            bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
         }
         for &(attr, width) in GTP_CHANNEL_BIN_ATTRS {
             bctx.mode(mode).test_multi_attr_bin(attr, width);
@@ -1767,7 +1767,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_enum_legacy(attr, &vals);
         }
         for &(attr, width) in GTX_CHANNEL_DEC_ATTRS {
-            bctx.mode(mode).test_multi_attr_dec(attr, width);
+            bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
         }
         for &(attr, width) in GTX_CHANNEL_BIN_ATTRS {
             bctx.mode(mode).test_multi_attr_bin(attr, width);
@@ -1794,7 +1794,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_enum_legacy(attr, &vals);
         }
         for &(attr, width) in GTH_CHANNEL_DEC_ATTRS {
-            bctx.mode(mode).test_multi_attr_dec(attr, width);
+            bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
         }
         for &(attr, width) in GTH_CHANNEL_BIN_ATTRS {
             bctx.mode(mode).test_multi_attr_bin(attr, width);

@@ -574,9 +574,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode("ILOGICE3")
                     .attr("ZHOLD_FABRIC", "")
                     .test_enum_legacy("ZHOLD_IFF", &["FALSE", "TRUE"]);
-                bctx.mode("ILOGICE3").test_multi_attr_dec("IDELAY_VALUE", 5);
                 bctx.mode("ILOGICE3")
-                    .test_multi_attr_dec("IFFDELAY_VALUE", 5);
+                    .test_multi_attr_dec_legacy("IDELAY_VALUE", 5);
+                bctx.mode("ILOGICE3")
+                    .test_multi_attr_dec_legacy("IFFDELAY_VALUE", 5);
             }
 
             for pin in ["CKINT0", "CKINT1", "PHASER_ICLK"] {
@@ -911,7 +912,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .props(setup_idelayctrl.clone())
                 .attr("DELAY_SRC", "IDATAIN")
                 .attr("IDELAY_TYPE", "FIXED")
-                .test_multi_attr_dec("IDELAY_VALUE", 5);
+                .test_multi_attr_dec_legacy("IDELAY_VALUE", 5);
             if tile.contains("HP") {
                 bctx.mode("IDELAYE2_FINEDELAY")
                     .props(setup_idelayctrl.clone())
@@ -956,7 +957,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .props(setup_idelayctrl.clone())
                     .attr("DELAY_SRC", "ODATAIN")
                     .attr("ODELAY_TYPE", "FIXED")
-                    .test_multi_attr_dec("ODELAY_VALUE", 5);
+                    .test_multi_attr_dec_legacy("ODELAY_VALUE", 5);
                 bctx.mode("ODELAYE2_FINEDELAY")
                     .props(setup_idelayctrl.clone())
                     .test_enum_legacy("FINEDELAY", &["BYPASS", "ADD_DLY"]);

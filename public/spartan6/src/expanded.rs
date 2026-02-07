@@ -95,6 +95,8 @@ impl ExpandedDevice<'_> {
             ])
         } else if matches!(tcrd.slot, defs::tslots::HCLK | defs::tslots::HCLK_BEL) {
             EntityVec::from_iter([self.btile_hclk(tcrd.col, tcrd.row)])
+        } else if tile.class == defs::tcls::CLKC {
+            EntityVec::from_iter([self.btile_main(tcrd.col, tcrd.row)])
         } else if tile.class == defs::tcls::CLK_W {
             EntityVec::from_iter([self.btile_clk(Dir::W)])
         } else if tile.class == defs::tcls::CLK_E {
@@ -128,8 +130,18 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn bel_carry_prev(&self, bcrd: BelCoord) -> Option<BelCoord> {
-        if bslots::SLICE.contains(bcrd.slot) {
-            todo!()
+        if bcrd.slot == bslots::SLICE[0] {
+            let mut bcrd = bcrd;
+            loop {
+                if let Some(cell) = self.cell_delta(bcrd.cell, 0, -1) {
+                    bcrd.cell = cell;
+                } else {
+                    return None;
+                }
+                if self.has_bel(bcrd) {
+                    return Some(bcrd);
+                }
+            }
         } else if bcrd.slot == bslots::DSP {
             let mut bcrd = bcrd;
             loop {

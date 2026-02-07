@@ -4,9 +4,6 @@
 {{tile spartan6 IOI_WE}}
 {{tile spartan6 IOI_SN}}
 {{tile spartan6 IOB}}
-{{tile spartan6 IOI_CLK_WE}}
-{{tile spartan6 IOI_CLK_SN}}
-{{tile spartan6 CLKPIN_BUF}}
 
 
 ## Tables

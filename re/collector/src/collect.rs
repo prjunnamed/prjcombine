@@ -68,6 +68,15 @@ impl Collector<'_, '_> {
         &res[0]
     }
 
+    pub fn get_diff_routing(
+        &mut self,
+        tcid: TileClassId,
+        dst: TileWireCoord,
+        src: PolTileWireCoord,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::Routing(tcid, dst, src))
+    }
+
     pub fn get_diffs_attr_bits(
         &mut self,
         tcid: TileClassId,
@@ -77,6 +86,18 @@ impl Collector<'_, '_> {
     ) -> Vec<Diff> {
         (0..bits)
             .map(|idx| self.get_diff_attr_bit(tcid, bslot, attr, idx))
+            .collect()
+    }
+
+    pub fn get_diffs_bel_special_bits(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        spec: SpecialId,
+        bits: usize,
+    ) -> Vec<Diff> {
+        (0..bits)
+            .map(|idx| self.get_diff_bel_special_bit(tcid, bslot, spec, idx))
             .collect()
     }
 
@@ -181,6 +202,17 @@ impl Collector<'_, '_> {
         self.get_diff_raw(&DiffKey::BelAttrSpecial(tcid, bslot, attr, spec))
     }
 
+    pub fn get_diff_attr_special_val(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        spec: SpecialId,
+        val: EnumValueId,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelAttrSpecialValue(tcid, bslot, attr, spec, val))
+    }
+
     pub fn get_diff_bel_attr_row(
         &mut self,
         tcid: TileClassId,
@@ -198,6 +230,16 @@ impl Collector<'_, '_> {
         spec: SpecialId,
     ) -> Diff {
         self.get_diff_raw(&DiffKey::BelSpecial(tcid, bslot, spec))
+    }
+
+    pub fn get_diff_bel_special_bit(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        spec: SpecialId,
+        bidx: usize,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelSpecialBit(tcid, bslot, spec, bidx))
     }
 
     pub fn get_diff_bel_special_u32(
@@ -371,6 +413,22 @@ impl Collector<'_, '_> {
         items: EnumData<Option<PolTileWireCoord>>,
     ) {
         match self.data.sb_mux.entry((tcid, dst)) {
+            hash_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), items);
+            }
+            hash_map::Entry::Vacant(e) => {
+                e.insert(items);
+            }
+        }
+    }
+
+    pub fn insert_pairmux(
+        &mut self,
+        tcid: TileClassId,
+        dst: [TileWireCoord; 2],
+        items: EnumData<[Option<PolTileWireCoord>; 2]>,
+    ) {
+        match self.data.sb_pairmux.entry((tcid, dst)) {
             hash_map::Entry::Occupied(e) => {
                 assert_eq!(*e.get(), items);
             }
@@ -624,6 +682,14 @@ impl Collector<'_, '_> {
         &self.data.sb_mux[&(tcid, dst)]
     }
 
+    pub fn sb_pairmux(
+        &self,
+        tcid: TileClassId,
+        dst: [TileWireCoord; 2],
+    ) -> &EnumData<[Option<PolTileWireCoord>; 2]> {
+        &self.data.sb_pairmux[&(tcid, dst)]
+    }
+
     pub fn sb_inv(&self, tcid: TileClassId, dst: TileWireCoord) -> PolTileBit {
         self.data.sb_inv[&(tcid, dst)]
     }
@@ -673,7 +739,11 @@ impl Collector<'_, '_> {
                     .map(|idx| self.get_diff_attr_bit(tcid, bslot, aid, idx))
                     .collect(),
             )),
-            BelAttributeType::BitVecArray(_, _) => todo!(),
+            BelAttributeType::BitVecArray(width, height) => BelAttribute::BitVec(xlat_bitvec(
+                (0..(width * height))
+                    .map(|idx| self.get_diff_attr_bit(tcid, bslot, aid, idx))
+                    .collect(),
+            )),
             BelAttributeType::U32 => unreachable!(),
         };
         self.insert_bel_attr_raw(tcid, bslot, aid, attr);
@@ -726,12 +796,13 @@ impl Collector<'_, '_> {
         self.insert_bel_attr_enum(tcid, bslot, aid, attr);
     }
 
-    pub fn collect_bel_attr_default(
+    pub fn collect_bel_attr_default_ocd(
         &mut self,
         tcid: TileClassId,
         bslot: BelSlotId,
         aid: BelAttributeId,
         default: EnumValueId,
+        ocd: OcdMode,
     ) {
         let BelKind::Class(bcid) = self.intdb.bel_slots[bslot].kind else {
             unreachable!()
@@ -753,8 +824,18 @@ impl Collector<'_, '_> {
             ));
         }
 
-        let attr = xlat_enum_attr(diffs);
+        let attr = xlat_enum_attr_ocd(diffs, ocd);
         self.insert_bel_attr_enum(tcid, bslot, aid, attr);
+    }
+
+    pub fn collect_bel_attr_default(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+        default: EnumValueId,
+    ) {
+        self.collect_bel_attr_default_ocd(tcid, bslot, aid, default, OcdMode::ValueOrder);
     }
 
     pub fn collect_bel_attr_bi(

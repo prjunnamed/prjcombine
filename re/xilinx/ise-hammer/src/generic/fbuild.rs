@@ -1,7 +1,7 @@
 use prjcombine_interconnect::{
     db::{
-        BelAttributeId, BelAttributeType, BelInputId, BelKind, BelSlotId, EnumValueId, TableRowId,
-        TileClassId,
+        BelAttributeId, BelAttributeType, BelInputId, BelKind, BelSlotId, EnumValueId,
+        PolTileWireCoord, TableRowId, TileClassId, TileWireCoord,
     },
     dir::DirV,
     grid::TileCoord,
@@ -17,7 +17,7 @@ use crate::{
     generic::{
         props::extra::{
             ExtraKeyBelAttrBits, ExtraKeyBelAttrValue, ExtraKeyBelSpecial, ExtraKeyLegacy,
-            ExtraKeyLegacyAttr,
+            ExtraKeyLegacyAttr, ExtraKeyRouting,
         },
         utils::get_input_name,
     },
@@ -292,19 +292,6 @@ pub trait FuzzBuilderBase<'b>: Sized {
         ))
     }
 
-    fn extra_tiles_attr_by_bel(
-        self,
-        slot: BelSlotId,
-        bel: impl Into<String>,
-        attr: impl Into<String>,
-        val: impl Into<String>,
-    ) -> Self {
-        self.prop(ExtraTilesByBel::new(
-            slot,
-            ExtraKeyLegacyAttr::new(bel.into(), attr.into(), val.into()),
-        ))
-    }
-
     fn extra_tile_reg(self, reg: Reg, tile: impl Into<String>, bel: impl Into<String>) -> Self {
         self.prop(ExtraReg::new(
             vec![reg],
@@ -360,6 +347,15 @@ pub trait FuzzBuilderBase<'b>: Sized {
             relation,
             ExtraKeyBelSpecial::new(bslot, spec),
         ))
+    }
+
+    fn extra_tile_routing<R: TileRelation + 'b>(
+        self,
+        relation: R,
+        dst: TileWireCoord,
+        src: PolTileWireCoord,
+    ) -> Self {
+        self.prop(ExtraTile::new(relation, ExtraKeyRouting::new(dst, src)))
     }
 
     fn extra_fixed_bel_attr_val(
@@ -846,7 +842,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.test_manual_legacy(attr, "").prop(prop).commit();
     }
 
-    pub fn test_multi_attr_dec(self, attr: impl Into<String>, width: usize) {
+    pub fn test_multi_attr_dec_legacy(self, attr: impl Into<String>, width: usize) {
         let attr = attr.into();
         let prop =
             FuzzBelMultiAttr::new(self.bel, self.sub, attr.clone(), MultiValue::Dec(0), width);
@@ -1082,6 +1078,16 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.test_raw(key)
     }
 
+    pub fn test_bel_attr_special_val(
+        self,
+        attr: BelAttributeId,
+        spec: SpecialId,
+        val: EnumValueId,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelAttrSpecialValue(self.tile_class, self.bel, attr, spec, val);
+        self.test_raw(key)
+    }
+
     pub fn test_bel_attr_row(
         self,
         attr: BelAttributeId,
@@ -1197,6 +1203,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         };
         let ecls = &self.backend.edev.db[ecid];
         for (vid, val) in &ecls.values {
+            let val = val.strip_prefix('_').unwrap_or(&val[..]);
             if vid == default {
                 continue;
             }

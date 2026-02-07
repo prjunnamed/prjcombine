@@ -1,547 +1,557 @@
 use prjcombine_entity::EntityId;
-use prjcombine_re_collector::{
-    diff::Diff,
-    legacy::{xlat_bit_bi_legacy, xlat_enum_legacy},
+use prjcombine_interconnect::db::BelAttributeType;
+use prjcombine_re_collector::diff::{
+    Diff, OcdMode, xlat_bit_bi, xlat_bitvec_sparse_u32, xlat_enum_attr, xlat_enum_attr_ocd,
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_spartan6::defs;
-use prjcombine_types::bsdata::{BitRectId, TileBit, TileItem};
+use prjcombine_spartan6::defs::{bcls, bslots, enums, tcls};
+use prjcombine_types::bsdata::{BitRectId, TileBit};
 
 use crate::{
-    backend::IseBackend,
+    backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
     generic::fbuild::{FuzzBuilderBase, FuzzCtx},
+    spartan6::specials,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "MCB") else {
+    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::MCB) else {
         return;
     };
-    let mut bctx = ctx.bel(defs::bslots::MCB);
+    let mut bctx = ctx.bel(bslots::MCB);
     let mode = "MCB";
     bctx.build()
         .global_mutex("MCB", "TEST")
-        .test_manual_legacy("PRESENT", "1")
+        .test_bel_special(specials::PRESENT)
         .mode(mode)
         .commit();
     for pin in [
-        "P0CMDCLK", "P1CMDCLK", "P2CMDCLK", "P3CMDCLK", "P4CMDCLK", "P5CMDCLK", "P0CMDEN",
-        "P1CMDEN", "P2CMDEN", "P3CMDEN", "P4CMDEN", "P5CMDEN", "P0RDCLK", "P1RDCLK", "P0RDEN",
-        "P1RDEN", "P0WRCLK", "P1WRCLK", "P0WREN", "P1WREN", "P2CLK", "P3CLK", "P4CLK", "P5CLK",
-        "P2EN", "P3EN", "P4EN", "P5EN",
+        bcls::MCB::P0CMDCLK,
+        bcls::MCB::P1CMDCLK,
+        bcls::MCB::P2CMDCLK,
+        bcls::MCB::P3CMDCLK,
+        bcls::MCB::P4CMDCLK,
+        bcls::MCB::P5CMDCLK,
+        bcls::MCB::P0CMDEN,
+        bcls::MCB::P1CMDEN,
+        bcls::MCB::P2CMDEN,
+        bcls::MCB::P3CMDEN,
+        bcls::MCB::P4CMDEN,
+        bcls::MCB::P5CMDEN,
+        bcls::MCB::P0RDCLK,
+        bcls::MCB::P1RDCLK,
+        bcls::MCB::P0RDEN,
+        bcls::MCB::P1RDEN,
+        bcls::MCB::P0WRCLK,
+        bcls::MCB::P1WRCLK,
+        bcls::MCB::P0WREN,
+        bcls::MCB::P1WREN,
+        bcls::MCB::P2CLK,
+        bcls::MCB::P3CLK,
+        bcls::MCB::P4CLK,
+        bcls::MCB::P5CLK,
+        bcls::MCB::P2EN,
+        bcls::MCB::P3EN,
+        bcls::MCB::P4EN,
+        bcls::MCB::P5EN,
     ] {
         bctx.mode(mode)
             .global_mutex("MCB", "TEST")
-            .test_inv_legacy(pin);
+            .test_bel_input_inv_auto(pin);
     }
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("ARB_NUM_TIME_SLOTS", &["10", "12"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("CAL_BYPASS", &["YES", "NO"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("CAL_CALIBRATION_MODE", &["CALIBRATION", "NOCALIBRATION"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("CAL_CLK_DIV", &["1", "2", "4", "8"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("CAL_DELAY", &["QUARTER", "HALF", "THREEQUARTER", "FULL"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("MEM_ADDR_ORDER", &["BANK_ROW_COLUMN", "ROW_BANK_COLUMN"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("MEM_BA_SIZE", &["2", "3"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("MEM_CA_SIZE", &["9", "10", "11", "12"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("MEM_RA_SIZE", &["12", "13", "14", "15"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("MEM_TYPE", &["DDR", "DDR2", "DDR3", "MDDR"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy("MEM_WIDTH", &["4", "8", "16"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_enum_legacy(
-            "PORT_CONFIG",
-            &[
-                "B32_B32_B32_B32",
-                "B32_B32_R32_R32_R32_R32",
-                "B32_B32_R32_R32_R32_W32",
-                "B32_B32_R32_R32_W32_R32",
-                "B32_B32_R32_R32_W32_W32",
-                "B32_B32_R32_W32_R32_R32",
-                "B32_B32_R32_W32_R32_W32",
-                "B32_B32_R32_W32_W32_R32",
-                "B32_B32_R32_W32_W32_W32",
-                "B32_B32_W32_R32_R32_R32",
-                "B32_B32_W32_R32_R32_W32",
-                "B32_B32_W32_R32_W32_R32",
-                "B32_B32_W32_R32_W32_W32",
-                "B32_B32_W32_W32_R32_R32",
-                "B32_B32_W32_W32_R32_W32",
-                "B32_B32_W32_W32_W32_R32",
-                "B32_B32_W32_W32_W32_W32",
-                "B64_B32_B32",
-                "B64_B64",
-                "B128",
-            ],
-        );
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_dec("MEM_RCD_VAL", 3);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_dec("MEM_RAS_VAL", 5);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_dec("MEM_RTP_VAL", 3);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_dec("MEM_WR_VAL", 3);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_dec("MEM_WTR_VAL", 3);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_dec("MEM_RFC_VAL", 8);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_dec("MEM_RP_VAL", 4);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_dec("MEM_REFI_VAL", 12);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_hex_legacy("CAL_BA", 3);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_hex_legacy("CAL_CA", 12);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .test_multi_attr_hex_legacy("CAL_RA", 15);
-    for i in 0..12 {
-        bctx.mode(mode)
-            .global_mutex("MCB", "TEST")
-            .test_multi_attr_bin(format!("ARB_TIME_SLOT_{i}"), 18);
-    }
-
-    for mem_type in ["MDDR", "DDR", "DDR2", "DDR3"] {
-        bctx.mode(mode)
-            .global_mutex("MCB", "TEST")
-            .attr("MEM_TYPE", mem_type)
-            .test_enum_suffix("MEM_BURST_LEN", mem_type, &["4", "8"]);
-    }
-
-    for mt in ["DDR", "DDR2", "MDDR"] {
-        bctx.mode(mode)
-            .global_mutex("MCB", "TEST")
-            .attr("MEM_TYPE", mt)
-            .test_enum_legacy("MEM_CAS_LATENCY", &["1", "2", "3", "4", "5", "6"]);
-    }
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        // sigh. doesn't actually work for plain DDR.
-        .attr("MEM_TYPE", "DDR2")
-        .test_enum_legacy("MEM_DDR1_2_ODS", &["REDUCED", "FULL"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR2")
-        .test_enum_legacy("MEM_DDR2_ADD_LATENCY", &["0", "1", "2", "3", "4", "5"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR2")
-        .test_enum_legacy("MEM_DDR2_DIFF_DQS_EN", &["YES", "NO"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR2")
-        .test_enum_legacy("MEM_DDR2_RTT", &["50OHMS", "75OHMS", "150OHMS"]);
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR2")
-        .test_enum_legacy("MEM_DDR2_WRT_RECOVERY", &["2", "3", "4", "5", "6"]);
-    for mt in ["DDR2", "DDR3"] {
-        bctx.mode(mode)
-            .global_mutex("MCB", "TEST")
-            .attr("MEM_TYPE", mt)
-            .test_enum_legacy("MEM_DDR2_3_HIGH_TEMP_SR", &["NORMAL", "EXTENDED"]);
-        bctx.mode(mode)
-            .global_mutex("MCB", "TEST")
-            .attr("MEM_TYPE", mt)
-            .test_enum_legacy(
-                "MEM_DDR2_3_PA_SR",
-                &[
-                    "FULL",
-                    "EIGHTH1",
-                    "EIGHTH2",
-                    "HALF1",
-                    "HALF2",
-                    "QUARTER1",
-                    "QUARTER2",
-                    "THREEQUARTER",
-                ],
-            );
-    }
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR3")
-        .test_enum_legacy("MEM_DDR3_ADD_LATENCY", &["CL1", "CL2"]);
-
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR3")
-        .test_enum_legacy("MEM_DDR3_AUTO_SR", &["ENABLED", "MANUAL"]);
-
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR3")
-        .test_enum_legacy("MEM_DDR3_CAS_LATENCY", &["5", "6", "7", "8", "9", "10"]);
-
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR3")
-        .test_enum_legacy("MEM_DDR3_CAS_WR_LATENCY", &["5", "6", "7", "8"]);
-
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR3")
-        .test_enum_legacy("MEM_DDR3_DYN_WRT_ODT", &["DIV2", "DIV4"]);
-
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR3")
-        .test_enum_legacy("MEM_DDR3_ODS", &["DIV6", "DIV7"]);
-
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR3")
-        .test_enum_legacy("MEM_DDR3_RTT", &["DIV2", "DIV4", "DIV6", "DIV8", "DIV12"]);
-
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "DDR3")
-        .test_enum_legacy("MEM_DDR3_WRT_RECOVERY", &["5", "6", "7", "8", "10", "12"]);
-
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "MDDR")
-        .test_enum_legacy(
-            "MEM_MDDR_ODS",
-            &["QUARTER", "HALF", "THREEQUARTERS", "FULL"],
-        );
-
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "MDDR")
-        .test_enum_legacy("MEM_MOBILE_PA_SR", &["HALF", "FULL"]);
-
-    bctx.mode(mode)
-        .global_mutex("MCB", "TEST")
-        .attr("MEM_TYPE", "MDDR")
-        .test_enum_legacy("MEM_MOBILE_TC_SR", &["0", "1", "2", "3"]);
-
-    for val in ["DISABLED", "ENABLED"] {
-        bctx.mode(mode)
-            .global_mutex_here("MCB")
-            .global_mutex("DRPSDO", "NOPE")
-            .test_manual_legacy("MEM_PLL_DIV_EN", val)
-            .global("MEM_PLL_DIV_EN", val)
-            .commit();
-    }
-    for val in ["INVERTED", "NOTINVERTED"] {
-        bctx.mode(mode)
-            .global_mutex_here("MCB")
-            .global_mutex("DRPSDO", "NOPE")
-            .test_manual_legacy("MEM_PLL_POL_SEL", val)
-            .global("MEM_PLL_POL_SEL", val)
-            .commit();
+    for (aid, aname, attr) in &backend.edev.db[bcls::MCB].attributes {
+        if aname.starts_with("MUI") {
+            // extracted from other attributes through special handling
+            continue;
+        }
+        match aid {
+            bcls::MCB::CAL_BYPASS => {
+                bctx.mode(mode)
+                    .global_mutex("MCB", "TEST")
+                    .test_bel_attr_bool_auto(aid, "NO", "YES");
+            }
+            bcls::MCB::MEM_RAS_VAL
+            | bcls::MCB::MEM_RCD_VAL
+            | bcls::MCB::MEM_REFI_VAL
+            | bcls::MCB::MEM_RFC_VAL
+            | bcls::MCB::MEM_RP_VAL
+            | bcls::MCB::MEM_RTP_VAL
+            | bcls::MCB::MEM_WR_VAL
+            | bcls::MCB::MEM_WTR_VAL => {
+                let BelAttributeType::BitVec(width) = attr.typ else {
+                    unreachable!()
+                };
+                bctx.mode(mode)
+                    .global_mutex("MCB", "TEST")
+                    .test_bel_attr_bits(aid)
+                    .multi_attr(aname, MultiValue::Dec(0), width);
+            }
+            bcls::MCB::CAL_CA | bcls::MCB::CAL_BA | bcls::MCB::CAL_RA => {
+                let BelAttributeType::BitVec(width) = attr.typ else {
+                    unreachable!()
+                };
+                bctx.mode(mode)
+                    .global_mutex("MCB", "TEST")
+                    .test_bel_attr_bits(aid)
+                    .multi_attr(aname, MultiValue::Hex(0), width);
+            }
+            bcls::MCB::ARB_TIME_SLOT => {
+                for i in 0..12 {
+                    bctx.mode(mode)
+                        .global_mutex("MCB", "TEST")
+                        .test_bel_attr_bits_base(aid, i * 18)
+                        .multi_attr(format!("ARB_TIME_SLOT_{i}"), MultiValue::Bin, 18);
+                }
+            }
+            bcls::MCB::MR | bcls::MCB::EMR1 | bcls::MCB::EMR2 | bcls::MCB::EMR3 => {
+                // hardcoded
+            }
+            bcls::MCB::MEM_PLL_DIV_EN => {
+                bctx.mode(mode)
+                    .global_mutex_here("MCB")
+                    .global_mutex("DRPSDO", "NOPE")
+                    .test_global_attr_bool_rename("MEM_PLL_DIV_EN", aid, "DISABLED", "ENABLED");
+            }
+            bcls::MCB::MEM_PLL_POL_SEL => {
+                bctx.mode(mode)
+                    .global_mutex_here("MCB")
+                    .global_mutex("DRPSDO", "NOPE")
+                    .test_global_attr_rename("MEM_PLL_POL_SEL", aid);
+            }
+            bcls::MCB::PORT_CONFIG => {
+                bctx.mode(mode)
+                    .global_mutex("MCB", "TEST")
+                    .test_bel_attr_default(aid, enums::MCB_PORT_CONFIG::B32_B32_X32_X32_X32_X32);
+                for mask in 0..16 {
+                    bctx.mode(mode)
+                        .global_mutex("MCB", "TEST")
+                        .test_bel_attr_u32(aid, mask)
+                        .attr(
+                            "PORT_CONFIG",
+                            format!(
+                                "B32_B32_{p2}32_{p3}32_{p4}32_{p5}32",
+                                p2 = if (mask & 1) != 0 { 'R' } else { 'W' },
+                                p3 = if (mask & 2) != 0 { 'R' } else { 'W' },
+                                p4 = if (mask & 4) != 0 { 'R' } else { 'W' },
+                                p5 = if (mask & 8) != 0 { 'R' } else { 'W' },
+                            ),
+                        )
+                        .commit();
+                }
+            }
+            bcls::MCB::MEM_BURST_LEN => {
+                for (mem_type, spec) in [
+                    ("MDDR", specials::MCB_MDDR),
+                    ("DDR", specials::MCB_DDR),
+                    ("DDR2", specials::MCB_DDR2),
+                    ("DDR3", specials::MCB_DDR3),
+                ] {
+                    for (val, vname) in &backend.edev.db[enums::MCB_MEM_BURST_LEN].values {
+                        let vname = vname.strip_prefix('_').unwrap_or(vname);
+                        if val == enums::MCB_MEM_BURST_LEN::NONE {
+                            continue;
+                        }
+                        bctx.mode(mode)
+                            .global_mutex("MCB", "TEST")
+                            .attr("MEM_TYPE", mem_type)
+                            .test_bel_attr_special_val(aid, spec, val)
+                            .attr("MEM_BURST_LEN", vname)
+                            .commit();
+                    }
+                }
+            }
+            bcls::MCB::MEM_DDR_DDR2_MDDR_BURST_LEN => {
+                // derived from above
+            }
+            bcls::MCB::MEM_CAS_LATENCY => {
+                for mt in ["DDR", "DDR2", "MDDR"] {
+                    if let BelAttributeType::Enum(ecid) = attr.typ
+                        && let Some(vid) = backend.edev.db[ecid].values.get("NONE")
+                    {
+                        bctx.mode(mode)
+                            .global_mutex("MCB", "TEST")
+                            .attr("MEM_TYPE", mt)
+                            .test_bel_attr_default(aid, vid);
+                    } else {
+                        bctx.mode(mode)
+                            .global_mutex("MCB", "TEST")
+                            .attr("MEM_TYPE", mt)
+                            .test_bel_attr(aid);
+                    }
+                }
+            }
+            // sigh. doesn't actually work for plain DDR.
+            bcls::MCB::MEM_DDR1_2_ODS
+            | bcls::MCB::MEM_DDR2_ADD_LATENCY
+            | bcls::MCB::MEM_DDR2_DIFF_DQS_EN
+            | bcls::MCB::MEM_DDR2_RTT
+            | bcls::MCB::MEM_DDR2_WRT_RECOVERY => {
+                let mt = "DDR2";
+                if let BelAttributeType::Enum(ecid) = attr.typ
+                    && let Some(vid) = backend.edev.db[ecid].values.get("NONE")
+                {
+                    bctx.mode(mode)
+                        .global_mutex("MCB", "TEST")
+                        .attr("MEM_TYPE", mt)
+                        .test_bel_attr_default(aid, vid);
+                } else {
+                    bctx.mode(mode)
+                        .global_mutex("MCB", "TEST")
+                        .attr("MEM_TYPE", mt)
+                        .test_bel_attr(aid);
+                }
+            }
+            bcls::MCB::MEM_DDR2_3_HIGH_TEMP_SR | bcls::MCB::MEM_DDR2_3_PA_SR => {
+                for mt in ["DDR2", "DDR3"] {
+                    if let BelAttributeType::Enum(ecid) = attr.typ
+                        && let Some(vid) = backend.edev.db[ecid].values.get("NONE")
+                    {
+                        bctx.mode(mode)
+                            .global_mutex("MCB", "TEST")
+                            .attr("MEM_TYPE", mt)
+                            .test_bel_attr_default(aid, vid);
+                    } else {
+                        bctx.mode(mode)
+                            .global_mutex("MCB", "TEST")
+                            .attr("MEM_TYPE", mt)
+                            .test_bel_attr(aid);
+                    }
+                }
+            }
+            bcls::MCB::MEM_DDR3_CAS_LATENCY
+            | bcls::MCB::MEM_DDR3_WRT_RECOVERY
+            | bcls::MCB::MEM_DDR3_ADD_LATENCY
+            | bcls::MCB::MEM_DDR3_ODS
+            | bcls::MCB::MEM_DDR3_RTT
+            | bcls::MCB::MEM_DDR3_CAS_WR_LATENCY
+            | bcls::MCB::MEM_DDR3_AUTO_SR
+            | bcls::MCB::MEM_DDR3_DYN_WRT_ODT => {
+                let mt = "DDR3";
+                if let BelAttributeType::Enum(ecid) = attr.typ
+                    && let Some(vid) = backend.edev.db[ecid].values.get("NONE")
+                {
+                    bctx.mode(mode)
+                        .global_mutex("MCB", "TEST")
+                        .attr("MEM_TYPE", mt)
+                        .test_bel_attr_default(aid, vid);
+                } else {
+                    bctx.mode(mode)
+                        .global_mutex("MCB", "TEST")
+                        .attr("MEM_TYPE", mt)
+                        .test_bel_attr(aid);
+                }
+            }
+            bcls::MCB::MEM_MDDR_ODS | bcls::MCB::MEM_MOBILE_PA_SR | bcls::MCB::MEM_MOBILE_TC_SR => {
+                let mt = "MDDR";
+                if let BelAttributeType::Enum(ecid) = attr.typ
+                    && let Some(vid) = backend.edev.db[ecid].values.get("NONE")
+                {
+                    bctx.mode(mode)
+                        .global_mutex("MCB", "TEST")
+                        .attr("MEM_TYPE", mt)
+                        .test_bel_attr_default(aid, vid);
+                } else {
+                    bctx.mode(mode)
+                        .global_mutex("MCB", "TEST")
+                        .attr("MEM_TYPE", mt)
+                        .test_bel_attr(aid);
+                }
+            }
+            _ => {
+                if let BelAttributeType::Enum(ecid) = attr.typ
+                    && let Some(vid) = backend.edev.db[ecid].values.get("NONE")
+                {
+                    bctx.mode(mode)
+                        .global_mutex("MCB", "TEST")
+                        .test_bel_attr_default(aid, vid);
+                } else {
+                    bctx.mode(mode)
+                        .global_mutex("MCB", "TEST")
+                        .test_bel_attr(aid);
+                }
+            }
+        }
     }
 }
 
+fn mui_split(diff: Diff) -> [Diff; 9] {
+    let mut res = core::array::from_fn(|_| Diff::default());
+    for (k, v) in diff.bits {
+        let r = k.rect.to_idx();
+        let slot = if r < 12 { 0 } else { 1 + (r - 12) / 2 };
+        res[slot].bits.insert(k, v);
+    }
+    res
+}
+
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    if !ctx.has_tile_legacy("MCB") {
+    let tcid = tcls::MCB;
+    if !ctx.has_tcls(tcid) {
         return;
     }
+    let bslot = bslots::MCB;
 
-    let tile = "MCB";
-    let bel = "MCB";
-
-    let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-    present = present.combine(ctx.peek_diff_legacy(tile, bel, "MEM_PLL_DIV_EN", "DISABLED"));
-    present = present.combine(ctx.peek_diff_legacy(tile, bel, "MEM_PLL_POL_SEL", "INVERTED"));
+    let mut present = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
 
     for pin in [
-        "P0CMDCLK", "P1CMDCLK", "P2CMDCLK", "P3CMDCLK", "P4CMDCLK", "P5CMDCLK", "P0CMDEN",
-        "P1CMDEN", "P2CMDEN", "P3CMDEN", "P4CMDEN", "P5CMDEN", "P0RDCLK", "P1RDCLK", "P0RDEN",
-        "P1RDEN", "P0WRCLK", "P1WRCLK", "P0WREN", "P1WREN", "P2CLK", "P3CLK", "P4CLK", "P5CLK",
-        "P2EN", "P3EN", "P4EN", "P5EN",
+        bcls::MCB::P0CMDCLK,
+        bcls::MCB::P1CMDCLK,
+        bcls::MCB::P2CMDCLK,
+        bcls::MCB::P3CMDCLK,
+        bcls::MCB::P4CMDCLK,
+        bcls::MCB::P5CMDCLK,
+        bcls::MCB::P0CMDEN,
+        bcls::MCB::P1CMDEN,
+        bcls::MCB::P2CMDEN,
+        bcls::MCB::P3CMDEN,
+        bcls::MCB::P4CMDEN,
+        bcls::MCB::P5CMDEN,
+        bcls::MCB::P0RDCLK,
+        bcls::MCB::P1RDCLK,
+        bcls::MCB::P0RDEN,
+        bcls::MCB::P1RDEN,
+        bcls::MCB::P0WRCLK,
+        bcls::MCB::P1WRCLK,
+        bcls::MCB::P0WREN,
+        bcls::MCB::P1WREN,
+        bcls::MCB::P2CLK,
+        bcls::MCB::P3CLK,
+        bcls::MCB::P4CLK,
+        bcls::MCB::P5CLK,
+        bcls::MCB::P2EN,
+        bcls::MCB::P3EN,
+        bcls::MCB::P4EN,
+        bcls::MCB::P5EN,
     ] {
-        ctx.collect_inv(tile, bel, pin);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
     }
-    ctx.collect_enum_legacy(tile, bel, "ARB_NUM_TIME_SLOTS", &["10", "12"]);
-    ctx.collect_bit_bi_legacy(tile, bel, "CAL_BYPASS", "NO", "YES");
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "CAL_CALIBRATION_MODE",
-        &["CALIBRATION", "NOCALIBRATION"],
-    );
-    ctx.collect_enum_legacy(tile, bel, "CAL_CLK_DIV", &["1", "2", "4", "8"]);
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "CAL_DELAY",
-        &["QUARTER", "HALF", "THREEQUARTER", "FULL"],
-    );
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "MEM_ADDR_ORDER",
-        &["BANK_ROW_COLUMN", "ROW_BANK_COLUMN"],
-    );
-    ctx.collect_enum_legacy(tile, bel, "MEM_BA_SIZE", &["2", "3"]);
-    ctx.collect_enum_legacy(tile, bel, "MEM_CA_SIZE", &["9", "10", "11", "12"]);
-    ctx.collect_enum_legacy(tile, bel, "MEM_RA_SIZE", &["12", "13", "14", "15"]);
-    ctx.collect_enum_legacy(tile, bel, "MEM_TYPE", &["DDR", "DDR2", "DDR3", "MDDR"]);
-    for (attr, vals) in [
-        ("MEM_WIDTH", &["4", "8", "16"][..]),
-        ("MEM_PLL_POL_SEL", &["INVERTED", "NOTINVERTED"]),
-        ("MEM_PLL_DIV_EN", &["DISABLED", "ENABLED"]),
-    ] {
-        let mut diffs: [Vec<_>; 9] = Default::default();
-        for &val in vals {
-            let mut diff = ctx.get_diff_legacy(tile, bel, attr, val);
-            for i in 0..8 {
-                diffs[i + 1].push((
-                    val,
-                    diff.split_bits_by(|bit| bit.rect.to_idx() == 13 + i * 2),
-                ));
-            }
-            diffs[0].push((val, diff));
+    for (aid, aname, attr) in &ctx.edev.db[bcls::MCB].attributes {
+        if aname.starts_with("MUI") {
+            // extracted from other attributes through special handling
+            continue;
         }
-        let items = diffs.map(|mut diffs| {
-            if attr == "MEM_PLL_DIV_EN" {
-                xlat_bit_bi_legacy(
-                    core::mem::take(&mut diffs[0].1),
-                    core::mem::take(&mut diffs[1].1),
-                )
-            } else {
-                xlat_enum_legacy(diffs)
+        match aid {
+            bcls::MCB::CAL_BYPASS => {
+                ctx.collect_bel_attr_bi(tcid, bslot, aid);
             }
-        });
-        for (i, item) in items.into_iter().enumerate() {
-            let name = match i {
-                0 => attr.to_string(),
-                1 => format!("MUI0R.{attr}"),
-                2 => format!("MUI0W.{attr}"),
-                3 => format!("MUI1R.{attr}"),
-                4 => format!("MUI1W.{attr}"),
-                _ => format!("MUI{ii}.{attr}", ii = i - 5),
-            };
-            ctx.insert_legacy(tile, bel, name, item);
-        }
-    }
-    ctx.peek_diff_legacy(tile, bel, "PORT_CONFIG", "B32_B32_W32_W32_W32_W32")
-        .assert_empty();
-    for (attr, val) in [
-        ("MUI2_PORT_CONFIG", "B32_B32_R32_W32_W32_W32"),
-        ("MUI3_PORT_CONFIG", "B32_B32_W32_R32_W32_W32"),
-        ("MUI4_PORT_CONFIG", "B32_B32_W32_W32_R32_W32"),
-        ("MUI5_PORT_CONFIG", "B32_B32_W32_W32_W32_R32"),
-    ] {
-        let diff = ctx.peek_diff_legacy(tile, bel, "PORT_CONFIG", val).clone();
-        ctx.insert_legacy(
-            tile,
-            bel,
-            attr,
-            xlat_enum_legacy(vec![("WRITE", Diff::default()), ("READ", diff)]),
-        );
-    }
-    let mut diffs = vec![("B32_B32_X32_X32_X32_X32", Diff::default())];
-    for val in ["B32_B32_B32_B32", "B64_B32_B32", "B64_B64", "B128"] {
-        let mut diff = ctx.get_diff_legacy(tile, bel, "PORT_CONFIG", val);
-        diff.apply_enum_diff_legacy(
-            ctx.item_legacy(tile, bel, "MUI2_PORT_CONFIG"),
-            "READ",
-            "WRITE",
-        );
-        diff.apply_enum_diff_legacy(
-            ctx.item_legacy(tile, bel, "MUI4_PORT_CONFIG"),
-            "READ",
-            "WRITE",
-        );
-        diffs.push((val, diff));
-    }
-    ctx.insert_legacy(tile, bel, "PORT_CONFIG", xlat_enum_legacy(diffs));
-    for mask in 0..16 {
-        let val = format!(
-            "B32_B32_{p2}32_{p3}32_{p4}32_{p5}32",
-            p2 = if (mask & 1) != 0 { 'R' } else { 'W' },
-            p3 = if (mask & 2) != 0 { 'R' } else { 'W' },
-            p4 = if (mask & 4) != 0 { 'R' } else { 'W' },
-            p5 = if (mask & 8) != 0 { 'R' } else { 'W' },
-        );
-        let mut diff = ctx.get_diff_legacy(tile, bel, "PORT_CONFIG", val);
-        for i in 0..4 {
-            if (mask & (1 << i)) != 0 {
-                diff.apply_enum_diff_legacy(
-                    ctx.item_legacy(tile, bel, &format!("MUI{ii}_PORT_CONFIG", ii = i + 2)),
-                    "READ",
-                    "WRITE",
+            bcls::MCB::MR | bcls::MCB::EMR1 | bcls::MCB::EMR2 | bcls::MCB::EMR3 => {
+                // hardcoded below
+            }
+            bcls::MCB::MEM_PLL_DIV_EN => {
+                let diff0 = ctx.get_diff_attr_bool_bi(tcid, bslot, aid, false);
+                let diff1 = ctx.get_diff_attr_bool_bi(tcid, bslot, aid, true);
+                present = present.combine(&diff0);
+                for ((attr, diff0), diff1) in [
+                    bcls::MCB::MEM_PLL_DIV_EN,
+                    bcls::MCB::MUI0R_MEM_PLL_DIV_EN,
+                    bcls::MCB::MUI0W_MEM_PLL_DIV_EN,
+                    bcls::MCB::MUI1R_MEM_PLL_DIV_EN,
+                    bcls::MCB::MUI1W_MEM_PLL_DIV_EN,
+                    bcls::MCB::MUI2_MEM_PLL_DIV_EN,
+                    bcls::MCB::MUI3_MEM_PLL_DIV_EN,
+                    bcls::MCB::MUI4_MEM_PLL_DIV_EN,
+                    bcls::MCB::MUI5_MEM_PLL_DIV_EN,
+                ]
+                .into_iter()
+                .zip(mui_split(diff0))
+                .zip(mui_split(diff1))
+                {
+                    ctx.insert_bel_attr_bool(tcid, bslot, attr, xlat_bit_bi(diff0, diff1));
+                }
+            }
+            bcls::MCB::MEM_PLL_POL_SEL => {
+                let mut diffs = [const { vec![] }; 9];
+                for val in ctx.edev.db[enums::MCB_MEM_PLL_POL_SEL].values.ids() {
+                    let diff = ctx.get_diff_attr_val(tcid, bslot, aid, val);
+                    if val == enums::MCB_MEM_PLL_POL_SEL::INVERTED {
+                        present = present.combine(&diff);
+                    }
+                    for (i, diff) in mui_split(diff).into_iter().enumerate() {
+                        diffs[i].push((val, diff));
+                    }
+                }
+                for (attr, diffs) in [
+                    bcls::MCB::MEM_PLL_POL_SEL,
+                    bcls::MCB::MUI0R_MEM_PLL_POL_SEL,
+                    bcls::MCB::MUI0W_MEM_PLL_POL_SEL,
+                    bcls::MCB::MUI1R_MEM_PLL_POL_SEL,
+                    bcls::MCB::MUI1W_MEM_PLL_POL_SEL,
+                    bcls::MCB::MUI2_MEM_PLL_POL_SEL,
+                    bcls::MCB::MUI3_MEM_PLL_POL_SEL,
+                    bcls::MCB::MUI4_MEM_PLL_POL_SEL,
+                    bcls::MCB::MUI5_MEM_PLL_POL_SEL,
+                ]
+                .into_iter()
+                .zip(diffs)
+                {
+                    ctx.insert_bel_attr_enum(tcid, bslot, attr, xlat_enum_attr(diffs));
+                }
+            }
+            bcls::MCB::MEM_WIDTH => {
+                let mut diffs = [const { vec![] }; 9];
+                for val in ctx.edev.db[enums::MCB_MEM_WIDTH].values.ids() {
+                    let diff = if val == enums::MCB_MEM_WIDTH::NONE {
+                        Diff::default()
+                    } else {
+                        ctx.get_diff_attr_val(tcid, bslot, aid, val)
+                    };
+                    for (i, diff) in mui_split(diff).into_iter().enumerate() {
+                        diffs[i].push((val, diff));
+                    }
+                }
+                for (attr, diffs) in [
+                    bcls::MCB::MEM_WIDTH,
+                    bcls::MCB::MUI0R_MEM_WIDTH,
+                    bcls::MCB::MUI0W_MEM_WIDTH,
+                    bcls::MCB::MUI1R_MEM_WIDTH,
+                    bcls::MCB::MUI1W_MEM_WIDTH,
+                    bcls::MCB::MUI2_MEM_WIDTH,
+                    bcls::MCB::MUI3_MEM_WIDTH,
+                    bcls::MCB::MUI4_MEM_WIDTH,
+                    bcls::MCB::MUI5_MEM_WIDTH,
+                ]
+                .into_iter()
+                .zip(diffs)
+                {
+                    ctx.insert_bel_attr_enum(tcid, bslot, attr, xlat_enum_attr(diffs));
+                }
+            }
+            bcls::MCB::PORT_CONFIG => {
+                let bits = xlat_bitvec_sparse_u32(
+                    (0..16)
+                        .map(|val| (val, ctx.get_diff_attr_u32(tcid, bslot, aid, val)))
+                        .collect(),
+                );
+                assert_eq!(bits.len(), 4);
+                for (attr, bit) in [
+                    bcls::MCB::MUI2_PORT_CONFIG,
+                    bcls::MCB::MUI3_PORT_CONFIG,
+                    bcls::MCB::MUI4_PORT_CONFIG,
+                    bcls::MCB::MUI5_PORT_CONFIG,
+                ]
+                .into_iter()
+                .zip(bits.iter().copied())
+                {
+                    ctx.insert_bel_attr_enum(
+                        tcid,
+                        bslot,
+                        attr,
+                        xlat_enum_attr(vec![
+                            (enums::MCB_MUI_PORT_CONFIG::WRITE, Diff::default()),
+                            (enums::MCB_MUI_PORT_CONFIG::READ, Diff::from_bit(bit)),
+                        ]),
+                    );
+                }
+
+                let mut diffs = vec![(
+                    enums::MCB_PORT_CONFIG::B32_B32_X32_X32_X32_X32,
+                    Diff::default(),
+                )];
+                for val in [
+                    enums::MCB_PORT_CONFIG::B32_B32_B32_B32,
+                    enums::MCB_PORT_CONFIG::B64_B32_B32,
+                    enums::MCB_PORT_CONFIG::B64_B64,
+                    enums::MCB_PORT_CONFIG::B128,
+                ] {
+                    let mut diff = ctx.get_diff_attr_val(tcid, bslot, aid, val);
+                    diff.apply_bitvec_diff_int(&bits, 5, 0);
+                    diffs.push((val, diff));
+                }
+                ctx.insert_bel_attr_enum(tcid, bslot, aid, xlat_enum_attr(diffs));
+
+                for (i, (attr, def)) in [
+                    (bcls::MCB::MUI0R_PORT_CONFIG, true),
+                    (bcls::MCB::MUI0W_PORT_CONFIG, false),
+                    (bcls::MCB::MUI1R_PORT_CONFIG, true),
+                    (bcls::MCB::MUI1W_PORT_CONFIG, false),
+                ]
+                .into_iter()
+                .enumerate()
+                {
+                    let mut item = ctx
+                        .bel_attr_enum(tcid, bslot, bcls::MCB::MUI2_PORT_CONFIG)
+                        .clone();
+                    for bit in &mut item.bits {
+                        bit.rect = BitRectId::from_idx(bit.rect.to_idx() - 4 * 2 + i * 2);
+                    }
+                    if def {
+                        present.apply_enum_diff(
+                            &item,
+                            enums::MCB_MUI_PORT_CONFIG::READ,
+                            enums::MCB_MUI_PORT_CONFIG::WRITE,
+                        );
+                    }
+                    ctx.insert_bel_attr_enum(tcid, bslot, attr, item);
+                }
+            }
+            bcls::MCB::MEM_BURST_LEN => {
+                let mut diffs = vec![];
+                let mut diffs_mr = vec![];
+                for val in ctx.edev.db[enums::MCB_MEM_BURST_LEN].values.ids() {
+                    if val == enums::MCB_MEM_BURST_LEN::NONE {
+                        diffs.push((val, Diff::default()));
+                        diffs_mr.push((val, Diff::default()));
+                        continue;
+                    }
+                    let diff_ddr =
+                        ctx.get_diff_attr_special_val(tcid, bslot, aid, specials::MCB_DDR, val);
+                    let diff_mddr =
+                        ctx.get_diff_attr_special_val(tcid, bslot, aid, specials::MCB_MDDR, val);
+                    let diff_ddr2 =
+                        ctx.get_diff_attr_special_val(tcid, bslot, aid, specials::MCB_DDR2, val);
+                    let diff_ddr3 =
+                        ctx.get_diff_attr_special_val(tcid, bslot, aid, specials::MCB_DDR3, val);
+                    assert_eq!(diff_ddr, diff_mddr);
+                    assert_eq!(diff_ddr, diff_ddr2);
+                    let diff_mr = diff_ddr.combine(&!&diff_ddr3);
+                    diffs.push((val, diff_ddr3));
+                    diffs_mr.push((val, diff_mr));
+                }
+                ctx.insert_bel_attr_enum(
+                    tcid,
+                    bslot,
+                    aid,
+                    xlat_enum_attr_ocd(diffs, OcdMode::BitOrder),
+                );
+                ctx.insert_bel_attr_enum(
+                    tcid,
+                    bslot,
+                    bcls::MCB::MEM_DDR_DDR2_MDDR_BURST_LEN,
+                    xlat_enum_attr_ocd(diffs_mr, OcdMode::BitOrder),
                 );
             }
+            bcls::MCB::MEM_DDR_DDR2_MDDR_BURST_LEN => {
+                // derived above
+            }
+            _ => {
+                if let BelAttributeType::Enum(ecid) = attr.typ {
+                    if let Some(vid) = ctx.edev.db[ecid].values.get("NONE") {
+                        ctx.collect_bel_attr_default_ocd(tcid, bslot, aid, vid, OcdMode::BitOrder);
+                    } else {
+                        ctx.collect_bel_attr_ocd(tcid, bslot, aid, OcdMode::BitOrder);
+                    }
+                } else {
+                    ctx.collect_bel_attr(tcid, bslot, aid);
+                }
+            }
         }
-        diff.assert_empty();
     }
-    for (i, mui) in ["MUI0R", "MUI0W", "MUI1R", "MUI1W"].into_iter().enumerate() {
-        let mut item = ctx.item_legacy(tile, bel, "MUI2_PORT_CONFIG").clone();
-        for bit in &mut item.bits {
-            bit.rect = BitRectId::from_idx(bit.rect.to_idx() - 4 * 2 + i * 2);
-        }
-        ctx.insert_legacy(tile, bel, format!("{mui}_PORT_CONFIG"), item);
-    }
-    present.apply_enum_diff_legacy(
-        ctx.item_legacy(tile, bel, "MUI0R_PORT_CONFIG"),
-        "READ",
-        "WRITE",
-    );
-    present.apply_enum_diff_legacy(
-        ctx.item_legacy(tile, bel, "MUI1R_PORT_CONFIG"),
-        "READ",
-        "WRITE",
-    );
 
     present.assert_empty();
 
-    ctx.collect_bitvec_legacy(tile, bel, "MEM_RCD_VAL", "");
-    ctx.collect_bitvec_legacy(tile, bel, "MEM_RAS_VAL", "");
-    ctx.collect_bitvec_legacy(tile, bel, "MEM_RTP_VAL", "");
-    ctx.collect_bitvec_legacy(tile, bel, "MEM_WR_VAL", "");
-    ctx.collect_bitvec_legacy(tile, bel, "MEM_WTR_VAL", "");
-    ctx.collect_bitvec_legacy(tile, bel, "MEM_RFC_VAL", "");
-    ctx.collect_bitvec_legacy(tile, bel, "MEM_RP_VAL", "");
-    ctx.collect_bitvec_legacy(tile, bel, "MEM_REFI_VAL", "");
-    ctx.collect_bitvec_legacy(tile, bel, "CAL_BA", "");
-    ctx.collect_bitvec_legacy(tile, bel, "CAL_CA", "");
-    ctx.collect_bitvec_legacy(tile, bel, "CAL_RA", "");
-    for i in 0..12 {
-        ctx.collect_bitvec_legacy(tile, bel, &format!("ARB_TIME_SLOT_{i}"), "");
-    }
-
-    for mem_type in ["MDDR", "DDR", "DDR2"] {
-        let mut diffs = vec![];
-        for val in ["4", "8"] {
-            let mut diff = ctx.get_diff_legacy(tile, bel, format!("MEM_BURST_LEN.{mem_type}"), val);
-            diff = diff.combine(&!ctx.peek_diff_legacy(tile, bel, "MEM_BURST_LEN.DDR3", val));
-            diffs.push((val, diff));
-        }
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "MEM_DDR_DDR2_MDDR_BURST_LEN",
-            xlat_enum_legacy(diffs),
-        );
-    }
-    let item = ctx.extract_enum_legacy(tile, bel, "MEM_BURST_LEN.DDR3", &["4", "8"]);
-    ctx.insert_legacy(tile, bel, "MEM_BURST_LEN", item);
-
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "MEM_CAS_LATENCY",
-        &["1", "2", "3", "4", "5", "6"],
-    );
-    ctx.collect_enum_legacy(tile, bel, "MEM_DDR1_2_ODS", &["REDUCED", "FULL"]);
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "MEM_DDR2_ADD_LATENCY",
-        &["0", "1", "2", "3", "4", "5"],
-    );
-    ctx.collect_enum_legacy(tile, bel, "MEM_DDR2_DIFF_DQS_EN", &["YES", "NO"]);
-    ctx.collect_enum_default_legacy(
-        tile,
-        bel,
-        "MEM_DDR2_RTT",
-        &["50OHMS", "75OHMS", "150OHMS"],
-        "NONE",
-    );
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "MEM_DDR2_WRT_RECOVERY",
-        &["2", "3", "4", "5", "6"],
-    );
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "MEM_DDR2_3_HIGH_TEMP_SR",
-        &["NORMAL", "EXTENDED"],
-    );
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "MEM_DDR2_3_PA_SR",
-        &[
-            "FULL",
-            "EIGHTH1",
-            "EIGHTH2",
-            "HALF1",
-            "HALF2",
-            "QUARTER1",
-            "QUARTER2",
-            "THREEQUARTER",
-        ],
-    );
-    ctx.collect_enum_default_legacy(tile, bel, "MEM_DDR3_ADD_LATENCY", &["CL1", "CL2"], "NONE");
-    ctx.collect_enum_legacy(tile, bel, "MEM_DDR3_AUTO_SR", &["ENABLED", "MANUAL"]);
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "MEM_DDR3_CAS_LATENCY",
-        &["5", "6", "7", "8", "9", "10"],
-    );
-    ctx.collect_enum_legacy(tile, bel, "MEM_DDR3_CAS_WR_LATENCY", &["5", "6", "7", "8"]);
-    ctx.collect_enum_default_legacy(tile, bel, "MEM_DDR3_DYN_WRT_ODT", &["DIV2", "DIV4"], "NONE");
-    ctx.collect_enum_legacy(tile, bel, "MEM_DDR3_ODS", &["DIV6", "DIV7"]);
-    ctx.collect_enum_default_legacy(
-        tile,
-        bel,
-        "MEM_DDR3_RTT",
-        &["DIV2", "DIV4", "DIV6", "DIV8", "DIV12"],
-        "NONE",
-    );
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "MEM_DDR3_WRT_RECOVERY",
-        &["5", "6", "7", "8", "10", "12"],
-    );
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "MEM_MDDR_ODS",
-        &["QUARTER", "HALF", "THREEQUARTERS", "FULL"],
-    );
-    ctx.collect_enum_legacy(tile, bel, "MEM_MOBILE_PA_SR", &["HALF", "FULL"]);
-    ctx.collect_enum_legacy(tile, bel, "MEM_MOBILE_TC_SR", &["0", "1", "2", "3"]);
-
-    for (reg, bittile) in [("MR", 7), ("EMR1", 6), ("EMR2", 5), ("EMR3", 4)] {
-        ctx.insert_legacy(
-            tile,
-            bel,
+    for (reg, bittile) in [
+        (bcls::MCB::MR, 7),
+        (bcls::MCB::EMR1, 6),
+        (bcls::MCB::EMR2, 5),
+        (bcls::MCB::EMR3, 4),
+    ] {
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
             reg,
-            TileItem::from_bitvec_inv(
-                (0..14).map(|i| TileBit::new(bittile, 22, 18 + i)).collect(),
-                false,
-            ),
+            (0..14)
+                .map(|i| TileBit::new(bittile, 22, 18 + i).pos())
+                .collect(),
         );
     }
 }

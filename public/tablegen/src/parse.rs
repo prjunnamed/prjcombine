@@ -212,24 +212,27 @@ impl Tokenizer {
     }
 
     fn attribute_type(&mut self) -> Result<ast::AttributeType> {
-        let typ_raw = self.ident()?;
-        Ok(match typ_raw.to_string().as_str() {
-            "bool" => ast::AttributeType::Bool,
-            "u32" => ast::AttributeType::U32,
-            "bitvec" => {
-                let mut inner = self.brackets()?;
-                let width = inner.usize()?;
-                inner.finish()?;
-                if let Some(mut inner) = self.try_brackets() {
-                    let depth = inner.usize()?;
+        let typ_raw = self.template_id()?;
+        if let ast::TemplateId::Raw(ref ident) = typ_raw {
+            match ident.to_string().as_str() {
+                "bool" => return Ok(ast::AttributeType::Bool),
+                "u32" => return Ok(ast::AttributeType::U32),
+                "bitvec" => {
+                    let mut inner = self.brackets()?;
+                    let width = inner.usize()?;
                     inner.finish()?;
-                    ast::AttributeType::BitVecArray(width, depth)
-                } else {
-                    ast::AttributeType::BitVec(width)
+                    return Ok(if let Some(mut inner) = self.try_brackets() {
+                        let depth = inner.usize()?;
+                        inner.finish()?;
+                        ast::AttributeType::BitVecArray(width, depth)
+                    } else {
+                        ast::AttributeType::BitVec(width)
+                    });
                 }
+                _ => (),
             }
-            _ => ast::AttributeType::Enum(typ_raw),
-        })
+        }
+        Ok(ast::AttributeType::Enum(typ_raw))
     }
 
     fn try_kw(&mut self, kw: &str) -> bool {

@@ -1,5 +1,4 @@
-use std::collections::BTreeMap;
-
+use indexmap::IndexMap;
 use prjcombine_virtex2::defs::devdata;
 
 use crate::{
@@ -14,7 +13,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
         )
         .unwrap();
         gen_intdb(ctx, kind, &db.int);
-        let mut devdata = BTreeMap::new();
+        let mut devdata = IndexMap::new();
         for device in &db.devices {
             devdata.insert(device.name.as_str(), &device.data);
         }

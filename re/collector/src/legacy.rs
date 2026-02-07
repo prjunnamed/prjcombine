@@ -34,7 +34,7 @@ impl Diff {
         let TileItemKind::Enum { ref values } = item.kind else {
             unreachable!()
         };
-        self.apply_enum_diff_raw(&item.bits, &values[from], &values[to]);
+        self.apply_enum_bits_raw(&item.bits, &values[from], &values[to]);
     }
 
     pub fn from_bit(bit: PolTileBit) -> Self {

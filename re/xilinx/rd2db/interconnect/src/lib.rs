@@ -1619,6 +1619,7 @@ pub enum PipMode {
 #[derive(Clone, Debug, Default)]
 pub struct Pips {
     pub pips: BTreeMap<(TileWireCoord, PolTileWireCoord), PipMode>,
+    pub specials: BTreeSet<SwitchBoxItem>,
 }
 
 pub struct IntBuilder<'a> {
@@ -2804,9 +2805,18 @@ impl<'a> IntBuilder<'a> {
                     .0
             }
             Some((id, cnaming)) => {
-                assert_eq!(naming.ext_pips, cnaming.ext_pips);
                 assert_eq!(naming.wire_bufs, cnaming.wire_bufs);
                 assert_eq!(naming.delay_wires, cnaming.delay_wires);
+                for (k, v) in naming.ext_pips {
+                    match cnaming.ext_pips.get(&k) {
+                        None => {
+                            cnaming.ext_pips.insert(k, v);
+                        }
+                        Some(cv) => {
+                            assert_eq!(v, *cv);
+                        }
+                    }
+                }
                 for (k, v) in naming.bels {
                     match cnaming.bels.get(k) {
                         None => {
@@ -2838,6 +2848,23 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
                 id
+            }
+        }
+    }
+
+    pub fn insert_bel_naming(&mut self, naming: &str, bslot: BelSlotId, bn: BelNaming) {
+        if !self.ndb.tile_class_namings.contains_key(naming) {
+            self.ndb
+                .tile_class_namings
+                .insert(naming.to_string(), Default::default());
+        }
+        let tn = self.ndb.tile_class_namings.get_mut(naming).unwrap().1;
+        match tn.bels.get(bslot) {
+            None => {
+                tn.bels.insert(bslot, bn);
+            }
+            Some(cv) => {
+                assert_eq!(bn, *cv);
             }
         }
     }
@@ -3908,7 +3935,7 @@ impl<'a> IntBuilder<'a> {
     pub fn build(mut self) -> (IntDb, NamingDb) {
         for ((tcls, bslot), pips) in self.pips {
             let mut muxes: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
-            let mut items = vec![];
+            let mut items = Vec::from_iter(pips.specials);
             let mut passes = BTreeSet::new();
             let mut invs = BTreeSet::new();
             for ((wt, wf), mode) in pips.pips {

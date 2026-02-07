@@ -139,6 +139,67 @@ impl TileClass {
                                 wire = bidi.wire.to_string(db, self),
                                 bit = self.dump_polbit(bidi.bit_upstream),
                             )?,
+                            SwitchBoxItem::PairMux(mux) => {
+                                write!(
+                                    o,
+                                    "\t\t\t\tpair_mux ({dst0}, {dst1})",
+                                    dst0 = mux.dst[0].to_string(db, self),
+                                    dst1 = mux.dst[1].to_string(db, self),
+                                )?;
+                                if mux.bits.is_empty() {
+                                    write!(o, " = ")?;
+                                    let mut first = true;
+                                    for src in mux.src.keys() {
+                                        if !first {
+                                            write!(o, " | ")?;
+                                        }
+                                        first = false;
+                                        write!(
+                                            o,
+                                            "({src0}, {src1})",
+                                            src0 = if let Some(src) = src[0] {
+                                                src.to_string(db, self)
+                                            } else {
+                                                "_".to_string()
+                                            },
+                                            src1 = if let Some(src) = src[1] {
+                                                src.to_string(db, self)
+                                            } else {
+                                                "_".to_string()
+                                            }
+                                        )?;
+                                    }
+                                    writeln!(o, ";")?;
+                                } else {
+                                    write!(o, " @[")?;
+                                    let mut first = true;
+                                    for &bit in mux.bits.iter().rev() {
+                                        if !first {
+                                            write!(o, ", ")?;
+                                        }
+                                        first = false;
+                                        write!(o, "{}", self.dump_bit(bit))?;
+                                    }
+                                    writeln!(o, "] {{")?;
+                                    for (src, v) in &mux.src {
+                                        writeln!(
+                                            o,
+                                            "\t\t\t\t\t({src0}, {src1}) = 0b{v},",
+                                            src0 = if let Some(src) = src[0] {
+                                                src.to_string(db, self)
+                                            } else {
+                                                "_".to_string()
+                                            },
+                                            src1 = if let Some(src) = src[1] {
+                                                src.to_string(db, self)
+                                            } else {
+                                                "_".to_string()
+                                            }
+                                        )?;
+                                    }
+                                    writeln!(o, "\t\t\t\t}}")?;
+                                }
+                            }
                         }
                     }
                     writeln!(o, "\t\t\t}}")?;

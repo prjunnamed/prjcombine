@@ -68,6 +68,13 @@ pub enum DiffKey {
     BelAttrRow(TileClassId, BelSlotId, BelAttributeId, TableRowId),
     BelAttrSpecial(TileClassId, BelSlotId, BelAttributeId, SpecialId),
     BelAttrSpecialBit(TileClassId, BelSlotId, BelAttributeId, SpecialId, usize),
+    BelAttrSpecialValue(
+        TileClassId,
+        BelSlotId,
+        BelAttributeId,
+        SpecialId,
+        EnumValueId,
+    ),
     BelSpecial(TileClassId, BelSlotId, SpecialId),
     BelSpecialVal(TileClassId, BelSlotId, SpecialId, EnumValueId),
     BelSpecialBit(TileClassId, BelSlotId, SpecialId, usize),
@@ -225,7 +232,7 @@ impl Diff {
         self.apply_bitvec_diff(&[bit], &BitVec::from_iter([from]), &BitVec::from_iter([to]))
     }
 
-    pub fn apply_enum_diff_raw(&mut self, bits: &[TileBit], from: &BitVec, to: &BitVec) {
+    pub fn apply_enum_bits_raw(&mut self, bits: &[TileBit], from: &BitVec, to: &BitVec) {
         for (idx, &bit) in bits.iter().enumerate() {
             if from[idx] != to[idx] {
                 match self.bits.entry(bit) {
@@ -241,10 +248,16 @@ impl Diff {
         }
     }
 
+    pub fn apply_enum_diff_raw<K: Ord>(&mut self, item: &EnumData<K>, from: &K, to: &K) {
+        let from = &item.values[from];
+        let to = &item.values[to];
+        self.apply_enum_bits_raw(&item.bits, from, to);
+    }
+
     pub fn apply_enum_diff(&mut self, item: &BelAttributeEnum, from: EnumValueId, to: EnumValueId) {
         let from = &item.values[from];
         let to = &item.values[to];
-        self.apply_enum_diff_raw(&item.bits, from, to);
+        self.apply_enum_bits_raw(&item.bits, from, to);
     }
 
     pub fn split_rects(&self, split: &[&EntityVec<BitRectId, BitRectId>]) -> Vec<Diff> {
@@ -617,6 +630,19 @@ pub fn xlat_bitvec_sparse_u32(diffs: Vec<(u32, Diff)>) -> Vec<PolTileBit> {
         new_diffs.push((bits, diff));
     }
     xlat_bitvec_sparse(new_diffs)
+}
+
+pub fn extract_common_diff<K>(diffs: &mut [(K, Diff)]) -> Diff {
+    let mut common = diffs[0].1.clone();
+    for (_, diff) in &*diffs {
+        common.bits.retain(|k, _| diff.bits.contains_key(k));
+    }
+    for (_, diff) in diffs {
+        for (&k, &v) in &common.bits {
+            assert_eq!(diff.bits.remove(&k), Some(v));
+        }
+    }
+    common
 }
 
 pub fn extract_bitvec_val_part(bits: &[PolTileBit], base: &BitVec, diff: &mut Diff) -> BitVec {

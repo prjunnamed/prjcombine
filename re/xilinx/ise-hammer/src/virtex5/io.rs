@@ -891,8 +891,10 @@ pub fn add_fuzzers<'a>(
             .test_enum_legacy("DELAYCHAIN_OSC", &["FALSE", "TRUE"]);
         bctx.mode("IODELAY")
             .test_enum_legacy("DELAY_SRC", &["I", "O", "IO", "DATAIN"]);
-        bctx.mode("IODELAY").test_multi_attr_dec("IDELAY_VALUE", 6);
-        bctx.mode("IODELAY").test_multi_attr_dec("ODELAY_VALUE", 6);
+        bctx.mode("IODELAY")
+            .test_multi_attr_dec_legacy("IDELAY_VALUE", 6);
+        bctx.mode("IODELAY")
+            .test_multi_attr_dec_legacy("ODELAY_VALUE", 6);
 
         bctx.mode("IODELAY")
             .global("LEGIDELAY", "ENABLE")

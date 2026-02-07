@@ -1,73 +1,41 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::{dir::DirV, grid::TileCoord};
-use prjcombine_re_collector::{
-    diff::{DiffKey, FeatureId, OcdMode},
-    legacy::{xlat_bit_legacy, xlat_bit_wide_legacy, xlat_enum_legacy, xlat_enum_legacy_ocd},
+use prjcombine_interconnect::{
+    db::{BelInfo, PolTileWireCoord, SwitchBoxItem, TileClassId, TileWireCoord},
+    dir::DirV,
+    grid::TileCoord,
+};
+use prjcombine_re_collector::diff::{
+    Diff, DiffKey, OcdMode, extract_bitvec_val_part, extract_common_diff, xlat_bit, xlat_bit_wide,
+    xlat_bit_wide_bi, xlat_enum_attr, xlat_enum_attr_ocd, xlat_enum_raw,
 };
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_spartan6::{chip::Gts, defs};
-use prjcombine_types::{
-    bitvec::BitVec,
-    bsdata::{TileBit, TileItem, TileItemKind},
+use prjcombine_spartan6::{
+    chip::Gts,
+    defs::{bcls, bslots, devdata, enums, tcls, tslots, wires},
 };
+use prjcombine_types::{bits, bitvec::BitVec};
 
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{DynProp, pip::PinFar, relation::TileRelation},
+        int::{BaseIntPip, FuzzIntPip},
+        props::{
+            DynProp,
+            mutex::{WireMutexExclusive, WireMutexShared},
+            pip::PinFar,
+        },
     },
+    spartan6::specials,
 };
 
-#[derive(Clone, Copy, Debug)]
-struct HclkInt(DirV);
-
-impl TileRelation for HclkInt {
-    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
-        backend.edev.find_tile_by_class(
-            tcrd.delta(
-                0,
-                match self.0 {
-                    DirV::S => -1,
-                    DirV::N => 0,
-                },
-            ),
-            |kind| kind.starts_with("INT"),
-        )
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-struct HclkHasCmt;
-
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkHasCmt {
-    fn dyn_clone(&self) -> Box<DynProp<'b>> {
-        Box::new(Clone::clone(self))
-    }
-
-    fn apply<'a>(
-        &self,
-        backend: &IseBackend<'a>,
-        tcrd: TileCoord,
-        fuzzer: Fuzzer<IseBackend<'a>>,
-    ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ExpandedDevice::Spartan6(edev) = backend.edev else {
-            unreachable!()
-        };
-        if tcrd.row == edev.chip.row_clk() {
-            return None;
-        }
-        Some((fuzzer, false))
-    }
-}
-
 #[derive(Clone, Debug)]
-struct BufpllPll(DirV, &'static str, &'static str, String, String);
+struct BufpllPll(DirV, TileClassId, TileWireCoord, PolTileWireCoord);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -99,20 +67,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
                     }
                 }
             }
-            if let Some(ntcrd) = backend
-                .edev
-                .find_tile_by_class(cell, |kind| kind.starts_with("PLL_BUFPLL"))
-            {
-                if edev.db.tile_classes.key(edev[ntcrd].class) != self.1 {
+            let ntcrd = cell.tile(tslots::CMT_BUF);
+            if let Some(ntile) = backend.edev.get_tile(ntcrd) {
+                if ntile.class != self.1 {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
-                    key: DiffKey::Legacy(FeatureId {
-                        tile: self.1.into(),
-                        bel: self.2.into(),
-                        attr: self.3.clone(),
-                        val: self.4.clone(),
-                    }),
+                    key: DiffKey::Routing(self.1, self.2, self.3),
                     rects: edev.tile_bits(ntcrd),
                 });
                 return Some((fuzzer, false));
@@ -127,11 +88,11 @@ pub fn add_fuzzers<'a>(
     devdata_only: bool,
 ) {
     if devdata_only {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "PCILOGICSE");
-        let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
+        let mut ctx = FuzzCtx::new(session, backend, tcls::PCILOGICSE);
+        let mut bctx = ctx.bel(bslots::PCILOGICSE);
         bctx.build()
             .no_global("PCI_CE_DELAY_LEFT")
-            .test_manual_legacy("PRESENT", "1")
+            .test_bel_special(specials::PRESENT)
             .mode("PCILOGICSE")
             .commit();
         return;
@@ -140,483 +101,386 @@ pub fn add_fuzzers<'a>(
         unreachable!()
     };
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK");
-        let mut bctx = ctx.bel(defs::bslots::HCLK);
+        let tcid = tcls::CLKC;
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..16 {
-            let gclk_i = format!("GCLK{i}_I");
-            let gclk_o_d = format!("GCLK{i}_O_D");
-            let gclk_o_u = format!("GCLK{i}_O_U");
-            bctx.build()
-                .has_related(HclkInt(DirV::S))
-                .test_manual_legacy(&gclk_o_d, "1")
-                .pip(&gclk_o_d, &gclk_i)
-                .commit();
-            bctx.build()
-                .has_related(HclkInt(DirV::N))
-                .test_manual_legacy(&gclk_o_u, "1")
-                .pip(&gclk_o_u, &gclk_i)
-                .commit();
-        }
-    }
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "HCLK_H_MIDBUF") {
-        let mut bctx = ctx.bel(defs::bslots::HCLK_H_MIDBUF);
-        for i in 0..16 {
+            let mut bctx = ctx.bel(bslots::BUFGMUX[i]);
             bctx.build()
                 .null_bits()
-                .test_manual_legacy(format!("GCLK{i}_M"), "1")
-                .pip(format!("GCLK{i}_M"), format!("GCLK{i}_I"))
-                .commit();
-            bctx.build()
-                .null_bits()
-                .test_manual_legacy(format!("GCLK{i}_O"), "1")
-                .pip(format!("GCLK{i}_O"), format!("GCLK{i}_M"))
-                .commit();
-        }
-    }
-    {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK_ROW");
-        for slots in [defs::bslots::BUFH_W, defs::bslots::BUFH_E] {
-            for i in 0..16 {
-                let mut bctx = ctx.bel(slots[i]);
-                let obel = defs::bslots::HCLK_ROW;
-                bctx.build()
-                    .mutex("I", "BUFG")
-                    .test_manual_legacy("I", "BUFG")
-                    .pip((PinFar, "I"), (obel, format!("BUFG{i}")))
-                    .commit();
-                bctx.build()
-                    .mutex("I", "CMT")
-                    .prop(HclkHasCmt)
-                    .test_manual_legacy("I", "CMT")
-                    .pip((PinFar, "I"), (obel, format!("CMT{i}")))
-                    .commit();
-                bctx.build()
-                    .null_bits()
-                    .test_manual_legacy("PRESENT", "1")
-                    .mode("BUFH")
-                    .commit();
-                bctx.build()
-                    .null_bits()
-                    .test_manual_legacy("OUTPUT", "1")
-                    .pip((PinFar, "O"), "O")
-                    .commit();
-                bctx.build()
-                    .null_bits()
-                    .test_manual_legacy("INPUT", "1")
-                    .pip("I", (PinFar, "I"))
-                    .commit();
-            }
-        }
-    }
-    {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK_V_MIDBUF");
-        let mut bctx = ctx.bel(defs::bslots::HCLK_V_MIDBUF);
-        for i in 0..16 {
-            bctx.build()
-                .null_bits()
-                .test_manual_legacy(format!("GCLK{i}_M"), "1")
-                .pip(format!("GCLK{i}_M"), format!("GCLK{i}_I"))
-                .commit();
-            bctx.build()
-                .null_bits()
-                .test_manual_legacy(format!("GCLK{i}_O"), "1")
-                .pip(format!("GCLK{i}_O"), format!("GCLK{i}_M"))
-                .commit();
-        }
-    }
-    {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "CLKC");
-        for i in 0..16 {
-            let mut bctx = ctx.bel(defs::bslots::BUFGMUX[i]);
-            bctx.test_manual_legacy("PRESENT", "1")
+                .test_bel_special(specials::PRESENT)
                 .mode("BUFGMUX")
                 .commit();
-            bctx.mode("BUFGMUX").test_inv_legacy("S");
             bctx.mode("BUFGMUX")
-                .test_enum_legacy("CLK_SEL_TYPE", &["SYNC", "ASYNC"]);
+                .test_bel_input_inv_auto(bcls::BUFGMUX::S);
             bctx.mode("BUFGMUX")
-                .test_enum_legacy("DISABLE_ATTR", &["LOW", "HIGH"]);
+                .test_bel_attr(bcls::BUFGMUX::CLK_SEL_TYPE);
+            bctx.mode("BUFGMUX").test_bel_attr_bool_rename(
+                "DISABLE_ATTR",
+                bcls::BUFGMUX::INIT_OUT,
+                "LOW",
+                "HIGH",
+            );
         }
-        let mut bctx = ctx.bel(defs::bslots::CLKC);
-        for i in 0..16 {
-            for inp in [
-                format!("CKPIN_H{i}"),
-                format!("CKPIN_V{i}"),
-                format!("CMT_D{i}"),
-                format!("CMT_U{i}"),
-            ] {
-                bctx.build()
-                    .tile_mutex(format!("IMUX{i}"), &inp)
-                    .test_manual_legacy(format!("IMUX{i}"), &inp)
-                    .pip(format!("MUX{i}"), inp)
-                    .commit();
-            }
-        }
-        let mut bctx = ctx.bel(defs::bslots::CLKC_BUFPLL);
-        for (out, altout) in [
-            ("OUTL_CLKOUT0", "OUTL_CLKOUT1"),
-            ("OUTL_CLKOUT1", "OUTL_CLKOUT0"),
-            ("OUTR_CLKOUT0", "OUTR_CLKOUT1"),
-            ("OUTR_CLKOUT1", "OUTR_CLKOUT0"),
-            ("OUTD_CLKOUT0", "OUTD_CLKOUT1"),
-            ("OUTD_CLKOUT1", "OUTD_CLKOUT0"),
-            ("OUTU_CLKOUT0", "OUTU_CLKOUT1"),
-            ("OUTU_CLKOUT1", "OUTU_CLKOUT0"),
-        ] {
-            for inp in [
-                "PLL0D_CLKOUT0",
-                "PLL0D_CLKOUT1",
-                "PLL1D_CLKOUT0",
-                "PLL1D_CLKOUT1",
-                "PLL0U_CLKOUT0",
-                "PLL0U_CLKOUT1",
-                "PLL1U_CLKOUT0",
-                "PLL1U_CLKOUT1",
-            ] {
-                if out.starts_with("OUTU") && (inp.starts_with("PLL0U") || inp.starts_with("PLL1U"))
-                {
-                    continue;
-                }
-                if out.starts_with("OUTD") && (inp.starts_with("PLL0D") || inp.starts_with("PLL1D"))
-                {
-                    continue;
-                }
+
+        let mut bctx = ctx.bel(bslots::CLKC_INT);
+        let BelInfo::SwitchBox(ref sb) = backend.edev.db[tcid].bels[bslots::CLKC_INT] else {
+            unreachable!()
+        };
+        for item in &sb.items {
+            let SwitchBoxItem::Mux(mux) = item else {
+                continue;
+            };
+            let alt_dst = if let Some(idx) = wires::CMT_BUFPLL_V_CLKOUT_S.index_of(mux.dst.wire) {
+                wires::CMT_BUFPLL_V_CLKOUT_S[idx ^ 1]
+            } else if let Some(idx) = wires::CMT_BUFPLL_V_CLKOUT_N.index_of(mux.dst.wire) {
+                wires::CMT_BUFPLL_V_CLKOUT_N[idx ^ 1]
+            } else if let Some(idx) = wires::CMT_BUFPLL_H_CLKOUT.index_of(mux.dst.wire) {
+                wires::CMT_BUFPLL_H_CLKOUT[idx ^ 1]
+            } else {
+                continue;
+            };
+            let alt_dst = TileWireCoord {
+                cell: mux.dst.cell,
+                wire: alt_dst,
+            };
+            for &src in mux.src.keys() {
                 let mut builder = bctx
                     .build()
                     .global_mutex_here("BUFPLL_CLK")
-                    .tile_mutex(out, inp)
-                    .tile_mutex(altout, inp)
-                    .pip(altout, inp);
-                if out.starts_with("OUTD") {
+                    .test_raw(DiffKey::Routing(tcid, mux.dst, src))
+                    .prop(WireMutexShared::new(src.tw))
+                    .prop(WireMutexExclusive::new(mux.dst))
+                    .prop(WireMutexExclusive::new(alt_dst))
+                    .prop(BaseIntPip::new(alt_dst, src.tw))
+                    .prop(FuzzIntPip::new(mux.dst, src.tw));
+                if let Some(idx) = wires::CMT_BUFPLL_V_CLKOUT_S.index_of(mux.dst.wire) {
                     let tt = if edev.chip.rows.len() < 128 {
-                        "PLL_BUFPLL_OUT1"
+                        tcls::PLL_BUFPLL_OUT1_S
                     } else {
-                        "PLL_BUFPLL_OUT0"
+                        tcls::PLL_BUFPLL_OUT0_S
                     };
-
                     builder = builder.prop(BufpllPll(
                         DirV::S,
                         tt,
-                        "PLL_BUFPLL",
-                        format!("CLKC_CLKOUT{i}", i = &out[11..]),
-                        "1".into(),
+                        TileWireCoord::new_idx(0, wires::CMT_BUFPLL_V_CLKOUT_S[idx]),
+                        TileWireCoord::new_idx(0, wires::CMT_BUFPLL_V_CLKOUT_N[idx]).pos(),
                     ));
                 }
-
-                builder.test_manual_legacy(out, inp).pip(out, inp).commit();
-            }
-        }
-        for out in [
-            "OUTL_LOCKED0",
-            "OUTL_LOCKED1",
-            "OUTR_LOCKED0",
-            "OUTR_LOCKED1",
-            "OUTD_LOCKED",
-            "OUTU_LOCKED",
-        ] {
-            for inp in [
-                "PLL0D_LOCKED",
-                "PLL1D_LOCKED",
-                "PLL0U_LOCKED",
-                "PLL1U_LOCKED",
-            ] {
-                if out.starts_with("OUTU") && (inp.starts_with("PLL0U") || inp.starts_with("PLL1U"))
-                {
-                    continue;
-                }
-                if out.starts_with("OUTD") && (inp.starts_with("PLL0D") || inp.starts_with("PLL1D"))
-                {
-                    continue;
-                }
-                bctx.build()
-                    .tile_mutex(out, inp)
-                    .test_manual_legacy(out, inp)
-                    .pip(out, inp)
-                    .commit();
+                builder.commit();
             }
         }
     }
-    for (i, tile) in ["PLL_BUFPLL_OUT0", "PLL_BUFPLL_OUT1"]
-        .into_iter()
-        .enumerate()
-    {
-        if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) {
-            let mut bctx = ctx.bel(defs::bslots::PLL_BUFPLL);
-            for out in ["CLKOUT0", "CLKOUT1", "LOCKED"] {
-                for ud in ['U', 'D'] {
-                    bctx.build()
-                        .test_manual_legacy(format!("PLL{i}_{out}_{ud}"), "1")
-                        .pip(format!("{out}_{ud}"), out)
-                        .commit();
-                }
-            }
-        }
-    }
-    for (tile, bel) in [
-        ("DCM_BUFPLL_BUF_S", defs::bslots::DCM_BUFPLL_BUF_S),
-        ("DCM_BUFPLL_BUF_S_MID", defs::bslots::DCM_BUFPLL_BUF_S_MID),
-        ("DCM_BUFPLL_BUF_N", defs::bslots::DCM_BUFPLL_BUF_N),
-        ("DCM_BUFPLL_BUF_N_MID", defs::bslots::DCM_BUFPLL_BUF_N_MID),
+    for tcid in [
+        tcls::PLL_BUFPLL_OUT0_S,
+        tcls::PLL_BUFPLL_OUT0_N,
+        tcls::PLL_BUFPLL_OUT1_S,
+        tcls::PLL_BUFPLL_OUT1_N,
     ] {
-        if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) {
-            let mut bctx = ctx.bel(bel);
-            for src in ["PLL0", "PLL1", "CLKC"] {
-                let (bufs_d, bufs_u) = match (tile, edev.chip.rows.len() / 64) {
-                    ("DCM_BUFPLL_BUF_S", _) => (vec![], vec!["PLL_BUFPLL_OUT1"]),
-                    ("DCM_BUFPLL_BUF_S_MID", 2) => {
-                        (vec!["PLL_BUFPLL_OUT1"], vec!["PLL_BUFPLL_OUT0"])
-                    }
-                    ("DCM_BUFPLL_BUF_S_MID", 3) => (
-                        vec!["PLL_BUFPLL_OUT1", "PLL_BUFPLL_S"],
-                        vec!["PLL_BUFPLL_OUT0", "PLL_BUFPLL_S"],
-                    ),
-                    ("DCM_BUFPLL_BUF_N", 1) => (vec![], vec!["PLL_BUFPLL_OUT1"]),
-                    ("DCM_BUFPLL_BUF_N", 2 | 3) => (vec![], vec!["PLL_BUFPLL_OUT0"]),
-                    ("DCM_BUFPLL_BUF_N_MID", 2) => {
-                        (vec!["PLL_BUFPLL_OUT0"], vec!["PLL_BUFPLL_OUT1"])
-                    }
-                    ("DCM_BUFPLL_BUF_N_MID", 3) => (
-                        vec!["PLL_BUFPLL_OUT0", "PLL_BUFPLL_N"],
-                        vec!["PLL_BUFPLL_OUT1", "PLL_BUFPLL_N"],
-                    ),
-                    _ => unreachable!(),
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
+            continue;
+        };
+        let BelInfo::SwitchBox(ref sb) = backend.edev.db[tcid].bels[bslots::CMT_BUF] else {
+            unreachable!()
+        };
+        for item in &sb.items {
+            let SwitchBoxItem::ProgBuf(buf) = item else {
+                continue;
+            };
+            if !wires::OUT_PLL_CLKOUT.contains(buf.src.wire) {
+                continue;
+            }
+            ctx.build()
+                .test_raw(DiffKey::Routing(tcid, buf.dst, buf.src))
+                .prop(WireMutexShared::new(buf.src.tw))
+                .prop(WireMutexExclusive::new(buf.dst))
+                .prop(FuzzIntPip::new(buf.dst, buf.src.tw))
+                .commit();
+        }
+    }
+    for tcid in [
+        tcls::DCM_BUFPLL_BUF_S,
+        tcls::DCM_BUFPLL_BUF_S_MID,
+        tcls::DCM_BUFPLL_BUF_N,
+        tcls::DCM_BUFPLL_BUF_N_MID,
+    ] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
+            continue;
+        };
+        let mut bctx = ctx.bel(bslots::CMT_BUF);
+        let BelInfo::SwitchBox(ref sb) = backend.edev.db[tcid].bels[bslots::CMT_BUF] else {
+            unreachable!()
+        };
+        let (bufs_s, bufs_n) = match (tcid, edev.chip.rows.len() / 64) {
+            (tcls::DCM_BUFPLL_BUF_S, _) => (vec![], vec![tcls::PLL_BUFPLL_OUT1_S]),
+            (tcls::DCM_BUFPLL_BUF_S_MID, 2) => {
+                (vec![tcls::PLL_BUFPLL_OUT1_S], vec![tcls::PLL_BUFPLL_OUT0_S])
+            }
+            (tcls::DCM_BUFPLL_BUF_S_MID, 3) => (
+                vec![tcls::PLL_BUFPLL_OUT1_S, tcls::PLL_BUFPLL_S],
+                vec![tcls::PLL_BUFPLL_OUT0_S, tcls::PLL_BUFPLL_S],
+            ),
+            (tcls::DCM_BUFPLL_BUF_N, 1) => (vec![], vec![tcls::PLL_BUFPLL_OUT1_N]),
+            (tcls::DCM_BUFPLL_BUF_N, 2 | 3) => (vec![], vec![tcls::PLL_BUFPLL_OUT0_N]),
+            (tcls::DCM_BUFPLL_BUF_N_MID, 2) => {
+                (vec![tcls::PLL_BUFPLL_OUT0_N], vec![tcls::PLL_BUFPLL_OUT1_N])
+            }
+            (tcls::DCM_BUFPLL_BUF_N_MID, 3) => (
+                vec![tcls::PLL_BUFPLL_OUT0_N, tcls::PLL_BUFPLL_N],
+                vec![tcls::PLL_BUFPLL_OUT1_N, tcls::PLL_BUFPLL_N],
+            ),
+            _ => unreachable!(),
+        };
+        for item in &sb.items {
+            let SwitchBoxItem::ProgBuf(buf) = item else {
+                continue;
+            };
+            let (idx, pip_dir) =
+                if let Some(idx) = wires::CMT_BUFPLL_V_CLKOUT_S.index_of(buf.dst.wire) {
+                    (idx, DirV::S)
+                } else if let Some(idx) = wires::CMT_BUFPLL_V_CLKOUT_N.index_of(buf.dst.wire) {
+                    (idx, DirV::N)
+                } else {
+                    unreachable!()
                 };
-                for wire in ["CLKOUT0", "CLKOUT1"] {
-                    let mut builder = bctx.build().global_mutex_here("BUFPLL_CLK");
-                    for (dir, bufs) in [(DirV::S, &bufs_d), (DirV::N, &bufs_u)] {
-                        for &buf in bufs {
-                            if buf == "PLL_BUFPLL_OUT0" && src == "PLL0" {
-                                continue;
-                            }
-                            if buf == "PLL_BUFPLL_OUT1" && src == "PLL1" {
-                                continue;
-                            }
-                            builder = builder.prop(BufpllPll(
-                                dir,
-                                buf,
-                                "PLL_BUFPLL",
-                                format!("{src}_{wire}"),
-                                "1".into(),
-                            ));
-                        }
-                    }
+            let mut builder = bctx
+                .build()
+                .global_mutex_here("BUFPLL_CLK")
+                .test_raw(DiffKey::Routing(tcid, buf.dst, buf.src))
+                .prop(WireMutexShared::new(buf.src.tw))
+                .prop(WireMutexExclusive::new(buf.dst))
+                .prop(FuzzIntPip::new(buf.dst, buf.src.tw));
 
-                    builder
-                        .test_manual_legacy(format!("{src}_{wire}"), "1")
-                        .pip(format!("{src}_{wire}_O"), format!("{src}_{wire}_I"))
-                        .commit();
+            for (dir, bufs) in [(DirV::S, &bufs_s), (DirV::N, &bufs_n)] {
+                for &buf in bufs {
+                    if matches!(buf, tcls::PLL_BUFPLL_OUT0_S | tcls::PLL_BUFPLL_OUT0_N)
+                        && matches!(idx, 0..2)
+                    {
+                        continue;
+                    }
+                    if matches!(buf, tcls::PLL_BUFPLL_OUT1_S | tcls::PLL_BUFPLL_OUT1_N)
+                        && matches!(idx, 2..4)
+                    {
+                        continue;
+                    }
+                    let (wt, wf) = match pip_dir {
+                        DirV::S => (wires::CMT_BUFPLL_V_CLKOUT_S, wires::CMT_BUFPLL_V_CLKOUT_N),
+                        DirV::N => (wires::CMT_BUFPLL_V_CLKOUT_N, wires::CMT_BUFPLL_V_CLKOUT_S),
+                    };
+                    builder = builder.prop(BufpllPll(
+                        dir,
+                        buf,
+                        TileWireCoord::new_idx(0, wt[idx]),
+                        TileWireCoord::new_idx(0, wf[idx]).pos(),
+                    ));
                 }
-                bctx.build()
-                    .test_manual_legacy(format!("{src}_LOCKED"), "1")
-                    .pip(format!("{src}_LOCKED_O"), format!("{src}_LOCKED_I"))
-                    .commit();
             }
+            builder.commit();
         }
     }
-    for (tile, is_lr) in [
-        ("CLK_S", false),
-        ("CLK_N", false),
-        ("CLK_W", true),
-        ("CLK_E", true),
+    for (tcid, is_we) in [
+        (tcls::CLK_S, false),
+        (tcls::CLK_N, false),
+        (tcls::CLK_W, true),
+        (tcls::CLK_E, true),
     ] {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
+        let tcls = &edev.db[tcid];
+        let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots::CLK_INT] else {
+            unreachable!()
+        };
+        let mut muxes = HashMap::new();
+        for item in &sb.items {
+            let SwitchBoxItem::Mux(mux) = item else {
+                continue;
+            };
+            muxes.insert(mux.dst, mux);
+        }
         for i in 0..8 {
-            let mut bctx = ctx.bel(defs::bslots::BUFIO2[i]);
-            bctx.test_manual_legacy("PRESENT", "BUFIO2")
+            let bslot = bslots::BUFIO2[i];
+            let BelInfo::Bel(ref bel) = tcls.bels[bslot] else {
+                unreachable!()
+            };
+            let mut bctx = ctx.bel(bslot);
+            bctx.build()
+                .null_bits()
+                .test_bel_special(specials::PRESENT)
                 .mode("BUFIO2")
                 .commit();
-            bctx.test_manual_legacy("PRESENT", "BUFIO2_2CLK")
+            bctx.build()
+                .test_bel_special(specials::BUFIO2_2CLK)
                 .mode("BUFIO2_2CLK")
                 .commit();
             bctx.mode("BUFIO2")
                 .attr("DIVIDE", "")
-                .test_enum_legacy("DIVIDE_BYPASS", &["FALSE", "TRUE"]);
+                .test_bel_attr_bool_auto(bcls::BUFIO2::DIVIDE_BYPASS, "FALSE", "TRUE");
             bctx.mode("BUFIO2")
                 .attr("DIVIDE_BYPASS", "FALSE")
-                .test_enum_legacy("DIVIDE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
-            for val in ["1", "2", "3", "4", "5", "6", "7", "8"] {
+                .test_bel_attr(bcls::BUFIO2::DIVIDE);
+            for (val, vname) in &backend.edev.db[enums::BUFIO2_DIVIDE].values {
                 bctx.mode("BUFIO2_2CLK")
                     .attr("POS_EDGE", "")
                     .attr("NEG_EDGE", "")
                     .attr("R_EDGE", "")
-                    .test_manual_legacy("DIVIDE.2CLK", val)
-                    .attr("DIVIDE", val)
+                    .test_bel_attr_special_val(bcls::BUFIO2::DIVIDE, specials::BUFIO2_2CLK, val)
+                    .attr("DIVIDE", vname.strip_prefix('_').unwrap())
                     .commit();
-            }
-            bctx.mode("BUFIO2_2CLK")
-                .attr("DIVIDE", "")
-                .test_enum_legacy("POS_EDGE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
-            bctx.mode("BUFIO2_2CLK")
-                .attr("DIVIDE", "")
-                .test_enum_legacy("NEG_EDGE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
-            bctx.mode("BUFIO2_2CLK")
-                .attr("DIVIDE", "")
-                .test_enum_legacy("R_EDGE", &["FALSE", "TRUE"]);
-
-            for (val, pin) in [
-                ("CLKPIN0", format!("CLKPIN{i}")),
-                ("CLKPIN1", format!("CLKPIN{ii}", ii = i ^ 1)),
-                ("CLKPIN4", format!("CLKPIN{ii}", ii = i ^ 4)),
-                ("CLKPIN5", format!("CLKPIN{ii}", ii = i ^ 5)),
-                (
-                    "DQS0",
-                    format!("DQS{pn}{ii}", pn = ['P', 'N'][i & 1], ii = i >> 1),
-                ),
-                (
-                    "DQS2",
-                    format!("DQS{pn}{ii}", pn = ['P', 'N'][i & 1], ii = i >> 1 ^ 2),
-                ),
-                ("DFB", format!("DFB{i}")),
-                (
-                    "GTPCLK",
-                    format!(
-                        "GTPCLK{ii}",
-                        ii = match (tile, i) {
-                            // ???
-                            ("CLK_W" | "CLK_E", 1) => 0,
-                            ("CLK_W" | "CLK_E", 3) => 2,
-                            _ => i,
-                        }
-                    ),
-                ),
-            ] {
-                let obel = defs::bslots::BUFIO2_INS;
-                bctx.mode("BUFIO2")
-                    .mutex("I", val)
-                    .test_manual_legacy("I", val)
-                    .pin("I")
-                    .pip("I", (obel, &pin))
-                    .commit();
-            }
-            for (val, pin) in [
-                ("CLKPIN0", format!("CLKPIN{i}")),
-                ("CLKPIN1", format!("CLKPIN{ii}", ii = i ^ 1)),
-                ("CLKPIN4", format!("CLKPIN{ii}", ii = i ^ 4)),
-                ("CLKPIN5", format!("CLKPIN{ii}", ii = i ^ 5)),
-                (
-                    "DQS0",
-                    format!("DQS{pn}{ii}", pn = ['N', 'P'][i & 1], ii = i >> 1),
-                ),
-                (
-                    "DQS2",
-                    format!("DQS{pn}{ii}", pn = ['N', 'P'][i & 1], ii = i >> 1 ^ 2),
-                ),
-                ("DFB", format!("DFB{ii}", ii = i ^ 1)),
-            ] {
-                let obel = defs::bslots::BUFIO2_INS;
                 bctx.mode("BUFIO2_2CLK")
-                    .mutex("IB", val)
-                    .test_manual_legacy("IB", val)
-                    .pin("IB")
-                    .pip("IB", (obel, &pin))
+                    .attr("DIVIDE", "")
+                    .test_bel_attr_val(bcls::BUFIO2::POS_EDGE, val)
+                    .attr("POS_EDGE", vname.strip_prefix('_').unwrap())
+                    .commit();
+                bctx.mode("BUFIO2_2CLK")
+                    .attr("DIVIDE", "")
+                    .test_bel_attr_val(bcls::BUFIO2::NEG_EDGE, val)
+                    .attr("NEG_EDGE", vname.strip_prefix('_').unwrap())
                     .commit();
             }
+            bctx.mode("BUFIO2_2CLK")
+                .attr("DIVIDE", "")
+                .test_bel_attr_bool_auto(bcls::BUFIO2::R_EDGE, "FALSE", "TRUE");
 
             bctx.mode("BUFIO2")
                 .global_mutex("IOCLK_OUT", "TEST")
-                .test_manual_legacy("IOCLK_ENABLE", "1")
+                .test_bel_attr_bits(bcls::BUFIO2::IOCLK_ENABLE)
                 .pin("IOCLK")
                 .pip((PinFar, "IOCLK"), "IOCLK")
                 .commit();
             bctx.mode("BUFIO2")
                 .global_mutex("BUFIO2_CMT_OUT", "TEST_BUFIO2")
-                .test_manual_legacy("CMT_ENABLE", "1")
+                .test_bel_attr_bits(bcls::BUFIO2::CMT_ENABLE)
                 .pin("DIVCLK")
                 .pip((PinFar, "DIVCLK"), "DIVCLK")
-                .pip("CMT", (PinFar, "DIVCLK"))
-                .commit();
-            bctx.mode("BUFIO2")
-                .mutex("CKPIN", "DIVCLK")
-                .test_manual_legacy("CKPIN", "DIVCLK")
-                .pin("DIVCLK")
-                .pip((PinFar, "DIVCLK"), "DIVCLK")
-                .pip("CKPIN", (PinFar, "DIVCLK"))
-                .commit();
-            let obel = defs::bslots::BUFIO2_CKPIN;
-            bctx.build()
-                .mutex("CKPIN", "CLKPIN")
-                .test_manual_legacy("CKPIN", "CLKPIN")
-                .pip((obel, format!("CKPIN{i}")), (obel, format!("CLKPIN{i}")))
-                .commit();
-            let obel_tie = defs::bslots::TIEOFF_REG;
-            bctx.build()
-                .mutex("CKPIN", "VCC")
-                .test_manual_legacy("CKPIN", "VCC")
-                .pip("CKPIN", (obel_tie, "HARD1"))
+                .pip("DIVCLK_CMT", (PinFar, "DIVCLK"))
                 .commit();
 
-            let mut bctx = ctx.bel(defs::bslots::BUFIO2FB[i]);
-            bctx.test_manual_legacy("PRESENT", "BUFIO2FB")
-                .mode("BUFIO2FB")
-                .commit();
-            bctx.test_manual_legacy("PRESENT", "BUFIO2FB_2CLK")
-                .mode("BUFIO2FB_2CLK")
-                .commit();
-            bctx.mode("BUFIO2FB")
-                .test_enum_legacy("DIVIDE_BYPASS", &["FALSE", "TRUE"]);
-
-            let obel = defs::bslots::BUFIO2_INS;
-            for (val, pin) in [
-                ("CLKPIN", format!("CLKPIN{ii}", ii = i ^ 1)),
-                ("DFB", format!("DFB{i}")),
-                ("CFB", format!("CFB0_{i}")),
-                ("GTPFB", format!("GTPFB{i}")),
-            ] {
-                bctx.mode("BUFIO2FB")
-                    .mutex("I", val)
-                    .test_manual_legacy("I", val)
+            let wire_i = bel.inputs[bcls::BUFIO2::I].wire();
+            let mux_i = muxes[&wire_i];
+            for &src in mux_i.src.keys() {
+                if matches!(tcid, tcls::CLK_W | tcls::CLK_E)
+                    && wires::GTPCLK.contains(src.wire)
+                    && matches!(i, 1 | 3)
+                {
+                    continue;
+                }
+                bctx.mode("BUFIO2")
+                    .test_raw(DiffKey::Routing(tcid, wire_i, src))
                     .pin("I")
-                    .attr("INVERT_INPUTS", "FALSE")
-                    .pip("I", (obel, &pin))
+                    .prop(WireMutexShared::new(src.tw))
+                    .prop(WireMutexExclusive::new(wire_i))
+                    .prop(FuzzIntPip::new(wire_i, src.tw))
                     .commit();
             }
-            bctx.mode("BUFIO2FB")
-                .mutex("I", "CFB_INVERT")
-                .test_manual_legacy("I", "CFB_INVERT")
-                .pin("I")
-                .attr("INVERT_INPUTS", "TRUE")
-                .pip("I", (obel, format!("CFB0_{i}")))
+
+            let wire_ib = bel.inputs[bcls::BUFIO2::IB].wire();
+            let mux_ib = muxes[&wire_ib];
+            for &src in mux_ib.src.keys() {
+                bctx.mode("BUFIO2_2CLK")
+                    .test_raw(DiffKey::Routing(tcid, wire_ib, src))
+                    .pin("IB")
+                    .prop(WireMutexShared::new(src.tw))
+                    .prop(WireMutexExclusive::new(wire_ib))
+                    .prop(FuzzIntPip::new(wire_ib, src.tw))
+                    .commit();
+            }
+
+            let bslot = bslots::BUFIO2FB[i];
+            let BelInfo::Bel(ref bel) = tcls.bels[bslot] else {
+                unreachable!()
+            };
+            let mut bctx = ctx.bel(bslot);
+            bctx.build()
+                .null_bits()
+                .test_bel_special(specials::PRESENT)
+                .mode("BUFIO2FB")
                 .commit();
+            bctx.build()
+                .test_bel_special(specials::BUFIO2_2CLK)
+                .mode("BUFIO2FB_2CLK")
+                .commit();
+            bctx.mode("BUFIO2FB").test_bel_attr_bool_auto(
+                bcls::BUFIO2FB::DIVIDE_BYPASS,
+                "FALSE",
+                "TRUE",
+            );
+
+            let wire_i = bel.inputs[bcls::BUFIO2FB::I].wire();
+            let mux_i = muxes[&wire_i];
+            for &src in mux_i.src.keys() {
+                let (raw_src, invert_inputs) =
+                    if let Some(idx) = wires::OUT_CLKPAD_CFB1.index_of(src.wire) {
+                        (
+                            TileWireCoord {
+                                cell: src.cell,
+                                wire: wires::OUT_CLKPAD_CFB0[idx],
+                            }
+                            .pos(),
+                            "TRUE",
+                        )
+                    } else {
+                        (src, "FALSE")
+                    };
+                bctx.mode("BUFIO2FB")
+                    .test_raw(DiffKey::Routing(tcid, wire_i, src))
+                    .pin("I")
+                    .prop(WireMutexShared::new(raw_src.tw))
+                    .prop(WireMutexExclusive::new(wire_i))
+                    .prop(FuzzIntPip::new(wire_i, raw_src.tw))
+                    .attr("INVERT_INPUTS", invert_inputs)
+                    .commit();
+            }
 
             bctx.mode("BUFIO2FB")
                 .global_mutex("BUFIO2_CMT_OUT", "TEST_BUFIO2FB")
-                .test_manual_legacy("CMT_ENABLE", "1")
+                .test_bel_special(specials::BUFIO2_CMT_ENABLE)
                 .pin("O")
-                .pip("CMT", "O")
+                .pip((PinFar, "O"), "O")
                 .commit();
         }
         for i in 0..2 {
-            let mut bctx = ctx.bel(defs::bslots::BUFPLL[i]);
+            let mut bctx = ctx.bel(bslots::BUFPLL).sub(i + 1);
             bctx.build()
+                .null_bits()
                 .tile_mutex("BUFPLL", "PLAIN")
-                .test_manual_legacy("PRESENT", "1")
+                .test_bel_special([specials::BUFPLL_BUFPLL0, specials::BUFPLL_BUFPLL1][i])
                 .mode("BUFPLL")
                 .commit();
-            bctx.mode("BUFPLL")
-                .tile_mutex("BUFPLL", "PLAIN")
-                .test_enum_legacy("DIVIDE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
-            bctx.mode("BUFPLL")
-                .tile_mutex("BUFPLL", "PLAIN")
-                .test_enum_legacy("DATA_RATE", &["SDR", "DDR"]);
+            for (val, vname) in &edev.db[enums::BUFIO2_DIVIDE].values {
+                bctx.mode("BUFPLL")
+                    .tile_mutex("BUFPLL", "PLAIN")
+                    .test_bel_attr_val([bcls::BUFPLL::DIVIDE0, bcls::BUFPLL::DIVIDE1][i], val)
+                    .attr("DIVIDE", vname.strip_prefix('_').unwrap())
+                    .commit();
+            }
+            for (val, vname) in &edev.db[enums::BUFPLL_DATA_RATE].values {
+                bctx.mode("BUFPLL")
+                    .tile_mutex("BUFPLL", "PLAIN")
+                    .test_bel_attr_val([bcls::BUFPLL::DATA_RATE0, bcls::BUFPLL::DATA_RATE1][i], val)
+                    .attr("DATA_RATE", vname)
+                    .commit();
+            }
 
             bctx.mode("BUFPLL")
                 .tile_mutex("BUFPLL", "PLAIN")
                 .no_pin("IOCLK")
-                .test_enum_legacy("ENABLE_SYNC", &["FALSE", "TRUE"]);
+                .test_bel_attr_bool_rename(
+                    "ENABLE_SYNC",
+                    [bcls::BUFPLL::ENABLE_SYNC0, bcls::BUFPLL::ENABLE_SYNC1][i],
+                    "FALSE",
+                    "TRUE",
+                );
 
-            let obel_out = defs::bslots::BUFPLL_OUT;
-            let obel_ins = if is_lr {
-                defs::bslots::BUFPLL_INS_WE
-            } else {
-                defs::bslots::BUFPLL_INS_SN
-            };
             bctx.mode("BUFPLL")
                 .tile_mutex("BUFPLL", format!("SINGLE{i}"))
                 .global_mutex("PLLCLK", "TEST")
                 .attr("ENABLE_SYNC", "FALSE")
-                .test_manual_legacy("ENABLE_NONE_SYNC", "1")
+                .test_bel_attr_bits(
+                    [
+                        bcls::BUFPLL::ENABLE_NONE_SYNC0,
+                        bcls::BUFPLL::ENABLE_NONE_SYNC1,
+                    ][i],
+                )
                 .pin("IOCLK")
-                .pip((obel_out, format!("PLLCLK{i}")), "IOCLK")
+                .pip(format!("PLLCLK{i}"), format!("BUFPLL{i}_IOCLK"))
                 .commit();
 
             bctx.mode("BUFPLL")
@@ -625,160 +489,173 @@ pub fn add_fuzzers<'a>(
                 .global_mutex("PLLCLK", "TEST")
                 .attr("ENABLE_SYNC", "TRUE")
                 .pip(
-                    "PLLIN",
-                    (
-                        obel_ins,
-                        if is_lr {
-                            format!("PLLIN{i}_CMT")
-                        } else {
-                            "PLLIN0".to_string()
-                        },
-                    ),
+                    format!("BUFPLL{i}_PLLIN"),
+                    if is_we {
+                        format!("PLLIN_CMT{i}")
+                    } else {
+                        "PLLIN_SN0".to_string()
+                    },
                 )
-                .test_manual_legacy("ENABLE_BOTH_SYNC", "1")
+                .test_bel_attr_bits(
+                    [
+                        bcls::BUFPLL::ENABLE_BOTH_SYNC0,
+                        bcls::BUFPLL::ENABLE_BOTH_SYNC1,
+                    ][i],
+                )
                 .pin("IOCLK")
-                .pip((obel_out, format!("PLLCLK{i}")), "IOCLK")
+                .pip(format!("PLLCLK{i}"), format!("BUFPLL{i}_IOCLK"))
                 .commit();
 
-            if !is_lr {
-                let obel = defs::bslots::BUFPLL[i ^ 1];
-                for i in 0..6 {
+            if !is_we {
+                let (ci, w_pllin, w_locked) = if tcid == tcls::CLK_S {
+                    (
+                        1,
+                        wires::CMT_BUFPLL_V_CLKOUT_N,
+                        wires::CMT_BUFPLL_V_LOCKED_N,
+                    )
+                } else {
+                    (
+                        0,
+                        wires::CMT_BUFPLL_V_CLKOUT_S,
+                        wires::CMT_BUFPLL_V_LOCKED_S,
+                    )
+                };
+                for j in 0..6 {
                     bctx.mode("BUFPLL")
                         .tile_mutex("BUFPLL", "PLAIN")
-                        .tile_mutex("PLLIN", format!("BUFPLL{i}"))
+                        .tile_mutex("PLLIN", format!("BUFPLL{j}"))
                         .global_mutex("BUFPLL_CLK", "USE")
-                        .mutex("PLLIN", format!("PLLIN{i}"))
+                        .mutex("PLLIN", format!("PLLIN{j}"))
                         .attr("ENABLE_SYNC", "FALSE")
                         .pin("PLLIN")
-                        .pip((obel, "PLLIN"), (obel_ins, format!("PLLIN{i}")))
-                        .test_manual_legacy("PLLIN", format!("PLLIN{i}"))
-                        .pip("PLLIN", (obel_ins, format!("PLLIN{i}")))
+                        .pip(
+                            format!("BUFPLL{ii}_PLLIN", ii = i ^ 1),
+                            format!("PLLIN_SN{j}"),
+                        )
+                        .test_raw(DiffKey::Routing(
+                            tcid,
+                            TileWireCoord::new_idx(ci, wires::IMUX_BUFPLL_PLLIN[i]),
+                            TileWireCoord::new_idx(ci, w_pllin[j]).pos(),
+                        ))
+                        .pip(format!("BUFPLL{i}_PLLIN"), format!("PLLIN_SN{j}"))
                         .commit();
                 }
-                for i in 0..3 {
+                for j in 0..3 {
                     bctx.mode("BUFPLL")
                         .tile_mutex("BUFPLL", "PLAIN")
-                        .mutex("LOCKED", format!("LOCKED{i}"))
-                        .test_manual_legacy("LOCKED", format!("LOCKED{i}"))
+                        .mutex("LOCKED", format!("LOCKED{j}"))
+                        .test_raw(DiffKey::Routing(
+                            tcid,
+                            TileWireCoord::new_idx(ci, wires::IMUX_BUFPLL_LOCKED[i]),
+                            TileWireCoord::new_idx(ci, w_locked[j]).pos(),
+                        ))
                         .pin("LOCKED")
-                        .pip("LOCKED", (obel_ins, format!("LOCKED{i}")))
+                        .pip(format!("BUFPLL{i}_LOCKED"), format!("LOCKED_SN{j}"))
                         .commit();
                 }
             }
 
             bctx.mode("BUFPLL")
                 .tile_mutex("BUFPLL", format!("SINGLE_{i}"))
-                .test_manual_legacy("ENABLE", "1")
+                .test_bel_attr_bits(bcls::BUFPLL::ENABLE)
                 .pin("IOCLK")
-                .pip((obel_out, format!("PLLCLK{i}")), "IOCLK")
+                .pip(format!("PLLCLK{i}"), format!("BUFPLL{i}_IOCLK"))
                 .commit();
         }
         {
-            let mut bctx = ctx.bel(defs::bslots::BUFPLL_MCB);
+            let mut bctx = ctx.bel(bslots::BUFPLL);
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB")
-                .test_manual_legacy("PRESENT", "1")
+                .test_bel_special(specials::PRESENT)
                 .mode("BUFPLL_MCB")
                 .commit();
+            for (val, vname) in &edev.db[enums::BUFIO2_DIVIDE].values {
+                bctx.build()
+                    .tile_mutex("BUFPLL", "MCB")
+                    .mode("BUFPLL_MCB")
+                    .test_bel_attr_special_val(bcls::BUFPLL::DIVIDE0, specials::BUFPLL_MCB, val)
+                    .attr("DIVIDE", vname.strip_prefix('_').unwrap())
+                    .commit();
+            }
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB")
                 .mode("BUFPLL_MCB")
-                .test_enum_legacy("DIVIDE", &["1", "2", "3", "4", "5", "6", "7", "8"]);
-            bctx.build()
-                .tile_mutex("BUFPLL", "MCB")
-                .mode("BUFPLL_MCB")
-                .test_enum_legacy("LOCK_SRC", &["LOCK_TO_0", "LOCK_TO_1"]);
+                .test_bel_attr_default(bcls::BUFPLL::LOCK_SRC, enums::BUFPLL_LOCK_SRC::NONE);
 
-            if is_lr {
-                let obel = defs::bslots::BUFPLL_INS_WE;
+            if is_we {
                 bctx.build()
                     .tile_mutex("BUFPLL", "MCB")
                     .mutex("PLLIN", "GCLK")
                     .mode("BUFPLL_MCB")
-                    .test_manual_legacy("PLLIN", "GCLK")
+                    .test_bel_attr_val(bcls::BUFPLL::MUX_PLLIN, enums::BUFPLL_MUX_PLLIN::GCLK)
                     .pin("PLLIN0")
                     .pin("PLLIN1")
-                    .pip("PLLIN0", (obel, "PLLIN0_GCLK"))
-                    .pip("PLLIN1", (obel, "PLLIN1_GCLK"))
+                    .pip("BUFPLL_MCB_PLLIN0", "PLLIN_GCLK0")
+                    .pip("BUFPLL_MCB_PLLIN1", "PLLIN_GCLK1")
                     .commit();
                 bctx.build()
                     .tile_mutex("BUFPLL", "MCB")
                     .mutex("PLLIN", "CMT")
                     .mode("BUFPLL_MCB")
-                    .test_manual_legacy("PLLIN", "CMT")
+                    .test_bel_attr_val(bcls::BUFPLL::MUX_PLLIN, enums::BUFPLL_MUX_PLLIN::CMT)
                     .pin("PLLIN0")
                     .pin("PLLIN1")
-                    .pip("PLLIN0", (obel, "PLLIN0_CMT"))
-                    .pip("PLLIN1", (obel, "PLLIN1_CMT"))
+                    .pip("BUFPLL_MCB_PLLIN0", "PLLIN_CMT0")
+                    .pip("BUFPLL_MCB_PLLIN1", "PLLIN_CMT1")
                     .commit();
             }
 
-            let obel = defs::bslots::BUFPLL_OUT;
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB_OUT0")
                 .mode("BUFPLL_MCB")
-                .test_manual_legacy("ENABLE.0", "1")
+                .test_bel_attr_bits(bcls::BUFPLL::ENABLE)
                 .pin("IOCLK0")
-                .pip((obel, "PLLCLK0"), "IOCLK0")
+                .pip("PLLCLK0", "BUFPLL_MCB_IOCLK0")
                 .commit();
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB_OUT1")
                 .mode("BUFPLL_MCB")
-                .test_manual_legacy("ENABLE.1", "1")
+                .test_bel_attr_bits(bcls::BUFPLL::ENABLE)
                 .pin("IOCLK1")
-                .pip((obel, "PLLCLK1"), "IOCLK1")
+                .pip("PLLCLK1", "BUFPLL_MCB_IOCLK1")
                 .commit();
         }
-        if !is_lr {
-            let n = match tile {
-                "CLK_W" => "L",
-                "CLK_E" => "R",
-                "CLK_S" => "B",
-                "CLK_N" => "T",
+        if !is_we {
+            let n = match tcid {
+                tcls::CLK_W => "L",
+                tcls::CLK_E => "R",
+                tcls::CLK_S => "B",
+                tcls::CLK_N => "T",
                 _ => unreachable!(),
             };
-            ctx.build()
+            let mut bctx = ctx.bel(bslots::MISR_CLK);
+            bctx.build()
                 .global("ENABLEMISR", "Y")
                 .global("MISRRESET", "N")
-                .test_manual_legacy("MISC", "MISR_ENABLE", "1")
+                .test_bel_attr_bits(bcls::MISR::ENABLE)
                 .global(format!("MISR_{n}M_EN"), "Y")
                 .commit();
-            ctx.build()
+            bctx.build()
                 .global("ENABLEMISR", "Y")
                 .global("MISRRESET", "Y")
-                .test_manual_legacy("MISC", "MISR_ENABLE_RESET", "1")
+                .test_bel_attr_bits(bcls::MISR::RESET)
                 .global(format!("MISR_{n}M_EN"), "Y")
                 .commit();
         }
     }
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "PCILOGICSE");
-        let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
+        let mut ctx = FuzzCtx::new(session, backend, tcls::PCILOGICSE);
+        let mut bctx = ctx.bel(bslots::PCILOGICSE);
         bctx.build()
             .no_global("PCI_CE_DELAY_LEFT")
-            .test_manual_legacy("PRESENT", "1")
+            .test_bel_special(specials::PRESENT)
             .mode("PCILOGICSE")
             .commit();
-        for val in 2..=31 {
+        for (val, vname) in &edev.db[enums::PCILOGICSE_PCI_CE_DELAY].values {
             bctx.build()
-                .global("PCI_CE_DELAY_LEFT", format!("TAP{val}"))
-                .test_manual_legacy("PRESENT", format!("TAP{val}"))
+                .global("PCI_CE_DELAY_LEFT", vname)
+                .test_bel_attr_val(bcls::PCILOGICSE::PCI_CE_DELAY, val)
                 .mode("PCILOGICSE")
-                .commit();
-        }
-    }
-    for (tile, bel) in [
-        ("PCI_CE_TRUNK_BUF", defs::bslots::PCI_CE_TRUNK_BUF),
-        ("PCI_CE_V_BUF", defs::bslots::PCI_CE_V_BUF),
-        ("PCI_CE_SPLIT", defs::bslots::PCI_CE_SPLIT),
-        ("PCI_CE_H_BUF", defs::bslots::PCI_CE_H_BUF),
-    ] {
-        if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) {
-            let mut bctx = ctx.bel(bel);
-            bctx.build()
-                .null_bits()
-                .test_manual_legacy("BUF", "1")
-                .pip("PCI_CE_O", "PCI_CE_I")
                 .commit();
         }
     }
@@ -789,454 +666,468 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         unreachable!()
     };
     if devdata_only {
-        let tile = "PCILOGICSE";
-        let bel = "PCILOGICSE";
-        let default = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-        let item = ctx.item_legacy(tile, bel, "PCI_CE_DELAY");
+        let tcid = tcls::PCILOGICSE;
+        let bslot = bslots::PCILOGICSE;
+        let default = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
+        let item = ctx.bel_attr_enum(tcid, bslot, bcls::PCILOGICSE::PCI_CE_DELAY);
         let val: BitVec = item
             .bits
             .iter()
             .map(|bit| default.bits.contains_key(bit))
             .collect();
-        let TileItemKind::Enum { ref values } = item.kind else {
-            unreachable!()
-        };
-        for (k, v) in values {
+        for (k, v) in &item.values {
             if *v == val {
-                ctx.insert_device_data_legacy("PCI_CE_DELAY", k.clone());
+                ctx.insert_devdata_enum(devdata::PCILOGICSE_PCI_CE_DELAY, k);
                 break;
             }
         }
         return;
     }
     {
-        let tile = "HCLK";
-        let bel = "HCLK";
+        let tcid = tcls::CLKC;
         for i in 0..16 {
-            ctx.collect_bit_legacy(tile, bel, &format!("GCLK{i}_O_D"), "1");
-            ctx.collect_bit_legacy(tile, bel, &format!("GCLK{i}_O_U"), "1");
+            let bslot = bslots::BUFGMUX[i];
+            ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::BUFGMUX::S);
+            ctx.collect_bel_attr(tcid, bslot, bcls::BUFGMUX::CLK_SEL_TYPE);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFGMUX::INIT_OUT);
         }
-        // TODO: mask bits
-    }
-    {
-        let tile = "HCLK_ROW";
-        for i in 0..16 {
-            for we in ['W', 'E'] {
-                let bel = format!("BUFH_{we}[{i}]");
-                ctx.collect_enum_default_legacy(tile, &bel, "I", &["BUFG", "CMT"], "NONE");
+        let BelInfo::SwitchBox(ref sb) = ctx.edev.db[tcid].bels[bslots::CLKC_INT] else {
+            unreachable!()
+        };
+        for item in &sb.items {
+            let SwitchBoxItem::Mux(mux) = item else {
+                continue;
+            };
+            if !(wires::CMT_BUFPLL_V_CLKOUT_S.contains(mux.dst.wire)
+                || wires::CMT_BUFPLL_V_CLKOUT_N.contains(mux.dst.wire)
+                || wires::CMT_BUFPLL_H_CLKOUT.contains(mux.dst.wire))
+            {
+                continue;
             }
+            let mut diffs = vec![];
+            for &src in mux.src.keys() {
+                diffs.push((Some(src), ctx.get_diff_routing(tcid, mux.dst, src)));
+            }
+            ctx.insert_mux(tcid, mux.dst, xlat_enum_raw(diffs, OcdMode::BitOrder));
         }
     }
-    {
-        let tile = "CLKC";
-        for i in 0..16 {
-            let bel = format!("BUFGMUX[{i}]");
-            ctx.get_diff_legacy(tile, &bel, "PRESENT", "1")
-                .assert_empty();
-            ctx.collect_enum_legacy(tile, &bel, "CLK_SEL_TYPE", &["SYNC", "ASYNC"]);
-            ctx.collect_bit_bi_legacy(tile, &bel, "DISABLE_ATTR", "LOW", "HIGH");
-            ctx.collect_inv(tile, &bel, "S");
-        }
-        let bel = "CLKC";
-        for i in 0..16 {
-            ctx.collect_enum_default_legacy(
-                tile,
-                bel,
-                &format!("IMUX{i}"),
-                &[
-                    &format!("CKPIN_H{i}"),
-                    &format!("CKPIN_V{i}"),
-                    &format!("CMT_D{i}"),
-                    &format!("CMT_U{i}"),
-                ],
-                "NONE",
-            );
-        }
-        for out in [
-            "OUTL_CLKOUT0",
-            "OUTL_CLKOUT1",
-            "OUTR_CLKOUT0",
-            "OUTR_CLKOUT1",
-        ] {
-            let item = ctx.extract_enum_legacy(
-                tile,
-                "CLKC_BUFPLL",
-                out,
-                &[
-                    "PLL0U_CLKOUT0",
-                    "PLL0U_CLKOUT1",
-                    "PLL1U_CLKOUT0",
-                    "PLL1U_CLKOUT1",
-                    "PLL0D_CLKOUT0",
-                    "PLL0D_CLKOUT1",
-                    "PLL1D_CLKOUT0",
-                    "PLL1D_CLKOUT1",
-                ],
-            );
-            ctx.insert_legacy(tile, bel, out, item);
-        }
-        for out in ["OUTD_CLKOUT0", "OUTD_CLKOUT1"] {
-            let item = ctx.extract_enum_legacy(
-                tile,
-                "CLKC_BUFPLL",
-                out,
-                &[
-                    "PLL0U_CLKOUT0",
-                    "PLL0U_CLKOUT1",
-                    "PLL1U_CLKOUT0",
-                    "PLL1U_CLKOUT1",
-                ],
-            );
-            ctx.insert_legacy(tile, bel, out, item);
-        }
-        for out in ["OUTU_CLKOUT0", "OUTU_CLKOUT1"] {
-            let item = ctx.extract_enum_legacy(
-                tile,
-                "CLKC_BUFPLL",
-                out,
-                &[
-                    "PLL0D_CLKOUT0",
-                    "PLL0D_CLKOUT1",
-                    "PLL1D_CLKOUT0",
-                    "PLL1D_CLKOUT1",
-                ],
-            );
-            ctx.insert_legacy(tile, bel, out, item);
-        }
-        for out in [
-            "OUTL_LOCKED0",
-            "OUTL_LOCKED1",
-            "OUTR_LOCKED0",
-            "OUTR_LOCKED1",
-        ] {
-            let item = ctx.extract_enum_legacy(
-                tile,
-                "CLKC_BUFPLL",
-                out,
-                &[
-                    "PLL0D_LOCKED",
-                    "PLL1D_LOCKED",
-                    "PLL0U_LOCKED",
-                    "PLL1U_LOCKED",
-                ],
-            );
-            ctx.insert_legacy(tile, bel, out, item);
-        }
-        let item = ctx.extract_enum_legacy(
-            tile,
-            "CLKC_BUFPLL",
-            "OUTD_LOCKED",
-            &["PLL0U_LOCKED", "PLL1U_LOCKED"],
-        );
-        ctx.insert_legacy(tile, bel, "OUTD_LOCKED", item);
-        let item = ctx.extract_enum_legacy(
-            tile,
-            "CLKC_BUFPLL",
-            "OUTU_LOCKED",
-            &["PLL0D_LOCKED", "PLL1D_LOCKED"],
-        );
-        ctx.insert_legacy(tile, bel, "OUTU_LOCKED", item);
-    }
-    for tile in [
-        "DCM_BUFPLL_BUF_S",
-        "DCM_BUFPLL_BUF_S_MID",
-        "DCM_BUFPLL_BUF_N",
-        "DCM_BUFPLL_BUF_N_MID",
+    for tcid in [
+        tcls::PLL_BUFPLL_S,
+        tcls::PLL_BUFPLL_N,
+        tcls::PLL_BUFPLL_OUT0_S,
+        tcls::PLL_BUFPLL_OUT0_N,
+        tcls::PLL_BUFPLL_OUT1_S,
+        tcls::PLL_BUFPLL_OUT1_N,
+        tcls::DCM_BUFPLL_BUF_S,
+        tcls::DCM_BUFPLL_BUF_S_MID,
+        tcls::DCM_BUFPLL_BUF_N,
+        tcls::DCM_BUFPLL_BUF_N_MID,
     ] {
-        if !ctx.has_tile_legacy(tile) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
-        let bel = tile;
-        for attr in [
-            "PLL0_CLKOUT0",
-            "PLL0_CLKOUT1",
-            "PLL1_CLKOUT0",
-            "PLL1_CLKOUT1",
-            "CLKC_CLKOUT0",
-            "CLKC_CLKOUT1",
-        ] {
-            ctx.collect_bit_legacy(tile, bel, attr, "1");
-        }
-        for attr in ["PLL0_LOCKED", "PLL1_LOCKED", "CLKC_LOCKED"] {
-            ctx.get_diff_legacy(tile, bel, attr, "1").assert_empty();
+        let BelInfo::SwitchBox(ref sb) = edev.db[tcid].bels[bslots::CMT_BUF] else {
+            unreachable!()
+        };
+        for item in &sb.items {
+            let SwitchBoxItem::ProgBuf(buf) = item else {
+                continue;
+            };
+            ctx.collect_progbuf(tcid, buf.dst, buf.src);
         }
     }
-    if ctx.has_tile_legacy("PLL_BUFPLL_OUT0") {
-        let tile = "PLL_BUFPLL_OUT0";
-        let bel = "PLL_BUFPLL";
-        for attr in [
-            "PLL0_CLKOUT0_D",
-            "PLL0_CLKOUT1_D",
-            "PLL0_CLKOUT0_U",
-            "PLL0_CLKOUT1_U",
-            "PLL1_CLKOUT0",
-            "PLL1_CLKOUT1",
-            "CLKC_CLKOUT0",
-            "CLKC_CLKOUT1",
-        ] {
-            ctx.collect_bit_legacy(tile, bel, attr, "1");
-        }
-        for attr in ["PLL0_LOCKED_D", "PLL0_LOCKED_U"] {
-            ctx.get_diff_legacy(tile, bel, attr, "1").assert_empty();
-        }
-    }
-    {
-        let tile = "PLL_BUFPLL_OUT1";
-        let bel = "PLL_BUFPLL";
-        for attr in [
-            "PLL0_CLKOUT0",
-            "PLL0_CLKOUT1",
-            "PLL1_CLKOUT0_D",
-            "PLL1_CLKOUT1_D",
-            "PLL1_CLKOUT0_U",
-            "PLL1_CLKOUT1_U",
-            "CLKC_CLKOUT0",
-            "CLKC_CLKOUT1",
-        ] {
-            ctx.collect_bit_legacy(tile, bel, attr, "1");
-        }
-        for attr in ["PLL1_LOCKED_D", "PLL1_LOCKED_U"] {
-            ctx.get_diff_legacy(tile, bel, attr, "1").assert_empty();
-        }
-    }
-    for tile in ["PLL_BUFPLL_S", "PLL_BUFPLL_N"] {
-        if ctx.has_tile_legacy(tile) {
-            let bel = "PLL_BUFPLL";
-            for attr in [
-                "PLL0_CLKOUT0",
-                "PLL0_CLKOUT1",
-                "PLL1_CLKOUT0",
-                "PLL1_CLKOUT1",
-                "CLKC_CLKOUT0",
-                "CLKC_CLKOUT1",
-            ] {
-                ctx.collect_bit_legacy(tile, bel, attr, "1");
-            }
-        }
-    }
-    for (tile, is_lr) in [
-        ("CLK_S", false),
-        ("CLK_N", false),
-        ("CLK_W", true),
-        ("CLK_E", true),
+
+    for (tcid, is_we) in [
+        (tcls::CLK_S, false),
+        (tcls::CLK_N, false),
+        (tcls::CLK_W, true),
+        (tcls::CLK_E, true),
     ] {
+        let tcls = &edev.db[tcid];
+        let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots::CLK_INT] else {
+            unreachable!()
+        };
+        let mut muxes = HashMap::new();
+        for item in &sb.items {
+            let SwitchBoxItem::Mux(mux) = item else {
+                continue;
+            };
+            muxes.insert(mux.dst, mux);
+        }
+
         for i in 0..8 {
-            let bel = format!("BUFIO2[{i}]");
-            let bel_fb = format!("BUFIO2FB[{i}]");
-            let bel = &bel;
-            let bel_fb = &bel_fb;
-            ctx.get_diff_legacy(tile, bel, "PRESENT", "BUFIO2")
-                .assert_empty();
-            let diff = ctx.get_diff_legacy(tile, bel, "CMT_ENABLE", "1");
-            assert_eq!(diff, ctx.get_diff_legacy(tile, bel_fb, "CMT_ENABLE", "1"));
-            ctx.insert_legacy(tile, bel, "CMT_ENABLE", xlat_bit_legacy(diff));
-            ctx.collect_bit_legacy(tile, bel, "IOCLK_ENABLE", "1");
-            ctx.collect_enum_legacy(tile, bel, "CKPIN", &["VCC", "DIVCLK", "CLKPIN"]);
-            ctx.collect_bit_bi_legacy(tile, bel, "R_EDGE", "FALSE", "TRUE");
-            ctx.collect_bit_bi_legacy(tile, bel, "DIVIDE_BYPASS", "FALSE", "TRUE");
-            let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "BUFIO2_2CLK");
-            diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "R_EDGE"), true, false);
-            diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "DIVIDE_BYPASS"), false, true);
-            ctx.insert_legacy(tile, bel, "ENABLE_2CLK", xlat_bit_legacy(diff));
+            let bslot = bslots::BUFIO2[i];
+            let BelInfo::Bel(ref bel) = tcls.bels[bslot] else {
+                unreachable!()
+            };
+
+            let bslot_fb = bslots::BUFIO2FB[i];
+            let BelInfo::Bel(ref bel_fb) = tcls.bels[bslot_fb] else {
+                unreachable!()
+            };
+
+            ctx.collect_bel_attr(tcid, bslot, bcls::BUFIO2::CMT_ENABLE);
+            let diff = ctx.get_diff_bel_special(tcid, bslot_fb, specials::BUFIO2_CMT_ENABLE);
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::BUFIO2::CMT_ENABLE, xlat_bit(diff));
+
+            ctx.collect_bel_attr(tcid, bslot, bcls::BUFIO2::IOCLK_ENABLE);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFIO2::R_EDGE);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFIO2::DIVIDE_BYPASS);
+            let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::BUFIO2_2CLK);
+            diff.apply_bit_diff(
+                ctx.bel_attr_bit(tcid, bslot, bcls::BUFIO2::R_EDGE),
+                true,
+                false,
+            );
+            diff.apply_bit_diff(
+                ctx.bel_attr_bit(tcid, bslot, bcls::BUFIO2::DIVIDE_BYPASS),
+                false,
+                true,
+            );
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::BUFIO2::ENABLE_2CLK, xlat_bit(diff));
 
             let mut pos_edge = vec![];
-            let mut pos_bits = HashSet::new();
             let mut neg_edge = vec![];
-            let mut neg_bits = HashSet::new();
-            for i in 1..=8 {
-                let val = format!("{i}");
-                let diff = ctx.get_diff_legacy(tile, bel, "POS_EDGE", &val);
-                pos_bits.extend(diff.bits.keys().copied());
-                pos_edge.push((format!("POS_EDGE_{i}"), diff));
-                let diff = ctx.get_diff_legacy(tile, bel, "NEG_EDGE", &val);
-                neg_bits.extend(diff.bits.keys().copied());
-                neg_edge.push((format!("NEG_EDGE_{i}"), diff));
+            for val in ctx.edev.db[enums::BUFIO2_DIVIDE].values.ids() {
+                let diff = ctx.get_diff_attr_val(tcid, bslot, bcls::BUFIO2::POS_EDGE, val);
+                pos_edge.push((val, diff));
+                let diff = ctx.get_diff_attr_val(tcid, bslot, bcls::BUFIO2::NEG_EDGE, val);
+                neg_edge.push((val, diff));
             }
+            let pos_edge = xlat_enum_raw(pos_edge, OcdMode::BitOrder);
+            assert_eq!(pos_edge.bits.len(), 3);
+            assert_eq!(pos_edge.values[&enums::BUFIO2_DIVIDE::_1], bits![0, 0, 0]);
+            assert_eq!(pos_edge.values[&enums::BUFIO2_DIVIDE::_2], bits![1, 0, 0]);
+            assert_eq!(pos_edge.values[&enums::BUFIO2_DIVIDE::_3], bits![0, 0, 0]);
+            assert_eq!(pos_edge.values[&enums::BUFIO2_DIVIDE::_4], bits![1, 1, 0]);
+            assert_eq!(pos_edge.values[&enums::BUFIO2_DIVIDE::_5], bits![0, 0, 0]);
+            assert_eq!(pos_edge.values[&enums::BUFIO2_DIVIDE::_6], bits![1, 0, 1]);
+            assert_eq!(pos_edge.values[&enums::BUFIO2_DIVIDE::_7], bits![0, 1, 1]);
+            assert_eq!(pos_edge.values[&enums::BUFIO2_DIVIDE::_8], bits![1, 1, 1]);
+            let pos_edge = Vec::from_iter(pos_edge.bits.into_iter().map(|bit| bit.pos()));
+            let neg_edge = xlat_enum_raw(neg_edge, OcdMode::BitOrder);
+            assert_eq!(neg_edge.bits.len(), 2);
+            assert_eq!(neg_edge.values[&enums::BUFIO2_DIVIDE::_1], bits![0, 0]);
+            assert_eq!(neg_edge.values[&enums::BUFIO2_DIVIDE::_2], bits![1, 0]);
+            assert_eq!(neg_edge.values[&enums::BUFIO2_DIVIDE::_3], bits![0, 1]);
+            assert_eq!(neg_edge.values[&enums::BUFIO2_DIVIDE::_4], bits![0, 0]);
+            assert_eq!(neg_edge.values[&enums::BUFIO2_DIVIDE::_5], bits![0, 0]);
+            assert_eq!(neg_edge.values[&enums::BUFIO2_DIVIDE::_6], bits![0, 0]);
+            assert_eq!(neg_edge.values[&enums::BUFIO2_DIVIDE::_7], bits![0, 0]);
+            assert_eq!(neg_edge.values[&enums::BUFIO2_DIVIDE::_8], bits![0, 0]);
+            let neg_edge = Vec::from_iter(neg_edge.bits.into_iter().map(|bit| bit.pos()));
+
             let mut divide = vec![];
-            for i in 1..=8 {
-                let val = format!("{i}");
-                let mut diff = ctx.get_diff_legacy(tile, bel, "DIVIDE", &val);
-                if matches!(i, 2 | 4 | 6 | 8) {
-                    diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "R_EDGE"), true, false);
+            for val in ctx.edev.db[enums::BUFIO2_DIVIDE].values.ids() {
+                let mut diff = ctx.get_diff_attr_val(tcid, bslot, bcls::BUFIO2::DIVIDE, val);
+                if matches!(
+                    val,
+                    enums::BUFIO2_DIVIDE::_2
+                        | enums::BUFIO2_DIVIDE::_4
+                        | enums::BUFIO2_DIVIDE::_6
+                        | enums::BUFIO2_DIVIDE::_8
+                ) {
+                    diff.apply_bit_diff(
+                        ctx.bel_attr_bit(tcid, bslot, bcls::BUFIO2::R_EDGE),
+                        true,
+                        false,
+                    );
                 }
-                let diff2 = ctx.get_diff_legacy(tile, bel, "DIVIDE.2CLK", &val);
+                let diff2 = ctx.get_diff_attr_special_val(
+                    tcid,
+                    bslot,
+                    bcls::BUFIO2::DIVIDE,
+                    specials::BUFIO2_2CLK,
+                    val,
+                );
                 assert_eq!(diff, diff2);
-                let pos = diff.split_bits(&pos_bits);
-                let neg = diff.split_bits(&neg_bits);
-                pos_edge.push((format!("DIVIDE_{i}"), pos));
-                neg_edge.push((format!("DIVIDE_{i}"), neg));
+                let pos = extract_bitvec_val_part(&pos_edge, &bits![0, 0, 0], &mut diff);
+                assert_eq!(
+                    pos,
+                    match val {
+                        enums::BUFIO2_DIVIDE::_1 => bits![0, 0, 0],
+                        enums::BUFIO2_DIVIDE::_2 => bits![1, 0, 0],
+                        enums::BUFIO2_DIVIDE::_3 => bits![0, 1, 0],
+                        enums::BUFIO2_DIVIDE::_4 => bits![1, 1, 0],
+                        enums::BUFIO2_DIVIDE::_5 => bits![0, 0, 1],
+                        enums::BUFIO2_DIVIDE::_6 => bits![1, 0, 1],
+                        enums::BUFIO2_DIVIDE::_7 => bits![0, 1, 1],
+                        enums::BUFIO2_DIVIDE::_8 => bits![1, 1, 1],
+                        _ => unreachable!(),
+                    }
+                );
+                let neg = extract_bitvec_val_part(&neg_edge, &bits![0, 0], &mut diff);
+                assert_eq!(
+                    neg,
+                    match val {
+                        enums::BUFIO2_DIVIDE::_1 => bits![0, 0],
+                        enums::BUFIO2_DIVIDE::_2 => bits![1, 0],
+                        enums::BUFIO2_DIVIDE::_3 => bits![0, 0],
+                        enums::BUFIO2_DIVIDE::_4 => bits![0, 0],
+                        enums::BUFIO2_DIVIDE::_5 => bits![1, 0],
+                        enums::BUFIO2_DIVIDE::_6 => bits![1, 0],
+                        enums::BUFIO2_DIVIDE::_7 => bits![0, 1],
+                        enums::BUFIO2_DIVIDE::_8 => bits![0, 1],
+                        _ => unreachable!(),
+                    }
+                );
                 divide.push((val, diff));
             }
-            ctx.insert_legacy(tile, bel, "POS_EDGE", xlat_enum_legacy(pos_edge));
-            ctx.insert_legacy(tile, bel, "NEG_EDGE", xlat_enum_legacy(neg_edge));
-            ctx.insert_legacy(tile, bel, "DIVIDE", xlat_enum_legacy(divide));
+            ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::BUFIO2::POS_EDGE, pos_edge);
+            ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::BUFIO2::NEG_EDGE, neg_edge);
+            ctx.insert_bel_attr_enum(
+                tcid,
+                bslot,
+                bcls::BUFIO2::DIVIDE,
+                xlat_enum_attr_ocd(divide, OcdMode::BitOrder),
+            );
 
-            let enable = ctx.peek_diff_legacy(tile, bel, "I", "CLKPIN0").clone();
+            let wire_i = bel.inputs[bcls::BUFIO2::I].wire();
+            let mux_i = muxes[&wire_i];
             let mut diffs = vec![];
-            for val in [
-                "CLKPIN0", "CLKPIN1", "CLKPIN4", "CLKPIN5", "DFB", "DQS0", "DQS2", "GTPCLK",
-            ] {
-                let mut diff = ctx.get_diff_legacy(tile, bel, "I", val);
-                diff = diff.combine(&!&enable);
-                diffs.push((val, diff));
+            let mut fixup_src = None;
+            for &src in mux_i.src.keys() {
+                if matches!(tcid, tcls::CLK_W | tcls::CLK_E)
+                    && wires::GTPCLK.contains(src.wire)
+                    && matches!(i, 1 | 3)
+                {
+                    fixup_src = Some(src);
+                    continue;
+                }
+                diffs.push((Some(src), ctx.get_diff_routing(tcid, wire_i, src)));
             }
-            ctx.insert_legacy(
-                tile,
-                bel,
-                "I",
-                xlat_enum_legacy_ocd(diffs, OcdMode::BitOrder),
-            );
-            ctx.insert_legacy(tile, bel, "ENABLE", xlat_bit_legacy(enable));
-            ctx.collect_enum_legacy_ocd(
-                tile,
-                bel,
-                "IB",
-                &[
-                    "CLKPIN0", "CLKPIN1", "CLKPIN4", "CLKPIN5", "DFB", "DQS0", "DQS2",
-                ],
-                OcdMode::BitOrder,
-            );
+            let enable = xlat_bit(extract_common_diff(&mut diffs));
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::BUFIO2::ENABLE, enable);
+            let mut item = xlat_enum_raw(diffs, OcdMode::BitOrder);
+            if let Some(fixup_src) = fixup_src {
+                assert_eq!(item.bits.len(), 3);
+                item.values.insert(Some(fixup_src), bits![1, 1, 1]);
+            }
+            ctx.insert_mux(tcid, wire_i, item);
 
-            ctx.get_diff_legacy(tile, bel_fb, "PRESENT", "BUFIO2FB")
-                .assert_empty();
-            ctx.get_diff_legacy(tile, bel_fb, "DIVIDE_BYPASS", "TRUE")
-                .assert_empty();
-            let diff = ctx.get_diff_legacy(tile, bel_fb, "DIVIDE_BYPASS", "FALSE");
-            ctx.insert_legacy(tile, bel, "FB_DIVIDE_BYPASS", xlat_bit_wide_legacy(!diff));
-
-            let enable = ctx.peek_diff_legacy(tile, bel_fb, "I", "CLKPIN").clone();
+            let wire_ib = bel.inputs[bcls::BUFIO2::IB].wire();
+            let mux_ib = muxes[&wire_ib];
             let mut diffs = vec![];
-            for val in ["CLKPIN", "DFB", "CFB", "CFB_INVERT", "GTPFB"] {
-                let mut diff = ctx.get_diff_legacy(tile, bel_fb, "I", val);
-                diff = diff.combine(&!&enable);
-                diffs.push((val, diff));
+            for &src in mux_ib.src.keys() {
+                diffs.push((Some(src), ctx.get_diff_routing(tcid, wire_ib, src)));
             }
-            ctx.insert_legacy(
-                tile,
-                bel,
-                "FB_I",
-                xlat_enum_legacy_ocd(diffs, OcdMode::BitOrder),
-            );
-            ctx.insert_legacy(tile, bel, "FB_ENABLE", xlat_bit_legacy(enable));
+            ctx.insert_mux(tcid, wire_ib, xlat_enum_raw(diffs, OcdMode::BitOrder));
 
-            let mut present = ctx.get_diff_legacy(tile, bel_fb, "PRESENT", "BUFIO2FB_2CLK");
-            present.apply_bitvec_diff_int_legacy(
-                ctx.item_legacy(tile, bel, "FB_DIVIDE_BYPASS"),
+            // BUFIO2FB
+
+            let divide_bypass = xlat_bit_wide_bi(
+                ctx.get_diff_attr_bool_bi(tcid, bslot_fb, bcls::BUFIO2FB::DIVIDE_BYPASS, false),
+                ctx.get_diff_attr_bool_bi(tcid, bslot_fb, bcls::BUFIO2FB::DIVIDE_BYPASS, true),
+            );
+            ctx.insert_bel_attr_bitvec(
+                tcid,
+                bslot_fb,
+                bcls::BUFIO2FB::DIVIDE_BYPASS,
+                divide_bypass,
+            );
+
+            let wire_i = bel_fb.inputs[bcls::BUFIO2FB::I].wire();
+            let mux_i = muxes[&wire_i];
+            let mut diffs = vec![];
+            let mut diff_cfb = None;
+            for &src in mux_i.src.keys() {
+                let diff = ctx.get_diff_routing(tcid, wire_i, src);
+                if wires::OUT_CLKPAD_CFB0.contains(src.wire) {
+                    diff_cfb = Some(diff.clone());
+                }
+                diffs.push((Some(src), diff));
+            }
+            let diff_enable = extract_common_diff(&mut diffs);
+            let diff_cfb = diff_cfb.unwrap().combine(&!&diff_enable);
+            ctx.insert_bel_attr_bool(
+                tcid,
+                bslot_fb,
+                bcls::BUFIO2FB::ENABLE,
+                xlat_bit(diff_enable),
+            );
+            ctx.insert_mux(tcid, wire_i, xlat_enum_raw(diffs, OcdMode::BitOrder));
+
+            let mut present = ctx.get_diff_bel_special(tcid, bslot_fb, specials::BUFIO2_2CLK);
+            present.apply_bitvec_diff_int(
+                ctx.bel_attr_bitvec(tcid, bslot_fb, bcls::BUFIO2FB::DIVIDE_BYPASS),
                 0,
                 0xf,
             );
-            present.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "FB_I"), "CFB", "CLKPIN");
+            present = present.combine(&!diff_cfb);
             present.assert_empty();
         }
-        for val in ["1", "2", "3", "4", "5", "6", "7", "8"] {
-            let diff = ctx.get_diff_legacy(tile, "BUFPLL_MCB", "DIVIDE", val);
-            let diff0 = ctx.peek_diff_legacy(tile, "BUFPLL[0]", "DIVIDE", val);
-            let diff1 = ctx.peek_diff_legacy(tile, "BUFPLL[1]", "DIVIDE", val);
-            assert_eq!(diff, diff0.combine(diff1));
-        }
-        for i in 0..2 {
-            let bel = format!("BUFPLL[{i}]");
-            let bel = &bel;
-            ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-                .assert_empty();
-            ctx.collect_enum_legacy(tile, bel, "DATA_RATE", &["SDR", "DDR"]);
-            ctx.collect_enum_legacy_ocd(
-                tile,
-                bel,
-                "DIVIDE",
-                &["1", "2", "3", "4", "5", "6", "7", "8"],
-                OcdMode::BitOrder,
-            );
-            let enable = ctx.extract_bit_legacy(tile, bel, "ENABLE", "1");
-            let mut diff = ctx.get_diff_legacy(tile, bel, "ENABLE_NONE_SYNC", "1");
-            diff.apply_bit_diff_legacy(&enable, true, false);
-            ctx.insert_legacy(tile, bel, "ENABLE_NONE_SYNC", xlat_bit_wide_legacy(diff));
-            let mut diff = ctx.get_diff_legacy(tile, bel, "ENABLE_BOTH_SYNC", "1");
-            diff.apply_bit_diff_legacy(&enable, true, false);
-            ctx.insert_legacy(tile, bel, "ENABLE_BOTH_SYNC", xlat_bit_wide_legacy(diff));
-            ctx.insert_legacy(tile, "BUFPLL_COMMON", "ENABLE", enable);
-            ctx.collect_bit_bi_legacy(tile, bel, "ENABLE_SYNC", "FALSE", "TRUE");
-
-            if !is_lr {
-                ctx.collect_enum_legacy(tile, bel, "LOCKED", &["LOCKED0", "LOCKED1", "LOCKED2"]);
-                ctx.collect_enum_legacy(
-                    tile,
-                    bel,
-                    "PLLIN",
-                    &["PLLIN0", "PLLIN1", "PLLIN2", "PLLIN3", "PLLIN4", "PLLIN5"],
-                );
-            }
-        }
         {
-            let bel = "BUFPLL_MCB";
-            let item = ctx.extract_bit_legacy(tile, bel, "ENABLE.0", "1");
-            ctx.insert_legacy(tile, "BUFPLL_COMMON", "ENABLE", item);
-            let item = ctx.extract_bit_legacy(tile, bel, "ENABLE.1", "1");
-            ctx.insert_legacy(tile, "BUFPLL_COMMON", "ENABLE", item);
-            if is_lr {
-                let item = ctx.extract_enum_legacy(tile, bel, "PLLIN", &["GCLK", "CMT"]);
-                ctx.insert_legacy(tile, "BUFPLL_COMMON", "PLLIN", item);
+            let bslot = bslots::BUFPLL;
+            for val in edev.db[enums::BUFIO2_DIVIDE].values.ids() {
+                let diff = ctx.get_diff_attr_special_val(
+                    tcid,
+                    bslot,
+                    bcls::BUFPLL::DIVIDE0,
+                    specials::BUFPLL_MCB,
+                    val,
+                );
+                let diff0 = ctx.peek_diff_attr_val(tcid, bslot, bcls::BUFPLL::DIVIDE0, val);
+                let diff1 = ctx.peek_diff_attr_val(tcid, bslot, bcls::BUFPLL::DIVIDE1, val);
+                assert_eq!(diff, diff0.combine(diff1));
             }
-            let mut diff0 = ctx.get_diff_legacy(tile, bel, "LOCK_SRC", "LOCK_TO_0");
-            diff0.apply_bit_diff_legacy(
-                ctx.item_legacy(tile, "BUFPLL[1]", "ENABLE_SYNC"),
+            ctx.collect_bel_attr(tcid, bslot, bcls::BUFPLL::DATA_RATE0);
+            ctx.collect_bel_attr(tcid, bslot, bcls::BUFPLL::DATA_RATE1);
+            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::BUFPLL::DIVIDE0, OcdMode::BitOrder);
+            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::BUFPLL::DIVIDE1, OcdMode::BitOrder);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFPLL::ENABLE_SYNC0);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFPLL::ENABLE_SYNC1);
+            ctx.collect_bel_attr(tcid, bslot, bcls::BUFPLL::ENABLE);
+            let enable = ctx.bel_attr_bit(tcid, bslot, bcls::BUFPLL::ENABLE);
+            for i in 0..2 {
+                let mut diff = ctx.get_diff_attr_bool(
+                    tcid,
+                    bslot,
+                    [
+                        bcls::BUFPLL::ENABLE_NONE_SYNC0,
+                        bcls::BUFPLL::ENABLE_NONE_SYNC1,
+                    ][i],
+                );
+                diff.apply_bit_diff(enable, true, false);
+                ctx.insert_bel_attr_bitvec(
+                    tcid,
+                    bslot,
+                    [
+                        bcls::BUFPLL::ENABLE_NONE_SYNC0,
+                        bcls::BUFPLL::ENABLE_NONE_SYNC1,
+                    ][i],
+                    xlat_bit_wide(diff),
+                );
+                let mut diff = ctx.get_diff_attr_bool(
+                    tcid,
+                    bslot,
+                    [
+                        bcls::BUFPLL::ENABLE_BOTH_SYNC0,
+                        bcls::BUFPLL::ENABLE_BOTH_SYNC1,
+                    ][i],
+                );
+                diff.apply_bit_diff(enable, true, false);
+                ctx.insert_bel_attr_bitvec(
+                    tcid,
+                    bslot,
+                    [
+                        bcls::BUFPLL::ENABLE_BOTH_SYNC0,
+                        bcls::BUFPLL::ENABLE_BOTH_SYNC1,
+                    ][i],
+                    xlat_bit_wide(diff),
+                );
+
+                if !is_we {
+                    let (ci, w_pllin, w_locked) = if tcid == tcls::CLK_S {
+                        (
+                            1,
+                            wires::CMT_BUFPLL_V_CLKOUT_N,
+                            wires::CMT_BUFPLL_V_LOCKED_N,
+                        )
+                    } else {
+                        (
+                            0,
+                            wires::CMT_BUFPLL_V_CLKOUT_S,
+                            wires::CMT_BUFPLL_V_LOCKED_S,
+                        )
+                    };
+
+                    let dst = TileWireCoord::new_idx(ci, wires::IMUX_BUFPLL_PLLIN[i]);
+                    let mut diffs = vec![];
+                    for j in 0..6 {
+                        let src = TileWireCoord::new_idx(ci, w_pllin[j]).pos();
+                        diffs.push((Some(src), ctx.get_diff_routing(tcid, dst, src)));
+                    }
+                    ctx.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::BitOrder));
+
+                    let dst = TileWireCoord::new_idx(ci, wires::IMUX_BUFPLL_LOCKED[i]);
+                    let mut diffs = vec![];
+                    for j in 0..3 {
+                        let src = TileWireCoord::new_idx(ci, w_locked[j]).pos();
+                        diffs.push((Some(src), ctx.get_diff_routing(tcid, dst, src)));
+                    }
+                    ctx.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::BitOrder));
+                }
+            }
+            if is_we {
+                ctx.collect_bel_attr(tcid, bslot, bcls::BUFPLL::MUX_PLLIN);
+            }
+            let mut diff0 = ctx.get_diff_attr_val(
+                tcid,
+                bslot,
+                bcls::BUFPLL::LOCK_SRC,
+                enums::BUFPLL_LOCK_SRC::LOCK_TO_0,
+            );
+            diff0.apply_bit_diff(
+                ctx.bel_attr_bit(tcid, bslot, bcls::BUFPLL::ENABLE_SYNC1),
                 false,
                 true,
             );
-            let mut diff1 = ctx.get_diff_legacy(tile, bel, "LOCK_SRC", "LOCK_TO_1");
-            diff1.apply_bit_diff_legacy(
-                ctx.item_legacy(tile, "BUFPLL[0]", "ENABLE_SYNC"),
+            let mut diff1 = ctx.get_diff_attr_val(
+                tcid,
+                bslot,
+                bcls::BUFPLL::LOCK_SRC,
+                enums::BUFPLL_LOCK_SRC::LOCK_TO_1,
+            );
+            diff1.apply_bit_diff(
+                ctx.bel_attr_bit(tcid, bslot, bcls::BUFPLL::ENABLE_SYNC0),
                 false,
                 true,
             );
-            ctx.insert_legacy(
-                tile,
-                bel,
-                "LOCK_SRC",
-                xlat_enum_legacy(vec![("LOCK_TO_0", diff0), ("LOCK_TO_1", diff1)]),
+            ctx.insert_bel_attr_enum(
+                tcid,
+                bslot,
+                bcls::BUFPLL::LOCK_SRC,
+                xlat_enum_attr(vec![
+                    (enums::BUFPLL_LOCK_SRC::NONE, Diff::default()),
+                    (enums::BUFPLL_LOCK_SRC::LOCK_TO_0, diff0),
+                    (enums::BUFPLL_LOCK_SRC::LOCK_TO_1, diff1),
+                ]),
             );
-            let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-            diff.apply_bitvec_diff_int_legacy(
-                ctx.item_legacy(tile, "BUFPLL[0]", "ENABLE_BOTH_SYNC"),
+            let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
+            diff.apply_bitvec_diff_int(
+                ctx.bel_attr_bitvec(tcid, bslot, bcls::BUFPLL::ENABLE_BOTH_SYNC0),
                 7,
                 0,
             );
-            diff.apply_bitvec_diff_int_legacy(
-                ctx.item_legacy(tile, "BUFPLL[1]", "ENABLE_BOTH_SYNC"),
+            diff.apply_bitvec_diff_int(
+                ctx.bel_attr_bitvec(tcid, bslot, bcls::BUFPLL::ENABLE_BOTH_SYNC1),
                 7,
                 0,
             );
             diff.assert_empty();
         }
-        if !is_lr {
-            let bel = "MISC";
-            let has_gt = match tile {
-                "CLK_S" => matches!(edev.chip.gts, Gts::Quad(_, _)),
-                "CLK_N" => edev.chip.gts != Gts::None,
+        if !is_we {
+            let bslot = bslots::MISR_CLK;
+            let has_gt = match tcid {
+                tcls::CLK_S => matches!(edev.chip.gts, Gts::Quad(_, _)),
+                tcls::CLK_N => edev.chip.gts != Gts::None,
                 _ => unreachable!(),
             };
             if has_gt && !ctx.device.name.starts_with("xa") {
-                ctx.collect_bit_legacy(tile, bel, "MISR_ENABLE", "1");
-                let mut diff = ctx.get_diff_legacy(tile, bel, "MISR_ENABLE_RESET", "1");
-                diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "MISR_ENABLE"), true, false);
-                ctx.insert_legacy(tile, bel, "MISR_RESET", xlat_bit_legacy(diff));
+                ctx.collect_bel_attr(tcid, bslot, bcls::MISR::ENABLE);
+                let mut diff = ctx.get_diff_attr_bool(tcid, bslot, bcls::MISR::RESET);
+                diff.apply_bit_diff(
+                    ctx.bel_attr_bit(tcid, bslot, bcls::MISR::ENABLE),
+                    true,
+                    false,
+                );
+                ctx.insert_bel_attr_bool(tcid, bslot, bcls::MISR::RESET, xlat_bit(diff));
             } else {
                 // they're sometimes working, sometimes not, in nonsensical ways; just kill them
-                ctx.get_diff_legacy(tile, bel, "MISR_ENABLE", "1");
-                ctx.get_diff_legacy(tile, bel, "MISR_ENABLE_RESET", "1");
+                ctx.get_diff_attr_bool(tcid, bslot, bcls::MISR::ENABLE);
+                ctx.get_diff_attr_bool(tcid, bslot, bcls::MISR::RESET);
             }
         }
     }
     {
-        let tile = "PCILOGICSE";
-        let bel = "PCILOGICSE";
-        let default = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
+        let tcid = tcls::PCILOGICSE;
+        let bslot = bslots::PCILOGICSE;
+        let default = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
         let mut diffs = vec![];
-        for i in 2..=31 {
-            let val = format!("TAP{i}");
-            let diff = ctx.get_diff_legacy(tile, bel, "PRESENT", &val);
+        for val in edev.db[enums::PCILOGICSE_PCI_CE_DELAY].values.ids() {
+            let diff = ctx.get_diff_attr_val(tcid, bslot, bcls::PCILOGICSE::PCI_CE_DELAY, val);
             if diff == default {
-                ctx.insert_device_data_legacy("PCI_CE_DELAY", val.clone());
+                ctx.insert_devdata_enum(devdata::PCILOGICSE_PCI_CE_DELAY, val);
             }
             diffs.push((val, diff));
         }
@@ -1248,49 +1139,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         assert_eq!(bits.len(), 1);
         for (_, diff) in &mut diffs {
             let enable = diff.split_bits(&bits);
-            ctx.insert_legacy(tile, bel, "ENABLE", xlat_bit_legacy(enable));
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::PCILOGICSE::ENABLE, xlat_bit(enable));
         }
-        ctx.insert_legacy(tile, bel, "PCI_CE_DELAY", xlat_enum_legacy(diffs));
-    }
-    for (tile, frame, bit, target) in [
-        // used in CLEXL (incl. spine) and DSP columns; also used on PCIE sides and left GTP side
-        ("HCLK_CLEXL", 16, 0, 21),
-        ("HCLK_CLEXL", 17, 0, 22),
-        ("HCLK_CLEXL", 18, 0, 23),
-        ("HCLK_CLEXL", 19, 0, 24),
-        ("HCLK_CLEXL", 16, 1, 26),
-        ("HCLK_CLEXL", 17, 1, 27),
-        ("HCLK_CLEXL", 18, 1, 28),
-        ("HCLK_CLEXL", 19, 1, 29),
-        // used in CLEXM columns
-        ("HCLK_CLEXM", 16, 0, 21),
-        ("HCLK_CLEXM", 17, 0, 22),
-        ("HCLK_CLEXM", 18, 0, 24),
-        ("HCLK_CLEXM", 19, 0, 25),
-        ("HCLK_CLEXM", 16, 1, 27),
-        ("HCLK_CLEXM", 17, 1, 28),
-        ("HCLK_CLEXM", 18, 1, 29),
-        ("HCLK_CLEXM", 19, 1, 30),
-        // used in IOI columns
-        ("HCLK_IOI", 16, 0, 25),
-        ("HCLK_IOI", 18, 0, 23),
-        ("HCLK_IOI", 19, 0, 24),
-        ("HCLK_IOI", 16, 1, 21),
-        ("HCLK_IOI", 17, 1, 27),
-        ("HCLK_IOI", 18, 1, 28),
-        ("HCLK_IOI", 19, 1, 29),
-        // used on right GTP side
-        ("HCLK_GTP", 16, 0, 25),
-        ("HCLK_GTP", 17, 0, 22),
-        ("HCLK_GTP", 18, 0, 23),
-        ("HCLK_GTP", 19, 0, 24),
-        // BRAM columns do not have masking
-    ] {
-        ctx.insert_legacy(
-            tile,
-            "GLUTMASK",
-            format!("FRAME{target}"),
-            TileItem::from_bit_inv(TileBit::new(0, frame, bit), false),
-        )
+        ctx.insert_bel_attr_enum(
+            tcid,
+            bslot,
+            bcls::PCILOGICSE::PCI_CE_DELAY,
+            xlat_enum_attr(diffs),
+        );
     }
 }

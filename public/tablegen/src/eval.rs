@@ -401,7 +401,8 @@ impl Context {
             ast::AttributeType::BitVecArray(width, depth) => {
                 BelAttributeType::BitVecArray(width, depth)
             }
-            ast::AttributeType::Enum(ref ident) => {
+            ast::AttributeType::Enum(ref id) => {
+                let ident = self.eval_templ_id(id)?;
                 let Some((eid, _)) = self.db.db.enum_classes.get(&ident.to_string()) else {
                     error_at(ident.span(), "undefined enum")?
                 };

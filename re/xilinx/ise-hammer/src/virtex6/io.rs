@@ -768,13 +768,13 @@ pub fn add_fuzzers<'a>(
             .attr("DELAY_SRC", "IO")
             .attr("IDELAY_TYPE", "FIXED")
             .attr("ODELAY_TYPE", "FIXED")
-            .test_multi_attr_dec("IDELAY_VALUE", 5);
+            .test_multi_attr_dec_legacy("IDELAY_VALUE", 5);
         bctx.mode("IODELAYE1")
             .related_tile_mutex(HclkIoi, "IDELAYCTRL", "USE")
             .attr("DELAY_SRC", "IO")
             .attr("IDELAY_TYPE", "FIXED")
             .attr("ODELAY_TYPE", "FIXED")
-            .test_multi_attr_dec("ODELAY_VALUE", 5);
+            .test_multi_attr_dec_legacy("ODELAY_VALUE", 5);
         bctx.build()
             .related_tile_mutex(HclkIoi, "IDELAYCTRL", "USE")
             .bel_mode(bel_other, "IODELAYE1")

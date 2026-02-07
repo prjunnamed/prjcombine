@@ -5,12 +5,12 @@ use prjcombine_entity::{
     id::{EntityIdU8, EntityTag, EntityTagArith},
 };
 use prjcombine_interconnect::{
-    dir::{DirH, DirHV},
+    dir::{Dir, DirH, DirHV, DirV},
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 use std::collections::BTreeMap;
 
-use crate::defs;
+use crate::defs::{self, bslots};
 
 pub struct RegTag;
 impl EntityTag for RegTag {
@@ -24,10 +24,7 @@ pub struct Chip {
     pub columns: EntityVec<ColId, Column>,
     pub col_clk: ColId,
     pub cols_clk_fold: Option<(ColId, ColId)>,
-    pub cols_reg_buf: (ColId, ColId),
     pub rows: EntityVec<RowId, Row>,
-    pub rows_midbuf: (RowId, RowId),
-    pub rows_hclkbuf: (RowId, RowId),
     pub rows_pci_ce_split: (RowId, RowId),
     pub rows_bank_split: Option<(RowId, RowId)>,
     pub row_mcb_split: Option<RowId>,
@@ -258,6 +255,13 @@ impl Chip {
 
     pub fn row_n_inner(&self) -> RowId {
         RowId::from_idx(self.rows.len() - 2)
+    }
+
+    pub fn row_edge(&self, edge: DirV) -> RowId {
+        match edge {
+            DirV::S => self.row_s(),
+            DirV::N => self.row_n(),
+        }
     }
 
     pub fn get_mcb(&self, row: RowId) -> &Mcb {
@@ -506,6 +510,15 @@ impl Chip {
             Gts::None => None,
         }
     }
+
+    pub fn bel_bufpll(&self, edge: Dir) -> BelCoord {
+        match edge {
+            Dir::H(edge) => CellCoord::new(DieId::from_idx(0), self.col_edge(edge), self.row_clk())
+                .bel(bslots::BUFPLL),
+            Dir::V(edge) => CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_edge(edge))
+                .bel(bslots::BUFPLL),
+        }
+    }
 }
 
 impl Chip {
@@ -540,9 +553,6 @@ impl Chip {
             {
                 write!(o, " FOLD")?;
             }
-            if col == self.cols_reg_buf.0 || col == self.cols_reg_buf.1 {
-                write!(o, " REGBUF")?;
-            }
             if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = self.gts
                 && col == cl
             {
@@ -559,12 +569,6 @@ impl Chip {
         if let Some((cl, cr)) = self.cols_clk_fold {
             writeln!(o, "\tcols_clk_fold {cl}, {cr};")?;
         }
-        writeln!(
-            o,
-            "\tcols_reg_buf {cl}, {cr};",
-            cl = self.cols_reg_buf.0,
-            cr = self.cols_reg_buf.1
-        )?;
         writeln!(o, "\trows {{")?;
         for (row, rd) in &self.rows {
             if row.to_idx() != 0 && row.to_idx().is_multiple_of(16) {
@@ -595,12 +599,6 @@ impl Chip {
                 (false, false) => write!(o, "null")?,
             }
             write!(o, ", // {row}")?;
-            if row == self.rows_midbuf.0 || row == self.rows_midbuf.1 {
-                write!(o, " MIDBUF")?;
-            }
-            if row == self.rows_hclkbuf.0 || row == self.rows_hclkbuf.1 {
-                write!(o, " HCLKBUF")?;
-            }
             for (i, mcb) in self.mcbs.iter().enumerate() {
                 if row == mcb.row_mcb {
                     write!(o, " MCB{i}.MCB")?;
@@ -668,18 +666,6 @@ impl Chip {
             writeln!(o)?;
         }
         writeln!(o, "\t}}")?;
-        writeln!(
-            o,
-            "\trows_midbuf {rb}, {rt};",
-            rb = self.rows_midbuf.0,
-            rt = self.rows_midbuf.1
-        )?;
-        writeln!(
-            o,
-            "\trows_hclkbuf {rb}, {rt};",
-            rb = self.rows_hclkbuf.0,
-            rt = self.rows_hclkbuf.1
-        )?;
         writeln!(
             o,
             "\trows_pci_ce_split {rb}, {rt};",

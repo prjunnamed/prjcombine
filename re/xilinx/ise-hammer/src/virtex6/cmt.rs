@@ -349,7 +349,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode(mode)
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
                 .mutex("MODE", "TEST")
-                .test_multi_attr_dec(attr, width);
+                .test_multi_attr_dec_legacy(attr, width);
         }
 
         for mult in 1..=64 {

@@ -107,11 +107,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .pin_from("CLKFB", PinFromKind::Bufg, PinFromKind::Iob)
         .commit();
 
-    bctx.mode(mode).test_multi_attr_dec("BGM_VLDLY", 3);
-    bctx.mode(mode).test_multi_attr_dec("BGM_LDLY", 3);
-    bctx.mode(mode).test_multi_attr_dec("BGM_SDLY", 3);
-    bctx.mode(mode).test_multi_attr_dec("BGM_VSDLY", 3);
-    bctx.mode(mode).test_multi_attr_dec("BGM_SAMPLE_LEN", 3);
+    bctx.mode(mode).test_multi_attr_dec_legacy("BGM_VLDLY", 3);
+    bctx.mode(mode).test_multi_attr_dec_legacy("BGM_LDLY", 3);
+    bctx.mode(mode).test_multi_attr_dec_legacy("BGM_SDLY", 3);
+    bctx.mode(mode).test_multi_attr_dec_legacy("BGM_VSDLY", 3);
+    bctx.mode(mode)
+        .test_multi_attr_dec_legacy("BGM_SAMPLE_LEN", 3);
     bctx.mode(mode).test_enum_legacy(
         "BGM_MODE",
         &["BG_SNAPSHOT", "ABS_FREQ_SNAPSHOT", "ABS_FREQ_REF"],
@@ -235,7 +236,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("CLKOUT_PHASE_SHIFT", val)
             .commit();
     }
-    bctx.mode(mode).test_multi_attr_dec("DESKEW_ADJUST", 5);
+    bctx.mode(mode)
+        .test_multi_attr_dec_legacy("DESKEW_ADJUST", 5);
     bctx.mode(mode)
         .test_multi_attr_bin("DCM_PULSE_WIDTH_CORRECTION_LOW", 5);
     bctx.mode(mode)
@@ -246,7 +248,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .test_multi_attr_bin("DCM_VBG_SEL", 4);
     bctx.mode(mode)
         .test_multi_attr_bin("DCM_VREG_PHASE_MARGIN", 3);
-    bctx.mode(mode).test_multi_attr_dec("PHASE_SHIFT", 10);
+    bctx.mode(mode)
+        .test_multi_attr_dec_legacy("PHASE_SHIFT", 10);
     bctx.mode(mode)
         .attr("CLKOUT_PHASE_SHIFT", "NONE")
         .test_manual_legacy("PHASE_SHIFT", "-1")
@@ -277,16 +280,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .test_enum_legacy("DLL_CTL_SEL_CLKIN_DIV2", &["FALSE", "TRUE"]);
     bctx.mode(mode)
         .test_enum_legacy("DUTY_CYCLE_CORRECTION", &["FALSE", "TRUE"]);
-    bctx.mode(mode).test_multi_attr_dec("DLL_PD_DLY_SEL", 3);
-    bctx.mode(mode).test_multi_attr_dec("DLL_DEAD_TIME", 8);
-    bctx.mode(mode).test_multi_attr_dec("DLL_LIVE_TIME", 8);
-    bctx.mode(mode).test_multi_attr_dec("DLL_DESKEW_MINTAP", 8);
-    bctx.mode(mode).test_multi_attr_dec("DLL_DESKEW_MAXTAP", 8);
     bctx.mode(mode)
-        .test_multi_attr_dec("DLL_PHASE_SHIFT_LFC", 8);
+        .test_multi_attr_dec_legacy("DLL_PD_DLY_SEL", 3);
     bctx.mode(mode)
-        .test_multi_attr_dec("DLL_PHASE_SHIFT_HFC", 8);
-    bctx.mode(mode).test_multi_attr_dec("DLL_SETTLE_TIME", 8);
+        .test_multi_attr_dec_legacy("DLL_DEAD_TIME", 8);
+    bctx.mode(mode)
+        .test_multi_attr_dec_legacy("DLL_LIVE_TIME", 8);
+    bctx.mode(mode)
+        .test_multi_attr_dec_legacy("DLL_DESKEW_MINTAP", 8);
+    bctx.mode(mode)
+        .test_multi_attr_dec_legacy("DLL_DESKEW_MAXTAP", 8);
+    bctx.mode(mode)
+        .test_multi_attr_dec_legacy("DLL_PHASE_SHIFT_LFC", 8);
+    bctx.mode(mode)
+        .test_multi_attr_dec_legacy("DLL_PHASE_SHIFT_HFC", 8);
+    bctx.mode(mode)
+        .test_multi_attr_dec_legacy("DLL_SETTLE_TIME", 8);
     bctx.mode(mode).test_multi_attr_bin("DLL_SPARE", 16);
     bctx.mode(mode).test_multi_attr_bin("DLL_TEST_MUX_SEL", 2);
     bctx.mode(mode)

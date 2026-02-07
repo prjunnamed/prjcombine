@@ -227,6 +227,7 @@ fn gen_switchbox_old(
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
     enum PipKind {
         Mux(bool),
+        PairMux(bool),
         PermaBuf(bool),
         ProgBuf(bool),
         Pass,
@@ -283,6 +284,20 @@ fn gen_switchbox_old(
                 ));
             }
             SwitchBoxItem::Bidi(_) => unreachable!(),
+            SwitchBoxItem::PairMux(mux) => {
+                for &[src0, src1] in mux.src.keys() {
+                    if let Some(src) = src0 {
+                        pips.entry(mux.dst[0])
+                            .or_default()
+                            .insert((PipKind::PairMux(src.inv), src.tw));
+                    }
+                    if let Some(src) = src1 {
+                        pips.entry(mux.dst[1])
+                            .or_default()
+                            .insert((PipKind::PairMux(src.inv), src.tw));
+                    }
+                }
+            }
         }
     }
     writeln!(buf, r#"### Switchbox {bname}"#).unwrap();
@@ -318,6 +333,8 @@ fn gen_switchbox_old(
             let k = match kind {
                 PipKind::Mux(false) => "mux".to_string(),
                 PipKind::Mux(true) => "inverted mux".to_string(),
+                PipKind::PairMux(false) => "pair mux".to_string(),
+                PipKind::PairMux(true) => "inverted pair mux".to_string(),
                 PipKind::PermaBuf(false) => "fixed buffer".to_string(),
                 PipKind::PermaBuf(true) => "inverted fixed buffer".to_string(),
                 PipKind::ProgBuf(false) => "buffer".to_string(),
@@ -351,6 +368,7 @@ enum BitInfo {
     ProgDelay(BelSlotId, TileWireCoord, PolTileWireCoord, usize),
     Mux(BelSlotId, TileWireCoord, usize),
     Bidi(BelSlotId, ConnectorSlotId, TileWireCoord, bool),
+    PairMux(BelSlotId, [TileWireCoord; 2], usize),
     TestMux(BelSlotId, usize),
     BelInputInv(BelSlotId, BelInputId, bool),
     BelAttrBool(BelSlotId, BelAttributeId, bool),
@@ -429,6 +447,14 @@ impl<'a, 'b, 'c> TileClassGen<'a, 'b, 'c> {
                 bname = self.intdb.bel_slots.key(bslot),
                 conn = self.intdb.conn_slots.key(conn),
                 wire = wire.to_string(self.intdb, self.tcls),
+            ),
+            BitInfo::PairMux(bslot, dst, idx) => format!(
+                "{dbname}-{tname}-{bname}-mux-{dst0}-{dst1}-{idx}",
+                dbname = self.dbname,
+                tname = self.tname,
+                bname = self.intdb.bel_slots.key(bslot),
+                dst0 = dst[0].to_string(self.intdb, self.tcls),
+                dst1 = dst[1].to_string(self.intdb, self.tcls),
             ),
             BitInfo::TestMux(bslot, idx) => format!(
                 "{dbname}-{tname}-{bname}-testmux-{idx}",
@@ -950,6 +976,66 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
         writeln!(buf, r#"</table></div>"#).unwrap();
         writeln!(buf).unwrap();
     }
+
+    for item in &sb.items {
+        let SwitchBoxItem::PairMux(mux) = item else {
+            continue;
+        };
+        writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+        writeln!(
+            buf,
+            r#"<caption>{dbname} {tname} switchbox {bname} pair mux {dst0} {dst1}</caption>"#,
+            dst0 = mux.dst[0].to_string(intdb, tcls),
+            dst1 = mux.dst[1].to_string(intdb, tcls),
+        )
+        .unwrap();
+        writeln!(buf, r#"<thead>"#).unwrap();
+        writeln!(
+            buf,
+            r#"<tr><th colspan="{nbits}">Bits</th><th>Destination A</th><th>Destination B</th></tr>"#,
+            nbits = mux.bits.len(),
+        )
+        .unwrap();
+        write!(buf, r#"<tr>"#).unwrap();
+        for (bidx, &bit) in mux.bits.iter().enumerate().rev() {
+            let bi = BitInfo::PairMux(bslot, mux.dst, bidx);
+            tcgen.add_bit(bit, bi);
+            write!(
+                buf,
+                r#"<th id="{anchor}">{bit}</th>"#,
+                anchor = tcgen.anchor(bi),
+                bit = tcgen.link_bit(bit),
+            )
+            .unwrap();
+        }
+        write!(
+            buf,
+            r#"<th>{dst0}</th><th>{dst1}</th></tr>"#,
+            dst0 = mux.dst[0].to_string(intdb, tcls),
+            dst1 = mux.dst[1].to_string(intdb, tcls),
+        )
+        .unwrap();
+        writeln!(buf, r#"</thead>"#).unwrap();
+        writeln!(buf, r#"<tbody>"#).unwrap();
+        for (&src, value) in &mux.src {
+            write!(buf, r#"<tr>"#).unwrap();
+            for bit in value {
+                write!(buf, r#"<td>{b}</td>"#, b = u8::from(bit)).unwrap();
+            }
+            for src in src {
+                let src = if let Some(src) = src {
+                    src.to_string(intdb, tcls)
+                } else {
+                    "-".to_string()
+                };
+                write!(buf, r#"<td>{src}</td>"#).unwrap();
+            }
+            writeln!(buf, r#"</tr>"#).unwrap();
+        }
+        writeln!(buf, r#"</tbody>"#).unwrap();
+        writeln!(buf, r#"</table></div>"#).unwrap();
+        writeln!(buf).unwrap();
+    }
 }
 
 fn gen_bels(tcgen: &mut TileClassGen, buf: &mut String, bcid: BelClassId, bslots: &[BelSlotId]) {
@@ -1415,6 +1501,14 @@ fn gen_bits(tcgen: &mut TileClassGen, buf: &mut String) {
                                 wire = wire.to_string(intdb, tcls),
                             )
                         }
+                        BitInfo::PairMux(bslot, dst, idx) => {
+                            format!(
+                                "{bname}: pair mux ({dst0}, {dst1}) bit {idx}",
+                                bname = intdb.bel_slots.key(bslot),
+                                dst0 = dst[0].to_string(intdb, tcls),
+                                dst1 = dst[1].to_string(intdb, tcls),
+                            )
+                        }
                         BitInfo::TestMux(bslot, idx) => {
                             format!(
                                 "{bname}: test mux bit {idx}",
@@ -1809,7 +1903,7 @@ pub fn gen_devdata(
     dbname: &str,
     intdb: &IntDb,
     name: &str,
-    data: &BTreeMap<&str, &EntityPartVec<DeviceDataId, TableValue>>,
+    data: &IndexMap<&str, &EntityPartVec<DeviceDataId, TableValue>>,
     ids: &[DeviceDataId],
 ) {
     let mut buf = String::new();

@@ -531,10 +531,6 @@ impl<'a> ExpandedGrid<'a> {
         self[tcrd].cells[slot]
     }
 
-    pub fn find_tile(&self, ccrd: CellCoord, f: impl Fn(&Tile) -> bool) -> Option<&Tile> {
-        self[ccrd].tiles.values().find(|x| f(x))
-    }
-
     pub fn get_tile(&self, tcrd: TileCoord) -> Option<&Tile> {
         self[tcrd.cell].tiles.get(tcrd.slot)
     }
@@ -576,11 +572,6 @@ impl<'a> ExpandedGrid<'a> {
             }
         }
         None
-    }
-
-    // TODO: kill
-    pub fn get_tile_by_class(&self, ccrd: CellCoord, f: impl Fn(&str) -> bool) -> TileCoord {
-        self.find_tile_by_class(ccrd, f).unwrap()
     }
 
     pub fn has_bel(&self, bel: BelCoord) -> bool {
@@ -1035,21 +1026,22 @@ impl ExpandedGrid<'_> {
         fwd: ConnectorClassId,
         bwd: ConnectorClassId,
     ) {
-        let this = &mut *self;
-        let fwd = Connector {
-            target: Some(b),
-            class: fwd,
-        };
-        let bwd = Connector {
-            target: Some(a),
-            class: bwd,
-        };
-        let a = bwd.target.unwrap();
-        let b = fwd.target.unwrap();
-        let fwd_slot = this.db[fwd.class].slot;
-        let bwd_slot = this.db[bwd.class].slot;
-        this[a].conns.insert(fwd_slot, fwd);
-        this[b].conns.insert(bwd_slot, bwd);
+        let fwd_slot = self.db[fwd].slot;
+        let bwd_slot = self.db[bwd].slot;
+        self[a].conns.insert(
+            fwd_slot,
+            Connector {
+                target: Some(b),
+                class: fwd,
+            },
+        );
+        self[b].conns.insert(
+            bwd_slot,
+            Connector {
+                target: Some(a),
+                class: bwd,
+            },
+        );
     }
 
     pub fn fill_conn_pair(&mut self, a: CellCoord, b: CellCoord, fwd: &str, bwd: &str) {

@@ -605,6 +605,15 @@ pub enum BelInput {
     Invertible(TileWireCoord, PolTileBit),
 }
 
+impl BelInput {
+    pub fn wire(self) -> TileWireCoord {
+        match self {
+            BelInput::Fixed(ptwc) => ptwc.tw,
+            BelInput::Invertible(twc, _) => twc,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum BelAttribute {
     BitVec(Vec<PolTileBit>),
@@ -677,6 +686,7 @@ pub enum SwitchBoxItem {
     ProgInv(ProgInv),
     ProgDelay(ProgDelay),
     Bidi(Bidi),
+    PairMux(PairMux),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
@@ -735,6 +745,13 @@ pub struct Bidi {
     pub wire: TileWireCoord,
     // bit set iff driver upstream
     pub bit_upstream: PolTileBit,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub struct PairMux {
+    pub dst: [TileWireCoord; 2],
+    pub bits: Vec<TileBit>,
+    pub src: BTreeMap<[Option<PolTileWireCoord>; 2], BitVec>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, Default)]
@@ -869,6 +886,18 @@ impl TileClassIndex {
                             pips_bwd.entry(delay.dst).or_default().insert(delay.src);
                         }
                         SwitchBoxItem::Bidi(_) => (),
+                        SwitchBoxItem::PairMux(ref mux) => {
+                            for &src in mux.src.keys() {
+                                for (wt, wf) in mux.dst.into_iter().zip(src) {
+                                    let Some(wf) = wf else { continue };
+                                    pips_fwd.entry(wf.tw).or_default().insert(PolTileWireCoord {
+                                        tw: wt,
+                                        inv: wf.inv,
+                                    });
+                                    pips_bwd.entry(wt).or_default().insert(wf);
+                                }
+                            }
+                        }
                     }
                 }
             }

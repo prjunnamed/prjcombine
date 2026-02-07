@@ -671,7 +671,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
         for &(attr, width) in PCIE_DEC_ATTRS {
-            bctx.mode(mode).test_multi_attr_dec(attr, width);
+            bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
         }
     }
     if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PCIE3") {
@@ -692,7 +692,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
         for &(attr, width) in PCIE3_DEC_ATTRS {
-            bctx.mode(mode).test_multi_attr_dec(attr, width);
+            bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
         }
     }
 }

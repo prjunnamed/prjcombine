@@ -149,6 +149,14 @@ impl DirHV {
         h: DirH::E,
         v: DirV::N,
     };
+
+    pub fn with_h(self, h: DirH) -> DirHV {
+        DirHV { h, ..self }
+    }
+
+    pub fn with_v(self, v: DirV) -> DirHV {
+        DirHV { v, ..self }
+    }
 }
 
 impl std::fmt::Display for DirHV {

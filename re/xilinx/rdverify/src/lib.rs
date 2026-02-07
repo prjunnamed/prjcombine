@@ -209,67 +209,69 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
         let tcrd = self.vrf.grid.get_tile_by_bel(self.bcrd);
         let tile = &self.vrf.grid[tcrd];
         let tcls = &db[tile.class];
-        let BelKind::Class(bcid) = db.bel_slots[self.bcrd.slot].kind else {
-            unreachable!()
-        };
-        let BelInfo::Bel(ref bel) = tcls.bels[self.bcrd.slot] else {
-            unreachable!()
-        };
-        let bcls = &db[bcid];
         let mut pins = vec![];
-        for pid in bel.inputs.ids() {
-            if self.skip_ins.contains(&pid) || self.skip_auto {
-                continue;
-            }
-            let (name, idx) = bcls.inputs.key(pid);
-            let name = self.vrf.pin_index(name, idx, bcls.inputs[pid].indexing);
-            let n = &self.naming.pins[&name];
-            let pin = if let Some(pin) = self.rename_ins.get(pid) {
-                pin.into()
-            } else {
-                name.into()
+        if !self.skip_auto {
+            let BelKind::Class(bcid) = db.bel_slots[self.bcrd.slot].kind else {
+                unreachable!()
             };
-            pins.push(SitePin {
-                dir: SitePinDir::In,
-                pin,
-                wire: Some(&n.name),
-            });
-        }
-        for pid in bel.outputs.ids() {
-            if self.skip_outs.contains(&pid) || self.skip_auto {
-                continue;
-            }
-            let (name, idx) = bcls.outputs.key(pid);
-            let name = self.vrf.pin_index(name, idx, bcls.outputs[pid].indexing);
-            let n = &self.naming.pins[&name];
-            let pin = if let Some(pin) = self.rename_outs.get(pid) {
-                pin.into()
-            } else {
-                name.into()
+            let BelInfo::Bel(ref bel) = tcls.bels[self.bcrd.slot] else {
+                unreachable!()
             };
-            pins.push(SitePin {
-                dir: SitePinDir::Out,
-                pin,
-                wire: Some(&n.name),
-            });
-        }
-        for pid in bel.bidirs.ids() {
-            if self.skip_auto {
-                continue;
+            let bcls = &db[bcid];
+            for pid in bel.inputs.ids() {
+                if self.skip_ins.contains(&pid) {
+                    continue;
+                }
+                let (name, idx) = bcls.inputs.key(pid);
+                let name = self.vrf.pin_index(name, idx, bcls.inputs[pid].indexing);
+                let n = &self.naming.pins[&name];
+                let pin = if let Some(pin) = self.rename_ins.get(pid) {
+                    pin.into()
+                } else {
+                    name.into()
+                };
+                pins.push(SitePin {
+                    dir: SitePinDir::In,
+                    pin,
+                    wire: Some(&n.name),
+                });
             }
-            let (name, idx) = bcls.bidirs.key(pid);
-            let name = self.vrf.pin_index(name, idx, bcls.bidirs[pid].indexing);
-            let n = &self.naming.pins[&name];
-            let dir = self
-                .bidir_dirs
-                .get(pid)
-                .copied()
-                .unwrap_or(SitePinDir::Inout);
-            pins.push(SitePin {
-                dir,
-                pin: name.into(),
-                wire: Some(&n.name),
-            });
+            for pid in bel.outputs.ids() {
+                if self.skip_outs.contains(&pid) {
+                    continue;
+                }
+                let (name, idx) = bcls.outputs.key(pid);
+                let name = self.vrf.pin_index(name, idx, bcls.outputs[pid].indexing);
+                let n = &self.naming.pins[&name];
+                let pin = if let Some(pin) = self.rename_outs.get(pid) {
+                    pin.into()
+                } else {
+                    name.into()
+                };
+                pins.push(SitePin {
+                    dir: SitePinDir::Out,
+                    pin,
+                    wire: Some(&n.name),
+                });
+            }
+            for pid in bel.bidirs.ids() {
+                if self.skip_auto {
+                    continue;
+                }
+                let (name, idx) = bcls.bidirs.key(pid);
+                let name = self.vrf.pin_index(name, idx, bcls.bidirs[pid].indexing);
+                let n = &self.naming.pins[&name];
+                let dir = self
+                    .bidir_dirs
+                    .get(pid)
+                    .copied()
+                    .unwrap_or(SitePinDir::Inout);
+                pins.push(SitePin {
+                    dir,
+                    pin: name.into(),
+                    wire: Some(&n.name),
+                });
+            }
         }
         for (pin, name) in &self.extra_ins {
             let wire = Some(self.naming.pins[name].name.as_ref());
@@ -326,6 +328,8 @@ pub struct Verifier<'a> {
     wire_slot_aliases: HashMap<WireSlotId, WireSlotId>,
     intf_int_aliases: HashMap<WireCoord, WireCoord>,
     force_bel_pin: HashMap<(TileClassId, BelSlotId, &'static str), TileWireCoord>,
+    force_bel_output: HashMap<(TileClassId, BelSlotId, BelOutputId), TileWireCoord>,
+    skip_bel_input: HashSet<(TileClassId, BelSlotId, BelInputId)>,
     skip_tcls_pips: EntityPartVec<TileClassId, HashSet<(TileWireCoord, TileWireCoord)>>,
     inject_tcls_pips: EntityPartVec<TileClassId, HashSet<(TileWireCoord, TileWireCoord)>>,
     dummy_in_nodes: HashSet<NodeOrWire>,
@@ -347,6 +351,7 @@ pub struct Verifier<'a> {
     cond_stub_ins_tk: HashSet<(rawdump::TileKindId, rawdump::WireId)>,
     skip_bel_pins: HashSet<(BelCoord, &'static str)>,
     skip_sb: HashSet<BelSlotId>,
+    skip_alt_pip: HashSet<(TileClassId, TileWireCoord)>,
 }
 
 #[derive(Debug, Default)]
@@ -395,6 +400,8 @@ impl<'a> Verifier<'a> {
             wire_slot_aliases: HashMap::new(),
             intf_int_aliases: HashMap::new(),
             force_bel_pin: Default::default(),
+            force_bel_output: Default::default(),
+            skip_bel_input: Default::default(),
             skip_tcls_pips: EntityPartVec::new(),
             inject_tcls_pips: EntityPartVec::new(),
             dummy_in_nodes: HashSet::new(),
@@ -443,6 +450,7 @@ impl<'a> Verifier<'a> {
             cond_stub_ins_tk: HashSet::new(),
             skip_bel_pins: HashSet::new(),
             skip_sb: HashSet::new(),
+            skip_alt_pip: HashSet::new(),
         }
     }
 
@@ -505,6 +513,20 @@ impl<'a> Verifier<'a> {
         self.force_bel_pin.insert((tcid, bslot, pin), wire);
     }
 
+    pub fn force_bel_output(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        pin: BelOutputId,
+        wire: TileWireCoord,
+    ) {
+        self.force_bel_output.insert((tcid, bslot, pin), wire);
+    }
+
+    pub fn skip_bel_input(&mut self, tcid: TileClassId, bslot: BelSlotId, pin: BelInputId) {
+        self.skip_bel_input.insert((tcid, bslot, pin));
+    }
+
     fn prep_tile_class_used_info(&self, tcid: TileClassId) -> TileClassUsedInfo {
         let tcls = &self.db[tcid];
         let mut used_o = HashSet::new();
@@ -552,23 +574,30 @@ impl<'a> Verifier<'a> {
                                 used_i.insert(delay.src.tw);
                             }
                             SwitchBoxItem::Bidi(_) => unreachable!(),
+                            SwitchBoxItem::PairMux(mux) => {
+                                used_o.insert(mux.dst[0]);
+                                used_o.insert(mux.dst[1]);
+                                for &w in mux.src.keys().flatten().flatten() {
+                                    if !self.db[w.wire].is_tie() {
+                                        used_i.insert(w.tw);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
                 BelInfo::Bel(bel) => {
                     for &inp in bel.inputs.values() {
-                        match inp {
-                            BelInput::Fixed(wire) => {
-                                used_i.insert(wire.tw);
-                            }
-                            BelInput::Invertible(wire, _) => {
-                                used_i.insert(wire);
-                            }
-                        }
+                        let wire = inp.wire();
+                        used_i.insert(wire);
                     }
-                    for wires in bel.outputs.values() {
-                        for &wire in wires {
+                    for (pin, wires) in &bel.outputs {
+                        if let Some(&wire) = self.force_bel_output.get(&(tcid, bslot, pin)) {
                             used_o.insert(wire);
+                        } else {
+                            for &wire in wires {
+                                used_o.insert(wire);
+                            }
                         }
                     }
                     for &wire in bel.bidirs.values() {
@@ -717,10 +746,10 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn pin_int_wire(&mut self, rw: RawWireCoord, mut iw: WireCoord) -> bool {
-        if let Some(&niw) = self.wire_aliases.get(&iw) {
+        while let Some(&niw) = self.wire_aliases.get(&iw) {
             iw = niw;
         }
-        if let Some(&nslot) = self.wire_slot_aliases.get(&iw.slot) {
+        while let Some(&nslot) = self.wire_slot_aliases.get(&iw.slot) {
             iw.slot = nslot;
         }
         if let Some(mut cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
@@ -1232,6 +1261,16 @@ impl<'a> Verifier<'a> {
                         self.claim_pip(wtn, wdn);
                         self.claim_pip(wdn, wfn);
                     }
+                    SwitchBoxItem::PairMux(mux) => {
+                        for &[src0, src1] in mux.src.keys() {
+                            if let Some(src) = src0 {
+                                pips.insert((mux.dst[0], src.tw));
+                            }
+                            if let Some(src) = src1 {
+                                pips.insert((mux.dst[1], src.tw));
+                            }
+                        }
+                    }
                     _ => (),
                 }
             }
@@ -1309,7 +1348,9 @@ impl<'a> Verifier<'a> {
                         wire: &wn.name,
                     };
                     self.pin_int_wire(rwtn, wire_lut[&wt].unwrap());
-                    self.claim_pip(rwtn, wtn);
+                    if !self.skip_alt_pip.contains(&(tile.class, wt)) {
+                        self.claim_pip(rwtn, wtn);
+                    }
                 }
                 alt_wires_dst.insert(wt);
                 let wfn = RawWireCoord {
@@ -1334,7 +1375,9 @@ impl<'a> Verifier<'a> {
                         wire: &wn.name,
                     };
                     self.pin_int_wire(rwfn, wire_lut[&wf].unwrap());
-                    self.claim_pip(wfn, rwfn);
+                    if !self.skip_alt_pip.contains(&(tile.class, wf)) {
+                        self.claim_pip(wfn, rwfn);
+                    }
                 }
                 alt_wires_src.insert(wf);
                 let wtn = RawWireCoord {
@@ -1496,9 +1539,12 @@ impl<'a> Verifier<'a> {
                         unreachable!()
                     };
                     let bcls = &self.db[bcid];
-                    for (pin, &inp) in &bel.inputs {
-                        let (name, idx) = bcls.inputs.key(pin);
-                        let pin = self.pin_index(name, idx, bcls.inputs[pin].indexing);
+                    for (pid, &inp) in &bel.inputs {
+                        if self.skip_bel_input.contains(&(tile.class, bslot, pid)) {
+                            continue;
+                        }
+                        let (name, idx) = bcls.inputs.key(pid);
+                        let pin = self.pin_index(name, idx, bcls.inputs[pid].indexing);
                         let n = &bn.pins[&pin];
                         let mut wc = RawWireCoord {
                             crd: crds[n.tile],
@@ -1556,9 +1602,9 @@ impl<'a> Verifier<'a> {
                             }
                         }
                     }
-                    for (pin, wires) in &bel.outputs {
-                        let (name, idx) = bcls.outputs.key(pin);
-                        let pin = self.pin_index(name, idx, bcls.outputs[pin].indexing);
+                    for (pid, wires) in &bel.outputs {
+                        let (name, idx) = bcls.outputs.key(pid);
+                        let pin = self.pin_index(name, idx, bcls.outputs[pid].indexing);
                         let n = &bn.pins[&pin];
                         let mut wc = RawWireCoord {
                             crd: crds[n.tile],
@@ -1575,7 +1621,7 @@ impl<'a> Verifier<'a> {
                         }
 
                         let mut claim = true;
-                        for &w in wires {
+                        if let Some(&w) = self.force_bel_output.get(&(tile.class, bslot, pid)) {
                             let wire = self
                                 .ngrid
                                 .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
@@ -1599,6 +1645,34 @@ impl<'a> Verifier<'a> {
                                         tile = ntile.names[def_rt],
                                         wire = n.name_far
                                     );
+                                }
+                            }
+                        } else {
+                            for &w in wires {
+                                let wire = self
+                                    .ngrid
+                                    .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
+                                    .unwrap();
+                                let wwc;
+                                if let Some(pip) = n.int_pips.get(&w) {
+                                    let (wtn, wfn) = name_pip(&crds, pip);
+                                    self.claim_pip(wtn, wfn);
+                                    self.verify_net(&[wc, wfn]);
+                                    wwc = wtn;
+                                } else {
+                                    wwc = wc;
+                                    claim = false;
+                                }
+                                if !self.pin_int_wire(wwc, wire) {
+                                    let iwd = &self.int_wire_data[&wire];
+                                    if iwd.used_i {
+                                        println!(
+                                            "MISSING BEL PIN INT WIRE {part} {tile} {pin} {wire}",
+                                            part = self.rd.part,
+                                            tile = ntile.names[def_rt],
+                                            wire = n.name_far
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -2075,17 +2149,23 @@ impl<'a> Verifier<'a> {
 
     pub fn bel_wire(&self, bcrd: BelCoord, name: &str) -> RawWireCoord<'a> {
         let naming = self.ngrid.get_bel_naming(bcrd);
+        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let crds = self.get_tile_crds(tcrd).unwrap();
+        let pn = &naming.pins[name];
         RawWireCoord {
-            crd: self.bel_rcrd(bcrd),
-            wire: &naming.pins[name].name,
+            crd: crds[pn.tile],
+            wire: &pn.name,
         }
     }
 
     pub fn bel_wire_far(&self, bcrd: BelCoord, name: &str) -> RawWireCoord<'a> {
         let naming = self.ngrid.get_bel_naming(bcrd);
+        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let crds = self.get_tile_crds(tcrd).unwrap();
+        let pn = &naming.pins[name];
         RawWireCoord {
-            crd: self.bel_rcrd(bcrd),
-            wire: &naming.pins[name].name_far,
+            crd: crds[pn.tile],
+            wire: &pn.name_far,
         }
     }
 
@@ -2301,6 +2381,10 @@ impl<'a> Verifier<'a> {
 
     pub fn skip_sb(&mut self, slot: BelSlotId) {
         self.skip_sb.insert(slot);
+    }
+
+    pub fn skip_alt_pip(&mut self, tcid: TileClassId, wire: TileWireCoord) {
+        self.skip_alt_pip.insert((tcid, wire));
     }
 
     pub fn finish(mut self) {

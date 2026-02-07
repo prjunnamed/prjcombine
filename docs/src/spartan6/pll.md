@@ -6,5 +6,4 @@ TODO: document
 
 ## Tables
 
-{{misc spartan6 pll-lock}}
-{{misc spartan6 pll-filter}}
+{{table spartan6 PLL_MULT}}

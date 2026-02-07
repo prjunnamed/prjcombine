@@ -318,7 +318,7 @@ pub fn add_fuzzers<'a>(
                 bctx.mode(mode)
                     .mutex("MODE", "ATTR")
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                    .test_multi_attr_dec(attr, width);
+                    .test_multi_attr_dec_legacy(attr, width);
             }
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
@@ -408,7 +408,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .test_multi_attr_dec("PHASE_SHIFT", 10);
+                .test_multi_attr_dec_legacy("PHASE_SHIFT", 10);
             bctx.mode(mode)
                 .mutex("MODE", "ATTR")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
@@ -615,7 +615,7 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "TEST")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .global_xy("PLLADV_*_USE_CALC", "NO")
-                .test_multi_attr_dec(attr, width);
+                .test_multi_attr_dec_legacy(attr, width);
         }
         for (attr, width) in [
             ("PLL_EN_CNTRL", 78),

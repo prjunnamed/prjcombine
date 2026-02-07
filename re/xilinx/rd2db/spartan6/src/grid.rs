@@ -8,7 +8,7 @@ use prjcombine_spartan6::chip::{
 };
 
 use prjcombine_re_xilinx_rd2db_grid::{
-    IntGrid, extract_int, find_column, find_columns, find_row, find_rows, find_tiles,
+    IntGrid, extract_int, find_columns, find_row, find_rows, find_tiles,
 };
 
 fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, Column> {
@@ -105,36 +105,6 @@ fn get_cols_clk_fold(rd: &Part, int: &IntGrid) -> Option<(ColId, ColId)> {
         [l, r] => Some((l, r)),
         _ => unreachable!(),
     }
-}
-
-fn get_cols_reg_buf(rd: &Part, int: &IntGrid) -> (ColId, ColId) {
-    let l = if let Some(c) = find_column(rd, &["REGH_BRAM_FEEDTHRU_L_GCLK", "REGH_DSP_L"]) {
-        int.lookup_column(c - 2)
-    } else if let Some(c) = find_column(rd, &["REGH_CLEXM_INT_GCLKL"]) {
-        int.lookup_column(c)
-    } else {
-        unreachable!()
-    };
-    let r = if let Some(c) = find_column(rd, &["REGH_BRAM_FEEDTHRU_R_GCLK", "REGH_DSP_R"]) {
-        int.lookup_column(c - 2)
-    } else if let Some(c) = find_column(rd, &["REGH_CLEXL_INT_CLK"]) {
-        int.lookup_column(c)
-    } else {
-        unreachable!()
-    };
-    (l, r)
-}
-
-fn get_rows_midbuf(rd: &Part, int: &IntGrid) -> (RowId, RowId) {
-    let b = int.lookup_row(find_row(rd, &["REG_V_MIDBUF_BOT"]).unwrap());
-    let t = int.lookup_row(find_row(rd, &["REG_V_MIDBUF_TOP"]).unwrap());
-    (b, t)
-}
-
-fn get_rows_hclkbuf(rd: &Part, int: &IntGrid) -> (RowId, RowId) {
-    let b = int.lookup_row(find_row(rd, &["REG_V_HCLKBUF_BOT"]).unwrap());
-    let t = int.lookup_row(find_row(rd, &["REG_V_HCLKBUF_TOP"]).unwrap());
-    (b, t)
 }
 
 fn get_rows_bank_split(rd: &Part, int: &IntGrid) -> Option<(RowId, RowId)> {
@@ -562,10 +532,7 @@ pub fn make_grid(rd: &Part) -> (Chip, BTreeSet<DisabledPart>) {
         columns,
         col_clk,
         cols_clk_fold: get_cols_clk_fold(rd, &int),
-        cols_reg_buf: get_cols_reg_buf(rd, &int),
         rows,
-        rows_midbuf: get_rows_midbuf(rd, &int),
-        rows_hclkbuf: get_rows_hclkbuf(rd, &int),
         rows_bank_split: get_rows_bank_split(rd, &int),
         rows_pci_ce_split: get_rows_pci_ce_split(rd, &int),
         row_mcb_split: get_row_mcb_split(rd, &int),

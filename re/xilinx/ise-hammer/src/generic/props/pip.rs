@@ -106,9 +106,16 @@ impl BelIntoPipWire for (PipInt, usize, WireSlotId) {
     }
 }
 
+impl BelIntoPipWire for TileWireCoord {
+    fn into_pip_wire(self, _backend: &IseBackend, _slot: BelSlotId) -> PipWire {
+        PipWire::Int(self)
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum PipWire {
     Int(TileWireCoord),
+    AltInt(TileWireCoord),
     BelPinNear(BelSlotId, String),
     BelPinFar(BelSlotId, String),
 }
@@ -131,6 +138,16 @@ impl PipWire {
                 (
                     &ntile.names[RawTileId::from_idx(0)],
                     &tile_naming.wires.get(wire)?.name,
+                )
+            }
+            PipWire::AltInt(wire) => {
+                backend
+                    .edev
+                    .resolve_wire(backend.edev.tile_wire(tcrd, *wire))?;
+                let wn = &tile_naming.wires.get(wire)?;
+                (
+                    &ntile.names[RawTileId::from_idx(0)],
+                    wn.alt_name.as_ref().unwrap_or(&wn.name),
                 )
             }
             PipWire::BelPinNear(bel, pin) => {

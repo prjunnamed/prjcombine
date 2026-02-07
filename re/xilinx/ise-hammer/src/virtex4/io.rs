@@ -719,9 +719,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 &["DEFAULT", "FIXED", "VARIABLE"],
             );
 
-        bctx.mode("ILOGIC").test_multi_attr_dec("IOBDELAY_VALUE", 6);
+        bctx.mode("ILOGIC")
+            .test_multi_attr_dec_legacy("IOBDELAY_VALUE", 6);
         bctx.mode("ISERDES")
-            .test_multi_attr_dec("IOBDELAY_VALUE", 6);
+            .test_multi_attr_dec_legacy("IOBDELAY_VALUE", 6);
 
         bctx.build()
             .mutex("MUX.CLK", "CKINT")

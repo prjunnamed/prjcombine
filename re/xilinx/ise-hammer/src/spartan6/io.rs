@@ -1,20 +1,20 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::BelSlotId,
+    db::{BelAttributeEnum, BelSlotId},
     dir::DirV,
     grid::{CellCoord, DieId, TileCoord},
 };
 use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, FeatureId, OcdMode},
+    diff::{Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val, xlat_bit_wide},
     legacy::{
-        extract_bitvec_val_legacy, extract_bitvec_val_part_legacy, xlat_bit_legacy,
-        xlat_bit_wide_legacy, xlat_bitvec_legacy, xlat_enum_legacy, xlat_enum_legacy_ocd,
+        extract_bitvec_val_part_legacy, xlat_bit_legacy, xlat_bit_wide_legacy, xlat_bitvec_legacy,
+        xlat_enum_legacy, xlat_enum_legacy_ocd,
     },
 };
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
-use prjcombine_spartan6::defs;
+use prjcombine_spartan6::defs::{self, bcls, bslots, enums, tcls};
 use prjcombine_types::{
     bits,
     bitvec::BitVec,
@@ -565,7 +565,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
             bctx.mode("OSERDES2")
                 .has_related(Delta::new(0, 0, "IOB"))
-                .test_multi_attr_dec("TRAIN_PATTERN", 4);
+                .test_multi_attr_dec_legacy("TRAIN_PATTERN", 4);
             bctx.mode("OSERDES2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .global_mutex("DRPSDO", "USE")
@@ -706,21 +706,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
             bctx.mode("IODELAY2")
                 .has_related(Delta::new(0, 0, "IOB"))
-                .test_multi_attr_dec("ODELAY_VALUE", 8);
+                .test_multi_attr_dec_legacy("ODELAY_VALUE", 8);
             bctx.mode("IODELAY2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .attr("IDELAY_TYPE", "FIXED")
                 .attr("IDELAY_MODE", "PCI")
-                .test_multi_attr_dec("IDELAY_VALUE", 8);
+                .test_multi_attr_dec_legacy("IDELAY_VALUE", 8);
             bctx.mode("IODELAY2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .attr("IDELAY_TYPE", "FIXED")
                 .attr("IDELAY_MODE", "PCI")
-                .test_multi_attr_dec("IDELAY2_VALUE", 8);
+                .test_multi_attr_dec_legacy("IDELAY2_VALUE", 8);
             bctx.mode("IODRP2_MCB")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .global_mutex("DRPSDO", "NOPE")
-                .test_multi_attr_dec("MCB_ADDRESS", 4);
+                .test_multi_attr_dec_legacy("MCB_ADDRESS", 4);
             bctx.mode("IODELAY2")
                 .has_related(Delta::new(0, 0, "IOB"))
                 .pin("CIN")
@@ -1111,13 +1111,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("O")
             .commit();
 
-        let cnr_ll = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_s())
+        let cnr_sw = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_s())
             .tile(defs::tslots::BEL);
-        let cnr_ul = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_n())
+        let cnr_nw = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_n())
             .tile(defs::tslots::BEL);
-        let cnr_lr = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_s())
+        let cnr_se = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_s())
             .tile(defs::tslots::BEL);
-        let cnr_ur = CellCoord::new(
+        let cnr_ne = CellCoord::new(
             DieId::from_idx(0),
             edev.chip.col_e(),
             edev.chip.row_n_inner(),
@@ -1127,7 +1127,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .global("GLUTMASK", "YES")
             .global_mutex_here("IOB")
-            .extra_tile_attr_fixed_legacy(cnr_lr, "MISC", "GLUTMASK_IOB", "1")
+            .extra_fixed_bel_attr_bits(cnr_se, bslots::MISC_SE, bcls::MISC_SE::GLUTMASK_IOB)
             .test_manual_legacy("PRESENT", "1")
             .mode("IOB")
             .commit();
@@ -1142,12 +1142,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("TUSED", "")
             .attr("IMUX", "I")
             .attr("BYPASS_MUX", "I")
-            .extra_tile_attr_fixed_legacy(cnr_ul, "MISC", "VREF_LV", "1")
+            .extra_fixed_bel_attr_bits(cnr_nw, bslots::MISC_NW, bcls::MISC_NW::VREF_LV)
             .test_manual_legacy("VREF_LV", "1")
             .attr_diff("ISTANDARD", "SSTL3_I", "SSTL18_I")
             .commit();
 
-        let banks = [cnr_ul, cnr_lr, cnr_ll, cnr_ll, cnr_ul, cnr_ur];
+        let banks = [cnr_nw, cnr_se, cnr_sw, cnr_sw, cnr_nw, cnr_ne];
         for bank in 0..6 {
             if bank >= 4 && edev.chip.row_mcb_split.is_none() {
                 continue;
@@ -1164,11 +1164,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("TUSED", "0")
                 .attr("OUSED", "0")
                 .attr("OSTANDARD", "SSTL2_I")
-                .extra_tile_attr_fixed_legacy(
+                .extra_fixed_bel_attr_val(
                     banks[bank],
-                    format!("OCT_CAL{bank}"),
-                    "INTERNAL_VREF",
-                    "1",
+                    bslots::OCT_CAL[bank],
+                    bcls::OCT_CAL::VREF_VALUE,
+                    enums::OCT_CAL_VREF_VALUE::_0P5,
                 )
                 .test_manual_legacy("ISTD", "SSTL2_I:3.3:WE")
                 .pin("I")
@@ -1420,8 +1420,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     };
                     if std.diff == DiffKind::True {
                         for (dir, corner, corner_name, dx) in [
-                            (DirV::S, cnr_ll, "CNR_SW", 1),
-                            (DirV::N, cnr_ul, "CNR_NW", -1),
+                            (DirV::S, cnr_sw, "CNR_SW", 1),
+                            (DirV::N, cnr_nw, "CNR_NW", -1),
                         ] {
                             bctx.build()
                                 .global_mutex("IOB", "SHARED")
@@ -3127,156 +3127,143 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
     {
-        let tile = "CNR_SW";
-        let bel = "BANK";
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "LVDSBIAS_0",
-            TileItem::from_bitvec_inv(
-                (0..12).map(|i| TileBit::new(0, 23, 29 + i)).collect(),
-                false,
-            ),
-        );
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "LVDSBIAS_1",
-            TileItem::from_bitvec_inv(
-                (0..12).map(|i| TileBit::new(0, 23, 41 + i)).collect(),
-                false,
-            ),
+        let tcid = tcls::CNR_SW;
+        let bslot = bslots::BANK[2];
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::BANK::LVDSBIAS,
+            (0..(2 * 12))
+                .map(|i| TileBit::new(0, 23, 29 + i).pos())
+                .collect(),
         );
     }
     {
-        let tile = "CNR_SE";
-        let bel = "MISC";
-        ctx.collect_bit_legacy(tile, bel, "GLUTMASK_IOB", "1");
+        let tcid = tcls::CNR_SE;
+        let bslot = bslots::MISC_SE;
+        ctx.collect_bel_attr(tcid, bslot, bcls::MISC_SE::GLUTMASK_IOB);
     }
     {
-        let tile = "CNR_NW";
-        let bel = "MISC";
-        ctx.collect_bit_wide_legacy(tile, bel, "VREF_LV", "1");
-        let bel = "BANK";
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "LVDSBIAS_0",
-            TileItem::from_bitvec_inv(
-                vec![
-                    TileBit::new(0, 22, 9),
-                    TileBit::new(0, 22, 21),
-                    TileBit::new(0, 22, 20),
-                    TileBit::new(0, 22, 19),
-                    TileBit::new(0, 22, 18),
-                    TileBit::new(0, 22, 17),
-                    TileBit::new(0, 22, 16),
-                    TileBit::new(0, 22, 15),
-                    TileBit::new(0, 22, 14),
-                    TileBit::new(0, 22, 13),
-                    TileBit::new(0, 22, 12),
-                    TileBit::new(0, 22, 11),
-                ],
-                false,
-            ),
-        );
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "LVDSBIAS_1",
-            TileItem::from_bitvec_inv(
-                vec![
-                    TileBit::new(0, 22, 10),
-                    TileBit::new(0, 22, 27),
-                    TileBit::new(0, 22, 26),
-                    TileBit::new(0, 22, 25),
-                    TileBit::new(0, 22, 24),
-                    TileBit::new(0, 22, 23),
-                    TileBit::new(0, 22, 22),
-                    TileBit::new(0, 22, 32),
-                    TileBit::new(0, 22, 31),
-                    TileBit::new(0, 22, 30),
-                    TileBit::new(0, 22, 29),
-                    TileBit::new(0, 22, 28),
-                ],
-                false,
-            ),
+        let tcid = tcls::CNR_NW;
+        let bslot = bslots::MISC_NW;
+        let item = xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, bcls::MISC_NW::VREF_LV));
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::MISC_NW::VREF_LV, item);
+        let bslot = bslots::BANK[0];
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::BANK::LVDSBIAS,
+            vec![
+                TileBit::new(0, 22, 9).pos(),
+                TileBit::new(0, 22, 21).pos(),
+                TileBit::new(0, 22, 20).pos(),
+                TileBit::new(0, 22, 19).pos(),
+                TileBit::new(0, 22, 18).pos(),
+                TileBit::new(0, 22, 17).pos(),
+                TileBit::new(0, 22, 16).pos(),
+                TileBit::new(0, 22, 15).pos(),
+                TileBit::new(0, 22, 14).pos(),
+                TileBit::new(0, 22, 13).pos(),
+                TileBit::new(0, 22, 12).pos(),
+                TileBit::new(0, 22, 11).pos(),
+                //
+                TileBit::new(0, 22, 10).pos(),
+                TileBit::new(0, 22, 27).pos(),
+                TileBit::new(0, 22, 26).pos(),
+                TileBit::new(0, 22, 25).pos(),
+                TileBit::new(0, 22, 24).pos(),
+                TileBit::new(0, 22, 23).pos(),
+                TileBit::new(0, 22, 22).pos(),
+                TileBit::new(0, 22, 32).pos(),
+                TileBit::new(0, 22, 31).pos(),
+                TileBit::new(0, 22, 30).pos(),
+                TileBit::new(0, 22, 29).pos(),
+                TileBit::new(0, 22, 28).pos(),
+            ],
         );
     }
-    for tile in ["CNR_SW", "CNR_NW"] {
-        let bel = "BANK";
+    for (tcid, bslot) in [
+        (tcls::CNR_SW, bslots::BANK[2]),
+        (tcls::CNR_NW, bslots::BANK[0]),
+    ] {
+        let tile = ctx.edev.db.tile_classes.key(tcid);
         for std in IOSTDS_SN {
             if std.diff != DiffKind::True {
                 continue;
             }
-            for attr in ["LVDSBIAS_0", "LVDSBIAS_1"] {
-                let diff = ctx.get_diff_legacy(tile, bel, attr, std.name);
-                let val = extract_bitvec_val_legacy(
-                    ctx.item_legacy(tile, bel, attr),
-                    &BitVec::repeat(false, 12),
-                    diff,
-                );
+            for i in 0..2 {
+                let diff = ctx.get_diff_legacy(tile, "BANK", format!("LVDSBIAS_{i}"), std.name);
+                let item =
+                    &ctx.bel_attr_bitvec(tcid, bslot, bcls::BANK::LVDSBIAS)[i * 12..(i + 1) * 12];
+                let val = extract_bitvec_val(item, &BitVec::repeat(false, 12), diff);
                 ctx.insert_misc_data_legacy(format!("IOSTD:LVDSBIAS:{}", std.name), val);
             }
         }
     }
-    for (tile, bank, bit_25, bit_75) in [
+    for (tcid, bank, bit_25, bit_75) in [
         (
-            "CNR_SW",
+            tcls::CNR_SW,
             2,
             TileBit::new(0, 23, 27),
             TileBit::new(0, 23, 28),
         ),
         (
-            "CNR_SW",
+            tcls::CNR_SW,
             3,
             TileBit::new(0, 23, 24),
             TileBit::new(0, 23, 25),
         ),
         (
-            "CNR_NW",
+            tcls::CNR_NW,
             0,
             TileBit::new(0, 22, 43),
             TileBit::new(0, 22, 42),
         ),
         (
-            "CNR_NW",
+            tcls::CNR_NW,
             4,
             TileBit::new(0, 22, 46),
             TileBit::new(0, 22, 45),
         ),
         (
-            "CNR_SE",
+            tcls::CNR_SE,
             1,
             TileBit::new(0, 22, 52),
             TileBit::new(0, 22, 53),
         ),
         (
-            "CNR_NE",
+            tcls::CNR_NE,
             5,
             TileBit::new(1, 22, 51),
             TileBit::new(1, 22, 52),
         ),
     ] {
-        let bel = &format!("OCT_CAL{bank}");
-        let item = TileItem {
+        let bslot = bslots::OCT_CAL[bank];
+        let item = BelAttributeEnum {
             bits: vec![bit_25, bit_75],
-            kind: TileItemKind::Enum {
-                values: [
-                    ("NONE".to_string(), bits![0, 0]),
-                    ("0.25".to_string(), bits![1, 0]),
-                    ("0.75".to_string(), bits![0, 1]),
-                    ("0.5".to_string(), bits![1, 1]),
-                ]
-                .into_iter()
-                .collect(),
-            },
+            values: [
+                (enums::OCT_CAL_VREF_VALUE::NONE, bits![0, 0]),
+                (enums::OCT_CAL_VREF_VALUE::_0P25, bits![1, 0]),
+                (enums::OCT_CAL_VREF_VALUE::_0P75, bits![0, 1]),
+                (enums::OCT_CAL_VREF_VALUE::_0P5, bits![1, 1]),
+            ]
+            .into_iter()
+            .collect(),
         };
         if bank < 4 || edev.chip.row_mcb_split.is_some() {
-            let mut diff = ctx.get_diff_legacy(tile, bel, "INTERNAL_VREF", "1");
-            diff.apply_enum_diff_legacy(&item, "0.5", "NONE");
+            let mut diff = ctx.get_diff_attr_val(
+                tcid,
+                bslot,
+                bcls::OCT_CAL::VREF_VALUE,
+                enums::OCT_CAL_VREF_VALUE::_0P5,
+            );
+            diff.apply_enum_diff(
+                &item,
+                enums::OCT_CAL_VREF_VALUE::_0P5,
+                enums::OCT_CAL_VREF_VALUE::NONE,
+            );
             diff.assert_empty();
         }
-        ctx.insert_legacy(tile, bel, "VREF_VALUE", item);
+        ctx.insert_bel_attr_enum(tcid, bslot, bcls::OCT_CAL::VREF_VALUE, item);
     }
 }

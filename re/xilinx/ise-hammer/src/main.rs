@@ -692,6 +692,9 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
                 ExpandedDevice::Virtex2(_) => {
                     ctx.insert_devdata_bitvec(prjcombine_virtex2::defs::devdata::IDCODE, idcode);
                 }
+                ExpandedDevice::Spartan6(_) => {
+                    ctx.insert_devdata_bitvec(prjcombine_spartan6::defs::devdata::IDCODE, idcode);
+                }
                 _ => {
                     ctx.insert_device_data_legacy(format!("IDCODE:{die}"), idcode);
                 }

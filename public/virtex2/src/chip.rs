@@ -525,7 +525,10 @@ impl Chip {
             if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                 for &iob in &data.iobs {
                     if iob.cell == tidx {
-                        res.push(EdgeIoCoord::N(col, TileIobId::from_idx(iob.iob_id.to_idx())));
+                        res.push(EdgeIoCoord::N(
+                            col,
+                            TileIobId::from_idx(iob.iob_id.to_idx()),
+                        ));
                     }
                 }
             }
@@ -535,7 +538,10 @@ impl Chip {
             if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                 for &iob in &data.iobs {
                     if iob.cell == tidx {
-                        res.push(EdgeIoCoord::E(row, TileIobId::from_idx(iob.iob_id.to_idx())));
+                        res.push(EdgeIoCoord::E(
+                            row,
+                            TileIobId::from_idx(iob.iob_id.to_idx()),
+                        ));
                     }
                 }
             }
@@ -545,7 +551,10 @@ impl Chip {
             if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                 for &iob in &data.iobs {
                     if iob.cell == tidx {
-                        res.push(EdgeIoCoord::S(col, TileIobId::from_idx(iob.iob_id.to_idx())));
+                        res.push(EdgeIoCoord::S(
+                            col,
+                            TileIobId::from_idx(iob.iob_id.to_idx()),
+                        ));
                     }
                 }
             }
@@ -555,7 +564,10 @@ impl Chip {
             if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
                 for &iob in &data.iobs {
                     if iob.cell == tidx {
-                        res.push(EdgeIoCoord::W(row, TileIobId::from_idx(iob.iob_id.to_idx())));
+                        res.push(EdgeIoCoord::W(
+                            row,
+                            TileIobId::from_idx(iob.iob_id.to_idx()),
+                        ));
                     }
                 }
             }

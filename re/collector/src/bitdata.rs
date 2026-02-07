@@ -15,6 +15,7 @@ use prjcombine_interconnect::db::{
 };
 use prjcombine_types::bsdata::{BsData, EnumData, PolTileBit};
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone, Debug, Default, Encode, Decode)]
 pub struct CollectorData {
     pub bel_attrs: HashMap<(TileClassId, BelSlotId, BelAttributeId), BelAttribute>,
@@ -27,6 +28,8 @@ pub struct CollectorData {
     pub sb_delay: HashMap<(TileClassId, TileWireCoord), EnumData<usize>>,
     pub sb_bidi: HashMap<(TileClassId, ConnectorSlotId, TileWireCoord), PolTileBit>,
     pub sb_enable: HashMap<(TileClassId, TileWireCoord), Vec<PolTileBit>>,
+    pub sb_pairmux:
+        HashMap<(TileClassId, [TileWireCoord; 2]), EnumData<[Option<PolTileWireCoord>; 2]>>,
     pub tmux_group: HashMap<(TileClassId, BelSlotId), EnumData<Option<usize>>>,
     pub table_data: HashMap<(TableId, TableRowId, TableFieldId), TableValue>,
     pub device_data: HashMap<String, EntityPartVec<DeviceDataId, TableValue>>,
@@ -207,6 +210,53 @@ impl CollectorData {
                                     };
                                     bidi.bit_upstream = bit;
                                 }
+                                SwitchBoxItem::PairMux(mux) => {
+                                    let Some(edata) = self.sb_pairmux.remove(&(tcid, mux.dst))
+                                    else {
+                                        if missing_ok {
+                                            continue;
+                                        }
+                                        let dst = mux.dst;
+                                        panic!(
+                                            "can't find collect enum pair mux {tcname} {dst0} {dst1}",
+                                            tcname = intdb.tile_classes.key(tcid),
+                                            dst0 =
+                                                dst[0].to_string(intdb, &intdb.tile_classes[tcid]),
+                                            dst1 =
+                                                dst[1].to_string(intdb, &intdb.tile_classes[tcid]),
+                                        )
+                                    };
+                                    mux.bits = edata.bits;
+                                    let mut handled = BTreeSet::new();
+                                    for (src, val) in edata.values {
+                                        *mux.src.get_mut(&src).unwrap() = val;
+                                        handled.insert(src);
+                                    }
+                                    for src in mux.src.keys() {
+                                        let src = *src;
+                                        if !handled.contains(&src) {
+                                            let dst = mux.dst;
+                                            panic!(
+                                                "can't find mux input {tcname} ({dst0}, {dst1}) ({src0}, {src1})",
+                                                tcname = intdb.tile_classes.key(tcid),
+                                                dst0 = dst[0]
+                                                    .to_string(intdb, &intdb.tile_classes[tcid]),
+                                                dst1 = dst[1]
+                                                    .to_string(intdb, &intdb.tile_classes[tcid]),
+                                                src0 = if let Some(src) = src[0] {
+                                                    src.to_string(intdb, &intdb.tile_classes[tcid])
+                                                } else {
+                                                    "_".to_string()
+                                                },
+                                                src1 = if let Some(src) = src[0] {
+                                                    src.to_string(intdb, &intdb.tile_classes[tcid])
+                                                } else {
+                                                    "_".to_string()
+                                                },
+                                            );
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -355,6 +405,7 @@ impl CollectorData {
         merge_hashmap(&mut self.sb_delay, other.sb_delay);
         merge_hashmap(&mut self.sb_bidi, other.sb_bidi);
         merge_hashmap(&mut self.sb_enable, other.sb_enable);
+        merge_hashmap(&mut self.sb_pairmux, other.sb_pairmux);
         merge_hashmap(&mut self.tmux_group, other.tmux_group);
         merge_hashmap(&mut self.table_data, other.table_data);
         merge_hashmap(&mut self.device_data, other.device_data);

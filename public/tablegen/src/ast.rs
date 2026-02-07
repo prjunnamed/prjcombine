@@ -107,7 +107,7 @@ pub enum AttributeType {
     Bool,
     BitVec(usize),
     BitVecArray(usize, usize),
-    Enum(Ident),
+    Enum(TemplateId),
     U32,
 }
 

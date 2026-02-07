@@ -11,8 +11,11 @@ use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::RawTileId;
+use prjcombine_spartan6::defs::{bslots as bslots_s6, tcls as tcls_s6, wires as wires_s6};
 use prjcombine_virtex2::defs::{
+    bslots as bslots_v2,
     spartan3::{tcls as tcls_s3, wires as wires_s3},
+    tslots as tslots_v2,
     virtex2::wires as wires_v2,
 };
 
@@ -21,7 +24,13 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::FuzzBuilderBase,
-        props::{NullBits, mutex::TileMutexExclusive},
+        props::{
+            NullBits,
+            bel::{BaseBelMode, FuzzBelPin},
+            mutex::TileMutexExclusive,
+            pip::{FuzzPip, PipWire},
+            relation::NoopRelation,
+        },
     },
 };
 
@@ -94,9 +103,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
         let intdb = backend.edev.db;
         let ndb = backend.ngrid.db;
         let wire_name = intdb.wires.key(self.wire.wire);
+        let tile = &backend.edev[tcrd];
         match backend.edev {
             ExpandedDevice::Virtex2(edev) => {
-                let tile = &backend.edev[tcrd];
                 let ntile = &backend.ngrid.tiles[&tcrd];
                 if backend
                     .edev
@@ -107,13 +116,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                 {
                     let mut tgt = None;
                     for i in 0..4 {
-                        if let Some(bram_tile) =
-                            backend.edev.find_tile(tcrd.delta(0, -(i as i32)), |tile| {
-                                intdb.tile_classes.key(tile.class).starts_with("BRAM")
-                                    || intdb.tile_classes.key(tile.class) == "DSP"
-                            })
+                        let bram_tcrd = tcrd.delta(0, -(i as i32)).tile(tslots_v2::BEL);
+                        if edev.has_bel(bram_tcrd.bel(bslots_v2::BRAM))
+                            || edev.has_bel(bram_tcrd.bel(bslots_v2::DSP))
                         {
-                            tgt = Some((bram_tile, i));
+                            tgt = Some((&edev[bram_tcrd], i));
                             break;
                         }
                     }
@@ -222,6 +229,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                     {
                         return None;
                     }
+                }
+            }
+            ExpandedDevice::Spartan6(edev) => {
+                if prjcombine_spartan6::defs::wires::HCLK.contains(self.wire.wire)
+                    && !edev[tile.cells[self.wire.cell]]
+                        .tiles
+                        .contains_id(prjcombine_spartan6::defs::tslots::INT)
+                {
+                    return None;
                 }
             }
             _ => (),
@@ -344,11 +360,19 @@ pub fn resolve_int_pip<'a>(
         if let Some(ext) = tile_naming.ext_pips.get(&(wire_to, wire_from)) {
             (&ntile.names[ext.tile], &ext.wire_to, &ext.wire_from)
         } else {
-            (
-                &ntile.names[RawTileId::from_idx(0)],
-                &tile_naming.wires.get(&wire_to)?.name,
-                &tile_naming.wires.get(&wire_from)?.name,
-            )
+            let nt = tile_naming.wires.get(&wire_to)?;
+            let nf = tile_naming.wires.get(&wire_from)?;
+            let name_to = if nt.alt_pips_to.contains(&wire_from) {
+                nt.alt_name.as_ref().unwrap()
+            } else {
+                &nt.name
+            };
+            let name_from = if nf.alt_pips_from.contains(&wire_to) {
+                nf.alt_name.as_ref().unwrap()
+            } else {
+                &nf.name
+            };
+            (&ntile.names[RawTileId::from_idx(0)], name_to, name_from)
         },
     )
 }
@@ -760,6 +784,26 @@ fn build_pip_fuzzer(
     if intdb.wires.key(wire_from.wire) == "OUT_TBUS" {
         builder = builder.prop(RowMutex::new("TBUF".to_string(), "INT".to_string()));
     }
+    if matches!(backend.edev, ExpandedDevice::Spartan6(_)) {
+        if wires_s6::CMT_OUT.contains(wire_to.wire) {
+            builder = builder.prop(BaseRaw::new(
+                Key::GlobalMutex("CMT".into()),
+                "MUX_PLL_HCLK".into(),
+            ));
+        }
+        if let Some(idx) = wires_s6::DIVCLK_CLKC.index_of(wire_to.wire)
+            && wires_s6::OUT_DIVCLK.contains(wire_from.wire)
+        {
+            builder = builder
+                .prop(BaseBelMode::new(bslots_s6::BUFIO2[idx], 0, "BUFIO2".into()))
+                .prop(FuzzBelPin::new(bslots_s6::BUFIO2[idx], 0, "DIVCLK".into()))
+                .prop(FuzzPip::new(
+                    NoopRelation,
+                    PipWire::BelPinFar(bslots_s6::BUFIO2[idx], "DIVCLK".into()),
+                    PipWire::BelPinNear(bslots_s6::BUFIO2[idx], "DIVCLK".into()),
+                ));
+        }
+    }
     builder.commit();
 }
 
@@ -786,13 +830,12 @@ fn is_anon_wire(edev: &ExpandedDevice, wire: WireSlotId) -> bool {
     }
 }
 
-#[allow(clippy::single_match)]
-fn skip_pip(
+fn skip_permabuf(
     edev: &ExpandedDevice,
     tcid: TileClassId,
     _bslot: BelSlotId,
     dst: TileWireCoord,
-    _src: TileWireCoord,
+    src: TileWireCoord,
 ) -> bool {
     match edev {
         ExpandedDevice::Virtex2(edev) => {
@@ -822,6 +865,62 @@ fn skip_pip(
                 }
             }
         }
+        ExpandedDevice::Spartan6(_) => {
+            if matches!(
+                tcid,
+                tcls_s6::PLL_BUFPLL_S
+                    | tcls_s6::PLL_BUFPLL_N
+                    | tcls_s6::PLL_BUFPLL_OUT0_S
+                    | tcls_s6::PLL_BUFPLL_OUT0_N
+                    | tcls_s6::PLL_BUFPLL_OUT1_S
+                    | tcls_s6::PLL_BUFPLL_OUT1_N
+            ) && src.wire != wires_s6::OUT_PLL_LOCKED
+            {
+                return true;
+            }
+        }
+        _ => (),
+    }
+    false
+}
+
+#[allow(clippy::single_match)]
+fn skip_mux(
+    edev: &ExpandedDevice,
+    _tcid: TileClassId,
+    bslot: BelSlotId,
+    dst: TileWireCoord,
+) -> bool {
+    match edev {
+        ExpandedDevice::Spartan6(_) => {
+            if bslot == bslots_s6::CLK_INT
+                && (wires_s6::IMUX_BUFIO2_I.contains(dst.wire)
+                    || wires_s6::IMUX_BUFIO2_IB.contains(dst.wire)
+                    || wires_s6::IMUX_BUFIO2FB.contains(dst.wire)
+                    || wires_s6::IMUX_BUFPLL_PLLIN.contains(dst.wire)
+                    || wires_s6::IMUX_BUFPLL_LOCKED.contains(dst.wire))
+            {
+                return true;
+            }
+            if wires_s6::CMT_BUFPLL_V_CLKOUT_S.contains(dst.wire)
+                || wires_s6::CMT_BUFPLL_V_CLKOUT_N.contains(dst.wire)
+                || wires_s6::CMT_BUFPLL_H_CLKOUT.contains(dst.wire)
+                || wires_s6::IMUX_DCM_CLKIN.contains(dst.wire)
+                || wires_s6::IMUX_DCM_CLKFB.contains(dst.wire)
+                || wires_s6::OMUX_DCM_SKEWCLKIN1.contains(dst.wire)
+                || wires_s6::OMUX_DCM_SKEWCLKIN2.contains(dst.wire)
+                || wires_s6::IMUX_PLL_CLKFB == dst.wire
+                || wires_s6::IMUX_PLL_CLKIN1 == dst.wire
+                || wires_s6::IMUX_PLL_CLKIN2 == dst.wire
+                || wires_s6::OMUX_PLL_SKEWCLKIN1_BUF == dst.wire
+                || wires_s6::OMUX_PLL_SKEWCLKIN2_BUF == dst.wire
+                || wires_s6::OMUX_PLL_SKEWCLKIN1 == dst.wire
+                || wires_s6::OMUX_PLL_SKEWCLKIN2 == dst.wire
+                || wires_s6::CMT_TEST_CLK == dst.wire
+            {
+                return true;
+            }
+        }
         _ => (),
     }
     false
@@ -848,15 +947,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         if is_anon_wire(backend.edev, mux.dst.wire) {
                             continue;
                         }
+                        if skip_mux(backend.edev, tcid, bslot, mux.dst) {
+                            continue;
+                        }
                         for &src in mux.src.keys() {
                             build_pip_fuzzer(backend, &mut ctx, mux.dst, src.tw, false);
                         }
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
+                        if skip_mux(backend.edev, tcid, bslot, buf.dst) {
+                            continue;
+                        }
                         build_pip_fuzzer(backend, &mut ctx, buf.dst, buf.src.tw, false);
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
-                        if skip_pip(backend.edev, tcid, bslot, buf.dst, buf.src.tw) {
+                        if skip_permabuf(backend.edev, tcid, bslot, buf.dst, buf.src.tw) {
                             continue;
                         }
                         build_pip_fuzzer(backend, &mut ctx, buf.dst, buf.src.tw, true);
@@ -874,6 +979,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .commit();
                         }
                     }
+                    SwitchBoxItem::PairMux(_) => (),
                     _ => unreachable!(),
                 }
             }
@@ -906,6 +1012,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
                         if is_anon_wire(ctx.edev, mux.dst.wire) {
+                            continue;
+                        }
+                        if skip_mux(ctx.edev, tcid, bslot, mux.dst) {
                             continue;
                         }
                         let out_name = intdb.wires.key(mux.dst.wire);
@@ -979,6 +1088,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.insert_mux(tcid, mux.dst, ti);
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
+                        if skip_mux(ctx.edev, tcid, bslot, buf.dst) {
+                            continue;
+                        }
                         ctx.collect_progbuf(tcid, buf.dst, buf.src);
                     }
                     SwitchBoxItem::PermaBuf(_) => (),
@@ -986,6 +1098,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     SwitchBoxItem::ProgDelay(delay) => {
                         ctx.collect_delay(tcid, delay.dst, delay.steps.len());
                     }
+                    SwitchBoxItem::PairMux(_) => (),
                     _ => unreachable!(),
                 }
             }
