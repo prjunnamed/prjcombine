@@ -242,8 +242,12 @@ target_defs! {
         // TODO
     }
 
+    enum DCM_MODE { DCM, DCM_CLKGEN }
     enum DCM_CLKDV_MODE { HALF, INT }
     enum DCM_FREQUENCY_MODE { LOW, HIGH }
+    enum DCM_CLKOUT_PHASE_SHIFT { MISSING, NONE, FIXED, VARIABLE }
+    enum DCM_CLKFXDV_DIVIDE { NONE, _32, _16, _8, _4, _2 }
+    enum DCM_SPREAD_SPECTRUM { MISSING, NONE, DCM, CENTER_HIGH_SPREAD, CENTER_LOW_SPREAD, VIDEO_LINK_M0, VIDEO_LINK_M1, VIDEO_LINK_M2 }
     bel_class DCM {
         input CLKIN, CLKFB, RST;
         input PSCLK, PSEN, PSINCDEC;
@@ -258,6 +262,15 @@ target_defs! {
         output LOCKED, PSDONE;
         output STATUS[8];
         output SKEWOUT, SCANOUT;
+
+        attribute REG_DLL_C: bitvec[32];
+        attribute REG_DLL_S: bitvec[32];
+        attribute REG_DFS_C: bitvec[3];
+        attribute REG_DFS_S: bitvec[87];
+        attribute REG_INTERFACE: bitvec[40];
+        attribute REG_OPT_INV: bitvec[3];
+
+        attribute MODE: DCM_MODE;
 
         attribute OUT_CLK0_ENABLE: bool;
         attribute OUT_CLK90_ENABLE: bool;
@@ -292,6 +305,7 @@ target_defs! {
         attribute DFS_FEEDBACK: bool;
         attribute DFS_FREQUENCY_MODE: DCM_FREQUENCY_MODE;
 
+        attribute CLKOUT_PHASE_SHIFT: DCM_CLKOUT_PHASE_SHIFT;
         attribute PHASE_SHIFT: bitvec[8];
         attribute PHASE_SHIFT_NEGATIVE: bool;
 
@@ -299,10 +313,11 @@ target_defs! {
 
         attribute CLKFX_MULTIPLY: bitvec[8];
         attribute CLKFX_DIVIDE: bitvec[8];
+        attribute CLKFXDV_DIVIDE: DCM_CLKFXDV_DIVIDE;
         attribute DUTY_CYCLE_CORRECTION: bool;
 
-
-        // TODO: attributes
+        attribute PROG_ENABLE: bool;
+        attribute SPREAD_SPECTRUM: DCM_SPREAD_SPECTRUM;
     }
 
     bel_class PLL {
@@ -1611,8 +1626,89 @@ target_defs! {
         attribute USERCODE: bitvec[32];
     }
 
+    enum STARTUP_CYCLE { _1, _2, _3, _4, _5, _6, DONE, KEEP, NOWAIT }
+    enum STARTUP_CLOCK { CCLK, USERCLK, JTAGCLK }
+    enum SECURITY { NONE, LEVEL1, LEVEL2, LEVEL3 }
+    enum ENCRYPT_KEY_SELECT { BBRAM, EFUSE }
+    enum SW_CLK { INTERNALCLK, STARTUPCLK }
+    enum SPI_BUSWIDTH { _1, _2, _4 }
     bel_class GLOBAL {
-        // TODO
+        // COR
+        attribute GWE_CYCLE: STARTUP_CYCLE;
+        attribute GTS_CYCLE: STARTUP_CYCLE;
+        attribute LOCK_CYCLE: STARTUP_CYCLE;
+        attribute DONE_CYCLE: STARTUP_CYCLE;
+        attribute BPI_DIV8: bool;
+        attribute BPI_DIV16: bool;
+        attribute RESET_ON_ERR: bool;
+        attribute DISABLE_VRD_REG: bool;
+        attribute DRIVE_DONE: bool;
+        attribute DONE_PIPE: bool;
+        attribute DRIVE_AWAKE: bool;
+        attribute CRC_ENABLE: bool;
+        attribute VRDSEL: bitvec[3];
+        attribute SEND_VGG: bitvec[4];
+        attribute VGG_ENABLE_OFFCHIP: bool;
+        attribute VGG_SENDMAX: bool;
+        attribute STARTUP_CLOCK: STARTUP_CLOCK;
+
+        // CTL
+        attribute GTS_USR_B: bool;
+        attribute POST_CRC_INIT_FLAG: bool;
+        attribute MULTIBOOT_ENABLE: bool;
+        attribute SECURITY: SECURITY;
+        attribute PERSIST: bool;
+        attribute ENCRYPT: bool;
+        attribute ENCRYPT_KEY_SELECT: ENCRYPT_KEY_SELECT;
+
+        // CCLK_FREQ
+        // CONFIG_RATE = 400 / (CONFIG_RATE_DIV + 1)
+        attribute CONFIG_RATE_DIV: bitvec[10];
+        attribute CCLK_DLY: bitvec[2];
+        attribute CCLK_SEP: bitvec[2];
+        attribute EXT_CCLK_ENABLE: bool;
+
+        // HC_OPT
+        attribute HC_CYCLE: bitvec[4];
+        attribute TWO_ROUND: bool;
+        attribute BRAM_SKIP: bool;
+        attribute INIT_SKIP: bool;
+
+        // POWERDOWN
+        attribute SW_CLK: SW_CLK;
+        attribute EN_SUSPEND: bool;
+        attribute EN_SW_GSR: bool;
+        attribute SUSPEND_FILTER: bool;
+        attribute MULTIPIN_WAKEUP: bool;
+        attribute WAKE_DELAY1: bitvec[3];
+        attribute WAKE_DELAY2: bitvec[5];
+        attribute SW_GWE_CYCLE: bitvec[10];
+        attribute SW_GTS_CYCLE: bitvec[10];
+        attribute WAKEUP_MASK: bitvec[8];
+
+        // MODE
+        attribute NEXT_CONFIG_BOOT_MODE: bitvec[3];
+        attribute NEXT_CONFIG_NEW_MODE: bool;
+        attribute SPI_BUSWIDTH: SPI_BUSWIDTH;
+
+        attribute NEXT_CONFIG_ADDR: bitvec[32];
+        attribute GOLDEN_CONFIG_ADDR: bitvec[32];
+        attribute FAILSAFE_USER: bitvec[16];
+        attribute TIMER_CFG: bitvec[16];
+
+        // SEU_OPT
+        attribute POST_CRC_EN: bool;
+        attribute GLUTMASK: bool;
+        attribute POST_CRC_KEEP: bool;
+        attribute POST_CRC_ONESHOT: bool;
+        attribute POST_CRC_SEL: bool;
+        // FREQ = 400 / (POST_CRC_FREQ + 1)
+        attribute POST_CRC_FREQ_DIV: bitvec[10];
+
+        // TESTMODE
+        attribute VGG_TEST: bool;
+        attribute ICAP_BYPASS: bool;
+        attribute TESTMODE_EN: bool;
     }
 
     device_data IDCODE: bitvec[32];
