@@ -20,7 +20,7 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::{
             DynProp,
-            relation::{Delta, TileRelation},
+            relation::{DeltaLegacy, TileRelation},
         },
     },
 };
@@ -471,7 +471,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         (obel, "GCLK0"),
                     )
                     .extra_tile_attr_legacy(
-                        Delta::new(0, hclk_delta, "HCLK_MGT"),
+                        DeltaLegacy::new(0, hclk_delta, "HCLK_MGT"),
                         "HCLK_MGT",
                         format!("BUF.HCLK{i}"),
                         "1",
@@ -490,7 +490,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .mutex("SYNCLK_OUT", "USE")
                     .pip("SYNCLK_OUT", "SYNCLK1_OUT")
                     .extra_tile_attr_legacy(
-                        Delta::new(0, hclk_delta, "HCLK_MGT"),
+                        DeltaLegacy::new(0, hclk_delta, "HCLK_MGT"),
                         "HCLK_MGT",
                         format!("BUF.MGT{i}"),
                         "1",
@@ -590,11 +590,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("SYNCLK_BUF_DIR", "UP")
             .tile_mutex("SYNCLK", format!("SYNCLK{i}_BUF_UP"))
             .related_pip(
-                Delta::new(0, -32, "MGT"),
+                DeltaLegacy::new(0, -32, "MGT"),
                 format!("SYNCLK{i}_N"),
                 format!("SYNCLK{i}OUT"),
             )
-            .related_tile_mutex(Delta::new(0, -32, "MGT"), "SYNCLK", "USE")
+            .related_tile_mutex(DeltaLegacy::new(0, -32, "MGT"), "SYNCLK", "USE")
             .test_manual_legacy(format!("SYNCLK{i}"), "BUF_UP")
             .pip(format!("SYNCLK{i}_N"), format!("SYNCLK{i}_S"))
             .commit();
@@ -602,11 +602,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("SYNCLK_BUF_DIR", "DOWN")
             .tile_mutex("SYNCLK", format!("SYNCLK{i}_BUF_DOWN"))
             .related_pip(
-                Delta::new(0, 32, "MGT"),
+                DeltaLegacy::new(0, 32, "MGT"),
                 format!("SYNCLK{i}_S"),
                 format!("SYNCLK{i}OUT"),
             )
-            .related_tile_mutex(Delta::new(0, 32, "MGT"), "SYNCLK", "USE")
+            .related_tile_mutex(DeltaLegacy::new(0, 32, "MGT"), "SYNCLK", "USE")
             .test_manual_legacy(format!("SYNCLK{i}"), "BUF_DOWN")
             .pip(format!("SYNCLK{i}_S"), format!("SYNCLK{i}_N"))
             .commit();

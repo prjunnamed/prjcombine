@@ -16,8 +16,8 @@ use crate::{
     backend::{IseBackend, Key, MultiValue, PinFromKind, Value},
     generic::{
         props::extra::{
-            ExtraKeyBelAttrBits, ExtraKeyBelAttrValue, ExtraKeyBelSpecial, ExtraKeyLegacy,
-            ExtraKeyLegacyAttr, ExtraKeyRouting,
+            ExtraKeyBelAttrBits, ExtraKeyBelAttrValue, ExtraKeyBelSpecial, ExtraKeyBelSpecialRow,
+            ExtraKeyLegacy, ExtraKeyLegacyAttr, ExtraKeyRouting,
         },
         utils::get_input_name,
     },
@@ -421,6 +421,19 @@ pub trait FuzzBuilderBase<'b>: Sized {
         self.prop(ExtraTile::new(
             FixedRelation(tcrd),
             ExtraKeyBelSpecial::new(bslot, spec),
+        ))
+    }
+
+    fn extra_fixed_bel_special_row(
+        self,
+        tcrd: TileCoord,
+        bslot: BelSlotId,
+        spec: SpecialId,
+        row: TableRowId,
+    ) -> Self {
+        self.prop(ExtraTile::new(
+            FixedRelation(tcrd),
+            ExtraKeyBelSpecialRow::new(bslot, spec, row),
         ))
     }
 

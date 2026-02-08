@@ -12,6 +12,7 @@ use prjcombine_re_collector::diff::{
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_types::bsdata::{BitRectId, TileBit};
 use prjcombine_xc2000::{
     chip::ChipKind,
@@ -23,7 +24,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        int::{BaseIntPip, WireIntDistinct, WireIntDstFilter, WireIntSrcFilter, resolve_int_pip},
+        int::{BaseIntPip, WireIntDistinct, WireIntDstFilter, WireIntSrcFilter},
         props::{
             DynProp,
             bel::{BaseBelAttr, BaseBelMode, BaseBelPin, BelMutex, FuzzBelAttr, FuzzBelMode},
@@ -33,6 +34,34 @@ use crate::{
         },
     },
 };
+
+pub fn resolve_int_pip_no_alt<'a>(
+    backend: &IseBackend<'a>,
+    tcrd: TileCoord,
+    wire_to: TileWireCoord,
+    wire_from: TileWireCoord,
+) -> Option<(&'a str, &'a str, &'a str)> {
+    let ntile = &backend.ngrid.tiles[&tcrd];
+    let ndb = backend.ngrid.db;
+    let tile_naming = &ndb.tile_class_namings[ntile.naming];
+    backend
+        .edev
+        .resolve_wire(backend.edev.tile_wire(tcrd, wire_to))?;
+    backend
+        .edev
+        .resolve_wire(backend.edev.tile_wire(tcrd, wire_from))?;
+    Some(
+        if let Some(ext) = tile_naming.ext_pips.get(&(wire_to, wire_from)) {
+            (&ntile.names[ext.tile], &ext.wire_to, &ext.wire_from)
+        } else {
+            let nt = tile_naming.wires.get(&wire_to)?;
+            let nf = tile_naming.wires.get(&wire_from)?;
+            let name_to = &nt.name;
+            let name_from = &nf.name;
+            (&ntile.names[RawTileId::from_idx(0)], name_to, name_from)
+        },
+    )
+}
 
 fn drive_xc4000_wire<'a>(
     backend: &IseBackend<'a>,
@@ -89,7 +118,7 @@ fn drive_xc4000_wire<'a>(
         let nwt = cell.wire(backend.edev.db.get_wire(owname));
         let (fuzzer, site_name, pin_name) =
             drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-        let (tile, wt, wf) = resolve_int_pip(
+        let (tile, wt, wf) = resolve_int_pip_no_alt(
             backend,
             cell.tile(tslots::MAIN),
             TileWireCoord::new_idx(0, wt),
@@ -161,7 +190,7 @@ fn drive_xc4000_wire<'a>(
             let nwt = cell.delta(1, 0).wire(wt);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(
+            let (tile, wt, wf) = resolve_int_pip_no_alt(
                 backend,
                 cell.delta(1, 0).tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wires::SINGLE_H_E[idx]),
@@ -177,7 +206,7 @@ fn drive_xc4000_wire<'a>(
             let nwt = cell.delta(-1, 0).wire(wt);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(
+            let (tile, wt, wf) = resolve_int_pip_no_alt(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
@@ -193,7 +222,7 @@ fn drive_xc4000_wire<'a>(
             let nwt = cell.delta(0, 1).wire(wires::SINGLE_V[idx]);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(
+            let (tile, wt, wf) = resolve_int_pip_no_alt(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
@@ -209,7 +238,7 @@ fn drive_xc4000_wire<'a>(
             let nwt = cell.wire(wires::SINGLE_V[idx]);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(
+            let (tile, wt, wf) = resolve_int_pip_no_alt(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
@@ -239,7 +268,7 @@ fn drive_xc4000_wire<'a>(
             let nwt = cell.delta(0, dy).wire(sout);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(
+            let (tile, wt, wf) = resolve_int_pip_no_alt(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
@@ -258,7 +287,7 @@ fn drive_xc4000_wire<'a>(
             let nwt = cell.delta(0, 1).wire(wt);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(
+            let (tile, wt, wf) = resolve_int_pip_no_alt(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
@@ -277,7 +306,7 @@ fn drive_xc4000_wire<'a>(
             let nwt = cell.delta(0, -1).wire(wt);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(
+            let (tile, wt, wf) = resolve_int_pip_no_alt(
                 backend,
                 cell.delta(0, -1).tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wires::SINGLE_V_S[idx]),
@@ -293,7 +322,7 @@ fn drive_xc4000_wire<'a>(
             let nwt = cell.wire(wires::SINGLE_H[idx]);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(
+            let (tile, wt, wf) = resolve_int_pip_no_alt(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
@@ -309,7 +338,7 @@ fn drive_xc4000_wire<'a>(
             let nwt = cell.delta(-1, 0).wire(wires::SINGLE_H[idx]);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(
+            let (tile, wt, wf) = resolve_int_pip_no_alt(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
@@ -339,7 +368,7 @@ fn drive_xc4000_wire<'a>(
             let nwt = cell.delta(dx, 0).wire(sout);
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(
+            let (tile, wt, wf) = resolve_int_pip_no_alt(
                 backend,
                 cell.tile(tslots::MAIN),
                 TileWireCoord::new_idx(0, wt),
@@ -582,7 +611,7 @@ fn drive_xc4000_wire<'a>(
             }
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, Some((tcrd, mwf.tw)), wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(backend, tcrd, mwt, mwf.tw).unwrap();
+            let (tile, wt, wf) = resolve_int_pip_no_alt(backend, tcrd, mwt, mwf.tw).unwrap();
             let fuzzer = fuzzer.base(
                 Key::Pip(tile, wf, wt),
                 Value::FromPin(site_name, pin_name.into()),
@@ -608,7 +637,7 @@ fn drive_xc4000_wire<'a>(
                 .unwrap();
             let (fuzzer, site_name, pin_name) =
                 drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
-            let (tile, wt, wf) = resolve_int_pip(backend, tcrd, mwt, mwf.tw).unwrap();
+            let (tile, wt, wf) = resolve_int_pip_no_alt(backend, tcrd, mwt, mwf.tw).unwrap();
             let fuzzer = fuzzer.base(
                 Key::Pip(tile, wf, wt),
                 Value::FromPin(site_name, pin_name.into()),
@@ -671,8 +700,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DoublePip {
             Some((tcrd, self.wire_from)),
             res_to,
         );
-        let (tile0, wt0, wf0) = resolve_int_pip(backend, tcrd, self.wire_mid, self.wire_from)?;
-        let (tile1, wt1, wf1) = resolve_int_pip(backend, tcrd, self.wire_to, self.wire_mid)?;
+        let (tile0, wt0, wf0) =
+            resolve_int_pip_no_alt(backend, tcrd, self.wire_mid, self.wire_from)?;
+        let (tile1, wt1, wf1) = resolve_int_pip_no_alt(backend, tcrd, self.wire_to, self.wire_mid)?;
         Some((
             fuzzer
                 .fuzz(
@@ -731,7 +761,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000BiPip {
         );
         let ntile = &backend.ngrid.tiles[&tcrd];
         let ntcls = &backend.ngrid.db.tile_class_namings[ntile.naming];
-        let (tile, wt, wf) = resolve_int_pip(backend, tcrd, self.wire_to, self.wire_from)?;
+        let (tile, wt, wf) = resolve_int_pip_no_alt(backend, tcrd, self.wire_to, self.wire_from)?;
         if let Some(wn) = ntcls.wires.get(&self.wire_to)
             && wn.alt_pips_to.contains(&self.wire_from)
         {
@@ -812,7 +842,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000SimplePip {
             .resolve_wire(backend.edev.tile_wire(tcrd, self.wire_to))?;
         let ntile = &backend.ngrid.tiles[&tcrd];
         let ntcls = &backend.ngrid.db.tile_class_namings[ntile.naming];
-        let (tile, wt, wf) = resolve_int_pip(backend, tcrd, self.wire_to, self.wire_from)?;
+        let (tile, wt, wf) = resolve_int_pip_no_alt(backend, tcrd, self.wire_to, self.wire_from)?;
         if let Some(wn) = ntcls.wires.get(&self.wire_to)
             && wn.alt_pips_to.contains(&self.wire_from)
         {

@@ -22,7 +22,7 @@ use crate::{
         props::{
             DynProp,
             pip::{PinFar, PipWire},
-            relation::Delta,
+            relation::DeltaLegacy,
         },
     },
 };
@@ -1584,10 +1584,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for i in 0..2 {
                 bctx.build()
                     .mutex(format!("MUX.NORTHREFCLK{i}_N"), format!("NORTHREFCLK{i}"))
-                    .has_related(Delta::new(0, 50, tile))
+                    .has_related(DeltaLegacy::new(0, 50, tile))
                     .test_manual_legacy(format!("MUX.NORTHREFCLK{i}_N"), format!("NORTHREFCLK{i}"))
                     .related_pip(
-                        Delta::new(0, 25, "BRKH_GTX"),
+                        DeltaLegacy::new(0, 25, "BRKH_GTX"),
                         (defs::bslots::BRKH_GTX, format!("NORTHREFCLK{i}_U")),
                         (defs::bslots::BRKH_GTX, format!("NORTHREFCLK{i}_D")),
                     )
@@ -1595,10 +1595,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for j in 0..2 {
                     bctx.build()
                         .mutex(format!("MUX.NORTHREFCLK{i}_N"), format!("REFCLK{j}"))
-                        .has_related(Delta::new(0, 50, tile))
+                        .has_related(DeltaLegacy::new(0, 50, tile))
                         .test_manual_legacy(format!("MUX.NORTHREFCLK{i}_N"), format!("REFCLK{j}"))
                         .related_pip(
-                            Delta::new(0, 25, "BRKH_GTX"),
+                            DeltaLegacy::new(0, 25, "BRKH_GTX"),
                             (defs::bslots::BRKH_GTX, format!("NORTHREFCLK{i}_U")),
                             (defs::bslots::BRKH_GTX, format!("REFCLK{j}_D")),
                         )
@@ -1606,10 +1606,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 bctx.build()
                     .mutex(format!("MUX.SOUTHREFCLK{i}_S"), format!("SOUTHREFCLK{i}"))
-                    .has_related(Delta::new(0, -50, tile))
+                    .has_related(DeltaLegacy::new(0, -50, tile))
                     .test_manual_legacy(format!("MUX.SOUTHREFCLK{i}_S"), format!("SOUTHREFCLK{i}"))
                     .related_pip(
-                        Delta::new(0, -25, "BRKH_GTX"),
+                        DeltaLegacy::new(0, -25, "BRKH_GTX"),
                         (defs::bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_D")),
                         (defs::bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_U")),
                     )
@@ -1617,10 +1617,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for j in 0..2 {
                     bctx.build()
                         .mutex(format!("MUX.SOUTHREFCLK{i}_S"), format!("REFCLK{j}"))
-                        .has_related(Delta::new(0, -50, tile))
+                        .has_related(DeltaLegacy::new(0, -50, tile))
                         .test_manual_legacy(format!("MUX.SOUTHREFCLK{i}_S"), format!("REFCLK{j}"))
                         .related_pip(
-                            Delta::new(0, -25, "BRKH_GTX"),
+                            DeltaLegacy::new(0, -25, "BRKH_GTX"),
                             (defs::bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_D")),
                             (defs::bslots::BRKH_GTX, format!("REFCLK{j}_U")),
                         )

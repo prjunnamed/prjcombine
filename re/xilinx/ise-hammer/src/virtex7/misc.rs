@@ -16,7 +16,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::Delta,
+        props::relation::DeltaLegacy,
     },
 };
 
@@ -581,7 +581,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::SYSMON);
         bctx.build()
             .extra_tile_attr_legacy(
-                Delta::new(0, 0, "HCLK"),
+                DeltaLegacy::new(0, 0, "HCLK"),
                 "HCLK",
                 "DRP_MASK_ABOVE_L",
                 "SYSMON",

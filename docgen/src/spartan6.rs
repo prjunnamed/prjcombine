@@ -5,10 +5,7 @@ use prjcombine_spartan6::defs::devdata;
 
 use crate::{
     DocgenContext,
-    bsdata::{
-        FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_bstiles,
-        gen_misc_table,
-    },
+    bsdata::{FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_bstiles},
     interconnect::{gen_devdata, gen_intdb},
 };
 
@@ -41,41 +38,8 @@ pub fn gen_spartan6(ctx: &mut DocgenContext) {
     }
 
     gen_bstiles(ctx, "spartan6", &db.bsdata, orientation);
-    let mut misc_used = HashSet::new();
+    let misc_used = HashSet::new();
     let devdata_used = HashSet::new();
-    gen_misc_table(
-        ctx,
-        &db.bsdata,
-        &mut misc_used,
-        "spartan6",
-        "iostd-drive",
-        &["IOSTD:PDRIVE", "IOSTD:NDRIVE"],
-    );
-    gen_misc_table(
-        ctx,
-        &db.bsdata,
-        &mut misc_used,
-        "spartan6",
-        "iostd-term",
-        &["IOSTD:PTERM", "IOSTD:NTERM"],
-    );
-    gen_misc_table(
-        ctx,
-        &db.bsdata,
-        &mut misc_used,
-        "spartan6",
-        "iostd-slew",
-        &["IOSTD:PSLEW", "IOSTD:NSLEW"],
-    );
-    gen_misc_table(
-        ctx,
-        &db.bsdata,
-        &mut misc_used,
-        "spartan6",
-        "iostd-lvdsbias",
-        &["IOSTD:LVDSBIAS"],
-    );
-
     gen_devdata(
         ctx,
         "spartan6",

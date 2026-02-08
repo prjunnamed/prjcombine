@@ -12,7 +12,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::{Delta, TileRelation},
+        props::relation::{DeltaLegacy, TileRelation},
     },
 };
 
@@ -106,8 +106,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
             bctx.build()
                 .null_bits()
-                .extra_tile_legacy(Delta::new(0, dy - 20, "CMT"), "CMT")
-                .extra_tile_legacy(Delta::new(0, dy + 20, "CMT"), "CMT")
+                .extra_tile_legacy(DeltaLegacy::new(0, dy - 20, "CMT"), "CMT")
+                .extra_tile_legacy(DeltaLegacy::new(0, dy + 20, "CMT"), "CMT")
                 .global_mutex("GCLK", "TEST")
                 .test_manual_legacy(format!("ENABLE.GCLK{}", base + i), "1")
                 .pip("GCLK", "O")
@@ -161,8 +161,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .null_bits()
                 .global_mutex("GIO", "TEST")
-                .extra_tile_legacy(Delta::new(0, dy - 20, "CMT"), "CMT")
-                .extra_tile_legacy(Delta::new(0, dy + 20, "CMT"), "CMT")
+                .extra_tile_legacy(DeltaLegacy::new(0, dy - 20, "CMT"), "CMT")
+                .extra_tile_legacy(DeltaLegacy::new(0, dy + 20, "CMT"), "CMT")
                 .test_manual_legacy(format!("ENABLE.GIO{i}"), "1")
                 .pip(format!("GIO{i}_CMT"), format!("GIO{i}"))
                 .commit();
@@ -248,8 +248,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             ] {
                 bctx.build()
                     .mutex("MUX.I", pin)
-                    .has_related(Delta::new(0, 40, "HCLK_IO"))
-                    .has_related(Delta::new(0, -40, "HCLK_IO"))
+                    .has_related(DeltaLegacy::new(0, 40, "HCLK_IO"))
+                    .has_related(DeltaLegacy::new(0, -40, "HCLK_IO"))
                     .test_manual_legacy("MUX.I", val)
                     .pip("I", pin)
                     .commit();

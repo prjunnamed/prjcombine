@@ -19,7 +19,7 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::{
             DynProp,
-            relation::{Delta, FixedRelation, TileRelation},
+            relation::{DeltaLegacy, FixedRelation, TileRelation},
         },
     },
 };
@@ -423,8 +423,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
         let clk_dcm = match tile {
-            "CLK_IOB_S" => Delta::new(0, -8, "CLK_DCM_S"),
-            "CLK_IOB_N" => Delta::new(0, 16, "CLK_DCM_N"),
+            "CLK_IOB_S" => DeltaLegacy::new(0, -8, "CLK_DCM_S"),
+            "CLK_IOB_N" => DeltaLegacy::new(0, 16, "CLK_DCM_N"),
             _ => unreachable!(),
         };
         for i in 0..32 {
@@ -458,8 +458,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::CLK_DCM);
         let dcm: Vec<_> = (0..24).map(|i| format!("DCM{i}")).collect();
         let clk_dcm = match tile {
-            "CLK_DCM_S" => Delta::new(0, -8, "CLK_DCM_S"),
-            "CLK_DCM_N" => Delta::new(0, 8, "CLK_DCM_N"),
+            "CLK_DCM_S" => DeltaLegacy::new(0, -8, "CLK_DCM_S"),
+            "CLK_DCM_N" => DeltaLegacy::new(0, 8, "CLK_DCM_N"),
             _ => unreachable!(),
         };
         for i in 0..32 {
@@ -729,7 +729,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 DirV::N => 0,
                 DirV::S => -8,
             };
-            Delta::new_any(0, dy, &["CCM", "DCM"])
+            DeltaLegacy::new_any(0, dy, &["CCM", "DCM"])
         };
         for dir in [DirV::S, DirV::N] {
             if dir == DirV::S && bel == defs::bslots::HCLK_DCM_N {

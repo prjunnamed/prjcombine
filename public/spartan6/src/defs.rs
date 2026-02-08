@@ -231,7 +231,17 @@ target_defs! {
         // TODO
     }
 
+    enum IOB_DIFF_MODE { NONE, LVDS, TMDS }
     enum IOB_PULL { NONE, PULLUP, PULLDOWN, KEEPER }
+    enum IOB_SUSPEND {
+        _3STATE,
+        DRIVE_LAST_VALUE,
+        _3STATE_PULLDOWN,
+        _3STATE_PULLUP,
+        _3STATE_KEEPER,
+        _3STATE_OCT_ON,
+    }
+    enum IOB_IBUF_MODE { NONE, LOOPBACK_T, LOOPBACK_O, CMOS_VCCINT, CMOS_VCCO, VREF, DIFF, CMOS_VCCAUX}
     bel_class IOB {
         // normally nonroutable (bolted straight to ILOGIC), but exposed for the dedicated clock
         // pads that need routing to BUFIO and clock spines.
@@ -240,6 +250,114 @@ target_defs! {
         pad PAD: inout;
 
         // TODO
+        attribute PDRIVE: bitvec[6];
+        attribute PTERM: bitvec[6];
+        attribute NDRIVE: bitvec[7];
+        attribute NTERM: bitvec[7];
+        attribute TML: bool;
+        attribute PSLEW: bitvec[4];
+        attribute NSLEW: bitvec[4];
+        attribute DIFF_TERM: bool;
+        attribute DIFF_OUTPUT_ENABLE: bool;
+        attribute LVDS_GROUP: bitvec[1];
+        attribute DIFF_MODE: IOB_DIFF_MODE;
+        attribute PRE_EMPHASIS: bool;
+        attribute OUTPUT_LOW_VOLTAGE: bool;
+        attribute PCI_CLAMP: bool;
+        attribute PULL: IOB_PULL;
+        attribute SUSPEND: IOB_SUSPEND;
+        attribute IBUF_MODE: IOB_IBUF_MODE;
+        attribute VREF_HV: bool;
+        attribute PCI_INPUT: bool;
+        attribute I_INV: bool;
+        attribute VREF: bool;
+        attribute OUTPUT_ENABLE: bool;
+    }
+
+    table IOB_DATA {
+        field PDRIVE: bitvec[6];
+        field NDRIVE_2V5: bitvec[7];
+        field NDRIVE_3V3: bitvec[7];
+        field PSLEW: bitvec[4];
+        field NSLEW: bitvec[4];
+
+        row OFF;
+        row IN_TERM;
+        row SLEW_SLOW, SLEW_FAST, SLEW_QUIETIO;
+
+        row LVCMOS12_2, LVCMOS12_4, LVCMOS12_6, LVCMOS12_8, LVCMOS12_12;
+        row LVCMOS15_2, LVCMOS15_4, LVCMOS15_6, LVCMOS15_8, LVCMOS15_12, LVCMOS15_16;
+        row LVCMOS18_2, LVCMOS18_4, LVCMOS18_6, LVCMOS18_8, LVCMOS18_12, LVCMOS18_16, LVCMOS18_24;
+        row LVCMOS25_2, LVCMOS25_4, LVCMOS25_6, LVCMOS25_8, LVCMOS25_12, LVCMOS25_16, LVCMOS25_24;
+        row LVCMOS33_2, LVCMOS33_4, LVCMOS33_6, LVCMOS33_8, LVCMOS33_12, LVCMOS33_16, LVCMOS33_24;
+        row LVTTL_2, LVTTL_4, LVTTL_6, LVTTL_8, LVTTL_12, LVTTL_16, LVTTL_24;
+        row MOBILE_DDR;
+        row SDIO;
+        row I2C, SMBUS;
+        row PCI33_3, PCI66_3;
+
+        row DIFF_MOBILE_DDR;
+        row BLVDS_25;
+        row DISPLAY_PORT;
+        row TML_33;
+
+        row HSTL_I, HSTL_II, HSTL_III;
+        row HSTL_I_18, HSTL_II_18, HSTL_III_18;
+        row SSTL15_II;
+        row SSTL18_I, SSTL18_II;
+        row SSTL2_I, SSTL2_II;
+        row SSTL3_I, SSTL3_II;
+
+        row UNTUNED_25_1V2;
+        row UNTUNED_25_1V5;
+        row UNTUNED_25_1V8;
+        row UNTUNED_25_2V5;
+        row UNTUNED_25_3V3;
+        row UNTUNED_50_1V2;
+        row UNTUNED_50_1V5;
+        row UNTUNED_50_1V8;
+        row UNTUNED_50_2V5;
+        row UNTUNED_50_3V3;
+        row UNTUNED_75_1V2;
+        row UNTUNED_75_1V5;
+        row UNTUNED_75_1V8;
+        row UNTUNED_75_2V5;
+        row UNTUNED_75_3V3;
+    }
+
+    table LVDSBIAS {
+        field LVDSBIAS: bitvec[12];
+        row OFF;
+        row LVDS_25, LVDS_33;
+        row MINI_LVDS_25, MINI_LVDS_33;
+        row RSDS_25, RSDS_33;
+        row PPDS_25, PPDS_33;
+        row TMDS_33, TML_33;
+    }
+
+    table IOB_TERM {
+        field PTERM_2V5: bitvec[6];
+        field PTERM_3V3: bitvec[6];
+        field NTERM_2V5: bitvec[7];
+        field NTERM_3V3: bitvec[7];
+
+        row OFF;
+        row TML_33;
+        row UNTUNED_SPLIT_25_1V2;
+        row UNTUNED_SPLIT_25_1V5;
+        row UNTUNED_SPLIT_25_1V8;
+        row UNTUNED_SPLIT_25_2V5;
+        row UNTUNED_SPLIT_25_3V3;
+        row UNTUNED_SPLIT_50_1V2;
+        row UNTUNED_SPLIT_50_1V5;
+        row UNTUNED_SPLIT_50_1V8;
+        row UNTUNED_SPLIT_50_2V5;
+        row UNTUNED_SPLIT_50_3V3;
+        row UNTUNED_SPLIT_75_1V2;
+        row UNTUNED_SPLIT_75_1V5;
+        row UNTUNED_SPLIT_75_1V8;
+        row UNTUNED_SPLIT_75_2V5;
+        row UNTUNED_SPLIT_75_3V3;
     }
 
     enum DCM_MODE { DCM, DCM_CLKGEN }

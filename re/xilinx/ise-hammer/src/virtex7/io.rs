@@ -28,7 +28,7 @@ use crate::{
             DynProp,
             bel::{BaseBelAttr, BaseBelMode, BaseBelPin, BaseBelPinPair},
             mutex::TileMutex,
-            relation::{Delta, Related},
+            relation::{DeltaLegacy, Related},
         },
     },
     virtex4::io::IsBonded,
@@ -1568,7 +1568,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     );
 
                 let anchor_props = |dy, vcco: u16, anchor_std: &'static str| -> [Box<DynProp>; 5] {
-                    let rel = Delta::new(0, dy, "IO_HR_PAIR");
+                    let rel = DeltaLegacy::new(0, dy, "IO_HR_PAIR");
                     [
                         Box::new(Related::new(
                             HclkIoi,
@@ -1782,15 +1782,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .global("UNCONSTRAINEDPINS", "ALLOW")
                                     .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
                                     .prop(Related::new(
-                                        Delta::new(0, 4, "IO_HR_PAIR"),
+                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
                                         BaseBelMode::new(defs::bslots::IOB[1], 0, "IOB33M".into()),
                                     ))
                                     .prop(Related::new(
-                                        Delta::new(0, 4, "IO_HR_PAIR"),
+                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
                                         BaseBelPin::new(defs::bslots::IOB[1], 0, "O".into()),
                                     ))
                                     .prop(Related::new(
-                                        Delta::new(0, 4, "IO_HR_PAIR"),
+                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
                                         BaseBelAttr::new(
                                             defs::bslots::IOB[1],
                                             0,
@@ -1799,7 +1799,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         ),
                                     ))
                                     .prop(Related::new(
-                                        Delta::new(0, 4, "IO_HR_PAIR"),
+                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
                                         BaseBelAttr::new(
                                             defs::bslots::IOB[1],
                                             0,
@@ -1808,7 +1808,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         ),
                                     ))
                                     .prop(Related::new(
-                                        Delta::new(0, 4, "IO_HR_PAIR"),
+                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
                                         BaseBelAttr::new(
                                             defs::bslots::IOB[1],
                                             0,
@@ -1817,11 +1817,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         ),
                                     ))
                                     .prop(Related::new(
-                                        Delta::new(0, 4, "IO_HR_PAIR"),
+                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
                                         BaseBelMode::new(defs::bslots::IOB[0], 0, "IOB33S".into()),
                                     ))
                                     .prop(Related::new(
-                                        Delta::new(0, 4, "IO_HR_PAIR"),
+                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
                                         BaseBelPinPair::new(
                                             defs::bslots::IOB[1],
                                             0,
@@ -1832,7 +1832,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         ),
                                     ))
                                     .prop(Related::new(
-                                        Delta::new(0, 4, "IO_HR_PAIR"),
+                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
                                         BaseBelAttr::new(
                                             defs::bslots::IOB[0],
                                             0,
@@ -1841,7 +1841,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         ),
                                     ))
                                     .prop(Related::new(
-                                        Delta::new(0, 4, "IO_HR_PAIR"),
+                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
                                         BaseBelAttr::new(
                                             defs::bslots::IOB[0],
                                             0,
@@ -1991,20 +1991,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
                         .extra_tile_attr_legacy(
-                            Delta::new(0, 49, "IO_HR_N"),
+                            DeltaLegacy::new(0, 49, "IO_HR_N"),
                             "IOB[0]",
                             "LOW_VOLTAGE",
                             "1",
                         )
                         .extra_tile_attr_legacy(
-                            Delta::new(0, 25, "HCLK_IO_HR"),
+                            DeltaLegacy::new(0, 25, "HCLK_IO_HR"),
                             "DRIVERBIAS",
                             "DRIVERBIAS",
                             "LV",
                         );
                     for i in 0..24 {
                         builder = builder.extra_tile_attr_legacy(
-                            Delta::new(0, 1 + i * 2, "IO_HR_PAIR"),
+                            DeltaLegacy::new(0, 1 + i * 2, "IO_HR_PAIR"),
                             "IOB_COMMON",
                             "LOW_VOLTAGE",
                             "1",

@@ -1,6 +1,9 @@
 use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::{
-    db::{BelAttributeId, BelSlotId, EnumValueId, PolTileWireCoord, TileClassId, TileWireCoord},
+    db::{
+        BelAttributeId, BelSlotId, EnumValueId, PolTileWireCoord, TableRowId, TileClassId,
+        TileWireCoord,
+    },
     dir::DirV,
     grid::TileCoord,
 };
@@ -101,6 +104,25 @@ impl ExtraKeyBelSpecial {
 impl KeyMaker for ExtraKeyBelSpecial {
     fn make_key(&self, _backend: &IseBackend, _main_key: &DiffKey, tcid: TileClassId) -> DiffKey {
         DiffKey::BelSpecial(tcid, self.bel, self.spec)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ExtraKeyBelSpecialRow {
+    pub bel: BelSlotId,
+    pub spec: SpecialId,
+    pub row: TableRowId,
+}
+
+impl ExtraKeyBelSpecialRow {
+    pub fn new(bel: BelSlotId, spec: SpecialId, row: TableRowId) -> Self {
+        Self { bel, spec, row }
+    }
+}
+
+impl KeyMaker for ExtraKeyBelSpecialRow {
+    fn make_key(&self, _backend: &IseBackend, _main_key: &DiffKey, tcid: TileClassId) -> DiffKey {
+        DiffKey::BelSpecialRow(tcid, self.bel, self.spec, self.row)
     }
 }
 

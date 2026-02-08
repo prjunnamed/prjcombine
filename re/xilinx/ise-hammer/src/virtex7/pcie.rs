@@ -9,7 +9,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::{Delta, TileRelation},
+        props::relation::{DeltaLegacy, TileRelation},
     },
 };
 
@@ -680,8 +680,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         // always turns on the "bottom" bit even in the lower region — bug or intentional?
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         bctx.mode(mode)
-            .extra_tile_attr_legacy(Delta::new(3, 0, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
-            .extra_tile_attr_legacy(Delta::new(3, 50, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
+            .extra_tile_attr_legacy(DeltaLegacy::new(3, 0, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
+            .extra_tile_attr_legacy(
+                DeltaLegacy::new(3, 50, "HCLK"),
+                "HCLK",
+                "DRP_MASK_PCIE",
+                "1",
+            )
             .test_manual_legacy("DRP_MASK", "1")
             .pin("DRPWE")
             .commit();

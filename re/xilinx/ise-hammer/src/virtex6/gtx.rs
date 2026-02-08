@@ -13,7 +13,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{pip::PinFar, relation::Delta},
+        props::{pip::PinFar, relation::DeltaLegacy},
     },
 };
 
@@ -353,7 +353,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .bel_unused(bel_other)
             .extra_tile_attr_legacy(
-                Delta::new(0, 0, "HCLK"),
+                DeltaLegacy::new(0, 0, "HCLK"),
                 "HCLK",
                 if i < 2 {
                     "DRP_MASK_BELOW"

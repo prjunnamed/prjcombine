@@ -14,7 +14,7 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::{
             bel::BelUnused,
-            relation::{Delta, Related},
+            relation::{DeltaLegacy, Related},
         },
     },
     xc4000::specials,
@@ -390,28 +390,28 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode)
                 .pin("CIN")
                 .prop(Related::new(
-                    Delta::new(0, -1, "CLB"),
+                    DeltaLegacy::new(0, -1, "CLB"),
                     BelUnused::new(bslots::CLB, 0),
                 ))
                 .prop(Related::new(
-                    Delta::new(0, 1, "CLB"),
+                    DeltaLegacy::new(0, 1, "CLB"),
                     BelUnused::new(bslots::CLB, 0),
                 ))
                 .test_bel_attr_val(bcls::CLB::MUX_CIN, enums::CLB_MUX_CIN::COUT_N)
-                .related_pip(Delta::new(0, -1, "CLB"), "CIN_N", "COUT")
+                .related_pip(DeltaLegacy::new(0, -1, "CLB"), "CIN_N", "COUT")
                 .commit();
             bctx.mode(mode)
                 .pin("CIN")
                 .prop(Related::new(
-                    Delta::new(0, -1, "CLB"),
+                    DeltaLegacy::new(0, -1, "CLB"),
                     BelUnused::new(bslots::CLB, 0),
                 ))
                 .prop(Related::new(
-                    Delta::new(0, 1, "CLB"),
+                    DeltaLegacy::new(0, 1, "CLB"),
                     BelUnused::new(bslots::CLB, 0),
                 ))
                 .test_bel_attr_val(bcls::CLB::MUX_CIN, enums::CLB_MUX_CIN::COUT_S)
-                .related_pip(Delta::new(0, 1, "CLB"), "CIN_S", "COUT")
+                .related_pip(DeltaLegacy::new(0, 1, "CLB"), "CIN_S", "COUT")
                 .commit();
         }
         // F4MUX, G2MUX, G3MUX handled as part of interconnect

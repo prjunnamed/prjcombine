@@ -1,6 +1,9 @@
 use core::fmt::Debug;
 
-use prjcombine_interconnect::{db::TileSlotId, grid::TileCoord};
+use prjcombine_interconnect::{
+    db::{TileClassId, TileSlotId},
+    grid::TileCoord,
+};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 
@@ -34,10 +37,51 @@ impl TileRelation for FixedRelation {
 pub struct Delta {
     pub dx: i32,
     pub dy: i32,
-    pub tcnames: Vec<String>,
+    pub tcids: Vec<TileClassId>,
 }
 
 impl Delta {
+    pub fn new(dx: i32, dy: i32, tcid: TileClassId) -> Self {
+        Self {
+            dx,
+            dy,
+            tcids: vec![tcid],
+        }
+    }
+
+    #[allow(unused)]
+    pub fn new_any(dx: i32, dy: i32, tcids: &[TileClassId]) -> Self {
+        Self {
+            dx,
+            dy,
+            tcids: tcids.to_vec(),
+        }
+    }
+}
+
+impl TileRelation for Delta {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
+        let cell = backend.edev.cell_delta(tcrd.cell, self.dx, self.dy)?;
+        for &tcid in &self.tcids {
+            let tcrd = cell.tile(backend.edev.db[tcid].slot);
+            if let Some(tile) = backend.edev.get_tile(tcrd)
+                && tile.class == tcid
+            {
+                return Some(tcrd);
+            }
+        }
+        None
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct DeltaLegacy {
+    pub dx: i32,
+    pub dy: i32,
+    pub tcnames: Vec<String>,
+}
+
+impl DeltaLegacy {
     pub fn new(dx: i32, dy: i32, tcname: impl Into<String>) -> Self {
         Self {
             dx,
@@ -55,7 +99,7 @@ impl Delta {
     }
 }
 
-impl TileRelation for Delta {
+impl TileRelation for DeltaLegacy {
     fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let cell = backend.edev.cell_delta(tcrd.cell, self.dx, self.dy)?;
         backend

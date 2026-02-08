@@ -23,7 +23,7 @@ use crate::{
             DynProp,
             extra::{ExtraKeyLegacyAttr, ExtraTileMaybe},
             pip::PinFar,
-            relation::Delta,
+            relation::DeltaLegacy,
         },
     },
 };
@@ -864,9 +864,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 (defs::bslots::PHY_CONTROL, "SYNC_BB"),
                 (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLEMPTY"),
             )
-            .related_tile_mutex(Delta::new(0, -50, "CMT"), "SYNC_BB", "TEST_SOURCE_DUMMY")
+            .related_tile_mutex(
+                DeltaLegacy::new(0, -50, "CMT"),
+                "SYNC_BB",
+                "TEST_SOURCE_DUMMY",
+            )
             .extra_tile_attr_legacy(
-                Delta::new(0, -50, "CMT"),
+                DeltaLegacy::new(0, -50, "CMT"),
                 "CMT_TOP",
                 "ENABLE.SYNC_BB_N",
                 "1",
@@ -877,14 +881,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .force_bel_name("CMT_BOT")
             .tile_mutex("SYNC_BB", "TEST_SOURCE_U")
-            .related_tile_mutex(Delta::new(0, -50, "CMT"), "SYNC_BB", "DRIVE")
+            .related_tile_mutex(DeltaLegacy::new(0, -50, "CMT"), "SYNC_BB", "DRIVE")
             .related_pip(
-                Delta::new(0, -50, "CMT"),
+                DeltaLegacy::new(0, -50, "CMT"),
                 (defs::bslots::PHY_CONTROL, "SYNC_BB"),
                 (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLEMPTY"),
             )
             .related_pip(
-                Delta::new(0, -50, "CMT"),
+                DeltaLegacy::new(0, -50, "CMT"),
                 (defs::bslots::CMT_D, "SYNC_BB_N"),
                 (defs::bslots::CMT_D, "SYNC_BB"),
             )
@@ -903,9 +907,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     (defs::bslots::CMT_B, format!("FREQ_BB{i}")),
                     (defs::bslots::CMT_B, format!("FREQ_BB{i}_MUX")),
                 )
-                .related_tile_mutex(Delta::new(0, -50, "CMT"), "FREQ_BB", "TEST_SOURCE_DUMMY")
+                .related_tile_mutex(
+                    DeltaLegacy::new(0, -50, "CMT"),
+                    "FREQ_BB",
+                    "TEST_SOURCE_DUMMY",
+                )
                 .extra_tile_attr_legacy(
-                    Delta::new(0, -50, "CMT"),
+                    DeltaLegacy::new(0, -50, "CMT"),
                     "CMT_TOP",
                     format!("ENABLE.FREQ_BB{i}_N"),
                     "1",
@@ -916,14 +924,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .force_bel_name("CMT_BOT")
                 .tile_mutex("FREQ_BB", "TEST_SOURCE_U")
-                .related_tile_mutex(Delta::new(0, -50, "CMT"), "FREQ_BB", "DRIVE")
+                .related_tile_mutex(DeltaLegacy::new(0, -50, "CMT"), "FREQ_BB", "DRIVE")
                 .related_pip(
-                    Delta::new(0, -50, "CMT"),
+                    DeltaLegacy::new(0, -50, "CMT"),
                     (defs::bslots::CMT_B, format!("FREQ_BB{i}")),
                     (defs::bslots::CMT_B, format!("FREQ_BB{i}_MUX")),
                 )
                 .related_pip(
-                    Delta::new(0, -50, "CMT"),
+                    DeltaLegacy::new(0, -50, "CMT"),
                     (defs::bslots::CMT_D, format!("FREQ_BB{i}_N")),
                     (defs::bslots::CMT_D, format!("FREQ_BB{i}")),
                 )
@@ -945,22 +953,31 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 (defs::bslots::PHY_CONTROL, "SYNC_BB"),
                 (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLEMPTY"),
             )
-            .related_tile_mutex(Delta::new(0, 50, "CMT"), "SYNC_BB", "TEST_SOURCE_DUMMY")
-            .extra_tile_attr_legacy(Delta::new(0, 50, "CMT"), "CMT_BOT", "ENABLE.SYNC_BB_S", "1")
+            .related_tile_mutex(
+                DeltaLegacy::new(0, 50, "CMT"),
+                "SYNC_BB",
+                "TEST_SOURCE_DUMMY",
+            )
+            .extra_tile_attr_legacy(
+                DeltaLegacy::new(0, 50, "CMT"),
+                "CMT_BOT",
+                "ENABLE.SYNC_BB_S",
+                "1",
+            )
             .test_manual_legacy("BUF.SYNC_BB.U", "1")
             .pip("SYNC_BB_N", "SYNC_BB")
             .commit();
         bctx.build()
             .force_bel_name("CMT_TOP")
             .tile_mutex("SYNC_BB", "TEST_SOURCE_D")
-            .related_tile_mutex(Delta::new(0, 50, "CMT"), "SYNC_BB", "DRIVE")
+            .related_tile_mutex(DeltaLegacy::new(0, 50, "CMT"), "SYNC_BB", "DRIVE")
             .related_pip(
-                Delta::new(0, 50, "CMT"),
+                DeltaLegacy::new(0, 50, "CMT"),
                 (defs::bslots::PHY_CONTROL, "SYNC_BB"),
                 (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLEMPTY"),
             )
             .related_pip(
-                Delta::new(0, 50, "CMT"),
+                DeltaLegacy::new(0, 50, "CMT"),
                 (defs::bslots::CMT_A, "SYNC_BB_S"),
                 (defs::bslots::CMT_A, "SYNC_BB"),
             )
@@ -979,9 +996,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     (defs::bslots::CMT_B, format!("FREQ_BB{i}")),
                     (defs::bslots::CMT_B, format!("FREQ_BB{i}_MUX")),
                 )
-                .related_tile_mutex(Delta::new(0, 50, "CMT"), "FREQ_BB", "TEST_SOURCE_DUMMY")
+                .related_tile_mutex(
+                    DeltaLegacy::new(0, 50, "CMT"),
+                    "FREQ_BB",
+                    "TEST_SOURCE_DUMMY",
+                )
                 .extra_tile_attr_legacy(
-                    Delta::new(0, 50, "CMT"),
+                    DeltaLegacy::new(0, 50, "CMT"),
                     "CMT_BOT",
                     format!("ENABLE.FREQ_BB{i}_S"),
                     "1",
@@ -992,14 +1013,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .force_bel_name("CMT_TOP")
                 .tile_mutex("FREQ_BB", "TEST_SOURCE_D")
-                .related_tile_mutex(Delta::new(0, 50, "CMT"), "FREQ_BB", "DRIVE")
+                .related_tile_mutex(DeltaLegacy::new(0, 50, "CMT"), "FREQ_BB", "DRIVE")
                 .related_pip(
-                    Delta::new(0, 50, "CMT"),
+                    DeltaLegacy::new(0, 50, "CMT"),
                     (defs::bslots::CMT_B, format!("FREQ_BB{i}")),
                     (defs::bslots::CMT_B, format!("FREQ_BB{i}_MUX")),
                 )
                 .related_pip(
-                    Delta::new(0, 50, "CMT"),
+                    DeltaLegacy::new(0, 50, "CMT"),
                     (defs::bslots::CMT_A, format!("FREQ_BB{i}_S")),
                     (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                 )
@@ -1063,8 +1084,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .force_bel_name("CMT_TOP")
                 .tile_mutex("SYNC_BB", "TEST")
-                .no_related(Delta::new(0, -50, "CMT"))
-                .has_related(Delta::new(0, 50, "CMT"))
+                .no_related(DeltaLegacy::new(0, -50, "CMT"))
+                .has_related(DeltaLegacy::new(0, 50, "CMT"))
                 .test_manual_legacy("ENABLE.SYNC_BB", "BOT")
                 .pip(
                     (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLMSTREMPTY"),
@@ -1074,8 +1095,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .force_bel_name("CMT_TOP")
                 .tile_mutex("SYNC_BB", "TEST")
-                .no_related(Delta::new(0, 50, "CMT"))
-                .has_related(Delta::new(0, -50, "CMT"))
+                .no_related(DeltaLegacy::new(0, 50, "CMT"))
+                .has_related(DeltaLegacy::new(0, -50, "CMT"))
                 .test_manual_legacy("ENABLE.SYNC_BB", "TOP")
                 .pip(
                     (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLMSTREMPTY"),

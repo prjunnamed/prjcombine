@@ -25,7 +25,7 @@ use crate::{
             BaseRaw, DynProp,
             bel::{BaseBelMode, BaseBelPin, FuzzBelMode},
             mutex::WireMutexExclusive,
-            relation::{Delta, Related},
+            relation::{DeltaLegacy, Related},
         },
     },
 };
@@ -614,9 +614,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let clb_wire = TileWireCoord::new_idx(0, clb_wire);
                     let wire_pin = clb_index.pips_fwd[&clb_wire].iter().next().unwrap().tw;
                     let relation = if tcid == tcls::IO_W {
-                        Delta::new(2, 0, "CLB")
+                        DeltaLegacy::new(2, 0, "CLB")
                     } else {
-                        Delta::new(-2, 0, "CLB")
+                        DeltaLegacy::new(-2, 0, "CLB")
                     };
                     props.push(Box::new(Related::new(
                         relation.clone(),
@@ -692,7 +692,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     props.push(Box::new(BaseIntPip::new(wire_pin, wire_to)));
                     props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                 } else {
-                    let related = Delta::new(0, 4, tcname);
+                    let related = DeltaLegacy::new(0, 4, tcname);
                     props.push(Box::new(Related::new(
                         related.clone(),
                         BaseIntPip::new(wire_pin, wire_to_root),
@@ -712,7 +712,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             if in_wire_name.starts_with("SINGLE") {
                                 let wire_buf =
                                     TileWireCoord::new_idx(0, single_to_buf(wire_from.wire));
-                                let related = Delta::new(
+                                let related = DeltaLegacy::new(
                                     -1,
                                     wire_from.cell.to_idx() as i32 - 4,
                                     if tcid == tcls::BRAM_W { "IO_W" } else { "CLB" },
@@ -804,7 +804,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         props.push(Box::new(WireMutexExclusive::new(wire_from)));
                                         props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                                     } else {
-                                        let related = Delta::new(0, 4, tcname);
+                                        let related = DeltaLegacy::new(0, 4, tcname);
                                         props.push(Box::new(Related::new(
                                             related.clone(),
                                             BaseIntPip::new(wire_from_root, wire_pin),
@@ -839,7 +839,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     props.push(Box::new(BaseIntPip::new(wire_buf, wire_to)));
                     props.push(Box::new(WireMutexExclusive::new(wire_buf)));
                 } else {
-                    let related = Delta::new(
+                    let related = DeltaLegacy::new(
                         -1,
                         wire_to.cell.to_idx() as i32 - 4,
                         if tcid == tcls::BRAM_W { "IO_W" } else { "CLB" },
@@ -1011,7 +1011,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         } else if in_wire_name.starts_with("SINGLE") {
                             let wire_buf = TileWireCoord::new_idx(0, single_to_buf(wire_from.wire));
                             if matches!(tcid, tcls::BRAM_W | tcls::BRAM_E | tcls::BRAM_M) {
-                                let related = Delta::new(
+                                let related = DeltaLegacy::new(
                                     -1,
                                     wire_from.cell.to_idx() as i32 - 4,
                                     if tcid == tcls::BRAM_W { "IO_W" } else { "CLB" },
@@ -1212,8 +1212,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             break 'imux_pin;
                         } else if wire_to.wire == wires::IMUX_PCI_I3 {
                             let wire_buf = TileWireCoord::new_idx(0, hex_to_buf(wire_from.wire));
-                            let related =
-                                Delta::new(0, 0, if tcid == tcls::PCI_W { "IO_W" } else { "IO_E" });
+                            let related = DeltaLegacy::new(
+                                0,
+                                0,
+                                if tcid == tcls::PCI_W { "IO_W" } else { "IO_E" },
+                            );
                             props.push(Box::new(Related::new(
                                 related.clone(),
                                 BaseIntPip::new(wire_buf, wire_from),

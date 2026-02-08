@@ -7,7 +7,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::Delta,
+        props::relation::DeltaLegacy,
     },
 };
 
@@ -264,7 +264,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mode = "PCIE_2_0";
 
     bctx.build()
-        .extra_tile_attr_legacy(Delta::new(3, 20, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
+        .extra_tile_attr_legacy(
+            DeltaLegacy::new(3, 20, "HCLK"),
+            "HCLK",
+            "DRP_MASK_PCIE",
+            "1",
+        )
         .test_manual_legacy("PRESENT", "1")
         .mode(mode)
         .commit();

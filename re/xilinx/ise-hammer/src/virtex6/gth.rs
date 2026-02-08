@@ -8,7 +8,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{pip::PinFar, relation::Delta},
+        props::{pip::PinFar, relation::DeltaLegacy},
     },
 };
 
@@ -360,7 +360,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut bctx = ctx.bel(defs::bslots::GTH_QUAD);
     let mode = "GTHE1_QUAD";
     bctx.build()
-        .extra_tile_attr_legacy(Delta::new(0, 0, "HCLK"), "HCLK", "DRP_MASK_BOTH", "GTH")
+        .extra_tile_attr_legacy(
+            DeltaLegacy::new(0, 0, "HCLK"),
+            "HCLK",
+            "DRP_MASK_BOTH",
+            "GTH",
+        )
         .test_manual_legacy("ENABLE", "1")
         .mode(mode)
         .commit();
