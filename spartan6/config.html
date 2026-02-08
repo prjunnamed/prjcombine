@@ -153,114 +153,1304 @@
                     <main>
                         <h1 id="configuration-registers"><a class="header" href="#configuration-registers">Configuration registers</a></h1>
 <p>TODO: document</p>
-<h2 id="cor1"><a class="header" href="#cor1"><code>COR1</code></a></h2>
+<h2 id="tile-global"><a class="header" href="#tile-global">Tile GLOBAL</a></h2>
+<p>Cells: 0</p>
+<h3 id="bels-global"><a class="header" href="#bels-global">Bels GLOBAL</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan6 REG.COR1 rect R0</caption>
+<caption>spartan6 GLOBAL bel GLOBAL pins</caption>
 <thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>GLOBAL</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL bel GLOBAL attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>GLOBAL</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>GWE_CYCLE</td><td><a href="#spartan6-GLOBAL-GLOBAL-GWE_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>GTS_CYCLE</td><td><a href="#spartan6-GLOBAL-GLOBAL-GTS_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>LOCK_CYCLE</td><td><a href="#spartan6-GLOBAL-GLOBAL-LOCK_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>DONE_CYCLE</td><td><a href="#spartan6-GLOBAL-GLOBAL-DONE_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>BPI_DIV8</td><td id="spartan6-GLOBAL-GLOBAL-BPI_DIV8"><a href="#spartan6-GLOBAL-bit-COR2[0][13]">COR2[0][13]</a></td></tr>
+
+<tr><td>BPI_DIV16</td><td id="spartan6-GLOBAL-GLOBAL-BPI_DIV16"><a href="#spartan6-GLOBAL-bit-COR2[0][14]">COR2[0][14]</a></td></tr>
+
+<tr><td>RESET_ON_ERR</td><td id="spartan6-GLOBAL-GLOBAL-RESET_ON_ERR"><a href="#spartan6-GLOBAL-bit-COR2[0][15]">COR2[0][15]</a></td></tr>
+
+<tr><td>DISABLE_VRD_REG</td><td id="spartan6-GLOBAL-GLOBAL-DISABLE_VRD_REG"><a href="#spartan6-GLOBAL-bit-COR2[0][12]">COR2[0][12]</a></td></tr>
+
+<tr><td>DRIVE_DONE</td><td id="spartan6-GLOBAL-GLOBAL-DRIVE_DONE"><a href="#spartan6-GLOBAL-bit-COR1[0][2]">COR1[0][2]</a></td></tr>
+
+<tr><td>DONE_PIPE</td><td id="spartan6-GLOBAL-GLOBAL-DONE_PIPE"><a href="#spartan6-GLOBAL-bit-COR1[0][3]">COR1[0][3]</a></td></tr>
+
+<tr><td>DRIVE_AWAKE</td><td id="spartan6-GLOBAL-GLOBAL-DRIVE_AWAKE"><a href="#spartan6-GLOBAL-bit-COR1[0][15]">COR1[0][15]</a></td></tr>
+
+<tr><td>CRC_ENABLE</td><td id="spartan6-GLOBAL-GLOBAL-CRC_ENABLE"><a href="#spartan6-GLOBAL-bit-COR1[0][4]">!COR1[0][4]</a></td></tr>
+
+<tr><td>VRDSEL bit 0</td><td id="spartan6-GLOBAL-GLOBAL-VRDSEL[0]"><a href="#spartan6-GLOBAL-bit-COR1[0][5]">COR1[0][5]</a></td></tr>
+
+<tr><td>VRDSEL bit 1</td><td id="spartan6-GLOBAL-GLOBAL-VRDSEL[1]"><a href="#spartan6-GLOBAL-bit-COR1[0][6]">COR1[0][6]</a></td></tr>
+
+<tr><td>VRDSEL bit 2</td><td id="spartan6-GLOBAL-GLOBAL-VRDSEL[2]"><a href="#spartan6-GLOBAL-bit-COR1[0][7]">COR1[0][7]</a></td></tr>
+
+<tr><td>SEND_VGG bit 0</td><td id="spartan6-GLOBAL-GLOBAL-SEND_VGG[0]"><a href="#spartan6-GLOBAL-bit-COR1[0][8]">COR1[0][8]</a></td></tr>
+
+<tr><td>SEND_VGG bit 1</td><td id="spartan6-GLOBAL-GLOBAL-SEND_VGG[1]"><a href="#spartan6-GLOBAL-bit-COR1[0][9]">COR1[0][9]</a></td></tr>
+
+<tr><td>SEND_VGG bit 2</td><td id="spartan6-GLOBAL-GLOBAL-SEND_VGG[2]"><a href="#spartan6-GLOBAL-bit-COR1[0][10]">COR1[0][10]</a></td></tr>
+
+<tr><td>SEND_VGG bit 3</td><td id="spartan6-GLOBAL-GLOBAL-SEND_VGG[3]"><a href="#spartan6-GLOBAL-bit-COR1[0][11]">COR1[0][11]</a></td></tr>
+
+<tr><td>VGG_ENABLE_OFFCHIP</td><td id="spartan6-GLOBAL-GLOBAL-VGG_ENABLE_OFFCHIP"><a href="#spartan6-GLOBAL-bit-COR1[0][13]">!COR1[0][13]</a></td></tr>
+
+<tr><td>VGG_SENDMAX</td><td id="spartan6-GLOBAL-GLOBAL-VGG_SENDMAX"><a href="#spartan6-GLOBAL-bit-COR1[0][12]">!COR1[0][12]</a></td></tr>
+
+<tr><td>STARTUP_CLOCK</td><td><a href="#spartan6-GLOBAL-GLOBAL-STARTUP_CLOCK">[enum: STARTUP_CLOCK]</a></td></tr>
+
+<tr><td>GTS_USR_B</td><td id="spartan6-GLOBAL-GLOBAL-GTS_USR_B"><a href="#spartan6-GLOBAL-bit-CTL[0][0]">CTL[0][0]</a></td></tr>
+
+<tr><td>POST_CRC_INIT_FLAG</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_INIT_FLAG"><a href="#spartan6-GLOBAL-bit-CTL[0][1]">!CTL[0][1]</a></td></tr>
+
+<tr><td>MULTIBOOT_ENABLE</td><td id="spartan6-GLOBAL-GLOBAL-MULTIBOOT_ENABLE"><a href="#spartan6-GLOBAL-bit-CTL[0][7]">CTL[0][7]</a></td></tr>
+
+<tr><td>SECURITY</td><td><a href="#spartan6-GLOBAL-GLOBAL-SECURITY">[enum: SECURITY]</a></td></tr>
+
+<tr><td>PERSIST</td><td id="spartan6-GLOBAL-GLOBAL-PERSIST"><a href="#spartan6-GLOBAL-bit-CTL[0][3]">CTL[0][3]</a></td></tr>
+
+<tr><td>ENCRYPT</td><td id="spartan6-GLOBAL-GLOBAL-ENCRYPT"><a href="#spartan6-GLOBAL-bit-CTL[0][6]">CTL[0][6]</a></td></tr>
+
+<tr><td>ENCRYPT_KEY_SELECT</td><td><a href="#spartan6-GLOBAL-GLOBAL-ENCRYPT_KEY_SELECT">[enum: ENCRYPT_KEY_SELECT]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 0</td><td id="spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[0]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][0]">CCLK_FREQ[0][0]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 1</td><td id="spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[1]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][1]">!CCLK_FREQ[0][1]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 2</td><td id="spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[2]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][2]">!CCLK_FREQ[0][2]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 3</td><td id="spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[3]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][3]">CCLK_FREQ[0][3]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 4</td><td id="spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[4]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][4]">CCLK_FREQ[0][4]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 5</td><td id="spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[5]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][5]">CCLK_FREQ[0][5]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 6</td><td id="spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[6]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][6]">CCLK_FREQ[0][6]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 7</td><td id="spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[7]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][7]">CCLK_FREQ[0][7]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 8</td><td id="spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[8]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][8]">CCLK_FREQ[0][8]</a></td></tr>
+
+<tr><td>CONFIG_RATE_DIV bit 9</td><td id="spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[9]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][9]">CCLK_FREQ[0][9]</a></td></tr>
+
+<tr><td>CCLK_DLY bit 0</td><td id="spartan6-GLOBAL-GLOBAL-CCLK_DLY[0]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][10]">CCLK_FREQ[0][10]</a></td></tr>
+
+<tr><td>CCLK_DLY bit 1</td><td id="spartan6-GLOBAL-GLOBAL-CCLK_DLY[1]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][11]">CCLK_FREQ[0][11]</a></td></tr>
+
+<tr><td>CCLK_SEP bit 0</td><td id="spartan6-GLOBAL-GLOBAL-CCLK_SEP[0]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][12]">CCLK_FREQ[0][12]</a></td></tr>
+
+<tr><td>CCLK_SEP bit 1</td><td id="spartan6-GLOBAL-GLOBAL-CCLK_SEP[1]"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][13]">CCLK_FREQ[0][13]</a></td></tr>
+
+<tr><td>EXT_CCLK_ENABLE</td><td id="spartan6-GLOBAL-GLOBAL-EXT_CCLK_ENABLE"><a href="#spartan6-GLOBAL-bit-CCLK_FREQ[0][14]">CCLK_FREQ[0][14]</a></td></tr>
+
+<tr><td>HC_CYCLE bit 0</td><td id="spartan6-GLOBAL-GLOBAL-HC_CYCLE[0]"><a href="#spartan6-GLOBAL-bit-HC_OPT[0][0]">HC_OPT[0][0]</a></td></tr>
+
+<tr><td>HC_CYCLE bit 1</td><td id="spartan6-GLOBAL-GLOBAL-HC_CYCLE[1]"><a href="#spartan6-GLOBAL-bit-HC_OPT[0][1]">HC_OPT[0][1]</a></td></tr>
+
+<tr><td>HC_CYCLE bit 2</td><td id="spartan6-GLOBAL-GLOBAL-HC_CYCLE[2]"><a href="#spartan6-GLOBAL-bit-HC_OPT[0][2]">HC_OPT[0][2]</a></td></tr>
+
+<tr><td>HC_CYCLE bit 3</td><td id="spartan6-GLOBAL-GLOBAL-HC_CYCLE[3]"><a href="#spartan6-GLOBAL-bit-HC_OPT[0][3]">HC_OPT[0][3]</a></td></tr>
+
+<tr><td>TWO_ROUND</td><td id="spartan6-GLOBAL-GLOBAL-TWO_ROUND"><a href="#spartan6-GLOBAL-bit-HC_OPT[0][4]">HC_OPT[0][4]</a></td></tr>
+
+<tr><td>BRAM_SKIP</td><td id="spartan6-GLOBAL-GLOBAL-BRAM_SKIP"><a href="#spartan6-GLOBAL-bit-HC_OPT[0][5]">HC_OPT[0][5]</a></td></tr>
+
+<tr><td>INIT_SKIP</td><td id="spartan6-GLOBAL-GLOBAL-INIT_SKIP"><a href="#spartan6-GLOBAL-bit-COR1[0][6]">COR1[0][6]</a></td></tr>
+
+<tr><td>SW_CLK</td><td><a href="#spartan6-GLOBAL-GLOBAL-SW_CLK">[enum: SW_CLK]</a></td></tr>
+
+<tr><td>EN_SUSPEND</td><td id="spartan6-GLOBAL-GLOBAL-EN_SUSPEND"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][2]">POWERDOWN[0][2]</a></td></tr>
+
+<tr><td>EN_SW_GSR</td><td id="spartan6-GLOBAL-GLOBAL-EN_SW_GSR"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][4]">POWERDOWN[0][4]</a></td></tr>
+
+<tr><td>SUSPEND_FILTER</td><td id="spartan6-GLOBAL-GLOBAL-SUSPEND_FILTER"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][5]">!POWERDOWN[0][5]</a></td></tr>
+
+<tr><td>MULTIPIN_WAKEUP</td><td id="spartan6-GLOBAL-GLOBAL-MULTIPIN_WAKEUP"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][14]">POWERDOWN[0][14]</a></td></tr>
+
+<tr><td>WAKE_DELAY1 bit 0</td><td id="spartan6-GLOBAL-GLOBAL-WAKE_DELAY1[0]"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][6]">POWERDOWN[0][6]</a></td></tr>
+
+<tr><td>WAKE_DELAY1 bit 1</td><td id="spartan6-GLOBAL-GLOBAL-WAKE_DELAY1[1]"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][7]">POWERDOWN[0][7]</a></td></tr>
+
+<tr><td>WAKE_DELAY1 bit 2</td><td id="spartan6-GLOBAL-GLOBAL-WAKE_DELAY1[2]"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][8]">POWERDOWN[0][8]</a></td></tr>
+
+<tr><td>WAKE_DELAY2 bit 0</td><td id="spartan6-GLOBAL-GLOBAL-WAKE_DELAY2[0]"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][9]">POWERDOWN[0][9]</a></td></tr>
+
+<tr><td>WAKE_DELAY2 bit 1</td><td id="spartan6-GLOBAL-GLOBAL-WAKE_DELAY2[1]"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][10]">POWERDOWN[0][10]</a></td></tr>
+
+<tr><td>WAKE_DELAY2 bit 2</td><td id="spartan6-GLOBAL-GLOBAL-WAKE_DELAY2[2]"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][11]">POWERDOWN[0][11]</a></td></tr>
+
+<tr><td>WAKE_DELAY2 bit 3</td><td id="spartan6-GLOBAL-GLOBAL-WAKE_DELAY2[3]"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][12]">POWERDOWN[0][12]</a></td></tr>
+
+<tr><td>WAKE_DELAY2 bit 4</td><td id="spartan6-GLOBAL-GLOBAL-WAKE_DELAY2[4]"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][13]">POWERDOWN[0][13]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 0</td><td id="spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[0]"><a href="#spartan6-GLOBAL-bit-PU_GWE[0][0]">PU_GWE[0][0]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 1</td><td id="spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[1]"><a href="#spartan6-GLOBAL-bit-PU_GWE[0][1]">PU_GWE[0][1]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 2</td><td id="spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[2]"><a href="#spartan6-GLOBAL-bit-PU_GWE[0][2]">PU_GWE[0][2]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 3</td><td id="spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[3]"><a href="#spartan6-GLOBAL-bit-PU_GWE[0][3]">PU_GWE[0][3]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 4</td><td id="spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[4]"><a href="#spartan6-GLOBAL-bit-PU_GWE[0][4]">PU_GWE[0][4]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 5</td><td id="spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[5]"><a href="#spartan6-GLOBAL-bit-PU_GWE[0][5]">PU_GWE[0][5]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 6</td><td id="spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[6]"><a href="#spartan6-GLOBAL-bit-PU_GWE[0][6]">PU_GWE[0][6]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 7</td><td id="spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[7]"><a href="#spartan6-GLOBAL-bit-PU_GWE[0][7]">PU_GWE[0][7]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 8</td><td id="spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[8]"><a href="#spartan6-GLOBAL-bit-PU_GWE[0][8]">PU_GWE[0][8]</a></td></tr>
+
+<tr><td>SW_GWE_CYCLE bit 9</td><td id="spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[9]"><a href="#spartan6-GLOBAL-bit-PU_GWE[0][9]">PU_GWE[0][9]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 0</td><td id="spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[0]"><a href="#spartan6-GLOBAL-bit-PU_GTS[0][0]">PU_GTS[0][0]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 1</td><td id="spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[1]"><a href="#spartan6-GLOBAL-bit-PU_GTS[0][1]">PU_GTS[0][1]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 2</td><td id="spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[2]"><a href="#spartan6-GLOBAL-bit-PU_GTS[0][2]">PU_GTS[0][2]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 3</td><td id="spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[3]"><a href="#spartan6-GLOBAL-bit-PU_GTS[0][3]">PU_GTS[0][3]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 4</td><td id="spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[4]"><a href="#spartan6-GLOBAL-bit-PU_GTS[0][4]">PU_GTS[0][4]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 5</td><td id="spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[5]"><a href="#spartan6-GLOBAL-bit-PU_GTS[0][5]">PU_GTS[0][5]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 6</td><td id="spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[6]"><a href="#spartan6-GLOBAL-bit-PU_GTS[0][6]">PU_GTS[0][6]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 7</td><td id="spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[7]"><a href="#spartan6-GLOBAL-bit-PU_GTS[0][7]">PU_GTS[0][7]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 8</td><td id="spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[8]"><a href="#spartan6-GLOBAL-bit-PU_GTS[0][8]">PU_GTS[0][8]</a></td></tr>
+
+<tr><td>SW_GTS_CYCLE bit 9</td><td id="spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[9]"><a href="#spartan6-GLOBAL-bit-PU_GTS[0][9]">PU_GTS[0][9]</a></td></tr>
+
+<tr><td>WAKEUP_MASK bit 0</td><td id="spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[0]"><a href="#spartan6-GLOBAL-bit-EYE_MASK[0][0]">EYE_MASK[0][0]</a></td></tr>
+
+<tr><td>WAKEUP_MASK bit 1</td><td id="spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[1]"><a href="#spartan6-GLOBAL-bit-EYE_MASK[0][1]">EYE_MASK[0][1]</a></td></tr>
+
+<tr><td>WAKEUP_MASK bit 2</td><td id="spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[2]"><a href="#spartan6-GLOBAL-bit-EYE_MASK[0][2]">EYE_MASK[0][2]</a></td></tr>
+
+<tr><td>WAKEUP_MASK bit 3</td><td id="spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[3]"><a href="#spartan6-GLOBAL-bit-EYE_MASK[0][3]">EYE_MASK[0][3]</a></td></tr>
+
+<tr><td>WAKEUP_MASK bit 4</td><td id="spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[4]"><a href="#spartan6-GLOBAL-bit-EYE_MASK[0][4]">EYE_MASK[0][4]</a></td></tr>
+
+<tr><td>WAKEUP_MASK bit 5</td><td id="spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[5]"><a href="#spartan6-GLOBAL-bit-EYE_MASK[0][5]">EYE_MASK[0][5]</a></td></tr>
+
+<tr><td>WAKEUP_MASK bit 6</td><td id="spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[6]"><a href="#spartan6-GLOBAL-bit-EYE_MASK[0][6]">EYE_MASK[0][6]</a></td></tr>
+
+<tr><td>WAKEUP_MASK bit 7</td><td id="spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[7]"><a href="#spartan6-GLOBAL-bit-EYE_MASK[0][7]">EYE_MASK[0][7]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_BOOT_MODE bit 0</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_BOOT_MODE[0]"><a href="#spartan6-GLOBAL-bit-MODE[0][8]">MODE[0][8]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_BOOT_MODE bit 1</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_BOOT_MODE[1]"><a href="#spartan6-GLOBAL-bit-MODE[0][9]">MODE[0][9]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_BOOT_MODE bit 2</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_BOOT_MODE[2]"><a href="#spartan6-GLOBAL-bit-MODE[0][10]">MODE[0][10]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_NEW_MODE</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_NEW_MODE"><a href="#spartan6-GLOBAL-bit-MODE[0][13]">MODE[0][13]</a></td></tr>
+
+<tr><td>SPI_BUSWIDTH</td><td><a href="#spartan6-GLOBAL-GLOBAL-SPI_BUSWIDTH">[enum: SPI_BUSWIDTH]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 0</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[0]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][0]">GENERAL1[0][0]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 1</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[1]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][1]">GENERAL1[0][1]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 2</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[2]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][2]">GENERAL1[0][2]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 3</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[3]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][3]">GENERAL1[0][3]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 4</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[4]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][4]">GENERAL1[0][4]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 5</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[5]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][5]">GENERAL1[0][5]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 6</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[6]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][6]">GENERAL1[0][6]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 7</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[7]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][7]">GENERAL1[0][7]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 8</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[8]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][8]">GENERAL1[0][8]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 9</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[9]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][9]">GENERAL1[0][9]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 10</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[10]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][10]">GENERAL1[0][10]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 11</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[11]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][11]">GENERAL1[0][11]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 12</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[12]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][12]">GENERAL1[0][12]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 13</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[13]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][13]">GENERAL1[0][13]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 14</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[14]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][14]">GENERAL1[0][14]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 15</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[15]"><a href="#spartan6-GLOBAL-bit-GENERAL1[0][15]">GENERAL1[0][15]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 16</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[16]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][0]">GENERAL2[0][0]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 17</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[17]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][1]">GENERAL2[0][1]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 18</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[18]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][2]">GENERAL2[0][2]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 19</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[19]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][3]">GENERAL2[0][3]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 20</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[20]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][4]">GENERAL2[0][4]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 21</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[21]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][5]">GENERAL2[0][5]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 22</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[22]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][6]">GENERAL2[0][6]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 23</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[23]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][7]">GENERAL2[0][7]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 24</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[24]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][8]">GENERAL2[0][8]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 25</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[25]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][9]">GENERAL2[0][9]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 26</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[26]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][10]">GENERAL2[0][10]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 27</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[27]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][11]">GENERAL2[0][11]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 28</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[28]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][12]">GENERAL2[0][12]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 29</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[29]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][13]">GENERAL2[0][13]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 30</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[30]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][14]">GENERAL2[0][14]</a></td></tr>
+
+<tr><td>NEXT_CONFIG_ADDR bit 31</td><td id="spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[31]"><a href="#spartan6-GLOBAL-bit-GENERAL2[0][15]">GENERAL2[0][15]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 0</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[0]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][0]">GENERAL3[0][0]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 1</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[1]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][1]">GENERAL3[0][1]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 2</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[2]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][2]">GENERAL3[0][2]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 3</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[3]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][3]">GENERAL3[0][3]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 4</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[4]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][4]">GENERAL3[0][4]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 5</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[5]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][5]">GENERAL3[0][5]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 6</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[6]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][6]">GENERAL3[0][6]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 7</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[7]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][7]">GENERAL3[0][7]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 8</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[8]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][8]">GENERAL3[0][8]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 9</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[9]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][9]">GENERAL3[0][9]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 10</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[10]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][10]">GENERAL3[0][10]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 11</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[11]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][11]">GENERAL3[0][11]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 12</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[12]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][12]">GENERAL3[0][12]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 13</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[13]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][13]">GENERAL3[0][13]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 14</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[14]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][14]">GENERAL3[0][14]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 15</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[15]"><a href="#spartan6-GLOBAL-bit-GENERAL3[0][15]">GENERAL3[0][15]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 16</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[16]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][0]">GENERAL4[0][0]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 17</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[17]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][1]">GENERAL4[0][1]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 18</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[18]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][2]">GENERAL4[0][2]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 19</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[19]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][3]">GENERAL4[0][3]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 20</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[20]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][4]">GENERAL4[0][4]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 21</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[21]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][5]">GENERAL4[0][5]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 22</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[22]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][6]">GENERAL4[0][6]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 23</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[23]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][7]">GENERAL4[0][7]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 24</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[24]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][8]">GENERAL4[0][8]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 25</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[25]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][9]">GENERAL4[0][9]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 26</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[26]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][10]">GENERAL4[0][10]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 27</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[27]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][11]">GENERAL4[0][11]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 28</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[28]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][12]">GENERAL4[0][12]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 29</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[29]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][13]">GENERAL4[0][13]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 30</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[30]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][14]">GENERAL4[0][14]</a></td></tr>
+
+<tr><td>GOLDEN_CONFIG_ADDR bit 31</td><td id="spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[31]"><a href="#spartan6-GLOBAL-bit-GENERAL4[0][15]">GENERAL4[0][15]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 0</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[0]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][0]">GENERAL5[0][0]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 1</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[1]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][1]">GENERAL5[0][1]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 2</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[2]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][2]">GENERAL5[0][2]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 3</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[3]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][3]">GENERAL5[0][3]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 4</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[4]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][4]">GENERAL5[0][4]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 5</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[5]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][5]">GENERAL5[0][5]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 6</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[6]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][6]">GENERAL5[0][6]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 7</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[7]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][7]">GENERAL5[0][7]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 8</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[8]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][8]">GENERAL5[0][8]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 9</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[9]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][9]">GENERAL5[0][9]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 10</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[10]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][10]">GENERAL5[0][10]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 11</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[11]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][11]">GENERAL5[0][11]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 12</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[12]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][12]">GENERAL5[0][12]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 13</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[13]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][13]">GENERAL5[0][13]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 14</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[14]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][14]">GENERAL5[0][14]</a></td></tr>
+
+<tr><td>FAILSAFE_USER bit 15</td><td id="spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[15]"><a href="#spartan6-GLOBAL-bit-GENERAL5[0][15]">GENERAL5[0][15]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 0</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[0]"><a href="#spartan6-GLOBAL-bit-TIMER[0][0]">TIMER[0][0]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 1</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[1]"><a href="#spartan6-GLOBAL-bit-TIMER[0][1]">TIMER[0][1]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 2</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[2]"><a href="#spartan6-GLOBAL-bit-TIMER[0][2]">TIMER[0][2]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 3</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[3]"><a href="#spartan6-GLOBAL-bit-TIMER[0][3]">TIMER[0][3]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 4</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[4]"><a href="#spartan6-GLOBAL-bit-TIMER[0][4]">TIMER[0][4]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 5</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[5]"><a href="#spartan6-GLOBAL-bit-TIMER[0][5]">TIMER[0][5]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 6</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[6]"><a href="#spartan6-GLOBAL-bit-TIMER[0][6]">TIMER[0][6]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 7</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[7]"><a href="#spartan6-GLOBAL-bit-TIMER[0][7]">TIMER[0][7]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 8</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[8]"><a href="#spartan6-GLOBAL-bit-TIMER[0][8]">TIMER[0][8]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 9</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[9]"><a href="#spartan6-GLOBAL-bit-TIMER[0][9]">TIMER[0][9]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 10</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[10]"><a href="#spartan6-GLOBAL-bit-TIMER[0][10]">TIMER[0][10]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 11</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[11]"><a href="#spartan6-GLOBAL-bit-TIMER[0][11]">TIMER[0][11]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 12</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[12]"><a href="#spartan6-GLOBAL-bit-TIMER[0][12]">TIMER[0][12]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 13</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[13]"><a href="#spartan6-GLOBAL-bit-TIMER[0][13]">TIMER[0][13]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 14</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[14]"><a href="#spartan6-GLOBAL-bit-TIMER[0][14]">TIMER[0][14]</a></td></tr>
+
+<tr><td>TIMER_CFG bit 15</td><td id="spartan6-GLOBAL-GLOBAL-TIMER_CFG[15]"><a href="#spartan6-GLOBAL-bit-TIMER[0][15]">TIMER[0][15]</a></td></tr>
+
+<tr><td>POST_CRC_EN</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_EN"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][0]">SEU_OPT[0][0]</a></td></tr>
+
+<tr><td>GLUTMASK</td><td id="spartan6-GLOBAL-GLOBAL-GLUTMASK"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][1]">SEU_OPT[0][1]</a></td></tr>
+
+<tr><td>POST_CRC_KEEP</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_KEEP"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][3]">SEU_OPT[0][3]</a></td></tr>
+
+<tr><td>POST_CRC_ONESHOT</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_ONESHOT"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][14]">SEU_OPT[0][14]</a></td></tr>
+
+<tr><td>POST_CRC_SEL</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_SEL"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][15]">!SEU_OPT[0][15]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 0</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[0]"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][4]">SEU_OPT[0][4]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 1</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[1]"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][5]">SEU_OPT[0][5]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 2</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[2]"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][6]">SEU_OPT[0][6]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 3</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[3]"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][7]">SEU_OPT[0][7]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 4</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[4]"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][8]">SEU_OPT[0][8]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 5</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[5]"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][9]">SEU_OPT[0][9]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 6</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[6]"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][10]">SEU_OPT[0][10]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 7</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[7]"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][11]">SEU_OPT[0][11]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 8</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[8]"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][12]">SEU_OPT[0][12]</a></td></tr>
+
+<tr><td>POST_CRC_FREQ_DIV bit 9</td><td id="spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[9]"><a href="#spartan6-GLOBAL-bit-SEU_OPT[0][13]">SEU_OPT[0][13]</a></td></tr>
+
+<tr><td>VGG_TEST</td><td id="spartan6-GLOBAL-GLOBAL-VGG_TEST"><a href="#spartan6-GLOBAL-bit-TESTMODE[0][0]">TESTMODE[0][0]</a></td></tr>
+
+<tr><td>ICAP_BYPASS</td><td id="spartan6-GLOBAL-GLOBAL-ICAP_BYPASS"><a href="#spartan6-GLOBAL-bit-TESTMODE[0][1]">TESTMODE[0][1]</a></td></tr>
+
+<tr><td>TESTMODE_EN</td><td id="spartan6-GLOBAL-GLOBAL-TESTMODE_EN"><a href="#spartan6-GLOBAL-bit-TESTMODE[0][2]">TESTMODE[0][2]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL enum STARTUP_CYCLE</caption>
+<thead>
+<tr id="spartan6-GLOBAL-GLOBAL-GWE_CYCLE"><th>GLOBAL.GWE_CYCLE</th><td id="spartan6-GLOBAL-GLOBAL-GWE_CYCLE[2]"><a href="#spartan6-GLOBAL-bit-COR2[0][2]">COR2[0][2]</a></td><td id="spartan6-GLOBAL-GLOBAL-GWE_CYCLE[1]"><a href="#spartan6-GLOBAL-bit-COR2[0][1]">COR2[0][1]</a></td><td id="spartan6-GLOBAL-GLOBAL-GWE_CYCLE[0]"><a href="#spartan6-GLOBAL-bit-COR2[0][0]">COR2[0][0]</a></td></tr>
+
+<tr id="spartan6-GLOBAL-GLOBAL-GTS_CYCLE"><th>GLOBAL.GTS_CYCLE</th><td id="spartan6-GLOBAL-GLOBAL-GTS_CYCLE[2]"><a href="#spartan6-GLOBAL-bit-COR2[0][5]">COR2[0][5]</a></td><td id="spartan6-GLOBAL-GLOBAL-GTS_CYCLE[1]"><a href="#spartan6-GLOBAL-bit-COR2[0][4]">COR2[0][4]</a></td><td id="spartan6-GLOBAL-GLOBAL-GTS_CYCLE[0]"><a href="#spartan6-GLOBAL-bit-COR2[0][3]">COR2[0][3]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_2</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_3</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_4</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_5</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>_6</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>DONE</td><td>1</td><td>1</td><td>1</td></tr>
+
+<tr><td>KEEP</td><td>0</td><td>0</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL enum STARTUP_CYCLE</caption>
+<thead>
+<tr id="spartan6-GLOBAL-GLOBAL-LOCK_CYCLE"><th>GLOBAL.LOCK_CYCLE</th><td id="spartan6-GLOBAL-GLOBAL-LOCK_CYCLE[2]"><a href="#spartan6-GLOBAL-bit-COR2[0][8]">COR2[0][8]</a></td><td id="spartan6-GLOBAL-GLOBAL-LOCK_CYCLE[1]"><a href="#spartan6-GLOBAL-bit-COR2[0][7]">COR2[0][7]</a></td><td id="spartan6-GLOBAL-GLOBAL-LOCK_CYCLE[0]"><a href="#spartan6-GLOBAL-bit-COR2[0][6]">COR2[0][6]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_2</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_3</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_4</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_5</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>_6</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>NOWAIT</td><td>1</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL enum STARTUP_CYCLE</caption>
+<thead>
+<tr id="spartan6-GLOBAL-GLOBAL-DONE_CYCLE"><th>GLOBAL.DONE_CYCLE</th><td id="spartan6-GLOBAL-GLOBAL-DONE_CYCLE[2]"><a href="#spartan6-GLOBAL-bit-COR2[0][11]">COR2[0][11]</a></td><td id="spartan6-GLOBAL-GLOBAL-DONE_CYCLE[1]"><a href="#spartan6-GLOBAL-bit-COR2[0][10]">COR2[0][10]</a></td><td id="spartan6-GLOBAL-GLOBAL-DONE_CYCLE[0]"><a href="#spartan6-GLOBAL-bit-COR2[0][9]">COR2[0][9]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_2</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_3</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_4</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_5</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>_6</td><td>1</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL enum STARTUP_CLOCK</caption>
+<thead>
+<tr id="spartan6-GLOBAL-GLOBAL-STARTUP_CLOCK"><th>GLOBAL.STARTUP_CLOCK</th><td id="spartan6-GLOBAL-GLOBAL-STARTUP_CLOCK[1]"><a href="#spartan6-GLOBAL-bit-COR1[0][1]">COR1[0][1]</a></td><td id="spartan6-GLOBAL-GLOBAL-STARTUP_CLOCK[0]"><a href="#spartan6-GLOBAL-bit-COR1[0][0]">COR1[0][0]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CCLK</td><td>0</td><td>0</td></tr>
+
+<tr><td>USERCLK</td><td>0</td><td>1</td></tr>
+
+<tr><td>JTAGCLK</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL enum SECURITY</caption>
+<thead>
+<tr id="spartan6-GLOBAL-GLOBAL-SECURITY"><th>GLOBAL.SECURITY</th><td id="spartan6-GLOBAL-GLOBAL-SECURITY[1]"><a href="#spartan6-GLOBAL-bit-CTL[0][5]">CTL[0][5]</a></td><td id="spartan6-GLOBAL-GLOBAL-SECURITY[0]"><a href="#spartan6-GLOBAL-bit-CTL[0][4]">CTL[0][4]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>0</td></tr>
+
+<tr><td>LEVEL1</td><td>0</td><td>1</td></tr>
+
+<tr><td>LEVEL2</td><td>1</td><td>0</td></tr>
+
+<tr><td>LEVEL3</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL enum ENCRYPT_KEY_SELECT</caption>
+<thead>
+<tr id="spartan6-GLOBAL-GLOBAL-ENCRYPT_KEY_SELECT"><th>GLOBAL.ENCRYPT_KEY_SELECT</th><td id="spartan6-GLOBAL-GLOBAL-ENCRYPT_KEY_SELECT[0]"><a href="#spartan6-GLOBAL-bit-CTL[0][2]">CTL[0][2]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>BBRAM</td><td>0</td></tr>
+
+<tr><td>EFUSE</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL enum SW_CLK</caption>
+<thead>
+<tr id="spartan6-GLOBAL-GLOBAL-SW_CLK"><th>GLOBAL.SW_CLK</th><td id="spartan6-GLOBAL-GLOBAL-SW_CLK[0]"><a href="#spartan6-GLOBAL-bit-POWERDOWN[0][0]">POWERDOWN[0][0]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>INTERNALCLK</td><td>0</td></tr>
+
+<tr><td>STARTUPCLK</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL enum SPI_BUSWIDTH</caption>
+<thead>
+<tr id="spartan6-GLOBAL-GLOBAL-SPI_BUSWIDTH"><th>GLOBAL.SPI_BUSWIDTH</th><td id="spartan6-GLOBAL-GLOBAL-SPI_BUSWIDTH[1]"><a href="#spartan6-GLOBAL-bit-COR1[0][12]">COR1[0][12]</a></td><td id="spartan6-GLOBAL-GLOBAL-SPI_BUSWIDTH[0]"><a href="#spartan6-GLOBAL-bit-COR1[0][11]">COR1[0][11]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_2</td><td>0</td><td>1</td></tr>
+
+<tr><td>_4</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect COR1</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.COR1-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK[0]</a>
+<tr><td>F0</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][15]" title="COR1[0][15]">
+<a href="#spartan6-GLOBAL-GLOBAL-DRIVE_AWAKE">GLOBAL:  DRIVE_AWAKE</a>
+</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][13]" title="COR1[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-VGG_ENABLE_OFFCHIP">GLOBAL: ! VGG_ENABLE_OFFCHIP</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][12]" title="COR1[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-VGG_SENDMAX">GLOBAL: ! VGG_SENDMAX</a>
+<a href="#spartan6-GLOBAL-GLOBAL-SPI_BUSWIDTH[1]">GLOBAL:  SPI_BUSWIDTH bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][11]" title="COR1[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-SEND_VGG[3]">GLOBAL:  SEND_VGG bit 3</a>
+<a href="#spartan6-GLOBAL-GLOBAL-SPI_BUSWIDTH[0]">GLOBAL:  SPI_BUSWIDTH bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][10]" title="COR1[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-SEND_VGG[2]">GLOBAL:  SEND_VGG bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][9]" title="COR1[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-SEND_VGG[1]">GLOBAL:  SEND_VGG bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][8]" title="COR1[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-SEND_VGG[0]">GLOBAL:  SEND_VGG bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][7]" title="COR1[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-VRDSEL[2]">GLOBAL:  VRDSEL bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][6]" title="COR1[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-VRDSEL[1]">GLOBAL:  VRDSEL bit 1</a>
+<a href="#spartan6-GLOBAL-GLOBAL-INIT_SKIP">GLOBAL:  INIT_SKIP</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][5]" title="COR1[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-VRDSEL[0]">GLOBAL:  VRDSEL bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][4]" title="COR1[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-CRC_ENABLE">GLOBAL: ! CRC_ENABLE</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][3]" title="COR1[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-DONE_PIPE">GLOBAL:  DONE_PIPE</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][2]" title="COR1[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-DRIVE_DONE">GLOBAL:  DRIVE_DONE</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][1]" title="COR1[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-STARTUP_CLOCK[1]">GLOBAL:  STARTUP_CLOCK bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR1[0][0]" title="COR1[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-STARTUP_CLOCK[0]">GLOBAL:  STARTUP_CLOCK bit 0</a>
 </td>
 </tr>
 
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.COR1-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK[1]</a>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect COR2</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][15]" title="COR2[0][15]">
+<a href="#spartan6-GLOBAL-GLOBAL-RESET_ON_ERR">GLOBAL:  RESET_ON_ERR</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][14]" title="COR2[0][14]">
+<a href="#spartan6-GLOBAL-GLOBAL-BPI_DIV16">GLOBAL:  BPI_DIV16</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][13]" title="COR2[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-BPI_DIV8">GLOBAL:  BPI_DIV8</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][12]" title="COR2[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-DISABLE_VRD_REG">GLOBAL:  DISABLE_VRD_REG</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][11]" title="COR2[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-DONE_CYCLE[2]">GLOBAL:  DONE_CYCLE bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][10]" title="COR2[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-DONE_CYCLE[1]">GLOBAL:  DONE_CYCLE bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][9]" title="COR2[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-DONE_CYCLE[0]">GLOBAL:  DONE_CYCLE bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][8]" title="COR2[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-LOCK_CYCLE[2]">GLOBAL:  LOCK_CYCLE bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][7]" title="COR2[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-LOCK_CYCLE[1]">GLOBAL:  LOCK_CYCLE bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][6]" title="COR2[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-LOCK_CYCLE[0]">GLOBAL:  LOCK_CYCLE bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][5]" title="COR2[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-GTS_CYCLE[2]">GLOBAL:  GTS_CYCLE bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][4]" title="COR2[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-GTS_CYCLE[1]">GLOBAL:  GTS_CYCLE bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][3]" title="COR2[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-GTS_CYCLE[0]">GLOBAL:  GTS_CYCLE bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][2]" title="COR2[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-GWE_CYCLE[2]">GLOBAL:  GWE_CYCLE bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][1]" title="COR2[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-GWE_CYCLE[1]">GLOBAL:  GWE_CYCLE bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-COR2[0][0]" title="COR2[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-GWE_CYCLE[0]">GLOBAL:  GWE_CYCLE bit 0</a>
 </td>
 </tr>
 
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.COR1-STARTUP:DRIVE_DONE">STARTUP:DRIVE_DONE</a>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect CTL</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-CTL[0][7]" title="CTL[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-MULTIBOOT_ENABLE">GLOBAL:  MULTIBOOT_ENABLE</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CTL[0][6]" title="CTL[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-ENCRYPT">GLOBAL:  ENCRYPT</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CTL[0][5]" title="CTL[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-SECURITY[1]">GLOBAL:  SECURITY bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CTL[0][4]" title="CTL[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-SECURITY[0]">GLOBAL:  SECURITY bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CTL[0][3]" title="CTL[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-PERSIST">GLOBAL:  PERSIST</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CTL[0][2]" title="CTL[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-ENCRYPT_KEY_SELECT[0]">GLOBAL:  ENCRYPT_KEY_SELECT bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CTL[0][1]" title="CTL[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_INIT_FLAG">GLOBAL: ! POST_CRC_INIT_FLAG</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CTL[0][0]" title="CTL[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-GTS_USR_B">GLOBAL:  GTS_USR_B</a>
 </td>
 </tr>
 
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.COR1-STARTUP:DONE_PIPE">STARTUP:DONE_PIPE</a>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect CCLK_FREQ</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][14]" title="CCLK_FREQ[0][14]">
+<a href="#spartan6-GLOBAL-GLOBAL-EXT_CCLK_ENABLE">GLOBAL:  EXT_CCLK_ENABLE</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][13]" title="CCLK_FREQ[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-CCLK_SEP[1]">GLOBAL:  CCLK_SEP bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][12]" title="CCLK_FREQ[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-CCLK_SEP[0]">GLOBAL:  CCLK_SEP bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][11]" title="CCLK_FREQ[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-CCLK_DLY[1]">GLOBAL:  CCLK_DLY bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][10]" title="CCLK_FREQ[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-CCLK_DLY[0]">GLOBAL:  CCLK_DLY bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][9]" title="CCLK_FREQ[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[9]">GLOBAL:  CONFIG_RATE_DIV bit 9</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][8]" title="CCLK_FREQ[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[8]">GLOBAL:  CONFIG_RATE_DIV bit 8</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][7]" title="CCLK_FREQ[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[7]">GLOBAL:  CONFIG_RATE_DIV bit 7</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][6]" title="CCLK_FREQ[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[6]">GLOBAL:  CONFIG_RATE_DIV bit 6</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][5]" title="CCLK_FREQ[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[5]">GLOBAL:  CONFIG_RATE_DIV bit 5</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][4]" title="CCLK_FREQ[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[4]">GLOBAL:  CONFIG_RATE_DIV bit 4</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][3]" title="CCLK_FREQ[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[3]">GLOBAL:  CONFIG_RATE_DIV bit 3</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][2]" title="CCLK_FREQ[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[2]">GLOBAL: ! CONFIG_RATE_DIV bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][1]" title="CCLK_FREQ[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[1]">GLOBAL: ! CONFIG_RATE_DIV bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-CCLK_FREQ[0][0]" title="CCLK_FREQ[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-CONFIG_RATE_DIV[0]">GLOBAL:  CONFIG_RATE_DIV bit 0</a>
 </td>
 </tr>
 
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.COR1-STARTUP:CRC">~STARTUP:CRC</a>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect HC_OPT</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-HC_OPT[0][5]" title="HC_OPT[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-BRAM_SKIP">GLOBAL:  BRAM_SKIP</a>
+</td>
+<td id="spartan6-GLOBAL-bit-HC_OPT[0][4]" title="HC_OPT[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-TWO_ROUND">GLOBAL:  TWO_ROUND</a>
+</td>
+<td id="spartan6-GLOBAL-bit-HC_OPT[0][3]" title="HC_OPT[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-HC_CYCLE[3]">GLOBAL:  HC_CYCLE bit 3</a>
+</td>
+<td id="spartan6-GLOBAL-bit-HC_OPT[0][2]" title="HC_OPT[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-HC_CYCLE[2]">GLOBAL:  HC_CYCLE bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-HC_OPT[0][1]" title="HC_OPT[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-HC_CYCLE[1]">GLOBAL:  HC_CYCLE bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-HC_OPT[0][0]" title="HC_OPT[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-HC_CYCLE[0]">GLOBAL:  HC_CYCLE bit 0</a>
 </td>
 </tr>
 
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.COR1-STARTUP:VRDSEL">STARTUP:VRDSEL[0]</a>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect POWERDOWN</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][14]" title="POWERDOWN[0][14]">
+<a href="#spartan6-GLOBAL-GLOBAL-MULTIPIN_WAKEUP">GLOBAL:  MULTIPIN_WAKEUP</a>
+</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][13]" title="POWERDOWN[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKE_DELAY2[4]">GLOBAL:  WAKE_DELAY2 bit 4</a>
+</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][12]" title="POWERDOWN[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKE_DELAY2[3]">GLOBAL:  WAKE_DELAY2 bit 3</a>
+</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][11]" title="POWERDOWN[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKE_DELAY2[2]">GLOBAL:  WAKE_DELAY2 bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][10]" title="POWERDOWN[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKE_DELAY2[1]">GLOBAL:  WAKE_DELAY2 bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][9]" title="POWERDOWN[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKE_DELAY2[0]">GLOBAL:  WAKE_DELAY2 bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][8]" title="POWERDOWN[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKE_DELAY1[2]">GLOBAL:  WAKE_DELAY1 bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][7]" title="POWERDOWN[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKE_DELAY1[1]">GLOBAL:  WAKE_DELAY1 bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][6]" title="POWERDOWN[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKE_DELAY1[0]">GLOBAL:  WAKE_DELAY1 bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][5]" title="POWERDOWN[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-SUSPEND_FILTER">GLOBAL: ! SUSPEND_FILTER</a>
+</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][4]" title="POWERDOWN[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-EN_SW_GSR">GLOBAL:  EN_SW_GSR</a>
+</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][2]" title="POWERDOWN[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-EN_SUSPEND">GLOBAL:  EN_SUSPEND</a>
+</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-POWERDOWN[0][0]" title="POWERDOWN[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_CLK[0]">GLOBAL:  SW_CLK bit 0</a>
 </td>
 </tr>
 
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.COR1-STARTUP:VRDSEL">STARTUP:VRDSEL[1]</a>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect PU_GWE</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-PU_GWE[0][9]" title="PU_GWE[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[9]">GLOBAL:  SW_GWE_CYCLE bit 9</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GWE[0][8]" title="PU_GWE[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[8]">GLOBAL:  SW_GWE_CYCLE bit 8</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GWE[0][7]" title="PU_GWE[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[7]">GLOBAL:  SW_GWE_CYCLE bit 7</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GWE[0][6]" title="PU_GWE[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[6]">GLOBAL:  SW_GWE_CYCLE bit 6</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GWE[0][5]" title="PU_GWE[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[5]">GLOBAL:  SW_GWE_CYCLE bit 5</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GWE[0][4]" title="PU_GWE[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[4]">GLOBAL:  SW_GWE_CYCLE bit 4</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GWE[0][3]" title="PU_GWE[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[3]">GLOBAL:  SW_GWE_CYCLE bit 3</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GWE[0][2]" title="PU_GWE[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[2]">GLOBAL:  SW_GWE_CYCLE bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GWE[0][1]" title="PU_GWE[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[1]">GLOBAL:  SW_GWE_CYCLE bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GWE[0][0]" title="PU_GWE[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GWE_CYCLE[0]">GLOBAL:  SW_GWE_CYCLE bit 0</a>
 </td>
 </tr>
 
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.COR1-STARTUP:VRDSEL">STARTUP:VRDSEL[2]</a>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect PU_GTS</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-PU_GTS[0][9]" title="PU_GTS[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[9]">GLOBAL:  SW_GTS_CYCLE bit 9</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GTS[0][8]" title="PU_GTS[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[8]">GLOBAL:  SW_GTS_CYCLE bit 8</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GTS[0][7]" title="PU_GTS[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[7]">GLOBAL:  SW_GTS_CYCLE bit 7</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GTS[0][6]" title="PU_GTS[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[6]">GLOBAL:  SW_GTS_CYCLE bit 6</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GTS[0][5]" title="PU_GTS[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[5]">GLOBAL:  SW_GTS_CYCLE bit 5</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GTS[0][4]" title="PU_GTS[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[4]">GLOBAL:  SW_GTS_CYCLE bit 4</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GTS[0][3]" title="PU_GTS[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[3]">GLOBAL:  SW_GTS_CYCLE bit 3</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GTS[0][2]" title="PU_GTS[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[2]">GLOBAL:  SW_GTS_CYCLE bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GTS[0][1]" title="PU_GTS[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[1]">GLOBAL:  SW_GTS_CYCLE bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-PU_GTS[0][0]" title="PU_GTS[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-SW_GTS_CYCLE[0]">GLOBAL:  SW_GTS_CYCLE bit 0</a>
 </td>
 </tr>
 
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.COR1-MISC:SEND_VGG">MISC:SEND_VGG[0]</a>
-</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect MODE</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.COR1-MISC:SEND_VGG">MISC:SEND_VGG[1]</a>
-</td>
-</tr>
+</thead>
 
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan6-REG.COR1-MISC:SEND_VGG">MISC:SEND_VGG[2]</a>
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-MODE[0][13]" title="MODE[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_NEW_MODE">GLOBAL:  NEXT_CONFIG_NEW_MODE</a>
 </td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan6-REG.COR1-MISC:SEND_VGG">MISC:SEND_VGG[3]</a>
+<td>-</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-MODE[0][10]" title="MODE[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_BOOT_MODE[2]">GLOBAL:  NEXT_CONFIG_BOOT_MODE bit 2</a>
 </td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan6-REG.COR1-MISC:VGG_SENDMAX">~MISC:VGG_SENDMAX</a>
+<td id="spartan6-GLOBAL-bit-MODE[0][9]" title="MODE[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_BOOT_MODE[1]">GLOBAL:  NEXT_CONFIG_BOOT_MODE bit 1</a>
 </td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan6-REG.COR1-MISC:VGG_ENABLE_OFFCHIP">~MISC:VGG_ENABLE_OFFCHIP</a>
+<td id="spartan6-GLOBAL-bit-MODE[0][8]" title="MODE[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_BOOT_MODE[0]">GLOBAL:  NEXT_CONFIG_BOOT_MODE bit 0</a>
 </td>
-</tr>
-
-<tr><td>B14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 </tr>
 
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan6-REG.COR1-STARTUP:DRIVE_AWAKE">STARTUP:DRIVE_AWAKE</a>
-</td>
-</tr>
-
 </tbody>
 
 </table>
@@ -268,252 +1458,80 @@
 
 <div class="table-wrapper">
 <table>
+<caption>spartan6 GLOBAL rect GENERAL1</caption>
 <thead>
-<tr><th id="tile-spartan6-REG.COR1-MISC:SEND_VGG">MISC:SEND_VGG</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.COR1-MISC:VGG_ENABLE_OFFCHIP">MISC:VGG_ENABLE_OFFCHIP</th>
-<th>0.F0.B13</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.COR1-MISC:VGG_SENDMAX">MISC:VGG_SENDMAX</th>
-<th>0.F0.B12</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.COR1-STARTUP:CRC">STARTUP:CRC</th>
-<th>0.F0.B4</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.COR1-STARTUP:DONE_PIPE">STARTUP:DONE_PIPE</th>
-<th>0.F0.B3</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.COR1-STARTUP:DRIVE_AWAKE">STARTUP:DRIVE_AWAKE</th>
-<th>0.F0.B15</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.COR1-STARTUP:DRIVE_DONE">STARTUP:DRIVE_DONE</th>
-<th>0.F0.B2</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.COR1-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>CCLK</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>USERCLK</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>JTAGCLK</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.COR1-STARTUP:VRDSEL">STARTUP:VRDSEL</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="cor2"><a class="header" href="#cor2"><code>COR2</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.COR2 rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.COR2-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[0]</a>
+<tr><td>F0</td>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][15]" title="GENERAL1[0][15]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[15]">GLOBAL:  NEXT_CONFIG_ADDR bit 15</a>
 </td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.COR2-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[1]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][14]" title="GENERAL1[0][14]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[14]">GLOBAL:  NEXT_CONFIG_ADDR bit 14</a>
 </td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.COR2-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[2]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][13]" title="GENERAL1[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[13]">GLOBAL:  NEXT_CONFIG_ADDR bit 13</a>
 </td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.COR2-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[0]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][12]" title="GENERAL1[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[12]">GLOBAL:  NEXT_CONFIG_ADDR bit 12</a>
 </td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.COR2-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[1]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][11]" title="GENERAL1[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[11]">GLOBAL:  NEXT_CONFIG_ADDR bit 11</a>
 </td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.COR2-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[2]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][10]" title="GENERAL1[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[10]">GLOBAL:  NEXT_CONFIG_ADDR bit 10</a>
 </td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.COR2-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[0]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][9]" title="GENERAL1[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[9]">GLOBAL:  NEXT_CONFIG_ADDR bit 9</a>
 </td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.COR2-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[1]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][8]" title="GENERAL1[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[8]">GLOBAL:  NEXT_CONFIG_ADDR bit 8</a>
 </td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.COR2-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[2]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][7]" title="GENERAL1[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[7]">GLOBAL:  NEXT_CONFIG_ADDR bit 7</a>
 </td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.COR2-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[0]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][6]" title="GENERAL1[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[6]">GLOBAL:  NEXT_CONFIG_ADDR bit 6</a>
 </td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan6-REG.COR2-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[1]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][5]" title="GENERAL1[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[5]">GLOBAL:  NEXT_CONFIG_ADDR bit 5</a>
 </td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan6-REG.COR2-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[2]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][4]" title="GENERAL1[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[4]">GLOBAL:  NEXT_CONFIG_ADDR bit 4</a>
 </td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan6-REG.COR2-STARTUP:DISABLE_VRD_REG">STARTUP:DISABLE_VRD_REG</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][3]" title="GENERAL1[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[3]">GLOBAL:  NEXT_CONFIG_ADDR bit 3</a>
 </td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan6-REG.COR2-STARTUP:BPI_DIV8">STARTUP:BPI_DIV8</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][2]" title="GENERAL1[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[2]">GLOBAL:  NEXT_CONFIG_ADDR bit 2</a>
 </td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan6-REG.COR2-STARTUP:BPI_DIV16">STARTUP:BPI_DIV16</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][1]" title="GENERAL1[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[1]">GLOBAL:  NEXT_CONFIG_ADDR bit 1</a>
 </td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan6-REG.COR2-STARTUP:RESET_ON_ERR">STARTUP:RESET_ON_ERR</a>
+<td id="spartan6-GLOBAL-bit-GENERAL1[0][0]" title="GENERAL1[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[0]">GLOBAL:  NEXT_CONFIG_ADDR bit 0</a>
 </td>
 </tr>
 
@@ -524,279 +1542,80 @@ non-inverted
 
 <div class="table-wrapper">
 <table>
+<caption>spartan6 GLOBAL rect GENERAL2</caption>
 <thead>
-<tr><th id="tile-spartan6-REG.COR2-STARTUP:BPI_DIV16">STARTUP:BPI_DIV16</th>
-<th>0.F0.B14</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.COR2-STARTUP:BPI_DIV8">STARTUP:BPI_DIV8</th>
-<th>0.F0.B13</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.COR2-STARTUP:DISABLE_VRD_REG">STARTUP:DISABLE_VRD_REG</th>
-<th>0.F0.B12</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.COR2-STARTUP:RESET_ON_ERR">STARTUP:RESET_ON_ERR</th>
-<th>0.F0.B15</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.COR2-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>4</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>5</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>6</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.COR2-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.COR2-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>KEEP</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>4</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>5</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>6</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>DONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.COR2-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>4</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>5</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>6</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NOWAIT</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="ctl"><a class="header" href="#ctl"><code>CTL</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.CTL rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.CTL-MISC:GTS_USR_B">MISC:GTS_USR_B</a>
+<tr><td>F0</td>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][15]" title="GENERAL2[0][15]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[31]">GLOBAL:  NEXT_CONFIG_ADDR bit 31</a>
 </td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.CTL-MISC:POST_CRC_INIT_FLAG">~MISC:POST_CRC_INIT_FLAG</a>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][14]" title="GENERAL2[0][14]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[30]">GLOBAL:  NEXT_CONFIG_ADDR bit 30</a>
 </td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.CTL-MISC:ENCRYPT_KEY_SELECT">MISC:ENCRYPT_KEY_SELECT[0]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][13]" title="GENERAL2[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[29]">GLOBAL:  NEXT_CONFIG_ADDR bit 29</a>
 </td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.CTL-MISC:PERSIST">MISC:PERSIST</a>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][12]" title="GENERAL2[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[28]">GLOBAL:  NEXT_CONFIG_ADDR bit 28</a>
 </td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.CTL-MISC:SECURITY">MISC:SECURITY[0]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][11]" title="GENERAL2[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[27]">GLOBAL:  NEXT_CONFIG_ADDR bit 27</a>
 </td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.CTL-MISC:SECURITY">MISC:SECURITY[1]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][10]" title="GENERAL2[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[26]">GLOBAL:  NEXT_CONFIG_ADDR bit 26</a>
 </td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.CTL-MISC:ENCRYPT">MISC:ENCRYPT</a>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][9]" title="GENERAL2[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[25]">GLOBAL:  NEXT_CONFIG_ADDR bit 25</a>
 </td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.CTL-MISC:MULTIBOOT_ENABLE">MISC:MULTIBOOT_ENABLE</a>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][8]" title="GENERAL2[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[24]">GLOBAL:  NEXT_CONFIG_ADDR bit 24</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][7]" title="GENERAL2[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[23]">GLOBAL:  NEXT_CONFIG_ADDR bit 23</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][6]" title="GENERAL2[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[22]">GLOBAL:  NEXT_CONFIG_ADDR bit 22</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][5]" title="GENERAL2[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[21]">GLOBAL:  NEXT_CONFIG_ADDR bit 21</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][4]" title="GENERAL2[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[20]">GLOBAL:  NEXT_CONFIG_ADDR bit 20</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][3]" title="GENERAL2[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[19]">GLOBAL:  NEXT_CONFIG_ADDR bit 19</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][2]" title="GENERAL2[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[18]">GLOBAL:  NEXT_CONFIG_ADDR bit 18</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][1]" title="GENERAL2[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[17]">GLOBAL:  NEXT_CONFIG_ADDR bit 17</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL2[0][0]" title="GENERAL2[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-NEXT_CONFIG_ADDR[16]">GLOBAL:  NEXT_CONFIG_ADDR bit 16</a>
 </td>
 </tr>
 
@@ -807,218 +1626,80 @@ non-inverted
 
 <div class="table-wrapper">
 <table>
+<caption>spartan6 GLOBAL rect GENERAL3</caption>
 <thead>
-<tr><th id="tile-spartan6-REG.CTL-MISC:ENCRYPT">MISC:ENCRYPT</th>
-<th>0.F0.B6</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.CTL-MISC:GTS_USR_B">MISC:GTS_USR_B</th>
-<th>0.F0.B0</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.CTL-MISC:MULTIBOOT_ENABLE">MISC:MULTIBOOT_ENABLE</th>
-<th>0.F0.B7</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.CTL-MISC:PERSIST">MISC:PERSIST</th>
-<th>0.F0.B3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.CTL-MISC:ENCRYPT_KEY_SELECT">MISC:ENCRYPT_KEY_SELECT</th>
-<th>0.F0.B2</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>BBRAM</td>
-<td>0</td>
-</tr>
-
-<tr><td>EFUSE</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.CTL-MISC:POST_CRC_INIT_FLAG">MISC:POST_CRC_INIT_FLAG</th>
-<th>0.F0.B1</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.CTL-MISC:SECURITY">MISC:SECURITY</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>LEVEL1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>LEVEL2</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>LEVEL3</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="cclk_freq"><a class="header" href="#cclk_freq"><code>CCLK_FREQ</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.CCLK_FREQ rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR[0]</a>
+<tr><td>F0</td>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][15]" title="GENERAL3[0][15]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[15]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 15</a>
 </td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR[1]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][14]" title="GENERAL3[0][14]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[14]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 14</a>
 </td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR[2]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][13]" title="GENERAL3[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[13]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 13</a>
 </td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR[3]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][12]" title="GENERAL3[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[12]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 12</a>
 </td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR[4]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][11]" title="GENERAL3[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[11]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 11</a>
 </td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR[5]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][10]" title="GENERAL3[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[10]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 10</a>
 </td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR[6]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][9]" title="GENERAL3[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[9]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 9</a>
 </td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR[7]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][8]" title="GENERAL3[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[8]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 8</a>
 </td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR[8]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][7]" title="GENERAL3[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[7]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 7</a>
 </td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR[9]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][6]" title="GENERAL3[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[6]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 6</a>
 </td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DLY">STARTUP:CCLK_DLY[0]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][5]" title="GENERAL3[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[5]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 5</a>
 </td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DLY">STARTUP:CCLK_DLY[1]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][4]" title="GENERAL3[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[4]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 4</a>
 </td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_SEP">STARTUP:CCLK_SEP[0]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][3]" title="GENERAL3[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[3]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 3</a>
 </td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_SEP">STARTUP:CCLK_SEP[1]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][2]" title="GENERAL3[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[2]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 2</a>
 </td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan6-REG.CCLK_FREQ-STARTUP:EXT_CCLK_ENABLE">STARTUP:EXT_CCLK_ENABLE</a>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][1]" title="GENERAL3[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[1]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL3[0][0]" title="GENERAL3[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[0]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 0</a>
 </td>
 </tr>
 
@@ -1029,145 +1710,80 @@ inverted
 
 <div class="table-wrapper">
 <table>
+<caption>spartan6 GLOBAL rect GENERAL4</caption>
 <thead>
-<tr><th id="tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DIVISOR">STARTUP:CCLK_DIVISOR</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_DLY">STARTUP:CCLK_DLY</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.CCLK_FREQ-STARTUP:CCLK_SEP">STARTUP:CCLK_SEP</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.CCLK_FREQ-STARTUP:EXT_CCLK_ENABLE">STARTUP:EXT_CCLK_ENABLE</th>
-<th>0.F0.B14</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="hc_opt"><a class="header" href="#hc_opt"><code>HC_OPT</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.HC_OPT rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[0]</a>
+<tr><td>F0</td>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][15]" title="GENERAL4[0][15]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[31]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 31</a>
 </td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[1]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][14]" title="GENERAL4[0][14]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[30]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 30</a>
 </td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[2]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][13]" title="GENERAL4[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[29]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 29</a>
 </td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[3]</a>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][12]" title="GENERAL4[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[28]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 28</a>
 </td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.HC_OPT-MISC:TWO_ROUND">MISC:TWO_ROUND</a>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][11]" title="GENERAL4[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[27]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 27</a>
 </td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.HC_OPT-MISC:BRAM_SKIP">MISC:BRAM_SKIP</a>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][10]" title="GENERAL4[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[26]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 26</a>
 </td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.HC_OPT-MISC:INIT_SKIP">MISC:INIT_SKIP</a>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][9]" title="GENERAL4[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[25]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 25</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][8]" title="GENERAL4[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[24]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 24</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][7]" title="GENERAL4[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[23]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 23</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][6]" title="GENERAL4[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[22]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 22</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][5]" title="GENERAL4[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[21]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 21</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][4]" title="GENERAL4[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[20]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 20</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][3]" title="GENERAL4[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[19]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 19</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][2]" title="GENERAL4[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[18]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 18</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][1]" title="GENERAL4[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[17]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 17</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL4[0][0]" title="GENERAL4[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-GOLDEN_CONFIG_ADDR[16]">GLOBAL:  GOLDEN_CONFIG_ADDR bit 16</a>
 </td>
 </tr>
 
@@ -1178,709 +1794,230 @@ non-inverted
 
 <div class="table-wrapper">
 <table>
+<caption>spartan6 GLOBAL rect GENERAL5</caption>
 <thead>
-<tr><th id="tile-spartan6-REG.HC_OPT-MISC:BRAM_SKIP">MISC:BRAM_SKIP</th>
-<th>0.F0.B5</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.HC_OPT-MISC:INIT_SKIP">MISC:INIT_SKIP</th>
-<th>0.F0.B6</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.HC_OPT-MISC:TWO_ROUND">MISC:TWO_ROUND</th>
-<th>0.F0.B4</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="powerdown"><a class="header" href="#powerdown"><code>POWERDOWN</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.POWERDOWN rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:SW_CLK">MISC:SW_CLK[0]</a>
+<tr><td>F0</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][15]" title="GENERAL5[0][15]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[15]">GLOBAL:  FAILSAFE_USER bit 15</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][14]" title="GENERAL5[0][14]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[14]">GLOBAL:  FAILSAFE_USER bit 14</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][13]" title="GENERAL5[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[13]">GLOBAL:  FAILSAFE_USER bit 13</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][12]" title="GENERAL5[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[12]">GLOBAL:  FAILSAFE_USER bit 12</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][11]" title="GENERAL5[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[11]">GLOBAL:  FAILSAFE_USER bit 11</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][10]" title="GENERAL5[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[10]">GLOBAL:  FAILSAFE_USER bit 10</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][9]" title="GENERAL5[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[9]">GLOBAL:  FAILSAFE_USER bit 9</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][8]" title="GENERAL5[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[8]">GLOBAL:  FAILSAFE_USER bit 8</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][7]" title="GENERAL5[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[7]">GLOBAL:  FAILSAFE_USER bit 7</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][6]" title="GENERAL5[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[6]">GLOBAL:  FAILSAFE_USER bit 6</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][5]" title="GENERAL5[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[5]">GLOBAL:  FAILSAFE_USER bit 5</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][4]" title="GENERAL5[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[4]">GLOBAL:  FAILSAFE_USER bit 4</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][3]" title="GENERAL5[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[3]">GLOBAL:  FAILSAFE_USER bit 3</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][2]" title="GENERAL5[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[2]">GLOBAL:  FAILSAFE_USER bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][1]" title="GENERAL5[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[1]">GLOBAL:  FAILSAFE_USER bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-GENERAL5[0][0]" title="GENERAL5[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-FAILSAFE_USER[0]">GLOBAL:  FAILSAFE_USER bit 0</a>
 </td>
 </tr>
 
-<tr><td>B1</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect SEU_OPT</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][15]" title="SEU_OPT[0][15]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_SEL">GLOBAL: ! POST_CRC_SEL</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][14]" title="SEU_OPT[0][14]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_ONESHOT">GLOBAL:  POST_CRC_ONESHOT</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][13]" title="SEU_OPT[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[9]">GLOBAL:  POST_CRC_FREQ_DIV bit 9</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][12]" title="SEU_OPT[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[8]">GLOBAL:  POST_CRC_FREQ_DIV bit 8</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][11]" title="SEU_OPT[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[7]">GLOBAL:  POST_CRC_FREQ_DIV bit 7</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][10]" title="SEU_OPT[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[6]">GLOBAL:  POST_CRC_FREQ_DIV bit 6</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][9]" title="SEU_OPT[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[5]">GLOBAL:  POST_CRC_FREQ_DIV bit 5</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][8]" title="SEU_OPT[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[4]">GLOBAL:  POST_CRC_FREQ_DIV bit 4</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][7]" title="SEU_OPT[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[3]">GLOBAL:  POST_CRC_FREQ_DIV bit 3</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][6]" title="SEU_OPT[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[2]">GLOBAL:  POST_CRC_FREQ_DIV bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][5]" title="SEU_OPT[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[1]">GLOBAL:  POST_CRC_FREQ_DIV bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][4]" title="SEU_OPT[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_FREQ_DIV[0]">GLOBAL:  POST_CRC_FREQ_DIV bit 0</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][3]" title="SEU_OPT[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_KEEP">GLOBAL:  POST_CRC_KEEP</a>
+</td>
 <td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:EN_SUSPEND">MISC:EN_SUSPEND</a>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][1]" title="SEU_OPT[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-GLUTMASK">GLOBAL:  GLUTMASK</a>
+</td>
+<td id="spartan6-GLOBAL-bit-SEU_OPT[0][0]" title="SEU_OPT[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-POST_CRC_EN">GLOBAL:  POST_CRC_EN</a>
 </td>
 </tr>
 
-<tr><td>B3</td>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan6 GLOBAL rect EYE_MASK</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
+<tr>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
 <td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:EN_SW_GSR">MISC:EN_SW_GSR</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:SUSPEND_FILTER">~MISC:SUSPEND_FILTER</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1[0]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1[1]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1[2]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[0]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[1]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[2]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[3]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[4]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan6-REG.POWERDOWN-MISC:MULTIPIN_WAKEUP">MISC:MULTIPIN_WAKEUP</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.POWERDOWN-MISC:EN_SUSPEND">MISC:EN_SUSPEND</th>
-<th>0.F0.B2</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.POWERDOWN-MISC:EN_SW_GSR">MISC:EN_SW_GSR</th>
-<th>0.F0.B4</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.POWERDOWN-MISC:MULTIPIN_WAKEUP">MISC:MULTIPIN_WAKEUP</th>
-<th>0.F0.B14</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.POWERDOWN-MISC:SUSPEND_FILTER">MISC:SUSPEND_FILTER</th>
-<th>0.F0.B5</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.POWERDOWN-MISC:SW_CLK">MISC:SW_CLK</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>INTERNALCLK</td>
-<td>0</td>
-</tr>
-
-<tr><td>STARTUPCLK</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="pu_gwe"><a class="header" href="#pu_gwe"><code>PU_GWE</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.PU_GWE rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[7]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[8]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[9]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="pu_gts"><a class="header" href="#pu_gts"><code>PU_GTS</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.PU_GTS rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[7]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[8]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[9]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="eye_mask"><a class="header" href="#eye_mask"><code>EYE_MASK</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.EYE_MASK rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.EYE_MASK-MISC:WAKEUP_MASK">MISC:WAKEUP_MASK[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.EYE_MASK-MISC:WAKEUP_MASK">MISC:WAKEUP_MASK[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.EYE_MASK-MISC:WAKEUP_MASK">MISC:WAKEUP_MASK[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.EYE_MASK-MISC:WAKEUP_MASK">MISC:WAKEUP_MASK[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.EYE_MASK-MISC:WAKEUP_MASK">MISC:WAKEUP_MASK[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.EYE_MASK-MISC:WAKEUP_MASK">MISC:WAKEUP_MASK[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.EYE_MASK-MISC:WAKEUP_MASK">MISC:WAKEUP_MASK[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.EYE_MASK-MISC:WAKEUP_MASK">MISC:WAKEUP_MASK[7]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.EYE_MASK-MISC:WAKEUP_MASK">MISC:WAKEUP_MASK</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="mode"><a class="header" href="#mode"><code>MODE</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.MODE rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
 <td>-</td>
-</tr>
-
-<tr><td>B1</td>
 <td>-</td>
-</tr>
-
-<tr><td>B2</td>
 <td>-</td>
-</tr>
-
-<tr><td>B3</td>
 <td>-</td>
-</tr>
-
-<tr><td>B4</td>
 <td>-</td>
-</tr>
-
-<tr><td>B5</td>
 <td>-</td>
-</tr>
-
-<tr><td>B6</td>
 <td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE[0]</a>
+<td id="spartan6-GLOBAL-bit-EYE_MASK[0][7]" title="EYE_MASK[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[7]">GLOBAL:  WAKEUP_MASK bit 7</a>
 </td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE[1]</a>
+<td id="spartan6-GLOBAL-bit-EYE_MASK[0][6]" title="EYE_MASK[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[6]">GLOBAL:  WAKEUP_MASK bit 6</a>
 </td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan6-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE[2]</a>
+<td id="spartan6-GLOBAL-bit-EYE_MASK[0][5]" title="EYE_MASK[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[5]">GLOBAL:  WAKEUP_MASK bit 5</a>
 </td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan6-REG.MODE-MISC:SPI_BUSWIDTH">MISC:SPI_BUSWIDTH[0]</a>
+<td id="spartan6-GLOBAL-bit-EYE_MASK[0][4]" title="EYE_MASK[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[4]">GLOBAL:  WAKEUP_MASK bit 4</a>
 </td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan6-REG.MODE-MISC:SPI_BUSWIDTH">MISC:SPI_BUSWIDTH[1]</a>
+<td id="spartan6-GLOBAL-bit-EYE_MASK[0][3]" title="EYE_MASK[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[3]">GLOBAL:  WAKEUP_MASK bit 3</a>
 </td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan6-REG.MODE-MISC:NEXT_CONFIG_NEW_MODE">MISC:NEXT_CONFIG_NEW_MODE</a>
+<td id="spartan6-GLOBAL-bit-EYE_MASK[0][2]" title="EYE_MASK[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[2]">GLOBAL:  WAKEUP_MASK bit 2</a>
+</td>
+<td id="spartan6-GLOBAL-bit-EYE_MASK[0][1]" title="EYE_MASK[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[1]">GLOBAL:  WAKEUP_MASK bit 1</a>
+</td>
+<td id="spartan6-GLOBAL-bit-EYE_MASK[0][0]" title="EYE_MASK[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-WAKEUP_MASK[0]">GLOBAL:  WAKEUP_MASK bit 0</a>
 </td>
 </tr>
 
@@ -1891,188 +2028,80 @@ non-inverted
 
 <div class="table-wrapper">
 <table>
+<caption>spartan6 GLOBAL rect TIMER</caption>
 <thead>
-<tr><th id="tile-spartan6-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.MODE-MISC:NEXT_CONFIG_NEW_MODE">MISC:NEXT_CONFIG_NEW_MODE</th>
-<th>0.F0.B13</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.MODE-MISC:SPI_BUSWIDTH">MISC:SPI_BUSWIDTH</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>4</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="general12"><a class="header" href="#general12"><code>GENERAL[12]</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.GENERAL12 rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[0]</a>
+<tr><td>F0</td>
+<td id="spartan6-GLOBAL-bit-TIMER[0][15]" title="TIMER[0][15]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[15]">GLOBAL:  TIMER_CFG bit 15</a>
 </td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[1]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][14]" title="TIMER[0][14]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[14]">GLOBAL:  TIMER_CFG bit 14</a>
 </td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[2]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][13]" title="TIMER[0][13]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[13]">GLOBAL:  TIMER_CFG bit 13</a>
 </td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[3]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][12]" title="TIMER[0][12]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[12]">GLOBAL:  TIMER_CFG bit 12</a>
 </td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[4]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][11]" title="TIMER[0][11]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[11]">GLOBAL:  TIMER_CFG bit 11</a>
 </td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[5]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][10]" title="TIMER[0][10]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[10]">GLOBAL:  TIMER_CFG bit 10</a>
 </td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[6]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][9]" title="TIMER[0][9]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[9]">GLOBAL:  TIMER_CFG bit 9</a>
 </td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[7]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][8]" title="TIMER[0][8]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[8]">GLOBAL:  TIMER_CFG bit 8</a>
 </td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[8]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][7]" title="TIMER[0][7]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[7]">GLOBAL:  TIMER_CFG bit 7</a>
 </td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[9]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][6]" title="TIMER[0][6]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[6]">GLOBAL:  TIMER_CFG bit 6</a>
 </td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[10]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][5]" title="TIMER[0][5]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[5]">GLOBAL:  TIMER_CFG bit 5</a>
 </td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[11]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][4]" title="TIMER[0][4]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[4]">GLOBAL:  TIMER_CFG bit 4</a>
 </td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[12]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][3]" title="TIMER[0][3]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[3]">GLOBAL:  TIMER_CFG bit 3</a>
 </td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[13]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][2]" title="TIMER[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[2]">GLOBAL:  TIMER_CFG bit 2</a>
 </td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[14]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][1]" title="TIMER[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[1]">GLOBAL:  TIMER_CFG bit 1</a>
 </td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[15]</a>
+<td id="spartan6-GLOBAL-bit-TIMER[0][0]" title="TIMER[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-TIMER_CFG[0]">GLOBAL:  TIMER_CFG bit 0</a>
 </td>
 </tr>
 
@@ -2083,1110 +2112,55 @@ non-inverted
 
 <div class="table-wrapper">
 <table>
-<caption>spartan6 REG.GENERAL12 rect R1</caption>
+<caption>spartan6 GLOBAL rect TESTMODE</caption>
 <thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R1.F0.B0">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[16]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R1.F0.B1">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[17]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R1.F0.B2">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[18]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R1.F0.B3">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[19]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R1.F0.B4">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[20]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R1.F0.B5">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[21]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R1.F0.B6">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[22]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R1.F0.B7">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[23]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R1.F0.B8">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[24]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R1.F0.B9">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[25]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R1.F0.B10">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[26]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R1.F0.B11">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[27]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R1.F0.B12">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[28]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R1.F0.B13">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[29]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R1.F0.B14">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[30]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R1.F0.B15">
-<a href="#tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[31]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.GENERAL12-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR</th>
-<th>1.F0.B15</th>
-<th>1.F0.B14</th>
-<th>1.F0.B13</th>
-<th>1.F0.B12</th>
-<th>1.F0.B11</th>
-<th>1.F0.B10</th>
-<th>1.F0.B9</th>
-<th>1.F0.B8</th>
-<th>1.F0.B7</th>
-<th>1.F0.B6</th>
-<th>1.F0.B5</th>
-<th>1.F0.B4</th>
-<th>1.F0.B3</th>
-<th>1.F0.B2</th>
-<th>1.F0.B1</th>
-<th>1.F0.B0</th>
-<th>0.F0.B15</th>
-<th>0.F0.B14</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[31]</td>
-<td>[30]</td>
-<td>[29]</td>
-<td>[28]</td>
-<td>[27]</td>
-<td>[26]</td>
-<td>[25]</td>
-<td>[24]</td>
-<td>[23]</td>
-<td>[22]</td>
-<td>[21]</td>
-<td>[20]</td>
-<td>[19]</td>
-<td>[18]</td>
-<td>[17]</td>
-<td>[16]</td>
-<td>[15]</td>
-<td>[14]</td>
-<td>[13]</td>
-<td>[12]</td>
-<td>[11]</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="general34"><a class="header" href="#general34"><code>GENERAL[34]</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.GENERAL34 rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[7]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[8]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[9]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[10]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[11]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[12]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[13]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[14]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[15]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.GENERAL34 rect R1</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R1.F0.B0">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[16]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R1.F0.B1">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[17]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R1.F0.B2">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[18]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R1.F0.B3">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[19]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R1.F0.B4">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[20]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R1.F0.B5">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[21]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R1.F0.B6">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[22]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R1.F0.B7">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[23]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R1.F0.B8">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[24]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R1.F0.B9">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[25]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R1.F0.B10">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[26]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R1.F0.B11">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[27]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R1.F0.B12">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[28]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R1.F0.B13">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[29]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R1.F0.B14">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[30]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R1.F0.B15">
-<a href="#tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR[31]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.GENERAL34-MISC:GOLDEN_CONFIG_ADDR">MISC:GOLDEN_CONFIG_ADDR</th>
-<th>1.F0.B15</th>
-<th>1.F0.B14</th>
-<th>1.F0.B13</th>
-<th>1.F0.B12</th>
-<th>1.F0.B11</th>
-<th>1.F0.B10</th>
-<th>1.F0.B9</th>
-<th>1.F0.B8</th>
-<th>1.F0.B7</th>
-<th>1.F0.B6</th>
-<th>1.F0.B5</th>
-<th>1.F0.B4</th>
-<th>1.F0.B3</th>
-<th>1.F0.B2</th>
-<th>1.F0.B1</th>
-<th>1.F0.B0</th>
-<th>0.F0.B15</th>
-<th>0.F0.B14</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[31]</td>
-<td>[30]</td>
-<td>[29]</td>
-<td>[28]</td>
-<td>[27]</td>
-<td>[26]</td>
-<td>[25]</td>
-<td>[24]</td>
-<td>[23]</td>
-<td>[22]</td>
-<td>[21]</td>
-<td>[20]</td>
-<td>[19]</td>
-<td>[18]</td>
-<td>[17]</td>
-<td>[16]</td>
-<td>[15]</td>
-<td>[14]</td>
-<td>[13]</td>
-<td>[12]</td>
-<td>[11]</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="general5"><a class="header" href="#general5"><code>GENERAL5</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.GENERAL5 rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[7]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[8]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[9]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[10]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[11]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[12]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[13]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[14]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER[15]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.GENERAL5-MISC:FAILSAFE_USER">MISC:FAILSAFE_USER</th>
-<th>0.F0.B15</th>
-<th>0.F0.B14</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[15]</td>
-<td>[14]</td>
-<td>[13]</td>
-<td>[12]</td>
-<td>[11]</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="timer"><a class="header" href="#timer"><code>TIMER</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.TIMER rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[7]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[8]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[9]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[10]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[11]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[12]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[13]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[14]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG[15]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG</th>
-<th>0.F0.B15</th>
-<th>0.F0.B14</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[15]</td>
-<td>[14]</td>
-<td>[13]</td>
-<td>[12]</td>
-<td>[11]</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="seu_opt"><a class="header" href="#seu_opt"><code>SEU_OPT</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.SEU_OPT rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_EN">MISC:POST_CRC_EN</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:GLUTMASK">MISC:GLUTMASK</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
+<tr><td>F0</td>
 <td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_KEEP">MISC:POST_CRC_KEEP</a>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="spartan6-GLOBAL-bit-TESTMODE[0][2]" title="TESTMODE[0][2]">
+<a href="#spartan6-GLOBAL-GLOBAL-TESTMODE_EN">GLOBAL:  TESTMODE_EN</a>
 </td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[0]</a>
+<td id="spartan6-GLOBAL-bit-TESTMODE[0][1]" title="TESTMODE[0][1]">
+<a href="#spartan6-GLOBAL-GLOBAL-ICAP_BYPASS">GLOBAL:  ICAP_BYPASS</a>
 </td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[1]</a>
+<td id="spartan6-GLOBAL-bit-TESTMODE[0][0]" title="TESTMODE[0][0]">
+<a href="#spartan6-GLOBAL-GLOBAL-VGG_TEST">GLOBAL:  VGG_TEST</a>
 </td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[2]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[3]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[4]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[5]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[6]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[7]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[8]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[9]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_ONESHOT">MISC:POST_CRC_ONESHOT</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_SEL">~MISC:POST_CRC_SEL</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.SEU_OPT-MISC:GLUTMASK">MISC:GLUTMASK</th>
-<th>0.F0.B1</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_EN">MISC:POST_CRC_EN</th>
-<th>0.F0.B0</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_KEEP">MISC:POST_CRC_KEEP</th>
-<th>0.F0.B3</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_ONESHOT">MISC:POST_CRC_ONESHOT</th>
-<th>0.F0.B14</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.SEU_OPT-MISC:POST_CRC_SEL">MISC:POST_CRC_SEL</th>
-<th>0.F0.B15</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="testmode"><a class="header" href="#testmode"><code>TESTMODE</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>spartan6 REG.TESTMODE rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-spartan6-REG.TESTMODE-MISC:VGG_TEST">MISC:VGG_TEST</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-spartan6-REG.TESTMODE-MISC:ICAP_BYPASS">MISC:ICAP_BYPASS</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-spartan6-REG.TESTMODE-MISC:TESTMODE_EN">MISC:TESTMODE_EN</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-spartan6-REG.TESTMODE-MISC:ICAP_BYPASS">MISC:ICAP_BYPASS</th>
-<th>0.F0.B1</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.TESTMODE-MISC:TESTMODE_EN">MISC:TESTMODE_EN</th>
-<th>0.F0.B2</th>
-</tr>
-
-<tr><th id="tile-spartan6-REG.TESTMODE-MISC:VGG_TEST">MISC:VGG_TEST</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
 </tr>
 
 </tbody>
