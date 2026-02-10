@@ -15,6 +15,16 @@ use crate::{EntityId, EntityVec};
 ///
 /// An `EntityMap` assigns sequential IDs to each inserted `(K, V)` pair. Entries may be looked up
 /// either by the key `K`, or the index `I` (by means of the [`Index`] trait).
+///
+/// ## Accessors at a glance
+///
+/// | **Accessor**                    | *Requires* | *Obtains*             |
+/// |---------------------------------|------------|-----------------------|
+/// | `&map[id]`                      | `I`        | `&V`                  |
+/// | `&mut map[id]`                  | `I`        | `&mut V`              |
+/// | [`key`][EntityMap::key]         | `I`        | `&K`                  |
+/// | [`get`][EntityMap::get]         | `&K`       | `Option<(I, &V)>`     |
+/// | [`get_mut`][EntityMap::get_mut] | `&K`       | `Option<(I, &mut V)>` |
 #[derive(Clone)]
 pub struct EntityMap<I: EntityId, K: Hash + Eq, V, RS: BuildHasher = RandomState> {
     map: IndexMap<K, V, RS>,
