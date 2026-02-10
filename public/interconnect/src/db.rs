@@ -588,11 +588,23 @@ impl std::ops::DerefMut for PolTileWireCoord {
     }
 }
 
+/// An active element of a tile, identified by a `BelSlotId`.
+///
+/// Comes in several variants:
+///
+/// - a [`SwitchBox`], which is a container for a bunch of small generic interconnect elements
+/// - a [`TestMux`], which is a special test-only multiplexer (not included in [`SwitchBox`] for
+///   historical reasons)
+/// - a [`Bel`], which is a target-specific block described by a schema in the form of [`BelClass`]
+/// - a [`LegacyBel`], which is a deprecated variant of [`Bel`] that is stringly-typed instead of
+///   being described by a schema; is being slowly removed from the codebase
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum BelInfo {
     SwitchBox(SwitchBox),
     Bel(Bel),
     TestMux(TestMux),
+    /// Leftover invalid placeholder variant, to be removed along with `Legacy`.  Only exists
+    /// to keep serialization format stable.
     OldTestMux,
     Legacy(LegacyBel),
 }
@@ -601,21 +613,39 @@ pub enum BelInfo {
 
 // region: bels
 
+/// A target-specific block within a tile, described by a schema in the form of [`BelClass`].
+///
+/// Any pin or attribute described in the [`BelClass`] may be missing in a particular instance
+/// of a [`Bel`].  This is often used for bel classes that have optional features (such as a LUT
+/// bel class that is used to describe both LUTs with LUTRAM functionality and ones without it).
+/// The meaning of this and circumstances when this happens are all target-dependent.
 #[derive(Default, Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct Bel {
+    /// The wires connected to bel inputs.
     pub inputs: EntityPartVec<BelInputId, BelInput>,
+    /// The wires connected to bel outputs.  A bel output can have multiple wires connected
+    /// to it — the output value is driven onto all of them simultanously.
     pub outputs: EntityPartVec<BelOutputId, BTreeSet<TileWireCoord>>,
+    /// The wires connected to bel bidirectional pins.
     pub bidirs: EntityPartVec<BelBidirId, TileWireCoord>,
+    /// The bitstream encodings of bel attributes.
     pub attributes: EntityPartVec<BelAttributeId, BelAttribute>,
 }
 
+/// Describes the connection of a [`Bel`] input pin.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum BelInput {
+    /// The bel input is connected directly to this interconnect wire.
     Fixed(PolTileWireCoord),
+    /// The bel input is connected to this intereconnect wire via a programmable inverter.
+    /// If the specified bitstream bit is set, the input is the inverted value of the wire.
+    /// Otherwise, it is directly the value of the wire.
     Invertible(TileWireCoord, PolTileBit),
 }
 
 impl BelInput {
+    /// Returns the underlying interconnect wire, discarding any information about inversions,
+    /// programmable or not.
     pub fn wire(self) -> TileWireCoord {
         match self {
             BelInput::Fixed(ptwc) => ptwc.tw,
@@ -624,15 +654,32 @@ impl BelInput {
     }
 }
 
+/// Describes the bitstream encoding of a [`Bel`] attribute.
+///
+/// The [`BelAttributeType`] associated with the attribute in the [`BelClass`] determines
+/// what values are valid here:
+///
+/// - [`BelAttributeType::Bool`]: the value must be a [`BelAttribute::BitVec`] with one bit.
+/// - [`BelAttributeType::BitVec`]: the value must be a [`BelAttribute::BitVec`] with matching length.
+/// - [`BelAttributeType::BitVecArray`]: the value must be a [`BelAttribute::BitVec`] with length
+///   equal to `depth * width`; bit `b` of array item `i` corresponds to index `i * width + b` in
+///   this vector.
+/// - [`BelAttributeType::Enum`]: the value must be a [`BelAttribute::Enum`]; however, it may be
+///   the case that some values of the enum are missing (non-encodeable).  Once again, the usage
+///   and meaning of this is target-specific.
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub enum BelAttribute {
     BitVec(Vec<PolTileBit>),
     Enum(BelAttributeEnum),
 }
 
+/// Describes the bitstream encoding of an enum-typed [`Bel`] attribute.
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct BelAttributeEnum {
+    /// The bitstream bits encoding this attribute.
     pub bits: Vec<TileBit>,
+    /// The mapping of enum values to bit patterns stored in the above bits.  The mapping may be
+    /// partial, but all values present must have unique encodings.
     pub values: EntityPartVec<EnumValueId, BitVec>,
 }
 
@@ -681,100 +728,257 @@ pub enum PinDir {
 
 // region: routing
 
+/// A set of routing elements.
+///
+/// Describes all interconnect that logically belongs to a particular tile.
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct SwitchBox {
     pub items: Vec<SwitchBoxItem>,
 }
 
+/// A single routing element contained in a [`SwitchBox`].
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub enum SwitchBoxItem {
+    /// A programmable multiplexer (drives one of several selectable source wires onto the destination wire).
     Mux(Mux),
+    /// A programmable buffer (drives the source wire onto destination wire if enabled).
     ProgBuf(ProgBuf),
+    /// A permanent buffer (always drives the source wire onto destination wire).
     PermaBuf(PermaBuf),
+    /// A programmable unidirectional pass gate.
     Pass(Pass),
+    /// A programmable bidirectional pass gate (connects two wires together if enabled).
     BiPass(BiPass),
+    /// A programmable inverter (drives either the source wire or its negation onto the destination wire).
     ProgInv(ProgInv),
+    /// A programmable delay (like a `PermaBuf`, but its delay can be selected from one of several options).
     ProgDelay(ProgDelay),
+    /// An always-on buffer with configurable direction (an obscure, rarely-used element).
     Bidi(Bidi),
+    /// Like `Mux`, but deals with two wires at once (rarely used).
     PairMux(PairMux),
+    /// A set of bits that need to be set whenever some wires are in use (an obscure, rarely-used element).
+    WireSupport(WireSupport),
 }
 
+/// A programmable interconnect multiplexer.
+///
+/// Drives the value of one of the selected source wires onto the destination wire.
+/// The source is selectable via bitstream bits.  If `bits_off` is provided, the multiplexer
+/// can also be turned off (and the wire may or may not be driven by another multiplexer, possibly
+/// in another tile).
+///
+/// The connection may be buffered or not; we do not store that information here.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Mux {
+    /// The destination wire.
     pub dst: TileWireCoord,
+    /// The bitstream bits controlling the multiplexer.
     pub bits: Vec<TileBit>,
+    /// The selectable source wires, with associated bit patterns.
     pub src: BTreeMap<PolTileWireCoord, BitVec>,
+    /// If specified, the bit pattern that turns off the multiplexer (and allows other multiplexers
+    /// or programmable buffers to drive the wire).
     pub bits_off: Option<BitVec>,
 }
 
+/// A programmable interconnect buffer.
+///
+/// Drives the value of the source wire onto the destination wire when enabled.
+/// Otherwise, the destination wire can be driven by another buffer or other interconnect element.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct ProgBuf {
+    /// The destination wire.
     pub dst: TileWireCoord,
+    /// The source wire.
     pub src: PolTileWireCoord,
+    /// The bitstream bit which enables this buffer.
     pub bit: PolTileBit,
 }
 
+/// A permanent interconnect connection.
+///
+/// Always drives the value of the source wire onto the destination wire.
+///
+/// Can be used to represent actual interconnect buffers or wire aliasing in cases not covered by
+/// other tools.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct PermaBuf {
+    /// The destination wire.
     pub dst: TileWireCoord,
+    /// The source wire.
     pub src: PolTileWireCoord,
 }
 
+/// A programmable unidirectional connection using a pass gate.
+///
+/// Passes the value of the source wire onto the destination wire iff the bitstream bit is set.
+///
+/// Even though the connection is implemented using a pass gate (which is bidirectional by nature),
+/// it should only be used in the specified direction for one reason or another (possibly
+/// the reverse connection is useless because of interconnect topology, or the signal strength is
+/// too low to be useful).
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Pass {
+    /// The destination wire.
     pub dst: TileWireCoord,
+    /// The source wire.
     pub src: TileWireCoord,
+    /// The bitstream bit.
     pub bit: PolTileBit,
 }
 
+/// A programmable bidirectional connection using a pass gate.
+///
+/// Connects the two wires together using a pass gate iff the bitstream bit is set.  The connection
+/// works in both directions at once, and is unbuffered by nature.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct BiPass {
+    /// The first wire.
     pub a: TileWireCoord,
+    /// The second wire.
     pub b: TileWireCoord,
+    /// The bitstream bit.
     pub bit: PolTileBit,
 }
 
+/// A programmable interconnect inverter.
+///
+/// If the bitstream bit is unset, drives the value of the source wire onto the destination wire.
+/// If the bit is set, drives the inverted value of the source wire onto the destination wire.
+///
+/// This is a permanent connection (it is not possible to not drive the destination wire), only
+/// the polarity of the connection is programmable.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct ProgInv {
+    /// The destination wire.
     pub dst: TileWireCoord,
+    /// The source wire.
     pub src: TileWireCoord,
+    /// The bitstream bit.
     pub bit: PolTileBit,
 }
 
+/// A programmable interconnect delay.
+///
+/// Always drives the value of the source wire onto the destination wire.  The delay of
+/// the connection is programmable and can be set to one of predefined "steps" via bitstream bits.
+/// The exact values of the delays are specified elsewhere (as are interconnect delays in general).
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct ProgDelay {
+    /// The destination wire.
     pub dst: TileWireCoord,
+    /// A transparent, always-on buffer with programmable direction.
     pub src: PolTileWireCoord,
+    /// The bitstream bits controlling the delay.
     pub bits: Vec<TileBit>,
+    /// The bit patterns for the delays.
+    ///
+    /// Each entry in this vector represents one delay step, and the value is the bit pattern that
+    /// should be set in the bitstream to select it.  The delay steps are listed in order from
+    /// the smallest.
     pub steps: Vec<BitVec>,
 }
 
+/// A transparent, always-on buffer with programmable direction.
+///
+/// This is a peculiar and rarely used item.  In most cases, when there are two physical wire
+/// segments with programmable buffers involved, they would be described in the interconnect
+/// database as two wires with `ProgBuf` connections, or something similar.  However, there are
+/// cases where the FPGA has buffers in both directions between two physical wires, and either one
+/// or the other is always enabled (which one depends on a bitstream bit).  In this case, there
+/// is no way to use the two physical wires independently — they must always have the same value
+/// because of the buffering.  Representing this situation as two `ProgBuf`s would be wrong, as it
+/// would imply being able to switch the buffering off.  In this case, we choose to represent both
+/// physical wires as a single wire in the database, and use `Bidi` to describe the connection.
+/// Since both physical wires map to the same `WireCoord` in our model, we need to use a connector
+/// to identify the exact spot where buffering takes place, so we know what to put in the bitstream.
+///
+/// Describes a bitstream bit that has to be set iff the driver of the given wire is *upstream*
+/// of the given connector slot within the cell specified by the wire coordinate.  That is,
+/// if reaching the segment of the wire that is driven from the specified cell requires traversing
+/// the specified connector.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Bidi {
+    /// The connector slot used to determine whether the driver is upstream or downstream of
+    /// the buffer.  This connector slot is relative to the cell specified in `wire`.
     pub conn: ConnectorSlotId,
+    /// The reference segment of the wire being bufferred.
     pub wire: TileWireCoord,
-    // bit set iff driver upstream
+    /// The bitstream bit, to be set if the driver is upstream of the connector.
     pub bit_upstream: PolTileBit,
 }
 
+/// A programmable interconnect multiplexer for two wires at once.
+///
+/// Has two destination wires, and has multiple selections of pairs of source wires controlled
+/// by the bitstream.  The bitstream field controls what is driven to both destination wires
+/// at once — the destination wires are not individually controllable.
+///
+/// The connection may be buffered or not.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct PairMux {
+    /// The destination wires.
     pub dst: [TileWireCoord; 2],
+    /// The bitstream bits controlling the multiplexer.
     pub bits: Vec<TileBit>,
+    /// The possible selections of the two source wires, along with the corresponding bit pattern.
+    /// One or both of the source wires may be `None`, which means that the value driven on
+    /// the corresponding destination wire is undefined for this selection.  A `[None, None]`
+    /// selection may be used to turn off the mux.
     pub src: BTreeMap<[Option<PolTileWireCoord>; 2], BitVec>,
 }
 
+/// A piece of interconnect that needs to be enabled for some wires to work.
+///
+/// Represents some unspecified kind of interconnect circuitry that can be enabled via bitstream,
+/// and enabling it is necessary for some set of interconnect wires to work.
+///
+/// Has multiple bitstream bits and multiple associated wires.  All of the bitstream bits need to
+/// be set if any of the associated wires is used in any capacity, including usage only in other
+/// faraway tiles.  Otherwise, behavior is undefined.
+///
+/// It is mostly unknown what these bits do.  They may control power to interconnect circuitry, or
+/// termination for long-distance differential transmission lines.
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub struct WireSupport {
+    /// The associated wires.
+    pub wires: BTreeSet<TileWireCoord>,
+    /// The bits to be set if any of the wires is in use.
+    pub bits: Vec<PolTileBit>,
+}
+
+/// A wide multiplexer for testing purposes.
+///
+/// The multiplexer always drives a particular set of destination wires.  It has a set of bitstream
+/// bits that select either the "primary" mode, or one of several test modes.  The selected mode
+/// determines which set of source wires will be buffered onto the destination wires.
+///
+/// In normal operation, this multiplexer should always be set to the primary selection,
+/// and the test mode inputs ignored.  The test mode settings are only used for the purpose
+/// of testing the interconnect circuitry itself (at the factory).
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, Default)]
 pub struct TestMux {
+    /// The bits controlling the multiplexer.
     pub bits: Vec<TileBit>,
+    /// The bit settings for the test modes.  Each entry in this vector corresponds to one test
+    /// mode.
     pub groups: Vec<BitVec>,
+    /// The bit setting for the primary mode.
     pub bits_primary: BitVec,
+    /// The wires driven by this multiplexer and their sources.  The keys are destination wires,
+    /// and the values describe the source wires.
     pub wires: BTreeMap<TileWireCoord, TestMuxWire>,
 }
 
+/// A set of source wires corresponding to a particular destination wire of a [`TestMux`].
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct TestMuxWire {
+    /// The source wire used for primary mode.
     pub primary_src: PolTileWireCoord,
+    /// The source wires used for test modes, if any.  The indices of this vector correspond
+    /// directly to the indices in the `groups` vector in the [`TestMux`], and the vectors must
+    /// have the same length.
     pub test_src: Vec<Option<PolTileWireCoord>>,
 }
 
@@ -908,6 +1112,7 @@ impl TileClassIndex {
                                 }
                             }
                         }
+                        SwitchBoxItem::WireSupport(_) => (),
                     }
                 }
             }

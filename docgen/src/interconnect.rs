@@ -298,6 +298,7 @@ fn gen_switchbox_old(
                     }
                 }
             }
+            SwitchBoxItem::WireSupport(_) => unreachable!(),
         }
     }
     writeln!(buf, r#"### Switchbox {bname}"#).unwrap();
@@ -359,7 +360,7 @@ fn gen_switchbox_old(
     writeln!(buf).unwrap();
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 enum BitInfo {
     ProgBuf(BelSlotId, TileWireCoord, PolTileWireCoord, bool),
     Pass(BelSlotId, TileWireCoord, TileWireCoord, bool),
@@ -369,6 +370,7 @@ enum BitInfo {
     Mux(BelSlotId, TileWireCoord, usize),
     Bidi(BelSlotId, ConnectorSlotId, TileWireCoord, bool),
     PairMux(BelSlotId, [TileWireCoord; 2], usize),
+    WireSupport(BelSlotId, BTreeSet<TileWireCoord>, usize, bool),
     TestMux(BelSlotId, usize),
     BelInputInv(BelSlotId, BelInputId, bool),
     BelAttrBool(BelSlotId, BelAttributeId, bool),
@@ -391,8 +393,8 @@ impl<'a, 'b, 'c> TileClassGen<'a, 'b, 'c> {
         self.bits.entry(bit).or_default().push(info);
     }
 
-    fn anchor(&self, info: BitInfo) -> String {
-        match info {
+    fn anchor(&self, info: &BitInfo) -> String {
+        match *info {
             BitInfo::ProgBuf(bslot, dst, src, _) => format!(
                 "{dbname}-{tname}-{bname}-progbuf-{dst}-{src}",
                 dbname = self.dbname,
@@ -455,6 +457,16 @@ impl<'a, 'b, 'c> TileClassGen<'a, 'b, 'c> {
                 bname = self.intdb.bel_slots.key(bslot),
                 dst0 = dst[0].to_string(self.intdb, self.tcls),
                 dst1 = dst[1].to_string(self.intdb, self.tcls),
+            ),
+            BitInfo::WireSupport(bslot, ref wires, idx, _) => format!(
+                "{dbname}-{tname}-{bname}-support-{wires}-{idx}",
+                dbname = self.dbname,
+                tname = self.tname,
+                bname = self.intdb.bel_slots.key(bslot),
+                wires = wires
+                    .iter()
+                    .map(|w| w.to_string(self.intdb, self.tcls))
+                    .join("-"),
             ),
             BitInfo::TestMux(bslot, idx) => format!(
                 "{dbname}-{tname}-{bname}-testmux-{idx}",
@@ -652,7 +664,7 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
             writeln!(
                 buf,
                 r#"<tr id="{anchor}"><td>{dst}</td><td>{src}</td><td>{bit}</td></tr>"#,
-                anchor = tcgen.anchor(bi),
+                anchor = tcgen.anchor(&bi),
                 dst = pbuf.dst.to_string(intdb, tcls),
                 src = pbuf.src.to_string(intdb, tcls),
                 bit = tcgen.link_polbit(pbuf.bit),
@@ -688,7 +700,7 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
             writeln!(
                 buf,
                 r#"<tr id="{anchor}"><td>{dst}</td><td>{src}</td><td>{bit}</td></tr>"#,
-                anchor = tcgen.anchor(bi),
+                anchor = tcgen.anchor(&bi),
                 dst = pass.dst.to_string(intdb, tcls),
                 src = pass.src.to_string(intdb, tcls),
                 bit = tcgen.link_polbit(pass.bit),
@@ -728,7 +740,7 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
             writeln!(
                 buf,
                 r#"<tr id="{anchor}"><td>{a}</td><td>{b}</td><td>{bit}</td></tr>"#,
-                anchor = tcgen.anchor(bi),
+                anchor = tcgen.anchor(&bi),
                 a = pass.a.to_string(intdb, tcls),
                 b = pass.b.to_string(intdb, tcls),
                 bit = tcgen.link_polbit(pass.bit),
@@ -768,7 +780,7 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
             writeln!(
                 buf,
                 r#"<tr id="{anchor}"><td>{dst}</td><td>{src}</td><td>{bit}</td></tr>"#,
-                anchor = tcgen.anchor(bi),
+                anchor = tcgen.anchor(&bi),
                 dst = pbuf.dst.to_string(intdb, tcls),
                 src = pbuf.src.to_string(intdb, tcls),
                 bit = tcgen.link_polbit(pbuf.bit),
@@ -817,14 +829,14 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
             .unwrap();
             for (bidx, &bit) in delay.bits.iter().enumerate().rev() {
                 let bi = BitInfo::ProgDelay(bslot, delay.dst, delay.src, bidx);
-                tcgen.add_bit(bit, bi);
                 write!(
                     buf,
                     r#"<td id="{anchor}">{bit}</td>"#,
-                    anchor = tcgen.anchor(bi),
+                    anchor = tcgen.anchor(&bi),
                     bit = tcgen.link_bit(bit),
                 )
                 .unwrap();
+                tcgen.add_bit(bit, bi);
             }
             writeln!(buf, r#"</tr>"#).unwrap();
         }
@@ -868,7 +880,7 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
             writeln!(
                 buf,
                 r#"<tr id="{anchor}"><td>{conn}</td><td>{wire}</td><td>{bit}</td></tr>"#,
-                anchor = tcgen.anchor(bi),
+                anchor = tcgen.anchor(&bi),
                 conn = intdb.conn_slots.key(bidi.conn),
                 wire = bidi.wire.to_string(intdb, tcls),
                 bit = tcgen.link_polbit(bidi.bit_upstream),
@@ -919,14 +931,14 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
             write!(buf, r#"<tr>"#).unwrap();
             for (bidx, &bit) in mux.bits.iter().enumerate().rev() {
                 let bi = BitInfo::Mux(bslot, mux.dst, bidx);
-                tcgen.add_bit(bit, bi);
                 write!(
                     buf,
                     r#"<td id="{anchor}">{bit}</td>"#,
-                    anchor = tcgen.anchor(bi),
+                    anchor = tcgen.anchor(&bi),
                     bit = tcgen.link_bit(bit),
                 )
                 .unwrap();
+                tcgen.add_bit(bit, bi);
             }
             for _ in 0..slot {
                 write!(buf, r#"<td>-</td>"#).unwrap();
@@ -999,14 +1011,14 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
         write!(buf, r#"<tr>"#).unwrap();
         for (bidx, &bit) in mux.bits.iter().enumerate().rev() {
             let bi = BitInfo::PairMux(bslot, mux.dst, bidx);
-            tcgen.add_bit(bit, bi);
             write!(
                 buf,
                 r#"<th id="{anchor}">{bit}</th>"#,
-                anchor = tcgen.anchor(bi),
+                anchor = tcgen.anchor(&bi),
                 bit = tcgen.link_bit(bit),
             )
             .unwrap();
+            tcgen.add_bit(bit, bi);
         }
         write!(
             buf,
@@ -1031,6 +1043,42 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
                 write!(buf, r#"<td>{src}</td>"#).unwrap();
             }
             writeln!(buf, r#"</tr>"#).unwrap();
+        }
+        writeln!(buf, r#"</tbody>"#).unwrap();
+        writeln!(buf, r#"</table></div>"#).unwrap();
+        writeln!(buf).unwrap();
+    }
+
+    for item in &sb.items {
+        let SwitchBoxItem::WireSupport(support) = item else {
+            continue;
+        };
+        writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+        writeln!(
+            buf,
+            r#"<caption>{dbname} {tname} wire support {wires}</caption>"#,
+            wires = support
+                .wires
+                .iter()
+                .map(|w| w.to_string(intdb, tcls))
+                .join(", "),
+        )
+        .unwrap();
+        writeln!(buf, r#"<thead>"#).unwrap();
+        writeln!(buf, r#"<tr><th>Bit</th></tr>"#).unwrap();
+        writeln!(buf, r#"</thead>"#).unwrap();
+        writeln!(buf, r#"<tbody>"#).unwrap();
+        for (bidx, &bit) in support.bits.iter().enumerate() {
+            write!(buf, r#"<tr>"#).unwrap();
+            let bi = BitInfo::WireSupport(bslot, support.wires.clone(), bidx, bit.inv);
+            writeln!(
+                buf,
+                r#"<tr><td id="{anchor}">{bit}</td></tr>"#,
+                anchor = tcgen.anchor(&bi),
+                bit = tcgen.link_polbit(bit),
+            )
+            .unwrap();
+            tcgen.add_bit(bit.bit, bi);
         }
         writeln!(buf, r#"</tbody>"#).unwrap();
         writeln!(buf, r#"</table></div>"#).unwrap();
@@ -1105,15 +1153,15 @@ fn gen_bels(tcgen: &mut TileClassGen, buf: &mut String, bcid: BelClassId, bslots
                         .or_default()
                         .push((bslot, pname.clone()));
                     let bi = BitInfo::BelInputInv(bslot, pid, bit.inv);
-                    tcgen.add_bit(bit.bit, bi);
                     write!(
                         buf,
                         r#"<td id="{anchor}">{wire} invert by {bit}</td>"#,
-                        anchor = tcgen.anchor(bi),
+                        anchor = tcgen.anchor(&bi),
                         wire = twc.to_string(intdb, tcls),
                         bit = tcgen.link_polbit(*bit),
                     )
                     .unwrap();
+                    tcgen.add_bit(bit.bit, bi);
                 }
             };
         }
@@ -1243,14 +1291,14 @@ fn gen_bels(tcgen: &mut TileClassGen, buf: &mut String, bcid: BelClassId, bslots
                             }
                             Some(BelAttribute::BitVec(bits)) => {
                                 let bi = BitInfo::BelAttrBool(bslot, aid, bits[0].inv);
-                                tcgen.add_bit(bits[0].bit, bi);
                                 write!(
                                     buf,
                                     r#"<td id="{anchor}">{bit}</td>"#,
-                                    anchor = tcgen.anchor(bi),
+                                    anchor = tcgen.anchor(&bi),
                                     bit = tcgen.link_polbit(bits[0])
                                 )
                                 .unwrap();
+                                tcgen.add_bit(bits[0].bit, bi);
                             }
                             _ => unreachable!(),
                         };
@@ -1267,14 +1315,14 @@ fn gen_bels(tcgen: &mut TileClassGen, buf: &mut String, bcid: BelClassId, bslots
                                 }
                                 Some(BelAttribute::BitVec(bits)) => {
                                     let bi = BitInfo::BelAttrBitVec(bslot, aid, idx, bits[idx].inv);
-                                    tcgen.add_bit(bits[idx].bit, bi);
                                     write!(
                                         buf,
                                         r#"<td id="{anchor}">{bit}</td>"#,
-                                        anchor = tcgen.anchor(bi),
+                                        anchor = tcgen.anchor(&bi),
                                         bit = tcgen.link_polbit(bits[idx])
                                     )
                                     .unwrap();
+                                    tcgen.add_bit(bits[idx].bit, bi);
                                 }
                                 _ => unreachable!(),
                             };
@@ -1299,14 +1347,14 @@ fn gen_bels(tcgen: &mut TileClassGen, buf: &mut String, bcid: BelClassId, bslots
                                             idx,
                                             bits[row * width + idx].inv,
                                         );
-                                        tcgen.add_bit(bits[row * width + idx].bit, bi);
                                         write!(
                                             buf,
                                             r#"<td id="{anchor}">{bit}</td>"#,
-                                            anchor = tcgen.anchor(bi),
+                                            anchor = tcgen.anchor(&bi),
                                             bit = tcgen.link_polbit(bits[row * width + idx])
                                         )
                                         .unwrap();
+                                        tcgen.add_bit(bits[row * width + idx].bit, bi);
                                     }
                                     _ => unreachable!(),
                                 };
@@ -1343,14 +1391,14 @@ fn gen_bels(tcgen: &mut TileClassGen, buf: &mut String, bcid: BelClassId, bslots
                 .unwrap();
                 for (bidx, &bit) in attr.bits.iter().enumerate().rev() {
                     let bi = BitInfo::BelAttrBitVec(bslot, aid, bidx, false);
-                    tcgen.add_bit(bit, bi);
                     write!(
                         buf,
                         r#"<td id="{anchor}">{bit}</td>"#,
-                        anchor = tcgen.anchor(bi),
+                        anchor = tcgen.anchor(&bi),
                         bit = tcgen.link_bit(bit),
                     )
                     .unwrap();
+                    tcgen.add_bit(bit, bi);
                 }
                 writeln!(buf, r#"</tr>"#).unwrap();
             }
@@ -1439,8 +1487,8 @@ fn gen_bits(tcgen: &mut TileClassGen, buf: &mut String) {
                     bit = tcls.dump_bit(tbit),
                 )
                 .unwrap();
-                for &item in items {
-                    let disp = match item {
+                for item in items {
+                    let disp = match *item {
                         BitInfo::ProgBuf(bslot, dst, src, inv) => {
                             format!(
                                 "{bname}: {inv}buffer {dst} ← {src}",
@@ -1507,6 +1555,14 @@ fn gen_bits(tcgen: &mut TileClassGen, buf: &mut String) {
                                 bname = intdb.bel_slots.key(bslot),
                                 dst0 = dst[0].to_string(intdb, tcls),
                                 dst1 = dst[1].to_string(intdb, tcls),
+                            )
+                        }
+                        BitInfo::WireSupport(bslot, ref wires, idx, inv) => {
+                            format!(
+                                "{bname}: {inv}wire support ({wires}) bit {idx}",
+                                inv = if inv { "!" } else { "" },
+                                bname = intdb.bel_slots.key(bslot),
+                                wires = wires.iter().map(|w| w.to_string(intdb, tcls)).join(", "),
                             )
                         }
                         BitInfo::TestMux(bslot, idx) => {
@@ -1755,14 +1811,14 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                 write!(buf, r#"<tr><th>Group</th>"#).unwrap();
                 for (bidx, &bit) in bel.bits.iter().enumerate().rev() {
                     let bi = BitInfo::TestMux(slot, bidx);
-                    tcgen.add_bit(bit, bi);
                     write!(
                         buf,
                         r#"<th id="{anchor}">{bit}</th>"#,
-                        anchor = tcgen.anchor(bi),
+                        anchor = tcgen.anchor(&bi),
                         bit = tcgen.link_bit(bit),
                     )
                     .unwrap();
+                    tcgen.add_bit(bit, bi);
                 }
                 writeln!(buf, r#"</tr>"#).unwrap();
 

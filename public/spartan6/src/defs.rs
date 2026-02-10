@@ -191,7 +191,6 @@ target_defs! {
         output CFB0;
         output CFB1;
 
-        // TODO: attrs
         attribute ENABLE: bool;
         attribute DDR: bool;
         attribute IOCE_ENABLE: bool;

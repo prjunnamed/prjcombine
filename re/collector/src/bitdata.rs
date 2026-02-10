@@ -7,6 +7,7 @@ use std::{
 };
 
 use bincode::{Decode, Encode};
+use itertools::Itertools;
 use prjcombine_entity::EntityPartVec;
 use prjcombine_interconnect::db::{
     BelAttribute, BelAttributeId, BelInfo, BelInput, BelInputId, BelSlotId, ConnectorSlotId,
@@ -27,7 +28,7 @@ pub struct CollectorData {
     pub sb_mux: HashMap<(TileClassId, TileWireCoord), EnumData<Option<PolTileWireCoord>>>,
     pub sb_delay: HashMap<(TileClassId, TileWireCoord), EnumData<usize>>,
     pub sb_bidi: HashMap<(TileClassId, ConnectorSlotId, TileWireCoord), PolTileBit>,
-    pub sb_enable: HashMap<(TileClassId, TileWireCoord), Vec<PolTileBit>>,
+    pub sb_support: HashMap<(TileClassId, BTreeSet<TileWireCoord>), Vec<PolTileBit>>,
     pub sb_pairmux:
         HashMap<(TileClassId, [TileWireCoord; 2]), EnumData<[Option<PolTileWireCoord>; 2]>>,
     pub tmux_group: HashMap<(TileClassId, BelSlotId), EnumData<Option<usize>>>,
@@ -257,6 +258,26 @@ impl CollectorData {
                                         }
                                     }
                                 }
+                                SwitchBoxItem::WireSupport(support) => {
+                                    let Some(bits) =
+                                        self.sb_support.remove(&(tcid, support.wires.clone()))
+                                    else {
+                                        if missing_ok {
+                                            continue;
+                                        }
+                                        let wires = support
+                                            .wires
+                                            .clone()
+                                            .iter()
+                                            .map(|w| w.to_string(intdb, &intdb[tcid]))
+                                            .join(", ");
+                                        panic!(
+                                            "can't find collect bit support {tcname} {wires}",
+                                            tcname = intdb.tile_classes.key(tcid),
+                                        )
+                                    };
+                                    support.bits = bits;
+                                }
                             }
                         }
                     }
@@ -404,7 +425,7 @@ impl CollectorData {
         merge_hashmap(&mut self.sb_mux, other.sb_mux);
         merge_hashmap(&mut self.sb_delay, other.sb_delay);
         merge_hashmap(&mut self.sb_bidi, other.sb_bidi);
-        merge_hashmap(&mut self.sb_enable, other.sb_enable);
+        merge_hashmap(&mut self.sb_support, other.sb_support);
         merge_hashmap(&mut self.sb_pairmux, other.sb_pairmux);
         merge_hashmap(&mut self.tmux_group, other.tmux_group);
         merge_hashmap(&mut self.table_data, other.table_data);

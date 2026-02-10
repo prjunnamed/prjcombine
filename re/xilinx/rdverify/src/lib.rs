@@ -583,6 +583,7 @@ impl<'a> Verifier<'a> {
                                     }
                                 }
                             }
+                            SwitchBoxItem::WireSupport(_) => (),
                         }
                     }
                 }

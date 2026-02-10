@@ -200,6 +200,30 @@ impl TileClass {
                                     writeln!(o, "\t\t\t\t}}")?;
                                 }
                             }
+                            SwitchBoxItem::WireSupport(support) => {
+                                write!(o, "\t\t\t\twire_support ")?;
+                                let mut first = true;
+                                for &wire in &support.wires {
+                                    if !first {
+                                        write!(o, ", ")?;
+                                    }
+                                    first = false;
+                                    write!(o, "{}", wire.to_string(db, self))?;
+                                }
+                                if !support.bits.is_empty() {
+                                    write!(o, " @[")?;
+                                    let mut first = true;
+                                    for &bit in support.bits.iter().rev() {
+                                        if !first {
+                                            write!(o, ", ")?;
+                                        }
+                                        first = false;
+                                        write!(o, "{}", self.dump_polbit(bit))?;
+                                    }
+                                    write!(o, "]")?;
+                                }
+                                writeln!(o)?;
+                            }
                         }
                     }
                     writeln!(o, "\t\t\t}}")?;
