@@ -11,6 +11,10 @@ use indexmap::set::IndexSet;
 use crate::id::EntityRange;
 use crate::{EntityId, EntityVec};
 
+/// An [`indexmap::IndexSet`] with strongly-typed indices.
+///
+/// An `EntitySet` assigns sequential IDs to each inserted value `V`. However, if a value which is
+/// already present is inserted again, the pre-existing ID will be reused.
 #[derive(Clone)]
 pub struct EntitySet<I: EntityId, V: Hash + Eq, RS: BuildHasher = RandomState> {
     set: IndexSet<V, RS>,
@@ -49,17 +53,26 @@ where
         self.set.clear()
     }
 
+    /// Insert a value into the set.
+    ///
+    /// If the value was not previously present in the set, returns `(id, true)`. Otherwise,
+    /// returns `(id, false)`.
     pub fn insert(&mut self, v: V) -> (I, bool) {
         let (i, f) = self.set.insert_full(v);
         (I::from_idx(i), f)
     }
 
+    /// Insert a new value into the set.
+    ///
+    /// Panics if the value is already present in the set.
+    #[track_caller]
     pub fn insert_new(&mut self, v: V) -> I {
         let (i, f) = self.insert(v);
-        assert!(f);
+        assert!(f, "value already present in EntitySet");
         i
     }
 
+    /// Returns the ID for a given value, if already present in the set.
     pub fn get<Q>(&self, key: &Q) -> Option<I>
     where
         Q: ?Sized + Hash + Equivalent<V>,
@@ -99,13 +112,17 @@ where
         self.into_values().collect()
     }
 
+    /// Return an ID for a given value, whether pre-existing or newly allocated.
+    ///
+    /// This function allows providing a reference for the purpose of looking up the value. In this
+    /// case, the value is only cloned if necessary (by means of `ToOwned`).
     pub fn get_or_insert(
         &mut self,
         key: &(impl ToOwned<Owned = V> + Hash + Equivalent<V> + ?Sized),
     ) -> I {
         match self.get(key) {
             Some(i) => i,
-            None => self.insert(key.to_owned()).0,
+            None => self.insert_new(key.to_owned()),
         }
     }
 }

@@ -1,3 +1,4 @@
+//! A partial map backed by a vector.
 use core::hash::Hash;
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
@@ -6,6 +7,13 @@ use std::fmt;
 
 use crate::{EntityId, EntityVec};
 
+/// A partial map backed by a vector.
+///
+/// An `EntityPartVec` stores at most one value `V` for each index `I`. Conceptually, this is
+/// similar to e.g. a `BTreeMap<I, V>`.
+///
+/// Under the hood, this is backed by a `Vec<Option<V>>`. Thus, ideally the type `V` should have a
+/// niche in its layout.
 #[derive(Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub struct EntityPartVec<I: EntityId, V> {
@@ -47,6 +55,7 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
         self.vals.clear()
     }
 
+    /// Inserts the value `val` at position `id`, returning the previous value, if any.
     pub fn insert(&mut self, id: I, val: V) -> Option<V> {
         let idx = id.to_idx();
         if idx >= self.vals.len() {
@@ -55,15 +64,20 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
         self.vals[idx].replace(val)
     }
 
+    /// Remove the value at position `id`.
     pub fn remove(&mut self, id: I) -> Option<V> {
         let idx = id.to_idx();
         let res = self.vals.get_mut(idx)?.take();
+        // We choose to trim None's here to avoid needlessly iterating over them later.
+        // Do note, however, that if an element at this index gets re-added later, we might
+        // need to clear this memory again. We consider that to be okay.
         while let Some(None) = self.vals.last() {
             self.vals.pop();
         }
         res
     }
 
+    /// Returns iterator of IDs for which values are present.
     pub fn ids(&self) -> Ids<'_, I, V> {
         Ids { vals: self.iter() }
     }
@@ -74,6 +88,9 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
         }
     }
 
+    /// Returns an iterator of `(id, &value)` pairs.
+    ///
+    /// IDs not present are skipped entirely.
     pub fn iter(&self) -> Iter<'_, I, V> {
         Iter {
             vals: self.vals.iter(),
@@ -82,6 +99,9 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
         }
     }
 
+    /// Returns an iterator of `(id, &mut value)` pairs.
+    ///
+    /// IDs not present are skipped entirely.
     pub fn iter_mut(&mut self) -> IterMut<'_, I, V> {
         IterMut {
             vals: self.vals.iter_mut(),
@@ -106,6 +126,12 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
         }
     }
 
+    /// Converts into an [`EntityVec`] without holes.
+    ///
+    /// If values are present for all IDs between 0 and the highest ID present, that is, if there
+    /// aren't any "holes" in the middle, then convert to a [`EntityVec`] which expresses this fact
+    /// statically. Otherwise, panic.
+    #[track_caller]
     pub fn into_full(mut self) -> EntityVec<I, V> {
         while matches!(self.vals.last(), Some(None)) {
             self.vals.pop();
@@ -113,6 +139,11 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
         self.vals.into_iter().map(Option::unwrap).collect()
     }
 
+    /// Converts into an [`EntityVec`] without holes.
+    ///
+    /// If values are present for all IDs between 0 and the highest ID present, that is, if there
+    /// aren't any "holes" in the middle, then convert to a [`EntityVec`] which expresses this fact
+    /// statically. Otherwise, return the lowest ID at which a hole was found.
     pub fn try_into_full(mut self) -> Result<EntityVec<I, V>, I> {
         while matches!(self.vals.last(), Some(None)) {
             self.vals.pop();
@@ -186,6 +217,7 @@ impl<I: EntityId, V> IndexMut<I> for EntityPartVec<I, V> {
     }
 }
 
+/// Iterator of `(id, &value)` pairs.
 #[derive(Clone, Debug)]
 pub struct Iter<'a, I, V> {
     vals: core::slice::Iter<'a, Option<V>>,
@@ -217,6 +249,7 @@ impl<'a, I: EntityId, V> DoubleEndedIterator for Iter<'a, I, V> {
     }
 }
 
+/// Iterator of `(id, &mut value)` pairs.
 #[derive(Debug)]
 pub struct IterMut<'a, I, V> {
     vals: core::slice::IterMut<'a, Option<V>>,
@@ -248,6 +281,7 @@ impl<'a, I: EntityId, V> DoubleEndedIterator for IterMut<'a, I, V> {
     }
 }
 
+/// Iterator of `(id, value)` pairs.
 #[derive(Clone, Debug)]
 pub struct IntoIter<I, V> {
     vals: std::vec::IntoIter<Option<V>>,
