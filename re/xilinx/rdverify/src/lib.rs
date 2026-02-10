@@ -350,7 +350,7 @@ pub struct Verifier<'a> {
     cond_stub_ins: HashSet<rawdump::WireId>,
     cond_stub_ins_tk: HashSet<(rawdump::TileKindId, rawdump::WireId)>,
     skip_bel_pins: HashSet<(BelCoord, &'static str)>,
-    skip_sb: HashSet<BelSlotId>,
+    skip_bslot: HashSet<BelSlotId>,
     skip_alt_pip: HashSet<(TileClassId, TileWireCoord)>,
 }
 
@@ -449,7 +449,7 @@ impl<'a> Verifier<'a> {
             cond_stub_ins: HashSet::new(),
             cond_stub_ins_tk: HashSet::new(),
             skip_bel_pins: HashSet::new(),
-            skip_sb: HashSet::new(),
+            skip_bslot: HashSet::new(),
             skip_alt_pip: HashSet::new(),
         }
     }
@@ -1188,7 +1188,7 @@ impl<'a> Verifier<'a> {
         let mut pips = BTreeSet::new();
         let mut intf_anon_mux = HashMap::new();
         for (bslot, bel) in &tcls.bels {
-            if self.skip_sb.contains(&bslot) {
+            if self.skip_bslot.contains(&bslot) {
                 continue;
             }
             let BelInfo::SwitchBox(sb) = bel else {
@@ -1530,6 +1530,9 @@ impl<'a> Verifier<'a> {
         }
 
         for (bslot, bel) in &tcls.bels {
+            if self.skip_bslot.contains(&bslot) {
+                continue;
+            }
             let bcrd = tcrd.bel(bslot);
             match bel {
                 BelInfo::SwitchBox(_) => (),
@@ -2379,8 +2382,8 @@ impl<'a> Verifier<'a> {
         self.skip_bel_pins.insert((bel, pin));
     }
 
-    pub fn skip_sb(&mut self, slot: BelSlotId) {
-        self.skip_sb.insert(slot);
+    pub fn skip_bslot(&mut self, slot: BelSlotId) {
+        self.skip_bslot.insert(slot);
     }
 
     pub fn skip_alt_pip(&mut self, tcid: TileClassId, wire: TileWireCoord) {

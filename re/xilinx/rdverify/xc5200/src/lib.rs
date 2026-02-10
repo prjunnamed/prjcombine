@@ -135,7 +135,7 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
 
 pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
     let mut vrf = Verifier::new(rd, &endev.ngrid);
-    vrf.skip_sb(bslots::BUFG);
+    vrf.skip_bslot(bslots::BUFG);
     for idx in 0..4 {
         vrf.alias_wire_slot(wires::IMUX_IO_O_SN[idx], wires::IMUX_IO_O[idx]);
     }

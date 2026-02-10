@@ -732,7 +732,7 @@ fn build_pip_fuzzer(
     let tcls_index = &backend.edev.db_index[tcid];
     let mut builder = ctx
         .build()
-        .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
+        .test_routing(wire_to, wire_from.pos())
         .prop(WireIntDistinct::new(wire_to, wire_from))
         .prop(WireIntDstFilter::new(wire_to))
         .prop(WireIntSrcFilter::new(wire_from))
@@ -893,6 +893,9 @@ fn skip_mux(
 ) -> bool {
     match edev {
         ExpandedDevice::Spartan6(_) => {
+            if bslot == bslots_s6::IOI_INT {
+                return true;
+            }
             if bslot == bslots_s6::CLK_INT
                 && (wires_s6::IMUX_BUFIO2_I.contains(dst.wire)
                     || wires_s6::IMUX_BUFIO2_IB.contains(dst.wire)
@@ -1022,7 +1025,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         let mut got_empty = false;
                         for &src in mux.src.keys() {
                             let in_name = intdb.wires.key(src.wire);
-                            let mut diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src));
+                            let mut diff = ctx.get_diff_routing(tcid, mux.dst, src);
                             let mut diff_fucked = false;
                             if let ExpandedDevice::Virtex2(edev) = ctx.edev
                                 && edev.chip.kind

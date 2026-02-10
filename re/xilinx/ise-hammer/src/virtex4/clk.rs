@@ -865,7 +865,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
                 .assert_empty();
             for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
-                ctx.collect_inv(tile, bel, pin);
+                ctx.collect_inv_legacy(tile, bel, pin);
             }
             ctx.collect_bit_bi_legacy(tile, bel, "PRESELECT_I0", "FALSE", "TRUE");
             ctx.collect_bit_bi_legacy(tile, bel, "PRESELECT_I1", "FALSE", "TRUE");

@@ -186,6 +186,7 @@ opt-level = 2
 overflow-checks = false
 debug-assertions = false
 debug = 2
+split-debuginfo = "unpacked"
 
 [workspace.lints.clippy]
 collapsible_else_if = "allow"

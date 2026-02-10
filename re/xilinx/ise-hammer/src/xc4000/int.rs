@@ -1102,7 +1102,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 if wire_to.wire == wires::IMUX_CLB_F4 && wire_from.wire == wires::SPECIAL_CLB_CIN {
                     ctx.build()
                         .prop(BaseBelMode::new(bslots::CLB, 0, "CLB".into()))
-                        .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
+                        .test_routing(wire_to, wire_from.pos())
                         .prop(FuzzBelAttr::new(
                             bslots::CLB,
                             0,
@@ -1120,7 +1120,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             DeltaSlot::new(-1, 0, tslots::MAIN),
                             BaseBelMode::new(bslots::CLB, 0, "CLB".into()),
                         ))
-                        .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
+                        .test_routing(wire_to, wire_from.pos())
                         .prop(Related::new(
                             DeltaSlot::new(-1, 0, tslots::MAIN),
                             FuzzBelAttr::new(
@@ -1142,7 +1142,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             DeltaSlot::new(0, 1, tslots::MAIN),
                             BaseBelMode::new(bslots::CLB, 0, "CLB".into()),
                         ))
-                        .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
+                        .test_routing(wire_to, wire_from.pos())
                         .prop(Related::new(
                             DeltaSlot::new(0, 1, tslots::MAIN),
                             FuzzBelAttr::new(
@@ -1165,7 +1165,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 {
                     let bel = bslots::TBUF[idx];
                     ctx.build()
-                        .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
+                        .test_routing(wire_to, wire_from.pos())
                         .prop(FuzzBelMode::new(bel, 0, "".into(), "TBUF".into()))
                         .prop(FuzzBelAttr::new(
                             bel,
@@ -1188,7 +1188,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     ctx.build()
                         .prop(BaseBelMode::new(bel, 0, "IOB".into()))
                         .prop(BaseBelAttr::new(bel, 0, "OUTMUX".into(), "O".into()))
-                        .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
+                        .test_routing(wire_to, wire_from.pos())
                         .prop(FuzzBelAttr::new(
                             bel,
                             0,
@@ -1207,7 +1207,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 if is_bidi && !is_bipass {
                     ctx.build()
                         .prop(IntMutex::new("MAIN".to_string()))
-                        .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
+                        .test_routing(wire_to, wire_from.pos())
                         .prop(Xc4000BiPip::new(wire_to, wire_from))
                         .commit();
                 } else {
@@ -1217,7 +1217,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .prop(WireIntDstFilter::new(wire_to))
                         .prop(WireIntSrcFilter::new(wire_from))
                         .prop(IntMutex::new("MAIN".to_string()))
-                        .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
+                        .test_routing(wire_to, wire_from.pos())
                         .prop(WireMutexExclusive::new(wire_to))
                         .prop(WireMutexExclusive::new(wire_from))
                         .prop(Xc4000SimplePip::new(wire_to, wire_from));
@@ -1539,7 +1539,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 got_empty = true;
                                 continue;
                             }
-                            let mut diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src));
+                            let mut diff = ctx.get_diff_routing(tcid, mux.dst, src);
                             if edev.chip.kind == ChipKind::Xc4000E
                                 && tcname.starts_with("IO_W")
                                 && mux.dst.wire == wires::IMUX_TBUF_I[1]
@@ -1754,7 +1754,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.insert_mux(tcid, mux.dst, item);
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
-                        let diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, buf.dst, buf.src));
+                        let diff = ctx.get_diff_routing(tcid, buf.dst, buf.src);
                         diff.assert_empty();
                     }
                     SwitchBoxItem::ProgBuf(buf) => {

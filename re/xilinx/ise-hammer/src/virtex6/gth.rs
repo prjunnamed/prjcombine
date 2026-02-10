@@ -421,7 +421,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
     for &pin in GTH_INVPINS {
-        ctx.collect_inv(tile, bel, pin);
+        ctx.collect_inv_legacy(tile, bel, pin);
     }
     for &(attr, vals) in GTH_ENUM_ATTRS {
         if attr.contains("X_FABRIC_WIDTH") {

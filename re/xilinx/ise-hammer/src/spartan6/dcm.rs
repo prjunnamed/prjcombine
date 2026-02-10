@@ -152,7 +152,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pip((obel_dcm, opin), PipWire::AltInt(src.tw));
                 }
                 builder
-                    .test_raw(DiffKey::Routing(tcid, mux.dst, src))
+                    .test_routing(mux.dst, src)
                     .pip(opin, PipWire::AltInt(src.tw))
                     .commit();
             }
@@ -176,7 +176,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pip((obel_dcm, opin), PipWire::AltInt(src.tw));
                 }
                 builder
-                    .test_raw(DiffKey::Routing(tcid, mux.dst, src))
+                    .test_routing(mux.dst, src)
                     .pip(opin, PipWire::AltInt(src.tw))
                     .commit();
             }
@@ -190,7 +190,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("CLKDV")
                     .prop(WireMutexShared::new(src.tw))
                     .prop(WireMutexExclusive::new(mux.dst))
-                    .test_raw(DiffKey::Routing(tcid, mux.dst, src))
+                    .test_routing(mux.dst, src)
                     .prop(FuzzIntPip::new(mux.dst, src.tw))
                     .commit();
             }

@@ -158,7 +158,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
         for &pin in PPC_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         ctx.collect_bitvec_legacy(tile, bel, "CLOCK_DELAY", "");
         for &attr in PPC_BOOL_ATTRS {

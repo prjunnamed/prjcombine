@@ -607,7 +607,7 @@ pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
             }
         }
     }
-    vrf.skip_sb(bslots::MULT_INT);
+    vrf.skip_bslot(bslots::MULT_INT);
     vrf.prep_int_wires();
     vrf.handle_int();
     for (tcrd, tile) in endev.ngrid.egrid.tiles() {

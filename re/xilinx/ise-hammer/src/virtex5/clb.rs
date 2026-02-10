@@ -1073,7 +1073,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "ASYNC")
                 .assert_empty();
             ctx.insert_legacy(tile, bel, "FF_SR_SYNC", xlat_bit_legacy(ff_sync));
-            ctx.collect_inv(tile, bel, "CLK");
+            ctx.collect_inv_legacy(tile, bel, "CLK");
             if mode == Mode::Virtex5 {
                 let revused = ctx.get_diff_legacy(tile, bel, "REVUSED", "0");
                 ctx.insert_legacy(tile, bel, "FF_REV_ENABLE", xlat_bit_legacy(revused));

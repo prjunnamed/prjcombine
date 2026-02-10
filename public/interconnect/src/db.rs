@@ -377,6 +377,16 @@ impl EntityTag for WireKind {
 }
 pub type WireSlotId = EntityIdU16<WireKind>;
 
+pub trait WireSlotIdExt {
+    fn cell(self, idx: usize) -> TileWireCoord;
+}
+
+impl WireSlotIdExt for WireSlotId {
+    fn cell(self, idx: usize) -> TileWireCoord {
+        TileWireCoord::new_idx(idx, self)
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum WireKind {
     Tie0,

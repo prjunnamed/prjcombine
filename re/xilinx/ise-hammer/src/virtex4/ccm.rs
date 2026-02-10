@@ -284,7 +284,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
         ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslot, "RST", false);
-        ctx.collect_inv(tile, bel, "REL");
+        ctx.collect_inv_legacy(tile, bel, "REL");
         ctx.collect_bit_wide_legacy(tile, bel, "CLKA_ENABLE", "1");
         ctx.collect_bit_legacy(tile, bel, "CLKB_ENABLE", "1");
         ctx.collect_bit_legacy(tile, bel, "CLKC_ENABLE", "1");
@@ -383,7 +383,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "ENOSC0", "ENOSC1", "ENOSC2", "OUTSEL0", "OUTSEL1", "OUTSEL2", "HFSEL0", "HFSEL1",
             "HFSEL2", "SELSKEW", "FREEZE",
         ] {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         for (pin, abc) in [("REFCLK", 'A'), ("TESTCLK1", 'B'), ("TESTCLK2", 'B')] {
             let mut diffs = vec![];

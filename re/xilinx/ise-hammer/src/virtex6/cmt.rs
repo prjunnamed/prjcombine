@@ -749,7 +749,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         for (lr, dir) in [('L', DirH::W), ('R', DirH::E)] {
             let bel = &format!("BUFHCE_{dir}[{i}]");
             ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-            ctx.collect_inv(tile, bel, "CE");
+            ctx.collect_inv_legacy(tile, bel, "CE");
             ctx.collect_bit_bi_legacy(tile, bel, "INIT_OUT", "0", "1");
 
             if i == 0 {
@@ -849,7 +849,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
 
         for pin in ["RST", "PWRDWN", "CLKINSEL", "PSEN", "PSINCDEC"] {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
 
         for attr in [

@@ -1411,7 +1411,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..4 {
         let tile = "CMT";
         let bel = &format!("PHASER_IN[{i}]");
-        ctx.collect_inv(tile, bel, "RST");
+        ctx.collect_inv_legacy(tile, bel, "RST");
         for attr in [
             "BURST_MODE",
             "DQS_BIAS_MODE",
@@ -1494,7 +1494,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "CMT";
         let bel = &format!("PHASER_OUT[{i}]");
 
-        ctx.collect_inv(tile, bel, "RST");
+        ctx.collect_inv_legacy(tile, bel, "RST");
         for attr in [
             "COARSE_BYPASS",
             "DATA_CTL_N",
@@ -1548,8 +1548,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     {
         let tile = "CMT";
         let bel = "PHASER_REF";
-        ctx.collect_inv(tile, bel, "RST");
-        ctx.collect_inv(tile, bel, "PWRDWN");
+        ctx.collect_inv_legacy(tile, bel, "RST");
+        ctx.collect_inv_legacy(tile, bel, "PWRDWN");
         for attr in ["PHASER_REF_EN", "SEL_SLIPD", "SUP_SEL_AREG"] {
             ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
         }
@@ -1656,11 +1656,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         for pin in ["CLKINSEL", "PWRDWN", "RST"] {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         if bel == "MMCM[0]" {
             for pin in ["PSEN", "PSINCDEC"] {
-                ctx.collect_inv(tile, bel, pin);
+                ctx.collect_inv_legacy(tile, bel, pin);
             }
         }
         for attr in [
@@ -2103,7 +2103,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "CMT";
         let bel = &format!("BUFMRCE[{i}]");
         ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-        ctx.collect_inv(tile, bel, "CE");
+        ctx.collect_inv_legacy(tile, bel, "CE");
         ctx.collect_bit_bi_legacy(tile, bel, "INIT_OUT", "0", "1");
         ctx.collect_enum_legacy(tile, bel, "CE_TYPE", &["SYNC", "ASYNC"]);
         ctx.collect_enum_default_legacy_ocd(

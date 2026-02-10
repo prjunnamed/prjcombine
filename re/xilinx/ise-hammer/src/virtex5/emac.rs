@@ -138,7 +138,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
         .assert_empty();
     for &pin in EMAC_INVPINS {
-        ctx.collect_inv(tile, bel, pin);
+        ctx.collect_inv_legacy(tile, bel, pin);
     }
     for &attr in EMAC_BOOL_ATTRS {
         ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");

@@ -2,7 +2,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem, TileWireCoord},
     grid::TileCoord,
 };
-use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bit, xlat_enum_raw};
+use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_bit, xlat_enum_raw};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -305,7 +305,7 @@ pub fn add_fuzzers<'a>(
                         .global_mutex("PSCLK", "PTE2OMUX")
                         .prop(WireMutexShared::new(src.tw))
                         .prop(WireMutexExclusive::new(mux.dst))
-                        .test_raw(DiffKey::Routing(tcid, mux.dst, src))
+                        .test_routing(mux.dst, src)
                         .prop(FuzzIntPip::new(mux.dst, src.tw))
                         .commit();
                 }
@@ -488,7 +488,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 };
                 let mut diffs = vec![];
                 for &src in mux.src.keys() {
-                    let mut diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src));
+                    let mut diff = ctx.get_diff_routing(tcid, mux.dst, src);
                     if wires_s3::IMUX_CLK_OPTINV.contains(src.wire) {
                         diff.discard_bits(&[ctx.sb_inv(tcid, src.tw).bit]);
                     }

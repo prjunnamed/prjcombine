@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use prjcombine_interconnect::db::{BelAttributeType, BelInfo, SwitchBoxItem, TileWireCoord};
 use prjcombine_re_collector::diff::{
-    DiffKey, OcdMode, extract_bitvec_val_part, extract_common_diff, xlat_bit, xlat_enum_raw,
+    OcdMode, extract_bitvec_val_part, extract_common_diff, xlat_bit, xlat_enum_raw,
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_spartan6::defs::{bcls, bslots, tables, tcls, tslots, wires};
@@ -260,7 +260,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
 
             builder
-                .test_raw(DiffKey::Routing(tcid, dst, src))
+                .test_routing(dst, src)
                 .prop(FuzzIntPip::new(dst, src.tw))
                 .commit();
         }
@@ -299,7 +299,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
 
             builder
-                .test_raw(DiffKey::Routing(tcid, mux.dst, src))
+                .test_routing(mux.dst, src)
                 .prop(FuzzIntPip::new(mux.dst, src.tw))
                 .commit();
         }
@@ -328,7 +328,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 )
                 .prop(WireMutexShared::new(src.tw))
                 .prop(WireMutexExclusive::new(mux.dst))
-                .test_raw(DiffKey::Routing(tcid, mux.dst, src))
+                .test_routing(mux.dst, src)
                 .prop(FuzzIntPip::new(mux.dst, src.tw))
                 .commit();
         }
@@ -362,7 +362,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .related_tile_mutex(relation_dcm.clone(), "CLKIN_BEL", "PLL")
                 .prop(WireMutexShared::new(src.tw))
                 .prop(WireMutexExclusive::new(mux.dst))
-                .test_raw(DiffKey::Routing(tcid, mux.dst, src))
+                .test_routing(mux.dst, src)
                 .prop(FuzzIntPip::new(mux.dst, src.tw))
                 .commit();
         }

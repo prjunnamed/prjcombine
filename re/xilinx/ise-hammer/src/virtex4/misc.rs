@@ -572,7 +572,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ] {
             ctx.collect_int_inv_legacy(&[tcls::INT; 8], tcid, bslot, pin, false);
         }
-        ctx.collect_inv(tile, bel, "CONVST");
+        ctx.collect_inv_legacy(tile, bel, "CONVST");
         let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
         for (attr, val) in [
             ("DCLK_DIVID_2", 0),

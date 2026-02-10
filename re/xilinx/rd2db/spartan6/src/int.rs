@@ -1145,6 +1145,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.extra_name_sub("CMT_DCM2_CLKFB", 2, wires::IMUX_DCM_CLKFB[0]);
     builder.extra_name_sub("CMT_DCM1_CLKFB", 2, wires::IMUX_DCM_CLKFB[1]);
 
+    builder.extra_name("IOCE_ILOGIC_SITE_S", wires::IMUX_ILOGIC_IOCE[0]);
+    builder.extra_name("IOCE_ILOGIC_SITE", wires::IMUX_ILOGIC_IOCE[1]);
+    builder.extra_name("IOCE_OLOGIC_SITE_S", wires::IMUX_OLOGIC_IOCE[0]);
+    builder.extra_name("IOCE_OLOGIC_SITE", wires::IMUX_OLOGIC_IOCE[1]);
+    builder.extra_name("IOCE_ILOGIC_UNUSED_SITE_S", wires::IMUX_ILOGIC_IOCE[0]);
+    builder.extra_name("IOCE_ILOGIC_UNUSED_SITE", wires::IMUX_ILOGIC_IOCE[1]);
+    builder.extra_name("IOCE_OLOGIC_UNUSED_SITE_S", wires::IMUX_OLOGIC_IOCE[0]);
+    builder.extra_name("IOCE_OLOGIC_UNUSED_SITE", wires::IMUX_OLOGIC_IOCE[1]);
+
     builder.extract_int_id(tcls::INT, bslots::INT, "INT", "INT", &[]);
     builder.extract_int_id(tcls::INT, bslots::INT, "INT_BRK", "INT_BRK", &[]);
     builder.extract_int_id(tcls::INT, bslots::INT, "INT_BRAM", "INT", &[]);
@@ -1569,12 +1578,18 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 };
                 let mut bel = builder
                     .bel_xy(bslots::ILOGIC[i], "ILOGIC", 0, i)
+                    .pin_rename("SR", "SR_MUXED")
                     .pins_name_only(&[
-                        "D", "DDLY", "DDLY2", "CLK0", "CLK1", "IOCE", "OFB", "TFB", "SHIFTIN",
-                        "SHIFTOUT", "SR",
+                        "D", "DDLY", "DDLY2", "CLK0", "CLK1", "OFB", "TFB", "SHIFTIN", "SHIFTOUT",
+                        "SR_MUXED",
                     ])
+                    .extra_int_in_force(
+                        "CLK",
+                        TileWireCoord::new_idx(0, wires::IMUX_ILOGIC_CLK[i]),
+                        format!("__ILOGIC{i}_CLK"),
+                    )
                     .extra_int_in(
-                        "SR_INT",
+                        "SR",
                         &[if i == 0 {
                             "IOI_LOGICINB20"
                         } else {
@@ -1624,7 +1639,6 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .pins_name_only(&[
                         "CLK0",
                         "CLK1",
-                        "IOCE",
                         "SHIFTIN1",
                         "SHIFTIN2",
                         "SHIFTIN3",
@@ -1636,6 +1650,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         "OQ",
                         "TQ",
                     ])
+                    .extra_int_in_force(
+                        "CLK",
+                        TileWireCoord::new_idx(0, wires::IMUX_OLOGIC_CLK[i]),
+                        format!("__OLOGIC{i}_CLK"),
+                    )
                     .extra_wire(
                         "IOB_O",
                         &[
@@ -1690,6 +1709,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         "READEN",
                         "MEMUPDATE",
                     ])
+                    .extra_int_in_force(
+                        "IOCLK",
+                        TileWireCoord::new_idx(0, wires::IMUX_IODELAY_IOCLK[i]),
+                        format!("__IODELAY{i}_IOCLK"),
+                    )
                     .extra_wire("MCB_DQSOUTP", &[format!("IOI_MCB_IN_{ms}")])
                     .extra_wire_force("MCB_AUXADDR0", format!("AUXADDR0_MCBTOIO_{ms}"))
                     .extra_wire_force("MCB_AUXADDR1", format!("AUXADDR1_MCBTOIO_{ms}"))
@@ -1704,11 +1728,6 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
                 bels.push(bel);
             }
-            bels.push(
-                builder
-                    .bel_xy(bslots::TIEOFF_IOI, "TIEOFF", 0, 0)
-                    .pins_name_only(&["HARD0", "HARD1", "KEEP1"]),
-            );
             for i in 0..2 {
                 let ms = match i {
                     0 => 'S',
@@ -1716,12 +1735,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     _ => unreachable!(),
                 };
                 let bel = builder
-                    .bel_virtual(bslots::IOICLK[i])
+                    .bel_virtual(bslots::IOI_DDR[i])
+                    .manual()
                     .extra_wire("CLK0INTER", &[format!("IOI_CLK0INTER_{ms}")])
                     .extra_wire("CLK1INTER", &[format!("IOI_CLK1INTER_{ms}")])
                     .extra_wire("CLK2INTER", &[format!("IOI_CLK2INTER_{ms}")])
-                    .extra_int_in("CKINT0", &[format!("IOI_CLK{}", i ^ 1)])
-                    .extra_int_in("CKINT1", &[format!("IOI_GFAN{}", i ^ 1)])
+                    .extra_wire("CKINT0", &[format!("IOI_CLK{}", i ^ 1)])
+                    .extra_wire("CKINT1", &[format!("IOI_GFAN{}", i ^ 1)])
                     .extra_wire("CLK0_ILOGIC", &[format!("IOI_CLKDIST_CLK0_ILOGIC_{ms}")])
                     .extra_wire("CLK0_OLOGIC", &[format!("IOI_CLKDIST_CLK0_OLOGIC_{ms}")])
                     .extra_wire("CLK1", &[format!("IOI_CLKDIST_CLK1_{ms}")])
@@ -1730,7 +1750,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 bels.push(bel);
             }
             let mut bel_ioi = builder
-                .bel_virtual(bslots::IOI)
+                .bel_xy(bslots::MISC_IOI, "TIEOFF", 0, 0)
+                .pins_name_only(&["HARD0", "HARD1", "KEEP1"])
                 .extra_wire("MCB_DRPADD", &["IOI_MCB_DRPADD"])
                 .extra_wire("MCB_DRPBROADCAST", &["IOI_MCB_DRPBROADCAST"])
                 .extra_wire("MCB_DRPCLK", &["IOI_MCB_DRPCLK"])
@@ -1743,7 +1764,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire("PCI_CE", &["IOI_PCI_CE"]);
             for i in 0..4 {
                 bel_ioi = bel_ioi
-                    .extra_int_in(
+                    .extra_wire(
                         format!("IOCLK{i}"),
                         &[
                             format!("BIOI_INNER_IOCLK{i}"),
@@ -1755,7 +1776,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             format!("RIOI_IOCLK{i}_BRK"),
                         ],
                     )
-                    .extra_int_in(
+                    .extra_wire(
                         format!("IOCE{i}"),
                         &[
                             format!("BIOI_INNER_IOCE{i}"),
@@ -1770,7 +1791,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             for i in 0..2 {
                 bel_ioi = bel_ioi
-                    .extra_int_in(
+                    .extra_wire(
                         format!("PLLCLK{i}"),
                         &[
                             format!("BIOI_INNER_PLLCLK{i}"),
@@ -1782,7 +1803,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                             format!("RIOI_PLLCLK{i}_BRK"),
                         ],
                     )
-                    .extra_int_in(
+                    .extra_wire(
                         format!("PLLCE{i}"),
                         &[
                             format!("BIOI_INNER_PLLCE{i}"),
@@ -1796,11 +1817,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     );
             }
             bels.push(bel_ioi);
-            builder
+            let xt = builder
                 .xtile_id(tcid, tkn, xy)
                 .ref_single(xy, 0, intf_ioi)
                 .bels(bels)
                 .extract();
+            for (i, (_, naming)) in xt.bels.into_iter().enumerate() {
+                builder.insert_bel_naming(tkn, bslots::IOI_DDR[i], naming);
+            }
         }
     }
 

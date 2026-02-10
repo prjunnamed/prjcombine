@@ -116,7 +116,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "DSP";
     for bel in ["DSP[0]", "DSP[1]"] {
         for &pin in DSP48E_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         for attr in ["AREG_ACASCREG", "BREG_BCASCREG"] {
             ctx.collect_enum_legacy(tile, bel, attr, &["0_0", "1_1", "2_1", "2_2"]);

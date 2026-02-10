@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, TileWireCoord, WireSlotId},
     grid::TileCoord,
 };
-use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_enum_raw};
+use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_enum_raw};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -144,7 +144,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         for &src in &backend.edev.db_index.tile_classes[tcid].pips_bwd[&src.tw] {
                             bctx.build()
                                 .prop(IntMutex::new("INTF".into()))
-                                .test_raw(DiffKey::Routing(tcid, dst, src))
+                                .test_routing(dst, src)
                                 .prop(TileMutexExclusive::new("INTF".into()))
                                 .prop(WireMutexExclusive::new(dst))
                                 .prop(WireMutexExclusive::new(src.tw))
@@ -154,7 +154,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     } else {
                         bctx.build()
                             .prop(IntMutex::new("INTF".into()))
-                            .test_raw(DiffKey::Routing(tcid, dst, src))
+                            .test_routing(dst, src)
                             .prop(TileMutexExclusive::new("INTF".into()))
                             .prop(WireMutexExclusive::new(dst))
                             .prop(WireMutexExclusive::new(src.tw))
@@ -198,7 +198,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
                     let mut mux_diffs = vec![];
                     for src in inps {
-                        let mut diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, dst, src));
+                        let mut diff = ctx.get_diff_routing(tcid, dst, src);
                         if let ExpandedDevice::Virtex2(edev) = ctx.edev
                             && !edev.chip.kind.is_virtex2()
                             && (wires_s3::IMUX_SR_OPTINV.contains(src.wire)

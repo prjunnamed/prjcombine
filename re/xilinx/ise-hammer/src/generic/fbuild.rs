@@ -499,6 +499,15 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
         self.test_raw(key)
     }
 
+    pub fn test_routing(
+        self,
+        wt: TileWireCoord,
+        wf: PolTileWireCoord,
+    ) -> FuzzBuilderTestManual<'sm, 'b> {
+        let key = DiffKey::Routing(self.tile_class.unwrap(), wt, wf);
+        self.test_raw(key)
+    }
+
     pub fn test_global_special(self, spec: SpecialId) -> FuzzBuilderTestManual<'sm, 'b> {
         self.test_raw(DiffKey::GlobalSpecial(spec))
     }
@@ -824,7 +833,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         }
     }
 
-    pub fn test_enum_suffix(
+    pub fn test_enum_suffix_legacy(
         mut self,
         attr: impl AsRef<str>,
         suffix: impl AsRef<str>,
@@ -853,7 +862,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let pininv = format!("{pin}INV");
         let pin_b = format!("{pin}_B");
         self.pin(&pin)
-            .test_enum_suffix(pininv, suffix, &[pin, pin_b]);
+            .test_enum_suffix_legacy(pininv, suffix, &[pin, pin_b]);
     }
 
     pub fn test_multi_attr_bin(self, attr: impl Into<String>, width: usize) {
@@ -943,6 +952,25 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
             attr: attr.into(),
             val: val.into(),
         });
+        self.test_raw(key)
+    }
+
+    pub fn test_routing(
+        self,
+        wt: TileWireCoord,
+        wf: PolTileWireCoord,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::Routing(self.tile_class, wt, wf);
+        self.test_raw(key)
+    }
+
+    pub fn test_routing_pair_special(
+        self,
+        wt: TileWireCoord,
+        wf: PolTileWireCoord,
+        spec: SpecialId,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::RoutingPairSpecial(self.tile_class, wt, wf, spec);
         self.test_raw(key)
     }
 

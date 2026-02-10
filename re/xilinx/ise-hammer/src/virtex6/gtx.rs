@@ -567,7 +567,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         ctx.collect_bit_legacy(tile, bel, "GTX_CFG_PWRUP", "1");
         for &pin in GTX_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         for &attr in GTX_BOOL_ATTRS {
             if attr == "GTX_CFG_PWRUP" {

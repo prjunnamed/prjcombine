@@ -394,7 +394,7 @@ pub fn add_fuzzers<'a>(
                 .no_pin("CLK2X")
                 .no_pin("CLK2X180")
                 .no_pin("CLKDV")
-                .test_enum_suffix(
+                .test_enum_suffix_legacy(
                     "CLKOUT_PHASE_SHIFT",
                     "NEG",
                     &[
@@ -886,7 +886,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
                 "SKEWIN",
                 "SKEWRST",
             ] {
-                ctx.collect_inv(tile, bel, pin);
+                ctx.collect_inv_legacy(tile, bel, pin);
             }
             for attr in [
                 "DCM_CLKDV_CLKFX_ALIGNMENT",
@@ -1366,7 +1366,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
             "SKEWRST",
             "SKEWSTB",
         ] {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
 
         for attr in [

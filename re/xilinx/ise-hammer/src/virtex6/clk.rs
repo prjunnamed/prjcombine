@@ -460,7 +460,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for i in 0..16 {
             let bel = &format!("BUFGCTRL[{}]", base + i);
             for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
-                ctx.collect_inv(tile, bel, pin);
+                ctx.collect_inv_legacy(tile, bel, pin);
             }
             for attr in ["PRESELECT_I0", "PRESELECT_I1", "CREATE_EDGE"] {
                 ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");

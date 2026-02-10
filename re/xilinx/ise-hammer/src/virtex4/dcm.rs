@@ -523,7 +523,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "DADDR6", "PSEN", "PSINCDEC", "CTLSEL0", "CTLSEL1", "CTLSEL2", "CTLOSC1", "CTLOSC2",
         "CTLGO",
     ] {
-        ctx.collect_inv(tile, bel, pin);
+        ctx.collect_inv_legacy(tile, bel, pin);
     }
 
     let diff = ctx.get_diff_legacy(tile, bel, "CLK2X", "1");

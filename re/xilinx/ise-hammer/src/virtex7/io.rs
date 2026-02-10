@@ -652,13 +652,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("DDR_CLK_EDGE", "SAME_EDGE")
                 .pin("OCE")
                 .pin("CLK")
-                .test_enum_suffix("CLKINV", "SAME", &["CLK", "CLK_B"]);
+                .test_enum_suffix_legacy("CLKINV", "SAME", &["CLK", "CLK_B"]);
             bctx.mode("OSERDESE2")
                 .attr("DATA_RATE_OQ", "DDR")
                 .attr("DDR_CLK_EDGE", "OPPOSITE_EDGE")
                 .pin("OCE")
                 .pin("CLK")
-                .test_enum_suffix("CLKINV", "OPPOSITE", &["CLK", "CLK_B"]);
+                .test_enum_suffix_legacy("CLKINV", "OPPOSITE", &["CLK", "CLK_B"]);
 
             bctx.mode("OLOGICE2")
                 .attr("OUTFFTYPE", "#FF")
@@ -670,21 +670,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_enum_legacy("SRTYPE", &["SYNC", "ASYNC"]);
 
             bctx.mode("OLOGICE2")
-                .test_enum_suffix("INIT_OQ", "OLOGIC", &["0", "1"]);
+                .test_enum_suffix_legacy("INIT_OQ", "OLOGIC", &["0", "1"]);
             bctx.mode("OLOGICE2")
-                .test_enum_suffix("INIT_TQ", "OLOGIC", &["0", "1"]);
+                .test_enum_suffix_legacy("INIT_TQ", "OLOGIC", &["0", "1"]);
             bctx.mode("OSERDESE2")
-                .test_enum_suffix("INIT_OQ", "OSERDES", &["0", "1"]);
+                .test_enum_suffix_legacy("INIT_OQ", "OSERDES", &["0", "1"]);
             bctx.mode("OSERDESE2")
-                .test_enum_suffix("INIT_TQ", "OSERDES", &["0", "1"]);
+                .test_enum_suffix_legacy("INIT_TQ", "OSERDES", &["0", "1"]);
             bctx.mode("OLOGICE2")
-                .test_enum_suffix("SRVAL_OQ", "OLOGIC", &["0", "1"]);
+                .test_enum_suffix_legacy("SRVAL_OQ", "OLOGIC", &["0", "1"]);
             bctx.mode("OLOGICE2")
-                .test_enum_suffix("SRVAL_TQ", "OLOGIC", &["0", "1"]);
+                .test_enum_suffix_legacy("SRVAL_TQ", "OLOGIC", &["0", "1"]);
             bctx.mode("OSERDESE2")
-                .test_enum_suffix("SRVAL_OQ", "OSERDES", &["0", "1"]);
+                .test_enum_suffix_legacy("SRVAL_OQ", "OSERDES", &["0", "1"]);
             bctx.mode("OSERDESE2")
-                .test_enum_suffix("SRVAL_TQ", "OSERDES", &["0", "1"]);
+                .test_enum_suffix_legacy("SRVAL_TQ", "OSERDES", &["0", "1"]);
 
             for attr in ["OSRUSED", "TSRUSED"] {
                 bctx.mode("OLOGICE2")
@@ -744,10 +744,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_enum_legacy("TRISTATE_WIDTH", &["1", "4"]);
             bctx.mode("OSERDESE2")
                 .attr("DATA_RATE_OQ", "SDR")
-                .test_enum_suffix("DATA_WIDTH", "SDR", &["2", "3", "4", "5", "6", "7", "8"]);
+                .test_enum_suffix_legacy("DATA_WIDTH", "SDR", &["2", "3", "4", "5", "6", "7", "8"]);
             bctx.mode("OSERDESE2")
                 .attr("DATA_RATE_OQ", "DDR")
-                .test_enum_suffix("DATA_WIDTH", "DDR", &["4", "6", "8", "10", "14"]);
+                .test_enum_suffix_legacy("DATA_WIDTH", "DDR", &["4", "6", "8", "10", "14"]);
 
             bctx.build()
                 .mutex("MUX.CLK", "CKINT")
@@ -2263,9 +2263,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
 
-        ctx.collect_inv(tile, bel, "D");
-        ctx.collect_inv(tile, bel, "CLKDIV");
-        ctx.collect_inv(tile, bel, "CLKDIVP");
+        ctx.collect_inv_legacy(tile, bel, "D");
+        ctx.collect_inv_legacy(tile, bel, "CLKDIV");
+        ctx.collect_inv_legacy(tile, bel, "CLKDIVP");
         let item = ctx.extract_bit_wide_bi_legacy(tile, bel, "CLKINV", "CLK", "CLK_B");
         ctx.insert_legacy(tile, bel, "INV.CLK", item);
         let item = ctx.extract_bit_legacy(tile, bel, "OCLKINV", "OCLK");
@@ -2513,7 +2513,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "T1", "T2", "T3", "T4", "CLKDIV",
             "CLKDIVF",
         ] {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
 
         ctx.get_diff_legacy(tile, bel, "CLKINV.SAME", "CLK_B")
@@ -2753,9 +2753,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-        ctx.collect_inv(tile, bel, "C");
-        ctx.collect_inv(tile, bel, "DATAIN");
-        ctx.collect_inv(tile, bel, "IDATAIN");
+        ctx.collect_inv_legacy(tile, bel, "C");
+        ctx.collect_inv_legacy(tile, bel, "DATAIN");
+        ctx.collect_inv_legacy(tile, bel, "IDATAIN");
         ctx.collect_bit_bi_legacy(tile, bel, "HIGH_PERFORMANCE_MODE", "FALSE", "TRUE");
         ctx.collect_bit_bi_legacy(tile, bel, "CINVCTRL_SEL", "FALSE", "TRUE");
         ctx.collect_bit_bi_legacy(tile, bel, "PIPE_SEL", "FALSE", "TRUE");
@@ -2831,8 +2831,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
-        ctx.collect_inv(tile, bel, "C");
-        ctx.collect_inv(tile, bel, "ODATAIN");
+        ctx.collect_inv_legacy(tile, bel, "C");
+        ctx.collect_inv_legacy(tile, bel, "ODATAIN");
         ctx.collect_bit_bi_legacy(tile, bel, "HIGH_PERFORMANCE_MODE", "FALSE", "TRUE");
         ctx.collect_bit_bi_legacy(tile, bel, "CINVCTRL_SEL", "FALSE", "TRUE");
         ctx.collect_bit_bi_legacy(tile, bel, "PIPE_SEL", "FALSE", "TRUE");

@@ -170,7 +170,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "DSP";
     for bel in ["DSP[0]", "DSP[1]"] {
         for &pin in DSP48E1_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         for &pin in DSP48E1_TIEPINS {
             let attr = format!("MUX.{pin}");

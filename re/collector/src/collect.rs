@@ -1,9 +1,9 @@
-use std::collections::{BTreeMap, hash_map};
+use std::collections::{BTreeMap, HashMap, hash_map};
 
 use prjcombine_interconnect::db::{
-    BelAttribute, BelAttributeEnum, BelAttributeId, BelAttributeType, BelInputId, BelKind,
-    BelSlotId, ConnectorSlotId, DeviceDataId, EnumValueId, IntDb, PolTileWireCoord, TableFieldId,
-    TableId, TableRowId, TableValue, TileClassId, TileWireCoord,
+    BelAttribute, BelAttributeEnum, BelAttributeId, BelAttributeType, BelInfo, BelInputId, BelKind,
+    BelSlotId, ConnectorSlotId, DeviceDataId, EnumValueId, IntDb, Mux, PolTileWireCoord,
+    SwitchBoxItem, TableFieldId, TableId, TableRowId, TableValue, TileClassId, TileWireCoord,
 };
 use prjcombine_types::{
     bitvec::BitVec,
@@ -24,6 +24,7 @@ pub struct Collector<'a, 'b> {
     pub intdb: &'b IntDb,
     pub dev_name: &'b str,
     pub data: &'a mut CollectorData,
+    mux_index: HashMap<(TileClassId, TileWireCoord), &'b Mux>,
 }
 
 impl<'a, 'b> Collector<'a, 'b> {
@@ -33,11 +34,26 @@ impl<'a, 'b> Collector<'a, 'b> {
         dev_name: &'b str,
         intdb: &'b IntDb,
     ) -> Self {
+        let mut mux_index = HashMap::new();
+        for (tcid, _, tcls) in &intdb.tile_classes {
+            for bel in tcls.bels.values() {
+                let BelInfo::SwitchBox(sb) = bel else {
+                    continue;
+                };
+                for item in &sb.items {
+                    let SwitchBoxItem::Mux(mux) = item else {
+                        continue;
+                    };
+                    mux_index.insert((tcid, mux.dst), mux);
+                }
+            }
+        }
         Self {
             diffs,
             intdb,
             dev_name,
             data,
+            mux_index,
         }
     }
 }
@@ -75,6 +91,16 @@ impl Collector<'_, '_> {
         src: PolTileWireCoord,
     ) -> Diff {
         self.get_diff_raw(&DiffKey::Routing(tcid, dst, src))
+    }
+
+    pub fn get_diff_routing_pair_special(
+        &mut self,
+        tcid: TileClassId,
+        dst: TileWireCoord,
+        src: PolTileWireCoord,
+        spec: SpecialId,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::RoutingPairSpecial(tcid, dst, src, spec))
     }
 
     pub fn get_diffs_attr_bits(
@@ -992,5 +1018,22 @@ impl Collector<'_, '_> {
             diffs.push((i, diff));
         }
         self.insert_delay(tcid, wire, xlat_enum_raw(diffs, OcdMode::ValueOrder));
+    }
+
+    pub fn collect_mux(&mut self, tcid: TileClassId, dst: TileWireCoord) {
+        let mux = self.mux_index[&(tcid, dst)];
+        let mut diffs = vec![];
+        let mut got_empty = false;
+        for &src in mux.src.keys() {
+            let diff = self.get_diff_routing(tcid, dst, src);
+            if diff.bits.is_empty() {
+                got_empty = true;
+            }
+            diffs.push((Some(src), diff));
+        }
+        if !got_empty {
+            diffs.push((None, Diff::default()));
+        }
+        self.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::Mux));
     }
 }

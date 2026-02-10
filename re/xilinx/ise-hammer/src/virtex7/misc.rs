@@ -980,8 +980,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "SYSMON";
         let bel = "SYSMON";
         ctx.get_diff_legacy(tile, bel, "ENABLE", "1").assert_empty();
-        ctx.collect_inv(tile, bel, "CONVSTCLK");
-        ctx.collect_inv(tile, bel, "DCLK");
+        ctx.collect_inv_legacy(tile, bel, "CONVSTCLK");
+        ctx.collect_inv_legacy(tile, bel, "DCLK");
         for i in 0x40..0x60 {
             ctx.collect_bitvec_legacy(tile, bel, &format!("INIT_{i:02X}"), "");
         }

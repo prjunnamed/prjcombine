@@ -522,7 +522,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     bslots::IODELAY[1],
                     format!("IODELAY_X{iox}Y{y}", y = ioy * 2 + 1),
                 );
-                ntile.add_bel(bslots::TIEOFF_IOI, format!("TIEOFF_X{tiex}Y{tiey}"));
+                ntile.add_bel(bslots::MISC_IOI, format!("TIEOFF_X{tiex}Y{tiey}"));
             }
             tcls::IOB => {
                 let cd = grid.columns[col];

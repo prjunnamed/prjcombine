@@ -1875,7 +1875,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
         for &pin in GTP_COMMON_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         for &(attr, vals) in GTP_COMMON_ENUM_ATTRS {
             ctx.collect_enum_legacy_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
@@ -1990,7 +1990,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
         for &pin in GTXH_COMMON_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         for &(attr, vals) in GTXH_COMMON_ENUM_ATTRS {
             ctx.collect_enum_legacy_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
@@ -2008,7 +2008,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
         for &pin in GTXH_COMMON_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         for &(attr, vals) in GTXH_COMMON_ENUM_ATTRS {
             ctx.collect_enum_legacy_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
@@ -2101,7 +2101,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
         for bel in ["BUFDS[0]", "BUFDS[1]"] {
-            ctx.collect_inv(tile, bel, "CLKTESTSIG");
+            ctx.collect_inv_legacy(tile, bel, "CLKTESTSIG");
             ctx.collect_bit_bi_legacy(tile, bel, "CLKCM_CFG", "FALSE", "TRUE");
             ctx.collect_bit_bi_legacy(tile, bel, "CLKRCV_TRST", "FALSE", "TRUE");
             let item = ctx.extract_bitvec_legacy(tile, bel, "CLKSWING_CFG", "");
@@ -2230,7 +2230,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
         for &pin in GTP_CHANNEL_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         for &attr in GTP_CHANNEL_BOOL_ATTRS {
             ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
@@ -2257,7 +2257,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
         for &pin in GTX_CHANNEL_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         for &attr in GTX_CHANNEL_BOOL_ATTRS {
             ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
@@ -2284,7 +2284,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
         for &pin in GTH_CHANNEL_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         for &attr in GTH_CHANNEL_BOOL_ATTRS {
             ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");

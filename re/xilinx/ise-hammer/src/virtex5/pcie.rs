@@ -257,7 +257,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
         .assert_empty();
     for &pin in PCIE_INVPINS {
-        ctx.collect_inv(tile, bel, pin);
+        ctx.collect_inv_legacy(tile, bel, pin);
     }
     for &attr in PCIE_BOOL_ATTRS {
         if attr == "CLKDIVIDED" {

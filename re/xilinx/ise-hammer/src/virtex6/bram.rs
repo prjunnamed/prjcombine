@@ -119,7 +119,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("DOA_REG", "0")
                 .attr("DOB_REG", "0")
                 .attr("RAM_MODE", "SDP")
-                .test_enum_suffix(attr, "SDP", &["0", "1", "2", "4", "9", "18", "36", "72"]);
+                .test_enum_suffix_legacy(attr, "SDP", &["0", "1", "2", "4", "9", "18", "36", "72"]);
         }
         for attr in [
             "READ_WIDTH_A",
@@ -174,7 +174,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
             .attr("EN_ECC_READ", "TRUE")
-            .test_enum_suffix("EN_ECC_WRITE", "READ", &["FALSE", "TRUE"]);
+            .test_enum_suffix_legacy("EN_ECC_WRITE", "READ", &["FALSE", "TRUE"]);
 
         for opt in ["BYPASS_RSR", "SWAP_CFGPORT"] {
             bctx.mode(mode)
@@ -384,7 +384,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .tile_mutex("MODE", "FULL")
             .attr("DO_REG", "0")
             .attr("FIFO_MODE", "FIFO36_72")
-            .test_enum_suffix("DATA_WIDTH", "SDP", &["4", "9", "18", "36", "72"]);
+            .test_enum_suffix_legacy("DATA_WIDTH", "SDP", &["4", "9", "18", "36", "72"]);
 
         if edev.kind == ChipKind::Virtex6 {
             bctx.mode(mode)
@@ -430,7 +430,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex("BRAM_OPT", "NONE")
             .tile_mutex("MODE", "FULL")
             .attr("EN_ECC_READ", "TRUE")
-            .test_enum_suffix("EN_ECC_WRITE", "READ", &["FALSE", "TRUE"]);
+            .test_enum_suffix_legacy("EN_ECC_WRITE", "READ", &["FALSE", "TRUE"]);
 
         for opt in ["TEST_FIFO_FLAG", "TEST_FIFO_OFFSET", "TEST_FIFO_CNT"] {
             bctx.mode(mode)
@@ -530,7 +530,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pin("WEBWE6")
                 .pin("WEBWE7")
                 .attr("RAM_MODE", "SDP")
-                .test_enum_suffix(attr, "SDP", &["0", "1", "2", "4", "9", "18", "36"]);
+                .test_enum_suffix_legacy(attr, "SDP", &["0", "1", "2", "4", "9", "18", "36"]);
         }
         for attr in [
             "READ_WIDTH_A",
@@ -663,7 +663,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("MODE", "HALF")
                 .attr("DO_REG", "0")
                 .attr("FIFO_MODE", "FIFO18_36")
-                .test_enum_suffix("DATA_WIDTH", "SDP", &["4", "9", "18", "36"]);
+                .test_enum_suffix_legacy("DATA_WIDTH", "SDP", &["4", "9", "18", "36"]);
 
             if edev.kind == ChipKind::Virtex6 {
                 bctx.mode(mode)
@@ -772,9 +772,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "RSTRAMB",
     ] {
         for (bel, ul) in [("BRAM_H[0]", 'L'), ("BRAM_H[1]", 'U')] {
-            let item = ctx.extract_inv(tile, "BRAM_F", &format!("{pin}{ul}"));
+            let item = ctx.extract_inv_legacy(tile, "BRAM_F", &format!("{pin}{ul}"));
             ctx.insert_legacy(tile, "BRAM", format!("INV.{pin}{ul}"), item);
-            let item = ctx.extract_inv(tile, bel, pin);
+            let item = ctx.extract_inv_legacy(tile, bel, pin);
             ctx.insert_legacy(tile, "BRAM", format!("INV.{pin}{ul}"), item);
         }
     }
@@ -787,15 +787,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("ENBWREN", "WREN"),
         ("RSTREGARSTREG", "RSTREG"),
     ] {
-        let item = ctx.extract_inv(tile, "FIFO_H[0]", pin);
+        let item = ctx.extract_inv_legacy(tile, "FIFO_H[0]", pin);
         ctx.insert_legacy(tile, "BRAM", format!("INV.{hwpin}L"), item);
         for ul in ['U', 'L'] {
-            let item = ctx.extract_inv(tile, "FIFO_F", &format!("{pin}{ul}"));
+            let item = ctx.extract_inv_legacy(tile, "FIFO_F", &format!("{pin}{ul}"));
             ctx.insert_legacy(tile, "BRAM", format!("INV.{hwpin}{ul}"), item);
         }
     }
     for bel in ["FIFO_H[0]", "FIFO_F"] {
-        let item = ctx.extract_inv(tile, bel, "RST");
+        let item = ctx.extract_inv_legacy(tile, bel, "RST");
         ctx.insert_legacy(tile, "BRAM", "INV.RSTRAMARSTRAML", item);
     }
 

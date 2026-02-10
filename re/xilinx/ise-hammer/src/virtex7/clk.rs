@@ -925,7 +925,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
         for i in 0..16 {
             let bel = &format!("BUFGCTRL[{i}]");
             for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
-                ctx.collect_inv(tile, bel, pin);
+                ctx.collect_inv_legacy(tile, bel, pin);
             }
             for attr in ["PRESELECT_I0", "PRESELECT_I1", "CREATE_EDGE"] {
                 ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
@@ -992,7 +992,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
             for i in 0..12 {
                 let bel = &format!("BUFHCE_{we}[{i}]");
                 ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-                ctx.collect_inv(tile, bel, "CE");
+                ctx.collect_inv_legacy(tile, bel, "CE");
                 ctx.collect_bit_bi_legacy(tile, bel, "INIT_OUT", "0", "1");
                 ctx.collect_enum_legacy(tile, bel, "CE_TYPE", &["SYNC", "ASYNC"]);
                 let mut diffs = vec![];

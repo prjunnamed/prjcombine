@@ -147,7 +147,7 @@ pub fn add_fuzzers<'a>(
                 let mut builder = bctx
                     .build()
                     .global_mutex_here("BUFPLL_CLK")
-                    .test_raw(DiffKey::Routing(tcid, mux.dst, src))
+                    .test_routing(mux.dst, src)
                     .prop(WireMutexShared::new(src.tw))
                     .prop(WireMutexExclusive::new(mux.dst))
                     .prop(WireMutexExclusive::new(alt_dst))
@@ -190,7 +190,7 @@ pub fn add_fuzzers<'a>(
                 continue;
             }
             ctx.build()
-                .test_raw(DiffKey::Routing(tcid, buf.dst, buf.src))
+                .test_routing(buf.dst, buf.src)
                 .prop(WireMutexShared::new(buf.src.tw))
                 .prop(WireMutexExclusive::new(buf.dst))
                 .prop(FuzzIntPip::new(buf.dst, buf.src.tw))
@@ -245,7 +245,7 @@ pub fn add_fuzzers<'a>(
             let mut builder = bctx
                 .build()
                 .global_mutex_here("BUFPLL_CLK")
-                .test_raw(DiffKey::Routing(tcid, buf.dst, buf.src))
+                .test_routing(buf.dst, buf.src)
                 .prop(WireMutexShared::new(buf.src.tw))
                 .prop(WireMutexExclusive::new(buf.dst))
                 .prop(FuzzIntPip::new(buf.dst, buf.src.tw));
@@ -363,7 +363,7 @@ pub fn add_fuzzers<'a>(
                     continue;
                 }
                 bctx.mode("BUFIO2")
-                    .test_raw(DiffKey::Routing(tcid, wire_i, src))
+                    .test_routing(wire_i, src)
                     .pin("I")
                     .prop(WireMutexShared::new(src.tw))
                     .prop(WireMutexExclusive::new(wire_i))
@@ -375,7 +375,7 @@ pub fn add_fuzzers<'a>(
             let mux_ib = muxes[&wire_ib];
             for &src in mux_ib.src.keys() {
                 bctx.mode("BUFIO2_2CLK")
-                    .test_raw(DiffKey::Routing(tcid, wire_ib, src))
+                    .test_routing(wire_ib, src)
                     .pin("IB")
                     .prop(WireMutexShared::new(src.tw))
                     .prop(WireMutexExclusive::new(wire_ib))
@@ -420,7 +420,7 @@ pub fn add_fuzzers<'a>(
                         (src, "FALSE")
                     };
                 bctx.mode("BUFIO2FB")
-                    .test_raw(DiffKey::Routing(tcid, wire_i, src))
+                    .test_routing(wire_i, src)
                     .pin("I")
                     .prop(WireMutexShared::new(raw_src.tw))
                     .prop(WireMutexExclusive::new(wire_i))
@@ -532,11 +532,10 @@ pub fn add_fuzzers<'a>(
                             format!("BUFPLL{ii}_PLLIN", ii = i ^ 1),
                             format!("PLLIN_SN{j}"),
                         )
-                        .test_raw(DiffKey::Routing(
-                            tcid,
+                        .test_routing(
                             TileWireCoord::new_idx(ci, wires::IMUX_BUFPLL_PLLIN[i]),
                             TileWireCoord::new_idx(ci, w_pllin[j]).pos(),
-                        ))
+                        )
                         .pip(format!("BUFPLL{i}_PLLIN"), format!("PLLIN_SN{j}"))
                         .commit();
                 }
@@ -544,11 +543,10 @@ pub fn add_fuzzers<'a>(
                     bctx.mode("BUFPLL")
                         .tile_mutex("BUFPLL", "PLAIN")
                         .mutex("LOCKED", format!("LOCKED{j}"))
-                        .test_raw(DiffKey::Routing(
-                            tcid,
+                        .test_routing(
                             TileWireCoord::new_idx(ci, wires::IMUX_BUFPLL_LOCKED[i]),
                             TileWireCoord::new_idx(ci, w_locked[j]).pos(),
-                        ))
+                        )
                         .pin("LOCKED")
                         .pip(format!("BUFPLL{i}_LOCKED"), format!("LOCKED_SN{j}"))
                         .commit();

@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem},
     grid::TileCoord,
 };
-use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bit, xlat_enum_raw};
+use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_bit, xlat_enum_raw};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -77,7 +77,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("TMUX", "T")
                             .pin("O")
                             .pin("T")
-                            .test_raw(DiffKey::Routing(tcid, wire_to, wire_from))
+                            .test_routing(wire_to, wire_from)
                             .pip("O", (PipInt, 0, wires::TIE_0))
                             .attr("OMUX", if wire_from.inv { "ONOT" } else { "O" })
                             .commit();
@@ -86,7 +86,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("TMUX", "T")
                             .pin("O")
                             .pin("T")
-                            .test_raw(DiffKey::Routing(tcid, wire_to, wire_from))
+                            .test_routing(wire_to, wire_from)
                             .pip("O", (PipInt, 0, wire_from.wire))
                             .attr("OMUX", if wire_from.inv { "ONOT" } else { "O" })
                             .commit();
@@ -95,7 +95,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 let mut builder = ctx
                     .build()
-                    .test_raw(DiffKey::Routing(tcid, wire_to, wire_from))
+                    .test_routing(wire_to, wire_from)
                     .prop(WireIntDistinct::new(wire_to, wire_from.tw))
                     .prop(WireIntDstFilter::new(wire_to))
                     .prop(WireIntSrcFilter::new(wire_from.tw))
@@ -202,8 +202,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         let mut inps = vec![];
                         let mut got_empty = false;
                         for &wire_from in mux.src.keys() {
-                            let diff =
-                                ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wire_from));
+                            let diff = ctx.get_diff_routing(tcid, mux.dst, wire_from);
                             if diff.bits.is_empty() {
                                 got_empty = true;
                             }
@@ -252,8 +251,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.insert_mux(tcid, mux.dst, item);
                     }
                     SwitchBoxItem::Pass(pass) => {
-                        let mut diff =
-                            ctx.get_diff_raw(&DiffKey::Routing(tcid, pass.dst, pass.src.pos()));
+                        let mut diff = ctx.get_diff_routing(tcid, pass.dst, pass.src.pos());
                         // HORSEFUCKERS PISS SHIT FUCK
                         match (tcid, pass.src.wire) {
                             (tcls::CNR_SE, wires::OUT_STARTUP_DONEIN)
@@ -276,7 +274,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.collect_bipass(tcid, pass.a, pass.b);
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
-                        let diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, buf.dst, buf.src));
+                        let diff = ctx.get_diff_routing(tcid, buf.dst, buf.src);
                         diff.assert_empty();
                     }
 

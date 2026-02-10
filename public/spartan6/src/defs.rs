@@ -169,6 +169,11 @@ target_defs! {
         attribute RSTTYPE: BRAM_RSTTYPE;
     }
 
+    enum ILOGIC_MUX_D { IOB_I, OTHER_IOB_I }
+    enum ILOGIC_MUX_Q { NETWORKING, NETWORKING_PIPELINED, RETIMED, SHIFT_REGISTER }
+    enum ILOGIC_MUX_SR { INT, OLOGIC_SR }
+    enum ILOGIC_DATA_WIDTH { _1, _2, _3, _4, _5, _6, _7, _8 }
+    enum ILOGIC_MUX_TSBYPASS { GND, T }
     bel_class ILOGIC {
         output FABRICOUT;
         input CLK, IOCE;
@@ -187,8 +192,47 @@ target_defs! {
         output CFB1;
 
         // TODO: attrs
+        attribute ENABLE: bool;
+        attribute DDR: bool;
+        attribute IOCE_ENABLE: bool;
+
+        attribute FFI_INIT: bitvec[1];
+        attribute FFI_SRVAL: bitvec[1];
+        attribute FFI_LATCH: bool;
+        attribute FFI_SR_ENABLE: bool;
+        attribute FFI_SR_SYNC: bool;
+        attribute FFI_REV_ENABLE: bool;
+        attribute FFI_CE_ENABLE: bool;
+
+        attribute FFI_DELAY_ENABLE: bool;
+        attribute I_DELAY_ENABLE: bool;
+
+        attribute MUX_TSBYPASS: ILOGIC_MUX_TSBYPASS;
+        attribute MUX_D: ILOGIC_MUX_D;
+        attribute MUX_SR: ILOGIC_MUX_SR;
+
+        attribute DATA_WIDTH_START: ILOGIC_DATA_WIDTH;
+        attribute DATA_WIDTH_RELOAD: ILOGIC_DATA_WIDTH;
+        attribute BITSLIP_ENABLE: bool;
+        attribute CASCADE_ENABLE: bool;
+        attribute MUX_Q1: ILOGIC_MUX_Q;
+        attribute MUX_Q2: ILOGIC_MUX_Q;
+        attribute MUX_Q3: ILOGIC_MUX_Q;
+        attribute MUX_Q4: ILOGIC_MUX_Q;
+        attribute ROW1_CLK_ENABLE: bool;
+        attribute ROW2_CLK_ENABLE: bool;
+        attribute ROW3_CLK_ENABLE: bool;
+        attribute ROW4_CLK_ENABLE: bool;
     }
 
+    enum OLOGIC_MUX_IN { INT, MCB }
+    enum OLOGIC_MUX_OCE { INT, PCI_CE }
+    enum OLOGIC_MUX_SR { GND, INT }
+    enum OLOGIC_MUX_REV { GND, INT }
+    enum OLOGIC_MUX_TRAIN { GND, INT, MCB }
+    enum OLOGIC_MUX_O { D1, FFO }
+    enum OLOGIC_MUX_T { T1, FFT }
+    enum OLOGIC_OUTPUT_MODE { SINGLE_ENDED, DIFFERENTIAL }
     bel_class OLOGIC {
         input CLK, IOCE;
         input CLKDIV;
@@ -198,9 +242,58 @@ target_defs! {
         input T1, T2, T3, T4;
         input TRAIN;
 
-        // TODO: attrs
+        attribute ENABLE: bool;
+        attribute IOCE_ENABLE: bool;
+        attribute DDR_OPPOSITE_EDGE: bool;
+
+        attribute FFO_INIT: bitvec[1];
+        attribute FFO_SRVAL: bitvec[1];
+        attribute FFO_LATCH: bool;
+        attribute FFO_RANK1_BYPASS: bool;
+        attribute FFO_RANK1_CLK_ENABLE: bool;
+        attribute FFO_RANK2_CLK_ENABLE: bool;
+        attribute FFO_SR_SYNC: bool;
+        attribute FFO_SR_ENABLE: bool;
+        attribute FFO_REV_ENABLE: bool;
+        attribute FFO_CE_ENABLE: bool;
+        attribute FFO_CE_OR_DDR: bool;
+
+        attribute FFT_INIT: bitvec[1];
+        attribute FFT_SRVAL: bitvec[1];
+        attribute FFT_LATCH: bool;
+        attribute FFT_RANK1_BYPASS: bool;
+        attribute FFT_RANK1_CLK_ENABLE: bool;
+        attribute FFT_RANK2_CLK_ENABLE: bool;
+        attribute FFT_SR_SYNC: bool;
+        attribute FFT_SR_ENABLE: bool;
+        attribute FFT_REV_ENABLE: bool;
+        attribute FFT_CE_ENABLE: bool;
+        attribute FFT_CE_OR_DDR: bool;
+
+        attribute MUX_IN_O: OLOGIC_MUX_IN;
+        attribute MUX_IN_T: OLOGIC_MUX_IN;
+        attribute MUX_OCE: OLOGIC_MUX_OCE;
+        attribute MUX_SR: OLOGIC_MUX_SR;
+        attribute MUX_REV: OLOGIC_MUX_REV;
+        attribute MUX_TRAIN: OLOGIC_MUX_TRAIN;
+
+        attribute MUX_O: OLOGIC_MUX_O;
+        attribute MUX_T: OLOGIC_MUX_T;
+
+        attribute CASCADE_ENABLE: bool;
+        attribute OUTPUT_MODE: OLOGIC_OUTPUT_MODE;
+        attribute TRAIN_PATTERN: bitvec[4];
+
+        attribute MISR_ENABLE_CLK: bool;
+        attribute MISR_ENABLE_DATA: bool;
+        attribute MISR_RESET: bool;
     }
 
+    enum IOLOGIC_COUNTER_WRAPAROUND { WRAPAROUND, STAY_AT_LIMIT }
+    enum IODELAY_DELAY_SRC { IO, ODATAIN, IDATAIN }
+    enum IODELAY_IDELAY_MODE { NORMAL, PCI }
+    enum IODELAY_CHANGE { CHANGE_ON_CLOCK, CHANGE_ON_DATA }
+    enum IODELAY_MODE { IODRP2, IODELAY2, IODRP2_MCB }
     bel_class IODELAY {
         input IOCLK;
         input RST;
@@ -216,19 +309,54 @@ target_defs! {
         // special outputs to BUFIO2 only
         output DQSOUTP, DQSOUTN;
 
-        // TODO: attrs
+        attribute MODE: IODELAY_MODE;
+        attribute COUNTER_WRAPAROUND: IOLOGIC_COUNTER_WRAPAROUND;
+        attribute DELAYCHAIN_OSC: bool;
+        attribute DELAYCHAIN_OSC_OR_ODATAIN_LP_OR_IDRP2_MCB: bitvec[2];
+        attribute DELAY_SRC: IODELAY_DELAY_SRC;
+        attribute DIFF_PHASE_DETECTOR: bool;
+        attribute CIN_ENABLE: bitvec[3];
+        attribute ODATAIN_ENABLE: bool;
+        attribute IDELAY_FIXED: bool;
+        attribute IDELAY_FROM_HALF_MAX: bool;
+        attribute IDELAY_MODE: IODELAY_IDELAY_MODE;
+        attribute IODELAY_CHANGE: IODELAY_CHANGE;
+        attribute LUMPED_DELAY: bool;
+        attribute LUMPED_DELAY_SELECT: bool;
+        attribute PLUS1: bool;
+        attribute TEST_GLITCH_FILTER: bool;
+        attribute TEST_PCOUNTER: bool;
+        attribute TEST_NCOUNTER: bool;
+        attribute EVENT_SEL: bitvec[2];
+
+        attribute CAL_DELAY_MAX: bitvec[8];
+        attribute IDELAY_VALUE_P: bitvec[8];
+        attribute IDELAY_VALUE_N: bitvec[8];
+        attribute ODELAY_VALUE_P: bitvec[8];
+        attribute ODELAY_VALUE_N: bitvec[8];
+
+        attribute DRP_ADDR: bitvec[5];
+        attribute DRP06: bitvec[8];
+        attribute DRP07: bitvec[8];
     }
 
     enum IOI_DDR_ALIGNMENT { NONE, CLK0, CLK1 }
     bel_class IOI_DDR {
         input CLK0, CLK1;
         output CLK, IOCE;
-        attribute ENABLE: bool;
+        attribute ENABLE: bitvec[2];
         attribute ALIGNMENT: IOI_DDR_ALIGNMENT;
     }
 
     bel_class MISC_IOI {
-        // TODO
+        attribute MEM_PLL_DIV_EN: bool;
+        attribute MEM_PLL_POL_SEL: MCB_MEM_PLL_POL_SEL;
+        attribute DRP_ENABLE: bool;
+        attribute DRP_FROM_MCB: bool;
+        attribute ENFFSCAN_DRP: bitvec[2];
+        attribute DRP_MCB_ADDRESS: bitvec[4];
+        // ????? I hate this FPGA
+        attribute DIFF_PHASE_DETECTOR: bool;
     }
 
     enum IOB_DIFF_MODE { NONE, LVDS, TMDS }
@@ -249,7 +377,6 @@ target_defs! {
 
         pad PAD: inout;
 
-        // TODO
         attribute PDRIVE: bitvec[6];
         attribute PTERM: bitvec[6];
         attribute NDRIVE: bitvec[7];
@@ -2036,6 +2163,18 @@ target_defs! {
     wire OMUX_PLL_SKEWCLKIN2_BUF: mux;
     wire CMT_TEST_CLK: mux;
 
+    wire IOI_IOCLK[6]: mux;
+    wire IOI_IOCLK_OPTINV[6]: mux;
+    wire IOI_IOCE[4]: mux;
+    wire OUT_DDR_IOCLK[2]: bel;
+    wire OUT_DDR_IOCE[2]: bel;
+    wire IOI_ICLK[2]: mux;
+    wire IOI_OCLK[2]: mux;
+    wire IMUX_ILOGIC_CLK[2]: mux;
+    wire IMUX_OLOGIC_CLK[2]: mux;
+    wire IMUX_IODELAY_IOCLK[2]: mux;
+    wire IMUX_ILOGIC_IOCE[2]: mux;
+    wire IMUX_OLOGIC_IOCE[2]: mux;
 
     bitrect INT = vertical (22, rev 64);
     bitrect CLEXL = vertical (30, rev 64);
@@ -2098,14 +2237,67 @@ target_defs! {
             bitrect MAIN[4]: DSP;
         }
 
-        bel_slot ILOGIC[2]: legacy;
-        bel_slot OLOGIC[2]: legacy;
-        bel_slot IODELAY[2]: legacy;
-        bel_slot IOICLK[2]: legacy;
-        bel_slot IOI: legacy;
+        bel_slot IOI_INT: routing;
+        bel_slot IOI_DDR[2]: IOI_DDR;
+        bel_slot ILOGIC[2]: ILOGIC;
+        bel_slot OLOGIC[2]: OLOGIC;
+        bel_slot IODELAY[2]: IODELAY;
+        bel_slot MISC_IOI: MISC_IOI;
+
         tile_class IOI_WE, IOI_SN {
             cell CELL;
             bitrect MAIN: CLEXL;
+
+            switchbox IOI_INT {
+                mux IOI_IOCLK[0] = IMUX_GFAN[1] | IMUX_CLK[1] | IOCLK[0] | IOCLK[2] | PLLCLK[0];
+                mux IOI_IOCLK[1] = IMUX_GFAN[1] | IMUX_CLK[1] | IOCLK[1] | IOCLK[3] | PLLCLK[1];
+                mux IOI_IOCLK[2] = PLLCLK[0] | PLLCLK[1];
+                mux IOI_IOCLK[3] = IMUX_GFAN[0] | IMUX_CLK[0] | IOCLK[0] | IOCLK[2] | PLLCLK[0];
+                mux IOI_IOCLK[4] = IMUX_GFAN[0] | IMUX_CLK[0] | IOCLK[1] | IOCLK[3] | PLLCLK[1];
+                mux IOI_IOCLK[5] = PLLCLK[0] | PLLCLK[1];
+                proginv IOI_IOCLK_OPTINV[0] = IOI_IOCLK[0];
+                proginv IOI_IOCLK_OPTINV[1] = IOI_IOCLK[1];
+                proginv IOI_IOCLK_OPTINV[2] = IOI_IOCLK[2];
+                proginv IOI_IOCLK_OPTINV[3] = IOI_IOCLK[3];
+                proginv IOI_IOCLK_OPTINV[4] = IOI_IOCLK[4];
+                proginv IOI_IOCLK_OPTINV[5] = IOI_IOCLK[5];
+                mux IOI_IOCE[0] = IOCE[0] | IOCE[2] | PLLCE[0];
+                mux IOI_IOCE[1] = IOCE[1] | IOCE[3] | PLLCE[1];
+                mux IOI_IOCE[2] = IOCE[0] | IOCE[2] | PLLCE[0];
+                mux IOI_IOCE[3] = IOCE[1] | IOCE[3] | PLLCE[1];
+
+                mux IOI_ICLK[0] = IOI_IOCLK[0] | IOI_IOCLK[1] | IOI_IOCLK[2] | OUT_DDR_IOCLK[0];
+                mux IOI_ICLK[1] = IOI_IOCLK[3] | IOI_IOCLK[4] | IOI_IOCLK[5] | OUT_DDR_IOCLK[1];
+                mux IOI_OCLK[0] = IOI_IOCLK[0] | IOI_IOCLK[1] | IOI_IOCLK[2] | OUT_DDR_IOCLK[0];
+                mux IOI_OCLK[1] = IOI_IOCLK[3] | IOI_IOCLK[4] | IOI_IOCLK[5] | OUT_DDR_IOCLK[1];
+
+                mux IMUX_ILOGIC_IOCE[0] = IOI_IOCE[0] | IOI_IOCE[1] | OUT_DDR_IOCE[0];
+                mux IMUX_ILOGIC_IOCE[1] = IOI_IOCE[2] | IOI_IOCE[3] | OUT_DDR_IOCE[1];
+                mux IMUX_OLOGIC_IOCE[0] = IOI_IOCE[0] | IOI_IOCE[1] | OUT_DDR_IOCE[0];
+                mux IMUX_OLOGIC_IOCE[1] = IOI_IOCE[2] | IOI_IOCE[3] | OUT_DDR_IOCE[1];
+
+                mux IMUX_ILOGIC_CLK[0] = IOI_ICLK[0] | IOI_ICLK[1];
+                mux IMUX_ILOGIC_CLK[1] = IOI_ICLK[0] | IOI_ICLK[1];
+                mux IMUX_OLOGIC_CLK[0] = IOI_OCLK[0] | IOI_OCLK[1];
+                mux IMUX_OLOGIC_CLK[1] = IOI_OCLK[0] | IOI_OCLK[1];
+                mux IMUX_IODELAY_IOCLK[0] = IMUX_ILOGIC_CLK[0] | IMUX_OLOGIC_CLK[0];
+                mux IMUX_IODELAY_IOCLK[1] = IMUX_ILOGIC_CLK[1] | IMUX_OLOGIC_CLK[1];
+            }
+
+            bel IOI_DDR[0] {
+                input CLK0 = IOI_IOCLK[0];
+                input CLK1 = IOI_IOCLK[1];
+                output CLK = OUT_DDR_IOCLK[0];
+                output IOCE = OUT_DDR_IOCE[0];
+            }
+
+            bel IOI_DDR[1] {
+                input CLK0 = IOI_IOCLK[3];
+                input CLK1 = IOI_IOCLK[4];
+                output CLK = OUT_DDR_IOCLK[1];
+                output IOCE = OUT_DDR_IOCE[1];
+            }
+
         }
 
         bel_slot DCM[2]: DCM;
@@ -2187,9 +2379,6 @@ target_defs! {
             cell S, N, EDGE_W, EDGE_E, EDGE_S, EDGE_N;
             bitrect MAIN: CLE_CLK;
         }
-
-        // RE-only detritus?
-        bel_slot TIEOFF_IOI: legacy;
     }
 
     tile_slot IOB {
@@ -2222,7 +2411,6 @@ target_defs! {
                 attribute FRAME27 @MAIN[17][1];
                 attribute FRAME28 @MAIN[18][1];
                 attribute FRAME29 @MAIN[19][1];
-
             }
         }
         // used in CLEXM columns
@@ -2237,7 +2425,6 @@ target_defs! {
                 attribute FRAME28 @MAIN[17][1];
                 attribute FRAME29 @MAIN[18][1];
                 attribute FRAME30 @MAIN[19][1];
-
             }
         }
         // used in IOI columns
@@ -2251,7 +2438,6 @@ target_defs! {
                 attribute FRAME27 @MAIN[17][1];
                 attribute FRAME28 @MAIN[18][1];
                 attribute FRAME29 @MAIN[19][1];
-
             }
         }
         // used on right GTP side
@@ -2262,7 +2448,6 @@ target_defs! {
                 attribute FRAME22 @MAIN[17][0];
                 attribute FRAME23 @MAIN[18][0];
                 attribute FRAME24 @MAIN[19][0];
-
             }
         }
     }

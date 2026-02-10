@@ -24202,6 +24202,107 @@ intdb {
 		OPMODE5,
 	}
 
+	enum ILOGIC_MUX_D {
+		IOB_I,
+		OTHER_IOB_I,
+	}
+
+	enum ILOGIC_MUX_Q {
+		NETWORKING,
+		NETWORKING_PIPELINED,
+		RETIMED,
+		SHIFT_REGISTER,
+	}
+
+	enum ILOGIC_MUX_SR {
+		INT,
+		OLOGIC_SR,
+	}
+
+	enum ILOGIC_DATA_WIDTH {
+		_1,
+		_2,
+		_3,
+		_4,
+		_5,
+		_6,
+		_7,
+		_8,
+	}
+
+	enum ILOGIC_MUX_TSBYPASS {
+		GND,
+		T,
+	}
+
+	enum OLOGIC_MUX_IN {
+		INT,
+		MCB,
+	}
+
+	enum OLOGIC_MUX_OCE {
+		INT,
+		PCI_CE,
+	}
+
+	enum OLOGIC_MUX_SR {
+		GND,
+		INT,
+	}
+
+	enum OLOGIC_MUX_REV {
+		GND,
+		INT,
+	}
+
+	enum OLOGIC_MUX_TRAIN {
+		GND,
+		INT,
+		MCB,
+	}
+
+	enum OLOGIC_MUX_O {
+		D1,
+		FFO,
+	}
+
+	enum OLOGIC_MUX_T {
+		T1,
+		FFT,
+	}
+
+	enum OLOGIC_OUTPUT_MODE {
+		SINGLE_ENDED,
+		DIFFERENTIAL,
+	}
+
+	enum IOLOGIC_COUNTER_WRAPAROUND {
+		WRAPAROUND,
+		STAY_AT_LIMIT,
+	}
+
+	enum IODELAY_DELAY_SRC {
+		IO,
+		ODATAIN,
+		IDATAIN,
+	}
+
+	enum IODELAY_IDELAY_MODE {
+		NORMAL,
+		PCI,
+	}
+
+	enum IODELAY_CHANGE {
+		CHANGE_ON_CLOCK,
+		CHANGE_ON_DATA,
+	}
+
+	enum IODELAY_MODE {
+		IODRP2,
+		IODELAY2,
+		IODRP2_MCB,
+	}
+
 	enum IOI_DDR_ALIGNMENT {
 		NONE,
 		CLK0,
@@ -24994,6 +25095,33 @@ intdb {
 		output DFB;
 		output CFB0;
 		output CFB1;
+		attribute ENABLE: bool;
+		attribute DDR: bool;
+		attribute IOCE_ENABLE: bool;
+		attribute FFI_INIT: bitvec[1];
+		attribute FFI_SRVAL: bitvec[1];
+		attribute FFI_LATCH: bool;
+		attribute FFI_SR_ENABLE: bool;
+		attribute FFI_SR_SYNC: bool;
+		attribute FFI_REV_ENABLE: bool;
+		attribute FFI_CE_ENABLE: bool;
+		attribute FFI_DELAY_ENABLE: bool;
+		attribute I_DELAY_ENABLE: bool;
+		attribute MUX_TSBYPASS: ILOGIC_MUX_TSBYPASS;
+		attribute MUX_D: ILOGIC_MUX_D;
+		attribute MUX_SR: ILOGIC_MUX_SR;
+		attribute DATA_WIDTH_START: ILOGIC_DATA_WIDTH;
+		attribute DATA_WIDTH_RELOAD: ILOGIC_DATA_WIDTH;
+		attribute BITSLIP_ENABLE: bool;
+		attribute CASCADE_ENABLE: bool;
+		attribute MUX_Q1: ILOGIC_MUX_Q;
+		attribute MUX_Q2: ILOGIC_MUX_Q;
+		attribute MUX_Q3: ILOGIC_MUX_Q;
+		attribute MUX_Q4: ILOGIC_MUX_Q;
+		attribute ROW1_CLK_ENABLE: bool;
+		attribute ROW2_CLK_ENABLE: bool;
+		attribute ROW3_CLK_ENABLE: bool;
+		attribute ROW4_CLK_ENABLE: bool;
 	}
 
 	bel_class OLOGIC {
@@ -25013,6 +25141,45 @@ intdb {
 		input T3;
 		input T4;
 		input TRAIN;
+		attribute ENABLE: bool;
+		attribute IOCE_ENABLE: bool;
+		attribute DDR_OPPOSITE_EDGE: bool;
+		attribute FFO_INIT: bitvec[1];
+		attribute FFO_SRVAL: bitvec[1];
+		attribute FFO_LATCH: bool;
+		attribute FFO_RANK1_BYPASS: bool;
+		attribute FFO_RANK1_CLK_ENABLE: bool;
+		attribute FFO_RANK2_CLK_ENABLE: bool;
+		attribute FFO_SR_SYNC: bool;
+		attribute FFO_SR_ENABLE: bool;
+		attribute FFO_REV_ENABLE: bool;
+		attribute FFO_CE_ENABLE: bool;
+		attribute FFO_CE_OR_DDR: bool;
+		attribute FFT_INIT: bitvec[1];
+		attribute FFT_SRVAL: bitvec[1];
+		attribute FFT_LATCH: bool;
+		attribute FFT_RANK1_BYPASS: bool;
+		attribute FFT_RANK1_CLK_ENABLE: bool;
+		attribute FFT_RANK2_CLK_ENABLE: bool;
+		attribute FFT_SR_SYNC: bool;
+		attribute FFT_SR_ENABLE: bool;
+		attribute FFT_REV_ENABLE: bool;
+		attribute FFT_CE_ENABLE: bool;
+		attribute FFT_CE_OR_DDR: bool;
+		attribute MUX_IN_O: OLOGIC_MUX_IN;
+		attribute MUX_IN_T: OLOGIC_MUX_IN;
+		attribute MUX_OCE: OLOGIC_MUX_OCE;
+		attribute MUX_SR: OLOGIC_MUX_SR;
+		attribute MUX_REV: OLOGIC_MUX_REV;
+		attribute MUX_TRAIN: OLOGIC_MUX_TRAIN;
+		attribute MUX_O: OLOGIC_MUX_O;
+		attribute MUX_T: OLOGIC_MUX_T;
+		attribute CASCADE_ENABLE: bool;
+		attribute OUTPUT_MODE: OLOGIC_OUTPUT_MODE;
+		attribute TRAIN_PATTERN: bitvec[4];
+		attribute MISR_ENABLE_CLK: bool;
+		attribute MISR_ENABLE_DATA: bool;
+		attribute MISR_RESET: bool;
 	}
 
 	bel_class IODELAY {
@@ -25028,6 +25195,33 @@ intdb {
 		output RCLK;
 		output DQSOUTP;
 		output DQSOUTN;
+		attribute MODE: IODELAY_MODE;
+		attribute COUNTER_WRAPAROUND: IOLOGIC_COUNTER_WRAPAROUND;
+		attribute DELAYCHAIN_OSC: bool;
+		attribute DELAYCHAIN_OSC_OR_ODATAIN_LP_OR_IDRP2_MCB: bitvec[2];
+		attribute DELAY_SRC: IODELAY_DELAY_SRC;
+		attribute DIFF_PHASE_DETECTOR: bool;
+		attribute CIN_ENABLE: bitvec[3];
+		attribute ODATAIN_ENABLE: bool;
+		attribute IDELAY_FIXED: bool;
+		attribute IDELAY_FROM_HALF_MAX: bool;
+		attribute IDELAY_MODE: IODELAY_IDELAY_MODE;
+		attribute IODELAY_CHANGE: IODELAY_CHANGE;
+		attribute LUMPED_DELAY: bool;
+		attribute LUMPED_DELAY_SELECT: bool;
+		attribute PLUS1: bool;
+		attribute TEST_GLITCH_FILTER: bool;
+		attribute TEST_PCOUNTER: bool;
+		attribute TEST_NCOUNTER: bool;
+		attribute EVENT_SEL: bitvec[2];
+		attribute CAL_DELAY_MAX: bitvec[8];
+		attribute IDELAY_VALUE_P: bitvec[8];
+		attribute IDELAY_VALUE_N: bitvec[8];
+		attribute ODELAY_VALUE_P: bitvec[8];
+		attribute ODELAY_VALUE_N: bitvec[8];
+		attribute DRP_ADDR: bitvec[5];
+		attribute DRP06: bitvec[8];
+		attribute DRP07: bitvec[8];
 	}
 
 	bel_class IOI_DDR {
@@ -25035,11 +25229,18 @@ intdb {
 		input CLK1;
 		output CLK;
 		output IOCE;
-		attribute ENABLE: bool;
+		attribute ENABLE: bitvec[2];
 		attribute ALIGNMENT: IOI_DDR_ALIGNMENT;
 	}
 
 	bel_class MISC_IOI {
+		attribute MEM_PLL_DIV_EN: bool;
+		attribute MEM_PLL_POL_SEL: MCB_MEM_PLL_POL_SEL;
+		attribute DRP_ENABLE: bool;
+		attribute DRP_FROM_MCB: bool;
+		attribute ENFFSCAN_DRP: bitvec[2];
+		attribute DRP_MCB_ADDRESS: bitvec[4];
+		attribute DIFF_PHASE_DETECTOR: bool;
 	}
 
 	bel_class IOB {
@@ -27486,6 +27687,40 @@ intdb {
 	wire OMUX_PLL_SKEWCLKIN1_BUF: mux;
 	wire OMUX_PLL_SKEWCLKIN2_BUF: mux;
 	wire CMT_TEST_CLK: mux;
+	wire IOI_IOCLK[0]: mux;
+	wire IOI_IOCLK[1]: mux;
+	wire IOI_IOCLK[2]: mux;
+	wire IOI_IOCLK[3]: mux;
+	wire IOI_IOCLK[4]: mux;
+	wire IOI_IOCLK[5]: mux;
+	wire IOI_IOCLK_OPTINV[0]: mux;
+	wire IOI_IOCLK_OPTINV[1]: mux;
+	wire IOI_IOCLK_OPTINV[2]: mux;
+	wire IOI_IOCLK_OPTINV[3]: mux;
+	wire IOI_IOCLK_OPTINV[4]: mux;
+	wire IOI_IOCLK_OPTINV[5]: mux;
+	wire IOI_IOCE[0]: mux;
+	wire IOI_IOCE[1]: mux;
+	wire IOI_IOCE[2]: mux;
+	wire IOI_IOCE[3]: mux;
+	wire OUT_DDR_IOCLK[0]: bel;
+	wire OUT_DDR_IOCLK[1]: bel;
+	wire OUT_DDR_IOCE[0]: bel;
+	wire OUT_DDR_IOCE[1]: bel;
+	wire IOI_ICLK[0]: mux;
+	wire IOI_ICLK[1]: mux;
+	wire IOI_OCLK[0]: mux;
+	wire IOI_OCLK[1]: mux;
+	wire IMUX_ILOGIC_CLK[0]: mux;
+	wire IMUX_ILOGIC_CLK[1]: mux;
+	wire IMUX_OLOGIC_CLK[0]: mux;
+	wire IMUX_OLOGIC_CLK[1]: mux;
+	wire IMUX_IODELAY_IOCLK[0]: mux;
+	wire IMUX_IODELAY_IOCLK[1]: mux;
+	wire IMUX_ILOGIC_IOCE[0]: mux;
+	wire IMUX_ILOGIC_IOCE[1]: mux;
+	wire IMUX_OLOGIC_IOCE[0]: mux;
+	wire IMUX_OLOGIC_IOCE[1]: mux;
 
 	tile_slot INT {
 		bel_slot INT: routing;
@@ -35780,15 +36015,16 @@ intdb {
 		bel_slot BRAM[0]: BRAM;
 		bel_slot BRAM[1]: BRAM;
 		bel_slot DSP: DSP;
-		bel_slot ILOGIC[0]: legacy;
-		bel_slot ILOGIC[1]: legacy;
-		bel_slot OLOGIC[0]: legacy;
-		bel_slot OLOGIC[1]: legacy;
-		bel_slot IODELAY[0]: legacy;
-		bel_slot IODELAY[1]: legacy;
-		bel_slot IOICLK[0]: legacy;
-		bel_slot IOICLK[1]: legacy;
-		bel_slot IOI: legacy;
+		bel_slot IOI_INT: routing;
+		bel_slot IOI_DDR[0]: IOI_DDR;
+		bel_slot IOI_DDR[1]: IOI_DDR;
+		bel_slot ILOGIC[0]: ILOGIC;
+		bel_slot ILOGIC[1]: ILOGIC;
+		bel_slot OLOGIC[0]: OLOGIC;
+		bel_slot OLOGIC[1]: OLOGIC;
+		bel_slot IODELAY[0]: IODELAY;
+		bel_slot IODELAY[1]: IODELAY;
+		bel_slot MISC_IOI: MISC_IOI;
 		bel_slot DCM[0]: DCM;
 		bel_slot DCM[1]: DCM;
 		bel_slot CMT_VREG: CMT_VREG;
@@ -35845,7 +36081,6 @@ intdb {
 		bel_slot BUFGMUX[14]: BUFGMUX;
 		bel_slot BUFGMUX[15]: BUFGMUX;
 		bel_slot CLKC_INT: routing;
-		bel_slot TIEOFF_IOI: legacy;
 
 		tile_class CLEXL {
 			cell CELL;
@@ -37306,132 +37541,656 @@ intdb {
 			cell CELL;
 			bitrect MAIN: Vertical (30, rev 64);
 
+			switchbox IOI_INT {
+				mux IOI_IOCLK[0] @[MAIN[23][36], MAIN[23][32], MAIN[23][33], MAIN[23][35], MAIN[23][37]] {
+					IMUX_GFAN[1] = 0b00001,
+					IMUX_CLK[1] = 0b00010,
+					IOCLK[0] = 0b00100,
+					IOCLK[2] = 0b01000,
+					PLLCLK[0] = 0b10000,
+					off = 0b00000,
+				}
+				mux IOI_IOCLK[1] @[MAIN[24][36], MAIN[24][32], MAIN[24][33], MAIN[24][37], MAIN[24][35]] {
+					IMUX_GFAN[1] = 0b00001,
+					IMUX_CLK[1] = 0b00010,
+					IOCLK[1] = 0b00100,
+					IOCLK[3] = 0b01000,
+					PLLCLK[1] = 0b10000,
+					off = 0b00000,
+				}
+				mux IOI_IOCLK[2] @[MAIN[24][40], MAIN[24][39]] {
+					PLLCLK[0] = 0b01,
+					PLLCLK[1] = 0b10,
+					off = 0b00,
+				}
+				mux IOI_IOCLK[3] @[MAIN[23][27], MAIN[23][31], MAIN[23][30], MAIN[23][28], MAIN[23][26]] {
+					IMUX_GFAN[0] = 0b00001,
+					IMUX_CLK[0] = 0b00010,
+					IOCLK[0] = 0b00100,
+					IOCLK[2] = 0b01000,
+					PLLCLK[0] = 0b10000,
+					off = 0b00000,
+				}
+				mux IOI_IOCLK[4] @[MAIN[24][27], MAIN[24][31], MAIN[24][30], MAIN[24][26], MAIN[24][28]] {
+					IMUX_GFAN[0] = 0b00001,
+					IMUX_CLK[0] = 0b00010,
+					IOCLK[1] = 0b00100,
+					IOCLK[3] = 0b01000,
+					PLLCLK[1] = 0b10000,
+					off = 0b00000,
+				}
+				mux IOI_IOCLK[5] @[MAIN[24][23], MAIN[24][24]] {
+					PLLCLK[0] = 0b01,
+					PLLCLK[1] = 0b10,
+					off = 0b00,
+				}
+				proginv IOI_IOCLK_OPTINV[0] = IOI_IOCLK[0] @MAIN[23][38];
+				proginv IOI_IOCLK_OPTINV[1] = IOI_IOCLK[1] @MAIN[24][38];
+				proginv IOI_IOCLK_OPTINV[2] = IOI_IOCLK[2] @MAIN[23][39];
+				proginv IOI_IOCLK_OPTINV[3] = IOI_IOCLK[3] @MAIN[23][25];
+				proginv IOI_IOCLK_OPTINV[4] = IOI_IOCLK[4] @MAIN[24][25];
+				proginv IOI_IOCLK_OPTINV[5] = IOI_IOCLK[5] @MAIN[23][24];
+				mux IOI_IOCE[0] @[MAIN[23][53], MAIN[23][52], MAIN[23][50]] {
+					IOCE[0] = 0b001,
+					IOCE[2] = 0b010,
+					PLLCE[0] = 0b100,
+					off = 0b000,
+				}
+				mux IOI_IOCE[1] @[MAIN[24][53], MAIN[24][52], MAIN[24][51]] {
+					IOCE[1] = 0b001,
+					IOCE[3] = 0b010,
+					PLLCE[1] = 0b100,
+					off = 0b000,
+				}
+				mux IOI_IOCE[2] @[MAIN[23][10], MAIN[23][11], MAIN[23][13]] {
+					IOCE[0] = 0b001,
+					IOCE[2] = 0b010,
+					PLLCE[0] = 0b100,
+					off = 0b000,
+				}
+				mux IOI_IOCE[3] @[MAIN[24][10], MAIN[24][11], MAIN[24][12]] {
+					IOCE[1] = 0b001,
+					IOCE[3] = 0b010,
+					PLLCE[1] = 0b100,
+					off = 0b000,
+				}
+				mux IOI_ICLK[0] @[MAIN[23][48], MAIN[23][49], MAIN[24][46], MAIN[24][47]] {
+					IOI_IOCLK[0] = 0b0001,
+					IOI_IOCLK[1] = 0b0010,
+					IOI_IOCLK[2] = 0b0100,
+					OUT_DDR_IOCLK[0] = 0b1000,
+					off = 0b0000,
+				}
+				mux IOI_ICLK[1] @[MAIN[23][15], MAIN[23][14], MAIN[24][17], MAIN[24][16]] {
+					IOI_IOCLK[3] = 0b0001,
+					IOI_IOCLK[4] = 0b0010,
+					IOI_IOCLK[5] = 0b0100,
+					OUT_DDR_IOCLK[1] = 0b1000,
+					off = 0b0000,
+				}
+				mux IOI_OCLK[0] @[MAIN[24][49], MAIN[24][50], MAIN[24][45], MAIN[24][48]] {
+					IOI_IOCLK[0] = 0b0001,
+					IOI_IOCLK[1] = 0b0010,
+					IOI_IOCLK[2] = 0b0100,
+					OUT_DDR_IOCLK[0] = 0b1000,
+					off = 0b0000,
+				}
+				mux IOI_OCLK[1] @[MAIN[24][14], MAIN[24][13], MAIN[24][18], MAIN[24][15]] {
+					IOI_IOCLK[3] = 0b0001,
+					IOI_IOCLK[4] = 0b0010,
+					IOI_IOCLK[5] = 0b0100,
+					OUT_DDR_IOCLK[1] = 0b1000,
+					off = 0b0000,
+				}
+				mux IMUX_ILOGIC_IOCE[0] @[MAIN[23][60], MAIN[23][62], MAIN[23][61]] {
+					IOI_IOCE[0] = 0b001,
+					IOI_IOCE[1] = 0b010,
+					OUT_DDR_IOCE[0] = 0b100,
+					off = 0b000,
+				}
+				mux IMUX_ILOGIC_IOCE[1] @[MAIN[23][3], MAIN[23][1], MAIN[23][2]] {
+					IOI_IOCE[2] = 0b001,
+					IOI_IOCE[3] = 0b010,
+					OUT_DDR_IOCE[1] = 0b100,
+					off = 0b000,
+				}
+				mux IMUX_OLOGIC_IOCE[0] @[MAIN[24][59], MAIN[24][61], MAIN[24][60]] {
+					IOI_IOCE[0] = 0b001,
+					IOI_IOCE[1] = 0b010,
+					OUT_DDR_IOCE[0] = 0b100,
+					off = 0b000,
+				}
+				mux IMUX_OLOGIC_IOCE[1] @[MAIN[24][4], MAIN[24][2], MAIN[24][3]] {
+					IOI_IOCE[2] = 0b001,
+					IOI_IOCE[3] = 0b010,
+					OUT_DDR_IOCE[1] = 0b100,
+					off = 0b000,
+				}
+				mux IMUX_ILOGIC_CLK[0] @[MAIN[29][41], MAIN[29][40]] {
+					IOI_ICLK[0] = 0b01,
+					IOI_ICLK[1] = 0b10,
+					off = 0b00,
+				}
+				mux IMUX_ILOGIC_CLK[1] @[MAIN[29][43], MAIN[29][42]] {
+					IOI_ICLK[0] = 0b01,
+					IOI_ICLK[1] = 0b10,
+					off = 0b00,
+				}
+				mux IMUX_OLOGIC_CLK[0] @[MAIN[29][37], MAIN[29][36]] {
+					IOI_OCLK[0] = 0b01,
+					IOI_OCLK[1] = 0b10,
+					off = 0b00,
+				}
+				mux IMUX_OLOGIC_CLK[1] @[MAIN[29][39], MAIN[29][38]] {
+					IOI_OCLK[0] = 0b01,
+					IOI_OCLK[1] = 0b10,
+					off = 0b00,
+				}
+				mux IMUX_IODELAY_IOCLK[0] @[MAIN[29][3]] {
+					IMUX_ILOGIC_CLK[0] = 0b0,
+					IMUX_OLOGIC_CLK[0] = 0b1,
+				}
+				mux IMUX_IODELAY_IOCLK[1] @[MAIN[29][1]] {
+					IMUX_ILOGIC_CLK[1] = 0b0,
+					IMUX_OLOGIC_CLK[1] = 0b1,
+				}
+			}
+
+			bel IOI_DDR[0] {
+				input CLK0 = IOI_IOCLK[0];
+				input CLK1 = IOI_IOCLK[1];
+				output CLK = OUT_DDR_IOCLK[0];
+				output IOCE = OUT_DDR_IOCE[0];
+				attribute ENABLE @[MAIN[23][41], MAIN[23][40]];
+				attribute ALIGNMENT @[MAIN[23][54], MAIN[23][55]] {
+					NONE = 0b00,
+					CLK0 = 0b01,
+					CLK1 = 0b10,
+				}
+			}
+
+			bel IOI_DDR[1] {
+				input CLK0 = IOI_IOCLK[3];
+				input CLK1 = IOI_IOCLK[4];
+				output CLK = OUT_DDR_IOCLK[1];
+				output IOCE = OUT_DDR_IOCE[1];
+				attribute ENABLE @[MAIN[23][23], MAIN[23][22]];
+				attribute ALIGNMENT @[MAIN[23][9], MAIN[23][8]] {
+					NONE = 0b00,
+					CLK0 = 0b01,
+					CLK1 = 0b10,
+				}
+			}
+
 			bel ILOGIC[0] {
-				input BITSLIP = IMUX_LOGICIN[19];
-				input CE0 = IMUX_LOGICIN[62];
-				output CFB0 = OUT_CLKPAD_CFB0[0];
-				output CFB1 = OUT_CLKPAD_CFB1[0];
+				input CLK = IMUX_ILOGIC_CLK[0];
+				input IOCE = IMUX_ILOGIC_IOCE[0];
 				input CLKDIV = IMUX_CLK[1];
-				output DFB = OUT_CLKPAD_DFB[0];
+				input SR = IMUX_LOGICIN[20];
+				input REV = IMUX_LOGICIN[59];
+				input CE0 = IMUX_LOGICIN[62];
+				input BITSLIP = IMUX_LOGICIN[19];
 				output FABRICOUT = OUT_BEL[7];
 				output Q1 = OUT_BEL[8];
 				output Q2 = OUT_BEL[9];
 				output Q3 = OUT_BEL[10];
 				output Q4 = OUT_BEL[11];
-				input REV = IMUX_LOGICIN[59];
-				input SR_INT = IMUX_LOGICIN[20];
+				output DFB = OUT_CLKPAD_DFB[0];
+				output CFB0 = OUT_CLKPAD_CFB0[0];
+				output CFB1 = OUT_CLKPAD_CFB1[0];
+				attribute ENABLE @MAIN[29][32];
+				attribute DDR @MAIN[22][40];
+				attribute IOCE_ENABLE @MAIN[29][26];
+				attribute FFI_INIT @[MAIN[22][38]];
+				attribute FFI_SRVAL @[MAIN[22][37]];
+				attribute FFI_LATCH @MAIN[22][33];
+				attribute FFI_SR_ENABLE @MAIN[22][39];
+				attribute FFI_SR_SYNC @!MAIN[22][32];
+				attribute FFI_REV_ENABLE @MAIN[22][35];
+				attribute FFI_CE_ENABLE @!MAIN[22][31];
+				attribute FFI_DELAY_ENABLE @!MAIN[28][55];
+				attribute I_DELAY_ENABLE @!MAIN[23][57];
+				attribute MUX_TSBYPASS @[MAIN[23][58]] {
+					GND = 0b0,
+					T = 0b1,
+				}
+				attribute MUX_D @[MAIN[24][43], MAIN[24][42]] {
+					IOB_I = 0b00,
+					OTHER_IOB_I = 0b11,
+				}
+				attribute MUX_SR @[MAIN[22][36]] {
+					INT = 0b1,
+					OLOGIC_SR = 0b0,
+				}
+				attribute DATA_WIDTH_START @[MAIN[29][23], MAIN[29][21]] {
+					_2 = 0b00,
+					_3 = 0b01,
+					_4 = 0b10,
+				}
+				attribute DATA_WIDTH_RELOAD @[MAIN[27][39], MAIN[27][38]] {
+					_1 = 0b11,
+					_2 = 0b10,
+					_3 = 0b01,
+					_4 = 0b00,
+				}
+				attribute BITSLIP_ENABLE @MAIN[29][22];
+				attribute CASCADE_ENABLE @MAIN[22][34];
+				attribute MUX_Q1 @[MAIN[27][46], MAIN[27][47]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q2 @[MAIN[27][45], MAIN[27][44]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q3 @[MAIN[27][42], MAIN[27][43]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q4 @[MAIN[27][41], MAIN[27][40]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute ROW1_CLK_ENABLE @MAIN[22][45];
+				attribute ROW2_CLK_ENABLE @MAIN[22][44];
+				attribute ROW3_CLK_ENABLE @MAIN[22][46];
+				attribute ROW4_CLK_ENABLE @MAIN[22][47];
 			}
 
 			bel ILOGIC[1] {
-				input BITSLIP = IMUX_LOGICIN[57];
-				input CE0 = IMUX_LOGICIN[38];
-				output CFB0 = OUT_CLKPAD_CFB0[1];
-				output CFB1 = OUT_CLKPAD_CFB1[1];
+				input CLK = IMUX_ILOGIC_CLK[1];
+				input IOCE = IMUX_ILOGIC_IOCE[1];
 				input CLKDIV = IMUX_CLK[0];
-				output DFB = OUT_CLKPAD_DFB[1];
+				input SR = IMUX_LOGICIN[36];
+				input REV = IMUX_LOGICIN[37];
+				input CE0 = IMUX_LOGICIN[38];
+				input BITSLIP = IMUX_LOGICIN[57];
 				output FABRICOUT = OUT_BEL[0];
-				output INCDEC = OUT_BEL[5];
 				output Q1 = OUT_BEL[1];
 				output Q2 = OUT_BEL[2];
 				output Q3 = OUT_BEL[3];
 				output Q4 = OUT_BEL[4];
-				input REV = IMUX_LOGICIN[37];
-				input SR_INT = IMUX_LOGICIN[36];
+				output INCDEC = OUT_BEL[5];
 				output VALID = OUT_BEL[6];
+				output DFB = OUT_CLKPAD_DFB[1];
+				output CFB0 = OUT_CLKPAD_CFB0[1];
+				output CFB1 = OUT_CLKPAD_CFB1[1];
+				attribute ENABLE @MAIN[29][35];
+				attribute DDR @MAIN[22][60];
+				attribute IOCE_ENABLE @MAIN[29][24];
+				attribute FFI_INIT @[MAIN[22][41]];
+				attribute FFI_SRVAL @[MAIN[22][55]];
+				attribute FFI_LATCH @MAIN[22][63];
+				attribute FFI_SR_ENABLE @MAIN[22][42];
+				attribute FFI_SR_SYNC @!MAIN[22][62];
+				attribute FFI_REV_ENABLE @MAIN[22][59];
+				attribute FFI_CE_ENABLE @!MAIN[22][57];
+				attribute FFI_DELAY_ENABLE @!MAIN[28][8];
+				attribute I_DELAY_ENABLE @!MAIN[23][6];
+				attribute MUX_TSBYPASS @[MAIN[23][5]] {
+					GND = 0b0,
+					T = 0b1,
+				}
+				attribute MUX_SR @[MAIN[22][58]] {
+					INT = 0b1,
+					OLOGIC_SR = 0b0,
+				}
+				attribute DATA_WIDTH_START @[MAIN[29][18], MAIN[29][19], MAIN[29][20]] {
+					_2 = 0b000,
+					_3 = 0b001,
+					_4 = 0b010,
+					_5 = 0b011,
+					_6 = 0b100,
+					_7 = 0b101,
+					_8 = 0b110,
+				}
+				attribute DATA_WIDTH_RELOAD @[MAIN[27][37], MAIN[27][36], MAIN[27][18]] {
+					_1 = 0b111,
+					_2 = 0b110,
+					_3 = 0b101,
+					_4 = 0b100,
+					_5 = 0b011,
+					_6 = 0b010,
+					_7 = 0b001,
+					_8 = 0b000,
+				}
+				attribute BITSLIP_ENABLE @MAIN[29][17];
+				attribute CASCADE_ENABLE @MAIN[29][16];
+				attribute MUX_Q1 @[MAIN[27][49], MAIN[27][48]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q2 @[MAIN[27][50], MAIN[27][51]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q3 @[MAIN[27][53], MAIN[27][52]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q4 @[MAIN[27][54], MAIN[27][55]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute ROW1_CLK_ENABLE @MAIN[22][50];
+				attribute ROW2_CLK_ENABLE @MAIN[22][51];
+				attribute ROW3_CLK_ENABLE @MAIN[22][49];
+				attribute ROW4_CLK_ENABLE @MAIN[22][48];
 			}
 
 			bel OLOGIC[0] {
+				input CLK = IMUX_OLOGIC_CLK[0];
+				input IOCE = IMUX_OLOGIC_IOCE[0];
 				input CLKDIV = IMUX_CLK[1];
+				input SR = IMUX_SR[1];
+				input REV = IMUX_LOGICIN[14];
+				input OCE = IMUX_LOGICIN[39];
+				input TCE = IMUX_LOGICIN[9];
 				input D1 = IMUX_LOGICIN[15];
 				input D2 = IMUX_LOGICIN[16];
 				input D3 = IMUX_LOGICIN[17];
 				input D4 = IMUX_LOGICIN[48];
-				input OCE = IMUX_LOGICIN[39];
-				input REV = IMUX_LOGICIN[14];
-				input SR = IMUX_SR[1];
 				input T1 = IMUX_LOGICIN[45];
 				input T2 = IMUX_LOGICIN[42];
 				input T3 = IMUX_LOGICIN[12];
 				input T4 = IMUX_LOGICIN[54];
-				input TCE = IMUX_LOGICIN[9];
 				input TRAIN = IMUX_LOGICIN[28];
+				attribute ENABLE @MAIN[29][28];
+				attribute IOCE_ENABLE @MAIN[29][27];
+				attribute DDR_OPPOSITE_EDGE @MAIN[27][14];
+				attribute FFO_INIT @[MAIN[22][9]];
+				attribute FFO_SRVAL @[MAIN[22][8]];
+				attribute FFO_LATCH @MAIN[22][13];
+				attribute FFO_RANK1_BYPASS @MAIN[27][15];
+				attribute FFO_RANK1_CLK_ENABLE @MAIN[27][9];
+				attribute FFO_RANK2_CLK_ENABLE @MAIN[27][8];
+				attribute FFO_SR_SYNC @!MAIN[22][10];
+				attribute FFO_SR_ENABLE @MAIN[22][12];
+				attribute FFO_REV_ENABLE @MAIN[22][11];
+				attribute FFO_CE_ENABLE @MAIN[27][11];
+				attribute FFO_CE_OR_DDR @MAIN[27][10];
+				attribute FFT_INIT @[MAIN[22][6]];
+				attribute FFT_SRVAL @[MAIN[22][7]];
+				attribute FFT_LATCH @MAIN[22][2];
+				attribute FFT_RANK1_BYPASS @MAIN[27][1];
+				attribute FFT_RANK1_CLK_ENABLE @MAIN[27][6];
+				attribute FFT_RANK2_CLK_ENABLE @MAIN[27][7];
+				attribute FFT_SR_SYNC @!MAIN[22][5];
+				attribute FFT_SR_ENABLE @MAIN[22][3];
+				attribute FFT_REV_ENABLE @MAIN[22][4];
+				attribute FFT_CE_ENABLE @MAIN[27][4];
+				attribute FFT_CE_OR_DDR @MAIN[27][5];
+				attribute MUX_IN_O @[MAIN[27][12]] {
+					INT = 0b0,
+					MCB = 0b1,
+				}
+				attribute MUX_IN_T @[MAIN[27][2]] {
+					INT = 0b0,
+					MCB = 0b1,
+				}
+				attribute MUX_OCE @[MAIN[28][43]] {
+					INT = 0b0,
+					PCI_CE = 0b1,
+				}
+				attribute MUX_SR @[MAIN[22][1]] {
+					GND = 0b0,
+					INT = 0b1,
+				}
+				attribute MUX_REV @[MAIN[22][0]] {
+					GND = 0b0,
+					INT = 0b1,
+				}
+				attribute MUX_TRAIN @[MAIN[29][47], MAIN[29][45]] {
+					GND = 0b00,
+					INT = 0b01,
+					MCB = 0b10,
+				}
+				attribute MUX_O @[MAIN[28][49]] {
+					D1 = 0b1,
+					FFO = 0b0,
+				}
+				attribute MUX_T @[MAIN[28][41]] {
+					T1 = 0b1,
+					FFT = 0b0,
+				}
+				attribute CASCADE_ENABLE @MAIN[29][46];
+				attribute OUTPUT_MODE @[MAIN[27][0]] {
+					SINGLE_ENDED = 0b0,
+					DIFFERENTIAL = 0b1,
+				}
+				attribute TRAIN_PATTERN @[MAIN[27][3], MAIN[27][13], MAIN[27][17], MAIN[27][16]];
+				attribute MISR_ENABLE_CLK @MAIN[29][13];
+				attribute MISR_ENABLE_DATA @MAIN[29][12];
+				attribute MISR_RESET @MAIN[29][10];
 			}
 
 			bel OLOGIC[1] {
+				input CLK = IMUX_OLOGIC_CLK[1];
+				input IOCE = IMUX_OLOGIC_IOCE[1];
 				input CLKDIV = IMUX_CLK[0];
+				input SR = IMUX_SR[0];
+				input REV = IMUX_LOGICIN[29];
+				input OCE = IMUX_LOGICIN[30];
+				input TCE = IMUX_LOGICIN[23];
 				input D1 = IMUX_LOGICIN[31];
 				input D2 = IMUX_LOGICIN[32];
 				input D3 = IMUX_LOGICIN[44];
 				input D4 = IMUX_LOGICIN[34];
-				input OCE = IMUX_LOGICIN[30];
-				input REV = IMUX_LOGICIN[29];
-				input SR = IMUX_SR[0];
 				input T1 = IMUX_LOGICIN[24];
 				input T2 = IMUX_LOGICIN[25];
 				input T3 = IMUX_LOGICIN[26];
 				input T4 = IMUX_LOGICIN[27];
-				input TCE = IMUX_LOGICIN[23];
 				input TRAIN = IMUX_LOGICIN[8];
+				attribute ENABLE @MAIN[29][31];
+				attribute IOCE_ENABLE @MAIN[29][25];
+				attribute DDR_OPPOSITE_EDGE @MAIN[27][29];
+				attribute FFO_INIT @[MAIN[22][25]];
+				attribute FFO_SRVAL @[MAIN[22][24]];
+				attribute FFO_LATCH @MAIN[22][29];
+				attribute FFO_RANK1_BYPASS @MAIN[27][34];
+				attribute FFO_RANK1_CLK_ENABLE @MAIN[27][25];
+				attribute FFO_RANK2_CLK_ENABLE @MAIN[27][24];
+				attribute FFO_SR_SYNC @!MAIN[22][26];
+				attribute FFO_SR_ENABLE @MAIN[22][28];
+				attribute FFO_REV_ENABLE @MAIN[22][27];
+				attribute FFO_CE_ENABLE @MAIN[27][27];
+				attribute FFO_CE_OR_DDR @MAIN[27][26];
+				attribute FFT_INIT @[MAIN[22][22]];
+				attribute FFT_SRVAL @[MAIN[22][23]];
+				attribute FFT_LATCH @MAIN[22][18];
+				attribute FFT_RANK1_BYPASS @MAIN[27][19];
+				attribute FFT_RANK1_CLK_ENABLE @MAIN[27][22];
+				attribute FFT_RANK2_CLK_ENABLE @MAIN[27][23];
+				attribute FFT_SR_SYNC @!MAIN[22][21];
+				attribute FFT_SR_ENABLE @MAIN[22][19];
+				attribute FFT_REV_ENABLE @MAIN[22][20];
+				attribute FFT_CE_ENABLE @MAIN[27][20];
+				attribute FFT_CE_OR_DDR @MAIN[27][21];
+				attribute MUX_IN_O @[MAIN[27][35]] {
+					INT = 0b0,
+					MCB = 0b1,
+				}
+				attribute MUX_IN_T @[MAIN[27][28]] {
+					INT = 0b0,
+					MCB = 0b1,
+				}
+				attribute MUX_OCE @[MAIN[28][20]] {
+					INT = 0b0,
+					PCI_CE = 0b1,
+				}
+				attribute MUX_SR @[MAIN[22][15]] {
+					GND = 0b0,
+					INT = 0b1,
+				}
+				attribute MUX_REV @[MAIN[22][14]] {
+					GND = 0b0,
+					INT = 0b1,
+				}
+				attribute MUX_TRAIN @[MAIN[29][48], MAIN[29][44]] {
+					GND = 0b00,
+					INT = 0b01,
+					MCB = 0b10,
+				}
+				attribute MUX_O @[MAIN[28][14]] {
+					D1 = 0b1,
+					FFO = 0b0,
+				}
+				attribute MUX_T @[MAIN[28][22]] {
+					T1 = 0b1,
+					FFT = 0b0,
+				}
+				attribute CASCADE_ENABLE @MAIN[22][30];
+				attribute TRAIN_PATTERN @[MAIN[27][30], MAIN[27][31], MAIN[27][32], MAIN[27][33]];
+				attribute MISR_ENABLE_CLK @MAIN[29][14];
+				attribute MISR_ENABLE_DATA @MAIN[29][15];
+				attribute MISR_RESET @MAIN[29][11];
 			}
 
 			bel IODELAY[0] {
-				output BUSY = OUT_BEL[15];
+				input IOCLK = IMUX_IODELAY_IOCLK[0];
+				input RST = IMUX_LOGICIN[41];
 				input CAL = IMUX_LOGICIN[3];
 				input CE = IMUX_LOGICIN[5];
 				input CIN = IMUX_LOGICIN[52];
 				input CLK = IMUX_CLK[1];
 				input INC = IMUX_LOGICIN[7];
+				output BUSY = OUT_BEL[15];
 				output LOAD = OUT_BEL[17];
 				output RCLK = OUT_BEL[13];
-				input RST = IMUX_LOGICIN[41];
+				attribute MODE @[MAIN[24][55], MAIN[23][56], MAIN[23][44], MAIN[23][42]] {
+					IODRP2 = 0b0000,
+					IODELAY2 = 0b0011,
+					IODRP2_MCB = 0b1100,
+				}
+				attribute COUNTER_WRAPAROUND @[MAIN[28][46]] {
+					WRAPAROUND = 0b0,
+					STAY_AT_LIMIT = 0b1,
+				}
+				attribute DELAYCHAIN_OSC @MAIN[24][56];
+				attribute DELAYCHAIN_OSC_OR_ODATAIN_LP_OR_IDRP2_MCB @[MAIN[26][54], MAIN[26][44]];
+				attribute DELAY_SRC @[MAIN[28][53], MAIN[28][50]] {
+					IO = 0b00,
+					ODATAIN = 0b01,
+					IDATAIN = 0b11,
+				}
+				attribute DIFF_PHASE_DETECTOR @MAIN[26][55];
+				attribute CIN_ENABLE @[MAIN[24][58], MAIN[24][57], MAIN[24][41]];
+				attribute ODATAIN_ENABLE @MAIN[23][59];
+				attribute IDELAY_FIXED @MAIN[22][52];
+				attribute IDELAY_FROM_HALF_MAX @MAIN[28][44];
+				attribute IDELAY_MODE @[MAIN[24][54], MAIN[24][44]] {
+					NORMAL = 0b00,
+					PCI = 0b11,
+				}
+				attribute IODELAY_CHANGE @[MAIN[28][51]] {
+					CHANGE_ON_CLOCK = 0b0,
+					CHANGE_ON_DATA = 0b1,
+				}
+				attribute LUMPED_DELAY @MAIN[28][52];
+				attribute LUMPED_DELAY_SELECT @MAIN[28][54];
+				attribute PLUS1 @MAIN[28][45];
+				attribute TEST_GLITCH_FILTER @MAIN[23][45];
+				attribute TEST_PCOUNTER @MAIN[26][49];
+				attribute TEST_NCOUNTER @MAIN[26][51];
+				attribute CAL_DELAY_MAX @[MAIN[28][56], MAIN[28][57], MAIN[28][58], MAIN[28][59], MAIN[28][60], MAIN[28][61], MAIN[28][62], MAIN[28][63]];
+				attribute IDELAY_VALUE_P @[MAIN[25][33], MAIN[25][35], MAIN[25][37], MAIN[25][39], MAIN[25][40], MAIN[25][42], MAIN[25][44], MAIN[25][46]];
+				attribute IDELAY_VALUE_N @[MAIN[25][62], MAIN[25][60], MAIN[25][58], MAIN[25][56], MAIN[25][55], MAIN[25][53], MAIN[25][51], MAIN[25][49]];
+				attribute ODELAY_VALUE_P @[MAIN[25][32], MAIN[25][34], MAIN[25][36], MAIN[25][38], MAIN[25][41], MAIN[25][43], MAIN[25][45], MAIN[25][47]];
+				attribute ODELAY_VALUE_N @[MAIN[25][63], MAIN[25][61], MAIN[25][59], MAIN[25][57], MAIN[25][54], MAIN[25][52], MAIN[25][50], MAIN[25][48]];
+				attribute DRP_ADDR @[MAIN[28][32], MAIN[28][36], MAIN[28][37], MAIN[28][38], MAIN[28][39]];
+				attribute DRP06 @[MAIN[28][43], MAIN[28][41], MAIN[28][49], MAIN[28][55], MAIN[28][53], MAIN[28][50], MAIN[28][47], MAIN[28][45]];
+				attribute DRP07 @[MAIN[28][42], MAIN[28][40], MAIN[28][48], MAIN[28][54], MAIN[28][52], MAIN[28][51], MAIN[28][46], MAIN[28][44]];
 			}
 
 			bel IODELAY[1] {
-				output BUSY = OUT_BEL[14];
+				input IOCLK = IMUX_IODELAY_IOCLK[1];
+				input RST = IMUX_LOGICIN[55];
 				input CAL = IMUX_LOGICIN[2];
 				input CE = IMUX_LOGICIN[47];
 				input CIN = IMUX_LOGICIN[1];
 				input CLK = IMUX_CLK[0];
-				output DQSOUTN = OUT_CLKPAD_DQSN;
-				output DQSOUTP = OUT_CLKPAD_DQSP;
 				input INC = IMUX_LOGICIN[58];
+				output BUSY = OUT_BEL[14];
 				output LOAD = OUT_BEL[16];
 				output RCLK = OUT_BEL[12];
-				input RST = IMUX_LOGICIN[55];
+				output DQSOUTP = OUT_CLKPAD_DQSP;
+				output DQSOUTN = OUT_CLKPAD_DQSN;
+				attribute MODE @[MAIN[24][8], MAIN[23][7], MAIN[23][21], MAIN[23][19]] {
+					IODRP2 = 0b0000,
+					IODELAY2 = 0b0011,
+					IODRP2_MCB = 0b1100,
+				}
+				attribute COUNTER_WRAPAROUND @[MAIN[28][17]] {
+					WRAPAROUND = 0b0,
+					STAY_AT_LIMIT = 0b1,
+				}
+				attribute DELAYCHAIN_OSC @MAIN[24][7];
+				attribute DELAYCHAIN_OSC_OR_ODATAIN_LP_OR_IDRP2_MCB @[MAIN[26][19], MAIN[26][9]];
+				attribute DELAY_SRC @[MAIN[28][10], MAIN[28][13]] {
+					IO = 0b00,
+					ODATAIN = 0b01,
+					IDATAIN = 0b11,
+				}
+				attribute DIFF_PHASE_DETECTOR @MAIN[26][20];
+				attribute CIN_ENABLE @[MAIN[24][22], MAIN[24][6], MAIN[24][5]];
+				attribute ODATAIN_ENABLE @MAIN[23][4];
+				attribute IDELAY_FIXED @MAIN[22][16];
+				attribute IDELAY_FROM_HALF_MAX @MAIN[28][19];
+				attribute IDELAY_MODE @[MAIN[24][19], MAIN[24][9]] {
+					NORMAL = 0b00,
+					PCI = 0b11,
+				}
+				attribute IODELAY_CHANGE @[MAIN[28][12]] {
+					CHANGE_ON_CLOCK = 0b0,
+					CHANGE_ON_DATA = 0b1,
+				}
+				attribute LUMPED_DELAY @MAIN[28][11];
+				attribute LUMPED_DELAY_SELECT @MAIN[28][9];
+				attribute TEST_GLITCH_FILTER @MAIN[23][18];
+				attribute TEST_PCOUNTER @MAIN[26][0];
+				attribute TEST_NCOUNTER @MAIN[26][12];
+				attribute EVENT_SEL @[MAIN[28][16], MAIN[28][18]];
+				attribute CAL_DELAY_MAX @[MAIN[28][7], MAIN[28][6], MAIN[28][5], MAIN[28][4], MAIN[28][3], MAIN[28][2], MAIN[28][1], MAIN[28][0]];
+				attribute IDELAY_VALUE_P @[MAIN[25][30], MAIN[25][28], MAIN[25][26], MAIN[25][24], MAIN[25][23], MAIN[25][21], MAIN[25][19], MAIN[25][17]];
+				attribute IDELAY_VALUE_N @[MAIN[25][1], MAIN[25][3], MAIN[25][5], MAIN[25][7], MAIN[25][8], MAIN[25][10], MAIN[25][12], MAIN[25][14]];
+				attribute ODELAY_VALUE_P @[MAIN[25][31], MAIN[25][29], MAIN[25][27], MAIN[25][25], MAIN[25][22], MAIN[25][20], MAIN[25][18], MAIN[25][16]];
+				attribute ODELAY_VALUE_N @[MAIN[25][0], MAIN[25][2], MAIN[25][4], MAIN[25][6], MAIN[25][9], MAIN[25][11], MAIN[25][13], MAIN[25][15]];
+				attribute DRP_ADDR @[MAIN[28][31], MAIN[28][27], MAIN[28][26], MAIN[28][25], MAIN[28][24]];
+				attribute DRP06 @[MAIN[28][20], MAIN[28][22], MAIN[28][14], MAIN[28][8], MAIN[28][10], MAIN[28][13], MAIN[28][16], MAIN[28][18]];
+				attribute DRP07 @[MAIN[28][21], MAIN[28][23], MAIN[28][15], MAIN[28][9], MAIN[28][11], MAIN[28][12], MAIN[28][17], MAIN[28][19]];
 			}
 
-			bel IOICLK[0] {
-				input CKINT0 = IMUX_CLK[1];
-				input CKINT1 = IMUX_GFAN[1];
+			bel MISC_IOI {
+				attribute MEM_PLL_DIV_EN @MAIN[26][57];
+				attribute MEM_PLL_POL_SEL @[MAIN[26][56]] {
+					INVERTED = 0b0,
+					NOTINVERTED = 0b1,
+				}
+				attribute DRP_ENABLE @MAIN[26][28];
+				attribute DRP_FROM_MCB @MAIN[26][46];
+				attribute ENFFSCAN_DRP @[MAIN[29][9], MAIN[26][43]];
+				attribute DRP_MCB_ADDRESS @[MAIN[26][47], MAIN[26][39], MAIN[26][26], MAIN[26][24]];
+				attribute DIFF_PHASE_DETECTOR @MAIN[27][63];
 			}
 
-			bel IOICLK[1] {
-				input CKINT0 = IMUX_CLK[0];
-				input CKINT1 = IMUX_GFAN[0];
-			}
-
-			bel IOI {
-				input IOCE0 = IOCE[0];
-				input IOCE1 = IOCE[1];
-				input IOCE2 = IOCE[2];
-				input IOCE3 = IOCE[3];
-				input IOCLK0 = IOCLK[0];
-				input IOCLK1 = IOCLK[1];
-				input IOCLK2 = IOCLK[2];
-				input IOCLK3 = IOCLK[3];
-				input PLLCE0 = PLLCE[0];
-				input PLLCE1 = PLLCE[1];
-				input PLLCLK0 = PLLCLK[0];
-				input PLLCLK1 = PLLCLK[1];
-			}
-
-			bel TIEOFF_IOI {
-			}
-
-			// wire IMUX_GFAN[0]                   IOICLK[1].CKINT1
-			// wire IMUX_GFAN[1]                   IOICLK[0].CKINT1
-			// wire IMUX_CLK[0]                    ILOGIC[1].CLKDIV OLOGIC[1].CLKDIV IODELAY[1].CLK IOICLK[1].CKINT0
-			// wire IMUX_CLK[1]                    ILOGIC[0].CLKDIV OLOGIC[0].CLKDIV IODELAY[0].CLK IOICLK[0].CKINT0
+			// wire IMUX_CLK[0]                    ILOGIC[1].CLKDIV OLOGIC[1].CLKDIV IODELAY[1].CLK
+			// wire IMUX_CLK[1]                    ILOGIC[0].CLKDIV OLOGIC[0].CLKDIV IODELAY[0].CLK
 			// wire IMUX_SR[0]                     OLOGIC[1].SR
 			// wire IMUX_SR[1]                     OLOGIC[0].SR
 			// wire IMUX_LOGICIN[1]                IODELAY[1].CIN
@@ -37447,7 +38206,7 @@ intdb {
 			// wire IMUX_LOGICIN[16]               OLOGIC[0].D2
 			// wire IMUX_LOGICIN[17]               OLOGIC[0].D3
 			// wire IMUX_LOGICIN[19]               ILOGIC[0].BITSLIP
-			// wire IMUX_LOGICIN[20]               ILOGIC[0].SR_INT
+			// wire IMUX_LOGICIN[20]               ILOGIC[0].SR
 			// wire IMUX_LOGICIN[23]               OLOGIC[1].TCE
 			// wire IMUX_LOGICIN[24]               OLOGIC[1].T1
 			// wire IMUX_LOGICIN[25]               OLOGIC[1].T2
@@ -37459,7 +38218,7 @@ intdb {
 			// wire IMUX_LOGICIN[31]               OLOGIC[1].D1
 			// wire IMUX_LOGICIN[32]               OLOGIC[1].D2
 			// wire IMUX_LOGICIN[34]               OLOGIC[1].D4
-			// wire IMUX_LOGICIN[36]               ILOGIC[1].SR_INT
+			// wire IMUX_LOGICIN[36]               ILOGIC[1].SR
 			// wire IMUX_LOGICIN[37]               ILOGIC[1].REV
 			// wire IMUX_LOGICIN[38]               ILOGIC[1].CE0
 			// wire IMUX_LOGICIN[39]               OLOGIC[0].OCE
@@ -37494,18 +38253,6 @@ intdb {
 			// wire OUT_BEL[15]                    IODELAY[0].BUSY
 			// wire OUT_BEL[16]                    IODELAY[1].LOAD
 			// wire OUT_BEL[17]                    IODELAY[0].LOAD
-			// wire IOCLK[0]                       IOI.IOCLK0
-			// wire IOCLK[1]                       IOI.IOCLK1
-			// wire IOCLK[2]                       IOI.IOCLK2
-			// wire IOCLK[3]                       IOI.IOCLK3
-			// wire IOCE[0]                        IOI.IOCE0
-			// wire IOCE[1]                        IOI.IOCE1
-			// wire IOCE[2]                        IOI.IOCE2
-			// wire IOCE[3]                        IOI.IOCE3
-			// wire PLLCLK[0]                      IOI.PLLCLK0
-			// wire PLLCLK[1]                      IOI.PLLCLK1
-			// wire PLLCE[0]                       IOI.PLLCE0
-			// wire PLLCE[1]                       IOI.PLLCE1
 			// wire OUT_CLKPAD_DFB[0]              ILOGIC[0].DFB
 			// wire OUT_CLKPAD_DFB[1]              ILOGIC[1].DFB
 			// wire OUT_CLKPAD_CFB0[0]             ILOGIC[0].CFB0
@@ -37514,138 +38261,680 @@ intdb {
 			// wire OUT_CLKPAD_CFB1[1]             ILOGIC[1].CFB1
 			// wire OUT_CLKPAD_DQSP                IODELAY[1].DQSOUTP
 			// wire OUT_CLKPAD_DQSN                IODELAY[1].DQSOUTN
+			// wire IOI_IOCLK[0]                   IOI_DDR[0].CLK0
+			// wire IOI_IOCLK[1]                   IOI_DDR[0].CLK1
+			// wire IOI_IOCLK[3]                   IOI_DDR[1].CLK0
+			// wire IOI_IOCLK[4]                   IOI_DDR[1].CLK1
+			// wire OUT_DDR_IOCLK[0]               IOI_DDR[0].CLK
+			// wire OUT_DDR_IOCLK[1]               IOI_DDR[1].CLK
+			// wire OUT_DDR_IOCE[0]                IOI_DDR[0].IOCE
+			// wire OUT_DDR_IOCE[1]                IOI_DDR[1].IOCE
+			// wire IMUX_ILOGIC_CLK[0]             ILOGIC[0].CLK
+			// wire IMUX_ILOGIC_CLK[1]             ILOGIC[1].CLK
+			// wire IMUX_OLOGIC_CLK[0]             OLOGIC[0].CLK
+			// wire IMUX_OLOGIC_CLK[1]             OLOGIC[1].CLK
+			// wire IMUX_IODELAY_IOCLK[0]          IODELAY[0].IOCLK
+			// wire IMUX_IODELAY_IOCLK[1]          IODELAY[1].IOCLK
+			// wire IMUX_ILOGIC_IOCE[0]            ILOGIC[0].IOCE
+			// wire IMUX_ILOGIC_IOCE[1]            ILOGIC[1].IOCE
+			// wire IMUX_OLOGIC_IOCE[0]            OLOGIC[0].IOCE
+			// wire IMUX_OLOGIC_IOCE[1]            OLOGIC[1].IOCE
 		}
 
 		tile_class IOI_SN {
 			cell CELL;
 			bitrect MAIN: Vertical (30, rev 64);
 
+			switchbox IOI_INT {
+				mux IOI_IOCLK[0] @[MAIN[29][36], MAIN[29][32], MAIN[29][33], MAIN[29][35], MAIN[29][37]] {
+					IMUX_GFAN[1] = 0b00001,
+					IMUX_CLK[1] = 0b00010,
+					IOCLK[0] = 0b00100,
+					IOCLK[2] = 0b01000,
+					PLLCLK[0] = 0b10000,
+					off = 0b00000,
+				}
+				mux IOI_IOCLK[1] @[MAIN[23][36], MAIN[23][32], MAIN[23][33], MAIN[23][37], MAIN[23][35]] {
+					IMUX_GFAN[1] = 0b00001,
+					IMUX_CLK[1] = 0b00010,
+					IOCLK[1] = 0b00100,
+					IOCLK[3] = 0b01000,
+					PLLCLK[1] = 0b10000,
+					off = 0b00000,
+				}
+				mux IOI_IOCLK[2] @[MAIN[23][40], MAIN[23][39]] {
+					PLLCLK[0] = 0b01,
+					PLLCLK[1] = 0b10,
+					off = 0b00,
+				}
+				mux IOI_IOCLK[3] @[MAIN[29][27], MAIN[29][31], MAIN[29][30], MAIN[29][28], MAIN[29][26]] {
+					IMUX_GFAN[0] = 0b00001,
+					IMUX_CLK[0] = 0b00010,
+					IOCLK[0] = 0b00100,
+					IOCLK[2] = 0b01000,
+					PLLCLK[0] = 0b10000,
+					off = 0b00000,
+				}
+				mux IOI_IOCLK[4] @[MAIN[23][27], MAIN[23][31], MAIN[23][30], MAIN[23][26], MAIN[23][28]] {
+					IMUX_GFAN[0] = 0b00001,
+					IMUX_CLK[0] = 0b00010,
+					IOCLK[1] = 0b00100,
+					IOCLK[3] = 0b01000,
+					PLLCLK[1] = 0b10000,
+					off = 0b00000,
+				}
+				mux IOI_IOCLK[5] @[MAIN[23][23], MAIN[23][24]] {
+					PLLCLK[0] = 0b01,
+					PLLCLK[1] = 0b10,
+					off = 0b00,
+				}
+				proginv IOI_IOCLK_OPTINV[0] = IOI_IOCLK[0] @MAIN[29][38];
+				proginv IOI_IOCLK_OPTINV[1] = IOI_IOCLK[1] @MAIN[23][38];
+				proginv IOI_IOCLK_OPTINV[2] = IOI_IOCLK[2] @MAIN[29][39];
+				proginv IOI_IOCLK_OPTINV[3] = IOI_IOCLK[3] @MAIN[29][25];
+				proginv IOI_IOCLK_OPTINV[4] = IOI_IOCLK[4] @MAIN[23][25];
+				proginv IOI_IOCLK_OPTINV[5] = IOI_IOCLK[5] @MAIN[29][24];
+				mux IOI_IOCE[0] @[MAIN[29][53], MAIN[29][52], MAIN[29][50]] {
+					IOCE[0] = 0b001,
+					IOCE[2] = 0b010,
+					PLLCE[0] = 0b100,
+					off = 0b000,
+				}
+				mux IOI_IOCE[1] @[MAIN[23][53], MAIN[23][52], MAIN[23][51]] {
+					IOCE[1] = 0b001,
+					IOCE[3] = 0b010,
+					PLLCE[1] = 0b100,
+					off = 0b000,
+				}
+				mux IOI_IOCE[2] @[MAIN[29][10], MAIN[29][11], MAIN[29][13]] {
+					IOCE[0] = 0b001,
+					IOCE[2] = 0b010,
+					PLLCE[0] = 0b100,
+					off = 0b000,
+				}
+				mux IOI_IOCE[3] @[MAIN[23][10], MAIN[23][11], MAIN[23][12]] {
+					IOCE[1] = 0b001,
+					IOCE[3] = 0b010,
+					PLLCE[1] = 0b100,
+					off = 0b000,
+				}
+				mux IOI_ICLK[0] @[MAIN[29][48], MAIN[29][49], MAIN[23][46], MAIN[23][47]] {
+					IOI_IOCLK[0] = 0b0001,
+					IOI_IOCLK[1] = 0b0010,
+					IOI_IOCLK[2] = 0b0100,
+					OUT_DDR_IOCLK[0] = 0b1000,
+					off = 0b0000,
+				}
+				mux IOI_ICLK[1] @[MAIN[29][15], MAIN[29][14], MAIN[23][17], MAIN[23][16]] {
+					IOI_IOCLK[3] = 0b0001,
+					IOI_IOCLK[4] = 0b0010,
+					IOI_IOCLK[5] = 0b0100,
+					OUT_DDR_IOCLK[1] = 0b1000,
+					off = 0b0000,
+				}
+				mux IOI_OCLK[0] @[MAIN[23][49], MAIN[23][50], MAIN[23][45], MAIN[23][48]] {
+					IOI_IOCLK[0] = 0b0001,
+					IOI_IOCLK[1] = 0b0010,
+					IOI_IOCLK[2] = 0b0100,
+					OUT_DDR_IOCLK[0] = 0b1000,
+					off = 0b0000,
+				}
+				mux IOI_OCLK[1] @[MAIN[23][14], MAIN[23][13], MAIN[23][18], MAIN[23][15]] {
+					IOI_IOCLK[3] = 0b0001,
+					IOI_IOCLK[4] = 0b0010,
+					IOI_IOCLK[5] = 0b0100,
+					OUT_DDR_IOCLK[1] = 0b1000,
+					off = 0b0000,
+				}
+				mux IMUX_ILOGIC_IOCE[0] @[MAIN[29][60], MAIN[29][62], MAIN[29][61]] {
+					IOI_IOCE[0] = 0b001,
+					IOI_IOCE[1] = 0b010,
+					OUT_DDR_IOCE[0] = 0b100,
+					off = 0b000,
+				}
+				mux IMUX_ILOGIC_IOCE[1] @[MAIN[29][3], MAIN[29][1], MAIN[29][2]] {
+					IOI_IOCE[2] = 0b001,
+					IOI_IOCE[3] = 0b010,
+					OUT_DDR_IOCE[1] = 0b100,
+					off = 0b000,
+				}
+				mux IMUX_OLOGIC_IOCE[0] @[MAIN[23][59], MAIN[23][61], MAIN[23][60]] {
+					IOI_IOCE[0] = 0b001,
+					IOI_IOCE[1] = 0b010,
+					OUT_DDR_IOCE[0] = 0b100,
+					off = 0b000,
+				}
+				mux IMUX_OLOGIC_IOCE[1] @[MAIN[23][4], MAIN[23][2], MAIN[23][3]] {
+					IOI_IOCE[2] = 0b001,
+					IOI_IOCE[3] = 0b010,
+					OUT_DDR_IOCE[1] = 0b100,
+					off = 0b000,
+				}
+				mux IMUX_ILOGIC_CLK[0] @[MAIN[26][41], MAIN[26][40]] {
+					IOI_ICLK[0] = 0b01,
+					IOI_ICLK[1] = 0b10,
+					off = 0b00,
+				}
+				mux IMUX_ILOGIC_CLK[1] @[MAIN[26][43], MAIN[26][42]] {
+					IOI_ICLK[0] = 0b01,
+					IOI_ICLK[1] = 0b10,
+					off = 0b00,
+				}
+				mux IMUX_OLOGIC_CLK[0] @[MAIN[26][37], MAIN[26][36]] {
+					IOI_OCLK[0] = 0b01,
+					IOI_OCLK[1] = 0b10,
+					off = 0b00,
+				}
+				mux IMUX_OLOGIC_CLK[1] @[MAIN[26][39], MAIN[26][38]] {
+					IOI_OCLK[0] = 0b01,
+					IOI_OCLK[1] = 0b10,
+					off = 0b00,
+				}
+				mux IMUX_IODELAY_IOCLK[0] @[MAIN[26][3]] {
+					IMUX_ILOGIC_CLK[0] = 0b0,
+					IMUX_OLOGIC_CLK[0] = 0b1,
+				}
+				mux IMUX_IODELAY_IOCLK[1] @[MAIN[26][1]] {
+					IMUX_ILOGIC_CLK[1] = 0b0,
+					IMUX_OLOGIC_CLK[1] = 0b1,
+				}
+			}
+
+			bel IOI_DDR[0] {
+				input CLK0 = IOI_IOCLK[0];
+				input CLK1 = IOI_IOCLK[1];
+				output CLK = OUT_DDR_IOCLK[0];
+				output IOCE = OUT_DDR_IOCE[0];
+				attribute ENABLE @[MAIN[29][41], MAIN[29][40]];
+				attribute ALIGNMENT @[MAIN[29][54], MAIN[29][55]] {
+					NONE = 0b00,
+					CLK0 = 0b01,
+					CLK1 = 0b10,
+				}
+			}
+
+			bel IOI_DDR[1] {
+				input CLK0 = IOI_IOCLK[3];
+				input CLK1 = IOI_IOCLK[4];
+				output CLK = OUT_DDR_IOCLK[1];
+				output IOCE = OUT_DDR_IOCE[1];
+				attribute ENABLE @[MAIN[29][23], MAIN[29][22]];
+				attribute ALIGNMENT @[MAIN[29][9], MAIN[29][8]] {
+					NONE = 0b00,
+					CLK0 = 0b01,
+					CLK1 = 0b10,
+				}
+			}
+
 			bel ILOGIC[0] {
-				input BITSLIP = IMUX_LOGICIN[19];
-				input CE0 = IMUX_LOGICIN[62];
-				output CFB0 = OUT_CLKPAD_CFB0[0];
-				output CFB1 = OUT_CLKPAD_CFB1[0];
+				input CLK = IMUX_ILOGIC_CLK[0];
+				input IOCE = IMUX_ILOGIC_IOCE[0];
 				input CLKDIV = IMUX_CLK[1];
-				output DFB = OUT_CLKPAD_DFB[0];
+				input SR = IMUX_LOGICIN[20];
+				input REV = IMUX_LOGICIN[59];
+				input CE0 = IMUX_LOGICIN[62];
+				input BITSLIP = IMUX_LOGICIN[19];
 				output FABRICOUT = OUT_BEL[7];
 				output Q1 = OUT_BEL[8];
 				output Q2 = OUT_BEL[9];
 				output Q3 = OUT_BEL[10];
 				output Q4 = OUT_BEL[11];
-				input REV = IMUX_LOGICIN[59];
-				input SR_INT = IMUX_LOGICIN[20];
+				output DFB = OUT_CLKPAD_DFB[0];
+				output CFB0 = OUT_CLKPAD_CFB0[0];
+				output CFB1 = OUT_CLKPAD_CFB1[0];
+				attribute ENABLE @MAIN[26][32];
+				attribute DDR @MAIN[22][40];
+				attribute IOCE_ENABLE @MAIN[26][26];
+				attribute FFI_INIT @[MAIN[22][38]];
+				attribute FFI_SRVAL @[MAIN[22][37]];
+				attribute FFI_LATCH @MAIN[22][33];
+				attribute FFI_SR_ENABLE @MAIN[22][39];
+				attribute FFI_SR_SYNC @!MAIN[22][32];
+				attribute FFI_REV_ENABLE @MAIN[22][35];
+				attribute FFI_CE_ENABLE @!MAIN[22][31];
+				attribute FFI_DELAY_ENABLE @!MAIN[28][55];
+				attribute I_DELAY_ENABLE @!MAIN[29][57];
+				attribute MUX_TSBYPASS @[MAIN[29][58]] {
+					GND = 0b0,
+					T = 0b1,
+				}
+				attribute MUX_D @[MAIN[23][43], MAIN[23][42]] {
+					IOB_I = 0b00,
+					OTHER_IOB_I = 0b11,
+				}
+				attribute MUX_SR @[MAIN[22][36]] {
+					INT = 0b1,
+					OLOGIC_SR = 0b0,
+				}
+				attribute DATA_WIDTH_START @[MAIN[26][23], MAIN[26][21]] {
+					_2 = 0b00,
+					_3 = 0b01,
+					_4 = 0b10,
+				}
+				attribute DATA_WIDTH_RELOAD @[MAIN[27][39], MAIN[27][38]] {
+					_1 = 0b11,
+					_2 = 0b10,
+					_3 = 0b01,
+					_4 = 0b00,
+				}
+				attribute BITSLIP_ENABLE @MAIN[26][22];
+				attribute CASCADE_ENABLE @MAIN[22][34];
+				attribute MUX_Q1 @[MAIN[27][46], MAIN[27][47]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q2 @[MAIN[27][45], MAIN[27][44]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q3 @[MAIN[27][42], MAIN[27][43]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q4 @[MAIN[27][41], MAIN[27][40]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute ROW1_CLK_ENABLE @MAIN[22][45];
+				attribute ROW2_CLK_ENABLE @MAIN[22][44];
+				attribute ROW3_CLK_ENABLE @MAIN[22][46];
+				attribute ROW4_CLK_ENABLE @MAIN[22][47];
 			}
 
 			bel ILOGIC[1] {
-				input BITSLIP = IMUX_LOGICIN[57];
-				input CE0 = IMUX_LOGICIN[38];
-				output CFB0 = OUT_CLKPAD_CFB0[1];
-				output CFB1 = OUT_CLKPAD_CFB1[1];
+				input CLK = IMUX_ILOGIC_CLK[1];
+				input IOCE = IMUX_ILOGIC_IOCE[1];
 				input CLKDIV = IMUX_CLK[0];
-				output DFB = OUT_CLKPAD_DFB[1];
+				input SR = IMUX_LOGICIN[36];
+				input REV = IMUX_LOGICIN[37];
+				input CE0 = IMUX_LOGICIN[38];
+				input BITSLIP = IMUX_LOGICIN[57];
 				output FABRICOUT = OUT_BEL[0];
-				output INCDEC = OUT_BEL[5];
 				output Q1 = OUT_BEL[1];
 				output Q2 = OUT_BEL[2];
 				output Q3 = OUT_BEL[3];
 				output Q4 = OUT_BEL[4];
-				input REV = IMUX_LOGICIN[37];
-				input SR_INT = IMUX_LOGICIN[36];
+				output INCDEC = OUT_BEL[5];
 				output VALID = OUT_BEL[6];
+				output DFB = OUT_CLKPAD_DFB[1];
+				output CFB0 = OUT_CLKPAD_CFB0[1];
+				output CFB1 = OUT_CLKPAD_CFB1[1];
+				attribute ENABLE @MAIN[26][35];
+				attribute DDR @MAIN[22][60];
+				attribute IOCE_ENABLE @MAIN[26][24];
+				attribute FFI_INIT @[MAIN[22][41]];
+				attribute FFI_SRVAL @[MAIN[22][55]];
+				attribute FFI_LATCH @MAIN[22][63];
+				attribute FFI_SR_ENABLE @MAIN[22][42];
+				attribute FFI_SR_SYNC @!MAIN[22][62];
+				attribute FFI_REV_ENABLE @MAIN[22][59];
+				attribute FFI_CE_ENABLE @!MAIN[22][57];
+				attribute FFI_DELAY_ENABLE @!MAIN[28][8];
+				attribute I_DELAY_ENABLE @!MAIN[29][6];
+				attribute MUX_TSBYPASS @[MAIN[29][5]] {
+					GND = 0b0,
+					T = 0b1,
+				}
+				attribute MUX_SR @[MAIN[22][58]] {
+					INT = 0b1,
+					OLOGIC_SR = 0b0,
+				}
+				attribute DATA_WIDTH_START @[MAIN[26][18], MAIN[26][19], MAIN[26][20]] {
+					_2 = 0b000,
+					_3 = 0b001,
+					_4 = 0b010,
+					_5 = 0b011,
+					_6 = 0b100,
+					_7 = 0b101,
+					_8 = 0b110,
+				}
+				attribute DATA_WIDTH_RELOAD @[MAIN[27][37], MAIN[27][36], MAIN[27][18]] {
+					_1 = 0b111,
+					_2 = 0b110,
+					_3 = 0b101,
+					_4 = 0b100,
+					_5 = 0b011,
+					_6 = 0b010,
+					_7 = 0b001,
+					_8 = 0b000,
+				}
+				attribute BITSLIP_ENABLE @MAIN[26][17];
+				attribute CASCADE_ENABLE @MAIN[26][16];
+				attribute MUX_Q1 @[MAIN[27][49], MAIN[27][48]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q2 @[MAIN[27][50], MAIN[27][51]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q3 @[MAIN[27][53], MAIN[27][52]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute MUX_Q4 @[MAIN[27][54], MAIN[27][55]] {
+					NETWORKING = 0b01,
+					NETWORKING_PIPELINED = 0b10,
+					RETIMED = 0b11,
+					SHIFT_REGISTER = 0b00,
+				}
+				attribute ROW1_CLK_ENABLE @MAIN[22][50];
+				attribute ROW2_CLK_ENABLE @MAIN[22][51];
+				attribute ROW3_CLK_ENABLE @MAIN[22][49];
+				attribute ROW4_CLK_ENABLE @MAIN[22][48];
 			}
 
 			bel OLOGIC[0] {
+				input CLK = IMUX_OLOGIC_CLK[0];
+				input IOCE = IMUX_OLOGIC_IOCE[0];
 				input CLKDIV = IMUX_CLK[1];
+				input SR = IMUX_SR[1];
+				input REV = IMUX_LOGICIN[14];
+				input OCE = IMUX_LOGICIN[39];
+				input TCE = IMUX_LOGICIN[9];
 				input D1 = IMUX_LOGICIN[15];
 				input D2 = IMUX_LOGICIN[16];
 				input D3 = IMUX_LOGICIN[17];
 				input D4 = IMUX_LOGICIN[48];
-				input OCE = IMUX_LOGICIN[39];
-				input REV = IMUX_LOGICIN[14];
-				input SR = IMUX_SR[1];
 				input T1 = IMUX_LOGICIN[45];
 				input T2 = IMUX_LOGICIN[42];
 				input T3 = IMUX_LOGICIN[12];
 				input T4 = IMUX_LOGICIN[54];
-				input TCE = IMUX_LOGICIN[9];
 				input TRAIN = IMUX_LOGICIN[28];
+				attribute ENABLE @MAIN[26][28];
+				attribute IOCE_ENABLE @MAIN[26][27];
+				attribute DDR_OPPOSITE_EDGE @MAIN[27][14];
+				attribute FFO_INIT @[MAIN[22][9]];
+				attribute FFO_SRVAL @[MAIN[22][8]];
+				attribute FFO_LATCH @MAIN[22][13];
+				attribute FFO_RANK1_BYPASS @MAIN[27][15];
+				attribute FFO_RANK1_CLK_ENABLE @MAIN[27][9];
+				attribute FFO_RANK2_CLK_ENABLE @MAIN[27][8];
+				attribute FFO_SR_SYNC @!MAIN[22][10];
+				attribute FFO_SR_ENABLE @MAIN[22][12];
+				attribute FFO_REV_ENABLE @MAIN[22][11];
+				attribute FFO_CE_ENABLE @MAIN[27][11];
+				attribute FFO_CE_OR_DDR @MAIN[27][10];
+				attribute FFT_INIT @[MAIN[22][6]];
+				attribute FFT_SRVAL @[MAIN[22][7]];
+				attribute FFT_LATCH @MAIN[22][2];
+				attribute FFT_RANK1_BYPASS @MAIN[27][1];
+				attribute FFT_RANK1_CLK_ENABLE @MAIN[27][6];
+				attribute FFT_RANK2_CLK_ENABLE @MAIN[27][7];
+				attribute FFT_SR_SYNC @!MAIN[22][5];
+				attribute FFT_SR_ENABLE @MAIN[22][3];
+				attribute FFT_REV_ENABLE @MAIN[22][4];
+				attribute FFT_CE_ENABLE @MAIN[27][4];
+				attribute FFT_CE_OR_DDR @MAIN[27][5];
+				attribute MUX_IN_O @[MAIN[27][12]] {
+					INT = 0b0,
+					MCB = 0b1,
+				}
+				attribute MUX_IN_T @[MAIN[27][2]] {
+					INT = 0b0,
+					MCB = 0b1,
+				}
+				attribute MUX_OCE @[MAIN[28][43]] {
+					INT = 0b0,
+					PCI_CE = 0b1,
+				}
+				attribute MUX_SR @[MAIN[22][1]] {
+					GND = 0b0,
+					INT = 0b1,
+				}
+				attribute MUX_REV @[MAIN[22][0]] {
+					GND = 0b0,
+					INT = 0b1,
+				}
+				attribute MUX_TRAIN @[MAIN[26][47], MAIN[26][45]] {
+					GND = 0b00,
+					INT = 0b01,
+					MCB = 0b10,
+				}
+				attribute MUX_O @[MAIN[28][49]] {
+					D1 = 0b1,
+					FFO = 0b0,
+				}
+				attribute MUX_T @[MAIN[28][41]] {
+					T1 = 0b1,
+					FFT = 0b0,
+				}
+				attribute CASCADE_ENABLE @MAIN[26][46];
+				attribute OUTPUT_MODE @[MAIN[27][0]] {
+					SINGLE_ENDED = 0b0,
+					DIFFERENTIAL = 0b1,
+				}
+				attribute TRAIN_PATTERN @[MAIN[27][3], MAIN[27][13], MAIN[27][17], MAIN[27][16]];
+				attribute MISR_ENABLE_CLK @MAIN[26][13];
+				attribute MISR_ENABLE_DATA @MAIN[26][12];
+				attribute MISR_RESET @MAIN[26][10];
 			}
 
 			bel OLOGIC[1] {
+				input CLK = IMUX_OLOGIC_CLK[1];
+				input IOCE = IMUX_OLOGIC_IOCE[1];
 				input CLKDIV = IMUX_CLK[0];
+				input SR = IMUX_SR[0];
+				input REV = IMUX_LOGICIN[29];
+				input OCE = IMUX_LOGICIN[30];
+				input TCE = IMUX_LOGICIN[23];
 				input D1 = IMUX_LOGICIN[31];
 				input D2 = IMUX_LOGICIN[32];
 				input D3 = IMUX_LOGICIN[44];
 				input D4 = IMUX_LOGICIN[34];
-				input OCE = IMUX_LOGICIN[30];
-				input REV = IMUX_LOGICIN[29];
-				input SR = IMUX_SR[0];
 				input T1 = IMUX_LOGICIN[24];
 				input T2 = IMUX_LOGICIN[25];
 				input T3 = IMUX_LOGICIN[26];
 				input T4 = IMUX_LOGICIN[27];
-				input TCE = IMUX_LOGICIN[23];
 				input TRAIN = IMUX_LOGICIN[8];
+				attribute ENABLE @MAIN[26][31];
+				attribute IOCE_ENABLE @MAIN[26][25];
+				attribute DDR_OPPOSITE_EDGE @MAIN[27][29];
+				attribute FFO_INIT @[MAIN[22][25]];
+				attribute FFO_SRVAL @[MAIN[22][24]];
+				attribute FFO_LATCH @MAIN[22][29];
+				attribute FFO_RANK1_BYPASS @MAIN[27][34];
+				attribute FFO_RANK1_CLK_ENABLE @MAIN[27][25];
+				attribute FFO_RANK2_CLK_ENABLE @MAIN[27][24];
+				attribute FFO_SR_SYNC @!MAIN[22][26];
+				attribute FFO_SR_ENABLE @MAIN[22][28];
+				attribute FFO_REV_ENABLE @MAIN[22][27];
+				attribute FFO_CE_ENABLE @MAIN[27][27];
+				attribute FFO_CE_OR_DDR @MAIN[27][26];
+				attribute FFT_INIT @[MAIN[22][22]];
+				attribute FFT_SRVAL @[MAIN[22][23]];
+				attribute FFT_LATCH @MAIN[22][18];
+				attribute FFT_RANK1_BYPASS @MAIN[27][19];
+				attribute FFT_RANK1_CLK_ENABLE @MAIN[27][22];
+				attribute FFT_RANK2_CLK_ENABLE @MAIN[27][23];
+				attribute FFT_SR_SYNC @!MAIN[22][21];
+				attribute FFT_SR_ENABLE @MAIN[22][19];
+				attribute FFT_REV_ENABLE @MAIN[22][20];
+				attribute FFT_CE_ENABLE @MAIN[27][20];
+				attribute FFT_CE_OR_DDR @MAIN[27][21];
+				attribute MUX_IN_O @[MAIN[27][35]] {
+					INT = 0b0,
+					MCB = 0b1,
+				}
+				attribute MUX_IN_T @[MAIN[27][28]] {
+					INT = 0b0,
+					MCB = 0b1,
+				}
+				attribute MUX_OCE @[MAIN[28][20]] {
+					INT = 0b0,
+					PCI_CE = 0b1,
+				}
+				attribute MUX_SR @[MAIN[22][15]] {
+					GND = 0b0,
+					INT = 0b1,
+				}
+				attribute MUX_REV @[MAIN[22][14]] {
+					GND = 0b0,
+					INT = 0b1,
+				}
+				attribute MUX_TRAIN @[MAIN[26][48], MAIN[26][44]] {
+					GND = 0b00,
+					INT = 0b01,
+					MCB = 0b10,
+				}
+				attribute MUX_O @[MAIN[28][14]] {
+					D1 = 0b1,
+					FFO = 0b0,
+				}
+				attribute MUX_T @[MAIN[28][22]] {
+					T1 = 0b1,
+					FFT = 0b0,
+				}
+				attribute CASCADE_ENABLE @MAIN[22][30];
+				attribute TRAIN_PATTERN @[MAIN[27][30], MAIN[27][31], MAIN[27][32], MAIN[27][33]];
+				attribute MISR_ENABLE_CLK @MAIN[26][14];
+				attribute MISR_ENABLE_DATA @MAIN[26][15];
+				attribute MISR_RESET @MAIN[26][11];
 			}
 
 			bel IODELAY[0] {
-				output BUSY = OUT_BEL[15];
+				input IOCLK = IMUX_IODELAY_IOCLK[0];
+				input RST = IMUX_LOGICIN[41];
 				input CAL = IMUX_LOGICIN[3];
 				input CE = IMUX_LOGICIN[5];
 				input CIN = IMUX_LOGICIN[52];
 				input CLK = IMUX_CLK[1];
 				input INC = IMUX_LOGICIN[7];
+				output BUSY = OUT_BEL[15];
 				output LOAD = OUT_BEL[17];
 				output RCLK = OUT_BEL[13];
-				input RST = IMUX_LOGICIN[41];
+				attribute MODE @[MAIN[29][56], MAIN[23][55], MAIN[29][44], MAIN[29][42]] {
+					IODRP2 = 0b0000,
+					IODELAY2 = 0b0011,
+					IODRP2_MCB = 0b1100,
+				}
+				attribute COUNTER_WRAPAROUND @[MAIN[28][46]] {
+					WRAPAROUND = 0b0,
+					STAY_AT_LIMIT = 0b1,
+				}
+				attribute DELAYCHAIN_OSC @MAIN[23][56];
+				attribute DELAYCHAIN_OSC_OR_ODATAIN_LP_OR_IDRP2_MCB @[MAIN[25][54], MAIN[25][44]];
+				attribute DELAY_SRC @[MAIN[28][53], MAIN[28][50]] {
+					IO = 0b00,
+					ODATAIN = 0b01,
+					IDATAIN = 0b11,
+				}
+				attribute DIFF_PHASE_DETECTOR @MAIN[25][55];
+				attribute CIN_ENABLE @[MAIN[23][58], MAIN[23][57], MAIN[23][41]];
+				attribute ODATAIN_ENABLE @MAIN[29][59];
+				attribute IDELAY_FIXED @MAIN[22][52];
+				attribute IDELAY_FROM_HALF_MAX @MAIN[28][44];
+				attribute IDELAY_MODE @[MAIN[23][54], MAIN[23][44]] {
+					NORMAL = 0b00,
+					PCI = 0b11,
+				}
+				attribute IODELAY_CHANGE @[MAIN[28][51]] {
+					CHANGE_ON_CLOCK = 0b0,
+					CHANGE_ON_DATA = 0b1,
+				}
+				attribute LUMPED_DELAY @MAIN[28][52];
+				attribute LUMPED_DELAY_SELECT @MAIN[28][54];
+				attribute PLUS1 @MAIN[28][45];
+				attribute TEST_GLITCH_FILTER @MAIN[29][45];
+				attribute TEST_PCOUNTER @MAIN[25][49];
+				attribute TEST_NCOUNTER @MAIN[25][51];
+				attribute CAL_DELAY_MAX @[MAIN[28][56], MAIN[28][57], MAIN[28][58], MAIN[28][59], MAIN[28][60], MAIN[28][61], MAIN[28][62], MAIN[28][63]];
+				attribute IDELAY_VALUE_P @[MAIN[24][33], MAIN[24][35], MAIN[24][37], MAIN[24][39], MAIN[24][40], MAIN[24][42], MAIN[24][44], MAIN[24][46]];
+				attribute IDELAY_VALUE_N @[MAIN[24][62], MAIN[24][60], MAIN[24][58], MAIN[24][56], MAIN[24][55], MAIN[24][53], MAIN[24][51], MAIN[24][49]];
+				attribute ODELAY_VALUE_P @[MAIN[24][32], MAIN[24][34], MAIN[24][36], MAIN[24][38], MAIN[24][41], MAIN[24][43], MAIN[24][45], MAIN[24][47]];
+				attribute ODELAY_VALUE_N @[MAIN[24][63], MAIN[24][61], MAIN[24][59], MAIN[24][57], MAIN[24][54], MAIN[24][52], MAIN[24][50], MAIN[24][48]];
+				attribute DRP_ADDR @[MAIN[28][32], MAIN[28][36], MAIN[28][37], MAIN[28][38], MAIN[28][39]];
+				attribute DRP06 @[MAIN[28][43], MAIN[28][41], MAIN[28][49], MAIN[28][55], MAIN[28][53], MAIN[28][50], MAIN[28][47], MAIN[28][45]];
+				attribute DRP07 @[MAIN[28][42], MAIN[28][40], MAIN[28][48], MAIN[28][54], MAIN[28][52], MAIN[28][51], MAIN[28][46], MAIN[28][44]];
 			}
 
 			bel IODELAY[1] {
-				output BUSY = OUT_BEL[14];
+				input IOCLK = IMUX_IODELAY_IOCLK[1];
+				input RST = IMUX_LOGICIN[55];
 				input CAL = IMUX_LOGICIN[2];
 				input CE = IMUX_LOGICIN[47];
 				input CIN = IMUX_LOGICIN[1];
 				input CLK = IMUX_CLK[0];
-				output DQSOUTN = OUT_CLKPAD_DQSN;
-				output DQSOUTP = OUT_CLKPAD_DQSP;
 				input INC = IMUX_LOGICIN[58];
+				output BUSY = OUT_BEL[14];
 				output LOAD = OUT_BEL[16];
 				output RCLK = OUT_BEL[12];
-				input RST = IMUX_LOGICIN[55];
+				output DQSOUTP = OUT_CLKPAD_DQSP;
+				output DQSOUTN = OUT_CLKPAD_DQSN;
+				attribute MODE @[MAIN[29][7], MAIN[23][8], MAIN[29][21], MAIN[29][19]] {
+					IODRP2 = 0b0000,
+					IODELAY2 = 0b0011,
+					IODRP2_MCB = 0b1100,
+				}
+				attribute COUNTER_WRAPAROUND @[MAIN[28][17]] {
+					WRAPAROUND = 0b0,
+					STAY_AT_LIMIT = 0b1,
+				}
+				attribute DELAYCHAIN_OSC @MAIN[23][7];
+				attribute DELAYCHAIN_OSC_OR_ODATAIN_LP_OR_IDRP2_MCB @[MAIN[25][19], MAIN[25][9]];
+				attribute DELAY_SRC @[MAIN[28][10], MAIN[28][13]] {
+					IO = 0b00,
+					ODATAIN = 0b01,
+					IDATAIN = 0b11,
+				}
+				attribute DIFF_PHASE_DETECTOR @MAIN[25][20];
+				attribute CIN_ENABLE @[MAIN[23][22], MAIN[23][6], MAIN[23][5]];
+				attribute ODATAIN_ENABLE @MAIN[29][4];
+				attribute IDELAY_FIXED @MAIN[22][16];
+				attribute IDELAY_FROM_HALF_MAX @MAIN[28][19];
+				attribute IDELAY_MODE @[MAIN[23][19], MAIN[23][9]] {
+					NORMAL = 0b00,
+					PCI = 0b11,
+				}
+				attribute IODELAY_CHANGE @[MAIN[28][12]] {
+					CHANGE_ON_CLOCK = 0b0,
+					CHANGE_ON_DATA = 0b1,
+				}
+				attribute LUMPED_DELAY @MAIN[28][11];
+				attribute LUMPED_DELAY_SELECT @MAIN[28][9];
+				attribute TEST_GLITCH_FILTER @MAIN[29][18];
+				attribute TEST_PCOUNTER @MAIN[25][0];
+				attribute TEST_NCOUNTER @MAIN[25][12];
+				attribute EVENT_SEL @[MAIN[28][16], MAIN[28][18]];
+				attribute CAL_DELAY_MAX @[MAIN[28][7], MAIN[28][6], MAIN[28][5], MAIN[28][4], MAIN[28][3], MAIN[28][2], MAIN[28][1], MAIN[28][0]];
+				attribute IDELAY_VALUE_P @[MAIN[24][30], MAIN[24][28], MAIN[24][26], MAIN[24][24], MAIN[24][23], MAIN[24][21], MAIN[24][19], MAIN[24][17]];
+				attribute IDELAY_VALUE_N @[MAIN[24][1], MAIN[24][3], MAIN[24][5], MAIN[24][7], MAIN[24][8], MAIN[24][10], MAIN[24][12], MAIN[24][14]];
+				attribute ODELAY_VALUE_P @[MAIN[24][31], MAIN[24][29], MAIN[24][27], MAIN[24][25], MAIN[24][22], MAIN[24][20], MAIN[24][18], MAIN[24][16]];
+				attribute ODELAY_VALUE_N @[MAIN[24][0], MAIN[24][2], MAIN[24][4], MAIN[24][6], MAIN[24][9], MAIN[24][11], MAIN[24][13], MAIN[24][15]];
+				attribute DRP_ADDR @[MAIN[28][31], MAIN[28][27], MAIN[28][26], MAIN[28][25], MAIN[28][24]];
+				attribute DRP06 @[MAIN[28][20], MAIN[28][22], MAIN[28][14], MAIN[28][8], MAIN[28][10], MAIN[28][13], MAIN[28][16], MAIN[28][18]];
+				attribute DRP07 @[MAIN[28][21], MAIN[28][23], MAIN[28][15], MAIN[28][9], MAIN[28][11], MAIN[28][12], MAIN[28][17], MAIN[28][19]];
 			}
 
-			bel IOICLK[0] {
-				input CKINT0 = IMUX_CLK[1];
-				input CKINT1 = IMUX_GFAN[1];
+			bel MISC_IOI {
+				attribute MEM_PLL_DIV_EN @MAIN[25][56];
+				attribute MEM_PLL_POL_SEL @[MAIN[25][57]] {
+					INVERTED = 0b0,
+					NOTINVERTED = 0b1,
+				}
+				attribute DRP_ENABLE @MAIN[25][28];
+				attribute DRP_FROM_MCB @MAIN[25][46];
+				attribute ENFFSCAN_DRP @[MAIN[26][9], MAIN[25][43]];
+				attribute DRP_MCB_ADDRESS @[MAIN[25][47], MAIN[25][39], MAIN[25][26], MAIN[25][24]];
+				attribute DIFF_PHASE_DETECTOR @MAIN[27][63];
 			}
 
-			bel IOICLK[1] {
-				input CKINT0 = IMUX_CLK[0];
-				input CKINT1 = IMUX_GFAN[0];
-			}
-
-			bel IOI {
-				input IOCE0 = IOCE[0];
-				input IOCE1 = IOCE[1];
-				input IOCE2 = IOCE[2];
-				input IOCE3 = IOCE[3];
-				input IOCLK0 = IOCLK[0];
-				input IOCLK1 = IOCLK[1];
-				input IOCLK2 = IOCLK[2];
-				input IOCLK3 = IOCLK[3];
-				input PLLCE0 = PLLCE[0];
-				input PLLCE1 = PLLCE[1];
-				input PLLCLK0 = PLLCLK[0];
-				input PLLCLK1 = PLLCLK[1];
-			}
-
-			bel TIEOFF_IOI {
-			}
-
-			// wire IMUX_GFAN[0]                   IOICLK[1].CKINT1
-			// wire IMUX_GFAN[1]                   IOICLK[0].CKINT1
-			// wire IMUX_CLK[0]                    ILOGIC[1].CLKDIV OLOGIC[1].CLKDIV IODELAY[1].CLK IOICLK[1].CKINT0
-			// wire IMUX_CLK[1]                    ILOGIC[0].CLKDIV OLOGIC[0].CLKDIV IODELAY[0].CLK IOICLK[0].CKINT0
+			// wire IMUX_CLK[0]                    ILOGIC[1].CLKDIV OLOGIC[1].CLKDIV IODELAY[1].CLK
+			// wire IMUX_CLK[1]                    ILOGIC[0].CLKDIV OLOGIC[0].CLKDIV IODELAY[0].CLK
 			// wire IMUX_SR[0]                     OLOGIC[1].SR
 			// wire IMUX_SR[1]                     OLOGIC[0].SR
 			// wire IMUX_LOGICIN[1]                IODELAY[1].CIN
@@ -37661,7 +38950,7 @@ intdb {
 			// wire IMUX_LOGICIN[16]               OLOGIC[0].D2
 			// wire IMUX_LOGICIN[17]               OLOGIC[0].D3
 			// wire IMUX_LOGICIN[19]               ILOGIC[0].BITSLIP
-			// wire IMUX_LOGICIN[20]               ILOGIC[0].SR_INT
+			// wire IMUX_LOGICIN[20]               ILOGIC[0].SR
 			// wire IMUX_LOGICIN[23]               OLOGIC[1].TCE
 			// wire IMUX_LOGICIN[24]               OLOGIC[1].T1
 			// wire IMUX_LOGICIN[25]               OLOGIC[1].T2
@@ -37673,7 +38962,7 @@ intdb {
 			// wire IMUX_LOGICIN[31]               OLOGIC[1].D1
 			// wire IMUX_LOGICIN[32]               OLOGIC[1].D2
 			// wire IMUX_LOGICIN[34]               OLOGIC[1].D4
-			// wire IMUX_LOGICIN[36]               ILOGIC[1].SR_INT
+			// wire IMUX_LOGICIN[36]               ILOGIC[1].SR
 			// wire IMUX_LOGICIN[37]               ILOGIC[1].REV
 			// wire IMUX_LOGICIN[38]               ILOGIC[1].CE0
 			// wire IMUX_LOGICIN[39]               OLOGIC[0].OCE
@@ -37708,18 +38997,6 @@ intdb {
 			// wire OUT_BEL[15]                    IODELAY[0].BUSY
 			// wire OUT_BEL[16]                    IODELAY[1].LOAD
 			// wire OUT_BEL[17]                    IODELAY[0].LOAD
-			// wire IOCLK[0]                       IOI.IOCLK0
-			// wire IOCLK[1]                       IOI.IOCLK1
-			// wire IOCLK[2]                       IOI.IOCLK2
-			// wire IOCLK[3]                       IOI.IOCLK3
-			// wire IOCE[0]                        IOI.IOCE0
-			// wire IOCE[1]                        IOI.IOCE1
-			// wire IOCE[2]                        IOI.IOCE2
-			// wire IOCE[3]                        IOI.IOCE3
-			// wire PLLCLK[0]                      IOI.PLLCLK0
-			// wire PLLCLK[1]                      IOI.PLLCLK1
-			// wire PLLCE[0]                       IOI.PLLCE0
-			// wire PLLCE[1]                       IOI.PLLCE1
 			// wire OUT_CLKPAD_DFB[0]              ILOGIC[0].DFB
 			// wire OUT_CLKPAD_DFB[1]              ILOGIC[1].DFB
 			// wire OUT_CLKPAD_CFB0[0]             ILOGIC[0].CFB0
@@ -37728,6 +39005,24 @@ intdb {
 			// wire OUT_CLKPAD_CFB1[1]             ILOGIC[1].CFB1
 			// wire OUT_CLKPAD_DQSP                IODELAY[1].DQSOUTP
 			// wire OUT_CLKPAD_DQSN                IODELAY[1].DQSOUTN
+			// wire IOI_IOCLK[0]                   IOI_DDR[0].CLK0
+			// wire IOI_IOCLK[1]                   IOI_DDR[0].CLK1
+			// wire IOI_IOCLK[3]                   IOI_DDR[1].CLK0
+			// wire IOI_IOCLK[4]                   IOI_DDR[1].CLK1
+			// wire OUT_DDR_IOCLK[0]               IOI_DDR[0].CLK
+			// wire OUT_DDR_IOCLK[1]               IOI_DDR[1].CLK
+			// wire OUT_DDR_IOCE[0]                IOI_DDR[0].IOCE
+			// wire OUT_DDR_IOCE[1]                IOI_DDR[1].IOCE
+			// wire IMUX_ILOGIC_CLK[0]             ILOGIC[0].CLK
+			// wire IMUX_ILOGIC_CLK[1]             ILOGIC[1].CLK
+			// wire IMUX_OLOGIC_CLK[0]             OLOGIC[0].CLK
+			// wire IMUX_OLOGIC_CLK[1]             OLOGIC[1].CLK
+			// wire IMUX_IODELAY_IOCLK[0]          IODELAY[0].IOCLK
+			// wire IMUX_IODELAY_IOCLK[1]          IODELAY[1].IOCLK
+			// wire IMUX_ILOGIC_IOCE[0]            ILOGIC[0].IOCE
+			// wire IMUX_ILOGIC_IOCE[1]            ILOGIC[1].IOCE
+			// wire IMUX_OLOGIC_IOCE[0]            OLOGIC[0].IOCE
+			// wire IMUX_OLOGIC_IOCE[1]            OLOGIC[1].IOCE
 		}
 
 		tile_class CMT_DCM {
@@ -52795,917 +54090,5 @@ bstile CLEXM {
 	SLICE[1]:FF_SR_ENABLE: R0.F26.B31 inv 0
 	SLICE[1]:FF_SR_SYNC: R0.F26.B30 inv 0
 	SLICE[1]:INV.CLK: R0.F26.B39 inv 0
-}
-
-bstile IOI_SN {
-	ILOGIC[0]:BITSLIP_ENABLE: R0.F26.B22 inv 0
-	ILOGIC[0]:CASCADE_ENABLE: R0.F22.B34 inv 0
-	ILOGIC[0]:DATA_WIDTH_RELOAD: R0.F27.B39 R0.F27.B38
-		11: 1
-		10: 2
-		01: 3
-		00: 4
-	ILOGIC[0]:DATA_WIDTH_START: R0.F26.B23 R0.F26.B21
-		00: 2
-		01: 3
-		10: 4
-	ILOGIC[0]:DDR: R0.F22.B40 inv 0
-	ILOGIC[0]:ENABLE: R0.F26.B32 inv 0
-	ILOGIC[0]:ENABLE.IOCE: R0.F26.B26 inv 0
-	ILOGIC[0]:IFF_CE_ENABLE: R0.F22.B31 inv 1
-	ILOGIC[0]:IFF_DELAY_ENABLE: R0.F28.B55 inv 1
-	ILOGIC[0]:IFF_INIT: R0.F22.B38 inv 0
-	ILOGIC[0]:IFF_LATCH: R0.F22.B33 inv 0
-	ILOGIC[0]:IFF_REV_USED: R0.F22.B35 inv 0
-	ILOGIC[0]:IFF_SRVAL: R0.F22.B37 inv 0
-	ILOGIC[0]:IFF_SR_SYNC: R0.F22.B32 inv 1
-	ILOGIC[0]:IFF_SR_USED: R0.F22.B39 inv 0
-	ILOGIC[0]:I_DELAY_ENABLE: R0.F29.B57 inv 1
-	ILOGIC[0]:MUX.CLK: R0.F26.B41 R0.F26.B40
-		01: ICLK0
-		10: ICLK1
-		00: NONE
-	ILOGIC[0]:MUX.D: R0.F23.B43 R0.F23.B42
-		00: IOB_I
-		11: OTHER_IOB_I
-	ILOGIC[0]:MUX.Q1: R0.F27.B46 R0.F27.B47
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[0]:MUX.Q2: R0.F27.B45 R0.F27.B44
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[0]:MUX.Q3: R0.F27.B42 R0.F27.B43
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[0]:MUX.Q4: R0.F27.B41 R0.F27.B40
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[0]:MUX.SR: R0.F22.B36
-		1: INT
-		0: OLOGIC_SR
-	ILOGIC[0]:ROW1_CLK_ENABLE: R0.F22.B45 inv 0
-	ILOGIC[0]:ROW2_CLK_ENABLE: R0.F22.B44 inv 0
-	ILOGIC[0]:ROW3_CLK_ENABLE: R0.F22.B46 inv 0
-	ILOGIC[0]:ROW4_CLK_ENABLE: R0.F22.B47 inv 0
-	ILOGIC[0]:TSBYPASS_MUX: R0.F29.B58
-		0: GND
-		1: T
-	ILOGIC[1]:BITSLIP_ENABLE: R0.F26.B17 inv 0
-	ILOGIC[1]:CASCADE_ENABLE: R0.F26.B16 inv 0
-	ILOGIC[1]:DATA_WIDTH_RELOAD: R0.F27.B37 R0.F27.B36 R0.F27.B18
-		111: 1
-		110: 2
-		101: 3
-		100: 4
-		011: 5
-		010: 6
-		001: 7
-		000: 8
-	ILOGIC[1]:DATA_WIDTH_START: R0.F26.B18 R0.F26.B19 R0.F26.B20
-		000: 2
-		001: 3
-		010: 4
-		011: 5
-		100: 6
-		101: 7
-		110: 8
-	ILOGIC[1]:DDR: R0.F22.B60 inv 0
-	ILOGIC[1]:ENABLE: R0.F26.B35 inv 0
-	ILOGIC[1]:ENABLE.IOCE: R0.F26.B24 inv 0
-	ILOGIC[1]:IFF_CE_ENABLE: R0.F22.B57 inv 1
-	ILOGIC[1]:IFF_DELAY_ENABLE: R0.F28.B8 inv 1
-	ILOGIC[1]:IFF_INIT: R0.F22.B41 inv 0
-	ILOGIC[1]:IFF_LATCH: R0.F22.B63 inv 0
-	ILOGIC[1]:IFF_REV_USED: R0.F22.B59 inv 0
-	ILOGIC[1]:IFF_SRVAL: R0.F22.B55 inv 0
-	ILOGIC[1]:IFF_SR_SYNC: R0.F22.B62 inv 1
-	ILOGIC[1]:IFF_SR_USED: R0.F22.B42 inv 0
-	ILOGIC[1]:I_DELAY_ENABLE: R0.F29.B6 inv 1
-	ILOGIC[1]:MUX.CLK: R0.F26.B43 R0.F26.B42
-		01: ICLK0
-		10: ICLK1
-		00: NONE
-	ILOGIC[1]:MUX.Q1: R0.F27.B49 R0.F27.B48
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[1]:MUX.Q2: R0.F27.B50 R0.F27.B51
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[1]:MUX.Q3: R0.F27.B53 R0.F27.B52
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[1]:MUX.Q4: R0.F27.B54 R0.F27.B55
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[1]:MUX.SR: R0.F22.B58
-		1: INT
-		0: OLOGIC_SR
-	ILOGIC[1]:ROW1_CLK_ENABLE: R0.F22.B50 inv 0
-	ILOGIC[1]:ROW2_CLK_ENABLE: R0.F22.B51 inv 0
-	ILOGIC[1]:ROW3_CLK_ENABLE: R0.F22.B49 inv 0
-	ILOGIC[1]:ROW4_CLK_ENABLE: R0.F22.B48 inv 0
-	ILOGIC[1]:TSBYPASS_MUX: R0.F29.B5
-		0: GND
-		1: T
-	IODELAY[0]:CAL_DELAY_MAX: R0.F28.B56 R0.F28.B57 R0.F28.B58 R0.F28.B59 R0.F28.B60 R0.F28.B61 R0.F28.B62 R0.F28.B63 inv 00000000
-	IODELAY[0]:COUNTER_WRAPAROUND: R0.F28.B46
-		1: STAY_AT_LIMIT
-		0: WRAPAROUND
-	IODELAY[0]:DELAYCHAIN_OSC: R0.F23.B56 inv 0
-	IODELAY[0]:DELAYCHAIN_OSC_OR_ODATAIN_LP_OR_IDRP2_MCB: R0.F25.B54 R0.F25.B44 inv 00
-	IODELAY[0]:DELAY_SRC: R0.F28.B53 R0.F28.B50
-		11: IDATAIN
-		00: IO
-		01: ODATAIN
-	IODELAY[0]:DIFF_PHASE_DETECTOR: R0.F25.B55 inv 0
-	IODELAY[0]:DRP06: R0.F28.B43 R0.F28.B41 R0.F28.B49 R0.F28.B55 R0.F28.B53 R0.F28.B50 R0.F28.B47 R0.F28.B45 inv 00000000
-	IODELAY[0]:DRP07: R0.F28.B42 R0.F28.B40 R0.F28.B48 R0.F28.B54 R0.F28.B52 R0.F28.B51 R0.F28.B46 R0.F28.B44 inv 00000000
-	IODELAY[0]:DRP_ADDR: R0.F28.B32 R0.F28.B36 R0.F28.B37 R0.F28.B38 R0.F28.B39 inv 00000
-	IODELAY[0]:ENABLE.CIN: R0.F23.B58 R0.F23.B57 R0.F23.B41 inv 000
-	IODELAY[0]:ENABLE.ODATAIN: R0.F29.B59 inv 0
-	IODELAY[0]:IDELAY_FIXED: R0.F22.B52 inv 0
-	IODELAY[0]:IDELAY_FROM_HALF_MAX: R0.F28.B44 inv 0
-	IODELAY[0]:IDELAY_MODE: R0.F23.B54 R0.F23.B44
-		00: NORMAL
-		11: PCI
-	IODELAY[0]:IDELAY_VALUE_N: R0.F24.B62 R0.F24.B60 R0.F24.B58 R0.F24.B56 R0.F24.B55 R0.F24.B53 R0.F24.B51 R0.F24.B49 inv 00000000
-	IODELAY[0]:IDELAY_VALUE_P: R0.F24.B33 R0.F24.B35 R0.F24.B37 R0.F24.B39 R0.F24.B40 R0.F24.B42 R0.F24.B44 R0.F24.B46 inv 00000000
-	IODELAY[0]:IODELAY_CHANGE: R0.F28.B51
-		0: CHANGE_ON_CLOCK
-		1: CHANGE_ON_DATA
-	IODELAY[0]:LUMPED_DELAY: R0.F28.B52 inv 0
-	IODELAY[0]:LUMPED_DELAY_SELECT: R0.F28.B54 inv 0
-	IODELAY[0]:MODE: R0.F29.B56 R0.F23.B55 R0.F29.B44 R0.F29.B42
-		0011: IODELAY2
-		0000: IODRP2
-		1100: IODRP2_MCB
-	IODELAY[0]:MUX.IOCLK: R0.F26.B3
-		0: ILOGIC_CLK
-		1: OLOGIC_CLK
-	IODELAY[0]:ODELAY_VALUE_N: R0.F24.B63 R0.F24.B61 R0.F24.B59 R0.F24.B57 R0.F24.B54 R0.F24.B52 R0.F24.B50 R0.F24.B48 inv 00000000
-	IODELAY[0]:ODELAY_VALUE_P: R0.F24.B32 R0.F24.B34 R0.F24.B36 R0.F24.B38 R0.F24.B41 R0.F24.B43 R0.F24.B45 R0.F24.B47 inv 00000000
-	IODELAY[0]:PLUS1: R0.F28.B45 inv 0
-	IODELAY[0]:TEST_GLITCH_FILTER: R0.F29.B45 inv 0
-	IODELAY[0]:TEST_NCOUNTER: R0.F25.B51 inv 0
-	IODELAY[0]:TEST_PCOUNTER: R0.F25.B49 inv 0
-	IODELAY[1]:CAL_DELAY_MAX: R0.F28.B7 R0.F28.B6 R0.F28.B5 R0.F28.B4 R0.F28.B3 R0.F28.B2 R0.F28.B1 R0.F28.B0 inv 00000000
-	IODELAY[1]:COUNTER_WRAPAROUND: R0.F28.B17
-		1: STAY_AT_LIMIT
-		0: WRAPAROUND
-	IODELAY[1]:DELAYCHAIN_OSC: R0.F23.B7 inv 0
-	IODELAY[1]:DELAYCHAIN_OSC_OR_ODATAIN_LP_OR_IDRP2_MCB: R0.F25.B19 R0.F25.B9 inv 00
-	IODELAY[1]:DELAY_SRC: R0.F28.B10 R0.F28.B13
-		11: IDATAIN
-		00: IO
-		01: ODATAIN
-	IODELAY[1]:DIFF_PHASE_DETECTOR: R0.F25.B20 inv 0
-	IODELAY[1]:DRP06: R0.F28.B20 R0.F28.B22 R0.F28.B14 R0.F28.B8 R0.F28.B10 R0.F28.B13 R0.F28.B16 R0.F28.B18 inv 00000000
-	IODELAY[1]:DRP07: R0.F28.B21 R0.F28.B23 R0.F28.B15 R0.F28.B9 R0.F28.B11 R0.F28.B12 R0.F28.B17 R0.F28.B19 inv 00000000
-	IODELAY[1]:DRP_ADDR: R0.F28.B31 R0.F28.B27 R0.F28.B26 R0.F28.B25 R0.F28.B24 inv 00000
-	IODELAY[1]:ENABLE.CIN: R0.F23.B22 R0.F23.B6 R0.F23.B5 inv 000
-	IODELAY[1]:ENABLE.ODATAIN: R0.F29.B4 inv 0
-	IODELAY[1]:EVENT_SEL: R0.F28.B16 R0.F28.B18 inv 00
-	IODELAY[1]:IDELAY_FIXED: R0.F22.B16 inv 0
-	IODELAY[1]:IDELAY_FROM_HALF_MAX: R0.F28.B19 inv 0
-	IODELAY[1]:IDELAY_MODE: R0.F23.B19 R0.F23.B9
-		00: NORMAL
-		11: PCI
-	IODELAY[1]:IDELAY_VALUE_N: R0.F24.B1 R0.F24.B3 R0.F24.B5 R0.F24.B7 R0.F24.B8 R0.F24.B10 R0.F24.B12 R0.F24.B14 inv 00000000
-	IODELAY[1]:IDELAY_VALUE_P: R0.F24.B30 R0.F24.B28 R0.F24.B26 R0.F24.B24 R0.F24.B23 R0.F24.B21 R0.F24.B19 R0.F24.B17 inv 00000000
-	IODELAY[1]:IODELAY_CHANGE: R0.F28.B12
-		0: CHANGE_ON_CLOCK
-		1: CHANGE_ON_DATA
-	IODELAY[1]:LUMPED_DELAY: R0.F28.B11 inv 0
-	IODELAY[1]:LUMPED_DELAY_SELECT: R0.F28.B9 inv 0
-	IODELAY[1]:MODE: R0.F29.B7 R0.F23.B8 R0.F29.B21 R0.F29.B19
-		0011: IODELAY2
-		0000: IODRP2
-		1100: IODRP2_MCB
-	IODELAY[1]:MUX.IOCLK: R0.F26.B1
-		0: ILOGIC_CLK
-		1: OLOGIC_CLK
-	IODELAY[1]:ODELAY_VALUE_N: R0.F24.B0 R0.F24.B2 R0.F24.B4 R0.F24.B6 R0.F24.B9 R0.F24.B11 R0.F24.B13 R0.F24.B15 inv 00000000
-	IODELAY[1]:ODELAY_VALUE_P: R0.F24.B31 R0.F24.B29 R0.F24.B27 R0.F24.B25 R0.F24.B22 R0.F24.B20 R0.F24.B18 R0.F24.B16 inv 00000000
-	IODELAY[1]:TEST_GLITCH_FILTER: R0.F29.B18 inv 0
-	IODELAY[1]:TEST_NCOUNTER: R0.F25.B12 inv 0
-	IODELAY[1]:TEST_PCOUNTER: R0.F25.B0 inv 0
-	IODELAY_COMMON:DIFF_PHASE_DETECTOR: R0.F27.B63 inv 0
-	IODELAY_COMMON:DRP_ENABLE: R0.F25.B28 inv 0
-	IODELAY_COMMON:DRP_FROM_MCB: R0.F25.B46 inv 0
-	IODELAY_COMMON:ENFFSCAN_DRP: R0.F26.B9 R0.F25.B43 inv 00
-	IODELAY_COMMON:MCB_ADDRESS: R0.F25.B47 R0.F25.B39 R0.F25.B26 R0.F25.B24 inv 0000
-	IOI:MEM_PLL_DIV_EN: R0.F25.B56 inv 0
-	IOI:MEM_PLL_POL_SEL: R0.F25.B57
-		0: INVERTED
-		1: NOTINVERTED
-	IOICLK[0]:DDR_ALIGNMENT: R0.F29.B54 R0.F29.B55
-		01: CLK0
-		10: CLK1
-		00: NONE
-	IOICLK[0]:DDR_ENABLE: R0.F29.B41 R0.F29.B40 inv 00
-	IOICLK[0]:INV.CLK0: R0.F29.B38 inv 0
-	IOICLK[0]:INV.CLK1: R0.F23.B38 inv 0
-	IOICLK[0]:INV.CLK2: R0.F29.B39 inv 0
-	IOICLK[0]:MUX.CE0: R0.F29.B53 R0.F29.B52 R0.F29.B50
-		001: IOCE0
-		010: IOCE2
-		000: NONE
-		100: PLLCE0
-	IOICLK[0]:MUX.CE1: R0.F23.B53 R0.F23.B52 R0.F23.B51
-		001: IOCE1
-		010: IOCE3
-		000: NONE
-		100: PLLCE1
-	IOICLK[0]:MUX.CLK0: R0.F29.B37 R0.F29.B35 R0.F29.B36 R0.F29.B32 R0.F29.B33
-		01000: CKINT0
-		10000: CKINT1
-		00001: IOCLK0
-		00010: IOCLK2
-		00000: NONE
-		00100: PLLCLK0
-	IOICLK[0]:MUX.CLK1: R0.F23.B35 R0.F23.B37 R0.F23.B36 R0.F23.B32 R0.F23.B33
-		01000: CKINT0
-		10000: CKINT1
-		00001: IOCLK1
-		00010: IOCLK3
-		00000: NONE
-		00100: PLLCLK1
-	IOICLK[0]:MUX.CLK2: R0.F23.B40 R0.F23.B39
-		00: NONE
-		01: PLLCLK0
-		10: PLLCLK1
-	IOICLK[0]:MUX.ICE: R0.F29.B60 R0.F29.B62 R0.F29.B61
-		001: CE0
-		010: CE1
-		100: DDR
-		000: NONE
-	IOICLK[0]:MUX.ICLK: R0.F29.B48 R0.F29.B49 R0.F23.B46 R0.F23.B47
-		0001: CLK0
-		0010: CLK1
-		0100: CLK2
-		1000: DDR
-		0000: NONE
-	IOICLK[0]:MUX.OCE: R0.F23.B59 R0.F23.B61 R0.F23.B60
-		001: CE0
-		010: CE1
-		100: DDR
-		000: NONE
-	IOICLK[0]:MUX.OCLK: R0.F23.B49 R0.F23.B50 R0.F23.B45 R0.F23.B48
-		0001: CLK0
-		0010: CLK1
-		0100: CLK2
-		1000: DDR
-		0000: NONE
-	IOICLK[1]:DDR_ALIGNMENT: R0.F29.B9 R0.F29.B8
-		01: CLK0
-		10: CLK1
-		00: NONE
-	IOICLK[1]:DDR_ENABLE: R0.F29.B23 R0.F29.B22 inv 00
-	IOICLK[1]:INV.CLK0: R0.F29.B25 inv 0
-	IOICLK[1]:INV.CLK1: R0.F23.B25 inv 0
-	IOICLK[1]:INV.CLK2: R0.F29.B24 inv 0
-	IOICLK[1]:MUX.CE0: R0.F29.B10 R0.F29.B11 R0.F29.B13
-		001: IOCE0
-		010: IOCE2
-		000: NONE
-		100: PLLCE0
-	IOICLK[1]:MUX.CE1: R0.F23.B10 R0.F23.B11 R0.F23.B12
-		001: IOCE1
-		010: IOCE3
-		000: NONE
-		100: PLLCE1
-	IOICLK[1]:MUX.CLK0: R0.F29.B26 R0.F29.B28 R0.F29.B27 R0.F29.B31 R0.F29.B30
-		01000: CKINT0
-		10000: CKINT1
-		00001: IOCLK0
-		00010: IOCLK2
-		00000: NONE
-		00100: PLLCLK0
-	IOICLK[1]:MUX.CLK1: R0.F23.B28 R0.F23.B26 R0.F23.B27 R0.F23.B31 R0.F23.B30
-		01000: CKINT0
-		10000: CKINT1
-		00001: IOCLK1
-		00010: IOCLK3
-		00000: NONE
-		00100: PLLCLK1
-	IOICLK[1]:MUX.CLK2: R0.F23.B23 R0.F23.B24
-		00: NONE
-		01: PLLCLK0
-		10: PLLCLK1
-	IOICLK[1]:MUX.ICE: R0.F29.B3 R0.F29.B1 R0.F29.B2
-		001: CE0
-		010: CE1
-		100: DDR
-		000: NONE
-	IOICLK[1]:MUX.ICLK: R0.F29.B15 R0.F29.B14 R0.F23.B17 R0.F23.B16
-		0001: CLK0
-		0010: CLK1
-		0100: CLK2
-		1000: DDR
-		0000: NONE
-	IOICLK[1]:MUX.OCE: R0.F23.B4 R0.F23.B2 R0.F23.B3
-		001: CE0
-		010: CE1
-		100: DDR
-		000: NONE
-	IOICLK[1]:MUX.OCLK: R0.F23.B14 R0.F23.B13 R0.F23.B18 R0.F23.B15
-		0001: CLK0
-		0010: CLK1
-		0100: CLK2
-		1000: DDR
-		0000: NONE
-	OLOGIC[0]:CASCADE_ENABLE: R0.F26.B46 inv 0
-	OLOGIC[0]:DDR_OPPOSITE_EDGE: R0.F27.B14 inv 0
-	OLOGIC[0]:ENABLE: R0.F26.B28 inv 0
-	OLOGIC[0]:ENABLE.IOCE: R0.F26.B27 inv 0
-	OLOGIC[0]:MISR_ENABLE_CLK: R0.F26.B13 inv 0
-	OLOGIC[0]:MISR_ENABLE_DATA: R0.F26.B12 inv 0
-	OLOGIC[0]:MISR_RESET: R0.F26.B10 inv 0
-	OLOGIC[0]:MUX.CLK: R0.F26.B37 R0.F26.B36
-		00: NONE
-		01: OCLK0
-		10: OCLK1
-	OLOGIC[0]:MUX.D: R0.F27.B12
-		0: INT
-		1: MCB
-	OLOGIC[0]:MUX.OCE: R0.F28.B43
-		0: INT
-		1: PCI_CE
-	OLOGIC[0]:MUX.REV: R0.F22.B0
-		0: GND
-		1: INT
-	OLOGIC[0]:MUX.SR: R0.F22.B1
-		0: GND
-		1: INT
-	OLOGIC[0]:MUX.T: R0.F27.B2
-		0: INT
-		1: MCB
-	OLOGIC[0]:MUX.TRAIN: R0.F26.B47 R0.F26.B45
-		00: GND
-		01: INT
-		10: MCB
-	OLOGIC[0]:OFF_CE_ENABLE: R0.F27.B11 inv 0
-	OLOGIC[0]:OFF_CE_OR_DDR: R0.F27.B10 inv 0
-	OLOGIC[0]:OFF_INIT: R0.F22.B9 inv 0
-	OLOGIC[0]:OFF_LATCH: R0.F22.B13 inv 0
-	OLOGIC[0]:OFF_RANK1_BYPASS: R0.F27.B15 inv 0
-	OLOGIC[0]:OFF_RANK1_CLK_ENABLE: R0.F27.B9 inv 0
-	OLOGIC[0]:OFF_RANK2_CLK_ENABLE: R0.F27.B8 inv 0
-	OLOGIC[0]:OFF_REV_ENABLE: R0.F22.B11 inv 0
-	OLOGIC[0]:OFF_SRVAL: R0.F22.B8 inv 0
-	OLOGIC[0]:OFF_SR_ENABLE: R0.F22.B12 inv 0
-	OLOGIC[0]:OFF_SR_SYNC: R0.F22.B10 inv 1
-	OLOGIC[0]:OMUX: R0.F28.B49
-		1: D1
-		0: OUTFF
-	OLOGIC[0]:OUTPUT_MODE: R0.F27.B0
-		1: DIFFERENTIAL
-		0: SINGLE_ENDED
-	OLOGIC[0]:TFF_CE_ENABLE: R0.F27.B4 inv 0
-	OLOGIC[0]:TFF_CE_OR_DDR: R0.F27.B5 inv 0
-	OLOGIC[0]:TFF_INIT: R0.F22.B6 inv 0
-	OLOGIC[0]:TFF_LATCH: R0.F22.B2 inv 0
-	OLOGIC[0]:TFF_RANK1_BYPASS: R0.F27.B1 inv 0
-	OLOGIC[0]:TFF_RANK1_CLK_ENABLE: R0.F27.B6 inv 0
-	OLOGIC[0]:TFF_RANK2_CLK_ENABLE: R0.F27.B7 inv 0
-	OLOGIC[0]:TFF_REV_ENABLE: R0.F22.B4 inv 0
-	OLOGIC[0]:TFF_SRVAL: R0.F22.B7 inv 0
-	OLOGIC[0]:TFF_SR_ENABLE: R0.F22.B3 inv 0
-	OLOGIC[0]:TFF_SR_SYNC: R0.F22.B5 inv 1
-	OLOGIC[0]:TMUX: R0.F28.B41
-		1: T1
-		0: TFF
-	OLOGIC[0]:TRAIN_PATTERN: R0.F27.B3 R0.F27.B13 R0.F27.B17 R0.F27.B16 inv 0000
-	OLOGIC[1]:CASCADE_ENABLE: R0.F22.B30 inv 0
-	OLOGIC[1]:DDR_OPPOSITE_EDGE: R0.F27.B29 inv 0
-	OLOGIC[1]:ENABLE: R0.F26.B31 inv 0
-	OLOGIC[1]:ENABLE.IOCE: R0.F26.B25 inv 0
-	OLOGIC[1]:MISR_ENABLE_CLK: R0.F26.B14 inv 0
-	OLOGIC[1]:MISR_ENABLE_DATA: R0.F26.B15 inv 0
-	OLOGIC[1]:MISR_RESET: R0.F26.B11 inv 0
-	OLOGIC[1]:MUX.CLK: R0.F26.B39 R0.F26.B38
-		00: NONE
-		01: OCLK0
-		10: OCLK1
-	OLOGIC[1]:MUX.D: R0.F27.B35
-		0: INT
-		1: MCB
-	OLOGIC[1]:MUX.OCE: R0.F28.B20
-		0: INT
-		1: PCI_CE
-	OLOGIC[1]:MUX.REV: R0.F22.B14
-		0: GND
-		1: INT
-	OLOGIC[1]:MUX.SR: R0.F22.B15
-		0: GND
-		1: INT
-	OLOGIC[1]:MUX.T: R0.F27.B28
-		0: INT
-		1: MCB
-	OLOGIC[1]:MUX.TRAIN: R0.F26.B48 R0.F26.B44
-		00: GND
-		01: INT
-		10: MCB
-	OLOGIC[1]:OFF_CE_ENABLE: R0.F27.B27 inv 0
-	OLOGIC[1]:OFF_CE_OR_DDR: R0.F27.B26 inv 0
-	OLOGIC[1]:OFF_INIT: R0.F22.B25 inv 0
-	OLOGIC[1]:OFF_LATCH: R0.F22.B29 inv 0
-	OLOGIC[1]:OFF_RANK1_BYPASS: R0.F27.B34 inv 0
-	OLOGIC[1]:OFF_RANK1_CLK_ENABLE: R0.F27.B25 inv 0
-	OLOGIC[1]:OFF_RANK2_CLK_ENABLE: R0.F27.B24 inv 0
-	OLOGIC[1]:OFF_REV_ENABLE: R0.F22.B27 inv 0
-	OLOGIC[1]:OFF_SRVAL: R0.F22.B24 inv 0
-	OLOGIC[1]:OFF_SR_ENABLE: R0.F22.B28 inv 0
-	OLOGIC[1]:OFF_SR_SYNC: R0.F22.B26 inv 1
-	OLOGIC[1]:OMUX: R0.F28.B14
-		1: D1
-		0: OUTFF
-	OLOGIC[1]:TFF_CE_ENABLE: R0.F27.B20 inv 0
-	OLOGIC[1]:TFF_CE_OR_DDR: R0.F27.B21 inv 0
-	OLOGIC[1]:TFF_INIT: R0.F22.B22 inv 0
-	OLOGIC[1]:TFF_LATCH: R0.F22.B18 inv 0
-	OLOGIC[1]:TFF_RANK1_BYPASS: R0.F27.B19 inv 0
-	OLOGIC[1]:TFF_RANK1_CLK_ENABLE: R0.F27.B22 inv 0
-	OLOGIC[1]:TFF_RANK2_CLK_ENABLE: R0.F27.B23 inv 0
-	OLOGIC[1]:TFF_REV_ENABLE: R0.F22.B20 inv 0
-	OLOGIC[1]:TFF_SRVAL: R0.F22.B23 inv 0
-	OLOGIC[1]:TFF_SR_ENABLE: R0.F22.B19 inv 0
-	OLOGIC[1]:TFF_SR_SYNC: R0.F22.B21 inv 1
-	OLOGIC[1]:TMUX: R0.F28.B22
-		1: T1
-		0: TFF
-	OLOGIC[1]:TRAIN_PATTERN: R0.F27.B30 R0.F27.B31 R0.F27.B32 R0.F27.B33 inv 0000
-}
-
-bstile IOI_WE {
-	ILOGIC[0]:BITSLIP_ENABLE: R0.F29.B22 inv 0
-	ILOGIC[0]:CASCADE_ENABLE: R0.F22.B34 inv 0
-	ILOGIC[0]:DATA_WIDTH_RELOAD: R0.F27.B39 R0.F27.B38
-		11: 1
-		10: 2
-		01: 3
-		00: 4
-	ILOGIC[0]:DATA_WIDTH_START: R0.F29.B23 R0.F29.B21
-		00: 2
-		01: 3
-		10: 4
-	ILOGIC[0]:DDR: R0.F22.B40 inv 0
-	ILOGIC[0]:ENABLE: R0.F29.B32 inv 0
-	ILOGIC[0]:ENABLE.IOCE: R0.F29.B26 inv 0
-	ILOGIC[0]:IFF_CE_ENABLE: R0.F22.B31 inv 1
-	ILOGIC[0]:IFF_DELAY_ENABLE: R0.F28.B55 inv 1
-	ILOGIC[0]:IFF_INIT: R0.F22.B38 inv 0
-	ILOGIC[0]:IFF_LATCH: R0.F22.B33 inv 0
-	ILOGIC[0]:IFF_REV_USED: R0.F22.B35 inv 0
-	ILOGIC[0]:IFF_SRVAL: R0.F22.B37 inv 0
-	ILOGIC[0]:IFF_SR_SYNC: R0.F22.B32 inv 1
-	ILOGIC[0]:IFF_SR_USED: R0.F22.B39 inv 0
-	ILOGIC[0]:I_DELAY_ENABLE: R0.F23.B57 inv 1
-	ILOGIC[0]:MUX.CLK: R0.F29.B41 R0.F29.B40
-		01: ICLK0
-		10: ICLK1
-		00: NONE
-	ILOGIC[0]:MUX.D: R0.F24.B43 R0.F24.B42
-		00: IOB_I
-		11: OTHER_IOB_I
-	ILOGIC[0]:MUX.Q1: R0.F27.B46 R0.F27.B47
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[0]:MUX.Q2: R0.F27.B45 R0.F27.B44
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[0]:MUX.Q3: R0.F27.B42 R0.F27.B43
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[0]:MUX.Q4: R0.F27.B41 R0.F27.B40
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[0]:MUX.SR: R0.F22.B36
-		1: INT
-		0: OLOGIC_SR
-	ILOGIC[0]:ROW1_CLK_ENABLE: R0.F22.B45 inv 0
-	ILOGIC[0]:ROW2_CLK_ENABLE: R0.F22.B44 inv 0
-	ILOGIC[0]:ROW3_CLK_ENABLE: R0.F22.B46 inv 0
-	ILOGIC[0]:ROW4_CLK_ENABLE: R0.F22.B47 inv 0
-	ILOGIC[0]:TSBYPASS_MUX: R0.F23.B58
-		0: GND
-		1: T
-	ILOGIC[1]:BITSLIP_ENABLE: R0.F29.B17 inv 0
-	ILOGIC[1]:CASCADE_ENABLE: R0.F29.B16 inv 0
-	ILOGIC[1]:DATA_WIDTH_RELOAD: R0.F27.B37 R0.F27.B36 R0.F27.B18
-		111: 1
-		110: 2
-		101: 3
-		100: 4
-		011: 5
-		010: 6
-		001: 7
-		000: 8
-	ILOGIC[1]:DATA_WIDTH_START: R0.F29.B18 R0.F29.B19 R0.F29.B20
-		000: 2
-		001: 3
-		010: 4
-		011: 5
-		100: 6
-		101: 7
-		110: 8
-	ILOGIC[1]:DDR: R0.F22.B60 inv 0
-	ILOGIC[1]:ENABLE: R0.F29.B35 inv 0
-	ILOGIC[1]:ENABLE.IOCE: R0.F29.B24 inv 0
-	ILOGIC[1]:IFF_CE_ENABLE: R0.F22.B57 inv 1
-	ILOGIC[1]:IFF_DELAY_ENABLE: R0.F28.B8 inv 1
-	ILOGIC[1]:IFF_INIT: R0.F22.B41 inv 0
-	ILOGIC[1]:IFF_LATCH: R0.F22.B63 inv 0
-	ILOGIC[1]:IFF_REV_USED: R0.F22.B59 inv 0
-	ILOGIC[1]:IFF_SRVAL: R0.F22.B55 inv 0
-	ILOGIC[1]:IFF_SR_SYNC: R0.F22.B62 inv 1
-	ILOGIC[1]:IFF_SR_USED: R0.F22.B42 inv 0
-	ILOGIC[1]:I_DELAY_ENABLE: R0.F23.B6 inv 1
-	ILOGIC[1]:MUX.CLK: R0.F29.B43 R0.F29.B42
-		01: ICLK0
-		10: ICLK1
-		00: NONE
-	ILOGIC[1]:MUX.Q1: R0.F27.B49 R0.F27.B48
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[1]:MUX.Q2: R0.F27.B50 R0.F27.B51
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[1]:MUX.Q3: R0.F27.B53 R0.F27.B52
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[1]:MUX.Q4: R0.F27.B54 R0.F27.B55
-		01: NETWORKING
-		10: NETWORKING_PIPELINED
-		11: RETIMED
-		00: SHIFT_REGISTER
-	ILOGIC[1]:MUX.SR: R0.F22.B58
-		1: INT
-		0: OLOGIC_SR
-	ILOGIC[1]:ROW1_CLK_ENABLE: R0.F22.B50 inv 0
-	ILOGIC[1]:ROW2_CLK_ENABLE: R0.F22.B51 inv 0
-	ILOGIC[1]:ROW3_CLK_ENABLE: R0.F22.B49 inv 0
-	ILOGIC[1]:ROW4_CLK_ENABLE: R0.F22.B48 inv 0
-	ILOGIC[1]:TSBYPASS_MUX: R0.F23.B5
-		0: GND
-		1: T
-	IODELAY[0]:CAL_DELAY_MAX: R0.F28.B56 R0.F28.B57 R0.F28.B58 R0.F28.B59 R0.F28.B60 R0.F28.B61 R0.F28.B62 R0.F28.B63 inv 00000000
-	IODELAY[0]:COUNTER_WRAPAROUND: R0.F28.B46
-		1: STAY_AT_LIMIT
-		0: WRAPAROUND
-	IODELAY[0]:DELAYCHAIN_OSC: R0.F24.B56 inv 0
-	IODELAY[0]:DELAYCHAIN_OSC_OR_ODATAIN_LP_OR_IDRP2_MCB: R0.F26.B54 R0.F26.B44 inv 00
-	IODELAY[0]:DELAY_SRC: R0.F28.B53 R0.F28.B50
-		11: IDATAIN
-		00: IO
-		01: ODATAIN
-	IODELAY[0]:DIFF_PHASE_DETECTOR: R0.F26.B55 inv 0
-	IODELAY[0]:DRP06: R0.F28.B43 R0.F28.B41 R0.F28.B49 R0.F28.B55 R0.F28.B53 R0.F28.B50 R0.F28.B47 R0.F28.B45 inv 00000000
-	IODELAY[0]:DRP07: R0.F28.B42 R0.F28.B40 R0.F28.B48 R0.F28.B54 R0.F28.B52 R0.F28.B51 R0.F28.B46 R0.F28.B44 inv 00000000
-	IODELAY[0]:DRP_ADDR: R0.F28.B32 R0.F28.B36 R0.F28.B37 R0.F28.B38 R0.F28.B39 inv 00000
-	IODELAY[0]:ENABLE.CIN: R0.F24.B58 R0.F24.B57 R0.F24.B41 inv 000
-	IODELAY[0]:ENABLE.ODATAIN: R0.F23.B59 inv 0
-	IODELAY[0]:IDELAY_FIXED: R0.F22.B52 inv 0
-	IODELAY[0]:IDELAY_FROM_HALF_MAX: R0.F28.B44 inv 0
-	IODELAY[0]:IDELAY_MODE: R0.F24.B54 R0.F24.B44
-		00: NORMAL
-		11: PCI
-	IODELAY[0]:IDELAY_VALUE_N: R0.F25.B62 R0.F25.B60 R0.F25.B58 R0.F25.B56 R0.F25.B55 R0.F25.B53 R0.F25.B51 R0.F25.B49 inv 00000000
-	IODELAY[0]:IDELAY_VALUE_P: R0.F25.B33 R0.F25.B35 R0.F25.B37 R0.F25.B39 R0.F25.B40 R0.F25.B42 R0.F25.B44 R0.F25.B46 inv 00000000
-	IODELAY[0]:IODELAY_CHANGE: R0.F28.B51
-		0: CHANGE_ON_CLOCK
-		1: CHANGE_ON_DATA
-	IODELAY[0]:LUMPED_DELAY: R0.F28.B52 inv 0
-	IODELAY[0]:LUMPED_DELAY_SELECT: R0.F28.B54 inv 0
-	IODELAY[0]:MODE: R0.F24.B55 R0.F23.B56 R0.F23.B44 R0.F23.B42
-		0011: IODELAY2
-		0000: IODRP2
-		1100: IODRP2_MCB
-	IODELAY[0]:MUX.IOCLK: R0.F29.B3
-		0: ILOGIC_CLK
-		1: OLOGIC_CLK
-	IODELAY[0]:ODELAY_VALUE_N: R0.F25.B63 R0.F25.B61 R0.F25.B59 R0.F25.B57 R0.F25.B54 R0.F25.B52 R0.F25.B50 R0.F25.B48 inv 00000000
-	IODELAY[0]:ODELAY_VALUE_P: R0.F25.B32 R0.F25.B34 R0.F25.B36 R0.F25.B38 R0.F25.B41 R0.F25.B43 R0.F25.B45 R0.F25.B47 inv 00000000
-	IODELAY[0]:PLUS1: R0.F28.B45 inv 0
-	IODELAY[0]:TEST_GLITCH_FILTER: R0.F23.B45 inv 0
-	IODELAY[0]:TEST_NCOUNTER: R0.F26.B51 inv 0
-	IODELAY[0]:TEST_PCOUNTER: R0.F26.B49 inv 0
-	IODELAY[1]:CAL_DELAY_MAX: R0.F28.B7 R0.F28.B6 R0.F28.B5 R0.F28.B4 R0.F28.B3 R0.F28.B2 R0.F28.B1 R0.F28.B0 inv 00000000
-	IODELAY[1]:COUNTER_WRAPAROUND: R0.F28.B17
-		1: STAY_AT_LIMIT
-		0: WRAPAROUND
-	IODELAY[1]:DELAYCHAIN_OSC: R0.F24.B7 inv 0
-	IODELAY[1]:DELAYCHAIN_OSC_OR_ODATAIN_LP_OR_IDRP2_MCB: R0.F26.B19 R0.F26.B9 inv 00
-	IODELAY[1]:DELAY_SRC: R0.F28.B10 R0.F28.B13
-		11: IDATAIN
-		00: IO
-		01: ODATAIN
-	IODELAY[1]:DIFF_PHASE_DETECTOR: R0.F26.B20 inv 0
-	IODELAY[1]:DRP06: R0.F28.B20 R0.F28.B22 R0.F28.B14 R0.F28.B8 R0.F28.B10 R0.F28.B13 R0.F28.B16 R0.F28.B18 inv 00000000
-	IODELAY[1]:DRP07: R0.F28.B21 R0.F28.B23 R0.F28.B15 R0.F28.B9 R0.F28.B11 R0.F28.B12 R0.F28.B17 R0.F28.B19 inv 00000000
-	IODELAY[1]:DRP_ADDR: R0.F28.B31 R0.F28.B27 R0.F28.B26 R0.F28.B25 R0.F28.B24 inv 00000
-	IODELAY[1]:ENABLE.CIN: R0.F24.B22 R0.F24.B6 R0.F24.B5 inv 000
-	IODELAY[1]:ENABLE.ODATAIN: R0.F23.B4 inv 0
-	IODELAY[1]:EVENT_SEL: R0.F28.B16 R0.F28.B18 inv 00
-	IODELAY[1]:IDELAY_FIXED: R0.F22.B16 inv 0
-	IODELAY[1]:IDELAY_FROM_HALF_MAX: R0.F28.B19 inv 0
-	IODELAY[1]:IDELAY_MODE: R0.F24.B19 R0.F24.B9
-		00: NORMAL
-		11: PCI
-	IODELAY[1]:IDELAY_VALUE_N: R0.F25.B1 R0.F25.B3 R0.F25.B5 R0.F25.B7 R0.F25.B8 R0.F25.B10 R0.F25.B12 R0.F25.B14 inv 00000000
-	IODELAY[1]:IDELAY_VALUE_P: R0.F25.B30 R0.F25.B28 R0.F25.B26 R0.F25.B24 R0.F25.B23 R0.F25.B21 R0.F25.B19 R0.F25.B17 inv 00000000
-	IODELAY[1]:IODELAY_CHANGE: R0.F28.B12
-		0: CHANGE_ON_CLOCK
-		1: CHANGE_ON_DATA
-	IODELAY[1]:LUMPED_DELAY: R0.F28.B11 inv 0
-	IODELAY[1]:LUMPED_DELAY_SELECT: R0.F28.B9 inv 0
-	IODELAY[1]:MODE: R0.F24.B8 R0.F23.B7 R0.F23.B21 R0.F23.B19
-		0011: IODELAY2
-		0000: IODRP2
-		1100: IODRP2_MCB
-	IODELAY[1]:MUX.IOCLK: R0.F29.B1
-		0: ILOGIC_CLK
-		1: OLOGIC_CLK
-	IODELAY[1]:ODELAY_VALUE_N: R0.F25.B0 R0.F25.B2 R0.F25.B4 R0.F25.B6 R0.F25.B9 R0.F25.B11 R0.F25.B13 R0.F25.B15 inv 00000000
-	IODELAY[1]:ODELAY_VALUE_P: R0.F25.B31 R0.F25.B29 R0.F25.B27 R0.F25.B25 R0.F25.B22 R0.F25.B20 R0.F25.B18 R0.F25.B16 inv 00000000
-	IODELAY[1]:TEST_GLITCH_FILTER: R0.F23.B18 inv 0
-	IODELAY[1]:TEST_NCOUNTER: R0.F26.B12 inv 0
-	IODELAY[1]:TEST_PCOUNTER: R0.F26.B0 inv 0
-	IODELAY_COMMON:DIFF_PHASE_DETECTOR: R0.F27.B63 inv 0
-	IODELAY_COMMON:DRP_ENABLE: R0.F26.B28 inv 0
-	IODELAY_COMMON:DRP_FROM_MCB: R0.F26.B46 inv 0
-	IODELAY_COMMON:ENFFSCAN_DRP: R0.F29.B9 R0.F26.B43 inv 00
-	IODELAY_COMMON:MCB_ADDRESS: R0.F26.B47 R0.F26.B39 R0.F26.B26 R0.F26.B24 inv 0000
-	IOI:MEM_PLL_DIV_EN: R0.F26.B57 inv 0
-	IOI:MEM_PLL_POL_SEL: R0.F26.B56
-		0: INVERTED
-		1: NOTINVERTED
-	IOICLK[0]:DDR_ALIGNMENT: R0.F23.B54 R0.F23.B55
-		01: CLK0
-		10: CLK1
-		00: NONE
-	IOICLK[0]:DDR_ENABLE: R0.F23.B41 R0.F23.B40 inv 00
-	IOICLK[0]:INV.CLK0: R0.F23.B38 inv 0
-	IOICLK[0]:INV.CLK1: R0.F24.B38 inv 0
-	IOICLK[0]:INV.CLK2: R0.F23.B39 inv 0
-	IOICLK[0]:MUX.CE0: R0.F23.B53 R0.F23.B52 R0.F23.B50
-		001: IOCE0
-		010: IOCE2
-		000: NONE
-		100: PLLCE0
-	IOICLK[0]:MUX.CE1: R0.F24.B53 R0.F24.B52 R0.F24.B51
-		001: IOCE1
-		010: IOCE3
-		000: NONE
-		100: PLLCE1
-	IOICLK[0]:MUX.CLK0: R0.F23.B37 R0.F23.B35 R0.F23.B36 R0.F23.B32 R0.F23.B33
-		01000: CKINT0
-		10000: CKINT1
-		00001: IOCLK0
-		00010: IOCLK2
-		00000: NONE
-		00100: PLLCLK0
-	IOICLK[0]:MUX.CLK1: R0.F24.B35 R0.F24.B37 R0.F24.B36 R0.F24.B32 R0.F24.B33
-		01000: CKINT0
-		10000: CKINT1
-		00001: IOCLK1
-		00010: IOCLK3
-		00000: NONE
-		00100: PLLCLK1
-	IOICLK[0]:MUX.CLK2: R0.F24.B40 R0.F24.B39
-		00: NONE
-		01: PLLCLK0
-		10: PLLCLK1
-	IOICLK[0]:MUX.ICE: R0.F23.B60 R0.F23.B62 R0.F23.B61
-		001: CE0
-		010: CE1
-		100: DDR
-		000: NONE
-	IOICLK[0]:MUX.ICLK: R0.F23.B48 R0.F23.B49 R0.F24.B46 R0.F24.B47
-		0001: CLK0
-		0010: CLK1
-		0100: CLK2
-		1000: DDR
-		0000: NONE
-	IOICLK[0]:MUX.OCE: R0.F24.B59 R0.F24.B61 R0.F24.B60
-		001: CE0
-		010: CE1
-		100: DDR
-		000: NONE
-	IOICLK[0]:MUX.OCLK: R0.F24.B49 R0.F24.B50 R0.F24.B45 R0.F24.B48
-		0001: CLK0
-		0010: CLK1
-		0100: CLK2
-		1000: DDR
-		0000: NONE
-	IOICLK[1]:DDR_ALIGNMENT: R0.F23.B9 R0.F23.B8
-		01: CLK0
-		10: CLK1
-		00: NONE
-	IOICLK[1]:DDR_ENABLE: R0.F23.B23 R0.F23.B22 inv 00
-	IOICLK[1]:INV.CLK0: R0.F23.B25 inv 0
-	IOICLK[1]:INV.CLK1: R0.F24.B25 inv 0
-	IOICLK[1]:INV.CLK2: R0.F23.B24 inv 0
-	IOICLK[1]:MUX.CE0: R0.F23.B10 R0.F23.B11 R0.F23.B13
-		001: IOCE0
-		010: IOCE2
-		000: NONE
-		100: PLLCE0
-	IOICLK[1]:MUX.CE1: R0.F24.B10 R0.F24.B11 R0.F24.B12
-		001: IOCE1
-		010: IOCE3
-		000: NONE
-		100: PLLCE1
-	IOICLK[1]:MUX.CLK0: R0.F23.B26 R0.F23.B28 R0.F23.B27 R0.F23.B31 R0.F23.B30
-		01000: CKINT0
-		10000: CKINT1
-		00001: IOCLK0
-		00010: IOCLK2
-		00000: NONE
-		00100: PLLCLK0
-	IOICLK[1]:MUX.CLK1: R0.F24.B28 R0.F24.B26 R0.F24.B27 R0.F24.B31 R0.F24.B30
-		01000: CKINT0
-		10000: CKINT1
-		00001: IOCLK1
-		00010: IOCLK3
-		00000: NONE
-		00100: PLLCLK1
-	IOICLK[1]:MUX.CLK2: R0.F24.B23 R0.F24.B24
-		00: NONE
-		01: PLLCLK0
-		10: PLLCLK1
-	IOICLK[1]:MUX.ICE: R0.F23.B3 R0.F23.B1 R0.F23.B2
-		001: CE0
-		010: CE1
-		100: DDR
-		000: NONE
-	IOICLK[1]:MUX.ICLK: R0.F23.B15 R0.F23.B14 R0.F24.B17 R0.F24.B16
-		0001: CLK0
-		0010: CLK1
-		0100: CLK2
-		1000: DDR
-		0000: NONE
-	IOICLK[1]:MUX.OCE: R0.F24.B4 R0.F24.B2 R0.F24.B3
-		001: CE0
-		010: CE1
-		100: DDR
-		000: NONE
-	IOICLK[1]:MUX.OCLK: R0.F24.B14 R0.F24.B13 R0.F24.B18 R0.F24.B15
-		0001: CLK0
-		0010: CLK1
-		0100: CLK2
-		1000: DDR
-		0000: NONE
-	OLOGIC[0]:CASCADE_ENABLE: R0.F29.B46 inv 0
-	OLOGIC[0]:DDR_OPPOSITE_EDGE: R0.F27.B14 inv 0
-	OLOGIC[0]:ENABLE: R0.F29.B28 inv 0
-	OLOGIC[0]:ENABLE.IOCE: R0.F29.B27 inv 0
-	OLOGIC[0]:MISR_ENABLE_CLK: R0.F29.B13 inv 0
-	OLOGIC[0]:MISR_ENABLE_DATA: R0.F29.B12 inv 0
-	OLOGIC[0]:MISR_RESET: R0.F29.B10 inv 0
-	OLOGIC[0]:MUX.CLK: R0.F29.B37 R0.F29.B36
-		00: NONE
-		01: OCLK0
-		10: OCLK1
-	OLOGIC[0]:MUX.D: R0.F27.B12
-		0: INT
-		1: MCB
-	OLOGIC[0]:MUX.OCE: R0.F28.B43
-		0: INT
-		1: PCI_CE
-	OLOGIC[0]:MUX.REV: R0.F22.B0
-		0: GND
-		1: INT
-	OLOGIC[0]:MUX.SR: R0.F22.B1
-		0: GND
-		1: INT
-	OLOGIC[0]:MUX.T: R0.F27.B2
-		0: INT
-		1: MCB
-	OLOGIC[0]:MUX.TRAIN: R0.F29.B47 R0.F29.B45
-		00: GND
-		01: INT
-		10: MCB
-	OLOGIC[0]:OFF_CE_ENABLE: R0.F27.B11 inv 0
-	OLOGIC[0]:OFF_CE_OR_DDR: R0.F27.B10 inv 0
-	OLOGIC[0]:OFF_INIT: R0.F22.B9 inv 0
-	OLOGIC[0]:OFF_LATCH: R0.F22.B13 inv 0
-	OLOGIC[0]:OFF_RANK1_BYPASS: R0.F27.B15 inv 0
-	OLOGIC[0]:OFF_RANK1_CLK_ENABLE: R0.F27.B9 inv 0
-	OLOGIC[0]:OFF_RANK2_CLK_ENABLE: R0.F27.B8 inv 0
-	OLOGIC[0]:OFF_REV_ENABLE: R0.F22.B11 inv 0
-	OLOGIC[0]:OFF_SRVAL: R0.F22.B8 inv 0
-	OLOGIC[0]:OFF_SR_ENABLE: R0.F22.B12 inv 0
-	OLOGIC[0]:OFF_SR_SYNC: R0.F22.B10 inv 1
-	OLOGIC[0]:OMUX: R0.F28.B49
-		1: D1
-		0: OUTFF
-	OLOGIC[0]:OUTPUT_MODE: R0.F27.B0
-		1: DIFFERENTIAL
-		0: SINGLE_ENDED
-	OLOGIC[0]:TFF_CE_ENABLE: R0.F27.B4 inv 0
-	OLOGIC[0]:TFF_CE_OR_DDR: R0.F27.B5 inv 0
-	OLOGIC[0]:TFF_INIT: R0.F22.B6 inv 0
-	OLOGIC[0]:TFF_LATCH: R0.F22.B2 inv 0
-	OLOGIC[0]:TFF_RANK1_BYPASS: R0.F27.B1 inv 0
-	OLOGIC[0]:TFF_RANK1_CLK_ENABLE: R0.F27.B6 inv 0
-	OLOGIC[0]:TFF_RANK2_CLK_ENABLE: R0.F27.B7 inv 0
-	OLOGIC[0]:TFF_REV_ENABLE: R0.F22.B4 inv 0
-	OLOGIC[0]:TFF_SRVAL: R0.F22.B7 inv 0
-	OLOGIC[0]:TFF_SR_ENABLE: R0.F22.B3 inv 0
-	OLOGIC[0]:TFF_SR_SYNC: R0.F22.B5 inv 1
-	OLOGIC[0]:TMUX: R0.F28.B41
-		1: T1
-		0: TFF
-	OLOGIC[0]:TRAIN_PATTERN: R0.F27.B3 R0.F27.B13 R0.F27.B17 R0.F27.B16 inv 0000
-	OLOGIC[1]:CASCADE_ENABLE: R0.F22.B30 inv 0
-	OLOGIC[1]:DDR_OPPOSITE_EDGE: R0.F27.B29 inv 0
-	OLOGIC[1]:ENABLE: R0.F29.B31 inv 0
-	OLOGIC[1]:ENABLE.IOCE: R0.F29.B25 inv 0
-	OLOGIC[1]:MISR_ENABLE_CLK: R0.F29.B14 inv 0
-	OLOGIC[1]:MISR_ENABLE_DATA: R0.F29.B15 inv 0
-	OLOGIC[1]:MISR_RESET: R0.F29.B11 inv 0
-	OLOGIC[1]:MUX.CLK: R0.F29.B39 R0.F29.B38
-		00: NONE
-		01: OCLK0
-		10: OCLK1
-	OLOGIC[1]:MUX.D: R0.F27.B35
-		0: INT
-		1: MCB
-	OLOGIC[1]:MUX.OCE: R0.F28.B20
-		0: INT
-		1: PCI_CE
-	OLOGIC[1]:MUX.REV: R0.F22.B14
-		0: GND
-		1: INT
-	OLOGIC[1]:MUX.SR: R0.F22.B15
-		0: GND
-		1: INT
-	OLOGIC[1]:MUX.T: R0.F27.B28
-		0: INT
-		1: MCB
-	OLOGIC[1]:MUX.TRAIN: R0.F29.B48 R0.F29.B44
-		00: GND
-		01: INT
-		10: MCB
-	OLOGIC[1]:OFF_CE_ENABLE: R0.F27.B27 inv 0
-	OLOGIC[1]:OFF_CE_OR_DDR: R0.F27.B26 inv 0
-	OLOGIC[1]:OFF_INIT: R0.F22.B25 inv 0
-	OLOGIC[1]:OFF_LATCH: R0.F22.B29 inv 0
-	OLOGIC[1]:OFF_RANK1_BYPASS: R0.F27.B34 inv 0
-	OLOGIC[1]:OFF_RANK1_CLK_ENABLE: R0.F27.B25 inv 0
-	OLOGIC[1]:OFF_RANK2_CLK_ENABLE: R0.F27.B24 inv 0
-	OLOGIC[1]:OFF_REV_ENABLE: R0.F22.B27 inv 0
-	OLOGIC[1]:OFF_SRVAL: R0.F22.B24 inv 0
-	OLOGIC[1]:OFF_SR_ENABLE: R0.F22.B28 inv 0
-	OLOGIC[1]:OFF_SR_SYNC: R0.F22.B26 inv 1
-	OLOGIC[1]:OMUX: R0.F28.B14
-		1: D1
-		0: OUTFF
-	OLOGIC[1]:TFF_CE_ENABLE: R0.F27.B20 inv 0
-	OLOGIC[1]:TFF_CE_OR_DDR: R0.F27.B21 inv 0
-	OLOGIC[1]:TFF_INIT: R0.F22.B22 inv 0
-	OLOGIC[1]:TFF_LATCH: R0.F22.B18 inv 0
-	OLOGIC[1]:TFF_RANK1_BYPASS: R0.F27.B19 inv 0
-	OLOGIC[1]:TFF_RANK1_CLK_ENABLE: R0.F27.B22 inv 0
-	OLOGIC[1]:TFF_RANK2_CLK_ENABLE: R0.F27.B23 inv 0
-	OLOGIC[1]:TFF_REV_ENABLE: R0.F22.B20 inv 0
-	OLOGIC[1]:TFF_SRVAL: R0.F22.B23 inv 0
-	OLOGIC[1]:TFF_SR_ENABLE: R0.F22.B19 inv 0
-	OLOGIC[1]:TFF_SR_SYNC: R0.F22.B21 inv 1
-	OLOGIC[1]:TMUX: R0.F28.B22
-		1: T1
-		0: TFF
-	OLOGIC[1]:TRAIN_PATTERN: R0.F27.B30 R0.F27.B31 R0.F27.B32 R0.F27.B33 inv 0000
 }
 

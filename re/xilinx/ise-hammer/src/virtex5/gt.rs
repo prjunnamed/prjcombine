@@ -681,7 +681,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
         for &pin in GT_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            ctx.collect_inv_legacy(tile, bel, pin);
         }
         if tile == "GTP" {
             for &attr in GTP_BOOL_ATTRS {
@@ -743,7 +743,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         for i in 0..4 {
             let bel = &format!("CRC32[{i}]");
-            ctx.collect_inv(tile, bel, "CRCCLK");
+            ctx.collect_inv_legacy(tile, bel, "CRCCLK");
             ctx.collect_bitvec_legacy(tile, bel, "CRC_INIT", "");
             ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
                 .assert_empty();
@@ -751,7 +751,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for i in 0..2 {
             let bel = &format!("CRC64[{i}]");
             let bel32 = &format!("CRC32[{ii}]", ii = i * 3);
-            let item = ctx.extract_inv(tile, bel, "CRCCLK");
+            let item = ctx.extract_inv_legacy(tile, bel, "CRCCLK");
             ctx.insert_legacy(tile, bel32, "INV.CRCCLK", item);
             let item = ctx.extract_bitvec_legacy(tile, bel, "CRC_INIT", "");
             ctx.insert_legacy(tile, bel32, "CRC_INIT", item);

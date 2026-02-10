@@ -176,17 +176,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for mode in ["RAMBFIFO36", "RAMB36SDP_EXP", "FIFO36_72_EXP"] {
         bctx.mode(mode)
             .attr("EN_ECC_WRITE", "FALSE")
-            .test_enum_suffix("EN_ECC_READ", mode, &["FALSE", "TRUE"]);
+            .test_enum_suffix_legacy("EN_ECC_READ", mode, &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .attr("EN_ECC_READ", "FALSE")
-            .test_enum_suffix("EN_ECC_WRITE", mode, &["FALSE", "TRUE"]);
+            .test_enum_suffix_legacy("EN_ECC_WRITE", mode, &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .attr("EN_ECC_READ", "TRUE")
-            .test_enum_suffix("EN_ECC_WRITE", format!("{mode}.READ"), &["FALSE", "TRUE"]);
+            .test_enum_suffix_legacy("EN_ECC_WRITE", format!("{mode}.READ"), &["FALSE", "TRUE"]);
         if mode != "FIFO36_72_EXP" {
             bctx.mode(mode)
                 .global_mutex("BRAM_OPT", "NONE")
-                .test_enum_suffix("EN_ECC_SCRUB", mode, &["FALSE", "TRUE"]);
+                .test_enum_suffix_legacy("EN_ECC_SCRUB", mode, &["FALSE", "TRUE"]);
         }
     }
     for mode in [
@@ -197,9 +197,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         "FIFO36_72_EXP",
     ] {
         bctx.mode(mode)
-            .test_enum_suffix("EN_SYN", mode, &["FALSE", "TRUE"]);
-        bctx.mode(mode)
-            .test_enum_suffix("FIRST_WORD_FALL_THROUGH", mode, &["FALSE", "TRUE"]);
+            .test_enum_suffix_legacy("EN_SYN", mode, &["FALSE", "TRUE"]);
+        bctx.mode(mode).test_enum_suffix_legacy(
+            "FIRST_WORD_FALL_THROUGH",
+            mode,
+            &["FALSE", "TRUE"],
+        );
         if mode != "RAMBFIFO36" {
             bctx.mode(mode)
                 .attr("EN_SYN", "TRUE")
@@ -234,12 +237,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .attr(init, "0")
             .attr(srval, "0")
-            .test_enum_suffix(attr, mode, &["0", "1"]);
+            .test_enum_suffix_legacy(attr, mode, &["0", "1"]);
     }
     bctx.mode("RAMBFIFO18_36")
         .attr("INIT", "fffffffff")
         .attr("SRVAL", "fffffffff")
-        .test_enum_suffix("DO_REG_U", "RAMBFIFO18_36", &["0", "1"]);
+        .test_enum_suffix_legacy("DO_REG_U", "RAMBFIFO18_36", &["0", "1"]);
 
     for (mode, attr) in [
         ("RAMBFIFO18", "DO_REG"),
@@ -249,13 +252,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     ] {
         bctx.mode(mode)
             .attr("EN_SYN", "TRUE")
-            .test_enum_suffix(attr, mode, &["0", "1"]);
+            .test_enum_suffix_legacy(attr, mode, &["0", "1"]);
     }
 
     bctx.mode("RAMBFIFO18")
-        .test_enum_suffix("DATA_WIDTH", "RAMBFIFO18", &["4", "9", "18"]);
-    bctx.mode("FIFO36_EXP")
-        .test_enum_suffix("DATA_WIDTH", "FIFO36_EXP", &["4", "9", "18", "36"]);
+        .test_enum_suffix_legacy("DATA_WIDTH", "RAMBFIFO18", &["4", "9", "18"]);
+    bctx.mode("FIFO36_EXP").test_enum_suffix_legacy(
+        "DATA_WIDTH",
+        "FIFO36_EXP",
+        &["4", "9", "18", "36"],
+    );
     for ab in ['A', 'B'] {
         for ul in ['U', 'L'] {
             bctx.mode("RAMBFIFO36")
@@ -272,7 +278,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("RAMB18X2")
                 .attr(format!("INIT_{ab}_{ul}"), "0")
                 .attr(format!("SRVAL_{ab}_{ul}"), "0")
-                .test_enum_suffix(
+                .test_enum_suffix_legacy(
                     format!("READ_WIDTH_{ab}_{ul}"),
                     "RAMB18X2",
                     &["0", "1", "2", "4", "9", "18"],
@@ -282,7 +288,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pin(format!("WE{ab}{ul}1"))
                 .pin(format!("WE{ab}{ul}2"))
                 .pin(format!("WE{ab}{ul}3"))
-                .test_enum_suffix(
+                .test_enum_suffix_legacy(
                     format!("WRITE_WIDTH_{ab}_{ul}"),
                     "RAMB18X2",
                     &["0", "1", "2", "4", "9", "18"],
@@ -292,7 +298,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr(format!("DO{ab}_REG"), "0")
             .attr(format!("INIT_{ab}"), "0")
             .attr(format!("SRVAL_{ab}"), "0")
-            .test_enum_suffix(
+            .test_enum_suffix_legacy(
                 format!("READ_WIDTH_{ab}"),
                 "RAMBFIFO18",
                 &["0", "1", "2", "4", "9", "18"],
@@ -303,7 +309,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin(format!("WE{ab}1"))
             .pin(format!("WE{ab}2"))
             .pin(format!("WE{ab}3"))
-            .test_enum_suffix(
+            .test_enum_suffix_legacy(
                 format!("WRITE_WIDTH_{ab}"),
                 "RAMBFIFO18",
                 &["0", "1", "2", "4", "9", "18"],
@@ -311,12 +317,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("RAMB36_EXP")
             .attr(format!("INIT_{ab}"), "0")
             .attr(format!("SRVAL_{ab}"), "0")
-            .test_enum_suffix(
+            .test_enum_suffix_legacy(
                 format!("READ_WIDTH_{ab}"),
                 "RAMB36_EXP",
                 &["0", "1", "2", "4", "9", "18", "36"],
             );
-        bctx.mode("RAMB36_EXP").test_enum_suffix(
+        bctx.mode("RAMB36_EXP").test_enum_suffix_legacy(
             format!("WRITE_WIDTH_{ab}"),
             "RAMB36_EXP",
             &["0", "1", "2", "4", "9", "18", "36"],
@@ -337,8 +343,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ("RAMB36_EXP", "WRITE_MODE_A"),
         ("RAMB36_EXP", "WRITE_MODE_B"),
     ] {
-        bctx.mode(mode)
-            .test_enum_suffix(attr, mode, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
+        bctx.mode(mode).test_enum_suffix_legacy(
+            attr,
+            mode,
+            &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"],
+        );
     }
     for (mode, attr) in [
         ("RAMBFIFO36", "RAM_EXTENSION_A"),
@@ -347,7 +356,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ("RAMB36_EXP", "RAM_EXTENSION_B"),
     ] {
         bctx.mode(mode)
-            .test_enum_suffix(attr, mode, &["NONE", "UPPER", "LOWER"]);
+            .test_enum_suffix_legacy(attr, mode, &["NONE", "UPPER", "LOWER"]);
     }
 
     for attr in ["INIT", "SRVAL"] {

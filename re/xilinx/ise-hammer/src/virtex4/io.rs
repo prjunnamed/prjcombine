@@ -415,12 +415,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("INTERFACE_TYPE", "MEMORY")
             .attr("DATA_RATE", "SDR")
             .pin("OCLK")
-            .test_enum_suffix("OCLKINV", "SDR", &["OCLK", "OCLK_B"]);
+            .test_enum_suffix_legacy("OCLKINV", "SDR", &["OCLK", "OCLK_B"]);
         bctx.mode("ISERDES")
             .attr("INTERFACE_TYPE", "MEMORY")
             .attr("DATA_RATE", "DDR")
             .pin("OCLK")
-            .test_enum_suffix("OCLKINV", "DDR", &["OCLK", "OCLK_B"]);
+            .test_enum_suffix_legacy("OCLKINV", "DDR", &["OCLK", "OCLK_B"]);
 
         bctx.mode("ILOGIC")
             .attr("IFF1", "#FF")
@@ -441,52 +441,52 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .bel_mode(bel_ologic, "OSERDES")
             .bel_attr(bel_ologic, "SRINV", "SR")
             .bel_pin(bel_ologic, "SR")
-            .test_enum_suffix("SRINV", "OSR", &["SR", "SR_B"]);
+            .test_enum_suffix_legacy("SRINV", "OSR", &["SR", "SR_B"]);
         bctx.mode("ILOGIC")
             .attr("IFF1", "#FF")
             .pin("SR")
             .bel_mode(bel_ologic, "OSERDES")
             .bel_attr(bel_ologic, "SRINV", "SR_B")
             .bel_pin(bel_ologic, "SR")
-            .test_enum_suffix("SRINV", "OSR_B", &["SR", "SR_B"]);
+            .test_enum_suffix_legacy("SRINV", "OSR_B", &["SR", "SR_B"]);
         bctx.mode("ILOGIC")
             .attr("IFF1", "#FF")
             .pin("REV")
             .bel_mode(bel_ologic, "OSERDES")
             .bel_attr(bel_ologic, "REVINV", "REV")
             .bel_pin(bel_ologic, "REV")
-            .test_enum_suffix("REVINV", "OREV", &["REV", "REV_B"]);
+            .test_enum_suffix_legacy("REVINV", "OREV", &["REV", "REV_B"]);
         bctx.mode("ILOGIC")
             .attr("IFF1", "#FF")
             .pin("REV")
             .bel_mode(bel_ologic, "OSERDES")
             .bel_attr(bel_ologic, "REVINV", "REV_B")
             .bel_pin(bel_ologic, "REV")
-            .test_enum_suffix("REVINV", "OREV_B", &["REV", "REV_B"]);
+            .test_enum_suffix_legacy("REVINV", "OREV_B", &["REV", "REV_B"]);
         bctx.mode("ISERDES")
             .pin("SR")
             .bel_mode(bel_ologic, "OSERDES")
             .bel_attr(bel_ologic, "SRINV", "SR")
             .bel_pin(bel_ologic, "SR")
-            .test_enum_suffix("SRINV", "OSR", &["SR", "SR_B"]);
+            .test_enum_suffix_legacy("SRINV", "OSR", &["SR", "SR_B"]);
         bctx.mode("ISERDES")
             .pin("SR")
             .bel_mode(bel_ologic, "OSERDES")
             .bel_attr(bel_ologic, "SRINV", "SR_B")
             .bel_pin(bel_ologic, "SR")
-            .test_enum_suffix("SRINV", "OSR_B", &["SR", "SR_B"]);
+            .test_enum_suffix_legacy("SRINV", "OSR_B", &["SR", "SR_B"]);
         bctx.mode("ISERDES")
             .pin("REV")
             .bel_mode(bel_ologic, "OSERDES")
             .bel_attr(bel_ologic, "REVINV", "REV")
             .bel_pin(bel_ologic, "REV")
-            .test_enum_suffix("REVINV", "OREV", &["REV", "REV_B"]);
+            .test_enum_suffix_legacy("REVINV", "OREV", &["REV", "REV_B"]);
         bctx.mode("ISERDES")
             .pin("REV")
             .bel_mode(bel_ologic, "OSERDES")
             .bel_attr(bel_ologic, "REVINV", "REV_B")
             .bel_pin(bel_ologic, "REV")
-            .test_enum_suffix("REVINV", "OREV_B", &["REV", "REV_B"]);
+            .test_enum_suffix_legacy("REVINV", "OREV_B", &["REV", "REV_B"]);
 
         bctx.mode("ISERDES")
             .attr("DATA_WIDTH", "2")
@@ -503,7 +503,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("D")
             .pin("Q1")
             .pin("Q2")
-            .test_enum_suffix("Q1MUX", "IFF2", &["IFF1", "IFF3"]);
+            .test_enum_suffix_legacy("Q1MUX", "IFF2", &["IFF1", "IFF3"]);
         bctx.mode("ILOGIC")
             .attr("IFF1", "#FF")
             .attr("Q2MUX", "IFF4")
@@ -512,7 +512,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("D")
             .pin("Q1")
             .pin("Q2")
-            .test_enum_suffix("Q1MUX", "IFF4", &["IFF1", "IFF3"]);
+            .test_enum_suffix_legacy("Q1MUX", "IFF4", &["IFF1", "IFF3"]);
         bctx.mode("ILOGIC")
             .attr("IFF1", "#FF")
             .attr("Q1MUX", "IFF1")
@@ -521,7 +521,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("D")
             .pin("Q1")
             .pin("Q2")
-            .test_enum_suffix("Q2MUX", "IFF1", &["IFF2", "IFF4"]);
+            .test_enum_suffix_legacy("Q2MUX", "IFF1", &["IFF2", "IFF4"]);
         bctx.mode("ILOGIC")
             .attr("IFF1", "#FF")
             .attr("Q1MUX", "IFF3")
@@ -530,17 +530,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("D")
             .pin("Q1")
             .pin("Q2")
-            .test_enum_suffix("Q2MUX", "IFF3", &["IFF2", "IFF4"]);
+            .test_enum_suffix_legacy("Q2MUX", "IFF3", &["IFF2", "IFF4"]);
 
         bctx.mode("ISERDES")
             .attr("SERDES", "TRUE")
             .test_enum_legacy("DATA_WIDTH", &["2", "3", "4", "5", "6", "7", "8", "10"]);
         bctx.mode("ISERDES")
             .attr("SRTYPE", "SYNC")
-            .test_enum_suffix("BITSLIP_ENABLE", "SYNC", &["FALSE", "TRUE"]);
+            .test_enum_suffix_legacy("BITSLIP_ENABLE", "SYNC", &["FALSE", "TRUE"]);
         bctx.mode("ISERDES")
             .attr("SRTYPE", "ASYNC")
-            .test_enum_suffix("BITSLIP_ENABLE", "ASYNC", &["FALSE", "TRUE"]);
+            .test_enum_suffix_legacy("BITSLIP_ENABLE", "ASYNC", &["FALSE", "TRUE"]);
         bctx.mode("ISERDES").test_enum_legacy("NUM_CE", &["1", "2"]);
         bctx.mode("ISERDES")
             .attr("INIT_BITSLIPCNT", "1111")
@@ -665,7 +665,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("ISERDES")
                 .attr("IOBDELAY", val)
                 .pin("OFB")
-                .test_enum_suffix("OFB_USED", val, &["FALSE", "TRUE"]);
+                .test_enum_suffix_legacy("OFB_USED", val, &["FALSE", "TRUE"]);
         }
         bctx.mode("ISERDES")
             .pin("TFB")
@@ -683,7 +683,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("CLKDIV")
             .pin("D")
             .pin("O")
-            .test_enum_suffix(
+            .test_enum_suffix_legacy(
                 "IOBDELAY_TYPE",
                 "ILOGIC.IBUF",
                 &["DEFAULT", "FIXED", "VARIABLE"],
@@ -699,21 +699,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("CLKDIV")
             .pin("D")
             .pin("Q1")
-            .test_enum_suffix(
+            .test_enum_suffix_legacy(
                 "IOBDELAY_TYPE",
                 "ILOGIC.IFD",
                 &["DEFAULT", "FIXED", "VARIABLE"],
             );
         bctx.mode("ISERDES")
             .attr("IOBDELAY", "IBUF")
-            .test_enum_suffix(
+            .test_enum_suffix_legacy(
                 "IOBDELAY_TYPE",
                 "ISERDES.IBUF",
                 &["DEFAULT", "FIXED", "VARIABLE"],
             );
         bctx.mode("ISERDES")
             .attr("IOBDELAY", "IFD")
-            .test_enum_suffix(
+            .test_enum_suffix_legacy(
                 "IOBDELAY_TYPE",
                 "ISERDES.IFD",
                 &["DEFAULT", "FIXED", "VARIABLE"],
@@ -758,13 +758,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("OMUX", "OFFDDRA")
             .pin("CLK")
             .pin("OQ")
-            .test_enum_suffix("CLK1INV", "OLOGIC", &["C", "C_B"]);
+            .test_enum_suffix_legacy("CLK1INV", "OLOGIC", &["C", "C_B"]);
         bctx.mode("OLOGIC")
             .attr("OFF1", "#FF")
             .attr("OMUX", "OFFDDRA")
             .pin("CLK")
             .pin("OQ")
-            .test_enum_suffix("CLK2INV", "OLOGIC", &["CLK", "CLK_B"]);
+            .test_enum_suffix_legacy("CLK2INV", "OLOGIC", &["CLK", "CLK_B"]);
         bctx.mode("OLOGIC")
             .attr("OFF1", "#FF")
             .attr("OSRUSED", "0")
@@ -772,7 +772,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("SR")
             .pin("OQ")
             .bel_unused(bel_ilogic)
-            .test_enum_suffix("SRINV", "OLOGIC", &["SR", "SR_B"]);
+            .test_enum_suffix_legacy("SRINV", "OLOGIC", &["SR", "SR_B"]);
         bctx.mode("OLOGIC")
             .attr("OFF1", "#FF")
             .attr("OREVUSED", "0")
@@ -780,14 +780,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("REV")
             .pin("OQ")
             .bel_unused(bel_ilogic)
-            .test_enum_suffix("REVINV", "OLOGIC", &["REV", "REV_B"]);
+            .test_enum_suffix_legacy("REVINV", "OLOGIC", &["REV", "REV_B"]);
         for pin in ["D1", "D2", "OCE"] {
             bctx.mode("OLOGIC")
                 .attr("OFF1", "#FF")
                 .attr("OMUX", "OFFDDRA")
                 .pin(pin)
                 .pin("OQ")
-                .test_enum_suffix(format!("{pin}INV"), "OLOGIC", &[pin, &format!("{pin}_B")]);
+                .test_enum_suffix_legacy(
+                    format!("{pin}INV"),
+                    "OLOGIC",
+                    &[pin, &format!("{pin}_B")],
+                );
         }
         for pin in ["T2", "TCE"] {
             bctx.mode("OLOGIC")
@@ -795,14 +799,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("TMUX", "TFFDDRA")
                 .pin(pin)
                 .pin("TQ")
-                .test_enum_suffix(format!("{pin}INV"), "OLOGIC", &[pin, &format!("{pin}_B")]);
+                .test_enum_suffix_legacy(
+                    format!("{pin}INV"),
+                    "OLOGIC",
+                    &[pin, &format!("{pin}_B")],
+                );
         }
         bctx.mode("OLOGIC")
             .attr("TMUX", "T1")
             .attr("T1USED", "0")
             .pin("T1")
             .pin("TQ")
-            .test_enum_suffix("T1INV", "OLOGIC", &["T1", "T1_B"]);
+            .test_enum_suffix_legacy("T1INV", "OLOGIC", &["T1", "T1_B"]);
 
         for pin in [
             "CLKDIV", "SR", "REV", "D1", "D2", "D3", "D4", "D5", "D6", "T2", "T3", "T4",
@@ -810,37 +818,41 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("OSERDES")
                 .pin(pin)
                 .bel_unused(bel_ilogic)
-                .test_enum_suffix(format!("{pin}INV"), "OSERDES", &[pin, &format!("{pin}_B")]);
+                .test_enum_suffix_legacy(
+                    format!("{pin}INV"),
+                    "OSERDES",
+                    &[pin, &format!("{pin}_B")],
+                );
         }
         bctx.mode("OSERDES")
             .attr("DATA_RATE_TQ", "BUF")
             .pin("T1")
-            .test_enum_suffix("T1INV", "OSERDES", &["T1", "T1_B"]);
+            .test_enum_suffix_legacy("T1INV", "OSERDES", &["T1", "T1_B"]);
         bctx.mode("OSERDES")
             .attr("DATA_RATE_TQ", "DDR")
             .pin("TCE")
-            .test_enum_suffix("TCEINV", "OSERDES", &["TCE", "TCE_B"]);
+            .test_enum_suffix_legacy("TCEINV", "OSERDES", &["TCE", "TCE_B"]);
         bctx.mode("OSERDES")
             .attr("DATA_RATE_OQ", "DDR")
             .attr("CLKINV", "CLK")
             .attr("DDR_CLK_EDGE", "SAME_EDGE")
             .pin("OCE")
             .pin("CLK")
-            .test_enum_suffix("OCEINV", "OSERDES", &["OCE", "OCE_B"]);
+            .test_enum_suffix_legacy("OCEINV", "OSERDES", &["OCE", "OCE_B"]);
         bctx.mode("OSERDES")
             .attr("DATA_RATE_OQ", "DDR")
             .attr("OCEINV", "OCE")
             .attr("DDR_CLK_EDGE", "SAME_EDGE")
             .pin("OCE")
             .pin("CLK")
-            .test_enum_suffix("CLKINV", "OSERDES.SAME", &["CLK", "CLK_B"]);
+            .test_enum_suffix_legacy("CLKINV", "OSERDES.SAME", &["CLK", "CLK_B"]);
         bctx.mode("OSERDES")
             .attr("DATA_RATE_OQ", "DDR")
             .attr("OCEINV", "OCE")
             .attr("DDR_CLK_EDGE", "OPPOSITE_EDGE")
             .pin("OCE")
             .pin("CLK")
-            .test_enum_suffix("CLKINV", "OSERDES.OPPOSITE", &["CLK", "CLK_B"]);
+            .test_enum_suffix_legacy("CLKINV", "OSERDES.OPPOSITE", &["CLK", "CLK_B"]);
 
         bctx.mode("OLOGIC")
             .attr("OCEINV", "OCE_B")
@@ -874,58 +886,58 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
 
         bctx.mode("OLOGIC")
-            .test_enum_suffix("INIT_OQ", "OLOGIC", &["0", "1"]);
+            .test_enum_suffix_legacy("INIT_OQ", "OLOGIC", &["0", "1"]);
         bctx.mode("OLOGIC")
-            .test_enum_suffix("INIT_TQ", "OLOGIC", &["0", "1"]);
+            .test_enum_suffix_legacy("INIT_TQ", "OLOGIC", &["0", "1"]);
         bctx.mode("OSERDES")
-            .test_enum_suffix("INIT_OQ", "OSERDES", &["0", "1"]);
+            .test_enum_suffix_legacy("INIT_OQ", "OSERDES", &["0", "1"]);
         bctx.mode("OSERDES")
-            .test_enum_suffix("INIT_TQ", "OSERDES", &["0", "1"]);
+            .test_enum_suffix_legacy("INIT_TQ", "OSERDES", &["0", "1"]);
 
         bctx.mode("OLOGIC")
             .attr("OFF1", "#FF")
             .attr("D2INV", "#OFF")
             .attr("OMUX", "OFF1")
             .pin("OQ")
-            .test_enum_suffix("SRVAL_OQ", "OFF1", &["0", "1"]);
+            .test_enum_suffix_legacy("SRVAL_OQ", "OFF1", &["0", "1"]);
         bctx.mode("OLOGIC")
             .attr("OFF1", "#FF")
             .attr("D2INV", "D2")
             .attr("OMUX", "OFFDDRA")
             .pin("D2")
             .pin("OQ")
-            .test_enum_suffix("SRVAL_OQ", "OFFDDRA", &["0", "1"]);
+            .test_enum_suffix_legacy("SRVAL_OQ", "OFFDDRA", &["0", "1"]);
         bctx.mode("OLOGIC")
             .attr("OFF1", "#FF")
             .attr("D2INV", "D2")
             .attr("OMUX", "OFFDDRB")
             .pin("D2")
             .pin("OQ")
-            .test_enum_suffix("SRVAL_OQ", "OFFDDRB", &["0", "1"]);
+            .test_enum_suffix_legacy("SRVAL_OQ", "OFFDDRB", &["0", "1"]);
         bctx.mode("OLOGIC")
             .attr("TFF1", "#FF")
             .attr("T2INV", "#OFF")
             .attr("TMUX", "TFF1")
             .pin("TQ")
-            .test_enum_suffix("SRVAL_TQ", "TFF1", &["0", "1"]);
+            .test_enum_suffix_legacy("SRVAL_TQ", "TFF1", &["0", "1"]);
         bctx.mode("OLOGIC")
             .attr("TFF1", "#FF")
             .attr("T2INV", "T2")
             .attr("TMUX", "TFFDDRA")
             .pin("T2")
             .pin("TQ")
-            .test_enum_suffix("SRVAL_TQ", "TFFDDRA", &["0", "1"]);
+            .test_enum_suffix_legacy("SRVAL_TQ", "TFFDDRA", &["0", "1"]);
         bctx.mode("OLOGIC")
             .attr("TFF1", "#FF")
             .attr("T2INV", "T2")
             .attr("TMUX", "TFFDDRB")
             .pin("T2")
             .pin("TQ")
-            .test_enum_suffix("SRVAL_TQ", "TFFDDRB", &["0", "1"]);
+            .test_enum_suffix_legacy("SRVAL_TQ", "TFFDDRB", &["0", "1"]);
         bctx.mode("OSERDES")
-            .test_enum_suffix("SRVAL_OQ", "OSERDES", &["0", "1"]);
+            .test_enum_suffix_legacy("SRVAL_OQ", "OSERDES", &["0", "1"]);
         bctx.mode("OSERDES")
-            .test_enum_suffix("SRVAL_TQ", "OSERDES", &["0", "1"]);
+            .test_enum_suffix_legacy("SRVAL_TQ", "OSERDES", &["0", "1"]);
 
         bctx.mode("OLOGIC")
             .attr("SRINV", "#OFF")
@@ -1329,8 +1341,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut present_iserdes = ctx.get_diff_legacy(tile, bel, "PRESENT", "ISERDES");
 
         ctx.collect_int_inv_legacy(&[tcls::INT], tcid, bslot, "CLKDIV", false);
-        ctx.collect_inv(tile, bel, "CE1");
-        ctx.collect_inv(tile, bel, "CE2");
+        ctx.collect_inv_legacy(tile, bel, "CE1");
+        ctx.collect_inv_legacy(tile, bel, "CE2");
         for pin in ["SR", "REV"] {
             let diff0 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV.O{pin}"), pin);
             let diff1 =

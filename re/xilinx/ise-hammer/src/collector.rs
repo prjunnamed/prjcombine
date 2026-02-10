@@ -60,14 +60,14 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
             .insert_device_data(&self.device.name, key, val);
     }
 
-    pub fn extract_inv(&mut self, tile: &str, bel: &str, pin: &str) -> TileItem {
+    pub fn extract_inv_legacy(&mut self, tile: &str, bel: &str, pin: &str) -> TileItem {
         let pininv = format!("{pin}INV");
         let pin_b = format!("{pin}_B");
         self.extract_bit_bi_legacy(tile, bel, &pininv, pin, &pin_b)
     }
 
-    pub fn collect_inv(&mut self, tile: &str, bel: &str, pin: &str) {
-        let item = self.extract_inv(tile, bel, pin);
+    pub fn collect_inv_legacy(&mut self, tile: &str, bel: &str, pin: &str) {
+        let item = self.extract_inv_legacy(tile, bel, pin);
         self.insert_legacy(tile, bel, format!("INV.{pin}"), item);
     }
 

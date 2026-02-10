@@ -583,8 +583,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     {
         let bel = "SYSMON";
-        ctx.collect_inv(tile, bel, "CONVSTCLK");
-        ctx.collect_inv(tile, bel, "DCLK");
+        ctx.collect_inv_legacy(tile, bel, "CONVSTCLK");
+        ctx.collect_inv_legacy(tile, bel, "DCLK");
         for i in 0x40..0x58 {
             ctx.collect_bitvec_legacy(tile, bel, &format!("INIT_{i:02X}"), "");
         }
