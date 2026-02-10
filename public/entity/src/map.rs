@@ -6,7 +6,10 @@ use std::collections::hash_map::RandomState;
 use std::fmt;
 
 use indexmap::Equivalent;
-use indexmap::map::IndexMap;
+use indexmap::map::{
+    self as inner,
+    IndexMap,
+};
 
 use crate::id::EntityRange;
 use crate::{EntityId, EntityVec};
@@ -113,6 +116,17 @@ where
     {
         let (i, k, v) = self.map.get_full_mut(key)?;
         Some((I::from_idx(i), k, v))
+    }
+
+    pub fn entry(&mut self, key: K) -> Entry<'_, I, K, V> {
+        match self.map.entry(key) {
+            inner::Entry::Occupied(entry) => {
+                Entry::Occupied(OccupiedEntry(entry, PhantomData))
+            }
+            inner::Entry::Vacant(entry) => {
+                Entry::Vacant(VacantEntry(entry, PhantomData))
+            }
+        }
     }
 
     pub fn contains_key<Q>(&self, key: &Q) -> bool
@@ -457,3 +471,166 @@ mod serde;
 
 #[cfg(feature = "bincode")]
 mod bincode;
+
+pub enum Entry<'a, I, K, V> {
+    Occupied(OccupiedEntry<'a, I, K, V>),
+    Vacant(VacantEntry<'a, I, K, V>),
+}
+
+pub struct OccupiedEntry<'a, I, K, V>(inner::OccupiedEntry<'a, K, V>, PhantomData<I>);
+pub struct VacantEntry<'a, I, K, V>(inner::VacantEntry<'a, K, V>, PhantomData<I>);
+
+impl<'a, I: EntityId, K, V> OccupiedEntry<'a, I, K, V> {
+    /// Return the index of the key-value pair.
+    #[inline]
+    pub fn index(&self) -> I {
+        I::from_idx(self.0.index())
+    }
+
+    #[inline]
+    pub fn key(&self) -> &K {
+        self.0.key()
+    }
+
+    #[inline]
+    pub fn get(&self) -> &V {
+        self.0.get()
+    }
+
+    #[inline]
+    pub fn get_mut(&mut self) -> &mut V {
+        self.0.get_mut()
+    }
+
+    #[inline]
+    pub fn into_mut(self) -> &'a mut V {
+        self.0.into_mut()
+    }
+
+    /// Sets the value of the entry to `value`, and returns the entry's old value.
+    #[inline]
+    pub fn insert(&mut self, value: V) -> V {
+        self.0.insert(value)
+    }
+}
+
+impl<'a, I: EntityId, K, V> VacantEntry<'a, I, K, V> {
+    /// Return the index where the key-value pair may be inserted.
+    #[inline]
+    pub fn index(&self) -> I {
+        I::from_idx(self.0.index())
+    }
+
+    #[inline]
+    pub fn key(&self) -> &K {
+        self.0.key()
+    }
+
+    #[inline]
+    pub fn into_key(self) -> K {
+        self.0.into_key()
+    }
+
+    #[inline]
+    pub fn insert(self, value: V) -> &'a mut V {
+        self.0.insert(value)
+    }
+
+    #[inline]
+    pub fn insert_entry(self, value: V) -> OccupiedEntry<'a, I, K, V> {
+        OccupiedEntry(self.0.insert_entry(value), PhantomData)
+    }
+}
+
+impl<'a, I: EntityId, K, V> Entry<'a, I, K, V> {
+    #[inline]
+    pub fn index(&self) -> I {
+        match self {
+            Entry::Occupied(entry) => entry.index(),
+            Entry::Vacant(entry) => entry.index(),
+        }
+    }
+
+    /// Sets the value of the entry (after inserting if vacant), and returns an `OccupiedEntry`.
+    ///
+    /// If the entry is already occupied, the old value will be discarded.
+    #[inline]
+    pub fn insert_entry(self, value: V) -> OccupiedEntry<'a, I, K, V> {
+        match self {
+            Entry::Occupied(mut entry) => {
+                entry.insert(value);
+                entry
+            }
+            Entry::Vacant(entry) => entry.insert_entry(value),
+        }
+    }
+
+    /// Inserts the given default value in the entry if it is vacant and returns a mutable
+    /// reference to it. Otherwise a mutable reference to an already existent value is returned.
+    #[inline]
+    pub fn or_insert(self, default: V) -> &'a mut V {
+        match self {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => entry.insert(default),
+        }
+    }
+
+    /// Like [`or_insert`][Self::or_insert], but allows constructing the default value lazily.
+    #[inline]
+    pub fn or_insert_with<F>(self, f: F) -> &'a mut V
+    where
+        F: FnOnce() -> V,
+    {
+        match self {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => entry.insert(f()),
+        }
+    }
+
+    /// Like [`or_insert_with`][Self::or_insert_with], but also provides a reference to the key.
+    #[inline]
+    pub fn or_insert_with_key<F>(self, f: F) -> &'a mut V
+    where
+        F: FnOnce(&K) -> V,
+    {
+        match self {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => {
+                let value = f(entry.key());
+                entry.insert(value)
+            }
+        }
+    }
+
+    #[inline]
+    pub fn key(&self) -> &K {
+        match self {
+            Entry::Occupied(entry) => entry.key(),
+            Entry::Vacant(entry) => entry.key(),
+        }
+    }
+
+    /// Modifies the entry if it is occupied.
+    #[inline]
+    pub fn and_modify<F>(mut self, f: F) -> Self
+    where
+        F: FnOnce(&mut V),
+    {
+        if let Entry::Occupied(entry) = &mut self {
+            f(entry.get_mut());
+        }
+        self
+    }
+
+    /// Inserts a default-constructed value in the entry if it is vacant and returns a mutable
+    /// reference to it. Otherwise a mutable reference to an already existent value is returned.
+    pub fn or_default(self) -> &'a mut V
+    where
+        V: Default,
+    {
+        match self {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => entry.insert(V::default()),
+        }
+    }
+}
