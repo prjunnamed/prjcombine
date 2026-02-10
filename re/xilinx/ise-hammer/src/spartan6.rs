@@ -1,4 +1,5 @@
 pub mod bram;
+pub mod clb;
 pub mod clk;
 pub mod dcm;
 pub mod dsp;

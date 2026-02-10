@@ -1347,6 +1347,30 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         }
     }
 
+    pub fn test_bel_attr_subset_rename(
+        mut self,
+        rattr: impl AsRef<str>,
+        attr: BelAttributeId,
+        vals: &[EnumValueId],
+    ) {
+        let rattr = rattr.as_ref();
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let BelAttributeType::Enum(ecid) = self.backend.edev.db[bcid].attributes[attr].typ else {
+            unreachable!()
+        };
+        let ecls = &self.backend.edev.db[ecid];
+        for &vid in vals {
+            let val = &ecls.values[vid];
+            let val = val.strip_prefix('_').unwrap_or(&val[..]);
+            self.clone()
+                .test_bel_attr_val(attr, vid)
+                .attr(rattr, val)
+                .commit();
+        }
+    }
+
     pub fn test_bel_input_inv_enum(
         &mut self,
         rattr: impl Into<String>,

@@ -241,7 +241,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
         ExpandedDevice::Spartan6(_) => {
             if !opts.skip_core {
                 generic::int::add_fuzzers(&mut hammer, &backend);
-                virtex5::clb::add_fuzzers(&mut hammer, &backend);
+                spartan6::clb::add_fuzzers(&mut hammer, &backend);
                 spartan6::bram::add_fuzzers(&mut hammer, &backend);
                 spartan6::dsp::add_fuzzers(&mut hammer, &backend);
             }
@@ -520,7 +520,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
         ExpandedDevice::Spartan6(_) => {
             if !opts.skip_core {
                 generic::int::collect_fuzzers(&mut ctx);
-                virtex5::clb::collect_fuzzers(&mut ctx);
+                spartan6::clb::collect_fuzzers(&mut ctx);
                 spartan6::bram::collect_fuzzers(&mut ctx);
                 spartan6::dsp::collect_fuzzers(&mut ctx);
             }

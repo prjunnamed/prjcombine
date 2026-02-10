@@ -851,6 +851,28 @@ impl Collector<'_, '_> {
         self.insert_bel_attr_enum(tcid, bslot, aid, attr);
     }
 
+    pub fn collect_bel_attr_subset_default_ocd(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+        vals: &[EnumValueId],
+        default: EnumValueId,
+        ocd: OcdMode,
+    ) {
+        let mut diffs = vec![];
+        for &vid in vals {
+            diffs.push((
+                vid,
+                self.get_diff_raw(&DiffKey::BelAttrValue(tcid, bslot, aid, vid)),
+            ));
+        }
+        diffs.push((default, Diff::default()));
+
+        let attr = xlat_enum_attr_ocd(diffs, ocd);
+        self.insert_bel_attr_enum(tcid, bslot, aid, attr);
+    }
+
     pub fn collect_bel_attr_default_ocd(
         &mut self,
         tcid: TileClassId,
