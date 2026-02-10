@@ -1,3 +1,5 @@
+//! A vector with strongly-typed indices.
+
 use core::cmp::Ordering;
 use core::hash::Hash;
 use core::marker::PhantomData;
@@ -7,6 +9,7 @@ use std::fmt;
 use crate::EntityId;
 use crate::id::EntityRange;
 
+/// A vector with strongly-typed indices.
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub struct EntityVec<I: EntityId, V> {
@@ -15,6 +18,7 @@ pub struct EntityVec<I: EntityId, V> {
 }
 
 impl<I: EntityId, V> EntityVec<I, V> {
+    /// Create a new, empty `EntityVec`.
     pub fn new() -> Self {
         Self {
             vals: Vec::new(),
@@ -22,6 +26,7 @@ impl<I: EntityId, V> EntityVec<I, V> {
         }
     }
 
+    /// See [`Vec::with_capacity`].
     pub fn with_capacity(cap: usize) -> Self {
         Self {
             vals: Vec::with_capacity(cap),
@@ -37,7 +42,7 @@ impl<I: EntityId, V> EntityVec<I, V> {
         self.vals.get_mut(idx.to_idx())
     }
 
-    /// Gets a given item of the vector, without checking index validity.
+    /// Obtains a reference to a given element of the vector, without checking index validity.
     ///
     /// # Safety
     ///
@@ -46,7 +51,7 @@ impl<I: EntityId, V> EntityVec<I, V> {
         unsafe { self.vals.get_unchecked(idx.to_idx()) }
     }
 
-    /// Gets a given item of the vector, without checking index validity.
+    /// Obtains a mutable reference to a given element of the vector, without checking index validity.
     ///
     /// # Safety
     ///
@@ -55,6 +60,7 @@ impl<I: EntityId, V> EntityVec<I, V> {
         unsafe { self.vals.get_unchecked_mut(idx.to_idx()) }
     }
 
+    /// Appends an element, returning its index.
     pub fn push(&mut self, val: V) -> I {
         let res = I::from_idx(self.vals.len());
         self.vals.push(val);
@@ -89,6 +95,7 @@ impl<I: EntityId, V> EntityVec<I, V> {
         self.vals.into_iter()
     }
 
+    // Returns iterator of pairs `(id, &value)`.
     pub fn iter(&self) -> Iter<'_, I, V> {
         Iter {
             vals: self.vals.iter(),
@@ -97,6 +104,7 @@ impl<I: EntityId, V> EntityVec<I, V> {
         }
     }
 
+    // Returns iterator of pairs `(id, &mut value)`.
     pub fn iter_mut(&mut self) -> IterMut<'_, I, V> {
         IterMut {
             vals: self.vals.iter_mut(),
@@ -153,6 +161,7 @@ impl<I: EntityId, V> EntityVec<I, V> {
         I::from_idx(self.len())
     }
 
+    /// See [`[T]::binary_search`].
     pub fn binary_search(&self, x: &V) -> Result<I, I>
     where
         V: Ord,
@@ -163,6 +172,7 @@ impl<I: EntityId, V> EntityVec<I, V> {
         }
     }
 
+    /// See [`[T]::binary_search_by`].
     pub fn binary_search_by<'a, F>(&'a self, f: F) -> Result<I, I>
     where
         F: FnMut(&'a V) -> Ordering,
@@ -173,6 +183,7 @@ impl<I: EntityId, V> EntityVec<I, V> {
         }
     }
 
+    /// See [`[T]::binary_search_by_key`].
     pub fn binary_search_by_key<'a, B, F>(&'a self, b: &B, f: F) -> Result<I, I>
     where
         F: FnMut(&'a V) -> B,
@@ -246,6 +257,7 @@ impl<I: EntityId, V> IndexMut<I> for EntityVec<I, V> {
     }
 }
 
+/// Iterator of `(id, &value)` pairs.
 #[derive(Clone, Debug)]
 pub struct Iter<'a, I, V> {
     vals: core::slice::Iter<'a, V>,
@@ -276,6 +288,7 @@ impl<'a, I: EntityId, V> ExactSizeIterator for Iter<'a, I, V> {
     }
 }
 
+/// Iterator of `(id, &mut value)` pairs.
 #[derive(Debug)]
 pub struct IterMut<'a, I, V> {
     vals: core::slice::IterMut<'a, V>,
@@ -306,6 +319,7 @@ impl<'a, I: EntityId, V> ExactSizeIterator for IterMut<'a, I, V> {
     }
 }
 
+/// Iterator of `(id, value)` pairs.
 #[derive(Clone, Debug)]
 pub struct IntoIter<I, V> {
     vals: std::vec::IntoIter<V>,

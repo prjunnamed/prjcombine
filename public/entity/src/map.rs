@@ -11,6 +11,10 @@ use indexmap::map::IndexMap;
 use crate::id::EntityRange;
 use crate::{EntityId, EntityVec};
 
+/// An [`IndexMap`] with strongly-typed indices.
+///
+/// An `EntityMap` assigns sequential IDs to each inserted `(K, V)` pair. Entries may be looked up
+/// either by the key `K`, or the index `I` (by means of the [`Index`] trait).
 #[derive(Clone)]
 pub struct EntityMap<I: EntityId, K: Hash + Eq, V, RS: BuildHasher = RandomState> {
     map: IndexMap<K, V, RS>,
@@ -58,9 +62,10 @@ where
         (I::from_idx(i), v)
     }
 
+    #[track_caller]
     pub fn insert_new(&mut self, k: K, v: V) -> I {
         let (i, f) = self.insert(k, v);
-        assert!(f.is_none());
+        assert!(f.is_none(), "key already present in EntityMap");
         i
     }
 
