@@ -8,7 +8,7 @@ impl<I: EntityId, T: Encode> Encode for EntityBundleMap<I, T> {
         encoder: &mut E,
     ) -> Result<(), bincode::error::EncodeError> {
         self.bundles.len().encode(encoder)?;
-        for (key, (idx, val)) in &self.bundles {
+        for (_, key, (idx, val)) in &self.bundles {
             let num = match idx {
                 EntityBundleIndex::Single(_) => None,
                 EntityBundleIndex::Array(range) => Some(range.len()),
