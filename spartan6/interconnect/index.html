@@ -166,7 +166,7 @@
 
 <tr><td>INTF</td><td>INTF, INTF_IOI, INTF_CMT, INTF_CMT_IOI</td><td>INTF_INT, INTF_TESTMUX</td></tr>
 
-<tr><td>BEL</td><td>CLEXL, CLEXM, BRAM, DSP, IOI_WE, IOI_SN, CMT_DCM, CMT_PLL, MCB, PCIE, GTP, PCILOGICSE, CNR_SW, CNR_NW, CNR_SE, CNR_NE, CLKC</td><td>SLICE[0], SLICE[1], BRAM[0], BRAM[1], DSP, ILOGIC[0], ILOGIC[1], OLOGIC[0], OLOGIC[1], IODELAY[0], IODELAY[1], IOICLK[0], IOICLK[1], IOI, DCM[0], DCM[1], CMT_VREG, PLL, CMT_INT, MCB, PCIE, GTP, PCILOGICSE, OCT_CAL[0], OCT_CAL[1], OCT_CAL[2], OCT_CAL[3], OCT_CAL[4], OCT_CAL[5], PMV, DNA_PORT, ICAP, SPI_ACCESS, SUSPEND_SYNC, POST_CRC_INTERNAL, STARTUP, SLAVE_SPI, BSCAN[0], BSCAN[1], BSCAN[2], BSCAN[3], MISR_CNR_H, MISR_CNR_V, BANK[0], BANK[1], BANK[2], BANK[3], BANK[4], BANK[5], MISC_SW, MISC_SE, MISC_NW, MISC_NE, BUFGMUX[0], BUFGMUX[1], BUFGMUX[2], BUFGMUX[3], BUFGMUX[4], BUFGMUX[5], BUFGMUX[6], BUFGMUX[7], BUFGMUX[8], BUFGMUX[9], BUFGMUX[10], BUFGMUX[11], BUFGMUX[12], BUFGMUX[13], BUFGMUX[14], BUFGMUX[15], CLKC_INT, TIEOFF_IOI</td></tr>
+<tr><td>BEL</td><td>CLEXL, CLEXM, BRAM, DSP, IOI_WE, IOI_SN, CMT_DCM, CMT_PLL, MCB, PCIE, GTP, PCILOGICSE, CNR_SW, CNR_NW, CNR_SE, CNR_NE, CLKC</td><td>SLICE[0], SLICE[1], BRAM[0], BRAM[1], DSP, IOI_INT, IOI_DDR[0], IOI_DDR[1], ILOGIC[0], ILOGIC[1], OLOGIC[0], OLOGIC[1], IODELAY[0], IODELAY[1], MISC_IOI, DCM[0], DCM[1], CMT_VREG, PLL, CMT_INT, MCB, PCIE, GTP, PCILOGICSE, OCT_CAL[0], OCT_CAL[1], OCT_CAL[2], OCT_CAL[3], OCT_CAL[4], OCT_CAL[5], PMV, DNA_PORT, ICAP, SPI_ACCESS, SUSPEND_SYNC, POST_CRC_INTERNAL, STARTUP, SLAVE_SPI, BSCAN[0], BSCAN[1], BSCAN[2], BSCAN[3], MISR_CNR_H, MISR_CNR_V, BANK[0], BANK[1], BANK[2], BANK[3], BANK[4], BANK[5], MISC_SW, MISC_SE, MISC_NW, MISC_NE, BUFGMUX[0], BUFGMUX[1], BUFGMUX[2], BUFGMUX[3], BUFGMUX[4], BUFGMUX[5], BUFGMUX[6], BUFGMUX[7], BUFGMUX[8], BUFGMUX[9], BUFGMUX[10], BUFGMUX[11], BUFGMUX[12], BUFGMUX[13], BUFGMUX[14], BUFGMUX[15], CLKC_INT</td></tr>
 
 <tr><td>IOB</td><td>IOB</td><td>IOB[0], IOB[1]</td></tr>
 
@@ -213,23 +213,25 @@
 
 <tr><td>DSP</td><td>DSP</td><td>BEL</td><td>DSP</td></tr>
 
-<tr><td>ILOGIC[0]</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
+<tr><td>IOI_INT</td><td>routing</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
-<tr><td>ILOGIC[1]</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
+<tr><td>IOI_DDR[0]</td><td>IOI_DDR</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
-<tr><td>OLOGIC[0]</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
+<tr><td>IOI_DDR[1]</td><td>IOI_DDR</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
-<tr><td>OLOGIC[1]</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
+<tr><td>ILOGIC[0]</td><td>ILOGIC</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
-<tr><td>IODELAY[0]</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
+<tr><td>ILOGIC[1]</td><td>ILOGIC</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
-<tr><td>IODELAY[1]</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
+<tr><td>OLOGIC[0]</td><td>OLOGIC</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
-<tr><td>IOICLK[0]</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
+<tr><td>OLOGIC[1]</td><td>OLOGIC</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
-<tr><td>IOICLK[1]</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
+<tr><td>IODELAY[0]</td><td>IODELAY</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
-<tr><td>IOI</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
+<tr><td>IODELAY[1]</td><td>IODELAY</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
+
+<tr><td>MISC_IOI</td><td>MISC_IOI</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
 <tr><td>DCM[0]</td><td>DCM</td><td>BEL</td><td>CMT_DCM</td></tr>
 
@@ -342,8 +344,6 @@
 <tr><td>BUFGMUX[15]</td><td>BUFGMUX</td><td>BEL</td><td>CLKC</td></tr>
 
 <tr><td>CLKC_INT</td><td>routing</td><td>BEL</td><td>CLKC</td></tr>
-
-<tr><td>TIEOFF_IOI</td><td>legacy</td><td>BEL</td><td>IOI_WE, IOI_SN</td></tr>
 
 <tr><td>IOB[0]</td><td>IOB</td><td>IOB</td><td>IOB</td></tr>
 
@@ -2020,6 +2020,74 @@
 <tr><td>OMUX_PLL_SKEWCLKIN2_BUF</td><td>mux</td></tr>
 
 <tr><td>CMT_TEST_CLK</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK[0]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK[1]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK[2]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK[3]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK[4]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK[5]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK_OPTINV[0]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK_OPTINV[1]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK_OPTINV[2]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK_OPTINV[3]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK_OPTINV[4]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCLK_OPTINV[5]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCE[0]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCE[1]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCE[2]</td><td>mux</td></tr>
+
+<tr><td>IOI_IOCE[3]</td><td>mux</td></tr>
+
+<tr><td>OUT_DDR_IOCLK[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DDR_IOCLK[1]</td><td>bel</td></tr>
+
+<tr><td>OUT_DDR_IOCE[0]</td><td>bel</td></tr>
+
+<tr><td>OUT_DDR_IOCE[1]</td><td>bel</td></tr>
+
+<tr><td>IOI_ICLK[0]</td><td>mux</td></tr>
+
+<tr><td>IOI_ICLK[1]</td><td>mux</td></tr>
+
+<tr><td>IOI_OCLK[0]</td><td>mux</td></tr>
+
+<tr><td>IOI_OCLK[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_ILOGIC_CLK[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_ILOGIC_CLK[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_OLOGIC_CLK[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_OLOGIC_CLK[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_IODELAY_IOCLK[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_IODELAY_IOCLK[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_ILOGIC_IOCE[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_ILOGIC_IOCE[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_OLOGIC_IOCE[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_OLOGIC_IOCE[1]</td><td>mux</td></tr>
 
 </tbody>
 
