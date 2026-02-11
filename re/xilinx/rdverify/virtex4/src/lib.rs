@@ -222,79 +222,80 @@ fn verify_dsp(vrf: &mut Verifier, bcrd: BelCoord) {
     bel.commit();
 }
 
-fn verify_ppc(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
-    let mut dcr_pins = vec![
-        ("EMACDCRACK".to_string(), SitePinDir::In),
-        ("DCREMACCLK".to_string(), SitePinDir::Out),
-        ("DCREMACREAD".to_string(), SitePinDir::Out),
-        ("DCREMACWRITE".to_string(), SitePinDir::Out),
+fn verify_ppc(vrf: &mut Verifier, bcrd: BelCoord) {
+    let mut bel = vrf.verify_bel(bcrd).kind("PPC405_ADV");
+    let mut dcri = vec!["EMACDCRACK".to_string()];
+    let mut dcro = vec![
+        "DCREMACCLK".to_string(),
+        "DCREMACREAD".to_string(),
+        "DCREMACWRITE".to_string(),
     ];
     for i in 0..32 {
-        dcr_pins.push((format!("EMACDCRDBUS{i}"), SitePinDir::In));
-        dcr_pins.push((format!("DCREMACDBUS{i}"), SitePinDir::Out));
+        dcri.push(format!("EMACDCRDBUS{i}"));
+        dcro.push(format!("DCREMACDBUS{i}"));
     }
     for i in 8..10 {
-        dcr_pins.push((format!("DCREMACABUS{i}"), SitePinDir::Out));
+        dcro.push(format!("DCREMACABUS{i}"));
     }
-    let pins: Vec<_> = dcr_pins
-        .iter()
-        .map(|&(ref pin, dir)| (&pin[..], dir))
-        .collect();
-    vrf.verify_legacy_bel(bel, "PPC405_ADV", &pins, &[]);
-    let obel = vrf.find_bel_sibling(bel, bslots::EMAC);
-    for (pin, dir) in dcr_pins {
-        vrf.claim_net(&[bel.wire(&pin)]);
-        match dir {
-            SitePinDir::In => vrf.claim_pip(bel.wire(&pin), obel.wire(&pin)),
-            SitePinDir::Out => vrf.claim_pip(obel.wire(&pin), bel.wire(&pin)),
-            _ => unreachable!(),
-        }
+    let obel = bcrd.bel(bslots::EMAC);
+    for pin in &dcri {
+        bel = bel.extra_in(pin);
+        bel.claim_net(&[bel.wire(pin)]);
+        bel.claim_pip(bel.wire(pin), bel.bel_wire(obel, pin));
+    }
+    for pin in &dcro {
+        bel = bel.extra_out(pin);
+        bel.claim_net(&[bel.wire(pin)]);
+        bel.claim_pip(bel.bel_wire(obel, pin), bel.wire(pin));
     }
     // detritus.
-    vrf.claim_pip_tri(
+    bel.vrf.claim_pip_tri(
         bel.crds[EntityId::from_idx(0)],
         "PB_OMUX_S0_B5",
         "PB_OMUX15_B5",
     );
-    vrf.claim_pip_tri(
+    bel.vrf.claim_pip_tri(
         bel.crds[EntityId::from_idx(0)],
         "PB_OMUX_S0_B6",
         "PB_OMUX15_B6",
     );
-    vrf.claim_pip_tri(
+    bel.vrf.claim_pip_tri(
         bel.crds[EntityId::from_idx(1)],
         "PT_OMUX_N15_T5",
         "PT_OMUX0_T5",
     );
-    vrf.claim_pip_tri(
+    bel.vrf.claim_pip_tri(
         bel.crds[EntityId::from_idx(1)],
         "PT_OMUX_N15_T6",
         "PT_OMUX0_T6",
     );
+    bel.commit();
 }
 
-fn verify_emac(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
-    let mut dcr_pins = vec![
-        ("EMACDCRACK".to_string(), SitePinDir::Out),
-        ("DCREMACCLK".to_string(), SitePinDir::In),
-        ("DCREMACREAD".to_string(), SitePinDir::In),
-        ("DCREMACWRITE".to_string(), SitePinDir::In),
+fn verify_emac(vrf: &mut Verifier, bcrd: BelCoord) {
+    let mut bel = vrf.verify_bel(bcrd).kind("EMAC");
+    let mut dcro = vec!["EMACDCRACK".to_string()];
+    let mut dcri = vec![
+        "DCREMACCLK".to_string(),
+        "DCREMACREAD".to_string(),
+        "DCREMACWRITE".to_string(),
     ];
     for i in 0..32 {
-        dcr_pins.push((format!("EMACDCRDBUS{i}"), SitePinDir::Out));
-        dcr_pins.push((format!("DCREMACDBUS{i}"), SitePinDir::In));
+        dcro.push(format!("EMACDCRDBUS{i}"));
+        dcri.push(format!("DCREMACDBUS{i}"));
     }
     for i in 8..10 {
-        dcr_pins.push((format!("DCREMACABUS{i}"), SitePinDir::In));
+        dcri.push(format!("DCREMACABUS{i}"));
     }
-    let pins: Vec<_> = dcr_pins
-        .iter()
-        .map(|&(ref pin, dir)| (&pin[..], dir))
-        .collect();
-    vrf.verify_legacy_bel(bel, "EMAC", &pins, &[]);
-    for (pin, _) in dcr_pins {
-        vrf.claim_net(&[bel.wire(&pin)]);
+    for pin in &dcri {
+        bel = bel.extra_in(pin);
+        bel.claim_net(&[bel.wire(pin)]);
     }
+    for pin in &dcro {
+        bel = bel.extra_out(pin);
+        bel.claim_net(&[bel.wire(pin)]);
+    }
+    bel.commit();
 }
 
 fn verify_bufgctrl(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
@@ -1741,14 +1742,8 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         bslots::BRAM => {
             verify_bram(vrf, bcrd);
         }
-        bslots::PPC => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            verify_ppc(vrf, bel);
-        }
-        bslots::EMAC => {
-            let bel = &vrf.get_legacy_bel(bcrd);
-            verify_emac(vrf, bel);
-        }
+        bslots::PPC => verify_ppc(vrf, bcrd),
+        bslots::EMAC => verify_emac(vrf, bcrd),
 
         _ if slot_name.starts_with("BUFGCTRL") => {
             let bel = &vrf.get_legacy_bel(bcrd);

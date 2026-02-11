@@ -10,4 +10,6 @@ specials![
     FIFO_EN_ECC_TRUE,
     DSP_CREG_0,
     DSP_CREG_1,
+    PPC_SYNCBYPASS,
+    PPC_SYNCACTIVE,
 ];

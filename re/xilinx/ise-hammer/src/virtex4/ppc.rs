@@ -1,13 +1,13 @@
 use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::{
-    db::{BelInfo, PinDir},
+    db::{BelInfo, BelInputId},
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::defs::{
-    bslots,
+    bcls, bslots,
     virtex4::{tcls, wires},
 };
 
@@ -18,6 +18,7 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::DynProp,
     },
+    virtex4::specials,
 };
 
 #[derive(Clone, Debug)]
@@ -47,34 +48,33 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ForceBitRects {
     }
 }
 
-const EMAC_INVPINS: &[&str] = &[
-    "CLIENTEMAC0RXCLIENTCLKIN",
-    "CLIENTEMAC0TXCLIENTCLKIN",
-    "CLIENTEMAC0TXGMIIMIICLKIN",
-    "CLIENTEMAC1RXCLIENTCLKIN",
-    "CLIENTEMAC1TXCLIENTCLKIN",
-    "CLIENTEMAC1TXGMIIMIICLKIN",
-    "HOSTCLK",
-    "PHYEMAC0GTXCLK",
-    "PHYEMAC0MCLKIN",
-    "PHYEMAC0MIITXCLK",
-    "PHYEMAC0RXCLK",
-    "PHYEMAC1GTXCLK",
-    "PHYEMAC1MCLKIN",
-    "PHYEMAC1MIITXCLK",
-    "PHYEMAC1RXCLK",
+const EMAC_INVPINS: &[BelInputId] = &[
+    bcls::EMAC_V4::CLIENTEMAC0RXCLIENTCLKIN,
+    bcls::EMAC_V4::CLIENTEMAC0TXCLIENTCLKIN,
+    bcls::EMAC_V4::CLIENTEMAC0TXGMIIMIICLKIN,
+    bcls::EMAC_V4::CLIENTEMAC1RXCLIENTCLKIN,
+    bcls::EMAC_V4::CLIENTEMAC1TXCLIENTCLKIN,
+    bcls::EMAC_V4::CLIENTEMAC1TXGMIIMIICLKIN,
+    bcls::EMAC_V4::HOSTCLK,
+    bcls::EMAC_V4::PHYEMAC0GTXCLK,
+    bcls::EMAC_V4::PHYEMAC0MCLKIN,
+    bcls::EMAC_V4::PHYEMAC0MIITXCLK,
+    bcls::EMAC_V4::PHYEMAC0RXCLK,
+    bcls::EMAC_V4::PHYEMAC1GTXCLK,
+    bcls::EMAC_V4::PHYEMAC1MCLKIN,
+    bcls::EMAC_V4::PHYEMAC1MIITXCLK,
+    bcls::EMAC_V4::PHYEMAC1RXCLK,
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
-    let tile = "PPC";
-    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+    let tcid = tcls::PPC;
+    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
         return;
     };
-    let tcid = intdb.get_tile_class(tile);
     let tcls = &intdb[tcid];
     for (slot, bel_data) in &tcls.bels {
-        let BelInfo::Legacy(bel_data) = bel_data else {
+        let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
         let mut bctx = ctx.bel(slot);
@@ -83,77 +83,73 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         } else {
             "EMAC"
         };
-        bctx.test_manual_legacy("PRESENT", "1")
+        bctx.build()
+            .test_bel_special(specials::PRESENT)
             .prop(ForceBitRects)
             .mode(mode)
             .commit();
-        for (pin, pin_data) in &bel_data.pins {
-            if pin_data.dir != PinDir::Input {
-                continue;
-            }
+        for (pin, wire) in &bel_data.inputs {
             if slot == bslots::EMAC
-                && !EMAC_INVPINS.contains(&&pin[..])
-                && !pin.starts_with("TIEEMAC1UNICASTADDR")
+                && !EMAC_INVPINS.contains(&pin)
+                && !bcls::EMAC_V4::TIEEMAC1UNICASTADDR.contains(pin)
             {
                 continue;
             }
-            assert_eq!(pin_data.wires.len(), 1);
-            let wire = *pin_data.wires.first().unwrap();
-            if wires::IMUX_IMUX.contains(wire.wire) {
+            if wires::IMUX_IMUX.contains(wire.wire().wire) {
                 continue;
             }
-            bctx.mode(mode).prop(ForceBitRects).test_inv_legacy(pin);
+            bctx.mode(mode)
+                .prop(ForceBitRects)
+                .test_bel_input_inv_auto(pin);
         }
         if slot == bslots::PPC {
-            bctx.mode(mode)
-                .null_bits()
-                .test_enum_legacy("PLB_SYNC_MODE", &["SYNCBYPASS", "SYNCACTIVE"]);
+            for (spec, val) in [
+                (specials::PPC_SYNCBYPASS, "SYNCBYPASS"),
+                (specials::PPC_SYNCACTIVE, "SYNCACTIVE"),
+            ] {
+                bctx.mode(mode)
+                    .null_bits()
+                    .test_bel_special(spec)
+                    .attr("PLB_SYNC_MODE", val)
+                    .commit();
+            }
         }
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let tile = "PPC";
     let tcid = tcls::PPC;
     if !ctx.has_tcls(tcid) {
         return;
     }
     let tcls = &ctx.edev.db[tcid];
     for (bslot, bel_data) in &tcls.bels {
-        let BelInfo::Legacy(bel_data) = bel_data else {
+        let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
-        let bel = ctx.edev.db.bel_slots.key(bslot);
         if bslot == bslots::PPC {
-            let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-            for pin in bel_data.pins.keys() {
-                if pin.starts_with("LSSDSCANIN") {
-                    let item = ctx.item_int_inv_legacy(&[tcls::INT; 62], tcid, bslot, pin);
-                    diff.discard_bits(&[item.bit]);
-                }
+            let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
+            for pin in bcls::PPC405::LSSDSCANIN {
+                let bit = ctx.item_int_inv(&[tcls::INT; 62], tcid, bslot, pin);
+                diff.discard_polbits(&[bit]);
             }
             diff.assert_empty();
         } else {
-            ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT)
                 .assert_empty();
         }
-        for (pin, pin_data) in &bel_data.pins {
-            if pin_data.dir != PinDir::Input {
-                continue;
-            }
+        for (pin, wire) in &bel_data.inputs {
             if bslot == bslots::EMAC
-                && !EMAC_INVPINS.contains(&&pin[..])
-                && !pin.starts_with("TIEEMAC1UNICASTADDR")
+                && !EMAC_INVPINS.contains(&pin)
+                && !bcls::EMAC_V4::TIEEMAC1UNICASTADDR.contains(pin)
             {
                 continue;
             }
-            assert_eq!(pin_data.wires.len(), 1);
-            let wire = *pin_data.wires.first().unwrap();
-            if wires::IMUX_IMUX.contains(wire.wire) {
+            if wires::IMUX_IMUX.contains(wire.wire().wire) {
                 continue;
             }
             let int_tiles = &[tcls::INT; 62];
-            ctx.collect_int_inv_legacy(int_tiles, tcid, bslot, pin, true);
+            ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, pin);
         }
     }
 }

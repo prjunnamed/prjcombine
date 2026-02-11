@@ -160,6 +160,536 @@ target_defs! {
 
     // TODO: enums, bel slots
 
+    bel_class PPC405 {
+        input CPMC405CLOCK;
+        input CPMC405CLOCKFBENABLE;
+        input CPMC405CORECLKINACTIVE;
+        input CPMC405CPUCLKEN;
+        input CPMC405JTAGCLKEN;
+        input CPMC405PLBSAMPLECYCLE;
+        input CPMC405PLBSAMPLECYCLEALT;
+        input CPMC405PLBSYNCCLOCK;
+        input CPMC405SYNCBYPASS;
+        input CPMC405TIMERCLKEN;
+        input CPMC405TIMERTICK;
+        input CPMDCRCLK;
+        input CPMFCMCLK;
+        output C405CPMCLOCKFB;
+        output C405CPMCORESLEEPREQ;
+        output C405CPMMSRCE;
+        output C405CPMMSREE;
+        output C405CPMTIMERIRQ;
+        output C405CPMTIMERRESETREQ;
+
+        input RSTC405RESETCHIP;
+        input RSTC405RESETCORE;
+        input RSTC405RESETSYS;
+        input MCBCPUCLKEN;
+        input MCBJTAGEN;
+        input MCBTIMEREN;
+        input MCPPCRST;
+        output C405RSTCHIPRESETREQ;
+        output C405RSTCORERESETREQ;
+        output C405RSTSYSRESETREQ;
+
+        input PLBCLK;
+
+        input PLBC405DCUADDRACK;
+        input PLBC405DCUBUSY;
+        input PLBC405DCUERR;
+        input PLBC405DCURDDACK;
+        input PLBC405DCURDDBUS[0:63];
+        input PLBC405DCURDWDADDR[1:3];
+        input PLBC405DCUSSIZE1;
+        input PLBC405DCUWRDACK;
+        output C405PLBDCUABORT;
+        output C405PLBDCUABUS[0:31];
+        output C405PLBDCUBE[0:7];
+        output C405PLBDCUCACHEABLE;
+        output C405PLBDCUGUARDED;
+        output C405PLBDCUPRIORITY[0:1];
+        output C405PLBDCUREQUEST;
+        output C405PLBDCURNW;
+        output C405PLBDCUSIZE2;
+        output C405PLBDCUU0ATTR;
+        output C405PLBDCUWRDBUS[0:63];
+        output C405PLBDCUWRITETHRU;
+
+        input PLBC405ICUADDRACK;
+        input PLBC405ICUBUSY;
+        input PLBC405ICUERR;
+        input PLBC405ICURDDACK;
+        input PLBC405ICURDDBUS[0:63];
+        input PLBC405ICURDWDADDR[1:3];
+        input PLBC405ICUSSIZE1;
+        output C405PLBICUABORT;
+        output C405PLBICUABUS[0:29];
+        output C405PLBICUCACHEABLE;
+        output C405PLBICUPRIORITY[0:1];
+        output C405PLBICUREQUEST;
+        output C405PLBICUSIZE[2:3];
+        output C405PLBICUU0ATTR;
+
+        output DCREMACENABLER;
+        input EXTDCRACK;
+        input EXTDCRDBUSIN[0:31];
+        output EXTDCRABUS[0:9];
+        output EXTDCRDBUSOUT[0:31];
+        output EXTDCRREAD;
+        output EXTDCRWRITE;
+        input TIEDCRADDR[0:5];
+        input TSTC405DCRABUSI[0:9];
+        input TSTC405DCRDBUSOUTI[0:31];
+        input TSTC405DCRREADI;
+        input TSTC405DCRWRITEI;
+        output TSTDCRC405ACKO;
+        output TSTDCRC405DBUSINO[0:31];
+
+        input EICC405CRITINPUTIRQ;
+        input EICC405EXTINPUTIRQ;
+
+        input DBGC405DEBUGHALT;
+        input DBGC405EXTBUSHOLDACK;
+        input DBGC405UNCONDDEBUGEVENT;
+        output C405DBGLOADDATAONAPUDBUS;
+        output C405DBGMSRWE;
+        output C405DBGSTOPACK;
+        output C405DBGWBCOMPLETE;
+        output C405DBGWBFULL;
+        output C405DBGWBIAR[0:29];
+
+        input JTGC405BNDSCANTDO;
+        input JTGC405TCK;
+        input JTGC405TDI;
+        input JTGC405TMS;
+        input JTGC405TRSTNEG;
+        output C405JTGCAPTUREDR;
+        output C405JTGEXTEST;
+        output C405JTGPGMOUT;
+        output C405JTGSHIFTDR;
+        output C405JTGTDO;
+        output C405JTGTDOEN;
+        output C405JTGUPDATEDR;
+
+        input TRCC405TRACEDISABLE;
+        input TRCC405TRIGGEREVENTIN;
+        output C405TRCCYCLE;
+        output C405TRCEVENEXECUTIONSTATUS[0:1];
+        output C405TRCODDEXECUTIONSTATUS[0:1];
+        output C405TRCTRACESTATUS[0:3];
+        output C405TRCTRIGGEREVENTOUT;
+        output C405TRCTRIGGEREVENTTYPE[0:10];
+
+        output C405XXXMACHINECHECK;
+
+        input BRAMDSOCMCLK;
+        input BRAMDSOCMRDDBUS[0:31];
+        input DSARCVALUE[0:7];
+        input DSCNTLVALUE[0:7];
+        output DSOCMBRAMABUS[8:29];
+        output DSOCMBRAMBYTEWRITE[0:3];
+        output DSOCMBRAMEN;
+        output DSOCMBRAMWRDBUS[0:31];
+        output DSOCMBUSY;
+        output DSOCMRDADDRVALID;
+        input DSOCMRWCOMPLETE;
+        output DSOCMWRADDRVALID;
+        output C405DSOCMCACHEABLE;
+        output C405DSOCMGUARDED;
+        output C405DSOCMSTRINGMULTIPLE;
+        output C405DSOCMU0ATTR;
+        input TSTC405DSOCMABORTOPI;
+        output TSTC405DSOCMABORTOPO;
+        input TSTC405DSOCMABORTREQI;
+        output TSTC405DSOCMABORTREQO;
+        input TSTC405DSOCMABUSI[0:29];
+        output TSTC405DSOCMABUSO[0:29];
+        input TSTC405DSOCMBYTEENI[0:3];
+        output TSTC405DSOCMBYTEENO[0:3];
+        input TSTC405DSOCMLOADREQI;
+        output TSTC405DSOCMLOADREQO;
+        input TSTC405DSOCMSTOREREQI;
+        output TSTC405DSOCMSTOREREQO;
+        input TSTC405DSOCMWAITI;
+        output TSTC405DSOCMWAITO;
+        input TSTC405DSOCMWRDBUSI[0:31];
+        output TSTC405DSOCMWRDBUSO[0:31];
+        input TSTC405DSOCMXLTVALIDI;
+        output TSTC405DSOCMXLTVALIDO;
+        input TSTDSOCMC405COMPLETEI;
+        output TSTDSOCMC405COMPLETEO;
+        input TSTDSOCMC405DISOPERANDFWDI;
+        output TSTDSOCMC405DISOPERANDFWDO;
+        input TSTDSOCMC405HOLDI;
+        output TSTDSOCMC405HOLDO;
+        input TSTDSOCMC405RDDBUSI[0:31];
+        output TSTDSOCMC405RDDBUSO[0:31];
+
+        input BRAMISOCMCLK;
+        input BRAMISOCMDCRRDDBUS[0:31];
+        input BRAMISOCMRDDBUS[0:63];
+        input ISARCVALUE[0:7];
+        input ISCNTLVALUE[0:7];
+        output ISOCMBRAMEN;
+        output ISOCMBRAMEVENWRITEEN;
+        output ISOCMBRAMODDWRITEEN;
+        output ISOCMBRAMRDABUS[8:28];
+        output ISOCMBRAMWRABUS[8:28];
+        output ISOCMBRAMWRDBUS[0:31];
+        output ISOCMDCRBRAMEVENEN;
+        output ISOCMDCRBRAMODDEN;
+        output ISOCMDCRBRAMRDSELECT;
+        output C405ISOCMCACHEABLE;
+        output C405ISOCMCONTEXTSYNC;
+        output C405ISOCMU0ATTR;
+        input TSTC405ISOCMABORTI;
+        output TSTC405ISOCMABORTO;
+        input TSTC405ISOCMABUSI[0:29];
+        output TSTC405ISOCMABUSO[0:29];
+        input TSTC405ISOCMICUREADYI;
+        output TSTC405ISOCMICUREADYO;
+        input TSTC405ISOCMREQPENDINGI;
+        output TSTC405ISOCMREQPENDINGO;
+        input TSTC405ISOCMXLTVALIDI;
+        output TSTC405ISOCMXLTVALIDO;
+        input TSTISOCMC405HOLDI;
+        output TSTISOCMC405HOLDO;
+        input TSTISOCMC405RDDVALIDI[0:1];
+        output TSTISOCMC405RDDVALIDO[0:1];
+        input TSTISOCMC405READDATAOUTI[0:63];
+        output TSTISOCMC405READDATAOUTO[0:63];
+
+        input FCMAPUCR[0:3];
+        input FCMAPUDCDCREN;
+        input FCMAPUDCDFORCEALIGN;
+        input FCMAPUDCDFORCEBESTEERING;
+        input FCMAPUDCDFPUOP;
+        input FCMAPUDCDGPRWRITE;
+        input FCMAPUDCDLDSTBYTE;
+        input FCMAPUDCDLDSTDW;
+        input FCMAPUDCDLDSTHW;
+        input FCMAPUDCDLDSTQW;
+        input FCMAPUDCDLDSTWD;
+        input FCMAPUDCDLOAD;
+        input FCMAPUDCDPRIVOP;
+        input FCMAPUDCDRAEN;
+        input FCMAPUDCDRBEN;
+        input FCMAPUDCDSTORE;
+        input FCMAPUDCDTRAPBE;
+        input FCMAPUDCDTRAPLE;
+        input FCMAPUDCDUPDATE;
+        input FCMAPUDCDXERCAEN;
+        input FCMAPUDCDXEROVEN;
+        input FCMAPUDECODEBUSY;
+        input FCMAPUDONE;
+        input FCMAPUEXCEPTION;
+        input FCMAPUEXEBLOCKINGMCO;
+        input FCMAPUEXECRFIELD[0:2];
+        input FCMAPUEXENONBLOCKINGMCO;
+        input FCMAPUINSTRACK;
+        input FCMAPULOADWAIT;
+        input FCMAPURESULT[0:31];
+        input FCMAPURESULTVALID;
+        input FCMAPUSLEEPNOTREADY;
+        input FCMAPUXERCA;
+        input FCMAPUXEROV;
+        output APUFCMDECODED;
+        output APUFCMDECUDI[0:2];
+        output APUFCMDECUDIVALID;
+        output APUFCMENDIAN;
+        output APUFCMFLUSH;
+        output APUFCMINSTRUCTION[0:31];
+        output APUFCMINSTRVALID;
+        output APUFCMLOADBYTEEN[0:3];
+        output APUFCMLOADDATA[0:31];
+        output APUFCMLOADDVALID;
+        output APUFCMOPERANDVALID;
+        output APUFCMRADATA[0:31];
+        output APUFCMRBDATA[0:31];
+        output APUFCMWRITEBACKOK;
+        output APUFCMXERCA;
+        input TIEAPUCONTROL[0:15];
+        input TIEAPUUDI1[0:23];
+        input TIEAPUUDI2[0:23];
+        input TIEAPUUDI3[0:23];
+        input TIEAPUUDI4[0:23];
+        input TIEAPUUDI5[0:23];
+        input TIEAPUUDI6[0:23];
+        input TIEAPUUDI7[0:23];
+        input TIEAPUUDI8[0:23];
+        input TSTAPUC405APUDIVENI;
+        output TSTAPUC405APUDIVENO;
+        input TSTAPUC405APUPRESENTI;
+        output TSTAPUC405APUPRESENTO;
+        input TSTAPUC405DCDAPUOPI;
+        output TSTAPUC405DCDAPUOPO;
+        input TSTAPUC405DCDCRENI;
+        output TSTAPUC405DCDCRENO;
+        input TSTAPUC405DCDFORCEALIGNI;
+        output TSTAPUC405DCDFORCEALIGNO;
+        input TSTAPUC405DCDFORCEBESTEERINGI;
+        output TSTAPUC405DCDFORCEBESTEERINGO;
+        input TSTAPUC405DCDFPUOPI;
+        output TSTAPUC405DCDFPUOPO;
+        input TSTAPUC405DCDGPRWRITEI;
+        output TSTAPUC405DCDGPRWRITEO;
+        input TSTAPUC405DCDLDSTBYTEI;
+        output TSTAPUC405DCDLDSTBYTEO;
+        input TSTAPUC405DCDLDSTDWI;
+        output TSTAPUC405DCDLDSTDWO;
+        input TSTAPUC405DCDLDSTHWI;
+        output TSTAPUC405DCDLDSTHWO;
+        input TSTAPUC405DCDLDSTQWI;
+        output TSTAPUC405DCDLDSTQWO;
+        input TSTAPUC405DCDLDSTWDI;
+        output TSTAPUC405DCDLDSTWDO;
+        input TSTAPUC405DCDLOADI;
+        output TSTAPUC405DCDLOADO;
+        input TSTAPUC405DCDPRIVOPI;
+        output TSTAPUC405DCDPRIVOPO;
+        input TSTAPUC405DCDRAENI;
+        output TSTAPUC405DCDRAENO;
+        input TSTAPUC405DCDRBENI;
+        output TSTAPUC405DCDRBENO;
+        input TSTAPUC405DCDSTOREI;
+        output TSTAPUC405DCDSTOREO;
+        input TSTAPUC405DCDTRAPBEI;
+        output TSTAPUC405DCDTRAPBEO;
+        input TSTAPUC405DCDTRAPLEI;
+        output TSTAPUC405DCDTRAPLEO;
+        input TSTAPUC405DCDUPDATEI;
+        output TSTAPUC405DCDUPDATEO;
+        input TSTAPUC405DCDVALIDOPI;
+        output TSTAPUC405DCDVALIDOPO;
+        input TSTAPUC405DCDXERCAENI;
+        output TSTAPUC405DCDXERCAENO;
+        input TSTAPUC405DCDXEROVENI;
+        output TSTAPUC405DCDXEROVENO;
+        input TSTAPUC405EXCEPTIONI;
+        output TSTAPUC405EXCEPTIONO;
+        input TSTAPUC405EXEBLOCKINGMCOI;
+        output TSTAPUC405EXEBLOCKINGMCOO;
+        input TSTAPUC405EXEBUSYI;
+        output TSTAPUC405EXEBUSYO;
+        input TSTAPUC405EXECRFIELDI[0:2];
+        output TSTAPUC405EXECRFIELDO[0:2];
+        input TSTAPUC405EXECRI[0:3];
+        output TSTAPUC405EXECRO[0:3];
+        input TSTAPUC405EXELDDEPENDI;
+        output TSTAPUC405EXELDDEPENDO;
+        input TSTAPUC405EXENONBLOCKINGMCOI;
+        output TSTAPUC405EXENONBLOCKINGMCOO;
+        input TSTAPUC405EXERESULTI[0:31];
+        output TSTAPUC405EXERESULTO[0:31];
+        input TSTAPUC405EXEXERCAI;
+        output TSTAPUC405EXEXERCAO;
+        input TSTAPUC405EXEXEROVI;
+        output TSTAPUC405EXEXEROVO;
+        input TSTAPUC405FPUEXCEPTIONI;
+        output TSTAPUC405FPUEXCEPTIONO;
+        input TSTAPUC405LWBLDDEPENDI;
+        output TSTAPUC405LWBLDDEPENDO;
+        input TSTAPUC405SLEEPREQI;
+        output TSTAPUC405SLEEPREQO;
+        input TSTAPUC405WBLDDEPENDI;
+        output TSTAPUC405WBLDDEPENDO;
+        input TSTC405APUDCDFULLI;
+        output TSTC405APUDCDFULLO;
+        input TSTC405APUDCDHOLDI;
+        output TSTC405APUDCDHOLDO;
+        input TSTC405APUDCDINSTRUCTIONI[0:31];
+        output TSTC405APUDCDINSTRUCTIONO[0:31];
+        input TSTC405APUEXEFLUSHI;
+        output TSTC405APUEXEFLUSHO;
+        input TSTC405APUEXEHOLDI;
+        output TSTC405APUEXEHOLDO;
+        input TSTC405APUEXELOADDBUSI[0:31];
+        output TSTC405APUEXELOADDBUSO[0:31];
+        input TSTC405APUEXELOADDVALIDI;
+        output TSTC405APUEXELOADDVALIDO;
+        input TSTC405APUEXERADATAI[0:31];
+        output TSTC405APUEXERADATAO[0:31];
+        input TSTC405APUEXERBDATAI[0:31];
+        output TSTC405APUEXERBDATAO[0:31];
+        input TSTC405APUEXEWDCNTI[0:1];
+        output TSTC405APUEXEWDCNTO[0:1];
+        input TSTC405APUMSRFE0I;
+        output TSTC405APUMSRFE0O;
+        input TSTC405APUMSRFE1I;
+        output TSTC405APUMSRFE1O;
+        input TSTC405APUWBBYTEENI[0:3];
+        output TSTC405APUWBBYTEENO[0:3];
+        input TSTC405APUWBENDIANI;
+        output TSTC405APUWBENDIANO;
+        input TSTC405APUWBFLUSHI;
+        output TSTC405APUWBFLUSHO;
+        input TSTC405APUWBHOLDI;
+        output TSTC405APUWBHOLDO;
+        input TSTC405APUXERCAI;
+        output TSTC405APUXERCAO;
+
+        input LSSDCE0A;
+        input LSSDCE0CNTLPOINT;
+        input LSSDCE0SCAN;
+        input LSSDCE0TESTM3;
+        input LSSDCE1B;
+        input LSSDCE1C1;
+        input LSSDCE1C3BIST;
+        input LSSDCE1CA1;
+        input LSSDCE1CRAM;
+        input LSSDSCANIN[0:15];
+        output LSSDSCANOUT[0:15];
+
+        input TESTSELI;
+        output DIAGOUT;
+
+        input TIEC405CLOCKENABLE;
+        input TIEC405CLOCKSELECTS[0:1];
+        input TIEC405DCUMARGIN;
+        input TIEC405DETERMINISTICMULT;
+        input TIEC405DISOPERANDFWD;
+        input TIEC405DUTYENABLE;
+        input TIEC405ICUMARGIN;
+        input TIEC405MMUEN;
+        input TIEC405TAGMARGIN;
+        input TIEC405TLBMARGIN;
+        input TIEPVRBIT[0:31];
+
+        input TSTCLKINACTI;
+        output TSTCLKINACTO;
+        input TSTCPUCLKENI;
+        output TSTCPUCLKENO;
+        input TSTJTAGENI;
+        output TSTJTAGENO;
+        output TSTPLBSAMPLECYCLEO;
+        input TSTRESETCHIPI;
+        output TSTRESETCHIPO;
+        input TSTRESETCOREI;
+        output TSTRESETCOREO;
+        input TSTRESETSYSI;
+        output TSTRESETSYSO;
+        input TSTSEPPCEMACI;
+        input TSTSIGASKETI[0:1];
+        output TSTSOGASKETO[0:1];
+        input TSTTIMERENI;
+        output TSTTIMERENO;
+        input TSTTRSTNEGI;
+        output TSTTRSTNEGO;
+        input TSTUSECPMCLKSELI;
+
+        input BISTCE0CONTINUE;
+        input BISTCE0DIAGSHIFTSEL;
+        input BISTCE0LOADIN;
+        input BISTCE0LOADOPCODE;
+        input BISTCE0TESTM1;
+
+        input C405TESTRESERVE1;
+        input C405TESTRESERVE2;
+    }
+
+    bel_class EMAC_V4 {
+        input DCREMACENABLE;
+        output DCRHOSTDONEIR;
+
+        input RESET;
+
+        input HOSTCLK;
+        input HOSTREQ;
+        input HOSTOPCODE[2];
+        input HOSTEMAC1SEL;
+        input HOSTMIIMSEL;
+        output HOSTMIIMRDY;
+        input HOSTADDR[10];
+        input HOSTWRDATA[32];
+        output HOSTRDDATA[32];
+
+        for i in 0..2 {
+            input "CLIENTEMAC{i}DCMLOCKED";
+            input "CLIENTEMAC{i}PAUSEREQ";
+            input "CLIENTEMAC{i}PAUSEVAL"[16];
+            input "CLIENTEMAC{i}RXCLIENTCLKIN";
+            input "CLIENTEMAC{i}TXCLIENTCLKIN";
+            input "CLIENTEMAC{i}TXD"[16];
+            input "CLIENTEMAC{i}TXDVLD";
+            input "CLIENTEMAC{i}TXDVLDMSW";
+            input "CLIENTEMAC{i}TXFIRSTBYTE";
+            input "CLIENTEMAC{i}TXGMIIMIICLKIN";
+            input "CLIENTEMAC{i}TXIFGDELAY"[8];
+            input "CLIENTEMAC{i}TXUNDERRUN";
+
+            output "EMAC{i}CLIENTANINTERRUPT";
+            output "EMAC{i}CLIENTRXBADFRAME";
+            output "EMAC{i}CLIENTRXCLIENTCLKOUT";
+            output "EMAC{i}CLIENTRXD"[16];
+            output "EMAC{i}CLIENTRXDVLD";
+            output "EMAC{i}CLIENTRXDVLDMSW";
+            output "EMAC{i}CLIENTRXDVREG6";
+            output "EMAC{i}CLIENTRXFRAMEDROP";
+            output "EMAC{i}CLIENTRXGOODFRAME";
+            output "EMAC{i}CLIENTRXSTATS"[7];
+            output "EMAC{i}CLIENTRXSTATSBYTEVLD";
+            output "EMAC{i}CLIENTRXSTATSVLD";
+            output "EMAC{i}CLIENTTXACK";
+            output "EMAC{i}CLIENTTXCLIENTCLKOUT";
+            output "EMAC{i}CLIENTTXCOLLISION";
+            output "EMAC{i}CLIENTTXGMIIMIICLKOUT";
+            output "EMAC{i}CLIENTTXRETRANSMIT";
+            output "EMAC{i}CLIENTTXSTATS";
+            output "EMAC{i}CLIENTTXSTATSBYTEVLD";
+            output "EMAC{i}CLIENTTXSTATSVLD";
+
+            input "EMAC{i}TIBUS"[5];
+
+            input "PHYEMAC{i}COL";
+            input "PHYEMAC{i}CRS";
+            input "PHYEMAC{i}GTXCLK";
+            input "PHYEMAC{i}MCLKIN";
+            input "PHYEMAC{i}MDIN";
+            input "PHYEMAC{i}MIITXCLK";
+            input "PHYEMAC{i}PHYAD"[5];
+            input "PHYEMAC{i}RXBUFERR";
+            input "PHYEMAC{i}RXBUFSTATUS"[2];
+            input "PHYEMAC{i}RXCHARISCOMMA";
+            input "PHYEMAC{i}RXCHARISK";
+            input "PHYEMAC{i}RXCHECKINGCRC";
+            input "PHYEMAC{i}RXCLK";
+            input "PHYEMAC{i}RXCLKCORCNT"[3];
+            input "PHYEMAC{i}RXCOMMADET";
+            input "PHYEMAC{i}RXD"[8];
+            input "PHYEMAC{i}RXDISPERR";
+            input "PHYEMAC{i}RXDV";
+            input "PHYEMAC{i}RXER";
+            input "PHYEMAC{i}RXLOSSOFSYNC"[2];
+            input "PHYEMAC{i}RXNOTINTABLE";
+            input "PHYEMAC{i}RXRUNDISP";
+            input "PHYEMAC{i}SIGNALDET";
+            input "PHYEMAC{i}TXBUFERR";
+
+            output "EMAC{i}PHYENCOMMAALIGN";
+            output "EMAC{i}PHYLOOPBACKMSB";
+            output "EMAC{i}PHYMCLKOUT";
+            output "EMAC{i}PHYMDOUT";
+            output "EMAC{i}PHYMDTRI";
+            output "EMAC{i}PHYMGTRXRESET";
+            output "EMAC{i}PHYMGTTXRESET";
+            output "EMAC{i}PHYPOWERDOWN";
+            output "EMAC{i}PHYSYNCACQSTATUS";
+            output "EMAC{i}PHYTXCHARDISPMODE";
+            output "EMAC{i}PHYTXCHARDISPVAL";
+            output "EMAC{i}PHYTXCHARISK";
+            output "EMAC{i}PHYTXCLK";
+            output "EMAC{i}PHYTXD"[8];
+            output "EMAC{i}PHYTXEN";
+            output "EMAC{i}PHYTXER";
+
+            input "TIEEMAC{i}CONFIGVEC"[80];
+            input "TIEEMAC{i}UNICASTADDR"[48];
+        }
+
+        input TSTSIEMACI[7];
+        output TSTSOEMACO[7];
+    }
+
     region_slot HCLK;
     region_slot LEAF;
 
@@ -1095,7 +1625,11 @@ target_defs! {
             }
         }
 
-        bel_slot PPC: legacy;
+        if variant virtex4 {
+            bel_slot PPC: PPC405;
+        } else {
+            bel_slot PPC: legacy;
+        }
         if variant virtex4 {
             tile_class PPC {
                 cell CELL_W[24];
@@ -1113,7 +1647,11 @@ target_defs! {
             }
         }
 
-        bel_slot EMAC: legacy;
+        if variant virtex4 {
+            bel_slot EMAC: EMAC_V4;
+        } else {
+            bel_slot EMAC: legacy;
+        }
         if variant [virtex5, virtex6] {
             tile_class EMAC {
                 cell CELL[10];

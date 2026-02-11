@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{
-    db::{BelInfo, IntDb, LegacyBel},
+    db::{BelInfo, BelInput, IntDb, LegacyBel},
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_rawdump::Part;
@@ -865,6 +865,21 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
             true,
         );
+    }
+    let tcls = &mut builder.db.tile_classes[tcls::PPC];
+    for bel in tcls.bels.values_mut() {
+        let BelInfo::Bel(bel) = bel else {
+            unreachable!()
+        };
+        for wire in bel.inputs.values_mut() {
+            let BelInput::Fixed(wire) = wire else {
+                unreachable!()
+            };
+            if wires::IMUX_IMUX.contains(wire.wire) {
+                continue;
+            }
+            wire.inv = true;
+        }
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("CLK_HROW").iter().next() {
