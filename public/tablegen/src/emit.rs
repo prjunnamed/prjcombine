@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use prjcombine_entity::{EntityBundleIndex, EntityBundleMap, EntityId, EntityVec};
+use prjcombine_entity::{EntityBundleIndices, EntityBundleMap, EntityId, EntityVec};
 use prjcombine_interconnect::db::{BelPinIndexing, IntDb};
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 
@@ -67,7 +67,7 @@ fn emit_array_ids<I: EntityId>(
 
     for (index, _, ident) in idents.bundles() {
         match index {
-            EntityBundleIndex::Single(id) => {
+            EntityBundleIndices::Single(id) => {
                 res.extend([
                     keyword("pub"),
                     keyword("const"),
@@ -83,7 +83,7 @@ fn emit_array_ids<I: EntityId>(
                     punct(';'),
                 ]);
             }
-            EntityBundleIndex::Array(range) => {
+            EntityBundleIndices::Array(range) => {
                 res.extend([
                     keyword("pub"),
                     keyword("const"),
@@ -128,10 +128,10 @@ fn emit_pin_array_ids<I: EntityId>(
     let mut new_idents: EntityBundleMap<I, _> = EntityBundleMap::new();
     for (idx, name, (ident, _)) in idents.bundles() {
         match idx {
-            EntityBundleIndex::Single(_) => {
+            EntityBundleIndices::Single(_) => {
                 new_idents.insert(name.into(), ident.clone());
             }
-            EntityBundleIndex::Array(range) => {
+            EntityBundleIndices::Array(range) => {
                 new_idents.insert_array(name.into(), range.len(), ident.clone());
             }
         }

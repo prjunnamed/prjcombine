@@ -1,6 +1,6 @@
 use bincode::{BorrowDecode, Decode, Encode};
 
-use crate::{EntityBundleIndex, EntityBundleMap, EntityId};
+use crate::{EntityBundleIndices, EntityBundleMap, EntityId};
 
 impl<I: EntityId, T: Encode> Encode for EntityBundleMap<I, T> {
     fn encode<E: bincode::enc::Encoder>(
@@ -10,8 +10,8 @@ impl<I: EntityId, T: Encode> Encode for EntityBundleMap<I, T> {
         self.bundles.len().encode(encoder)?;
         for (_, key, (idx, val)) in &self.bundles {
             let num = match idx {
-                EntityBundleIndex::Single(_) => None,
-                EntityBundleIndex::Array(range) => Some(range.len()),
+                EntityBundleIndices::Single(_) => None,
+                EntityBundleIndices::Array(range) => Some(range.len()),
             };
             num.encode(encoder)?;
             key.encode(encoder)?;

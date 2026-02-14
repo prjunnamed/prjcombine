@@ -1,4 +1,4 @@
-use prjcombine_entity::EntityBundleIndex;
+use prjcombine_entity::EntityBundleIndices;
 use prjcombine_interconnect::db::BelAttributeType;
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex2::defs::{bcls, bslots, spartan3::tcls};
@@ -20,7 +20,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .mode(mode)
         .commit();
     for (pids, _, _) in backend.edev.db.bel_classes[bcls::DSP].inputs.bundles() {
-        if let EntityBundleIndex::Single(pid) = pids {
+        if let EntityBundleIndices::Single(pid) = pids {
             bctx.mode(mode).test_bel_input_inv_auto(pid);
         }
     }
@@ -38,7 +38,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tcid = tcls::DSP;
     let bslot = bslots::DSP;
     for (pids, _, _) in ctx.edev.db.bel_classes[bcls::DSP].inputs.bundles() {
-        if let EntityBundleIndex::Single(pid) = pids {
+        if let EntityBundleIndices::Single(pid) = pids {
             ctx.collect_bel_input_inv_int_bi(&[tcls::INT_BRAM_S3ADSP; 4], tcid, bslot, pid);
         }
     }
