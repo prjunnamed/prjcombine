@@ -2,9 +2,8 @@ use bimap::BiHashMap;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::{Dir, DirH, DirPartMap};
-use prjcombine_interconnect::grid::{
-    CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileIobId,
-};
+use prjcombine_interconnect::grid::builder::GridBuilder;
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, Rect, RowId, TileIobId};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
@@ -21,7 +20,7 @@ use crate::{
 
 struct DieExpander<'a, 'b, 'c> {
     chip: &'b Chip,
-    egrid: &'a mut ExpandedGrid<'b>,
+    egrid: &'a mut GridBuilder<'b>,
     die: DieId,
     site_holes: &'a mut Vec<Rect>,
     int_holes: &'a mut Vec<Rect>,
@@ -866,7 +865,7 @@ pub fn expand_grid<'a>(
     db: &'a IntDb,
     gdb: &'a GtzDb,
 ) -> ExpandedDevice<'a> {
-    let mut egrid = ExpandedGrid::new(db);
+    let mut egrid = GridBuilder::new(db);
     let pchip = &chips[interposer.primary];
     let mut bank = (15
         - chips
@@ -1172,7 +1171,7 @@ pub fn expand_grid<'a>(
         );
     }
 
-    egrid.finish();
+    let egrid = egrid.finish();
     ExpandedDevice {
         kind: pchip.kind,
         chips: chips.clone(),

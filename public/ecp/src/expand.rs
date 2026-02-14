@@ -4,7 +4,7 @@ use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::IntDb,
     dir::{Dir, DirH, DirHV, DirV},
-    grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId},
+    grid::{CellCoord, ColId, DieId, Rect, RowId, builder::GridBuilder},
 };
 
 use crate::{
@@ -17,7 +17,7 @@ use crate::{
 struct Expander<'a, 'b> {
     chip: &'b Chip,
     die: DieId,
-    egrid: &'a mut ExpandedGrid<'b>,
+    egrid: &'a mut GridBuilder<'b>,
     bel_holes: Vec<Rect>,
     dqs: BTreeMap<CellCoord, CellCoord>,
     frame_len: usize,
@@ -3155,7 +3155,7 @@ impl Expander<'_, '_> {
 
 impl Chip {
     pub fn expand_grid<'a>(&'a self, db: &'a IntDb) -> ExpandedDevice<'a> {
-        let mut egrid = ExpandedGrid::new(db);
+        let mut egrid = GridBuilder::new(db);
         let die = egrid.add_die(self.columns.len(), self.rows.len());
         let mut expander = Expander {
             chip: self,
@@ -3286,7 +3286,7 @@ impl Chip {
         let row_bit = expander.row_bit;
         let row_ebr_bit = expander.row_ebr_bit;
 
-        egrid.finish();
+        let egrid = egrid.finish();
         ExpandedDevice {
             chip: self,
             egrid,

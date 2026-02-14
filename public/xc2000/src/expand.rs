@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::{IntDb, TileClassId},
     dir::{DirH, DirHV, DirV},
-    grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId},
+    grid::{CellCoord, ColId, DieId, RowId, builder::GridBuilder},
 };
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
@@ -92,7 +92,7 @@ impl Chip {
     }
 
     pub fn expand_grid<'a>(&'a self, db: &'a IntDb) -> ExpandedDevice<'a> {
-        let mut egrid = ExpandedGrid::new(db);
+        let mut egrid = GridBuilder::new(db);
         let die = egrid.add_die(self.columns, self.rows);
 
         let mut row_framebit = EntityVec::new();
@@ -1042,7 +1042,7 @@ impl Chip {
             }
         }
 
-        egrid.finish();
+        let egrid = egrid.finish();
 
         let die_bs_geom = DieBitstreamGeom {
             frame_len,

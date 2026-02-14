@@ -7,10 +7,7 @@ use std::collections::hash_map::RandomState;
 use std::fmt;
 
 use indexmap::Equivalent;
-use indexmap::map::{
-    self as inner,
-    IndexMap,
-};
+use indexmap::map::{self as inner, IndexMap};
 
 use crate::id::EntityRange;
 use crate::{EntityId, EntityVec};
@@ -121,12 +118,8 @@ where
 
     pub fn entry(&mut self, key: K) -> Entry<'_, I, K, V> {
         match self.map.entry(key) {
-            inner::Entry::Occupied(entry) => {
-                Entry::Occupied(OccupiedEntry(entry, PhantomData))
-            }
-            inner::Entry::Vacant(entry) => {
-                Entry::Vacant(VacantEntry(entry, PhantomData))
-            }
+            inner::Entry::Occupied(entry) => Entry::Occupied(OccupiedEntry(entry, PhantomData)),
+            inner::Entry::Vacant(entry) => Entry::Vacant(VacantEntry(entry, PhantomData)),
         }
     }
 

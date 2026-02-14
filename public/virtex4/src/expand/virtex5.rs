@@ -1,9 +1,8 @@
 use assert_matches::assert_matches;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
-use prjcombine_interconnect::grid::{
-    CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileIobId,
-};
+use prjcombine_interconnect::grid::builder::GridBuilder;
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, Rect, RowId, TileIobId};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
@@ -21,7 +20,7 @@ use crate::{
 
 struct Expander<'a, 'b> {
     chip: &'b Chip,
-    egrid: &'a mut ExpandedGrid<'b>,
+    egrid: &'a mut GridBuilder<'b>,
     die: DieId,
     site_holes: &'a mut Vec<Rect>,
     int_holes: &'a mut Vec<Rect>,
@@ -514,7 +513,7 @@ pub fn expand_grid<'a>(
     db: &'a IntDb,
     gdb: &'a GtzDb,
 ) -> ExpandedDevice<'a> {
-    let mut egrid = ExpandedGrid::new(db);
+    let mut egrid = GridBuilder::new(db);
     assert_eq!(chips.len(), 1);
     let chip = chips.first().unwrap();
     let col_cfg = chip
@@ -673,7 +672,7 @@ pub fn expand_grid<'a>(
     })
     .collect();
 
-    egrid.finish();
+    let egrid = egrid.finish();
     ExpandedDevice {
         kind: chip.kind,
         chips: chips.clone(),

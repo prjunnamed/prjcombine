@@ -15,8 +15,8 @@ pub mod set;
 
 #[cfg(feature = "map")]
 pub use {
-    bundle_map::EntityBundleIndices, bundle_map::EntityBundleItemIndex, bundle_map::EntityBundleMap,
-    map::EntityMap, set::EntitySet,
+    bundle_map::EntityBundleIndices, bundle_map::EntityBundleItemIndex,
+    bundle_map::EntityBundleMap, map::EntityMap, set::EntitySet,
 };
 
 #[cfg(feature = "bitvec")]

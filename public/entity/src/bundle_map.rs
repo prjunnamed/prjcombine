@@ -1,7 +1,7 @@
 //! A map where each key-value pair is assigned a contiguous range of IDs.
-use crate::{EntityId, EntityRange, EntityVec, EntityMap};
+use crate::id::{EntityIdU32, EntityTag};
 use crate::map::Entry;
-use crate::id::{EntityTag, EntityIdU32};
+use crate::{EntityId, EntityMap, EntityRange, EntityVec};
 
 /// Indices occupied by a given bundle.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]

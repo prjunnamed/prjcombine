@@ -4,7 +4,8 @@ use bimap::BiHashMap;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::DirH;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, TileIobId};
+use prjcombine_interconnect::grid::builder::GridBuilder;
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId, TileIobId};
 use std::collections::BTreeSet;
 
 use crate::chip::{
@@ -22,7 +23,7 @@ use crate::{
 struct DieExpander<'a, 'b, 'c> {
     chip: &'b Chip,
     disabled: &'a BTreeSet<DisabledPart>,
-    egrid: &'a mut ExpandedGrid<'b>,
+    egrid: &'a mut GridBuilder<'b>,
     die: DieId,
     io: &'c mut Vec<IoCoord>,
     gt: &'c mut Vec<CellCoord>,
@@ -750,7 +751,7 @@ pub fn expand_grid<'a>(
     disabled: &BTreeSet<DisabledPart>,
     db: &'a IntDb,
 ) -> ExpandedDevice<'a> {
-    let mut egrid = ExpandedGrid::new(db);
+    let mut egrid = GridBuilder::new(db);
     let pchip = chips[interposer.primary];
     let mut has_pcie_cfg = false;
     let mut io = vec![];
@@ -791,7 +792,7 @@ pub fn expand_grid<'a>(
         RegId::from_idx(0),
     ));
 
-    egrid.finish();
+    let egrid = egrid.finish();
 
     let mut col_cfg_io = None;
     for (col, &cd) in &pchip.columns {

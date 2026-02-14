@@ -1,7 +1,8 @@
 use prjcombine_entity::{EntityBitVec, EntityId, EntityRange, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::DirH;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId};
+use prjcombine_interconnect::grid::builder::GridBuilder;
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId};
 use std::collections::{BTreeSet, HashMap};
 
 use crate::chip::{
@@ -18,7 +19,7 @@ struct DieInfo {
 struct Expander<'a> {
     chips: EntityVec<DieId, &'a Chip>,
     disabled: BTreeSet<DisabledPart>,
-    egrid: ExpandedGrid<'a>,
+    egrid: GridBuilder<'a>,
     die: EntityVec<DieId, DieInfo>,
 }
 
@@ -678,7 +679,7 @@ pub fn expand_grid<'a>(
     let mut expander = Expander {
         chips: chips.clone(),
         disabled: disabled.clone(),
-        egrid: ExpandedGrid::new(db),
+        egrid: GridBuilder::new(db),
         die: EntityVec::new(),
     };
     expander.fill_die();
@@ -694,7 +695,7 @@ pub fn expand_grid<'a>(
     expander.fill_lgt();
     expander.fill_rgt();
     expander.fill_clkroot();
-    expander.egrid.finish();
+    let egrid = expander.egrid.finish();
 
     let col_cfrm = expander.die.map_values(|die| die.col_cfrm);
 
@@ -712,7 +713,7 @@ pub fn expand_grid<'a>(
     ExpandedDevice {
         chips: expander.chips,
         interposer,
-        egrid: expander.egrid,
+        egrid,
         disabled: expander.disabled,
         col_cfrm,
         sll,

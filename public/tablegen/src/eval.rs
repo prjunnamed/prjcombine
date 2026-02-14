@@ -123,7 +123,9 @@ impl Context {
                     error_at(id.span(), "undefined object")?
                 };
                 match item {
-                    EntityBundleIndices::Single(_) => error_at(id.span(), "object is not an array")?,
+                    EntityBundleIndices::Single(_) => {
+                        error_at(id.span(), "object is not an array")?
+                    }
                     EntityBundleIndices::Array(range) => {
                         if index > range.len() {
                             error_at(id.span(), "index out of bounds")?
@@ -887,7 +889,9 @@ impl Context {
                     error_at(id.span(), "undefined object")?
                 };
                 match item {
-                    EntityBundleIndices::Single(_) => error_at(id.span(), "object is not an array")?,
+                    EntityBundleIndices::Single(_) => {
+                        error_at(id.span(), "object is not an array")?
+                    }
                     EntityBundleIndices::Array(range) => {
                         let Some(index) = indexing.try_virt_to_phys(index) else {
                             error_at(id.span(), "index out of bounds")?

@@ -1,7 +1,8 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::{DirH, DirV};
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, WireCoord};
+use prjcombine_interconnect::grid::builder::GridBuilder;
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId, WireCoord};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -16,7 +17,7 @@ struct Expander<'a, 'b> {
     db: &'b IntDb,
     disabled: &'a BTreeSet<DisabledPart>,
     die: DieId,
-    egrid: &'a mut ExpandedGrid<'b>,
+    egrid: &'a mut GridBuilder<'b>,
     cols_bram: Vec<ColId>,
     spine_frame: usize,
     frame_info: Vec<FrameInfo>,
@@ -494,7 +495,7 @@ impl Chip {
         disabled: &BTreeSet<DisabledPart>,
         db: &'a IntDb,
     ) -> ExpandedDevice<'a> {
-        let mut egrid = ExpandedGrid::new(db);
+        let mut egrid = GridBuilder::new(db);
         let die = egrid.add_die(self.columns, self.rows);
 
         let mut expander = Expander {
@@ -540,7 +541,7 @@ impl Chip {
         };
 
         egrid.blackhole_wires = expander.blackhole_wires;
-        egrid.finish();
+        let egrid = egrid.finish();
         ExpandedDevice {
             chip: self,
             egrid,

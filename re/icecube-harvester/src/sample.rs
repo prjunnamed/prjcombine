@@ -1128,7 +1128,8 @@ pub fn make_sample(
                         }
                     }
                     for pin in ["WE", "RE", "WCLKE", "RCLKE"] {
-                        let EntityBundleIndices::Single(pid) = bcls.inputs.get(pin).unwrap().0 else {
+                        let EntityBundleIndices::Single(pid) = bcls.inputs.get(pin).unwrap().0
+                        else {
                             unreachable!()
                         };
                         let wire = edev.get_bel_input(bel, pid);

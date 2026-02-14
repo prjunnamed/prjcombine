@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::IntDb,
     dir::Dir,
-    grid::{CellCoord, ExpandedGrid},
+    grid::{CellCoord, builder::GridBuilder},
 };
 
 use crate::{
@@ -13,7 +13,7 @@ use crate::{
 
 impl Chip {
     pub fn expand_grid<'a>(&'a self, db: &'a IntDb) -> ExpandedDevice<'a> {
-        let mut egrid = ExpandedGrid::new(db);
+        let mut egrid = GridBuilder::new(db);
         let die = egrid.add_die(self.columns, self.rows);
 
         // fill tiles
@@ -283,7 +283,7 @@ impl Chip {
         assert_eq!(frame_width_l, frame_width_r);
         let frame_width = frame_width_l + 2;
 
-        egrid.finish();
+        let egrid = egrid.finish();
         ExpandedDevice {
             chip: self,
             egrid,

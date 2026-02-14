@@ -1,7 +1,8 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::DirHV;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect};
+use prjcombine_interconnect::grid::builder::GridBuilder;
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, Rect};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -19,7 +20,7 @@ use crate::iob::{get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w}
 struct Expander<'a, 'b> {
     chip: &'b Chip,
     die: DieId,
-    egrid: &'a mut ExpandedGrid<'b>,
+    egrid: &'a mut GridBuilder<'b>,
     holes: Vec<Rect>,
     frame_info: Vec<FrameInfo>,
     clkv_frame: usize,
@@ -1304,7 +1305,7 @@ impl Expander<'_, '_> {
 
 impl Chip {
     pub fn expand_grid<'a>(&'a self, db: &'a IntDb) -> ExpandedDevice<'a> {
-        let mut egrid = ExpandedGrid::new(db);
+        let mut egrid = GridBuilder::new(db);
 
         let die = egrid.add_die(self.columns.len(), self.rows.len());
 
@@ -1382,7 +1383,7 @@ impl Chip {
             has_gtz_top: false,
         };
 
-        egrid.finish();
+        let egrid = egrid.finish();
         ExpandedDevice {
             chip: self,
             egrid,
