@@ -1,3 +1,4 @@
+//! An [`IndexMap`] with strongly-typed indices.
 use core::hash::{BuildHasher, Hash};
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};

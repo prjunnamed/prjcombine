@@ -15,7 +15,7 @@ pub mod set;
 
 #[cfg(feature = "map")]
 pub use {
-    bundle_map::EntityBundleIndex, bundle_map::EntityBundleItemIndex, bundle_map::EntityBundleMap,
+    bundle_map::EntityBundleIndices, bundle_map::EntityBundleItemIndex, bundle_map::EntityBundleMap,
     map::EntityMap, set::EntitySet,
 };
 

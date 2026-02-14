@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, btree_map};
 
-use prjcombine_entity::{EntityBundleIndex, EntityVec};
+use prjcombine_entity::{EntityBundleIndices, EntityVec};
 use prjcombine_interconnect::{
     db::{
         BelInfo, BelInput, BelKind, BelSlotId, CellSlotId, IntDb, TileClass, TileClassId,
@@ -56,24 +56,24 @@ impl<'a> MiscTileBuilder<'a> {
                 InstPin::Simple(pname) => {
                     if let Some((bidx, _)) = bcls.inputs.get(pname) {
                         match bidx {
-                            EntityBundleIndex::Single(pid) => pid,
-                            EntityBundleIndex::Array(_) => unreachable!(),
+                            EntityBundleIndices::Single(pid) => pid,
+                            EntityBundleIndices::Array(_) => unreachable!(),
                         }
                     } else {
                         let idx: usize = pname[pname.len() - 1..].parse().unwrap();
                         let pname = &pname[..pname.len() - 1];
                         let bidx = bcls.inputs.get(pname).unwrap().0;
                         match bidx {
-                            EntityBundleIndex::Single(_) => unreachable!(),
-                            EntityBundleIndex::Array(range) => range.index(idx),
+                            EntityBundleIndices::Single(_) => unreachable!(),
+                            EntityBundleIndices::Array(range) => range.index(idx),
                         }
                     }
                 }
                 InstPin::Indexed(pname, idx) => {
                     let bidx = bcls.inputs.get(pname).unwrap().0;
                     match bidx {
-                        EntityBundleIndex::Single(_) => unreachable!(),
-                        EntityBundleIndex::Array(range) => range.index(*idx),
+                        EntityBundleIndices::Single(_) => unreachable!(),
+                        EntityBundleIndices::Array(range) => range.index(*idx),
                     }
                 }
             };
@@ -96,24 +96,24 @@ impl<'a> MiscTileBuilder<'a> {
                 InstPin::Simple(pname) => {
                     if let Some((bidx, _)) = bcls.outputs.get(pname) {
                         match bidx {
-                            EntityBundleIndex::Single(pid) => pid,
-                            EntityBundleIndex::Array(_) => unreachable!(),
+                            EntityBundleIndices::Single(pid) => pid,
+                            EntityBundleIndices::Array(_) => unreachable!(),
                         }
                     } else {
                         let idx: usize = pname[pname.len() - 1..].parse().unwrap();
                         let pname = &pname[..pname.len() - 1];
                         let bidx = bcls.outputs.get(pname).unwrap().0;
                         match bidx {
-                            EntityBundleIndex::Single(_) => unreachable!(),
-                            EntityBundleIndex::Array(range) => range.index(idx),
+                            EntityBundleIndices::Single(_) => unreachable!(),
+                            EntityBundleIndices::Array(range) => range.index(idx),
                         }
                     }
                 }
                 InstPin::Indexed(pname, idx) => {
                     let bidx = bcls.outputs.get(pname).unwrap().0;
                     match bidx {
-                        EntityBundleIndex::Single(_) => unreachable!(),
-                        EntityBundleIndex::Array(range) => range.index(*idx),
+                        EntityBundleIndices::Single(_) => unreachable!(),
+                        EntityBundleIndices::Array(range) => range.index(*idx),
                     }
                 }
             };

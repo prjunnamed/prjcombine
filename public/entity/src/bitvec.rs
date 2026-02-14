@@ -1,3 +1,4 @@
+//! A [`BitVec`] with strongly-typed indices.
 use core::hash::Hash;
 use core::marker::PhantomData;
 use core::ops::Index;
@@ -10,6 +11,7 @@ use crate::id::EntityRange;
 use bitvec::order::Lsb0;
 use bitvec::vec::BitVec;
 
+/// A [`BitVec`] with strongly-typed indices.
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct EntityBitVec<I: EntityId> {
     vals: BitVec,
@@ -124,6 +126,13 @@ impl<I: EntityId> EntityBitVec<I> {
         res
     }
 
+    /// Create a bitvector of size `len`, and fill it with the data from `buf`, starting from the
+    /// least significant bit of each byte.
+    ///
+    /// ## Panics
+    ///
+    /// `buf` must have enough data to fill `len` bits, and there must be less than a full byte
+    /// left over. Panics if this is not the case.
     fn from_bytes(buf: &[u8], len: usize) -> Self {
         assert_eq!(buf.len(), len.div_ceil(8));
         let mut res = BitVec::repeat(false, len);

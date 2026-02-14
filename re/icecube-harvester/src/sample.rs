@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use prjcombine_entity::{EntityBundleIndex, EntityBundleItemIndex, EntityId};
+use prjcombine_entity::{EntityBundleIndices, EntityBundleItemIndex, EntityId};
 use prjcombine_interconnect::{
     db::{
         BelAttributeType, BelInfo, BelInput, BelKind, SwitchBoxItem, TileClassId, TileWireCoord,
@@ -1128,7 +1128,7 @@ pub fn make_sample(
                         }
                     }
                     for pin in ["WE", "RE", "WCLKE", "RCLKE"] {
-                        let EntityBundleIndex::Single(pid) = bcls.inputs.get(pin).unwrap().0 else {
+                        let EntityBundleIndices::Single(pid) = bcls.inputs.get(pin).unwrap().0 else {
                             unreachable!()
                         };
                         let wire = edev.get_bel_input(bel, pid);
@@ -1140,7 +1140,7 @@ pub fn make_sample(
                     }
                     let abits = if edev.chip.kind.is_ice40() { 11 } else { 8 };
                     for pin in ["WADDR", "RADDR"] {
-                        let EntityBundleIndex::Array(range) = bcls.inputs.get(pin).unwrap().0
+                        let EntityBundleIndices::Array(range) = bcls.inputs.get(pin).unwrap().0
                         else {
                             unreachable!()
                         };
@@ -1158,7 +1158,7 @@ pub fn make_sample(
                         }
                     }
                     for pin in ["WDATA", "MASK"] {
-                        let EntityBundleIndex::Array(range) = bcls.inputs.get(pin).unwrap().0
+                        let EntityBundleIndices::Array(range) = bcls.inputs.get(pin).unwrap().0
                         else {
                             unreachable!()
                         };
@@ -1177,7 +1177,7 @@ pub fn make_sample(
                     }
                     {
                         let pin = "RDATA";
-                        let EntityBundleIndex::Array(range) = bcls.outputs.get(pin).unwrap().0
+                        let EntityBundleIndices::Array(range) = bcls.outputs.get(pin).unwrap().0
                         else {
                             unreachable!()
                         };

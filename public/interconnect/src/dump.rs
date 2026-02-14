@@ -2,7 +2,7 @@ use crate::db::{
     BelAttribute, BelAttributeType, BelInfo, BelKind, ConnectorWire, IntDb, PadKind, PinDir,
     SwitchBoxItem, TableValue, TileClass,
 };
-use prjcombine_entity::{EntityBundleIndex, EntityBundleItemIndex, EntityId};
+use prjcombine_entity::{EntityBundleIndices, EntityBundleItemIndex, EntityId};
 use prjcombine_types::bsdata::{PolTileBit, TileBit};
 use std::collections::BTreeMap;
 
@@ -528,8 +528,8 @@ impl IntDb {
                     nr = if pin.nonroutable { "nonroutable " } else { "" }
                 )?;
                 match index {
-                    EntityBundleIndex::Single(_) => writeln!(o, ";")?,
-                    EntityBundleIndex::Array(range) => {
+                    EntityBundleIndices::Single(_) => writeln!(o, ";")?,
+                    EntityBundleIndices::Array(range) => {
                         if pin.indexing == Default::default() {
                             writeln!(o, "[{n}];", n = range.len())?;
                         } else {
@@ -550,8 +550,8 @@ impl IntDb {
                     nr = if pin.nonroutable { "nonroutable " } else { "" }
                 )?;
                 match index {
-                    EntityBundleIndex::Single(_) => writeln!(o, ";")?,
-                    EntityBundleIndex::Array(range) => {
+                    EntityBundleIndices::Single(_) => writeln!(o, ";")?,
+                    EntityBundleIndices::Array(range) => {
                         if pin.indexing == Default::default() {
                             writeln!(o, "[{n}];", n = range.len())?;
                         } else {
@@ -572,8 +572,8 @@ impl IntDb {
                     nr = if pin.nonroutable { "nonroutable " } else { "" }
                 )?;
                 match index {
-                    EntityBundleIndex::Single(_) => writeln!(o, ";")?,
-                    EntityBundleIndex::Array(range) => {
+                    EntityBundleIndices::Single(_) => writeln!(o, ";")?,
+                    EntityBundleIndices::Array(range) => {
                         if pin.indexing == Default::default() {
                             writeln!(o, "[{n}];", n = range.len())?;
                         } else {
@@ -590,8 +590,8 @@ impl IntDb {
             for (index, pname, pad) in bcls.pads.bundles() {
                 write!(o, "\t\tpad {pname}")?;
                 match index {
-                    EntityBundleIndex::Single(_) => (),
-                    EntityBundleIndex::Array(range) => write!(o, "[{n}]", n = range.len())?,
+                    EntityBundleIndices::Single(_) => (),
+                    EntityBundleIndices::Array(range) => write!(o, "[{n}]", n = range.len())?,
                 }
                 writeln!(
                     o,

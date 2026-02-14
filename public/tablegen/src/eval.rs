@@ -2,7 +2,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::fmt::Write;
 
 use prjcombine_entity::{
-    EntityBundleIndex, EntityBundleMap, EntityId, EntityPartVec, EntitySet, EntityVec,
+    EntityBundleIndices, EntityBundleMap, EntityId, EntityPartVec, EntitySet, EntityVec,
 };
 use prjcombine_interconnect::db::{
     Bel, BelAttribute, BelAttributeEnum, BelAttributeType, BelClass, BelClassAttribute,
@@ -107,7 +107,7 @@ impl Context {
         &self,
         id: &ast::ArrayIdRef,
         map: &EntityBundleMap<I, Ident>,
-    ) -> Result<EntityBundleIndex<I>> {
+    ) -> Result<EntityBundleIndices<I>> {
         match id {
             ast::ArrayIdRef::Plain(id) => {
                 let id = self.eval_templ_id(id)?;
@@ -123,12 +123,12 @@ impl Context {
                     error_at(id.span(), "undefined object")?
                 };
                 match item {
-                    EntityBundleIndex::Single(_) => error_at(id.span(), "object is not an array")?,
-                    EntityBundleIndex::Array(range) => {
+                    EntityBundleIndices::Single(_) => error_at(id.span(), "object is not an array")?,
+                    EntityBundleIndices::Array(range) => {
                         if index > range.len() {
                             error_at(id.span(), "index out of bounds")?
                         }
-                        Ok(EntityBundleIndex::Single(range.index(index)))
+                        Ok(EntityBundleIndices::Single(range.index(index)))
                     }
                 }
             }
@@ -141,8 +141,8 @@ impl Context {
         map: &EntityBundleMap<I, Ident>,
     ) -> Result<I> {
         match self.eval_array_ref_wide(id, map)? {
-            EntityBundleIndex::Single(id) => Ok(id),
-            EntityBundleIndex::Array(_) => error_at(id.span(), "object is an array")?,
+            EntityBundleIndices::Single(id) => Ok(id),
+            EntityBundleIndices::Array(_) => error_at(id.span(), "object is an array")?,
         }
     }
 
@@ -188,8 +188,8 @@ impl Context {
             error_at(name.span(), "undefined bitrect")?
         };
         let rect = match rect {
-            EntityBundleIndex::Single(r) => r,
-            EntityBundleIndex::Array(range) => {
+            EntityBundleIndices::Single(r) => r,
+            EntityBundleIndices::Array(range) => {
                 if index.is_empty() {
                     error_at(name.span(), "missing bitrect index")?
                 }
@@ -876,8 +876,8 @@ impl Context {
                     error_at(id.span(), "undefined object")?
                 };
                 match item {
-                    EntityBundleIndex::Single(id) => Ok(id),
-                    EntityBundleIndex::Array(_) => error_at(id.span(), "object is an array")?,
+                    EntityBundleIndices::Single(id) => Ok(id),
+                    EntityBundleIndices::Array(_) => error_at(id.span(), "object is an array")?,
                 }
             }
             ast::ArrayIdRef::Indexed(id, index) => {
@@ -887,8 +887,8 @@ impl Context {
                     error_at(id.span(), "undefined object")?
                 };
                 match item {
-                    EntityBundleIndex::Single(_) => error_at(id.span(), "object is not an array")?,
-                    EntityBundleIndex::Array(range) => {
+                    EntityBundleIndices::Single(_) => error_at(id.span(), "object is not an array")?,
+                    EntityBundleIndices::Array(range) => {
                         let Some(index) = indexing.try_virt_to_phys(index) else {
                             error_at(id.span(), "index out of bounds")?
                         };
@@ -1060,10 +1060,10 @@ impl Context {
                 let src = self.eval_array_ref_wide(src, &self.db.wire_id)?;
                 let ccls = &mut self.db.db.conn_classes[ccls];
                 match (dst, src) {
-                    (EntityBundleIndex::Single(dst), EntityBundleIndex::Single(src)) => {
+                    (EntityBundleIndices::Single(dst), EntityBundleIndices::Single(src)) => {
                         ccls.wires.insert(dst, ConnectorWire::Pass(src));
                     }
-                    (EntityBundleIndex::Array(dsts), EntityBundleIndex::Array(srcs))
+                    (EntityBundleIndices::Array(dsts), EntityBundleIndices::Array(srcs))
                         if dsts.len() == srcs.len() =>
                     {
                         for (dst, src) in dsts.into_iter().zip(srcs) {
@@ -1079,10 +1079,10 @@ impl Context {
                 let src = self.eval_array_ref_wide(src, &self.db.wire_id)?;
                 let ccls = &mut self.db.db.conn_classes[ccls];
                 match (dst, src) {
-                    (EntityBundleIndex::Single(dst), EntityBundleIndex::Single(src)) => {
+                    (EntityBundleIndices::Single(dst), EntityBundleIndices::Single(src)) => {
                         ccls.wires.insert(dst, ConnectorWire::Reflect(src));
                     }
-                    (EntityBundleIndex::Array(dsts), EntityBundleIndex::Array(srcs))
+                    (EntityBundleIndices::Array(dsts), EntityBundleIndices::Array(srcs))
                         if dsts.len() == srcs.len() =>
                     {
                         for (dst, src) in dsts.into_iter().zip(srcs) {
@@ -1096,10 +1096,10 @@ impl Context {
                 let dst = self.eval_array_ref_wide(dst, &self.db.wire_id)?;
                 let ccls = &mut self.db.db.conn_classes[ccls];
                 match dst {
-                    EntityBundleIndex::Single(dst) => {
+                    EntityBundleIndices::Single(dst) => {
                         ccls.wires.insert(dst, ConnectorWire::BlackHole);
                     }
-                    EntityBundleIndex::Array(dsts) => {
+                    EntityBundleIndices::Array(dsts) => {
                         for dst in dsts {
                             ccls.wires.insert(dst, ConnectorWire::BlackHole);
                         }
