@@ -76,7 +76,7 @@ fn drive_wire<'a>(
     let wt = wire_target.slot;
     let wtn = &backend.edev.db.wires.key(wt)[..];
     let (ploc, pwt, pwf) = if let Some((bel, pin)) = wire_to_outpin(backend, wire_target) {
-        let tcrd = backend.edev.get_tile_by_bel(bel);
+        let tcrd = backend.edev.bel_tile(bel);
         let ntile = &backend.ngrid.tiles[&tcrd];
         return (
             fuzzer.base(Key::WireMutex(wire_target), "SHARED_ROOT"),

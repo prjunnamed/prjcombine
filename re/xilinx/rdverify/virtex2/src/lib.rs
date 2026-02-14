@@ -145,7 +145,7 @@ fn verify_mult(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoo
 
 fn verify_mult_int(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoord) {
     let edev = endev.edev;
-    let tcrd = edev.get_tile_by_bel(bcrd);
+    let tcrd = edev.bel_tile(bcrd);
     let bcrd_bram = bcrd.bel(bslots::BRAM);
     let bel_bram = vrf.verify_bel(bcrd_bram);
     let mut wire_to_name = HashMap::new();
@@ -219,8 +219,7 @@ fn verify_dsp(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoor
 fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: BelCoord) {
     match bcrd.slot {
         bslots::INT => {
-            let crd = vrf.get_tile_crds(endev.edev.get_tile_by_bel(bcrd)).unwrap()
-                [RawTileId::from_idx(0)];
+            let crd = vrf.get_tile_crds(endev.edev.bel_tile(bcrd)).unwrap()[RawTileId::from_idx(0)];
             let name = endev.ngrid.get_bel_name(bcrd).unwrap();
             vrf.claim_site_dummy(crd, name);
         }

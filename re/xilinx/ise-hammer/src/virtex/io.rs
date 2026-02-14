@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::BelSlotId,
+    db::{BelSlotId, TileClassId},
     grid::{CellCoord, DieId, TileCoord},
 };
 use prjcombine_re_collector::{
@@ -18,7 +18,10 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex::{chip::ChipKind, defs};
+use prjcombine_virtex::{
+    chip::ChipKind,
+    defs::{self, tcls},
+};
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -187,10 +190,9 @@ fn has_any_vref<'a>(
     edev: &prjcombine_virtex::expanded::ExpandedDevice,
     device: &'a Device,
     db: &GeomDb,
-    tile: &str,
+    tcid: TileClassId,
     slot: BelSlotId,
 ) -> Option<&'a str> {
-    let tile_class = edev.db.get_tile_class(tile);
     let mut bonded_ios = HashMap::new();
     for devbond in device.bonds.values() {
         let bond = &db.bonds[devbond.bond];
@@ -201,7 +203,7 @@ fn has_any_vref<'a>(
             bonded_ios.insert(io, &devbond.name[..]);
         }
     }
-    for &tcrd in &edev.tile_index[tile_class] {
+    for &tcrd in &edev.tile_index[tcid] {
         let crd = edev.chip.get_io_crd(tcrd.bel(slot));
         if let Some(&pkg) = bonded_ios.get(&crd) {
             return Some(pkg);
@@ -225,11 +227,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Virtex(edev) = backend.edev else {
         unreachable!()
     };
-    for side in ['W', 'E', 'S', 'N'] {
-        let tile = format!("IO_{side}");
-        let mut ctx = FuzzCtx::new_legacy(session, backend, &tile);
+    for tcid in [tcls::IO_W, tcls::IO_E, tcls::IO_S, tcls::IO_N] {
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..4 {
-            if i == 0 || (i == 3 && matches!(side, 'S' | 'N')) {
+            if i == 0 || (i == 3 && matches!(tcid, tcls::IO_S | tcls::IO_N)) {
                 continue;
             }
             let mut bctx = ctx.bel(defs::bslots::IO[i]);
@@ -245,7 +246,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("OFFATTRBOX", "HIGH")
                 .commit();
             if let Some(pkg) =
-                has_any_vref(edev, backend.device, backend.db, &tile, defs::bslots::IO[i])
+                has_any_vref(edev, backend.device, backend.db, tcid, defs::bslots::IO[i])
             {
                 bctx.build()
                     .raw(Key::Package, pkg)
@@ -507,8 +508,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .commit();
                     }
                 }
-                if tile == "IO_S" || tile == "IO_N" {
-                    let row = if tile == "IO_S" {
+                if tcid == tcls::IO_S || tcid == tcls::IO_N {
+                    let row = if tcid == tcls::IO_S {
                         edev.chip.row_s()
                     } else {
                         edev.chip.row_n()
@@ -576,6 +577,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     };
     for side in ['W', 'E', 'S', 'N'] {
         let tile = &format!("IO_{side}");
+        let tcid = edev.db.get_tile_class(tile);
         let tile_iob = &format!("IOB_{side}_{kind}");
         let mut pdrive_all = vec![];
         let mut ndrive_all = vec![];
@@ -784,7 +786,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             ctx.insert_legacy(tile_iob, bel, "PULL", item);
 
-            if has_any_vref(edev, ctx.device, ctx.db, tile, defs::bslots::IO[i]).is_some() {
+            if has_any_vref(edev, ctx.device, ctx.db, tcid, defs::bslots::IO[i]).is_some() {
                 let diff =
                     present.combine(&!&ctx.get_diff_legacy(tile, bel, "PRESENT", "NOT_VREF"));
                 ctx.insert_legacy(tile_iob, bel, "VREF", xlat_bit_legacy(diff));

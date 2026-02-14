@@ -16,7 +16,11 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::{chip::RegId, defs, expanded::IoCoord};
+use prjcombine_virtex4::{
+    chip::RegId,
+    defs::{self, virtex7::tcls},
+    expanded::IoCoord,
+};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -28,7 +32,7 @@ use crate::{
             DynProp,
             bel::{BaseBelAttr, BaseBelMode, BaseBelPin, BaseBelPinPair},
             mutex::TileMutex,
-            relation::{DeltaLegacy, Related},
+            relation::{Delta, Related},
         },
     },
     virtex4::io::IsBonded,
@@ -361,15 +365,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bdata.pins.len()
         })
         .unwrap();
-    for (tile, num_io) in [
-        ("IO_HR_PAIR", 2),
-        ("IO_HR_S", 1),
-        ("IO_HR_N", 1),
-        ("IO_HP_PAIR", 2),
-        ("IO_HP_S", 1),
-        ("IO_HP_N", 1),
+    for (tcid, is_hp, num_io) in [
+        (tcls::IO_HR_PAIR, false, 2),
+        (tcls::IO_HR_S, false, 1),
+        (tcls::IO_HR_N, false, 1),
+        (tcls::IO_HP_PAIR, true, 2),
+        (tcls::IO_HP_S, true, 1),
+        (tcls::IO_HP_N, true, 1),
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         for i in 0..num_io {
@@ -547,7 +551,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pin("OFB")
                 .test_enum_legacy("IFFDELMUX", &["0", "1"]);
 
-            if tile.contains("HR") {
+            if !is_hp {
                 bctx.test_manual_legacy("PRESENT", "ILOGICE3")
                     .mode("ILOGICE3")
                     .commit();
@@ -913,13 +917,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("DELAY_SRC", "IDATAIN")
                 .attr("IDELAY_TYPE", "FIXED")
                 .test_multi_attr_dec_legacy("IDELAY_VALUE", 5);
-            if tile.contains("HP") {
+            if is_hp {
                 bctx.mode("IDELAYE2_FINEDELAY")
                     .props(setup_idelayctrl.clone())
                     .test_enum_legacy("FINEDELAY", &["BYPASS", "ADD_DLY"]);
             }
         }
-        if tile.contains("HP") {
+        if is_hp {
             for i in 0..num_io {
                 let mut bctx = ctx.bel(defs::bslots::ODELAY[i]);
                 bctx.build()
@@ -1020,7 +1024,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("OSTANDARD", "LVCMOS18")
                     .attr("DRIVE", "12")
                     .attr("SLEW", "SLOW")
-                    .test_multi_attr_bin("IPROGRAMMING", 24);
+                    .test_multi_attr_bin_legacy("IPROGRAMMING", 24);
                 bctx.mode("IOB18")
                     .global("UNCONSTRAINEDPINS", "ALLOW")
                     .related_tile_mutex(HclkIoi, "VCCO", "1800")
@@ -1029,7 +1033,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("OSTANDARD", "LVCMOS18")
                     .attr("DRIVE", "12")
                     .attr("SLEW", "SLOW")
-                    .test_multi_attr_bin("OPROGRAMMING", 34);
+                    .test_multi_attr_bin_legacy("OPROGRAMMING", 34);
                 for &std in HP_IOSTDS {
                     if num_io == 1 && !matches!(std.name, "LVCMOS18" | "HSTL_I") {
                         continue;
@@ -1417,7 +1421,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("I")
                             .raw(Key::Package, &package.name)
                             .prop(IsBonded(bel))
-                            .prop(VrefInternal("HCLK_IO_HP", vref))
+                            .prop(VrefInternal(tcls::HCLK_IO_HP, vref))
                             .test_manual_legacy("ISTD", format!("{std}.LP"))
                             .attr("IUSED", "0")
                             .attr("ISTANDARD", std)
@@ -1486,7 +1490,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("OSTANDARD", "LVCMOS33")
                     .attr("DRIVE", "12")
                     .attr("SLEW", "SLOW")
-                    .test_multi_attr_bin("OPROGRAMMING", 39);
+                    .test_multi_attr_bin_legacy("OPROGRAMMING", 39);
                 bctx.mode("IOB33")
                     .global("UNCONSTRAINEDPINS", "ALLOW")
                     .related_tile_mutex(HclkIoi, "VCCO", "3300")
@@ -1499,7 +1503,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("OSTANDARD", "LVCMOS33")
                     .attr("DRIVE", "12")
                     .attr("SLEW", "SLOW")
-                    .test_multi_attr_bin("IPROGRAMMING", 9);
+                    .test_multi_attr_bin_legacy("IPROGRAMMING", 9);
                 bctx.mode("IOB33")
                     .global("UNCONSTRAINEDPINS", "ALLOW")
                     .related_tile_mutex(HclkIoi, "VCCO", "1800")
@@ -1568,11 +1572,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     );
 
                 let anchor_props = |dy, vcco: u16, anchor_std: &'static str| -> [Box<DynProp>; 5] {
-                    let rel = DeltaLegacy::new(0, dy, "IO_HR_PAIR");
+                    let rel = Delta::new(0, dy, tcls::IO_HR_PAIR);
                     [
                         Box::new(Related::new(
                             HclkIoi,
-                            TileMutex::new("VCCO".into(), vcco.to_string()),
+                            TileMutex::new("VCCO".into(), vcco.to_string().into()),
                         )),
                         Box::new(Related::new(
                             rel.clone(),
@@ -1597,10 +1601,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         )),
                     ]
                 };
-                let anchor_dy = match tile {
-                    "IO_HR_S" => 1,
-                    "IO_HR_PAIR" => 2,
-                    "IO_HR_N" => -2,
+                let anchor_dy = match tcid {
+                    tcls::IO_HR_S => 1,
+                    tcls::IO_HR_PAIR => 2,
+                    tcls::IO_HR_N => -2,
                     _ => unreachable!(),
                 };
                 for &std in HR_IOSTDS {
@@ -1782,15 +1786,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .global("UNCONSTRAINEDPINS", "ALLOW")
                                     .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
                                     .prop(Related::new(
-                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
+                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
                                         BaseBelMode::new(defs::bslots::IOB[1], 0, "IOB33M".into()),
                                     ))
                                     .prop(Related::new(
-                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
+                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
                                         BaseBelPin::new(defs::bslots::IOB[1], 0, "O".into()),
                                     ))
                                     .prop(Related::new(
-                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
+                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
                                         BaseBelAttr::new(
                                             defs::bslots::IOB[1],
                                             0,
@@ -1799,7 +1803,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         ),
                                     ))
                                     .prop(Related::new(
-                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
+                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
                                         BaseBelAttr::new(
                                             defs::bslots::IOB[1],
                                             0,
@@ -1808,7 +1812,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         ),
                                     ))
                                     .prop(Related::new(
-                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
+                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
                                         BaseBelAttr::new(
                                             defs::bslots::IOB[1],
                                             0,
@@ -1817,11 +1821,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         ),
                                     ))
                                     .prop(Related::new(
-                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
+                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
                                         BaseBelMode::new(defs::bslots::IOB[0], 0, "IOB33S".into()),
                                     ))
                                     .prop(Related::new(
-                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
+                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
                                         BaseBelPinPair::new(
                                             defs::bslots::IOB[1],
                                             0,
@@ -1832,7 +1836,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         ),
                                     ))
                                     .prop(Related::new(
-                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
+                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
                                         BaseBelAttr::new(
                                             defs::bslots::IOB[0],
                                             0,
@@ -1841,7 +1845,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         ),
                                     ))
                                     .prop(Related::new(
-                                        DeltaLegacy::new(0, 4, "IO_HR_PAIR"),
+                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
                                         BaseBelAttr::new(
                                             defs::bslots::IOB[0],
                                             0,
@@ -1971,7 +1975,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("I")
                             .raw(Key::Package, &package.name)
                             .prop(IsBonded(bel))
-                            .prop(VrefInternal("HCLK_IO_HR", vref))
+                            .prop(VrefInternal(tcls::HCLK_IO_HR, vref))
                             .test_manual_legacy("ISTD", format!("{std}.LP"))
                             .attr("IUSED", "0")
                             .attr("ISTANDARD", std)
@@ -1980,7 +1984,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     }
                 }
 
-                if tile == "IO_HR_S" {
+                if tcid == tcls::IO_HR_S {
                     let mut builder = bctx
                         .mode("IOB33")
                         .global("UNCONSTRAINEDPINS", "ALLOW")
@@ -1991,20 +1995,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
                         .extra_tile_attr_legacy(
-                            DeltaLegacy::new(0, 49, "IO_HR_N"),
+                            Delta::new(0, 49, tcls::IO_HR_N),
                             "IOB[0]",
                             "LOW_VOLTAGE",
                             "1",
                         )
                         .extra_tile_attr_legacy(
-                            DeltaLegacy::new(0, 25, "HCLK_IO_HR"),
+                            Delta::new(0, 25, tcls::HCLK_IO_HR),
                             "DRIVERBIAS",
                             "DRIVERBIAS",
                             "LV",
                         );
                     for i in 0..24 {
                         builder = builder.extra_tile_attr_legacy(
-                            DeltaLegacy::new(0, 1 + i * 2, "IO_HR_PAIR"),
+                            Delta::new(0, 1 + i * 2, tcls::IO_HR_PAIR),
                             "IOB_COMMON",
                             "LOW_VOLTAGE",
                             "1",
@@ -2036,7 +2040,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
 
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "HCLK_IO_HP") {
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::HCLK_IO_HP) {
         let mut bctx = ctx.bel(defs::bslots::DCI);
         bctx.build()
             .global("DCIUPDATEMODE", "ASREQUIRED")
@@ -2233,7 +2237,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "HCLK_IO_HR") {
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::HCLK_IO_HR) {
         for val in ["OFF", "FREEZE", "ALWAYSACTIVE"] {
             ctx.test_manual_legacy("VCCOSENSE", "MODE", val)
                 .prop(VccoSenseMode(val))
@@ -3249,7 +3253,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present.assert_empty();
     }
 
-    if ctx.has_tile_legacy("IO_HP_PAIR") {
+    if ctx.has_tcls(tcls::IO_HP_PAIR) {
         let tile = "IO_HP_PAIR";
         for &std in HP_IOSTDS {
             if std.diff == DiffKind::None {
@@ -3421,7 +3425,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
 
-    if ctx.has_tile_legacy("HCLK_IO_HP") {
+    if ctx.has_tcls(tcls::HCLK_IO_HP) {
         let tile = "HCLK_IO_HP";
         let lvdsbias = TileItem::from_bitvec_inv(
             vec![
@@ -3909,7 +3913,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
 
-    if ctx.has_tile_legacy("IO_HR_PAIR") {
+    if ctx.has_tcls(tcls::IO_HR_PAIR) {
         let tile = "IO_HR_PAIR";
         for &std in HR_IOSTDS {
             if std.diff == DiffKind::None {
@@ -4087,7 +4091,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let _ = ctx.get_diff_legacy("IO_HR_PAIR", "IOB_COMMON", "LOW_VOLTAGE", "1");
     }
 
-    if ctx.has_tile_legacy("HCLK_IO_HR") {
+    if ctx.has_tcls(tcls::HCLK_IO_HR) {
         let tile = "HCLK_IO_HR";
         {
             let bel = "VCCOSENSE";

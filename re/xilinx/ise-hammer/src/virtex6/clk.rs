@@ -5,14 +5,14 @@ use prjcombine_re_collector::{
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex6::tcls};
 
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::{DeltaLegacy, TileRelation},
+        props::relation::{Delta, TileRelation},
     },
 };
 
@@ -30,7 +30,7 @@ impl TileRelation for Cmt {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK);
         let mut bctx = ctx.bel(defs::bslots::HCLK);
         for i in 0..8 {
             for ud in ['U', 'D'] {
@@ -78,11 +78,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    for (tile, gio, base, dy) in [
-        ("CMT_BUFG_S", defs::bslots::GIO_S, 0, 2),
-        ("CMT_BUFG_N", defs::bslots::GIO_N, 16, 0),
+    for (tcid, gio, base, dy) in [
+        (tcls::CMT_BUFG_S, defs::bslots::GIO_S, 0, 2),
+        (tcls::CMT_BUFG_N, defs::bslots::GIO_N, 16, 0),
     ] {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..16 {
             let mut bctx = ctx.bel(defs::bslots::BUFGCTRL[base + i]);
             let mode = "BUFGCTRL";
@@ -106,8 +106,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
             bctx.build()
                 .null_bits()
-                .extra_tile_legacy(DeltaLegacy::new(0, dy - 20, "CMT"), "CMT")
-                .extra_tile_legacy(DeltaLegacy::new(0, dy + 20, "CMT"), "CMT")
+                .extra_tile_legacy(Delta::new(0, dy - 20, tcls::CMT), "CMT")
+                .extra_tile_legacy(Delta::new(0, dy + 20, tcls::CMT), "CMT")
                 .global_mutex("GCLK", "TEST")
                 .test_manual_legacy(format!("ENABLE.GCLK{}", base + i), "1")
                 .pip("GCLK", "O")
@@ -161,15 +161,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .null_bits()
                 .global_mutex("GIO", "TEST")
-                .extra_tile_legacy(DeltaLegacy::new(0, dy - 20, "CMT"), "CMT")
-                .extra_tile_legacy(DeltaLegacy::new(0, dy + 20, "CMT"), "CMT")
+                .extra_tile_legacy(Delta::new(0, dy - 20, tcls::CMT), "CMT")
+                .extra_tile_legacy(Delta::new(0, dy + 20, tcls::CMT), "CMT")
                 .test_manual_legacy(format!("ENABLE.GIO{i}"), "1")
                 .pip(format!("GIO{i}_CMT"), format!("GIO{i}"))
                 .commit();
         }
     }
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK_IO");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK_IO);
         for i in 0..4 {
             let mut bctx = ctx.bel(defs::bslots::BUFIO[i]);
             bctx.test_manual_legacy("PRESENT", "1")
@@ -248,8 +248,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             ] {
                 bctx.build()
                     .mutex("MUX.I", pin)
-                    .has_related(DeltaLegacy::new(0, 40, "HCLK_IO"))
-                    .has_related(DeltaLegacy::new(0, -40, "HCLK_IO"))
+                    .has_related(Delta::new(0, 40, tcls::HCLK_IO))
+                    .has_related(Delta::new(0, -40, tcls::HCLK_IO))
                     .test_manual_legacy("MUX.I", val)
                     .pip("I", pin)
                     .commit();
@@ -392,7 +392,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "PMVIOB");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::PMVIOB);
         let mut bctx = ctx.bel(defs::bslots::PMVIOB_CLK);
         bctx.test_manual_legacy("PRESENT", "1")
             .mode("PMVIOB")

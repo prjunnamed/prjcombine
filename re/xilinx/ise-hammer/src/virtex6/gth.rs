@@ -1,14 +1,14 @@
 use prjcombine_re_collector::legacy::{xlat_bitvec_legacy, xlat_enum_legacy};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex6::tcls};
 
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{pip::PinFar, relation::DeltaLegacy},
+        props::{pip::PinFar, relation::Delta},
     },
 };
 
@@ -354,18 +354,13 @@ const GTH_HEX_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "GTH") else {
+    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTH) else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::GTH_QUAD);
     let mode = "GTHE1_QUAD";
     bctx.build()
-        .extra_tile_attr_legacy(
-            DeltaLegacy::new(0, 0, "HCLK"),
-            "HCLK",
-            "DRP_MASK_BOTH",
-            "GTH",
-        )
+        .extra_tile_attr_legacy(Delta::new(0, 0, tcls::HCLK), "HCLK", "DRP_MASK_BOTH", "GTH")
         .test_manual_legacy("ENABLE", "1")
         .mode(mode)
         .commit();
@@ -376,7 +371,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode).test_enum_legacy(attr, vals);
     }
     for &(attr, width) in GTH_BIN_ATTRS {
-        bctx.mode(mode).test_multi_attr_bin(attr, width);
+        bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
     }
     for &(attr, width) in GTH_HEX_ATTRS {
         bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);

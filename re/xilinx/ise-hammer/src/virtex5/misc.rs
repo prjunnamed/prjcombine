@@ -7,7 +7,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex5::tcls};
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
@@ -15,12 +15,12 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::DeltaLegacy,
+        props::relation::Delta,
     },
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new_legacy(session, backend, "CFG");
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CFG);
     for attr in ["CCLKPIN", "DONEPIN", "PROGPIN", "INITPIN"] {
         for val in ["PULLUP", "PULLNONE"] {
             ctx.test_manual_legacy("MISC", attr, val)
@@ -183,7 +183,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .null_bits()
             .extra_tile_attr_legacy(
-                DeltaLegacy::new(0, 20, "HCLK_IO_CFG_N"),
+                Delta::new(0, 20, tcls::HCLK_IO_CFG_N),
                 "SYSMON",
                 "ENABLE",
                 "1",

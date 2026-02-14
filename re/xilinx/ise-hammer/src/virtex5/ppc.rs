@@ -1,7 +1,7 @@
 use prjcombine_re_collector::legacy::extract_bitvec_val_legacy;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex5::tcls};
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -108,7 +108,7 @@ pub fn add_fuzzers<'a>(
     backend: &'a IseBackend<'a>,
     devdata_only: bool,
 ) {
-    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PPC") else {
+    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::PPC) else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::PPC);
@@ -149,7 +149,7 @@ pub fn add_fuzzers<'a>(
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
-    if !ctx.has_tile_legacy("PPC") {
+    if !ctx.has_tcls(tcls::PPC) {
         return;
     }
     let tile = "PPC";

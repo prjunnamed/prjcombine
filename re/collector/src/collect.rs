@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap, hash_map};
+use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 
 use prjcombine_interconnect::db::{
     BelAttribute, BelAttributeEnum, BelAttributeId, BelAttributeType, BelInfo, BelInputId, BelKind,
@@ -84,6 +84,15 @@ impl Collector<'_, '_> {
         &res[0]
     }
 
+    pub fn peek_diff_routing(
+        &self,
+        tcid: TileClassId,
+        dst: TileWireCoord,
+        src: PolTileWireCoord,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::Routing(tcid, dst, src))
+    }
+
     pub fn get_diff_routing(
         &mut self,
         tcid: TileClassId,
@@ -91,6 +100,15 @@ impl Collector<'_, '_> {
         src: PolTileWireCoord,
     ) -> Diff {
         self.get_diff_raw(&DiffKey::Routing(tcid, dst, src))
+    }
+
+    pub fn get_diff_routing_special(
+        &mut self,
+        tcid: TileClassId,
+        dst: TileWireCoord,
+        spec: SpecialId,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::RoutingSpecial(tcid, dst, spec))
     }
 
     pub fn get_diff_routing_pair_special(
@@ -287,6 +305,16 @@ impl Collector<'_, '_> {
         self.get_diff_raw(&DiffKey::BelSpecial(tcid, bslot, spec))
     }
 
+    pub fn get_diff_bel_special_special(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        spec1: SpecialId,
+        spec2: SpecialId,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelSpecialSpecial(tcid, bslot, spec1, spec2))
+    }
+
     pub fn get_diff_bel_special_bit(
         &mut self,
         tcid: TileClassId,
@@ -339,6 +367,17 @@ impl Collector<'_, '_> {
         val: bool,
     ) -> Diff {
         self.get_diff_raw(&DiffKey::BelInputInv(tcid, bslot, pin, val))
+    }
+
+    pub fn get_diff_bel_input_inv_special(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        pin: BelInputId,
+        spec: SpecialId,
+        val: bool,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelInputInvSpecial(tcid, bslot, pin, spec, val))
     }
 
     pub fn peek_diff_attr_bit(
@@ -583,6 +622,22 @@ impl Collector<'_, '_> {
         }
     }
 
+    pub fn insert_support(
+        &mut self,
+        tcid: TileClassId,
+        wires: BTreeSet<TileWireCoord>,
+        bits: Vec<PolTileBit>,
+    ) {
+        match self.data.sb_support.entry((tcid, wires)) {
+            hash_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), bits);
+            }
+            hash_map::Entry::Vacant(e) => {
+                e.insert(bits);
+            }
+        }
+    }
+
     pub fn insert_tmux_group(
         &mut self,
         tcid: TileClassId,
@@ -727,6 +782,15 @@ impl Collector<'_, '_> {
         pin: BelInputId,
     ) -> PolTileBit {
         self.data.bel_input_inv[&(tcid, bslot, pin)]
+    }
+
+    pub fn sb_progbuf(
+        &self,
+        tcid: TileClassId,
+        dst: TileWireCoord,
+        src: PolTileWireCoord,
+    ) -> PolTileBit {
+        self.data.sb_buf[&(tcid, dst, src)]
     }
 
     pub fn sb_mux(
@@ -1042,7 +1106,7 @@ impl Collector<'_, '_> {
         self.insert_delay(tcid, wire, xlat_enum_raw(diffs, OcdMode::ValueOrder));
     }
 
-    pub fn collect_mux(&mut self, tcid: TileClassId, dst: TileWireCoord) {
+    pub fn collect_mux_ocd(&mut self, tcid: TileClassId, dst: TileWireCoord, ocd: OcdMode) {
         let mux = self.mux_index[&(tcid, dst)];
         let mut diffs = vec![];
         let mut got_empty = false;
@@ -1056,6 +1120,10 @@ impl Collector<'_, '_> {
         if !got_empty {
             diffs.push((None, Diff::default()));
         }
-        self.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::Mux));
+        self.insert_mux(tcid, dst, xlat_enum_raw(diffs, ocd));
+    }
+
+    pub fn collect_mux(&mut self, tcid: TileClassId, dst: TileWireCoord) {
+        self.collect_mux_ocd(tcid, dst, OcdMode::Mux);
     }
 }

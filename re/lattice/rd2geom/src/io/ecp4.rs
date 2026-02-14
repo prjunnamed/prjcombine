@@ -593,7 +593,7 @@ impl ChipContext<'_> {
 
     pub fn xlat_io_loc_ecp4(&self, io: EdgeIoCoord) -> (CellCoord, &'static str) {
         let bcrd = self.chip.get_io_loc(io);
-        let tcrd = self.edev.get_tile_by_bel(bcrd);
+        let tcrd = self.edev.bel_tile(bcrd);
         let mut cell = self.edev[tcrd].cells[CellSlotId::from_idx(io.iob().to_idx() % 4)];
         let mut abcd = "";
         if let Dir::H(edge) = io.edge()

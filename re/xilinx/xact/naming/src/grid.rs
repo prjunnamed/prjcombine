@@ -77,7 +77,7 @@ impl<'a> ExpandedGridNaming<'a> {
     }
 
     pub fn bel_pip(&self, bel: BelCoord, key: &str) -> PipCoords {
-        let tcrd = self.egrid.get_tile_by_bel(bel);
+        let tcrd = self.egrid.bel_tile(bel);
         let ntile = &self.tiles[&tcrd];
         let naming = &self.db.tile_namings[ntile.naming].bel_pips[&(bel.slot, key.to_string())];
         PipCoords::Pip((

@@ -8,7 +8,10 @@ use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::{
     chip::ChipKind,
-    defs::{bslots, tslots},
+    defs::{
+        bslots, tslots, virtex5::tcls as tcls_v5, virtex6::tcls as tcls_v6,
+        virtex7::tcls as tcls_v7,
+    },
 };
 
 use crate::{
@@ -42,14 +45,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         unreachable!()
     };
 
-    for tile_name in ["CLBLL", "CLBLM"] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile_name) else {
-            continue;
-        };
+    let (tcid_clbll, tcid_clblm) = match edev.kind {
+        ChipKind::Virtex5 => (tcls_v5::CLBLL, tcls_v5::CLBLM),
+        ChipKind::Virtex6 => (tcls_v6::CLBLL, tcls_v6::CLBLM),
+        ChipKind::Virtex7 => (tcls_v7::CLBLL, tcls_v7::CLBLM),
+        _ => unreachable!(),
+    };
+
+    for tcid in [tcid_clbll, tcid_clblm] {
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..2 {
             let bel = bslots::SLICE[i];
             let mut bctx = ctx.bel(bel);
-            let is_m = i == 0 && tile_name.ends_with('M');
+            let is_m = i == 0 && tcid == tcid_clblm;
 
             // LUTs
             for attr in ["A6LUT", "B6LUT", "C6LUT", "D6LUT"] {
@@ -606,19 +614,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Virtex4(edev) = ctx.edev else {
         unreachable!()
     };
+    let (tcid_clbll, tcid_clblm) = match edev.kind {
+        ChipKind::Virtex5 => (tcls_v5::CLBLL, tcls_v5::CLBLM),
+        ChipKind::Virtex6 => (tcls_v6::CLBLL, tcls_v6::CLBLM),
+        ChipKind::Virtex7 => (tcls_v7::CLBLL, tcls_v7::CLBLM),
+        _ => unreachable!(),
+    };
     let mode = match edev.kind {
         ChipKind::Virtex4 => unreachable!(),
         ChipKind::Virtex5 => ChipKind::Virtex5,
         ChipKind::Virtex6 => ChipKind::Virtex6,
         ChipKind::Virtex7 => ChipKind::Virtex7,
     };
-    for tile in ["CLBLL", "CLBLM"] {
-        let tcls = ctx.edev.db.get_tile_class(tile);
-        if ctx.edev.tile_index[tcls].is_empty() {
-            continue;
-        }
+    for tcid in [tcid_clbll, tcid_clblm] {
+        let tile = ctx.edev.db.tile_classes.key(tcid);
         for (idx, bel) in ["SLICE[0]", "SLICE[1]"].into_iter().enumerate() {
-            let is_m = idx == 0 && tile.ends_with('M');
+            let is_m = idx == 0 && tcid == tcid_clblm;
 
             // LUTs
             ctx.collect_bitvec_legacy(tile, bel, "A6LUT", "#LUT");

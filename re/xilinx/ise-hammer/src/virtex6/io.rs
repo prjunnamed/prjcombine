@@ -16,7 +16,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex6::tcls};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -298,7 +298,7 @@ pub fn add_fuzzers<'a>(
         unreachable!()
     };
 
-    let mut ctx = FuzzCtx::new_legacy(session, backend, "IO");
+    let mut ctx = FuzzCtx::new(session, backend, tcls::IO);
     if devdata_only {
         for i in 0..2 {
             let mut bctx = ctx.bel(defs::bslots::IODELAY[i]);
@@ -399,22 +399,22 @@ pub fn add_fuzzers<'a>(
 
         bctx.mode("ISERDESE1")
             .attr("DATA_RATE", "SDR")
-            .test_multi_attr_bin("INIT_CE", 2);
+            .test_multi_attr_bin_legacy("INIT_CE", 2);
         bctx.mode("ISERDESE1")
             .attr("DATA_RATE", "SDR")
-            .test_multi_attr_bin("INIT_BITSLIPCNT", 4);
+            .test_multi_attr_bin_legacy("INIT_BITSLIPCNT", 4);
         bctx.mode("ISERDESE1")
             .attr("DATA_RATE", "SDR")
-            .test_multi_attr_bin("INIT_BITSLIP", 6);
+            .test_multi_attr_bin_legacy("INIT_BITSLIP", 6);
         bctx.mode("ISERDESE1")
             .attr("DATA_RATE", "SDR")
-            .test_multi_attr_bin("INIT_RANK1_PARTIAL", 5);
+            .test_multi_attr_bin_legacy("INIT_RANK1_PARTIAL", 5);
         bctx.mode("ISERDESE1")
             .attr("DATA_RATE", "SDR")
-            .test_multi_attr_bin("INIT_RANK2", 6);
+            .test_multi_attr_bin_legacy("INIT_RANK2", 6);
         bctx.mode("ISERDESE1")
             .attr("DATA_RATE", "SDR")
-            .test_multi_attr_bin("INIT_RANK3", 6);
+            .test_multi_attr_bin_legacy("INIT_RANK3", 6);
 
         bctx.mode("ISERDESE1")
             .pin("OFB")
@@ -675,21 +675,23 @@ pub fn add_fuzzers<'a>(
         bctx.mode("OSERDESE1")
             .test_enum_legacy("ODELAY_USED", &["0", "1"]);
         bctx.mode("OSERDESE1")
-            .test_multi_attr_bin("INIT_LOADCNT", 4);
-        bctx.mode("OSERDESE1").test_multi_attr_bin("INIT_ORANK1", 6);
+            .test_multi_attr_bin_legacy("INIT_LOADCNT", 4);
         bctx.mode("OSERDESE1")
-            .test_multi_attr_bin("INIT_ORANK2_PARTIAL", 4);
-        bctx.mode("OSERDESE1").test_multi_attr_bin("INIT_TRANK1", 4);
+            .test_multi_attr_bin_legacy("INIT_ORANK1", 6);
         bctx.mode("OSERDESE1")
-            .test_multi_attr_bin("INIT_FIFO_ADDR", 11);
+            .test_multi_attr_bin_legacy("INIT_ORANK2_PARTIAL", 4);
         bctx.mode("OSERDESE1")
-            .test_multi_attr_bin("INIT_FIFO_RESET", 13);
+            .test_multi_attr_bin_legacy("INIT_TRANK1", 4);
         bctx.mode("OSERDESE1")
-            .test_multi_attr_bin("INIT_DLY_CNT", 10);
+            .test_multi_attr_bin_legacy("INIT_FIFO_ADDR", 11);
         bctx.mode("OSERDESE1")
-            .test_multi_attr_bin("INIT_PIPE_DATA0", 12);
+            .test_multi_attr_bin_legacy("INIT_FIFO_RESET", 13);
         bctx.mode("OSERDESE1")
-            .test_multi_attr_bin("INIT_PIPE_DATA1", 12);
+            .test_multi_attr_bin_legacy("INIT_DLY_CNT", 10);
+        bctx.mode("OSERDESE1")
+            .test_multi_attr_bin_legacy("INIT_PIPE_DATA0", 12);
+        bctx.mode("OSERDESE1")
+            .test_multi_attr_bin_legacy("INIT_PIPE_DATA1", 12);
 
         for (src, num) in [("HCLK", 12), ("RCLK", 6)] {
             for j in 0..num {
@@ -938,7 +940,7 @@ pub fn add_fuzzers<'a>(
             .attr("OSTANDARD", "LVCMOS18")
             .attr("DRIVE", "12")
             .attr("SLEW", "SLOW")
-            .test_multi_attr_bin("OPROGRAMMING", 31);
+            .test_multi_attr_bin_legacy("OPROGRAMMING", 31);
         for &std in IOSTDS {
             let mut vref_special = None;
             let mut dci_special = None;
@@ -1171,7 +1173,7 @@ pub fn add_fuzzers<'a>(
                 .pin("I")
                 .raw(Key::Package, &package.name)
                 .prop(IsBonded(bel))
-                .prop(VrefInternal("HCLK_IO", vref))
+                .prop(VrefInternal(tcls::HCLK_IO, vref))
                 .test_manual_legacy("ISTD", format!("{std}.LP"))
                 .attr("IUSED", "0")
                 .attr("ISTANDARD", std)
@@ -1202,7 +1204,7 @@ pub fn add_fuzzers<'a>(
             .commit();
     }
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK_IO");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK_IO);
         let mut bctx = ctx.bel(defs::bslots::DCI);
         bctx.build()
             .global_mutex("GLOBAL_DCI", "NOPE")

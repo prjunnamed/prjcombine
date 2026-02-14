@@ -661,7 +661,7 @@ impl ChipContext<'_> {
             for w in ["IO_T_W", "IO_T_E"] {
                 let wire = TileWireCoord::new_idx(0, self.intdb.get_wire(w));
                 bpin.wires.insert(wire);
-                let tcrd = self.edev.get_tile_by_bel(bcrd);
+                let tcrd = self.edev.bel_tile(bcrd);
                 let wire = self.io_int_names[&self.edev.tile_wire(tcrd, wire)];
                 self.claim_pip(td_int, wire);
             }

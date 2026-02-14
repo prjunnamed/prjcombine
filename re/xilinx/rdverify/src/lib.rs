@@ -83,7 +83,7 @@ pub struct BelVerifier<'a, 'b> {
     pub ntile: &'a TileNaming,
     pub naming: &'a BelNaming,
     pub crds: EntityPartVec<RawTileId, Coord>,
-    bcrd: BelCoord,
+    pub bcrd: BelCoord,
     kind: String,
     extra_ins: Vec<(String, String)>,
     extra_outs: Vec<(String, String)>,
@@ -108,8 +108,22 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
         self
     }
 
+    pub fn extra_in_claim(mut self, name: impl Into<String>) -> Self {
+        let name = name.into();
+        self.claim_net(&[self.wire(&name)]);
+        self.extra_ins.push((name.clone(), name));
+        self
+    }
+
     pub fn extra_out(mut self, name: impl Into<String>) -> Self {
         let name = name.into();
+        self.extra_outs.push((name.clone(), name));
+        self
+    }
+
+    pub fn extra_out_claim(mut self, name: impl Into<String>) -> Self {
+        let name = name.into();
+        self.claim_net(&[self.wire(&name)]);
         self.extra_outs.push((name.clone(), name));
         self
     }
@@ -125,6 +139,68 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
         let pin = pin.into();
         let name = name.into();
         self.extra_outs.push((pin, name));
+        self
+    }
+
+    pub fn extra_in_claim_rename(
+        mut self,
+        pin: impl Into<String>,
+        name: impl Into<String>,
+    ) -> Self {
+        let pin = pin.into();
+        let name = name.into();
+        self.claim_net(&[self.wire(&name)]);
+        self.extra_ins.push((pin, name));
+        self
+    }
+
+    pub fn extra_out_claim_rename(
+        mut self,
+        pin: impl Into<String>,
+        name: impl Into<String>,
+    ) -> Self {
+        let pin = pin.into();
+        let name = name.into();
+        self.claim_net(&[self.wire(&name)]);
+        self.extra_outs.push((pin, name));
+        self
+    }
+
+    pub fn ipad_rename(mut self, pin: impl AsRef<str>, name: impl AsRef<str>, sub: usize) -> Self {
+        let pin = pin.as_ref();
+        let name = name.as_ref();
+        let opin = &format!("IPAD_{name}_O");
+        self = self.extra_in_claim_rename(pin, name);
+        self.claim_net(&[self.wire(opin)]);
+        self.claim_pip(self.wire(name), self.wire(opin));
+        self.vrf
+            .verify_bel(self.bcrd)
+            .sub(sub)
+            .kind("IPAD")
+            .skip_auto()
+            .extra_out_rename("O", opin)
+            .commit();
+        self
+    }
+
+    pub fn ipad(self, pin: impl AsRef<str>, sub: usize) -> Self {
+        let pin = pin.as_ref();
+        self.ipad_rename(pin, pin, sub)
+    }
+
+    pub fn opad(mut self, pin: impl AsRef<str>, sub: usize) -> Self {
+        let pin = pin.as_ref();
+        let ipin = &format!("OPAD_{pin}_I");
+        self = self.extra_out_claim(pin);
+        self.claim_net(&[self.wire(ipin)]);
+        self.claim_pip(self.wire(ipin), self.wire(pin));
+        self.vrf
+            .verify_bel(self.bcrd)
+            .sub(sub)
+            .kind("OPAD")
+            .skip_auto()
+            .extra_in_rename("I", ipin)
+            .commit();
         self
     }
 
@@ -206,7 +282,7 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
 
     pub fn commit(self) {
         let db = self.vrf.db;
-        let tcrd = self.vrf.grid.get_tile_by_bel(self.bcrd);
+        let tcrd = self.vrf.grid.bel_tile(self.bcrd);
         let tile = &self.vrf.grid[tcrd];
         let tcls = &db[tile.class];
         let mut pins = vec![];
@@ -462,18 +538,34 @@ impl<'a> Verifier<'a> {
         self.node_merge.insert(cnw_f, cnw_t);
     }
 
+    pub fn try_merge_node(&mut self, rw_f: RawWireCoord, rw_t: RawWireCoord) {
+        let Some(cnw_f) = self.rd.lookup_wire(rw_f.crd, rw_f.wire) else {
+            return;
+        };
+        let Some(cnw_t) = self.rd.lookup_wire(rw_t.crd, rw_t.wire) else {
+            return;
+        };
+        self.claim_raw_node(cnw_f, rw_f);
+        assert!(!self.node_merge.contains_key(&cnw_f));
+        self.node_merge.insert(cnw_f, cnw_t);
+    }
+
+    pub fn mark_merge_single_pip(&mut self, crd: Coord, name_to: &str, name_from: &str) {
+        let Some(cnw_to) = self.rd.lookup_wire(crd, name_to) else {
+            return;
+        };
+        let Some(cnw_from) = self.rd.lookup_wire(crd, name_from) else {
+            return;
+        };
+        self.claim_pip_tri(crd, name_to, name_from);
+        self.claim_raw_node(cnw_to, RawWireCoord { crd, wire: name_to });
+        assert!(!self.node_merge.contains_key(&cnw_to));
+        self.node_merge.insert(cnw_to, cnw_from);
+    }
+
     pub fn mark_merge_pip(&mut self, tkn: &str, name_to: &str, name_from: &str) {
         for &crd in self.rd.tiles_by_kind_name(tkn) {
-            let Some(cnw_to) = self.rd.lookup_wire(crd, name_to) else {
-                continue;
-            };
-            let Some(cnw_from) = self.rd.lookup_wire(crd, name_from) else {
-                continue;
-            };
-            self.claim_pip_tri(crd, name_to, name_from);
-            self.claim_raw_node(cnw_to, RawWireCoord { crd, wire: name_to });
-            assert!(!self.node_merge.contains_key(&cnw_to));
-            self.node_merge.insert(cnw_to, cnw_from);
+            self.mark_merge_single_pip(crd, name_to, name_from);
         }
     }
 
@@ -2146,14 +2238,14 @@ impl<'a> Verifier<'a> {
 
     pub fn bel_rcrd_sub(&self, bcrd: BelCoord, sub: usize) -> Coord {
         let naming = self.ngrid.get_bel_naming(bcrd);
-        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let tcrd = self.grid.bel_tile(bcrd);
         let crds = self.get_tile_crds(tcrd).unwrap();
         crds[naming.tiles[sub]]
     }
 
     pub fn bel_wire(&self, bcrd: BelCoord, name: &str) -> RawWireCoord<'a> {
         let naming = self.ngrid.get_bel_naming(bcrd);
-        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let tcrd = self.grid.bel_tile(bcrd);
         let crds = self.get_tile_crds(tcrd).unwrap();
         let pn = &naming.pins[name];
         RawWireCoord {
@@ -2164,7 +2256,7 @@ impl<'a> Verifier<'a> {
 
     pub fn bel_wire_far(&self, bcrd: BelCoord, name: &str) -> RawWireCoord<'a> {
         let naming = self.ngrid.get_bel_naming(bcrd);
-        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let tcrd = self.grid.bel_tile(bcrd);
         let crds = self.get_tile_crds(tcrd).unwrap();
         let pn = &naming.pins[name];
         RawWireCoord {
@@ -2181,7 +2273,7 @@ impl<'a> Verifier<'a> {
         idx: usize,
     ) -> (RawWireCoord<'a>, RawWireCoord<'a>) {
         let naming = self.ngrid.get_bel_naming(bcrd);
-        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let tcrd = self.grid.bel_tile(bcrd);
         let crds = self.get_tile_crds(tcrd).unwrap();
         let pip = &naming.pins[pin].pips[idx];
         name_pip(&crds, pip)
@@ -2199,7 +2291,7 @@ impl<'a> Verifier<'a> {
             self.db.bel_slots.key(bcrd.slot)
         }
         .to_string();
-        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let tcrd = self.grid.bel_tile(bcrd);
         let ntile = &self.ngrid.tiles[&tcrd];
         let crds = self.get_tile_crds(tcrd).unwrap();
         let naming = self.ngrid.get_bel_naming(bcrd);

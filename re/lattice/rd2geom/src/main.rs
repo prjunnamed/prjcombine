@@ -399,7 +399,7 @@ impl ChipContext<'_> {
     }
 
     fn insert_bel_generic(&mut self, bcrd: BelCoord, bel: BelInfo) {
-        let tcrd = self.edev.get_tile_by_bel(bcrd);
+        let tcrd = self.edev.bel_tile(bcrd);
         match self.bels.entry((self.edev[tcrd].class, bcrd.slot)) {
             btree_map::Entry::Vacant(e) => {
                 e.insert(bel);

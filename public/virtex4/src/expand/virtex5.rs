@@ -16,7 +16,7 @@ use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord};
 use crate::gtz::GtzDb;
 use crate::{
     defs,
-    defs::virtex5::{ccls, tcls},
+    defs::virtex5::{ccls, rslots, tcls},
 };
 
 struct Expander<'a, 'b> {
@@ -398,8 +398,8 @@ impl Expander<'_, '_> {
                 self.col_cfg + 1
             };
             let crow = self.chip.row_hclk(cell.row);
-            self.egrid[cell].region_root[defs::rslots::HCLK] = cell.with_cr(col_hrow, crow);
-            self.egrid[cell].region_root[defs::rslots::LEAF] = cell.with_row(crow);
+            self.egrid[cell].region_root[rslots::HROW] = cell.with_cr(col_hrow, crow);
+            self.egrid[cell].region_root[rslots::LEAF] = cell.with_row(crow);
 
             if cell.row.to_idx() % 20 == 10 {
                 if self.is_int_hole(cell) {

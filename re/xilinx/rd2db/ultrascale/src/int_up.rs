@@ -3273,7 +3273,7 @@ impl IntMaker<'_> {
             }
             xn.bels(bels).extract();
 
-            let tcls = self.builder.db.tile_classes.get_mut("XP5IO").unwrap().1;
+            let tcls = &mut self.builder.db.tile_classes[tcls::XP5IO];
             let BelInfo::Legacy(ref mut bel) = tcls.bels[bslots::LPDDRMC] else {
                 unreachable!()
             };

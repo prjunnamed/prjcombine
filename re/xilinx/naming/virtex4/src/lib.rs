@@ -77,11 +77,11 @@ impl ExpandedNamedDevice<'_> {
                             bank: idx,
                             pad_vp: self
                                 .ngrid
-                                .get_bel_name(cell.bel(defs::bslots::IPAD_VP))
+                                .get_bel_name_sub(cell.bel(defs::bslots::SYSMON), 1)
                                 .unwrap(),
                             pad_vn: self
                                 .ngrid
-                                .get_bel_name(cell.bel(defs::bslots::IPAD_VN))
+                                .get_bel_name_sub(cell.bel(defs::bslots::SYSMON), 2)
                                 .unwrap(),
                             vaux: (0..8)
                                 .map(|idx| self.edev.get_sysmon_vaux(cell, idx))
@@ -162,7 +162,56 @@ impl ExpandedNamedDevice<'_> {
         for &cell in &self.edev.gt {
             let gt_info = self.edev.get_gt_info(cell);
             let gt = match self.edev.kind {
-                ChipKind::Virtex4 | ChipKind::Virtex5 => Gt {
+                ChipKind::Virtex4 => Gt {
+                    cell,
+                    bank: gt_info.bank,
+                    kind: gt_info.kind,
+                    pads_clk: vec![(
+                        self.ngrid
+                            .get_bel_name_sub(cell.bel(defs::bslots::GT11CLK), 1)
+                            .unwrap(),
+                        self.ngrid
+                            .get_bel_name_sub(cell.bel(defs::bslots::GT11CLK), 2)
+                            .unwrap(),
+                    )],
+                    pads_rx: vec![
+                        (
+                            self.ngrid
+                                .get_bel_name_sub(cell.bel(defs::bslots::GT11[0]), 1)
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name_sub(cell.bel(defs::bslots::GT11[0]), 2)
+                                .unwrap(),
+                        ),
+                        (
+                            self.ngrid
+                                .get_bel_name_sub(cell.bel(defs::bslots::GT11[1]), 1)
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name_sub(cell.bel(defs::bslots::GT11[1]), 2)
+                                .unwrap(),
+                        ),
+                    ],
+                    pads_tx: vec![
+                        (
+                            self.ngrid
+                                .get_bel_name_sub(cell.bel(defs::bslots::GT11[0]), 3)
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name_sub(cell.bel(defs::bslots::GT11[0]), 4)
+                                .unwrap(),
+                        ),
+                        (
+                            self.ngrid
+                                .get_bel_name_sub(cell.bel(defs::bslots::GT11[1]), 3)
+                                .unwrap(),
+                            self.ngrid
+                                .get_bel_name_sub(cell.bel(defs::bslots::GT11[1]), 4)
+                                .unwrap(),
+                        ),
+                    ],
+                },
+                ChipKind::Virtex5 => Gt {
                     cell,
                     bank: gt_info.bank,
                     kind: gt_info.kind,

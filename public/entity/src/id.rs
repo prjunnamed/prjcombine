@@ -675,6 +675,10 @@ impl<I: EntityId> EntityRange<I> {
             Some(id.to_idx() - self.start)
         }
     }
+
+    pub fn contains(&self, id: I) -> bool {
+        self.index_of(id).is_some()
+    }
 }
 
 impl<I: EntityId> IntoIterator for EntityRange<I> {

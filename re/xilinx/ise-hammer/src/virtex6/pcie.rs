@@ -1,13 +1,13 @@
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex6::tcls};
 
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::DeltaLegacy,
+        props::relation::Delta,
     },
 };
 
@@ -257,19 +257,14 @@ const PCIE_DEC_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PCIE") else {
+    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::PCIE) else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::PCIE);
     let mode = "PCIE_2_0";
 
     bctx.build()
-        .extra_tile_attr_legacy(
-            DeltaLegacy::new(3, 20, "HCLK"),
-            "HCLK",
-            "DRP_MASK_PCIE",
-            "1",
-        )
+        .extra_tile_attr_legacy(Delta::new(3, 20, tcls::HCLK), "HCLK", "DRP_MASK_PCIE", "1")
         .test_manual_legacy("PRESENT", "1")
         .mode(mode)
         .commit();
@@ -285,7 +280,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    if !ctx.has_tile_legacy("PCIE") {
+    if !ctx.has_tcls(tcls::PCIE) {
         return;
     }
     let tile = "PCIE";

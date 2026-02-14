@@ -8,7 +8,7 @@ use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex::{
     chip::ChipKind,
-    defs::{self, wires},
+    defs::{self, tcls, wires},
 };
 use prjcombine_xilinx_bitstream::Reg;
 
@@ -22,8 +22,8 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    for tile in ["PCI_W", "PCI_E"] {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
+    for tcid in [tcls::PCI_W, tcls::PCI_E] {
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         let mut bctx = ctx.bel(defs::bslots::PCILOGIC);
         bctx.test_manual_legacy("PRESENT", "1")
             .mode("PCILOGIC")
@@ -45,7 +45,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "CNR_SW");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_SW);
         for attr in ["M0PIN", "M1PIN", "M2PIN"] {
             for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
                 ctx.test_manual_legacy("MISC", attr, val)
@@ -89,7 +89,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "CNR_NW");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NW);
         for attr in ["TMSPIN", "TCKPIN"] {
             for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
                 ctx.test_manual_legacy("MISC", attr, val)
@@ -194,7 +194,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "CNR_SE");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_SE);
         for attr in ["DONEPIN", "PROGPIN"] {
             for val in ["PULLUP", "PULLNONE"] {
                 ctx.test_manual_legacy("MISC", attr, val)
@@ -205,7 +205,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "CNR_NE");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NE);
         for attr in ["TDIPIN", "TDOPIN"] {
             for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
                 ctx.test_manual_legacy("MISC", attr, val)

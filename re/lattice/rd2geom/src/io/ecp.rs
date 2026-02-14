@@ -479,7 +479,7 @@ impl ChipContext<'_> {
             let eclki = self.rc_io_wire(io, "JECLKIA");
             let eclks = self.pips_bwd[&eclki].clone();
             let bcrd = self.chip.bel_eclk_root(edge);
-            let tcrd = self.edev.get_tile_by_bel(bcrd);
+            let tcrd = self.edev.bel_tile(bcrd);
             let mut bel = LegacyBel::default();
             self.name_bel_null(bcrd);
             for i in 0..2 {
@@ -550,7 +550,7 @@ impl ChipContext<'_> {
     pub(super) fn process_eclk_xp2(&mut self) {
         for (lrbt, edge) in [('L', Dir::W), ('R', Dir::E), ('B', Dir::S), ('T', Dir::N)] {
             let bcrd = self.chip.bel_eclk_root(edge);
-            let tcrd = self.edev.get_tile_by_bel(bcrd);
+            let tcrd = self.edev.bel_tile(bcrd);
             let cell = match edge {
                 Dir::H(_) => bcrd.cell,
                 Dir::V(_) => bcrd.cell.delta(-1, 0),

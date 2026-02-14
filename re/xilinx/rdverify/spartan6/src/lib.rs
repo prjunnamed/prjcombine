@@ -985,7 +985,7 @@ fn verify_dcm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let BelInfo::SwitchBox(ref sb) = endev.edev.db[tcls::CMT_DCM].bels[bslots::CMT_INT] else {
         unreachable!()
     };
-    let tcrd = endev.edev.get_tile_by_bel(bcrd);
+    let tcrd = endev.edev.bel_tile(bcrd);
     let ntile = &endev.ngrid.tiles[&tcrd];
     let ntcls = &endev.ngrid.db.tile_class_namings[ntile.naming];
     for (wt, pin) in [
@@ -1051,35 +1051,17 @@ fn verify_gtp(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
             DirV::N
         },
     };
-    let mut bel = vrf.verify_bel(bcrd).kind("GTPA1_DUAL");
-    for (idx, pin) in [(7, "RXP0"), (8, "RXN0"), (9, "RXP1"), (10, "RXN1")] {
-        let ipad_pin = &format!("IPAD_{pin}_O");
-        bel = bel.extra_in(pin);
-        bel.claim_net(&[bel.wire(pin)]);
-        bel.claim_net(&[bel.wire(ipad_pin)]);
-        bel.claim_pip(bel.wire(pin), bel.wire(ipad_pin));
-        bel.vrf
-            .verify_bel(bcrd)
-            .sub(idx)
-            .kind("IPAD")
-            .skip_auto()
-            .extra_out_rename("O", ipad_pin)
-            .commit();
-    }
-    for (idx, pin) in [(3, "TXP0"), (4, "TXN0"), (5, "TXP1"), (6, "TXN1")] {
-        let opad_pin = &format!("OPAD_{pin}_I");
-        bel = bel.extra_out(pin);
-        bel.claim_net(&[bel.wire(pin)]);
-        bel.claim_net(&[bel.wire(opad_pin)]);
-        bel.claim_pip(bel.wire(opad_pin), bel.wire(pin));
-        bel.vrf
-            .verify_bel(bcrd)
-            .sub(idx)
-            .kind("OPAD")
-            .skip_auto()
-            .extra_in_rename("I", opad_pin)
-            .commit();
-    }
+    let mut bel = vrf
+        .verify_bel(bcrd)
+        .kind("GTPA1_DUAL")
+        .opad("TXP0", 3)
+        .opad("TXN0", 4)
+        .opad("TXP1", 5)
+        .opad("TXN1", 6)
+        .ipad("RXP0", 7)
+        .ipad("RXN0", 8)
+        .ipad("RXP1", 9)
+        .ipad("RXN1", 10);
 
     for (pin, pin_bufds) in [
         ("CLK00", "BUFDS0_O"),
@@ -1196,31 +1178,14 @@ fn verify_gtp(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     bel.commit();
 
     for i in 0..2 {
-        let mut bel = vrf
-            .verify_bel(bcrd)
+        vrf.verify_bel(bcrd)
             .sub(1 + i)
             .kind("BUFDS")
             .skip_auto()
-            .extra_out_rename("O", format!("BUFDS{i}_O"));
-        bel.claim_net(&[bel.wire(&format!("BUFDS{i}_O"))]);
-
-        for (idx, name, spin) in [(11 + i * 2, "CLKP", "I"), (12 + i * 2, "CLKN", "IB")] {
-            let ipad_pin = &format!("IPAD_{name}{i}_O");
-            let pin = &format!("BUFDS{i}_{spin}");
-            bel = bel.extra_in_rename(spin, pin);
-            bel.claim_net(&[bel.wire(pin)]);
-            bel.claim_net(&[bel.wire(ipad_pin)]);
-            bel.claim_pip(bel.wire(pin), bel.wire(ipad_pin));
-            bel.vrf
-                .verify_bel(bcrd)
-                .sub(idx)
-                .kind("IPAD")
-                .skip_auto()
-                .extra_out_rename("O", ipad_pin)
-                .commit();
-        }
-
-        bel.commit();
+            .extra_out_claim_rename("O", format!("BUFDS{i}_O"))
+            .ipad_rename("I", format!("BUFDS{i}_I"), 11 + i * 2)
+            .ipad_rename("IB", format!("BUFDS{i}_IB"), 12 + i * 2)
+            .commit();
     }
 }
 

@@ -6,14 +6,14 @@ use prjcombine_re_collector::{
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex6::tcls};
 
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{pip::PinFar, relation::DeltaLegacy},
+        props::{pip::PinFar, relation::Delta},
     },
 };
 
@@ -343,7 +343,7 @@ const GTX_HEX_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "GTX") else {
+    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTX) else {
         return;
     };
     for i in 0..4 {
@@ -353,7 +353,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .bel_unused(bel_other)
             .extra_tile_attr_legacy(
-                DeltaLegacy::new(0, 0, "HCLK"),
+                Delta::new(0, 0, tcls::HCLK),
                 "HCLK",
                 if i < 2 {
                     "DRP_MASK_BELOW"
@@ -382,7 +382,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
         }
         for &(attr, width) in GTX_BIN_ATTRS {
-            bctx.mode(mode).test_multi_attr_bin(attr, width);
+            bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
         }
         for &(attr, width) in GTX_HEX_ATTRS {
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
@@ -479,7 +479,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_enum_legacy("CLKCM_CFG", &["FALSE", "TRUE"]);
         bctx.mode(mode)
             .test_enum_legacy("CLKRCV_TRST", &["FALSE", "TRUE"]);
-        bctx.mode(mode).test_multi_attr_bin("REFCLKOUT_DLY", 10);
+        bctx.mode(mode)
+            .test_multi_attr_bin_legacy("REFCLKOUT_DLY", 10);
         for (val, pin) in [
             ("O", "O"),
             ("ODIV2", "ODIV2"),

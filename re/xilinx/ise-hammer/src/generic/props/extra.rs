@@ -249,18 +249,18 @@ impl<'b, R: TileRelation + 'b, K: KeyMaker + 'b> FuzzerProp<'b, IseBackend<'b>>
 }
 
 #[derive(Clone, Debug)]
-pub struct ExtraTilesByKind<K> {
+pub struct ExtraTilesByClass<K> {
     pub kind: TileClassId,
     pub keymaker: K,
 }
 
-impl<K> ExtraTilesByKind<K> {
+impl<K> ExtraTilesByClass<K> {
     pub fn new(kind: TileClassId, keymaker: K) -> Self {
         Self { kind, keymaker }
     }
 }
 
-impl<'b, K: KeyMaker + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind<K> {
+impl<'b, K: KeyMaker + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByClass<K> {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }

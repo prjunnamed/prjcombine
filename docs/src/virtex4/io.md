@@ -101,11 +101,5 @@ Row `r + 4` is not used as `SYSMON` input — the "analog function" of that pin 
 
 ## Tables
 
-{{misc virtex4 iostd-drive}}
-{{misc virtex4 iostd-slew}}
-{{misc virtex4 iostd-misc}}
-{{misc virtex4 iostd-lvds}}
-{{misc virtex4 iostd-lvdsbias}}
-{{misc virtex4 iostd-dci-lvdiv2}}
-{{misc virtex4 iostd-dci-mask-term-vcc}}
-{{misc virtex4 iostd-dci-mask-term-split}}
+{{table virtex4 IOB_DATA}}
+{{table virtex4 LVDS_DATA}}

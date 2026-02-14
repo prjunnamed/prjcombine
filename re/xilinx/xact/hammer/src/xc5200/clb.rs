@@ -5,7 +5,7 @@ use prjcombine_xc2000::xc5200::{bcls, bslots, enums, tcls};
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx, specials};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let tcid = backend.edev.db.get_tile_class("CLB");
+    let tcid = tcls::CLB;
     let mut ctx = FuzzCtx::new(session, backend, tcid);
     let mut bctx = ctx.bel(bslots::LC[0]);
     bctx.mode("CLB")

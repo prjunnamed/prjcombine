@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
 use prjcombine_entity::EntityPartVec;
 use prjcombine_interconnect::{
-    db::{BelAttributeEnum, BelAttributeType, BelInfo, SwitchBoxItem, TileWireCoord},
+    db::{BelAttributeEnum, BelAttributeType, TileWireCoord},
     grid::TileCoord,
 };
 use prjcombine_re_collector::diff::{
@@ -61,17 +59,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllOtherDcms {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let tcid = tcls::CMT_DCM;
     let mut ctx = FuzzCtx::new(session, backend, tcid);
-    let tcls = &backend.edev.db[tcid];
-    let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots::CMT_INT] else {
-        unreachable!()
-    };
-    let mut muxes = HashMap::new();
-    for item in &sb.items {
-        let SwitchBoxItem::Mux(mux) = item else {
-            continue;
-        };
-        muxes.insert(mux.dst, mux);
-    }
+    let muxes = &backend.edev.db_index.tile_classes[tcid].muxes;
     for i in 0..2 {
         let mut bctx = ctx.bel(defs::bslots::DCM[i]);
         bctx.build()
@@ -124,7 +112,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
         let obel_dcm = defs::bslots::DCM[i ^ 1];
         for opin in ["CLKIN", "CLKIN_TEST"] {
-            let mux = muxes[&TileWireCoord::new_idx(1, wires::IMUX_DCM_CLKIN[i])];
+            let mux = &muxes[&TileWireCoord::new_idx(1, wires::IMUX_DCM_CLKIN[i])];
             let related_pll = DeltaSlot::new(0, 16, tslots::BEL);
             let bel_pll = defs::bslots::PLL;
             for &src in mux.src.keys() {
@@ -158,7 +146,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
         for opin in ["CLKFB", "CLKFB_TEST"] {
-            let mux = muxes[&TileWireCoord::new_idx(1, wires::IMUX_DCM_CLKFB[i])];
+            let mux = &muxes[&TileWireCoord::new_idx(1, wires::IMUX_DCM_CLKFB[i])];
             for &src in mux.src.keys() {
                 let mut builder = bctx
                     .mode("DCM")
@@ -183,7 +171,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
 
         for w in [wires::OMUX_DCM_SKEWCLKIN1[i], wires::OMUX_DCM_SKEWCLKIN2[i]] {
-            let mux = muxes[&TileWireCoord::new_idx(1, w)];
+            let mux = &muxes[&TileWireCoord::new_idx(1, w)];
             for &src in mux.src.keys() {
                 bctx.mode("DCM")
                     .global_mutex("CMT", "TEST")
@@ -489,17 +477,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tcid = tcls::CMT_DCM;
-    let tcls = &ctx.edev.db[tcid];
-    let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots::CMT_INT] else {
-        unreachable!()
-    };
-    let mut muxes = HashMap::new();
-    for item in &sb.items {
-        let SwitchBoxItem::Mux(mux) = item else {
-            continue;
-        };
-        muxes.insert(mux.dst, mux);
-    }
+    let muxes = &ctx.edev.db_index.tile_classes[tcid].muxes;
 
     for i in 0..2 {
         let bslot = bslots::DCM[i];
@@ -579,12 +557,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .assert_empty();
 
         let mut diffs_clkin = vec![];
-        let mux_clkin = muxes[&TileWireCoord::new_idx(1, wires::IMUX_DCM_CLKIN[i])];
+        let mux_clkin = &muxes[&TileWireCoord::new_idx(1, wires::IMUX_DCM_CLKIN[i])];
         for &src in mux_clkin.src.keys() {
             diffs_clkin.push((Some(src), ctx.get_diff_routing(tcid, mux_clkin.dst, src)));
         }
         let mut diffs_clkfb = vec![];
-        let mux_clkfb = muxes[&TileWireCoord::new_idx(1, wires::IMUX_DCM_CLKFB[i])];
+        let mux_clkfb = &muxes[&TileWireCoord::new_idx(1, wires::IMUX_DCM_CLKFB[i])];
         for &src in mux_clkfb.src.keys() {
             diffs_clkfb.push((Some(src), ctx.get_diff_routing(tcid, mux_clkfb.dst, src)));
         }
@@ -617,7 +595,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
 
         for w in [wires::OMUX_DCM_SKEWCLKIN1[i], wires::OMUX_DCM_SKEWCLKIN2[i]] {
-            let mux = muxes[&TileWireCoord::new_idx(1, w)];
+            let mux = &muxes[&TileWireCoord::new_idx(1, w)];
             let mut diffs = vec![];
             for &src in mux.src.keys() {
                 diffs.push((Some(src), ctx.get_diff_routing(tcid, mux.dst, src)));

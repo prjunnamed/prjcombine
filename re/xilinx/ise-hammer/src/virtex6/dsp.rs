@@ -3,7 +3,10 @@ use prjcombine_re_collector::{
     legacy::{xlat_bit_bi_legacy, xlat_enum_legacy},
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::defs;
+use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_virtex4::{
+    chip::ChipKind, defs, defs::virtex6::tcls as tcls_v6, defs::virtex7::tcls as tcls_v7,
+};
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -56,8 +59,15 @@ const DSP48E1_TIEPINS: &[&str] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let tile = "DSP";
-    let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
+    let ExpandedDevice::Virtex4(edev) = backend.edev else {
+        unreachable!()
+    };
+    let tcid = match edev.kind {
+        ChipKind::Virtex6 => tcls_v6::DSP,
+        ChipKind::Virtex7 => tcls_v7::DSP,
+        _ => unreachable!(),
+    };
+    let mut ctx = FuzzCtx::new(session, backend, tcid);
     for i in 0..2 {
         let bel_other = defs::bslots::DSP[i ^ 1];
         let mut bctx = ctx.bel(defs::bslots::DSP[i]);

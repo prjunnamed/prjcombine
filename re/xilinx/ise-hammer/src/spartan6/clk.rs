@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
@@ -285,16 +285,7 @@ pub fn add_fuzzers<'a>(
     ] {
         let mut ctx = FuzzCtx::new(session, backend, tcid);
         let tcls = &edev.db[tcid];
-        let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots::CLK_INT] else {
-            unreachable!()
-        };
-        let mut muxes = HashMap::new();
-        for item in &sb.items {
-            let SwitchBoxItem::Mux(mux) = item else {
-                continue;
-            };
-            muxes.insert(mux.dst, mux);
-        }
+        let muxes = &backend.edev.db_index.tile_classes[tcid].muxes;
         for i in 0..8 {
             let bslot = bslots::BUFIO2[i];
             let BelInfo::Bel(ref bel) = tcls.bels[bslot] else {
@@ -354,7 +345,7 @@ pub fn add_fuzzers<'a>(
                 .commit();
 
             let wire_i = bel.inputs[bcls::BUFIO2::I].wire();
-            let mux_i = muxes[&wire_i];
+            let mux_i = &muxes[&wire_i];
             for &src in mux_i.src.keys() {
                 if matches!(tcid, tcls::CLK_W | tcls::CLK_E)
                     && wires::GTPCLK.contains(src.wire)
@@ -372,7 +363,7 @@ pub fn add_fuzzers<'a>(
             }
 
             let wire_ib = bel.inputs[bcls::BUFIO2::IB].wire();
-            let mux_ib = muxes[&wire_ib];
+            let mux_ib = &muxes[&wire_ib];
             for &src in mux_ib.src.keys() {
                 bctx.mode("BUFIO2_2CLK")
                     .test_routing(wire_ib, src)
@@ -404,7 +395,7 @@ pub fn add_fuzzers<'a>(
             );
 
             let wire_i = bel.inputs[bcls::BUFIO2FB::I].wire();
-            let mux_i = muxes[&wire_i];
+            let mux_i = &muxes[&wire_i];
             for &src in mux_i.src.keys() {
                 let (raw_src, invert_inputs) =
                     if let Some(idx) = wires::OUT_CLKPAD_CFB1.index_of(src.wire) {
@@ -742,16 +733,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         (tcls::CLK_E, true),
     ] {
         let tcls = &edev.db[tcid];
-        let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots::CLK_INT] else {
-            unreachable!()
-        };
-        let mut muxes = HashMap::new();
-        for item in &sb.items {
-            let SwitchBoxItem::Mux(mux) = item else {
-                continue;
-            };
-            muxes.insert(mux.dst, mux);
-        }
+        let muxes = &ctx.edev.db_index.tile_classes[tcid].muxes;
 
         for i in 0..8 {
             let bslot = bslots::BUFIO2[i];
@@ -881,7 +863,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             );
 
             let wire_i = bel.inputs[bcls::BUFIO2::I].wire();
-            let mux_i = muxes[&wire_i];
+            let mux_i = &muxes[&wire_i];
             let mut diffs = vec![];
             let mut fixup_src = None;
             for &src in mux_i.src.keys() {
@@ -904,7 +886,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             ctx.insert_mux(tcid, wire_i, item);
 
             let wire_ib = bel.inputs[bcls::BUFIO2::IB].wire();
-            let mux_ib = muxes[&wire_ib];
+            let mux_ib = &muxes[&wire_ib];
             let mut diffs = vec![];
             for &src in mux_ib.src.keys() {
                 diffs.push((Some(src), ctx.get_diff_routing(tcid, wire_ib, src)));
@@ -925,7 +907,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             );
 
             let wire_i = bel_fb.inputs[bcls::BUFIO2FB::I].wire();
-            let mux_i = muxes[&wire_i];
+            let mux_i = &muxes[&wire_i];
             let mut diffs = vec![];
             let mut diff_cfb = None;
             for &src in mux_i.src.keys() {

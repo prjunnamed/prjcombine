@@ -64,7 +64,7 @@ fn verify_clb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
 }
 
 fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
-    let tcrd = endev.edev.get_tile_by_bel(bcrd);
+    let tcrd = endev.edev.bel_tile(bcrd);
     let tcls = &endev.edev.db[endev.edev[tcrd].class];
     let BelInfo::Bel(ref bel_info) = tcls.bels[bcrd.slot] else {
         unreachable!()
@@ -94,7 +94,7 @@ fn verify_tbuf(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) 
     bel.claim_net(&[bel.wire("O")]);
     bel.claim_pip(bel.wire_far("O"), bel.wire("O"));
     if endev.chip.kind == ChipKind::Xc4000E {
-        let tcrd = endev.edev.get_tile_by_bel(bcrd);
+        let tcrd = endev.edev.bel_tile(bcrd);
         let tcls_index = &endev.edev.db_index[endev.edev[tcrd].class];
         let naming = &endev.ngrid.db.tile_class_namings[bel.ntile.naming];
         let wire = endev.edev.get_bel_input(bcrd, bcls::TBUF::I).wire;

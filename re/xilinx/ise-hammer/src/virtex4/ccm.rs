@@ -1,269 +1,200 @@
-use prjcombine_re_collector::{diff::OcdMode, legacy::xlat_enum_legacy_ocd};
+use prjcombine_interconnect::db::{BelInfo, BelKind};
+use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_bit_wide, xlat_enum_raw};
 use prjcombine_re_hammer::Session;
-use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::defs::{self, bslots, virtex4::tcls};
+use prjcombine_types::bsdata::TileBit;
+use prjcombine_virtex4::defs::{
+    bcls, bslots,
+    virtex4::{tcls, wires},
+};
 
 use crate::{
-    backend::IseBackend,
+    backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
-    generic::fbuild::{FuzzBuilderBase, FuzzCtx},
+    generic::{
+        fbuild::{FuzzBuilderBase, FuzzCtx},
+        props::mutex::{WireMutexExclusive, WireMutexShared},
+    },
+    virtex4::specials,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "CCM") else {
+    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::CCM) else {
         return;
     };
     for idx in 0..2 {
-        let mut bctx = ctx.bel(defs::bslots::PMCD[idx]);
-        bctx.test_manual_legacy("PRESENT", "1")
+        let mut bctx = ctx.bel(bslots::PMCD[idx]);
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
             .mode("PMCD")
             .commit();
-        for pin in ["CLKA", "CLKB", "CLKC", "CLKD"] {
-            bctx.mode("PMCD")
-                .test_manual_legacy(format!("{pin}_ENABLE"), "1")
-                .pin(pin)
-                .commit();
-        }
-        for pin in ["REL", "RST"] {
-            bctx.mode("PMCD").test_inv_legacy(pin);
-        }
-        bctx.mode("PMCD")
-            .test_enum_legacy("EN_REL", &["FALSE", "TRUE"]);
-        bctx.mode("PMCD")
-            .test_enum_legacy("RST_DEASSERT_CLK", &["CLKA", "CLKB", "CLKC", "CLKD"]);
-        bctx.mode("PMCD")
-            .tile_mutex("VREG", format!("PMCD{idx}"))
-            .test_enum_legacy("CCM_VREG_ENABLE", &["FALSE", "TRUE"]);
-        bctx.mode("PMCD")
-            .tile_mutex("VREG", format!("PMCD{idx}"))
-            .test_multi_attr_bin("CCM_VBG_SEL", 4);
-        bctx.mode("PMCD")
-            .tile_mutex("VREG", format!("PMCD{idx}"))
-            .test_multi_attr_bin("CCM_VBG_PD", 2);
-        bctx.mode("PMCD")
-            .tile_mutex("VREG", format!("PMCD{idx}"))
-            .test_multi_attr_bin("CCM_VREG_PHASE_MARGIN", 3);
-
-        for (pin, abc) in [
-            ("CLKA", 'A'),
-            ("CLKB", 'A'),
-            ("CLKC", 'B'),
-            ("CLKD", 'B'),
-            ("REL", 'C'),
+        for (pin, attr) in [
+            ("CLKA", bcls::PMCD::CLKA_ENABLE),
+            ("CLKB", bcls::PMCD::CLKB_ENABLE),
+            ("CLKC", bcls::PMCD::CLKC_ENABLE),
+            ("CLKD", bcls::PMCD::CLKD_ENABLE),
         ] {
-            let bel_ccm = defs::bslots::CCM;
-            let bel_other = defs::bslots::PMCD[idx ^ 1];
-            let opin = if pin == "REL" { "CLKA" } else { "REL" };
-            for rpin in [pin.to_string(), format!("{pin}_TEST")] {
-                for i in 0..8 {
-                    bctx.mode("PMCD")
-                        .global_mutex("HCLK_DCM", "USE")
-                        .pin(pin)
-                        .pin(opin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), format!("HCLK{i}"))
-                        .mutex(format!("{opin}_OUT"), "HOLD")
-                        .mutex(format!("{opin}_IN"), format!("HCLK{i}"))
-                        .pip(opin, (bel_ccm, format!("HCLK{i}")))
-                        .test_manual_legacy(&rpin, format!("HCLK{i}"))
-                        .pip(&rpin, (bel_ccm, format!("HCLK{i}")))
-                        .commit();
-                }
-                for i in 0..16 {
-                    bctx.mode("PMCD")
-                        .global_mutex("HCLK_DCM", "USE")
-                        .pin(pin)
-                        .pin(opin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), format!("GIOB{i}"))
-                        .mutex(format!("{opin}_OUT"), "HOLD")
-                        .mutex(format!("{opin}_IN"), format!("GIOB{i}"))
-                        .pip(opin, (bel_ccm, format!("GIOB{i}")))
-                        .test_manual_legacy(&rpin, format!("GIOB{i}"))
-                        .pip(&rpin, (bel_ccm, format!("GIOB{i}")))
-                        .commit();
-                }
-                for i in 0..4 {
-                    bctx.mode("PMCD")
-                        .global_mutex("HCLK_DCM", "USE")
-                        .pin(pin)
-                        .pin(opin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), format!("MGT{i}"))
-                        .mutex(format!("{opin}_OUT"), "HOLD")
-                        .mutex(format!("{opin}_IN"), format!("MGT{i}"))
-                        .pip(opin, (bel_ccm, format!("MGT{i}")))
-                        .test_manual_legacy(&rpin, format!("MGT{i}"))
-                        .pip(&rpin, (bel_ccm, format!("MGT{i}")))
-                        .commit();
-                }
-                for i in 0..24 {
-                    bctx.mode("PMCD")
-                        .pin(pin)
-                        .pin(opin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), format!("BUSIN{i}"))
-                        .mutex(format!("{opin}_OUT"), "HOLD")
-                        .mutex(format!("{opin}_IN"), format!("BUSIN{i}"))
-                        .pip(opin, (bel_ccm, format!("BUSIN{i}")))
-                        .test_manual_legacy(&rpin, format!("BUSIN{i}"))
-                        .pip(&rpin, (bel_ccm, format!("BUSIN{i}")))
-                        .commit();
-                }
-                for i in 0..4 {
-                    bctx.mode("PMCD")
-                        .pin(pin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), format!("CKINT{abc}{i}"))
-                        .tile_mutex(format!("CKINT{abc}{i}"), format!("PMCD{idx}_{rpin}"))
-                        .test_manual_legacy(&rpin, format!("CKINT{abc}{i}"))
-                        .pip(&rpin, format!("CKINT{abc}{i}"))
-                        .commit();
-                }
-                if abc != 'C' {
-                    bctx.mode("PMCD")
-                        .pin(pin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), "CLKA1D8")
-                        .test_manual_legacy(&rpin, "CLKA1D8")
-                        .pip(&rpin, (bel_other, "CLKA1D8"))
-                        .commit();
-                }
-            }
+            bctx.mode("PMCD").test_bel_attr_bits(attr).pin(pin).commit();
+        }
+        for pin in [bcls::PMCD::REL, bcls::PMCD::RST] {
+            bctx.mode("PMCD").test_bel_input_inv_auto(pin);
         }
         bctx.mode("PMCD")
-            .pin("REL")
-            .mutex("REL_OUT", "REL")
-            .mutex("REL_IN", "REL_INT")
-            .test_manual_legacy("REL", "REL_INT")
-            .pip("REL", "REL_INT")
-            .commit();
+            .test_bel_attr_bool_auto(bcls::PMCD::EN_REL, "FALSE", "TRUE");
+        bctx.mode("PMCD")
+            .test_bel_attr_auto(bcls::PMCD::RST_DEASSERT_CLK);
+        bctx.mode("PMCD")
+            .tile_mutex("VREG", format!("PMCD{idx}"))
+            .test_bel(bslots::CCM)
+            .test_bel_attr_bool_rename("CCM_VREG_ENABLE", bcls::CCM::VREG_ENABLE, "FALSE", "TRUE");
+        // ???
+        bctx.mode("PMCD")
+            .null_bits()
+            .tile_mutex("VREG", format!("PMCD{idx}"))
+            .test_bel(bslots::CCM)
+            .test_bel_attr_bits(bcls::CCM::VBG_SEL)
+            .multi_attr("CCM_VBG_SEL", MultiValue::Bin, 4);
+        bctx.mode("PMCD")
+            .null_bits()
+            .tile_mutex("VREG", format!("PMCD{idx}"))
+            .test_bel(bslots::CCM)
+            .test_bel_attr_bits(bcls::CCM::VBG_PD)
+            .multi_attr("CCM_VBG_PD", MultiValue::Bin, 2);
+        bctx.mode("PMCD")
+            .null_bits()
+            .tile_mutex("VREG", format!("PMCD{idx}"))
+            .test_bel(bslots::CCM)
+            .test_bel_attr_bits(bcls::CCM::VREG_PHASE_MARGIN)
+            .multi_attr("CCM_VREG_PHASE_MARGIN", MultiValue::Bin, 3);
     }
     {
-        let mut bctx = ctx.bel(defs::bslots::DPM);
+        let mut bctx = ctx.bel(bslots::DPM);
         bctx.build()
-            .test_manual_legacy("PRESENT", "1")
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
             .mode("DPM")
             .commit();
         for pin in [
-            "ENOSC0", "ENOSC1", "ENOSC2", "OUTSEL0", "OUTSEL1", "OUTSEL2", "HFSEL0", "HFSEL1",
-            "HFSEL2", "RST", "SELSKEW", "FREEZE",
+            bcls::DPM::ENOSC[0],
+            bcls::DPM::ENOSC[1],
+            bcls::DPM::ENOSC[2],
+            bcls::DPM::OUTSEL[0],
+            bcls::DPM::OUTSEL[1],
+            bcls::DPM::OUTSEL[2],
+            bcls::DPM::HFSEL[0],
+            bcls::DPM::HFSEL[1],
+            bcls::DPM::HFSEL[2],
+            bcls::DPM::RST,
+            bcls::DPM::SELSKEW,
+            bcls::DPM::FREEZE,
         ] {
-            bctx.mode("DPM").test_inv_legacy(pin);
+            bctx.mode("DPM").test_bel_input_inv_auto(pin);
         }
         bctx.mode("DPM")
             .tile_mutex("VREG", "DPM")
-            .test_enum_legacy("CCM_VREG_ENABLE", &["FALSE", "TRUE"]);
+            .test_bel(bslots::CCM)
+            .test_bel_attr_bool_rename("CCM_VREG_ENABLE", bcls::CCM::VREG_ENABLE, "FALSE", "TRUE");
+        // ???
         bctx.mode("DPM")
+            .null_bits()
             .tile_mutex("VREG", "DPM")
-            .test_multi_attr_bin("CCM_VBG_SEL", 4);
+            .test_bel(bslots::CCM)
+            .test_bel_attr_bits(bcls::CCM::VBG_SEL)
+            .multi_attr("CCM_VBG_SEL", MultiValue::Bin, 4);
         bctx.mode("DPM")
+            .null_bits()
             .tile_mutex("VREG", "DPM")
-            .test_multi_attr_bin("CCM_VBG_PD", 2);
+            .test_bel(bslots::CCM)
+            .test_bel_attr_bits(bcls::CCM::VBG_PD)
+            .multi_attr("CCM_VBG_PD", MultiValue::Bin, 2);
         bctx.mode("DPM")
+            .null_bits()
             .tile_mutex("VREG", "DPM")
-            .test_multi_attr_bin("CCM_VREG_PHASE_MARGIN", 3);
+            .test_bel(bslots::CCM)
+            .test_bel_attr_bits(bcls::CCM::VREG_PHASE_MARGIN)
+            .multi_attr("CCM_VREG_PHASE_MARGIN", MultiValue::Bin, 3);
+    }
 
-        for (pin, abc) in [("REFCLK", 'A'), ("TESTCLK1", 'B'), ("TESTCLK2", 'B')] {
-            let bel_ccm = defs::bslots::CCM;
-            let opin = if pin == "REFCLK" {
-                "TESTCLK1"
+    let muxes = &backend.edev.db_index.tile_classes[tcls::CCM].muxes;
+    for (bslot, bel) in &backend.edev.db[tcls::CCM].bels {
+        let BelInfo::Bel(bel) = bel else {
+            continue;
+        };
+        let BelKind::Class(bcid) = backend.edev.db.bel_slots[bslot].kind else {
+            unreachable!()
+        };
+        let mut bctx = ctx.bel(bslot);
+        let mode = if bslot == bslots::DPM { "DPM" } else { "PMCD" };
+        for (pin, inp) in &bel.inputs {
+            let wire = inp.wire();
+            let (mux, extra_in) = if wires::IMUX_SPEC.contains(wire.wire) {
+                (&muxes[&wire], None)
+            } else if wires::IMUX_CCM_REL.contains(wire.wire) {
+                let mut extra_in = None;
+                let mut spec = None;
+                for &src in muxes[&wire].src.keys() {
+                    if wires::IMUX_SPEC.contains(src.wire) {
+                        spec = Some(src.tw);
+                    } else {
+                        extra_in = Some(src.tw);
+                    }
+                }
+                (&muxes[&spec.unwrap()], extra_in)
             } else {
-                "REFCLK"
+                continue;
             };
-            for rpin in [pin.to_string(), format!("{pin}_TEST")] {
-                for i in 0..8 {
-                    bctx.mode("DPM")
-                        .global_mutex("HCLK_DCM", "USE")
-                        .pin(pin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), format!("HCLK{i}"))
-                        .mutex(format!("{opin}_OUT"), "HOLD")
-                        .mutex(format!("{opin}_IN"), format!("HCLK{i}"))
-                        .pip(opin, (bel_ccm, format!("HCLK{i}")))
-                        .test_manual_legacy(&rpin, format!("HCLK{i}"))
-                        .pip(&rpin, (bel_ccm, format!("HCLK{i}")))
-                        .commit();
+            let pname = backend.edev.db[bcid].inputs.key(pin).0;
+            let opin = if bslot == bslots::DPM {
+                if pin == bcls::DPM::REFCLK {
+                    bcls::DPM::TESTCLK1
+                } else {
+                    bcls::DPM::REFCLK
                 }
-                for i in 0..16 {
-                    bctx.mode("DPM")
-                        .global_mutex("HCLK_DCM", "USE")
-                        .pin(pin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), format!("GIOB{i}"))
-                        .mutex(format!("{opin}_OUT"), "HOLD")
-                        .mutex(format!("{opin}_IN"), format!("GIOB{i}"))
-                        .pip(opin, (bel_ccm, format!("GIOB{i}")))
-                        .test_manual_legacy(&rpin, format!("GIOB{i}"))
-                        .pip(&rpin, (bel_ccm, format!("GIOB{i}")))
-                        .commit();
+            } else {
+                if pin == bcls::PMCD::CLKA {
+                    bcls::PMCD::CLKB
+                } else {
+                    bcls::PMCD::CLKA
                 }
-                for i in 0..4 {
-                    bctx.mode("DPM")
-                        .global_mutex("HCLK_DCM", "USE")
-                        .pin(pin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), format!("MGT{i}"))
-                        .mutex(format!("{opin}_OUT"), "HOLD")
-                        .mutex(format!("{opin}_IN"), format!("MGT{i}"))
-                        .pip(opin, (bel_ccm, format!("MGT{i}")))
-                        .test_manual_legacy(&rpin, format!("MGT{i}"))
-                        .pip(&rpin, (bel_ccm, format!("MGT{i}")))
-                        .commit();
-                }
-                for i in 0..24 {
-                    bctx.mode("DPM")
-                        .pin(pin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), format!("BUSIN{i}"))
-                        .mutex(format!("{opin}_OUT"), "HOLD")
-                        .mutex(format!("{opin}_IN"), format!("BUSIN{i}"))
-                        .pip(opin, (bel_ccm, format!("BUSIN{i}")))
-                        .test_manual_legacy(&rpin, format!("BUSIN{i}"))
-                        .pip(&rpin, (bel_ccm, format!("BUSIN{i}")))
-                        .commit();
-                }
-                for i in 0..4 {
-                    bctx.mode("DPM")
-                        .pin(pin)
-                        .mutex(format!("{pin}_OUT"), &rpin)
-                        .mutex(format!("{pin}_IN"), format!("CKINT{abc}{i}"))
-                        .mutex(format!("CKINT{abc}{i}"), &rpin)
-                        .test_manual_legacy(&rpin, format!("CKINT{abc}{i}"))
-                        .pip(&rpin, format!("CKINT{abc}{i}"))
-                        .commit();
+            };
+            let opname = backend.edev.db[bcid].inputs.key(opin).0;
+            let odst = bel.inputs[opin].wire();
+            for out in [pname, format!("{pname}_TEST").as_str()] {
+                for &src in mux.src.keys() {
+                    let mut builder = bctx
+                        .build()
+                        .mode(mode)
+                        .pin(pname)
+                        .prop(WireMutexExclusive::new(mux.dst));
+                    if wires::HCLK_DCM.contains(src.wire)
+                        || wires::GIOB_DCM.contains(src.wire)
+                        || wires::MGT_DCM.contains(src.wire)
+                        || wires::DCM_DCM_I.contains(src.wire)
+                    {
+                        if !wires::DCM_DCM_I.contains(src.wire) {
+                            builder = builder.global_mutex("HCLK_DCM", "USE");
+                        }
+                        builder = builder
+                            .pin(opname)
+                            .prop(WireMutexExclusive::new(odst))
+                            .pip(opname, src.tw);
+                    }
+                    if wires::IMUX_CLK_OPTINV.contains(src.wire) {
+                        builder = builder.prop(WireMutexExclusive::new(src.tw));
+                    } else {
+                        builder = builder.prop(WireMutexShared::new(src.tw));
+                    }
+                    builder.test_routing(mux.dst, src).pip(out, src.tw).commit();
                 }
             }
-        }
-    }
-    {
-        let mut bctx = ctx.bel(defs::bslots::CCM);
-        for i in 0..12 {
-            let opin = format!("TO_BUFG{i}");
-            for (name, bel, pin) in [
-                ("PMCD0_CLKA1", defs::bslots::PMCD[0], "CLKA1"),
-                ("PMCD0_CLKA1D2", defs::bslots::PMCD[0], "CLKA1D2"),
-                ("PMCD0_CLKA1D4", defs::bslots::PMCD[0], "CLKA1D4"),
-                ("PMCD0_CLKA1D8", defs::bslots::PMCD[0], "CLKA1D8"),
-                ("PMCD0_CLKB1", defs::bslots::PMCD[0], "CLKB1"),
-                ("PMCD0_CLKC1", defs::bslots::PMCD[0], "CLKC1"),
-                ("PMCD0_CLKD1", defs::bslots::PMCD[0], "CLKD1"),
-                ("PMCD1_CLKA1", defs::bslots::PMCD[1], "CLKA1"),
-                ("PMCD1_CLKA1D2", defs::bslots::PMCD[1], "CLKA1D2"),
-                ("PMCD1_CLKA1D4", defs::bslots::PMCD[1], "CLKA1D4"),
-                ("PMCD1_CLKA1D8", defs::bslots::PMCD[1], "CLKA1D8"),
-                ("PMCD1_CLKB1", defs::bslots::PMCD[1], "CLKB1"),
-                ("PMCD1_CLKC1", defs::bslots::PMCD[1], "CLKC1"),
-                ("PMCD1_CLKD1", defs::bslots::PMCD[1], "CLKD1"),
-                ("DPM_REFCLKOUT", defs::bslots::DPM, "REFCLKOUT"),
-                ("DPM_OSCOUT1", defs::bslots::DPM, "OSCOUT1"),
-                ("DPM_OSCOUT2", defs::bslots::DPM, "OSCOUT2"),
-                ("CKINT", defs::bslots::CCM, "CKINT"),
-            ] {
+            if let Some(extra) = extra_in {
                 bctx.build()
-                    .tile_mutex(&opin, name)
-                    .test_manual_legacy(format!("MUX.TO_BUFG{i}"), name)
-                    .pip(&opin, (bel, pin))
+                    .mode(mode)
+                    .pin(pname)
+                    .prop(WireMutexExclusive::new(mux.dst))
+                    .prop(WireMutexShared::new(extra))
+                    .test_routing(wire, extra.pos())
+                    .pip(pname, extra)
                     .commit();
             }
         }
@@ -271,218 +202,86 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let ExpandedDevice::Virtex4(edev) = ctx.edev else {
-        unreachable!()
-    };
-    let tile = "CCM";
     let tcid = tcls::CCM;
     if !ctx.has_tcls(tcid) {
         return;
     }
-    for bslot in [bslots::PMCD[0], bslots::PMCD[1]] {
-        let bel = edev.db.bel_slots.key(bslot);
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
-        ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslot, "RST", false);
-        ctx.collect_inv_legacy(tile, bel, "REL");
-        ctx.collect_bit_wide_legacy(tile, bel, "CLKA_ENABLE", "1");
-        ctx.collect_bit_legacy(tile, bel, "CLKB_ENABLE", "1");
-        ctx.collect_bit_legacy(tile, bel, "CLKC_ENABLE", "1");
-        ctx.collect_bit_legacy(tile, bel, "CLKD_ENABLE", "1");
-        ctx.collect_bit_bi_legacy(tile, bel, "EN_REL", "FALSE", "TRUE");
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "RST_DEASSERT_CLK",
-            &["CLKA", "CLKB", "CLKC", "CLKD"],
-        );
-
-        for (pin, abc) in [
-            ("CLKA", 'A'),
-            ("CLKB", 'A'),
-            ("CLKC", 'B'),
-            ("CLKD", 'B'),
-            ("REL", 'C'),
-        ] {
-            let mut diffs = vec![];
-            for i in 0..8 {
-                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("HCLK{i}"));
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("HCLK{i}"))
-                );
-                diffs.push((format!("HCLK{i}"), diff));
-            }
-            for i in 0..16 {
-                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("GIOB{i}"));
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("GIOB{i}"))
-                );
-                diffs.push((format!("GIOB{i}"), diff));
-            }
-            for i in 0..4 {
-                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("MGT{i}"));
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("MGT{i}"))
-                );
-                diffs.push((format!("MGT{i}"), diff));
-            }
-            for i in 0..24 {
-                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("BUSIN{i}"));
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("BUSIN{i}"))
-                );
-                diffs.push((format!("BUSIN{i}"), diff));
-            }
-            for i in 0..4 {
-                let mut diff = ctx.get_diff_legacy(tile, bel, pin, format!("CKINT{abc}{i}"));
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
-                );
-                if i < 2 {
-                    let item = ctx.item_int_inv_legacy(
-                        &[tcls::INT; 4],
-                        tcid,
-                        bslot,
-                        &format!("CKINT{abc}{i}"),
-                    );
-                    diff.apply_bit_diff(item, false, true);
-                }
-                diffs.push((format!("CKINT{abc}{i}"), diff));
-            }
-            if abc != 'C' {
-                let diff = ctx.get_diff_legacy(tile, bel, pin, "CLKA1D8");
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), "CLKA1D8")
-                );
-                diffs.push(("CLKA1D8".to_string(), diff));
-            } else {
-                let diff = ctx.get_diff_legacy(tile, bel, pin, "REL_INT");
-                diffs.push(("REL_INT".to_string(), diff));
-            }
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("MUX.{pin}"),
-                xlat_enum_legacy_ocd(diffs, OcdMode::Mux),
-            );
-        }
+    for bslot in bslots::PMCD {
+        ctx.collect_bel_input_inv_int_bi(&[tcls::INT; 4], tcid, bslot, bcls::PMCD::RST);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::PMCD::REL);
+        let bits = xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, bcls::PMCD::CLKA_ENABLE));
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::PMCD::CLKA_ENABLE, bits);
+        ctx.collect_bel_attr(tcid, bslot, bcls::PMCD::CLKB_ENABLE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::PMCD::CLKC_ENABLE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::PMCD::CLKD_ENABLE);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::PMCD::EN_REL);
+        ctx.collect_bel_attr(tcid, bslot, bcls::PMCD::RST_DEASSERT_CLK);
     }
     {
-        let bel = "DPM";
         let bslot = bslots::DPM;
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
-        ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslot, "RST", false);
+        ctx.collect_bel_input_inv_int_bi(&[tcls::INT; 4], tcid, bslot, bcls::DPM::RST);
         for pin in [
-            "ENOSC0", "ENOSC1", "ENOSC2", "OUTSEL0", "OUTSEL1", "OUTSEL2", "HFSEL0", "HFSEL1",
-            "HFSEL2", "SELSKEW", "FREEZE",
+            bcls::DPM::ENOSC[0],
+            bcls::DPM::ENOSC[1],
+            bcls::DPM::ENOSC[2],
+            bcls::DPM::OUTSEL[0],
+            bcls::DPM::OUTSEL[1],
+            bcls::DPM::OUTSEL[2],
+            bcls::DPM::HFSEL[0],
+            bcls::DPM::HFSEL[1],
+            bcls::DPM::HFSEL[2],
+            bcls::DPM::SELSKEW,
+            bcls::DPM::FREEZE,
         ] {
-            ctx.collect_inv_legacy(tile, bel, pin);
-        }
-        for (pin, abc) in [("REFCLK", 'A'), ("TESTCLK1", 'B'), ("TESTCLK2", 'B')] {
-            let mut diffs = vec![];
-            for i in 0..8 {
-                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("HCLK{i}"));
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("HCLK{i}"))
-                );
-                diffs.push((format!("HCLK{i}"), diff));
-            }
-            for i in 0..16 {
-                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("GIOB{i}"));
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("GIOB{i}"))
-                );
-                diffs.push((format!("GIOB{i}"), diff));
-            }
-            for i in 0..4 {
-                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("MGT{i}"));
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("MGT{i}"))
-                );
-                diffs.push((format!("MGT{i}"), diff));
-            }
-            for i in 0..24 {
-                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("BUSIN{i}"));
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("BUSIN{i}"))
-                );
-                diffs.push((format!("BUSIN{i}"), diff));
-            }
-            for i in 0..4 {
-                let mut diff = ctx.get_diff_legacy(tile, bel, pin, format!("CKINT{abc}{i}"));
-                assert_eq!(
-                    diff,
-                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
-                );
-                if i < 2 {
-                    let item = ctx.item_int_inv_legacy(
-                        &[tcls::INT; 4],
-                        tcid,
-                        bslot,
-                        &format!("CKINT{abc}{i}"),
-                    );
-                    diff.apply_bit_diff(item, false, true);
-                }
-                diffs.push((format!("CKINT{abc}{i}"), diff));
-            }
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("MUX.{pin}"),
-                xlat_enum_legacy_ocd(diffs, OcdMode::Mux),
-            );
-        }
-    }
-    for bel in ["PMCD[0]", "PMCD[1]", "DPM"] {
-        let vreg_enable = ctx.extract_bit_bi_legacy(tile, bel, "CCM_VREG_ENABLE", "FALSE", "TRUE");
-        ctx.insert_legacy(tile, "CCM", "VREG_ENABLE", vreg_enable);
-        // ???
-        for attr in ["CCM_VBG_SEL", "CCM_VBG_PD", "CCM_VREG_PHASE_MARGIN"] {
-            for diff in ctx.get_diffs_legacy(tile, bel, attr, "") {
-                diff.assert_empty();
-            }
+            ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
         }
     }
     {
-        let bel = "CCM";
-        for i in 0..12 {
-            ctx.collect_enum_legacy_ocd(
-                tile,
-                bel,
-                &format!("MUX.TO_BUFG{i}"),
-                &[
-                    "PMCD0_CLKA1",
-                    "PMCD0_CLKA1D2",
-                    "PMCD0_CLKA1D4",
-                    "PMCD0_CLKA1D8",
-                    "PMCD0_CLKB1",
-                    "PMCD0_CLKC1",
-                    "PMCD0_CLKD1",
-                    "PMCD1_CLKA1",
-                    "PMCD1_CLKA1D2",
-                    "PMCD1_CLKA1D4",
-                    "PMCD1_CLKA1D8",
-                    "PMCD1_CLKB1",
-                    "PMCD1_CLKC1",
-                    "PMCD1_CLKD1",
-                    "DPM_REFCLKOUT",
-                    "DPM_OSCOUT1",
-                    "DPM_OSCOUT2",
-                    "CKINT",
-                ],
-                OcdMode::Mux,
-            );
+        let bslot = bslots::CCM;
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::CCM::VREG_ENABLE);
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::CCM::VBG_SEL,
+            (22..26).map(|bit| TileBit::new(3, 20, bit).pos()).collect(),
+        );
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::CCM::VBG_PD,
+            (26..28).map(|bit| TileBit::new(3, 20, bit).pos()).collect(),
+        );
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::CCM::VREG_PHASE_MARGIN,
+            (29..32).map(|bit| TileBit::new(3, 20, bit).pos()).collect(),
+        );
+    }
+
+    for mux in ctx.edev.db_index.tile_classes[tcid].muxes.values() {
+        if wires::IMUX_SPEC.contains(mux.dst.wire) {
+            let mut diffs = vec![];
+            for &src in mux.src.keys() {
+                let mut diff = ctx.get_diff_routing(tcid, mux.dst, src);
+                if wires::IMUX_CLK_OPTINV.contains(src.wire) {
+                    let item = ctx.item_int_inv_raw(&[tcls::INT; 4], src.tw);
+                    diff.apply_bit_diff(item, false, true);
+                }
+                diffs.push((Some(src), diff));
+            }
+            ctx.insert_mux(tcid, mux.dst, xlat_enum_raw(diffs, OcdMode::Mux));
+        } else if wires::IMUX_CCM_REL.contains(mux.dst.wire) {
+            let mut diffs = vec![];
+            for &src in mux.src.keys() {
+                let diff = if wires::IMUX_SPEC.contains(src.wire) {
+                    Diff::default()
+                } else {
+                    ctx.get_diff_routing(tcid, mux.dst, src)
+                };
+                diffs.push((Some(src), diff));
+            }
+            ctx.insert_mux(tcid, mux.dst, xlat_enum_raw(diffs, OcdMode::Mux));
         }
     }
 }

@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use prjcombine_interconnect::db::{BelAttributeType, BelInfo, SwitchBoxItem, TileWireCoord};
 use prjcombine_re_collector::diff::{
     OcdMode, extract_bitvec_val_part, extract_common_diff, xlat_bit, xlat_enum_raw,
@@ -30,17 +28,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots::CMT_INT] else {
         unreachable!()
     };
-    let mut muxes = HashMap::new();
+    let muxes = &backend.edev.db_index.tile_classes[tcid].muxes;
     let mut pairmux = None;
     for item in &sb.items {
-        match item {
-            SwitchBoxItem::Mux(mux) => {
-                muxes.insert(mux.dst, mux);
-            }
-            SwitchBoxItem::PairMux(mux) => {
-                pairmux = Some(mux);
-            }
-            _ => (),
+        if let SwitchBoxItem::PairMux(mux) = item {
+            pairmux = Some(mux);
         }
     }
     let pairmux = pairmux.unwrap();
@@ -277,7 +269,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .commit();
 
     {
-        let mux = muxes[&TileWireCoord::new_idx(1, wires::IMUX_PLL_CLKFB)];
+        let mux = &muxes[&TileWireCoord::new_idx(1, wires::IMUX_PLL_CLKFB)];
         for &src in mux.src.keys() {
             let mut builder = bctx
                 .mode(mode)
@@ -316,7 +308,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         (wires::OMUX_PLL_SKEWCLKIN1, wires::OMUX_PLL_SKEWCLKIN1_BUF),
         (wires::OMUX_PLL_SKEWCLKIN2, wires::OMUX_PLL_SKEWCLKIN2_BUF),
     ] {
-        let mux = muxes[&TileWireCoord::new_idx(1, w)];
+        let mux = &muxes[&TileWireCoord::new_idx(1, w)];
         for &src in mux.src.keys() {
             bctx.build()
                 .global_mutex("CMT", "MUX_PLL")
@@ -335,7 +327,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mux = muxes[&TileWireCoord::new_idx(1, wires::CMT_TEST_CLK)];
+        let mux = &muxes[&TileWireCoord::new_idx(1, wires::CMT_TEST_CLK)];
         for &src in mux.src.keys() {
             bctx.build()
                 .global_mutex("CMT", "MUX_PLL")
@@ -375,17 +367,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
     let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots::CMT_INT] else {
         unreachable!()
     };
-    let mut muxes = HashMap::new();
+    let muxes = &ctx.edev.db_index.tile_classes[tcid].muxes;
     let mut pairmux = None;
     for item in &sb.items {
-        match item {
-            SwitchBoxItem::Mux(mux) => {
-                muxes.insert(mux.dst, mux);
-            }
-            SwitchBoxItem::PairMux(mux) => {
-                pairmux = Some(mux);
-            }
-            _ => (),
+        if let SwitchBoxItem::PairMux(mux) = item {
+            pairmux = Some(mux);
         }
     }
     let pairmux = pairmux.unwrap();
@@ -498,7 +484,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
         wires::CMT_TEST_CLK,
         wires::IMUX_PLL_CLKFB,
     ] {
-        let mux = muxes[&TileWireCoord::new_idx(1, w)];
+        let mux = &muxes[&TileWireCoord::new_idx(1, w)];
         let mut diffs = vec![];
         let mut got_empty = false;
         for &src in mux.src.keys() {

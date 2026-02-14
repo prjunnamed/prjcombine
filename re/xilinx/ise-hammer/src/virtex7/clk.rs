@@ -1,5 +1,6 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
+    db::TileClassId,
     dir::{DirH, DirV},
     grid::{RowId, TileCoord},
 };
@@ -10,7 +11,7 @@ use prjcombine_re_collector::{
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, tslots, virtex7::tcls};
 
 use crate::{
     backend::IseBackend,
@@ -20,13 +21,13 @@ use crate::{
         props::{
             DynProp,
             bel::BelMutex,
-            relation::{DeltaLegacy, Related, TileRelation},
+            relation::{Delta, Related, TileRelation},
         },
     },
 };
 
 #[derive(Clone, Copy, Debug)]
-pub struct ColPair(pub &'static str);
+pub struct ColPair(pub TileClassId);
 
 impl TileRelation for ColPair {
     fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
@@ -37,9 +38,12 @@ impl TileRelation for ColPair {
             DirH::W => tcrd.col + 1,
             DirH::E => tcrd.col - 1,
         };
-        backend
-            .edev
-            .find_tile_by_class(tcrd.with_col(col), |kind| kind == self.0)
+        let ntcrd = tcrd.with_col(col).tile(edev.db[self.0].slot);
+        if edev.get_tile(ntcrd)?.class == self.0 {
+            Some(ntcrd)
+        } else {
+            None
+        }
     }
 }
 
@@ -55,9 +59,12 @@ impl TileRelation for CmtDir {
             DirH::W => edev.col_lio.unwrap() + 1,
             DirH::E => edev.col_rio.unwrap() - 1,
         };
-        backend
-            .edev
-            .find_tile_by_class(tcrd.with_col(scol), |kind| kind == "CMT")
+        let ntcrd = tcrd.with_col(scol).tile(tslots::BEL);
+        if edev.get_tile(ntcrd)?.class == tcls::CMT {
+            Some(ntcrd)
+        } else {
+            None
+        }
     }
 }
 
@@ -92,9 +99,10 @@ impl TileRelation for ClkRebuf {
                     }
                 }
             }
-            if let Some(ntcrd) = backend.edev.find_tile_by_class(cell, |kind| {
-                matches!(kind, "CLK_BUFG_REBUF" | "CLK_BALI_REBUF")
-            }) {
+            let ntcrd = cell.tile(tslots::BEL);
+            if let Some(ntile) = backend.edev.get_tile(ntcrd)
+                && matches!(ntile.class, tcls::CLK_BUFG_REBUF | tcls::CLK_BALI_REBUF)
+            {
                 return Some(ntcrd);
             }
         }
@@ -146,7 +154,7 @@ pub fn add_fuzzers<'a>(
         unreachable!()
     };
     if !bali_only {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK);
         let mut bctx = ctx.bel(defs::bslots::HCLK_W);
         for i in 6..12 {
             for ud in ['U', 'D'] {
@@ -156,15 +164,15 @@ pub fn add_fuzzers<'a>(
                         .global_mutex("HCLK", "USE")
                         .tile_mutex(format!("MUX.LCLK{i}_{ud}_L"), format!("HCLK{j}"))
                         .tile_mutex(format!("HCLK{j}"), format!("MUX.LCLK{i}_{ud}_L"))
-                        .has_related(DeltaLegacy::new(0, -1, "INT"))
-                        .has_related(DeltaLegacy::new(-2, -1, "INT"))
-                        .has_related(DeltaLegacy::new(2, -1, "INT"))
-                        .has_related(DeltaLegacy::new(0, 1, "INT"))
-                        .has_related(DeltaLegacy::new(-2, 1, "INT"))
-                        .has_related(DeltaLegacy::new(2, 1, "INT"))
-                        .related_tile_mutex(DeltaLegacy::new(-2, 0, "HCLK"), "MODE", "PIN_L")
+                        .has_related(Delta::new(0, -1, tcls::INT))
+                        .has_related(Delta::new(-2, -1, tcls::INT))
+                        .has_related(Delta::new(2, -1, tcls::INT))
+                        .has_related(Delta::new(0, 1, tcls::INT))
+                        .has_related(Delta::new(-2, 1, tcls::INT))
+                        .has_related(Delta::new(2, 1, tcls::INT))
+                        .related_tile_mutex(Delta::new(-2, 0, tcls::HCLK), "MODE", "PIN_L")
                         .related_pip(
-                            DeltaLegacy::new(-2, 0, "HCLK"),
+                            Delta::new(-2, 0, tcls::HCLK),
                             format!("LCLK{i}_{ud}"),
                             if j < 8 {
                                 format!("HCLK{j}_I")
@@ -172,9 +180,9 @@ pub fn add_fuzzers<'a>(
                                 format!("HCLK{j}")
                             },
                         )
-                        .related_tile_mutex(DeltaLegacy::new(2, 0, "HCLK"), "MODE", "PIN_R")
+                        .related_tile_mutex(Delta::new(2, 0, tcls::HCLK), "MODE", "PIN_R")
                         .related_pip(
-                            DeltaLegacy::new(2, 0, "HCLK"),
+                            Delta::new(2, 0, tcls::HCLK),
                             format!("LCLK{i}_{ud}"),
                             if j < 8 {
                                 format!("HCLK{j}_I")
@@ -199,21 +207,21 @@ pub fn add_fuzzers<'a>(
                         .global_mutex("RCLK", "USE")
                         .tile_mutex(format!("MUX.LCLK{i}_{ud}_L"), format!("RCLK{j}"))
                         .tile_mutex(format!("RCLK{j}"), format!("MUX.LCLK{i}_{ud}_L"))
-                        .has_related(DeltaLegacy::new(0, -1, "INT"))
-                        .has_related(DeltaLegacy::new(-2, -1, "INT"))
-                        .has_related(DeltaLegacy::new(2, -1, "INT"))
-                        .has_related(DeltaLegacy::new(0, 1, "INT"))
-                        .has_related(DeltaLegacy::new(-2, 1, "INT"))
-                        .has_related(DeltaLegacy::new(2, 1, "INT"))
-                        .related_tile_mutex(DeltaLegacy::new(-2, 0, "HCLK"), "MODE", "PIN_L")
+                        .has_related(Delta::new(0, -1, tcls::INT))
+                        .has_related(Delta::new(-2, -1, tcls::INT))
+                        .has_related(Delta::new(2, -1, tcls::INT))
+                        .has_related(Delta::new(0, 1, tcls::INT))
+                        .has_related(Delta::new(-2, 1, tcls::INT))
+                        .has_related(Delta::new(2, 1, tcls::INT))
+                        .related_tile_mutex(Delta::new(-2, 0, tcls::HCLK), "MODE", "PIN_L")
                         .related_pip(
-                            DeltaLegacy::new(-2, 0, "HCLK"),
+                            Delta::new(-2, 0, tcls::HCLK),
                             format!("LCLK{i}_{ud}"),
                             format!("RCLK{j}"),
                         )
-                        .related_tile_mutex(DeltaLegacy::new(2, 0, "HCLK"), "MODE", "PIN_R")
+                        .related_tile_mutex(Delta::new(2, 0, tcls::HCLK), "MODE", "PIN_R")
                         .related_pip(
-                            DeltaLegacy::new(2, 0, "HCLK"),
+                            Delta::new(2, 0, tcls::HCLK),
                             format!("LCLK{i}_{ud}"),
                             format!("RCLK{j}"),
                         )
@@ -232,15 +240,15 @@ pub fn add_fuzzers<'a>(
                         .global_mutex("HCLK", "USE")
                         .tile_mutex(format!("MUX.LCLK{i}_{ud}_R"), format!("HCLK{j}"))
                         .tile_mutex(format!("HCLK{j}"), format!("MUX.LCLK{i}_{ud}_R"))
-                        .has_related(DeltaLegacy::new(0, -1, "INT"))
-                        .has_related(DeltaLegacy::new(-2, -1, "INT"))
-                        .has_related(DeltaLegacy::new(2, -1, "INT"))
-                        .has_related(DeltaLegacy::new(0, 1, "INT"))
-                        .has_related(DeltaLegacy::new(-2, 1, "INT"))
-                        .has_related(DeltaLegacy::new(2, 1, "INT"))
-                        .related_tile_mutex(DeltaLegacy::new(-2, 0, "HCLK"), "MODE", "PIN_L")
+                        .has_related(Delta::new(0, -1, tcls::INT))
+                        .has_related(Delta::new(-2, -1, tcls::INT))
+                        .has_related(Delta::new(2, -1, tcls::INT))
+                        .has_related(Delta::new(0, 1, tcls::INT))
+                        .has_related(Delta::new(-2, 1, tcls::INT))
+                        .has_related(Delta::new(2, 1, tcls::INT))
+                        .related_tile_mutex(Delta::new(-2, 0, tcls::HCLK), "MODE", "PIN_L")
                         .related_pip(
-                            DeltaLegacy::new(-2, 0, "HCLK"),
+                            Delta::new(-2, 0, tcls::HCLK),
                             format!("LCLK{i}_{ud}"),
                             if j < 8 {
                                 format!("HCLK{j}")
@@ -248,9 +256,9 @@ pub fn add_fuzzers<'a>(
                                 format!("HCLK{j}_I")
                             },
                         )
-                        .related_tile_mutex(DeltaLegacy::new(2, 0, "HCLK"), "MODE", "PIN_R")
+                        .related_tile_mutex(Delta::new(2, 0, tcls::HCLK), "MODE", "PIN_R")
                         .related_pip(
-                            DeltaLegacy::new(2, 0, "HCLK"),
+                            Delta::new(2, 0, tcls::HCLK),
                             format!("LCLK{i}_{ud}"),
                             if j < 8 {
                                 format!("HCLK{j}")
@@ -275,21 +283,21 @@ pub fn add_fuzzers<'a>(
                         .global_mutex("RCLK", "USE")
                         .tile_mutex(format!("MUX.LCLK{i}_{ud}_R"), format!("RCLK{j}"))
                         .tile_mutex(format!("RCLK{j}"), format!("MUX.LCLK{i}_{ud}_R"))
-                        .has_related(DeltaLegacy::new(0, -1, "INT"))
-                        .has_related(DeltaLegacy::new(-2, -1, "INT"))
-                        .has_related(DeltaLegacy::new(2, -1, "INT"))
-                        .has_related(DeltaLegacy::new(0, 1, "INT"))
-                        .has_related(DeltaLegacy::new(-2, 1, "INT"))
-                        .has_related(DeltaLegacy::new(2, 1, "INT"))
-                        .related_tile_mutex(DeltaLegacy::new(-2, 0, "HCLK"), "MODE", "PIN_L")
+                        .has_related(Delta::new(0, -1, tcls::INT))
+                        .has_related(Delta::new(-2, -1, tcls::INT))
+                        .has_related(Delta::new(2, -1, tcls::INT))
+                        .has_related(Delta::new(0, 1, tcls::INT))
+                        .has_related(Delta::new(-2, 1, tcls::INT))
+                        .has_related(Delta::new(2, 1, tcls::INT))
+                        .related_tile_mutex(Delta::new(-2, 0, tcls::HCLK), "MODE", "PIN_L")
                         .related_pip(
-                            DeltaLegacy::new(-2, 0, "HCLK"),
+                            Delta::new(-2, 0, tcls::HCLK),
                             format!("LCLK{i}_{ud}"),
                             format!("RCLK{j}_I"),
                         )
-                        .related_tile_mutex(DeltaLegacy::new(2, 0, "HCLK"), "MODE", "PIN_R")
+                        .related_tile_mutex(Delta::new(2, 0, tcls::HCLK), "MODE", "PIN_R")
                         .related_pip(
-                            DeltaLegacy::new(2, 0, "HCLK"),
+                            Delta::new(2, 0, tcls::HCLK),
                             format!("LCLK{i}_{ud}"),
                             format!("RCLK{j}_I"),
                         )
@@ -301,7 +309,7 @@ pub fn add_fuzzers<'a>(
         }
     }
     if !bali_only {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "CLK_BUFG");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CLK_BUFG);
         for i in 0..16 {
             let mut bctx = ctx.bel(defs::bslots::BUFGCTRL[i]);
             bctx.test_manual_legacy("ENABLE", "1")
@@ -418,7 +426,7 @@ pub fn add_fuzzers<'a>(
         }
     }
     if !bali_only {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "CLK_HROW");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CLK_HROW);
         for i in 0..32 {
             let mut bctx = ctx.bel(defs::bslots::GCLK_TEST_BUF_HROW_GCLK[i]);
             bctx.test_manual_legacy("ENABLE", "1")
@@ -487,13 +495,13 @@ pub fn add_fuzzers<'a>(
                     bctx.build()
                         .global_mutex("GCLK", "TEST")
                         .extra_tile_attr_legacy(
-                            DeltaLegacy::new(0, -13, "CLK_BUFG_REBUF"),
+                            Delta::new(0, -13, tcls::CLK_BUFG_REBUF),
                             "CLK_REBUF",
                             format!("ENABLE.GCLK{j}_U"),
                             "1",
                         )
                         .extra_tile_attr_legacy(
-                            DeltaLegacy::new(0, 11, "CLK_BUFG_REBUF"),
+                            Delta::new(0, 11, tcls::CLK_BUFG_REBUF),
                             "CLK_REBUF",
                             format!("ENABLE.GCLK{j}_D"),
                             "1",
@@ -620,11 +628,11 @@ pub fn add_fuzzers<'a>(
             }
         }
     }
-    for tile in ["CLK_BUFG_REBUF", "CLK_BALI_REBUF"] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+    for tcid in [tcls::CLK_BUFG_REBUF, tcls::CLK_BALI_REBUF] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
-        if tile == "CLK_BUFG_REBUF" && bali_only {
+        if tcid == tcls::CLK_BUFG_REBUF && bali_only {
             continue;
         }
         let mut bctx = ctx.bel(defs::bslots::CLK_REBUF);
@@ -649,7 +657,7 @@ pub fn add_fuzzers<'a>(
                         .pip(format!("GCLK{i}_U"), format!("GCLK{i}_D"))
                         .commit();
                 }
-                if tile == "CLK_BALI_REBUF" {
+                if tcid == tcls::CLK_BALI_REBUF {
                     bctx.build()
                         .global_mutex("GCLK", "REBUF_BALI")
                         .prop(HclkSide(DirV::S))
@@ -681,7 +689,7 @@ pub fn add_fuzzers<'a>(
                         .pip(format!("GCLK{i}_D"), format!("GCLK{i}_U"))
                         .commit();
                 }
-                if tile == "CLK_BALI_REBUF" {
+                if tcid == tcls::CLK_BALI_REBUF {
                     bctx.build()
                         .global_mutex("GCLK", "REBUF_BALI")
                         .prop(HclkSide(DirV::S))
@@ -714,8 +722,8 @@ pub fn add_fuzzers<'a>(
         }
     }
     if !bali_only {
-        for tile in ["HCLK_IO_HR", "HCLK_IO_HP"] {
-            let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
+        for tcid in [tcls::HCLK_IO_HR, tcls::HCLK_IO_HP] {
+            let mut ctx = FuzzCtx::new(session, backend, tcid);
             for i in 0..4 {
                 let mut bctx = ctx.bel(defs::bslots::BUFIO[i]);
                 bctx.test_manual_legacy("ENABLE", "1")
@@ -725,9 +733,9 @@ pub fn add_fuzzers<'a>(
                     .test_enum_legacy("DELAY_BYPASS", &["FALSE", "TRUE"]);
                 bctx.build()
                     .mutex("MUX.I", "CCIO")
-                    .related_tile_mutex(ColPair("CMT"), "CCIO", "USE_IO")
+                    .related_tile_mutex(ColPair(tcls::CMT), "CCIO", "USE_IO")
                     .prop(Related::new(
-                        ColPair("CMT"),
+                        ColPair(tcls::CMT),
                         BelMutex::new(
                             defs::bslots::HCLK_CMT,
                             format!("MUX.FREQ_BB{i}"),
@@ -735,7 +743,7 @@ pub fn add_fuzzers<'a>(
                         ),
                     ))
                     .related_pip(
-                        ColPair("CMT"),
+                        ColPair(tcls::CMT),
                         (defs::bslots::HCLK_CMT, format!("FREQ_BB{i}_MUX")),
                         (defs::bslots::HCLK_CMT, format!("CCIO{i}")),
                     )
@@ -747,9 +755,9 @@ pub fn add_fuzzers<'a>(
                     .commit();
                 bctx.build()
                     .mutex("MUX.I", "PERF")
-                    .related_tile_mutex(ColPair("CMT"), "PERF", "USE_IO")
+                    .related_tile_mutex(ColPair(tcls::CMT), "PERF", "USE_IO")
                     .related_pip(
-                        ColPair("CMT"),
+                        ColPair(tcls::CMT),
                         (defs::bslots::HCLK_CMT, format!("PERF{i}")),
                         (defs::bslots::HCLK_CMT, "PHASER_IN_RCLK0"),
                     )
@@ -844,7 +852,7 @@ pub fn add_fuzzers<'a>(
                     bctx.build()
                         .global_mutex("RCLK", "USE")
                         .prop(Related::new(
-                            ColPair("CMT"),
+                            ColPair(tcls::CMT),
                             BelMutex::new(
                                 defs::bslots::HCLK_CMT,
                                 format!("MUX.LCLK{li}_{ud}"),
@@ -852,7 +860,7 @@ pub fn add_fuzzers<'a>(
                             ),
                         ))
                         .related_pip(
-                            ColPair("CMT"),
+                            ColPair(tcls::CMT),
                             (defs::bslots::HCLK_CMT, format!("LCLK{li}_CMT_{ud}")),
                             (defs::bslots::HCLK_CMT, format!("RCLK{i}")),
                         )

@@ -3113,10 +3113,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 (0, "IPAD_RXN0"),
                 (3, "IPAD_RXP1"),
                 (1, "IPAD_RXN1"),
-                (5, "IPAD_CLKP0"),
-                (4, "IPAD_CLKN0"),
-                (7, "IPAD_CLKP1"),
-                (6, "IPAD_CLKN1"),
+                (5, "IPAD_BUFDS0_I"),
+                (4, "IPAD_BUFDS0_IB"),
+                (7, "IPAD_BUFDS1_I"),
+                (6, "IPAD_BUFDS1_IB"),
             ] {
                 bel = bel
                     .sub_xy(rd, "IPAD", 0, i)

@@ -2,14 +2,14 @@ use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex7::tcls};
 
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::{DeltaLegacy, TileRelation},
+        props::relation::{Delta, TileRelation},
     },
 };
 
@@ -653,7 +653,7 @@ impl TileRelation for PcieHclkPair {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PCIE") {
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::PCIE) {
         let mut bctx = ctx.bel(defs::bslots::PCIE);
         let mode = "PCIE_2_1";
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
@@ -674,19 +674,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
         }
     }
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PCIE3") {
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::PCIE3) {
         let mut bctx = ctx.bel(defs::bslots::PCIE3);
         let mode = "PCIE_3_0";
         // always turns on the "bottom" bit even in the lower region — bug or intentional?
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         bctx.mode(mode)
-            .extra_tile_attr_legacy(DeltaLegacy::new(3, 0, "HCLK"), "HCLK", "DRP_MASK_PCIE", "1")
-            .extra_tile_attr_legacy(
-                DeltaLegacy::new(3, 50, "HCLK"),
-                "HCLK",
-                "DRP_MASK_PCIE",
-                "1",
-            )
+            .extra_tile_attr_legacy(Delta::new(3, 0, tcls::HCLK), "HCLK", "DRP_MASK_PCIE", "1")
+            .extra_tile_attr_legacy(Delta::new(3, 50, tcls::HCLK), "HCLK", "DRP_MASK_PCIE", "1")
             .test_manual_legacy("DRP_MASK", "1")
             .pin("DRPWE")
             .commit();
@@ -704,7 +699,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut got_pcie = false;
-    if ctx.has_tile_legacy("PCIE") {
+    if ctx.has_tcls(tcls::PCIE) {
         let tile = "PCIE";
         let bel = "PCIE";
 
@@ -741,7 +736,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         got_pcie = true;
     }
-    if ctx.has_tile_legacy("PCIE3") {
+    if ctx.has_tcls(tcls::PCIE3) {
         let tile = "PCIE3";
         let bel = "PCIE3";
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")

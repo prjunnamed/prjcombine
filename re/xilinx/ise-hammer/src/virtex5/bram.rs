@@ -5,7 +5,7 @@ use prjcombine_re_collector::{
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex5::tcls};
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new_legacy(session, backend, "BRAM");
+    let mut ctx = FuzzCtx::new(session, backend, tcls::BRAM);
     let mut bctx = ctx.bel(defs::bslots::BRAM);
 
     bctx.build()

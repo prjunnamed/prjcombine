@@ -12,7 +12,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{bslots, tslots, virtex7::tcls};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -22,7 +22,7 @@ use crate::{
         props::{
             DynProp,
             pip::{PinFar, PipWire},
-            relation::DeltaLegacy,
+            relation::Delta,
         },
     },
 };
@@ -1471,11 +1471,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TouchHout {
             return None;
         } else {
             let lr = if tcrd.col < edev.col_clk { 'L' } else { 'R' };
-            let clk_hrow = tcrd.with_col(edev.col_clk).tile(defs::tslots::BEL);
-            let clk_hrow_bel = clk_hrow.cell.bel(defs::bslots::CLK_HROW_V7);
-            let (ta, wa) = PipWire::BelPinNear(defs::bslots::CLK_HROW_V7, format!("HIN{idx}_{lr}"))
+            let clk_hrow = tcrd.with_col(edev.col_clk).tile(tslots::BEL);
+            let clk_hrow_bel = clk_hrow.cell.bel(bslots::CLK_HROW_V7);
+            let (ta, wa) = PipWire::BelPinNear(bslots::CLK_HROW_V7, format!("HIN{idx}_{lr}"))
                 .resolve(backend, clk_hrow)?;
-            let (tb, wb) = PipWire::BelPinNear(defs::bslots::CLK_HROW_V7, format!("CASCO{idx}"))
+            let (tb, wb) = PipWire::BelPinNear(bslots::CLK_HROW_V7, format!("CASCO{idx}"))
                 .resolve(backend, clk_hrow)?;
             assert_eq!(ta, tb);
 
@@ -1494,11 +1494,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TouchHout {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    for tile in ["GTP_COMMON", "GTP_COMMON_MID"] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+    for tcid in [tcls::GTP_COMMON, tcls::GTP_COMMON_MID] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
-        let mut bctx = ctx.bel(defs::bslots::GTP_COMMON);
+        let mut bctx = ctx.bel(bslots::GTP_COMMON);
         let mode = "GTPE2_COMMON";
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GTP_COMMON_INVPINS {
@@ -1508,14 +1508,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, width) in GTP_COMMON_BIN_ATTRS {
-            bctx.mode(mode).test_multi_attr_bin(attr, width);
+            bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
         }
         for &(attr, width) in GTP_COMMON_HEX_ATTRS {
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
     }
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "GTX_COMMON") {
-        let mut bctx = ctx.bel(defs::bslots::GTX_COMMON);
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTX_COMMON) {
+        let mut bctx = ctx.bel(bslots::GTX_COMMON);
         let mode = "GTXE2_COMMON";
 
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
@@ -1526,14 +1526,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, width) in GTX_COMMON_BIN_ATTRS {
-            bctx.mode(mode).test_multi_attr_bin(attr, width);
+            bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
         }
         for &(attr, width) in GTX_COMMON_HEX_ATTRS {
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
     }
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "GTH_COMMON") {
-        let mut bctx = ctx.bel(defs::bslots::GTH_COMMON);
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTH_COMMON) {
+        let mut bctx = ctx.bel(bslots::GTH_COMMON);
         let mode = "GTHE2_COMMON";
 
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
@@ -1544,17 +1544,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_enum_legacy(attr, vals);
         }
         for &(attr, width) in GTH_COMMON_BIN_ATTRS {
-            bctx.mode(mode).test_multi_attr_bin(attr, width);
+            bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
         }
         for &(attr, width) in GTH_COMMON_HEX_ATTRS {
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
     }
-    for (tile, bel) in [
-        ("GTX_COMMON", defs::bslots::GTX_COMMON),
-        ("GTH_COMMON", defs::bslots::GTH_COMMON),
+    for (tcid, bel) in [
+        (tcls::GTX_COMMON, bslots::GTX_COMMON),
+        (tcls::GTH_COMMON, bslots::GTH_COMMON),
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         let mut bctx = ctx.bel(bel);
@@ -1579,62 +1579,66 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_manual_legacy("QPLLREFCLKSEL_MODE", "DYNAMIC")
             .pip("GTREFCLK0", (PinFar, "GTREFCLK0"))
             .commit();
-        let tcid = backend.edev.db.get_tile_class(tile);
         if backend.edev.tile_index[tcid].len() > 1 {
             for i in 0..2 {
                 bctx.build()
                     .mutex(format!("MUX.NORTHREFCLK{i}_N"), format!("NORTHREFCLK{i}"))
-                    .has_related(DeltaLegacy::new(0, 50, tile))
+                    .has_related(Delta::new(0, 50, tcid))
                     .test_manual_legacy(format!("MUX.NORTHREFCLK{i}_N"), format!("NORTHREFCLK{i}"))
                     .related_pip(
-                        DeltaLegacy::new(0, 25, "BRKH_GTX"),
-                        (defs::bslots::BRKH_GTX, format!("NORTHREFCLK{i}_U")),
-                        (defs::bslots::BRKH_GTX, format!("NORTHREFCLK{i}_D")),
+                        Delta::new(0, 25, tcls::BRKH_GTX),
+                        (bslots::BRKH_GTX, format!("NORTHREFCLK{i}_U")),
+                        (bslots::BRKH_GTX, format!("NORTHREFCLK{i}_D")),
                     )
                     .commit();
                 for j in 0..2 {
                     bctx.build()
                         .mutex(format!("MUX.NORTHREFCLK{i}_N"), format!("REFCLK{j}"))
-                        .has_related(DeltaLegacy::new(0, 50, tile))
+                        .has_related(Delta::new(0, 50, tcid))
                         .test_manual_legacy(format!("MUX.NORTHREFCLK{i}_N"), format!("REFCLK{j}"))
                         .related_pip(
-                            DeltaLegacy::new(0, 25, "BRKH_GTX"),
-                            (defs::bslots::BRKH_GTX, format!("NORTHREFCLK{i}_U")),
-                            (defs::bslots::BRKH_GTX, format!("REFCLK{j}_D")),
+                            Delta::new(0, 25, tcls::BRKH_GTX),
+                            (bslots::BRKH_GTX, format!("NORTHREFCLK{i}_U")),
+                            (bslots::BRKH_GTX, format!("REFCLK{j}_D")),
                         )
                         .commit();
                 }
                 bctx.build()
                     .mutex(format!("MUX.SOUTHREFCLK{i}_S"), format!("SOUTHREFCLK{i}"))
-                    .has_related(DeltaLegacy::new(0, -50, tile))
+                    .has_related(Delta::new(0, -50, tcid))
                     .test_manual_legacy(format!("MUX.SOUTHREFCLK{i}_S"), format!("SOUTHREFCLK{i}"))
                     .related_pip(
-                        DeltaLegacy::new(0, -25, "BRKH_GTX"),
-                        (defs::bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_D")),
-                        (defs::bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_U")),
+                        Delta::new(0, -25, tcls::BRKH_GTX),
+                        (bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_D")),
+                        (bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_U")),
                     )
                     .commit();
                 for j in 0..2 {
                     bctx.build()
                         .mutex(format!("MUX.SOUTHREFCLK{i}_S"), format!("REFCLK{j}"))
-                        .has_related(DeltaLegacy::new(0, -50, tile))
+                        .has_related(Delta::new(0, -50, tcid))
                         .test_manual_legacy(format!("MUX.SOUTHREFCLK{i}_S"), format!("REFCLK{j}"))
                         .related_pip(
-                            DeltaLegacy::new(0, -25, "BRKH_GTX"),
-                            (defs::bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_D")),
-                            (defs::bslots::BRKH_GTX, format!("REFCLK{j}_U")),
+                            Delta::new(0, -25, tcls::BRKH_GTX),
+                            (bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_D")),
+                            (bslots::BRKH_GTX, format!("REFCLK{j}_U")),
                         )
                         .commit();
                 }
             }
         }
     }
-    for tile in ["GTP_COMMON", "GTP_COMMON_MID", "GTX_COMMON", "GTH_COMMON"] {
+    for tcid in [
+        tcls::GTP_COMMON,
+        tcls::GTP_COMMON_MID,
+        tcls::GTX_COMMON,
+        tcls::GTH_COMMON,
+    ] {
         for i in 0..2 {
-            let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+            let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
                 continue;
             };
-            let mut bctx = ctx.bel(defs::bslots::BUFDS[i]);
+            let mut bctx = ctx.bel(bslots::BUFDS[i]);
             let mode = "IBUFDS_GTE2";
             bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
             bctx.mode(mode).test_inv_legacy("CLKTESTSIG");
@@ -1644,7 +1648,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_enum_legacy("CLKRCV_TRST", &["FALSE", "TRUE"]);
             bctx.mode(mode)
                 .tile_mutex("CLKSWING_CFG", format!("IBUFDS{i}"))
-                .test_multi_attr_bin("CLKSWING_CFG", 2);
+                .test_multi_attr_bin_legacy("CLKSWING_CFG", 2);
             for pin in ["O", "ODIV2"] {
                 bctx.mode(mode)
                     .mutex("MUX.MGTCLKOUT", pin)
@@ -1659,8 +1663,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
     }
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "GTP_COMMON_MID") {
-        let mut bctx = ctx.bel(defs::bslots::GTP_COMMON);
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTP_COMMON_MID) {
+        let mut bctx = ctx.bel(bslots::GTP_COMMON);
         for i in 0..14 {
             let oi = i ^ 1;
             for j in [i, oi] {
@@ -1719,11 +1723,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    for tile in ["GTP_CHANNEL", "GTP_CHANNEL_MID"] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+    for tcid in [tcls::GTP_CHANNEL, tcls::GTP_CHANNEL_MID] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
-        let mut bctx = ctx.bel(defs::bslots::GTP_CHANNEL);
+        let mut bctx = ctx.bel(bslots::GTP_CHANNEL);
         let mode = "GTPE2_CHANNEL";
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GTP_CHANNEL_INVPINS {
@@ -1743,14 +1747,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
         }
         for &(attr, width) in GTP_CHANNEL_BIN_ATTRS {
-            bctx.mode(mode).test_multi_attr_bin(attr, width);
+            bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
         }
         for &(attr, width) in GTP_CHANNEL_HEX_ATTRS {
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
     }
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "GTX_CHANNEL") {
-        let mut bctx = ctx.bel(defs::bslots::GTX_CHANNEL);
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTX_CHANNEL) {
+        let mut bctx = ctx.bel(bslots::GTX_CHANNEL);
         let mode = "GTXE2_CHANNEL";
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GTX_CHANNEL_INVPINS {
@@ -1770,14 +1774,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
         }
         for &(attr, width) in GTX_CHANNEL_BIN_ATTRS {
-            bctx.mode(mode).test_multi_attr_bin(attr, width);
+            bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
         }
         for &(attr, width) in GTX_CHANNEL_HEX_ATTRS {
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
     }
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "GTH_CHANNEL") {
-        let mut bctx = ctx.bel(defs::bslots::GTH_CHANNEL);
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTH_CHANNEL) {
+        let mut bctx = ctx.bel(bslots::GTH_CHANNEL);
         let mode = "GTHE2_CHANNEL";
         bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
         for &pin in GTH_CHANNEL_INVPINS {
@@ -1797,17 +1801,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
         }
         for &(attr, width) in GTH_CHANNEL_BIN_ATTRS {
-            bctx.mode(mode).test_multi_attr_bin(attr, width);
+            bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
         }
         for &(attr, width) in GTH_CHANNEL_HEX_ATTRS {
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
     }
-    for (tile, bel) in [
-        ("GTX_CHANNEL", defs::bslots::GTX_CHANNEL),
-        ("GTH_CHANNEL", defs::bslots::GTH_CHANNEL),
+    for (tcid, bel) in [
+        (tcls::GTX_CHANNEL, bslots::GTX_CHANNEL),
+        (tcls::GTH_CHANNEL, bslots::GTH_CHANNEL),
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         let mut bctx = ctx.bel(bel);
@@ -1984,7 +1988,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             },
         );
     }
-    if ctx.has_tile_legacy("GTX_COMMON") {
+    if ctx.has_tcls(tcls::GTX_COMMON) {
         let tile = "GTX_COMMON";
         let bel = "GTX_COMMON";
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
@@ -2002,7 +2006,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
-    if ctx.has_tile_legacy("GTH_COMMON") {
+    if ctx.has_tcls(tcls::GTH_COMMON) {
         let tile = "GTH_COMMON";
         let bel = "GTH_COMMON";
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
@@ -2119,7 +2123,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff.assert_empty();
         }
     }
-    if ctx.has_tile_legacy("GTP_COMMON_MID") {
+    if ctx.has_tcls(tcls::GTP_COMMON_MID) {
         let tile = "GTP_COMMON_MID";
         let bel = "GTP_COMMON";
         for i in 0..14 {
@@ -2251,7 +2255,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
-    if ctx.has_tile_legacy("GTX_CHANNEL") {
+    if ctx.has_tcls(tcls::GTX_CHANNEL) {
         let tile = "GTX_CHANNEL";
         let bel = "GTX_CHANNEL";
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
@@ -2278,7 +2282,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
-    if ctx.has_tile_legacy("GTH_CHANNEL") {
+    if ctx.has_tcls(tcls::GTH_CHANNEL) {
         let tile = "GTH_CHANNEL";
         let bel = "GTH_CHANNEL";
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")

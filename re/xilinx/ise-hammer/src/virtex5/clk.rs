@@ -1,5 +1,8 @@
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{DieId, TileCoord};
+use prjcombine_interconnect::{
+    db::TileClassId,
+    grid::{DieId, TileCoord},
+};
 use prjcombine_re_collector::{
     diff::{Diff, DiffKey, FeatureId, OcdMode},
     legacy::{xlat_bit_legacy, xlat_bit_wide_legacy, xlat_enum_legacy_ocd},
@@ -7,7 +10,7 @@ use prjcombine_re_collector::{
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, tslots, virtex5::tcls};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -92,7 +95,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkBramMgtPrev {
 }
 
 #[derive(Clone, Debug)]
-struct HclkIoiCenter(&'static str, &'static str, String, &'static str);
+struct HclkIoiCenter(TileClassId, &'static str, String, &'static str);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -110,13 +113,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
         };
         let mut sad = true;
         if tcrd.col <= edev.col_clk
-            && let Some(ntcrd) = backend
-                .edev
-                .find_tile_by_class(tcrd.with_col(edev.col_clk), |kind| kind == self.0)
+            && let ntcrd = tcrd.with_col(edev.col_clk).tile(tslots::HCLK_BEL)
+            && let Some(ntile) = edev.get_tile(ntcrd)
+            && ntile.class == self.0
         {
             fuzzer.info.features.push(FuzzerFeature {
                 key: DiffKey::Legacy(FeatureId {
-                    tile: self.0.into(),
+                    tile: edev.db.tile_classes.key(self.0).into(),
                     bel: self.1.into(),
                     attr: self.2.clone(),
                     val: self.3.into(),
@@ -180,7 +183,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         unreachable!()
     };
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "CLK_BUFG");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CLK_BUFG);
         for i in 0..32 {
             let mut bctx = ctx.bel(defs::bslots::BUFGCTRL[i]);
             bctx.build()
@@ -263,7 +266,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK);
         let mut bctx = ctx.bel(defs::bslots::HCLK);
         for i in 0..10 {
             bctx.test_manual_legacy(format!("BUF.HCLK{i}"), "1")
@@ -284,7 +287,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "CLK_HROW");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::CLK_HROW);
         let mut bctx = ctx.bel(defs::bslots::CLK_HROW);
         for lr in ['L', 'R'] {
             for i in 0..10 {
@@ -299,15 +302,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
     }
-    for (tile, bel) in [
-        ("CLK_IOB_S", defs::bslots::CLK_IOB),
-        ("CLK_IOB_N", defs::bslots::CLK_IOB),
-        ("CLK_CMT_S", defs::bslots::CLK_CMT),
-        ("CLK_CMT_N", defs::bslots::CLK_CMT),
-        ("CLK_MGT_S", defs::bslots::CLK_MGT),
-        ("CLK_MGT_N", defs::bslots::CLK_MGT),
+    for (tcid, bel) in [
+        (tcls::CLK_IOB_S, defs::bslots::CLK_IOB),
+        (tcls::CLK_IOB_N, defs::bslots::CLK_IOB),
+        (tcls::CLK_CMT_S, defs::bslots::CLK_CMT),
+        (tcls::CLK_CMT_N, defs::bslots::CLK_CMT),
+        (tcls::CLK_MGT_S, defs::bslots::CLK_MGT),
+        (tcls::CLK_MGT_N, defs::bslots::CLK_MGT),
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         let mut bctx = ctx.bel(bel);
@@ -362,18 +365,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
     }
-    for tile in [
-        "HCLK_IO",
-        "HCLK_IO_CENTER",
-        "HCLK_IO_CFG_S",
-        "HCLK_IO_CFG_N",
-        "HCLK_IO_CMT_S",
-        "HCLK_IO_CMT_N",
+    for tcid in [
+        tcls::HCLK_IO,
+        tcls::HCLK_IO_CENTER,
+        tcls::HCLK_IO_CFG_S,
+        tcls::HCLK_IO_CFG_N,
+        tcls::HCLK_IO_CMT_S,
+        tcls::HCLK_IO_CMT_N,
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
-        let tcid = backend.edev.db.get_tile_class(tile);
         let tcls = &backend.edev.db[tcid];
 
         for i in 0..4 {
@@ -437,23 +439,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pip(format!("RCLK_O{i}"), format!("RCLK_I{i}"))
                     .commit();
             }
-            if tile == "HCLK_IO" {
+            if tcid == tcls::HCLK_IO {
                 for i in 0..4 {
                     for inp in [
                         "VRCLK0", "VRCLK1", "VRCLK_S0", "VRCLK_S1", "VRCLK_N0", "VRCLK_N1",
                     ] {
                         let mut extras: Vec<Box<DynProp>> = vec![];
-                        for otile in [
-                            "HCLK_IO_CENTER",
-                            "HCLK_IO_CFG_S",
-                            "HCLK_IO_CFG_N",
-                            "HCLK_IO_CMT_S",
-                            "HCLK_IO_CMT_N",
+                        for otcls in [
+                            tcls::HCLK_IO_CENTER,
+                            tcls::HCLK_IO_CFG_S,
+                            tcls::HCLK_IO_CFG_N,
+                            tcls::HCLK_IO_CMT_S,
+                            tcls::HCLK_IO_CMT_N,
                         ] {
-                            let otcls = backend.edev.db.get_tile_class(otile);
                             if !backend.edev.tile_index[otcls].is_empty() {
                                 extras.push(Box::new(HclkIoiCenter(
-                                    otile,
+                                    otcls,
                                     "IOCLK",
                                     format!("ENABLE.RCLK{i}"),
                                     "1",
@@ -495,7 +496,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, "HCLK_CMT");
+        let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK_CMT);
         let mut bctx = ctx.bel(defs::bslots::HCLK_CMT_HCLK);
         for i in 0..10 {
             bctx.build()
@@ -513,7 +514,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
     }
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "HCLK_MGT_BUF") {
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::HCLK_MGT_BUF) {
         let mut bctx = ctx.bel(defs::bslots::HCLK_MGT_BUF);
         for i in 0..5 {
             let mut extra = None;
@@ -846,7 +847,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert_legacy(tile, bel, format!("BUF.GIOB{i}"), item);
         }
     }
-    if ctx.has_tile_legacy("HCLK_MGT_BUF") {
+    if ctx.has_tcls(tcls::HCLK_MGT_BUF) {
         let tile = "HCLK_MGT_BUF";
         let bel = "HCLK_MGT_BUF";
         for i in 0..5 {

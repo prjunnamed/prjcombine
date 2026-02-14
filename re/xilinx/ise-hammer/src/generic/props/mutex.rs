@@ -2,7 +2,7 @@ use prjcombine_interconnect::{db::TileWireCoord, grid::TileCoord};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 
-use crate::backend::{IseBackend, Key};
+use crate::backend::{IseBackend, Key, Value};
 
 use super::DynProp;
 
@@ -66,28 +66,28 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RowMutex {
 }
 
 #[derive(Clone, Debug)]
-pub struct TileMutex {
+pub struct TileMutex<'b> {
     pub key: String,
-    pub val: String,
+    pub val: Value<'b>,
 }
 
-impl TileMutex {
-    pub fn new(key: String, val: String) -> Self {
+impl<'b> TileMutex<'b> {
+    pub fn new(key: String, val: Value<'b>) -> Self {
         Self { key, val }
     }
 }
 
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for TileMutex {
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for TileMutex<'b> {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
 
-    fn apply<'a>(
+    fn apply(
         &self,
-        _backend: &IseBackend<'a>,
+        _backend: &IseBackend<'b>,
         tcrd: TileCoord,
-        fuzzer: Fuzzer<IseBackend<'a>>,
-    ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
+        fuzzer: Fuzzer<IseBackend<'b>>,
+    ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         Some((
             fuzzer.base(Key::TileMutex(tcrd, self.key.clone()), self.val.clone()),
             false,

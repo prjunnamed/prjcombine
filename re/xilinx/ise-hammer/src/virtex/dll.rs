@@ -15,7 +15,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex::defs;
+use prjcombine_virtex::defs::{self, tcls};
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
@@ -127,8 +127,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Virtex(edev) = backend.edev else {
         unreachable!()
     };
-    for tile in ["DLL_S", "DLL_N", "DLLP_S", "DLLP_N", "DLLS_S", "DLLS_N"] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+    for tcid in [
+        tcls::DLL_S,
+        tcls::DLL_N,
+        tcls::DLLP_S,
+        tcls::DLLP_N,
+        tcls::DLLS_S,
+        tcls::DLLS_N,
+    ] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         let mut bctx = ctx.bel(defs::bslots::DLL);
@@ -221,43 +228,45 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
 
-        if !(tile.starts_with("DLLS") && backend.device.name.contains('v')) {
-            if tile.ends_with("_S") {
-                bctx.mode("DLL")
-                    .global_mutex_here("DLL")
-                    .prop(DeviceSide(DirH::W))
-                    .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BL", "1")
-                    .null_bits()
-                    .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
-                    .attr("STARTUP_ATTR", "STARTUP_WAIT")
-                    .commit();
+        if matches!(tcid, tcls::DLL_S | tcls::DLLP_S)
+            || (tcid == tcls::DLLS_S && !backend.device.name.contains('v'))
+        {
+            bctx.mode("DLL")
+                .global_mutex_here("DLL")
+                .prop(DeviceSide(DirH::W))
+                .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BL", "1")
+                .null_bits()
+                .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
+                .attr("STARTUP_ATTR", "STARTUP_WAIT")
+                .commit();
 
-                bctx.mode("DLL")
-                    .global_mutex_here("DLL")
-                    .prop(DeviceSide(DirH::E))
-                    .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BR", "1")
-                    .null_bits()
-                    .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
-                    .attr("STARTUP_ATTR", "STARTUP_WAIT")
-                    .commit();
-            } else {
-                bctx.mode("DLL")
-                    .global_mutex_here("DLL")
-                    .prop(DeviceSide(DirH::W))
-                    .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TL", "1")
-                    .null_bits()
-                    .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
-                    .attr("STARTUP_ATTR", "STARTUP_WAIT")
-                    .commit();
-                bctx.mode("DLL")
-                    .global_mutex_here("DLL")
-                    .prop(DeviceSide(DirH::E))
-                    .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TR", "1")
-                    .null_bits()
-                    .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
-                    .attr("STARTUP_ATTR", "STARTUP_WAIT")
-                    .commit();
-            }
+            bctx.mode("DLL")
+                .global_mutex_here("DLL")
+                .prop(DeviceSide(DirH::E))
+                .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BR", "1")
+                .null_bits()
+                .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
+                .attr("STARTUP_ATTR", "STARTUP_WAIT")
+                .commit();
+        } else if matches!(tcid, tcls::DLL_N | tcls::DLLP_N)
+            || (tcid == tcls::DLLS_N && !backend.device.name.contains('v'))
+        {
+            bctx.mode("DLL")
+                .global_mutex_here("DLL")
+                .prop(DeviceSide(DirH::W))
+                .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TL", "1")
+                .null_bits()
+                .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
+                .attr("STARTUP_ATTR", "STARTUP_WAIT")
+                .commit();
+            bctx.mode("DLL")
+                .global_mutex_here("DLL")
+                .prop(DeviceSide(DirH::E))
+                .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TR", "1")
+                .null_bits()
+                .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
+                .attr("STARTUP_ATTR", "STARTUP_WAIT")
+                .commit();
         }
     }
     let mut ctx = FuzzCtx::new_null(session, backend);

@@ -1,5 +1,8 @@
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{CellCoord, DieId, RowId, TileCoord, TileIobId};
+use prjcombine_interconnect::{
+    db::TileClassId,
+    grid::{CellCoord, DieId, RowId, TileCoord, TileIobId},
+};
 use prjcombine_re_collector::{
     diff::{Diff, DiffKey, FeatureId, OcdMode},
     legacy::{
@@ -15,7 +18,11 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::{chip::ChipKind, defs, expanded::IoCoord};
+use prjcombine_virtex4::{
+    chip::ChipKind,
+    defs::{self, tslots, virtex5::tcls},
+    expanded::IoCoord,
+};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -197,7 +204,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct VrefInternal(pub &'static str, pub u32);
+pub struct VrefInternal(pub TileClassId, pub u32);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -216,7 +223,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {
         let chip = edev.chips[tcrd.die];
         let hclk_row = chip.row_hclk(tcrd.row);
         // Take exclusive mutex on VREF.
-        let hclk_ioi = edev.find_tile_by_class(tcrd.with_row(hclk_row), |kind| kind == self.0)?;
+        let hclk_ioi = tcrd.with_row(hclk_row).tile(tslots::HCLK_BEL);
+        if edev[hclk_ioi].class != self.0 {
+            return None;
+        }
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_ioi, "VREF".to_string()),
             None,
@@ -229,7 +239,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {
         fuzzer = fuzzer.fuzz(Key::InternalVref(io.bank), None, self.1);
         fuzzer.info.features.push(FuzzerFeature {
             key: DiffKey::Legacy(FeatureId {
-                tile: self.0.into(),
+                tile: edev.db.tile_classes.key(self.0).into(),
                 bel: "INTERNAL_VREF".into(),
                 attr: "VREF".into(),
                 val: self.1.to_string(),
@@ -387,7 +397,7 @@ pub fn add_fuzzers<'a>(
         unreachable!()
     };
 
-    let mut ctx = FuzzCtx::new_legacy(session, backend, "IO");
+    let mut ctx = FuzzCtx::new(session, backend, tcls::IO);
 
     if devdata_only {
         for i in 0..2 {
@@ -564,19 +574,19 @@ pub fn add_fuzzers<'a>(
                 .test_enum_legacy("SRTYPE", &["SYNC", "ASYNC"]);
             bctx.mode("ISERDES")
                 .attr("DATA_RATE", "SDR")
-                .test_multi_attr_bin("INIT_CE", 2);
+                .test_multi_attr_bin_legacy("INIT_CE", 2);
             bctx.mode("ISERDES")
                 .attr("DATA_RATE", "SDR")
-                .test_multi_attr_bin("INIT_BITSLIPCNT", 4);
+                .test_multi_attr_bin_legacy("INIT_BITSLIPCNT", 4);
             bctx.mode("ISERDES")
                 .attr("DATA_RATE", "SDR")
-                .test_multi_attr_bin("INIT_RANK1_PARTIAL", 5);
+                .test_multi_attr_bin_legacy("INIT_RANK1_PARTIAL", 5);
             bctx.mode("ISERDES")
                 .attr("DATA_RATE", "SDR")
-                .test_multi_attr_bin("INIT_RANK2", 6);
+                .test_multi_attr_bin_legacy("INIT_RANK2", 6);
             bctx.mode("ISERDES")
                 .attr("DATA_RATE", "SDR")
-                .test_multi_attr_bin("INIT_RANK3", 6);
+                .test_multi_attr_bin_legacy("INIT_RANK3", 6);
 
             bctx.mode("ISERDES")
                 .pin("OFB")
@@ -827,7 +837,8 @@ pub fn add_fuzzers<'a>(
             .test_enum_legacy("TRISTATE_WIDTH", &["1", "4"]);
         bctx.mode("OSERDES")
             .test_enum_legacy("DATA_WIDTH", &["2", "3", "4", "5", "6", "7", "8", "10"]);
-        bctx.mode("OSERDES").test_multi_attr_bin("INIT_LOADCNT", 4);
+        bctx.mode("OSERDES")
+            .test_multi_attr_bin_legacy("INIT_LOADCNT", 4);
 
         bctx.build()
             .mutex("MUX.CLK", "CKINT")
@@ -955,7 +966,7 @@ pub fn add_fuzzers<'a>(
             .pin("O")
             .attr("OUSED", "0")
             .attr("OSTANDARD", "LVCMOS18")
-            .test_multi_attr_bin("OPROGRAMMING", 31);
+            .test_multi_attr_bin_legacy("OPROGRAMMING", 31);
         bctx.mode("IOB")
             .attr("OUSED", "")
             .pin("I")
@@ -1126,7 +1137,7 @@ pub fn add_fuzzers<'a>(
                 .pin("I")
                 .raw(Key::Package, &package.name)
                 .prop(IsBonded(bel))
-                .prop(VrefInternal("HCLK_IO", vref))
+                .prop(VrefInternal(tcls::HCLK_IO, vref))
                 .test_manual_legacy("ISTD", std)
                 .attr("IMUX", "I_B")
                 .attr("ISTANDARD", std)
@@ -1151,15 +1162,15 @@ pub fn add_fuzzers<'a>(
             .commit();
     }
 
-    for tile in [
-        "HCLK_IO",
-        "HCLK_IO_CENTER",
-        "HCLK_IO_CFG_S",
-        "HCLK_IO_CFG_N",
-        "HCLK_IO_CMT_S",
-        "HCLK_IO_CMT_N",
+    for tcid in [
+        tcls::HCLK_IO,
+        tcls::HCLK_IO_CENTER,
+        tcls::HCLK_IO_CFG_S,
+        tcls::HCLK_IO_CFG_N,
+        tcls::HCLK_IO_CMT_S,
+        tcls::HCLK_IO_CMT_N,
     ] {
-        if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) {
+        if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) {
             let mut bctx = ctx.bel(defs::bslots::DCI);
             bctx.build()
                 .global_mutex("GLOBAL_DCI", "NOPE")
@@ -2344,7 +2355,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         "OFF",
     );
     let dci_en = ctx.extract_bit_legacy("HCLK_IO_CMT_N", "DCI", "ENABLE", "1");
-    let has_bank3 = ctx.has_tile_legacy("HCLK_IO_CMT_S");
+    let has_bank3 = ctx.has_tcls(tcls::HCLK_IO_CMT_S);
     if has_bank3 {
         let dci_en_too = ctx.extract_bit_legacy("HCLK_IO_CMT_S", "DCI", "ENABLE", "1");
         assert_eq!(dci_en, dci_en_too);

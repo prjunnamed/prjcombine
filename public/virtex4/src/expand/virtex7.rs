@@ -16,7 +16,7 @@ use crate::expanded::{DieFrameGeom, ExpandedDevice, ExpandedGtz, IoCoord};
 use crate::gtz::{GtzDb, GtzIntColId};
 use crate::{
     defs,
-    defs::virtex7::{ccls, tcls, wires},
+    defs::virtex7::{ccls, rslots, tcls, wires},
 };
 
 struct DieExpander<'a, 'b, 'c> {
@@ -641,10 +641,10 @@ impl DieExpander<'_, '_, '_> {
             let cell_e = cell.delta(1, 0);
             let cell_hclk = cell.with_cr(col_hrow, row_hclk);
             let cell_leaf = cell.with_row(crow);
-            self.egrid[cell_w].region_root[defs::rslots::HCLK] = cell_hclk;
-            self.egrid[cell_e].region_root[defs::rslots::HCLK] = cell_hclk;
-            self.egrid[cell_w].region_root[defs::rslots::LEAF] = cell_leaf;
-            self.egrid[cell_e].region_root[defs::rslots::LEAF] = cell_leaf;
+            self.egrid[cell_w].region_root[rslots::HROW] = cell_hclk;
+            self.egrid[cell_e].region_root[rslots::HROW] = cell_hclk;
+            self.egrid[cell_w].region_root[rslots::LEAF] = cell_leaf;
+            self.egrid[cell_e].region_root[rslots::LEAF] = cell_leaf;
 
             if cell.row.to_idx() % 50 == 25 {
                 let hole_bot = self.is_int_hole(cell.delta(0, -1));

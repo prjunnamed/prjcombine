@@ -92,42 +92,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         self.insert_inv(int_tcid, TileWireCoord::new_idx(0, wire.wire), bit);
     }
 
-    pub fn insert_int_inv_legacy(
-        &mut self,
-        int_tiles: &[TileClassId],
-        tcid: TileClassId,
-        bslot: BelSlotId,
-        pin: &str,
-        bit: PolTileBit,
-    ) {
-        let intdb = self.edev.db;
-        let tcls = &intdb[tcid];
-        let bel = &tcls.bels[bslot];
-        let BelInfo::Legacy(bel) = bel else {
-            unreachable!()
-        };
-        let pin = &bel.pins[pin];
-        assert_eq!(pin.wires.len(), 1);
-        let wire = *pin.wires.first().unwrap();
-        self.insert_int_inv_wire(int_tiles, wire, bit);
-    }
-
-    pub fn item_int_inv_legacy(
-        &self,
-        int_tiles: &[TileClassId],
-        tcid: TileClassId,
-        bslot: BelSlotId,
-        pin: &str,
-    ) -> PolTileBit {
-        let intdb = self.edev.db;
-        let tcls = &intdb[tcid];
-        let bel = &tcls.bels[bslot];
-        let BelInfo::Legacy(bel) = bel else {
-            unreachable!()
-        };
-        let pin = &bel.pins[pin];
-        assert_eq!(pin.wires.len(), 1);
-        let wire = *pin.wires.first().unwrap();
+    pub fn item_int_inv_raw(&self, int_tiles: &[TileClassId], wire: TileWireCoord) -> PolTileBit {
         let int_tcid = int_tiles[wire.cell.to_idx()];
         let mut bit = self.sb_inv(int_tcid, TileWireCoord::new_idx(0, wire.wire));
         bit.bit.rect = BitRectId::from_idx(wire.cell.to_idx());
@@ -150,31 +115,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let BelInput::Fixed(wire) = bel.inputs[pin] else {
             unreachable!()
         };
-        let int_tcid = int_tiles[wire.cell.to_idx()];
-        let mut bit = self.sb_inv(int_tcid, TileWireCoord::new_idx(0, wire.wire));
-        bit.bit.rect = BitRectId::from_idx(wire.cell.to_idx());
-        bit
-    }
-
-    pub fn collect_int_inv_legacy(
-        &mut self,
-        int_tiles: &[TileClassId],
-        tcid: TileClassId,
-        bslot: BelSlotId,
-        pin: &str,
-        flip: bool,
-    ) {
-        let intdb = self.edev.db;
-        let pininv = format!("{pin}INV");
-        let pin_b = format!("{pin}_B");
-        let item = self.extract_bit_bi_legacy(
-            intdb.tile_classes.key(tcid),
-            intdb.bel_slots.key(bslot),
-            &pininv,
-            if flip { &pin_b } else { pin },
-            if flip { pin } else { &pin_b },
-        );
-        self.insert_int_inv_legacy(int_tiles, tcid, bslot, pin, item.as_bit());
+        self.item_int_inv_raw(int_tiles, wire.tw)
     }
 
     pub fn insert_bel_input_inv_int(

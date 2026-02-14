@@ -655,7 +655,7 @@ impl ChipContext<'_> {
         wire: WireName,
         filter: bool,
     ) -> Option<BelPin> {
-        let tcrd = self.edev.get_tile_by_bel(bcrd);
+        let tcrd = self.edev.bel_tile(bcrd);
         let tile = &self.edev[tcrd];
         for &wfn in self.pips_bwd.get(&wire).into_iter().flatten() {
             if let Some(wires_f) = self

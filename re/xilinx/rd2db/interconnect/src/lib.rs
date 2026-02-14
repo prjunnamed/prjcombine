@@ -41,6 +41,7 @@ struct ExtrBelInfoSub {
 pub struct ExtrBelInfo {
     pub bel: BelSlotId,
     pub manual: bool,
+    pub naming_only: bool,
     subs: Vec<ExtrBelInfoSub>,
 }
 
@@ -103,6 +104,11 @@ pub enum IntConnKind {
 impl ExtrBelInfo {
     pub fn manual(mut self) -> Self {
         self.manual = true;
+        self
+    }
+
+    pub fn naming_only(mut self) -> Self {
+        self.naming_only = true;
         self
     }
 
@@ -1221,7 +1227,9 @@ impl XTileExtractor<'_, '_, '_> {
         if info.manual {
             self.result.bels.push((bel, naming));
         } else {
-            self.bels.insert(info.bel, BelInfo::Legacy(bel));
+            if !info.naming_only {
+                self.bels.insert(info.bel, BelInfo::Legacy(bel));
+            }
             self.tcls_naming.bels.insert(info.bel, naming);
         }
     }
@@ -1274,6 +1282,9 @@ impl XTileExtractor<'_, '_, '_> {
             let tk = &self.rd.tile_kinds[tile.kind];
 
             for &(wfi, wti) in tk.pips.keys() {
+                if self.xtile.skip_edges.contains(&(wti, wfi)) {
+                    continue;
+                }
                 if let Some(wt) = self.get_wire_by_name(i, wti) {
                     let mut pass = rt.extract_muxes
                         && !matches!(self.db[wt.wire], WireKind::BelOut)
@@ -1701,6 +1712,7 @@ impl<'a> IntBuilder<'a> {
         ExtrBelInfo {
             bel,
             manual: false,
+            naming_only: false,
             subs: vec![ExtrBelInfoSub {
                 slot: None,
                 pins: Default::default(),
@@ -1714,6 +1726,7 @@ impl<'a> IntBuilder<'a> {
         ExtrBelInfo {
             bel,
             manual: false,
+            naming_only: false,
             subs: vec![ExtrBelInfoSub {
                 slot: Some(rawdump::TkSiteSlot::Single(
                     self.rd.slot_kinds.get(slot).unwrap(),
@@ -1729,6 +1742,7 @@ impl<'a> IntBuilder<'a> {
         ExtrBelInfo {
             bel,
             manual: false,
+            naming_only: false,
             subs: vec![ExtrBelInfoSub {
                 slot: Some(rawdump::TkSiteSlot::Indexed(
                     self.rd.slot_kinds.get(slot).unwrap(),
@@ -1745,6 +1759,7 @@ impl<'a> IntBuilder<'a> {
         ExtrBelInfo {
             bel,
             manual: false,
+            naming_only: false,
             subs: vec![ExtrBelInfoSub {
                 slot: Some(rawdump::TkSiteSlot::Xy(
                     self.rd.slot_kinds.get(slot).expect("missing slot kind"),

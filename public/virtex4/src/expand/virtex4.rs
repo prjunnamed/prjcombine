@@ -9,11 +9,12 @@ use prjcombine_xilinx_bitstream::{
 
 use crate::bond::SharedCfgPad;
 use crate::chip::{CfgRowKind, Chip, ColumnKind, DisabledPart};
+use crate::defs::tslots;
 use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord};
 use crate::gtz::GtzDb;
 use crate::{
     defs,
-    defs::virtex4::{ccls, tcls},
+    defs::virtex4::{ccls, rslots, tcls},
 };
 use bimap::BiHashMap;
 use std::collections::BTreeSet;
@@ -87,9 +88,15 @@ impl Expander<'_, '_> {
                 self.io.extend([crd_n, crd_p]);
 
                 if cell.row.to_idx() % 32 == 8 {
-                    self.egrid.add_tile_sn_id(cell, tcls::HCLK_IO_DCI, 2, 3);
+                    self.egrid.add_tile_sn_id(cell, tcls::HCLK_IO_DCI, 2, 4);
                 } else if cell.row.to_idx() % 32 == 24 {
-                    self.egrid.add_tile_sn_id(cell, tcls::HCLK_IO_LVDS, 2, 3);
+                    self.egrid.add_tile_sn_id(cell, tcls::HCLK_IO_LVDS, 2, 4);
+                }
+                if cell.row.to_idx() % 16 == 8
+                    && let Some(prev) = self.egrid.cell_delta(cell, 0, -16)
+                {
+                    self.egrid
+                        .fill_conn_pair_id(prev, cell, ccls::IO_N, ccls::IO_S);
                 }
             }
         }
@@ -97,17 +104,19 @@ impl Expander<'_, '_> {
 
     fn fill_cfg(&mut self) {
         let col = self.col_cfg;
-        let row_cfg = self.chip.row_reg_bot(self.chip.reg_cfg) - 8;
+        let row_cfg = self.chip.row_bufg();
         // CFG_CENTER
         {
             let cell = CellCoord::new(self.die, col, row_cfg);
-            self.site_holes.push(cell.rect(1, 16));
-            let tcells = cell.cells_n_const::<16>();
-            for cell in tcells {
+            self.site_holes.push(cell.delta(0, -8).rect(1, 16));
+            let mut tcells = cell.delta(0, -8).cells_n(16);
+            for &cell in &tcells {
                 self.egrid.add_tile_single_id(cell, tcls::INTF);
             }
             self.egrid.add_tile_id(cell, tcls::CFG, &tcells);
+            tcells.extend([cell.delta(1, -8), cell.delta(1, 0)]);
             self.egrid.add_tile_id(cell, tcls::CLK_BUFG, &tcells);
+            self.egrid.add_tile_id(cell, tcls::GLOBAL, &[]);
         }
         let mut row_dcmiob = RowId::from_idx(0);
         let mut row_iobdcm = RowId::from_idx(self.chip.rows().len());
@@ -148,7 +157,7 @@ impl Expander<'_, '_> {
                         } else {
                             tcls::CLK_DCM_N
                         };
-                        self.egrid.add_tile_id(cell, tcid, &[]);
+                        self.egrid.add_tile_n_id(cell, tcid, 8);
                     }
                     if row < row_cfg {
                         row_dcmiob = row_dcmiob.max(row + 4);
@@ -160,6 +169,60 @@ impl Expander<'_, '_> {
         }
         self.row_dcmiob = Some(row_dcmiob);
         self.row_iobdcm = Some(row_iobdcm);
+
+        let mut prev = None;
+        let mut prev_ccm = false;
+        for cell in self.egrid.column(self.die, self.col_cfg) {
+            if cell.row >= self.chip.row_bufg() {
+                break;
+            }
+            if let Some(tile) = self.egrid.get_tile(cell.tile(tslots::BEL))
+                && matches!(tile.class, tcls::DCM | tcls::CCM)
+            {
+                let tcid = tile.class;
+                if let Some(prev) = prev {
+                    self.egrid.fill_conn_pair_id(
+                        prev,
+                        cell,
+                        ccls::CMT_NEXT,
+                        if prev_ccm {
+                            ccls::CMT_PREV_CCM
+                        } else {
+                            ccls::CMT_PREV
+                        },
+                    );
+                }
+                prev = Some(cell);
+                prev_ccm = tcid == tcls::CCM;
+            }
+        }
+
+        let mut prev = None;
+        let mut prev_ccm = false;
+        for cell in self.egrid.column(self.die, self.col_cfg).rev() {
+            if cell.row < self.chip.row_bufg() {
+                break;
+            }
+            if let Some(tile) = self.egrid.get_tile(cell.tile(tslots::BEL))
+                && matches!(tile.class, tcls::DCM | tcls::CCM)
+            {
+                let tcid = tile.class;
+                if let Some(prev) = prev {
+                    self.egrid.fill_conn_pair_id(
+                        prev,
+                        cell,
+                        ccls::CMT_NEXT,
+                        if prev_ccm {
+                            ccls::CMT_PREV_CCM
+                        } else {
+                            ccls::CMT_PREV
+                        },
+                    );
+                }
+                prev = Some(cell);
+                prev_ccm = tcid == tcls::CCM;
+            }
+        }
     }
 
     fn fill_cio(&mut self) {
@@ -180,18 +243,32 @@ impl Expander<'_, '_> {
             }
 
             if cell.row.to_idx() % 16 == 8 {
-                self.egrid.add_tile_id(cell, tcls::CLK_HROW, &[]);
+                self.egrid.add_tile_e_id(cell, tcls::CLK_HROW, 2);
 
-                if cell.row < self.row_dcmiob.unwrap() || cell.row > self.row_iobdcm.unwrap() {
-                    self.egrid.add_tile_id(cell, tcls::HCLK_DCM, &[]);
-                } else if cell.row == self.row_dcmiob.unwrap() {
-                    self.egrid.add_tile_n_id(cell, tcls::HCLK_IO_DCM_N, 2);
-                } else if cell.row == self.row_iobdcm.unwrap() {
-                    self.egrid.add_tile_sn_id(cell, tcls::HCLK_IO_DCM_S, 2, 2);
-                } else if cell.row == self.chip.row_bufg() + 8 {
-                    self.egrid.add_tile_n_id(cell, tcls::HCLK_IO_CFG_N, 2);
-                } else {
-                    self.egrid.add_tile_sn_id(cell, tcls::HCLK_IO_CENTER, 2, 2);
+                let tcid =
+                    if cell.row < self.row_dcmiob.unwrap() || cell.row > self.row_iobdcm.unwrap() {
+                        tcls::HCLK_DCM
+                    } else if cell.row == self.row_dcmiob.unwrap() {
+                        tcls::HCLK_IO_DCM_N
+                    } else if cell.row == self.row_iobdcm.unwrap() {
+                        tcls::HCLK_IO_DCM_S
+                    } else if cell.row == self.chip.row_bufg() + 8 {
+                        tcls::HCLK_IO_CFG_N
+                    } else {
+                        tcls::HCLK_IO_CENTER
+                    };
+                let mut tcells = cell.delta(0, -2).cells_n(4);
+                if matches!(
+                    tcid,
+                    tcls::HCLK_DCM | tcls::HCLK_IO_DCM_S | tcls::HCLK_IO_DCM_N
+                ) {
+                    tcells.push(cell.delta(1, 0));
+                }
+                self.egrid.add_tile_id(cell, tcid, &tcells);
+
+                if matches!(tcid, tcls::HCLK_IO_CENTER | tcls::HCLK_IO_DCM_S) {
+                    self.egrid
+                        .fill_conn_pair_id(cell.delta(0, -16), cell, ccls::IO_N, ccls::IO_S);
                 }
             }
         }
@@ -199,22 +276,46 @@ impl Expander<'_, '_> {
         {
             let row = self.row_dcmiob.unwrap();
             let cell = CellCoord::new(self.die, col, row);
-            self.egrid.add_tile_id(cell, tcls::CLK_IOB_S, &[]);
+            self.egrid.add_tile_n_id(cell, tcls::CLK_IOB_S, 16);
         }
         {
             let row: RowId = self.row_iobdcm.unwrap() - 16;
             let cell = CellCoord::new(self.die, col, row);
-            self.egrid.add_tile_id(cell, tcls::CLK_IOB_N, &[]);
+            self.egrid.add_tile_n_id(cell, tcls::CLK_IOB_N, 16);
         }
         {
             let row = self.chip.rows().first().unwrap();
             let cell = CellCoord::new(self.die, col, row);
-            self.egrid.add_tile_id(cell, tcls::CLK_TERM, &[]);
+            self.egrid.add_tile_single_id(cell, tcls::CLK_TERM);
         }
         {
             let row = self.chip.rows().last().unwrap();
             let cell = CellCoord::new(self.die, col, row);
-            self.egrid.add_tile_id(cell, tcls::CLK_TERM, &[]);
+            self.egrid.add_tile_single_id(cell, tcls::CLK_TERM);
+        }
+
+        let mut prev = None;
+        for cell in self.egrid.column(self.die, self.col_cfg) {
+            if let Some(tile) = self.egrid.get_tile(cell.tile(tslots::CLK))
+                && matches!(
+                    tile.class,
+                    tcls::CLK_IOB_S | tcls::CLK_IOB_N | tcls::CLK_DCM_S | tcls::CLK_DCM_N,
+                )
+            {
+                if let Some(prev) = prev {
+                    self.egrid
+                        .fill_conn_pair_id(prev, cell, ccls::CLK_N, ccls::CLK_S);
+                }
+                prev = Some(cell);
+            } else if cell.row == self.chip.row_bufg() {
+                self.egrid.fill_conn_pair_id(
+                    prev.unwrap(),
+                    cell.delta(0, -8),
+                    ccls::CLK_N,
+                    ccls::CLK_S,
+                );
+                prev = Some(cell);
+            }
         }
     }
 
@@ -380,6 +481,7 @@ impl Expander<'_, '_> {
             if cd != ColumnKind::Gt {
                 continue;
             }
+            let mut prev = None;
             for reg in self.chip.regs() {
                 if !reg.to_idx().is_multiple_of(2) {
                     continue;
@@ -392,10 +494,16 @@ impl Expander<'_, '_> {
                 }
                 self.egrid.add_tile_id(cell, tcls::MGT, &tcells);
                 self.egrid
-                    .add_tile_id(cell.delta(0, 8), tcls::HCLK_MGT, &[]);
+                    .add_tile_single_id(cell.delta(0, 8), tcls::HCLK_MGT);
                 self.egrid
-                    .add_tile_id(cell.delta(0, 24), tcls::HCLK_MGT, &[]);
+                    .add_tile_single_id(cell.delta(0, 24), tcls::HCLK_MGT);
                 self.gt.push(cell);
+                let cell = cell.delta(0, 16);
+                if let Some(prev) = prev {
+                    self.egrid
+                        .fill_conn_pair_id(prev, cell, ccls::MGT_N, ccls::MGT_S);
+                }
+                prev = Some(cell);
             }
         }
     }
@@ -408,8 +516,24 @@ impl Expander<'_, '_> {
                 self.col_cfg + 1
             };
             let crow = self.chip.row_hclk(cell.row);
-            self.egrid[cell].region_root[defs::rslots::HCLK] = cell.with_cr(col_hrow, crow);
-            self.egrid[cell].region_root[defs::rslots::LEAF] = cell.with_row(crow);
+            self.egrid[cell].region_root[rslots::HROW] = cell.with_cr(col_hrow, crow);
+            self.egrid[cell].region_root[rslots::LEAF] = cell.with_row(crow);
+            self.egrid[cell].region_root[rslots::LEAF_DCM] =
+                cell.with_row(if cell.row.to_idx() % 16 < 8 {
+                    crow - 1
+                } else {
+                    crow
+                });
+            self.egrid[cell].region_root[rslots::GLOBAL] =
+                cell.with_cr(self.col_cfg, self.chip.row_bufg());
+            self.egrid[cell].region_root[rslots::GIOB] = cell.with_cr(
+                self.col_cfg,
+                if cell.row < self.chip.row_bufg() {
+                    self.row_dcmiob.unwrap()
+                } else {
+                    self.row_iobdcm.unwrap() - 16
+                },
+            );
             if cell.row.to_idx() % 16 == 8 {
                 if self.is_int_hole(cell) {
                     continue;
@@ -418,7 +542,7 @@ impl Expander<'_, '_> {
                 if cell.col == self.chip.columns.first_id().unwrap()
                     || cell.col == self.chip.columns.last_id().unwrap()
                 {
-                    self.egrid.add_tile_id(cell, tcls::HCLK_TERM, &[]);
+                    self.egrid.add_tile_single_id(cell, tcls::HCLK_TERM);
                 }
                 if self.chip.cols_vbrk.contains(&cell.col) {
                     let rcell = if cell.col < self.col_cfg {
@@ -426,7 +550,7 @@ impl Expander<'_, '_> {
                     } else {
                         cell.delta(-1, 0)
                     };
-                    self.egrid.add_tile_id(rcell, tcls::HCLK_MGT_BUF, &[]);
+                    self.egrid.add_tile_single_id(rcell, tcls::HCLK_MGT_BUF);
                 }
             }
         }

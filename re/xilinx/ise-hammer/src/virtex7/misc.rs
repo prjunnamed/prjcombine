@@ -8,7 +8,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex7::tcls};
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
@@ -16,7 +16,7 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::DeltaLegacy,
+        props::relation::Delta,
     },
 };
 
@@ -53,7 +53,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .test_manual_legacy("BSCAN_COMMON", "USERID", "")
         .multi_global("USERID", MultiValue::HexPrefix, 32);
 
-    let mut ctx = FuzzCtx::new_legacy(session, backend, "CFG");
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CFG);
     for i in 0..4 {
         let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
         bctx.test_manual_legacy("ENABLE", "1")
@@ -577,11 +577,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .multi_global(attr, MultiValue::Bin, width);
     }
 
-    if let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "SYSMON") {
+    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::SYSMON) {
         let mut bctx = ctx.bel(defs::bslots::SYSMON);
         bctx.build()
             .extra_tile_attr_legacy(
-                DeltaLegacy::new(0, 0, "HCLK"),
+                Delta::new(0, 0, tcls::HCLK),
                 "HCLK",
                 "DRP_MASK_ABOVE_L",
                 "SYSMON",
@@ -976,7 +976,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
 
-    if ctx.has_tile_legacy("SYSMON") {
+    if ctx.has_tcls(tcls::SYSMON) {
         let tile = "SYSMON";
         let bel = "SYSMON";
         ctx.get_diff_legacy(tile, bel, "ENABLE", "1").assert_empty();

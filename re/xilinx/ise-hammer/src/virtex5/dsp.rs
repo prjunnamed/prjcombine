@@ -1,5 +1,5 @@
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex5::tcls};
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -9,8 +9,7 @@ const DSP48E_INVPINS: &[&str] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let tile = "DSP";
-    let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::DSP);
     for i in 0..2 {
         let bel_other = defs::bslots::DSP[i ^ 1];
         let mut bctx = ctx.bel(defs::bslots::DSP[i]);

@@ -49,7 +49,6 @@ impl Delta {
         }
     }
 
-    #[allow(unused)]
     pub fn new_any(dx: i32, dy: i32, tcids: &[TileClassId]) -> Self {
         Self {
             dx,
@@ -71,40 +70,6 @@ impl TileRelation for Delta {
             }
         }
         None
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct DeltaLegacy {
-    pub dx: i32,
-    pub dy: i32,
-    pub tcnames: Vec<String>,
-}
-
-impl DeltaLegacy {
-    pub fn new(dx: i32, dy: i32, tcname: impl Into<String>) -> Self {
-        Self {
-            dx,
-            dy,
-            tcnames: vec![tcname.into()],
-        }
-    }
-
-    pub fn new_any(dx: i32, dy: i32, tcnames: &[impl AsRef<str>]) -> Self {
-        Self {
-            dx,
-            dy,
-            tcnames: tcnames.iter().map(|x| x.as_ref().to_string()).collect(),
-        }
-    }
-}
-
-impl TileRelation for DeltaLegacy {
-    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
-        let cell = backend.edev.cell_delta(tcrd.cell, self.dx, self.dy)?;
-        backend
-            .edev
-            .find_tile_by_class(cell, |tcname| self.tcnames.iter().any(|x| x == tcname))
     }
 }
 

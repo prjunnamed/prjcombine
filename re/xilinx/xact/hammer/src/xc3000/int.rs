@@ -152,7 +152,7 @@ fn drive_wire<'a>(
     let wt = wire_target.slot;
     let wtn = &backend.edev.db.wires.key(wt)[..];
     let (ploc, pwt, pwf) = if let Some((bel, pin)) = wire_to_outpin(backend, wire_target) {
-        let tcrd = backend.edev.get_tile_by_bel(bel);
+        let tcrd = backend.edev.bel_tile(bel);
         let ntile = &backend.ngrid.tiles[&tcrd];
         let block = &ntile.bels[bel.slot][0];
         if bel.slot == bslots::OSC {
@@ -403,7 +403,7 @@ fn apply_imux_finish<'a>(
         return fuzzer;
     };
     let bel = wire.bel(slot);
-    let tcrd = backend.edev.get_tile_by_bel(bel);
+    let tcrd = backend.edev.bel_tile(bel);
     let ntile = &backend.ngrid.tiles[&tcrd];
     let block = &ntile.bels[bel.slot][0];
     if pin == "T" && wn.starts_with("IMUX_IO") {

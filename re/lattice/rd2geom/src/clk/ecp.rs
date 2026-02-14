@@ -16,7 +16,7 @@ use crate::ChipContext;
 impl ChipContext<'_> {
     pub(super) fn process_clk_ecp(&mut self) {
         let bcrd = self.chip.bel_clk_root();
-        let tcrd = self.edev.get_tile_by_bel(bcrd);
+        let tcrd = self.edev.bel_tile(bcrd);
         let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_clk - 1, self.chip.row_clk);
         self.name_bel_null(bcrd);
 

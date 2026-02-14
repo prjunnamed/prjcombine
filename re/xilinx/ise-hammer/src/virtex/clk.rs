@@ -1,9 +1,10 @@
+use prjcombine_interconnect::dir::DirV;
 use prjcombine_re_collector::{
     diff::Diff,
     legacy::{xlat_bit_bi_legacy, xlat_bitvec_legacy, xlat_enum_legacy},
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex::defs;
+use prjcombine_virtex::defs::{self, tcls};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -15,20 +16,20 @@ use super::io::VirtexOtherIobInput;
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let package = backend.ebonds.keys().next().unwrap();
-    for tile in [
-        "CLK_S_V",
-        "CLK_N_V",
-        "CLK_S_VE_4DLL",
-        "CLK_N_VE_4DLL",
-        "CLK_S_VE_2DLL",
-        "CLK_N_VE_2DLL",
+    for (tcid, side, is_ve) in [
+        (tcls::CLK_S_V, DirV::S, false),
+        (tcls::CLK_N_V, DirV::N, false),
+        (tcls::CLK_S_VE_4DLL, DirV::S, true),
+        (tcls::CLK_N_VE_4DLL, DirV::N, true),
+        (tcls::CLK_S_VE_2DLL, DirV::S, true),
+        (tcls::CLK_N_VE_2DLL, DirV::N, true),
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         for i in 0..2 {
             let mut bctx = ctx.bel(defs::bslots::GCLK_IO[i]);
-            let iostds = if !tile.ends_with("DLL") {
+            let iostds = if !is_ve {
                 &[
                     "LVTTL", "LVCMOS2", "PCI33_3", "PCI33_5", "PCI66_3", "GTL", "GTLP", "HSTL_I",
                     "HSTL_III", "HSTL_IV", "SSTL3_I", "SSTL3_II", "SSTL2_I", "SSTL2_II", "CTT",
@@ -53,7 +54,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("IOATTRBOX", iostd)
                     .commit();
             }
-            let idx = if tile.starts_with("CLK_S") { i } else { 2 + i };
+            let idx = if side == DirV::S { i } else { 2 + i };
             for val in ["11110", "11101", "11011", "10111", "01111"] {
                 bctx.mode("GCLKIOB")
                     .test_manual_legacy("DELAY", val)
@@ -71,8 +72,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_enum_legacy("DISABLE_ATTR", &["LOW", "HIGH"]);
         }
     }
-    for tile in ["CLKV_CLKV", "CLKV_GCLKV", "CLKV_NULL"] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+    for tcid in [tcls::CLKV_CLKV, tcls::CLKV_GCLKV, tcls::CLKV_NULL] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
 
@@ -80,7 +81,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for lr in ['L', 'R'] {
             for i in 0..4 {
                 let mut builder = bctx.build();
-                if tile == "CLKV_NULL" {
+                if tcid == tcls::CLKV_NULL {
                     builder = builder.null_bits();
                 }
                 builder
@@ -93,13 +94,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
     // causes a crash on xcv405e. lmao.
     if !backend.device.name.ends_with('e') {
-        for (tile, slot) in [
-            ("CLKV_BRAM_S", defs::bslots::CLKV_BRAM_S),
-            ("CLKV_BRAM_N", defs::bslots::CLKV_BRAM_N),
+        for (tcid, slot) in [
+            (tcls::CLKV_BRAM_S, defs::bslots::CLKV_BRAM_S),
+            (tcls::CLKV_BRAM_N, defs::bslots::CLKV_BRAM_N),
         ] {
-            let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
+            let mut ctx = FuzzCtx::new(session, backend, tcid);
             let mut bctx = ctx.bel(slot);
-            for lr in ['L', 'R'] {
+            for lr in ["L", "R"] {
                 for i in 0..4 {
                     bctx.build()
                         .tile_mutex("GCLK_DIR", lr)
@@ -110,8 +111,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
     }
-    for tile in ["BRAM_W", "BRAM_E"] {
-        let mut ctx = FuzzCtx::new_legacy(session, backend, tile);
+    for tcid in [tcls::BRAM_W, tcls::BRAM_E] {
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         let mut bctx = ctx.bel(defs::bslots::CLKV_BRAM);
         for lr in ['L', 'R'] {
             for i in 0..4 {
@@ -124,13 +125,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    for (tile, bel) in [
-        ("CLKC", defs::bslots::CLKC),
-        ("CLKC", defs::bslots::GCLKC),
-        ("GCLKC", defs::bslots::GCLKC),
-        ("BRAM_CLKH", defs::bslots::BRAM_CLKH),
+    for (tcid, bel) in [
+        (tcls::CLKC, defs::bslots::CLKC),
+        (tcls::CLKC, defs::bslots::GCLKC),
+        (tcls::GCLKC, defs::bslots::GCLKC),
+        (tcls::BRAM_CLKH, defs::bslots::BRAM_CLKH),
     ] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         let mut bctx = ctx.bel(bel);

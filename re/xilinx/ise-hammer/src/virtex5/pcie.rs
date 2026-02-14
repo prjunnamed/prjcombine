@@ -1,5 +1,5 @@
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex5::tcls};
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -226,7 +226,7 @@ const PCIE_HEX_ATTRS: &[(&str, usize)] = &[
 const PCIE_DEC_ATTRS: &[(&str, usize)] = &[("TXTSNFTS", 8), ("TXTSNFTSCOMCLK", 8)];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "PCIE") else {
+    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::PCIE) else {
         return;
     };
     let mut bctx = ctx.bel(defs::bslots::PCIE);
@@ -249,7 +249,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    if !ctx.has_tile_legacy("PCIE") {
+    if !ctx.has_tcls(tcls::PCIE) {
         return;
     }
     let tile = "PCIE";

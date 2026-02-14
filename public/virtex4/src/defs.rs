@@ -160,6 +160,704 @@ target_defs! {
 
     // TODO: enums, bel slots
 
+    enum IO_DATA_RATE { SDR, DDR }
+    enum IO_DATA_WIDTH { NONE, _2, _3, _4, _5, _6, _7, _8, _10 }
+    enum IO_SERDES_MODE { MASTER, SLAVE }
+    enum ILOGIC_MUX_TSBYPASS { GND, T }
+    enum ILOGIC_INTERFACE_TYPE { MEMORY, NETWORKING }
+    enum ILOGIC_DDR_CLK_EDGE { SAME_EDGE_PIPELINED, SAME_EDGE, OPPOSITE_EDGE }
+    enum ILOGIC_IDELAYMUX { NONE, D, OFB }
+    enum ILOGIC_IOBDELAY_TYPE { DEFAULT, FIXED, VARIABLE }
+    enum ILOGIC_NUM_CE { _1, _2 }
+    bel_class ILOGIC_V4 {
+        input CLK, CLKDIV;
+        input SR, REV;
+        input CE1, CE2;
+        input BITSLIP;
+        input DLYCE, DLYINC, DLYRST;
+        output O;
+        output Q1, Q2, Q3, Q4, Q5, Q6;
+        output CLKPAD;
+
+        // ???
+        attribute CLK_INV: bitvec[3];
+        attribute OCLK1_INV: bool;
+        attribute OCLK2_INV: bool;
+
+        attribute FFI1_INIT: bitvec[1];
+        attribute FFI2_INIT: bitvec[1];
+        attribute FFI3_INIT: bitvec[1];
+        attribute FFI4_INIT: bitvec[1];
+        attribute FFI1_SRVAL: bitvec[1];
+        attribute FFI2_SRVAL: bitvec[1];
+        attribute FFI3_SRVAL: bitvec[1];
+        attribute FFI4_SRVAL: bitvec[1];
+        attribute FFI_ENABLE: bool;
+        attribute FFI_LATCH: bool;
+        // umm. shouldn't there be like. SR and REV enables, or something?
+        attribute FFI_SR_SYNC: bool;
+
+        attribute INIT_BITSLIPCNT: bitvec[4];
+        attribute INIT_CE: bitvec[2];
+        attribute INIT_RANK1_PARTIAL: bitvec[5];
+        attribute INIT_RANK2: bitvec[6];
+        attribute INIT_RANK3: bitvec[6];
+
+        attribute I_DELAY_ENABLE: bool;
+        attribute I_DELAY_DEFAULT: bool;
+        attribute I_TSBYPASS_ENABLE: bool;
+        attribute FFI_DELAY_ENABLE: bool;
+        attribute FFI_TSBYPASS_ENABLE: bool;
+        attribute MUX_TSBYPASS: ILOGIC_MUX_TSBYPASS;
+
+        attribute SERDES: bool;
+        attribute SERDES_MODE: IO_SERDES_MODE;
+        attribute DATA_RATE: IO_DATA_RATE;
+        attribute DATA_WIDTH: IO_DATA_WIDTH;
+        attribute INTERFACE_TYPE: ILOGIC_INTERFACE_TYPE;
+        attribute NUM_CE: ILOGIC_NUM_CE;
+        // ???
+        attribute BITSLIP_ENABLE: bitvec[7];
+        attribute BITSLIP_SYNC: bool;
+        attribute DDR_CLK_EDGE: ILOGIC_DDR_CLK_EDGE;
+
+        attribute IDELAYMUX: ILOGIC_IDELAYMUX;
+        attribute IOBDELAY_TYPE: ILOGIC_IOBDELAY_TYPE;
+        attribute IOBDELAY_VALUE_CUR: bitvec[6];
+        attribute IOBDELAY_VALUE_INIT: bitvec[6];
+
+        attribute READBACK_I: bitvec[1];
+    }
+
+    enum OLOGIC_TRISTATE_WIDTH { _1, _2, _4 }
+    enum OLOGIC_MUX_O { NONE, D1, FFO1, FFODDR }
+    enum OLOGIC_MUX_T { NONE, T1, FFT1, FFTDDR }
+    bel_class OLOGIC_V4 {
+        input CLK, CLKDIV;
+        input SR, REV;
+        input OCE, TCE;
+        input D1, D2, D3, D4, D5, D6;
+        input T1, T2, T3, T4;
+        output TQ;
+
+        attribute CLK1_INV: bool;
+        attribute CLK2_INV: bool;
+
+        // ??? what
+        attribute FFO_INIT: bitvec[4];
+        attribute FFO_INIT_SERDES: bitvec[3];
+        attribute FFO_SRVAL: bitvec[3];
+        attribute FFO_SERDES: bitvec[4];
+        attribute FFO_LATCH: bool;
+        attribute FFO_SR_SYNC: bitvec[4];
+        attribute FFO_SR_ENABLE: bool;
+        attribute FFO_REV_ENABLE: bool;
+        attribute MUX_O: OLOGIC_MUX_O;
+
+        attribute FFT_INIT: bitvec[5];
+        attribute FFT1_SRVAL: bitvec[1];
+        attribute FFT2_SRVAL: bitvec[1];
+        attribute FFT3_SRVAL: bitvec[1];
+        attribute FFT_LATCH: bool;
+        attribute FFT_SR_SYNC: bitvec[2];
+        attribute FFT_SR_ENABLE: bool;
+        attribute FFT_REV_ENABLE: bool;
+        attribute MUX_T: OLOGIC_MUX_T;
+
+        attribute INIT_LOADCNT: bitvec[4];
+
+        attribute SERDES: bool;
+        attribute SERDES_MODE: IO_SERDES_MODE;
+        attribute DATA_WIDTH: IO_DATA_WIDTH;
+        attribute TRISTATE_WIDTH: OLOGIC_TRISTATE_WIDTH;
+    }
+
+    enum IOB_PULL { NONE, PULLUP, PULLDOWN, KEEPER }
+    enum IOB_IBUF_MODE { NONE, VREF, DIFF, CMOS }
+    enum IOB_DCI_MODE { NONE, OUTPUT, OUTPUT_HALF, TERM_VCC, TERM_SPLIT }
+
+    bel_class IOB_V4 {
+        pad PAD: inout;
+
+        attribute PULL: IOB_PULL;
+        attribute VREF_SYSMON: bool;
+        attribute VR: bool;
+
+        attribute IBUF_MODE: IOB_IBUF_MODE;
+
+        attribute OUTPUT_ENABLE: bitvec[2];
+        attribute DCI_MODE: IOB_DCI_MODE;
+        attribute DCI_MISC: bitvec[2];
+        attribute DCI_T: bool;
+        attribute DCIUPDATEMODE_ASREQUIRED: bool;
+
+        attribute PDRIVE: bitvec[5];
+        attribute NDRIVE: bitvec[5];
+        attribute PSLEW: bitvec[4];
+        attribute NSLEW: bitvec[4];
+        attribute OUTPUT_MISC: bitvec[2];
+        attribute LVDS: bitvec[4];
+    }
+
+    if variant virtex4 {
+        table IOB_DATA {
+            field PDRIVE: bitvec[5];
+            field NDRIVE: bitvec[5];
+            field OUTPUT_MISC: bitvec[2];
+            field PSLEW_FAST: bitvec[4];
+            field NSLEW_FAST: bitvec[4];
+            field PSLEW_SLOW: bitvec[4];
+            field NSLEW_SLOW: bitvec[4];
+            field PMASK_TERM_VCC: bitvec[5];
+            field PMASK_TERM_SPLIT: bitvec[5];
+            field NMASK_TERM_SPLIT: bitvec[5];
+            field LVDIV2: bitvec[2];
+
+            row OFF, VREF, VR;
+
+            // push-pull I/O standards
+            row LVCMOS15_2, LVCMOS15_4, LVCMOS15_6, LVCMOS15_8, LVCMOS15_12, LVCMOS15_16;
+            row LVCMOS18_2, LVCMOS18_4, LVCMOS18_6, LVCMOS18_8, LVCMOS18_12, LVCMOS18_16;
+            row LVCMOS25_2, LVCMOS25_4, LVCMOS25_6, LVCMOS25_8, LVCMOS25_12, LVCMOS25_16, LVCMOS25_24;
+            row LVCMOS33_2, LVCMOS33_4, LVCMOS33_6, LVCMOS33_8, LVCMOS33_12, LVCMOS33_16, LVCMOS33_24;
+            row LVTTL_2, LVTTL_4, LVTTL_6, LVTTL_8, LVTTL_12, LVTTL_16, LVTTL_24;
+            row PCI33_3, PCI66_3, PCIX;
+
+            // DCI output
+            row LVDCI_15, LVDCI_18, LVDCI_25, LVDCI_33;
+            row LVDCI_DV2_15, LVDCI_DV2_18, LVDCI_DV2_25;
+            // VREF-based with DCI output
+            row HSLVDCI_15, HSLVDCI_18, HSLVDCI_25, HSLVDCI_33;
+
+            // VREF-based
+            row GTL, GTLP;
+            row SSTL18_I, SSTL18_II;
+            row SSTL2_I, SSTL2_II;
+            row HSTL_I_12;
+            row HSTL_I, HSTL_II, HSTL_III, HSTL_IV;
+            row HSTL_I_18, HSTL_II_18, HSTL_III_18, HSTL_IV_18;
+            // with DCI
+            row GTL_DCI, GTLP_DCI;
+            row SSTL18_I_DCI, SSTL18_II_DCI, SSTL18_II_T_DCI;
+            row SSTL2_I_DCI, SSTL2_II_DCI, SSTL2_II_T_DCI;
+            row HSTL_I_DCI, HSTL_II_DCI, HSTL_III_DCI, HSTL_II_T_DCI, HSTL_IV_DCI;
+            row HSTL_I_DCI_18, HSTL_II_DCI_18, HSTL_II_T_DCI_18, HSTL_IV_DCI_18, HSTL_III_DCI_18;
+
+            // pseudo-differential
+            row BLVDS_25;
+            row LVPECL_25;
+
+            // DCI term for true differential
+            row LVDS_25_DCI, LVDSEXT_25_DCI;
+        }
+        table LVDS_DATA {
+            field OUTPUT_T: bitvec[4];
+            field OUTPUT_C: bitvec[4];
+            field TERM_T: bitvec[4];
+            field TERM_C: bitvec[4];
+            field LVDSBIAS: bitvec[10];
+
+            row OFF;
+            row LVDS_25;
+            row LVDSEXT_25;
+            row MINI_LVDS_25;
+            row RSDS_25;
+            row HT_25;
+            row LVDS_25_DCI;
+            row LVDSEXT_25_DCI;
+        }
+    }
+
+    bel_class GLOBALSIG {
+    }
+
+    bel_class BUFGCTRL {
+        input I0, I1;
+        input S0, S1;
+        input CE0, CE1;
+        input IGNORE0, IGNORE1;
+        output O;
+
+        attribute CREATE_EDGE: bool;
+        attribute INIT_OUT: bitvec[1];
+        attribute PRESELECT_I0, PRESELECT_I1: bool;
+    }
+
+    bel_class BUFIO {
+        input I;
+        // virtex6 only
+        input DQSMASK;
+        output O;
+
+        attribute ENABLE: bool;
+        // virtex6 only
+        attribute DQSMASK_ENABLE: bool;
+        // virtex6 and up only
+        attribute DELAY_ENABLE: bool;
+    }
+
+    enum BUFR_DIVIDE { BYPASS, _1, _2, _3, _4, _5, _6, _7, _8 }
+    bel_class BUFR {
+        input I, CE, CLR;
+        output O;
+
+        attribute ENABLE: bool;
+        attribute DIVIDE: BUFR_DIVIDE;
+    }
+
+    enum IDELAYCTRL_RESET_STYLE { V4, V5 }
+    bel_class IDELAYCTRL {
+        input REFCLK, RST;
+        output RDY;
+        output DNPULSEOUT, UPPULSEOUT;
+        output OUTN1, OUTN65;
+
+        // set when calibrated delay used in bank (REFCLK connected)
+        attribute DLL_ENABLE: bool;
+
+        // virtex5 and up only; set when any delay used in bank, including uncalibrated
+        attribute DELAY_ENABLE: bool;
+
+        // virtex5 and up only
+        // virtex5 settings:
+        // - 00: no delay used
+        // - 01: calibrated delay used
+        // - 11: uncalibrated delay used
+        // virtex6 settings:
+        // - 00: no delay used or calibrated delay used
+        // - 10 uncalibrated delay used
+        // virtex7 settings: always 00
+        attribute VCTL_SEL: bitvec[2];
+
+        // virtex6 only
+        attribute RESET_STYLE: IDELAYCTRL_RESET_STYLE;
+
+        // virtex6 and up only
+        attribute HIGH_PERFORMANCE_MODE: bool;
+        // for calibrated delay only; the BIAS_MODE setting of "2" is stored the same as "0" here.
+        attribute BIAS_MODE: bitvec[0];
+    }
+
+    // used for virtex4 and virtex5
+    bel_class DCI_V4 {
+        input TSTCLK, TSTRST;
+        input TSTHLP, TSTHLN;
+        output DCISCLK;
+        output DCIADDRESS[3];
+        output DCIDATA;
+        output DCIIOUPDATE;
+        output DCIREFIOUPDATE;
+        output DCIDONE;
+
+        attribute ENABLE: bool;
+        attribute QUIET: bool;
+        attribute V4_LVDIV2: bitvec[2];
+        attribute V5_LVDIV2: bitvec[3];
+        attribute PMASK_TERM_VCC: bitvec[5];
+        attribute PMASK_TERM_SPLIT: bitvec[5];
+        attribute NMASK_TERM_SPLIT: bitvec[5];
+        attribute NREF: bitvec[2];
+        attribute PREF: bitvec[4];
+        attribute TEST_ENABLE: bitvec[2];
+        attribute CASCADE_FROM_ABOVE: bool;
+        attribute CASCADE_FROM_BELOW: bool;
+    }
+
+    bel_class LVDS_V4 {
+        attribute LVDSBIAS: bitvec[10];
+    }
+
+    enum DCM_CLKDV_MODE { HALF, INT }
+    enum DCM_CLK_FEEDBACK { _1X, _2X, NONE }
+    enum DCM_PS_MODE { CLKIN, CLKFB }
+    enum DCM_PERFORMANCE_MODE { MAX_RANGE, MAX_SPEED }
+    enum DCM_VREF_SOURCE { VDD_VBG, BGM_SNAP, BGM_ABS_SNAP, BGM_ABS_REF }
+    enum DCM_DLL_CONTROL_CLOCK_SPEED { HALF, QUARTER }
+    enum DCM_DLL_FREQUENCY_MODE { LOW, HIGH_SER, HIGH }
+    enum DCM_DLL_PHASE_DETECTOR_MODE { LEVEL, ENHANCED }
+    enum DCM_DLL_PHASE_SHIFT_CALIBRATION { AUTO_DPS, CONFIG, MASK, AUTO_ZD2 }
+    enum DCM_DFS_AVE_FREQ_GAIN { NONE, _0P5, _0P25, _0P125, _1P0, _2P0, _4P0, _8P0 }
+    enum DCM_DFS_SEL { LEVEL, LEGACY }
+    enum DCM_DFS_FREQUENCY_MODE { LOW, HIGH }
+    enum DCM_DFS_OSCILLATOR_MODE { PHASE_FREQ_LOCK, FREQ_LOCK, AVE_FREQ_LOCK }
+    enum DCM_BGM_CONFIG_REF_SEL { DCLK, CLKIN }
+    enum DCM_BGM_MODE { BG_SNAPSHOT, ABS_FREQ_SNAPSHOT, ABS_FREQ_REF }
+    bel_class DCM_V4 {
+        input CLKIN, CLKFB;
+        output CLK0, CLK90, CLK180, CLK270;
+        output CLK2X, CLK2X180;
+        output CLKDV;
+        output CLKFX, CLKFX180, CONCUR;
+
+        input RST;
+        output LOCKED;
+
+        input PSCLK, PSEN, PSINCDEC;
+        output PSDONE;
+
+        input DCLK;
+        input DEN;
+        input DWE;
+        input DADDR[7];
+        input DI[16];
+        output DRDY;
+        output DO[16];
+
+        input FREEZE_DLL, FREEZE_DFS;
+        input CTLMODE, CTLGO, CTLOSC1, CTLOSC2, CTLSEL[3];
+
+        // address 0x40 and up
+        attribute DRP: bitvec[16][32];
+        attribute DRP_MASK: bitvec[32];
+
+        attribute OUT_CLK0_ENABLE: bool;
+        attribute OUT_CLK90_ENABLE: bool;
+        attribute OUT_CLK180_ENABLE: bool;
+        attribute OUT_CLK270_ENABLE: bool;
+        attribute OUT_CLK2X_ENABLE: bool;
+        attribute OUT_CLK2X180_ENABLE: bool;
+        attribute OUT_CLKDV_ENABLE: bool;
+        attribute OUT_CLKFX_ENABLE: bool;
+        attribute OUT_CLKFX180_ENABLE: bool;
+        attribute OUT_CONCUR_ENABLE: bool;
+
+        attribute CLKDV_COUNT_MAX: bitvec[4];
+        attribute CLKDV_COUNT_FALL: bitvec[4];
+        attribute CLKDV_COUNT_FALL_2: bitvec[4];
+        attribute CLKDV_PHASE_RISE: bitvec[2];
+        attribute CLKDV_PHASE_FALL: bitvec[2];
+        attribute CLKDV_MODE: DCM_CLKDV_MODE;
+
+        attribute STARTUP_WAIT: bool;
+        attribute UNK_ALWAYS_SET: bool;
+        attribute DESKEW_ADJUST: bitvec[5];
+        attribute CLKIN_ENABLE: bool;
+        attribute CLKIN_IOB: bool;
+        attribute CLKFB_ENABLE: bool;
+        attribute CLKFB_IOB: bool;
+        attribute CLKFB_FEEDBACK: bool;
+        attribute CLKIN_DIVIDE_BY_2: bool;
+        attribute CLK_FEEDBACK: DCM_CLK_FEEDBACK;
+
+        attribute CLKFX_MULTIPLY: bitvec[5];
+        attribute CLKFX_DIVIDE: bitvec[5];
+
+        attribute DUTY_CYCLE_CORRECTION: bitvec[4];
+        attribute FACTORY_JF: bitvec[16];
+        attribute PHASE_SHIFT: bitvec[10];
+        attribute PHASE_SHIFT_NEGATIVE: bool;
+        attribute PMCD_SYNC: bool;
+        attribute PS_CENTERED: bool;
+        attribute PS_DIRECT: bool;
+        attribute PS_ENABLE: bool;
+        attribute PS_MODE: DCM_PS_MODE;
+
+        attribute DCM_CLKDV_CLKFX_ALIGNMENT: bool;
+        attribute DCM_EXT_FB_EN: bool;
+        attribute DCM_LOCK_HIGH: bool;
+        attribute DCM_PERFORMANCE_MODE: DCM_PERFORMANCE_MODE;
+        attribute DCM_PULSE_WIDTH_CORRECTION_LOW: bitvec[5];
+        attribute DCM_PULSE_WIDTH_CORRECTION_HIGH: bitvec[5];
+        attribute DCM_UNUSED_TAPS_POWERDOWN: bool;
+
+        attribute DCM_VREG_ENABLE: bool;
+        attribute DCM_VBG_PD: bitvec[2];
+        attribute DCM_VBG_SEL: bitvec[4];
+        attribute DCM_VREF_SOURCE: DCM_VREF_SOURCE;
+        attribute DCM_VREG_PHASE_MARGIN: bitvec[3];
+
+        attribute DLL_CONTROL_CLOCK_SPEED: DCM_DLL_CONTROL_CLOCK_SPEED;
+        attribute DLL_CTL_SEL_CLKIN_DIV2: bool;
+        attribute DLL_DEAD_TIME: bitvec[8];
+        attribute DLL_DESKEW_LOCK_BY1: bool;
+        attribute DLL_DESKEW_MAXTAP: bitvec[8];
+        attribute DLL_DESKEW_MINTAP: bitvec[8];
+        attribute DLL_FREQUENCY_MODE: DCM_DLL_FREQUENCY_MODE;
+        attribute DLL_LIVE_TIME: bitvec[8];
+        attribute DLL_PD_DLY_SEL: bitvec[3];
+        attribute DLL_PERIOD_LOCK_BY1: bool;
+        attribute DLL_PHASE_DETECTOR_AUTO_RESET: bool;
+        attribute DLL_PHASE_DETECTOR_MODE: DCM_DLL_PHASE_DETECTOR_MODE;
+        attribute DLL_PHASE_SHIFT_CALIBRATION: DCM_DLL_PHASE_SHIFT_CALIBRATION;
+        attribute DLL_PHASE_SHIFT_HFC: bitvec[8];
+        attribute DLL_PHASE_SHIFT_LFC: bitvec[8];
+        attribute DLL_PHASE_SHIFT_LOCK_BY1: bool;
+        attribute DLL_SETTLE_TIME: bitvec[8];
+        attribute DLL_TEST_MUX_SEL: bitvec[2];
+        attribute DLL_ZD2_EN: bool;
+        attribute DLL_SPARE: bitvec[16];
+
+        attribute DFS_AVE_FREQ_ADJ_INTERVAL: bitvec[4];
+        attribute DFS_AVE_FREQ_GAIN: DCM_DFS_AVE_FREQ_GAIN;
+        attribute DFS_AVE_FREQ_SAMPLE_INTERVAL: bitvec[3];
+        attribute DFS_COARSE_SEL: DCM_DFS_SEL;
+        attribute DFS_COIN_WINDOW: bitvec[2];
+        attribute DFS_EARLY_LOCK: bool;
+        attribute DFS_ENABLE: bool;
+        attribute DFS_EN_RELRST: bool;
+        attribute DFS_EXTEND_FLUSH_TIME: bool;
+        attribute DFS_EXTEND_HALT_TIME: bool;
+        attribute DFS_EXTEND_RUN_TIME: bool;
+        attribute DFS_FEEDBACK: bool;
+        attribute DFS_FINE_SEL: DCM_DFS_SEL;
+        attribute DFS_FREQUENCY_MODE: DCM_DFS_FREQUENCY_MODE;
+        attribute DFS_HARDSYNC: bitvec[2];
+        attribute DFS_NON_STOP: bool;
+        attribute DFS_OSCILLATOR_MODE: DCM_DFS_OSCILLATOR_MODE;
+        attribute DFS_SKIP_FINE: bool;
+        attribute DFS_SPARE: bitvec[16];
+        attribute DFS_TP_SEL: DCM_DFS_SEL;
+        attribute DFS_TRACKMODE: bool;
+
+        attribute BGM_CONFIG_REF_SEL: DCM_BGM_CONFIG_REF_SEL;
+        attribute BGM_LDLY: bitvec[3];
+        attribute BGM_MODE: DCM_BGM_MODE;
+        attribute BGM_MULTIPLY: bitvec[6];
+        attribute BGM_DIVIDE: bitvec[6];
+        attribute BGM_SAMPLE_LEN: bitvec[3];
+        attribute BGM_SDLY: bitvec[3];
+        attribute BGM_VADJ: bitvec[4];
+        attribute BGM_VLDLY: bitvec[3];
+        attribute BGM_VSDLY: bitvec[3];
+    }
+
+    enum PMCD_RST_DEASSERT_CLK { CLKA, CLKB, CLKC, CLKD }
+    bel_class PMCD {
+        input CLKA, CLKB, CLKC, CLKD;
+        input REL;
+        input RST;
+        output CLKA1, CLKA1D2, CLKA1D4, CLKA1D8;
+        output CLKB1, CLKC1, CLKD1;
+
+        attribute CLKA_ENABLE: bitvec[4]; // TODO: actually per-output?
+        attribute CLKB_ENABLE: bool;
+        attribute CLKC_ENABLE: bool;
+        attribute CLKD_ENABLE: bool;
+        attribute EN_REL: bool;
+        attribute RST_DEASSERT_CLK: PMCD_RST_DEASSERT_CLK;
+    }
+
+    bel_class DPM {
+        input REFCLK;
+        input TESTCLK1, TESTCLK2;
+        input RST;
+        input SELSKEW;
+        input ENOSC[3];
+        input FREEZE;
+        input HFSEL[3];
+        input OUTSEL[3];
+        output REFCLKOUT;
+        output OSCOUT1, OSCOUT2;
+        output CENTER;
+        output DOUT[8];
+        output VALID;
+    }
+
+    bel_class CCM {
+        attribute VREG_ENABLE: bool;
+        attribute VBG_SEL: bitvec[4];
+        attribute VBG_PD: bitvec[2];
+        attribute VREG_PHASE_MARGIN: bitvec[3];
+    }
+
+    enum SYSMON_MONITOR_MODE { MONITOR, ADC, TEST }
+    bel_class SYSMON_V4 {
+        input CONVST;
+        input RST;
+        output ALARM[7];
+        output BUSY;
+        output CHANNEL[5];
+        output DB[12];
+        output EOC;
+        output EOS;
+        output OT;
+
+        input DCLK;
+        input DEN;
+        input DWE;
+        input DADDR[7];
+        input DI[16];
+        output DRDY;
+        output DO[16];
+
+        input ROMTESTENABLE;
+        input ROMTESTADDR[16];
+        output ROMTESTDATA[16];
+        input SCANMEMCLK;
+        input SCANMEMWE;
+        input SCANTESTENA;
+        input SCANTESTENB;
+        input SCLKA;
+        input SCLKB;
+        input SEA;
+        input SEB;
+        input SDIA;
+        input SDIB;
+        output SDOA;
+        output SDOB;
+
+        // address 0x40 and up
+        attribute INIT: bitvec[16][48];
+        attribute MONITOR_MODE: SYSMON_MONITOR_MODE;
+        attribute BLOCK_ENABLE: bitvec[5];
+        attribute DCLK_DIVID_2: bitvec[1];
+        attribute LW_DIVID_2_4: bitvec[1];
+        attribute DCLK_MISSING: bitvec[10];
+        attribute FEATURE_ENABLE: bitvec[8];
+        attribute MCCLK_DIVID: bitvec[8];
+        attribute OVER_TEMPERATURE: bitvec[10];
+        attribute OVER_TEMPERATURE_DELAY: bitvec[8];
+        attribute OVER_TEMPERATURE_OFF: bitvec[1];
+        attribute PROM_DATA: bitvec[8];
+    }
+
+    bel_class STARTUP {
+        input CLK;
+        input GTS, GSR;
+        input USRCCLKO, USRCCLKTS;
+        input USRDONEO, USRDONETS;
+        output EOS;
+
+        attribute USER_GTS_GSR_ENABLE: bool;
+        attribute GTS_SYNC: bool;
+        attribute GSR_SYNC: bool;
+        attribute GWE_SYNC: bool;
+        attribute USRCCLK_ENABLE: bool;
+    }
+
+    bel_class CAPTURE {
+        input CLK;
+        input CAP;
+    }
+
+    bel_class ICAP {
+        input CLK;
+        input CE;
+        input WRITE;
+        input I[32];
+        output BUSY;
+        output O[32];
+
+        attribute ENABLE: bool;
+    }
+
+    bel_class BSCAN {
+        input TDO;
+        output DRCK;
+        output SEL;
+        output TDI;
+        output RESET, CAPTURE, SHIFT, UPDATE;
+
+        attribute ENABLE: bool;
+    }
+
+    bel_class JTAGPPC {
+        input TDOPPC;
+        output TCK;
+        output TMS;
+        output TDIPPC;
+
+        attribute ENABLE: bool;
+    }
+
+    bel_class PMV {
+        input EN;
+        input A[6];
+        output O, ODIV2, ODIV4;
+    }
+
+    bel_class DCIRESET {
+        input RST;
+        output LOCKED;
+
+        attribute ENABLE: bool;
+    }
+
+    bel_class FRAME_ECC {
+        output ERROR;
+        output SYNDROMEVALID;
+        output SYNDROME[12];
+    }
+
+    bel_class USR_ACCESS {
+        output DATAVALID;
+        output DATA[32];
+    }
+
+    // X16 only supported on virtex5 and up
+    enum ICAP_WIDTH { X8, X16, X32 }
+    enum PROBESEL { NONE, _0, _1, _2, _3 }
+    bel_class MISC_CFG {
+        pad HSWAPEN: input;
+        pad PROG_B: input;
+        pad POWERDOWN_B: input;
+        pad DONE: inout;
+        pad M0, M1, M2: input;
+        pad CCLK: inout;
+        pad INIT_B: inout;
+        pad DIN: input;
+        pad CS_B: input;
+        pad RDWR_B: input;
+        pad BUSY: output;
+        pad TCK, TMS, TDI: input;
+        pad TDO: output;
+
+        attribute USERCODE: bitvec[32];
+        attribute ICAP_WIDTH: ICAP_WIDTH;
+        attribute DCI_CLK_ENABLE: bitvec[2];
+        attribute PROBESEL: PROBESEL;
+
+        attribute HSWAPEN_PULL: IOB_PULL;
+        attribute PROG_PULL: IOB_PULL;
+        attribute POWERDOWN_PULL: IOB_PULL;
+        attribute DONE_PULL: IOB_PULL;
+        attribute M0_PULL: IOB_PULL;
+        attribute M1_PULL: IOB_PULL;
+        attribute M2_PULL: IOB_PULL;
+        attribute CCLK_PULL: IOB_PULL;
+        attribute INIT_PULL: IOB_PULL;
+        attribute DIN_PULL: IOB_PULL;
+        attribute CS_PULL: IOB_PULL;
+        attribute RDWR_PULL: IOB_PULL;
+        attribute BUSY_PULL: IOB_PULL;
+        attribute TCK_PULL: IOB_PULL;
+        attribute TMS_PULL: IOB_PULL;
+        attribute TDI_PULL: IOB_PULL;
+        attribute TDO_PULL: IOB_PULL;
+    }
+
+    enum STARTUP_CYCLE { _0, _1, _2, _3, _4, _5, _6, DONE, KEEP, NOWAIT }
+    enum STARTUP_CLOCK { CCLK, USERCLK, JTAGCLK }
+    enum CONFIG_RATE { _4, _5, _7, _8, _9, _10, _13, _15, _20, _26, _30, _34, _41, _51, _55, _60, _130 }
+    enum SECURITY { NONE, LEVEL1, LEVEL2 }
+    enum ICAP_SELECT { BOTTOM, TOP }
+    bel_class GLOBAL {
+        // COR
+        attribute GWE_CYCLE: STARTUP_CYCLE;
+        attribute GTS_CYCLE: STARTUP_CYCLE;
+        attribute LOCK_CYCLE: STARTUP_CYCLE;
+        attribute MATCH_CYCLE: STARTUP_CYCLE;
+        attribute DONE_CYCLE: STARTUP_CYCLE;
+        attribute STARTUP_CLOCK: STARTUP_CLOCK;
+        attribute CONFIG_RATE: CONFIG_RATE;
+        attribute CAPTURE_ONESHOT: bool;
+        attribute DRIVE_DONE: bool;
+        attribute DONE_PIPE: bool;
+        attribute DCM_SHUTDOWN: bool;
+        attribute POWERDOWN_STATUS: bool;
+        attribute CRC_ENABLE: bool;
+
+        // CTL
+        attribute GTS_USR_B: bool;
+        attribute EN_VTEST: bool;
+        attribute VGG_TEST: bool;
+        attribute PERSIST: bool;
+        attribute SECURITY: SECURITY;
+        attribute ENCRYPT: bool;
+        attribute GLUTMASK: bool;
+        attribute ICAP_SELECT: ICAP_SELECT;
+    }
+
     bel_class PPC405 {
         input CPMC405CLOCK;
         input CPMC405CLOCKFBENABLE;
@@ -690,10 +1388,446 @@ target_defs! {
         output TSTSOEMACO[7];
     }
 
-    region_slot HCLK;
-    region_slot LEAF;
+
+    enum GT11_ALIGN_COMMA_WORD { _1, _2, _4 }
+    enum GT11_CHAN_BOND_MODE { NONE, MASTER, SLAVE_1_HOP, SLAVE_2_HOPS }
+    enum GT11_CHAN_BOND_SEQ_LEN { _1, _2, _3, _4, _8 }
+    enum GT11_CLK_COR_SEQ_LEN { _1, _2, _3, _4, _8 }
+    enum GT11_FDCAL_CLOCK_DIVIDE { TWO, NONE, FOUR }
+    enum GT11_RX_LOS_INVALID_INCR { _1, _2, _4, _8, _16, _32, _64, _128 }
+    enum GT11_RX_LOS_THRESHOLD { _4, _8, _16, _32, _64, _128, _256, _512 }
+    enum GT11_RXTXOUTDIV2SEL { _1, _2, _4, _8, _16, _32 }
+    enum GT11_PLLNDIVSEL { _8, _10, _16, _20, _32, _40 }
+    enum GT11_PMACLKSEL { REFCLK1, REFCLK2, GREFCLK }
+    enum GT11_RXUSRDIVISOR { _1, _2, _4, _8, _16 }
+
+    bel_class GT11 {
+        input REFCLK1, REFCLK2;
+        input GREFCLK;
+        output RXPCSHCLKOUT;
+        output TXPCSHCLKOUT;
+
+        input POWERDOWN;
+        input LOOPBACK[2];
+
+        input DCLK;
+        input DEN;
+        input DWE;
+        input DADDR[8];
+        input DI[16];
+        output DRDY;
+        output DO[16];
+
+        input RXUSRCLK;
+        input RXUSRCLK2;
+        output RXRECCLK1;
+        output RXRECCLK2;
+        input RXRESET;
+
+        input RXPMARESET;
+        output RXCALFAIL;
+        output RXENABLECAL;
+        output RXCOARSEST;
+        output RXFCALSTATE[3];
+        output RXFDETSTATE[3];
+        input RXCLKSTABLE;
+        output RXCYCLELIMIT;
+        output RXLOCK;
+        output RXLOCKUPDATE;
+        input RXPOLARITY;
+        output RXSIGDET;
+        input RXSYNC;
+        input RXUSRLOCK;
+        input RXUSRVCOCAL;
+        input RXUSRVCODAC[10];
+        output RXVCOHIGH;
+        output RXADCN;
+        output RXADCP;
+        output CDRSTATUS[18];
+
+        input RXDATAWIDTH[2];
+        input RXINTDATAWIDTH[2];
+        output RXDATA[64];
+        output RXNOTINTABLE[8];
+        output RXDISPERR[8];
+        output RXCHARISK[8];
+        output RXCHARISCOMMA[8];
+        output RXRUNDISP[8];
+        input RXDEC8B10BUSE;
+        input RXDEC64B66BUSE;
+        input RXBLOCKSYNC64B66BUSE;
+        input RXDESCRAM64B66BUSE;
+        input RXCOMMADETUSE;
+        input RXIGNOREBTF;
+        output RXCOMMADET;
+        output RXREALIGN;
+        input RXSLIDE;
+        input ENMCOMMAALIGN;
+        input ENPCOMMAALIGN;
+        output RXLOSSOFSYNC[2];
+        output RXSTATUS[6];
+        output RXBUFERR;
+        input ENCHANSYNC;
+        input CHBONDI[5];
+        output CHBONDO[5];
+
+        input MGTADCSEL[5];
+
+        input TXUSRCLK;
+        input TXUSRCLK2;
+        output TXOUTCLK1;
+        output TXOUTCLK2;
+        input TXRESET;
+
+        input TXPMARESET;
+        input TXPOLARITY;
+        input TXINHIBIT;
+        output TXCALFAIL;
+        input TXCLKSTABLE;
+        output TXCYCLELIMIT;
+        output TXCOARSEST;
+        output TXENABLECAL;
+        input TXENOOB;
+        output TXFCALSTATE[3];
+        output TXFDETSTATE[3];
+        output TXLOCK;
+        output TXLOCKUPDATE;
+        input TXSYNC;
+        input TXUSRLOCK;
+        input TXUSRVCOCAL;
+        input TXUSRVCODAC[10];
+        output TXVCOHIGH;
+        output TXADCN;
+        output TXADCP;
+
+        input TXDATAWIDTH[2];
+        input TXINTDATAWIDTH[2];
+        input TXDATA[64];
+        input TXBYPASS8B10B[8];
+        input TXCHARISK[8];
+        input TXCHARDISPMODE[8];
+        input TXCHARDISPVAL[8];
+        input TXENC8B10BUSE;
+        input TXENC64B66BUSE;
+        input TXSCRAM64B66BUSE;
+        input TXGEARBOX64B66BUSE;
+        output TXKERR[8];
+        output TXRUNDISP[8];
+        output TXBUFERR;
+
+        input RXCRCCLK;
+        input RXCRCINTCLK;
+        input RXCRCRESET;
+        input RXCRCPD;
+        input RXCRCDATAVALID;
+        input RXCRCDATAWIDTH[3];
+        input RXCRCIN[64];
+        input RXCRCINIT;
+        output RXCRCOUT[32];
+
+        input TXCRCCLK;
+        input TXCRCINTCLK;
+        input TXCRCRESET;
+        input TXCRCPD;
+        input TXCRCDATAVALID;
+        input TXCRCDATAWIDTH[3];
+        input TXCRCIN[64];
+        input TXCRCINIT;
+        output TXCRCOUT[32];
+
+        input SCANEN[3];
+        input SCANIN[3];
+        input SCANMODE[3];
+        output SCANOUT[3];
+        input TESTMEMORY;
+
+        pad RXP, RXN: input;
+        pad TXP, TXN: output;
+        pad AVCCAUXRX: power;
+        pad VTRX, VTTX: power;
+
+        // address 0x40 and up
+        attribute DRP: bitvec[16][64];
+        attribute DRP_MASK: bitvec[64];
+
+        attribute AUTO_CAL: bool;
+        attribute BYPASS_CAL: bool;
+        attribute BYPASS_FDET: bool;
+        attribute CCCB_ARBITRATOR_DISABLE: bool;
+        attribute CHAN_BOND_ONE_SHOT: bool;
+        attribute CHAN_BOND_SEQ_2_USE: bool;
+        attribute CLK_COR_8B10B_DE: bool;
+        attribute CLK_CORRECT_USE: bool;
+        attribute CLK_COR_SEQ_2_USE: bool;
+        attribute CLK_COR_SEQ_DROP: bool;
+        attribute COMMA32: bool;
+        attribute DEC_MCOMMA_DETECT: bool;
+        attribute DEC_PCOMMA_DETECT: bool;
+        attribute DEC_VALID_COMMA_ONLY: bool;
+        attribute DIGRX_SYNC_MODE: bool;
+        attribute ENABLE_DCDR: bool;
+        attribute MCOMMA_DETECT: bool;
+        attribute OPPOSITE_SELECT: bool;
+        attribute PCOMMA_DETECT: bool;
+        attribute PCS_BIT_SLIP: bool;
+        attribute PMA_BIT_SLIP: bool;
+        attribute POWER_ENABLE: bool;
+        attribute REPEATER: bool;
+        attribute RESERVED_CB1: bool;
+        attribute RESERVED_CCA: bool;
+        attribute RESERVED_CCB: bool;
+        attribute RESERVED_M2: bool;
+        attribute RXACTST: bool;
+        attribute RXADCADJPD: bool;
+        attribute RXAFEPD: bool;
+        attribute RXAFETST: bool;
+        attribute RXAPD: bool;
+        attribute RXAPTST: bool;
+        attribute RXAUTO_CAL: bool;
+        attribute RXBIASPD: bool;
+        attribute RX_BUFFER_USE: bool;
+        attribute RXBY_32: bool;
+        attribute RXBYPASS_CAL: bool;
+        attribute RXBYPASS_FDET: bool;
+        attribute RXCLK0_FORCE_PMACLK: bool;
+        attribute RXCLK0_INVERT_PMALEAF: bool;
+        attribute RXCMFPD: bool;
+        attribute RXCMFTST: bool;
+        attribute RXCPSEL: bool;
+        attribute RXCPTST: bool;
+        attribute RXCRCCLOCKDOUBLE: bool;
+        attribute RXCRCENABLE: bool;
+        attribute RXCRCINVERTGEN: bool;
+        attribute RXCRCSAMECLOCK: bool;
+        attribute RXDACSEL: bool;
+        attribute RXDACTST: bool;
+        attribute RXDCCOUPLE: bool;
+        attribute RXDIGRESET: bool;
+        attribute RXDIGRX: bool;
+        attribute RXDIVBUFPD: bool;
+        attribute RXDIVBUFTST: bool;
+        attribute RXDIVPD: bool;
+        attribute RXDIVTST: bool;
+        attribute RXFILTTST: bool;
+        attribute RXLB: bool;
+        attribute RXLKAPD: bool;
+        attribute RXPDDTST: bool;
+        attribute RXPD: bool;
+        attribute RXPFDTST: bool;
+        attribute RXPFDTX: bool;
+        attribute RXQPPD: bool;
+        attribute RXRCPPD: bool;
+        attribute RXRECCLK1_USE_SYNC: bool;
+        attribute RXRPDPD: bool;
+        attribute RXRSDPD: bool;
+        attribute RXSLOSEL: bool;
+        attribute RXTADJ: bool;
+        attribute RXVCOBUFPD: bool;
+        attribute RXVCOBUFTST: bool;
+        attribute RXVCO_CTRL_ENABLE: bool;
+        attribute RXVCOPD: bool;
+        attribute RXVCOTST: bool;
+        attribute SAMPLE_8X: bool;
+        attribute TEST_MODE_1: bool;
+        attribute TEST_MODE_2: bool;
+        attribute TEST_MODE_3: bool;
+        attribute TXAREFBIASSEL: bool;
+        attribute TX_BUFFER_USE: bool;
+        attribute TXCFGENABLE: bool;
+        attribute TXCLK0_FORCE_PMACLK: bool;
+        attribute TXCLK0_INVERT_PMALEAF: bool;
+        attribute TXCRCCLOCKDOUBLE: bool;
+        attribute TXCRCENABLE: bool;
+        attribute TXCRCINVERTGEN: bool;
+        attribute TXCRCSAMECLOCK: bool;
+        attribute TXDIGPD: bool;
+        attribute TXHIGHSIGNALEN: bool;
+        attribute TXLVLSHFTPD: bool;
+        attribute TXOUTCLK1_USE_SYNC: bool;
+        attribute TXPD: bool;
+        attribute TXPHASESEL: bool;
+        attribute TXPOST_TAP_PD: bool;
+        attribute TXPRE_TAP_PD: bool;
+        attribute TXSLEWRATE: bool;
+        attribute VCO_CTRL_ENABLE: bool;
+
+        attribute CLK_COR_SEQ_1_1: bitvec[11];
+        attribute CLK_COR_SEQ_1_2: bitvec[11];
+        attribute CLK_COR_SEQ_1_3: bitvec[11];
+        attribute CLK_COR_SEQ_1_4: bitvec[11];
+        attribute CLK_COR_SEQ_2_1: bitvec[11];
+        attribute CLK_COR_SEQ_2_2: bitvec[11];
+        attribute CLK_COR_SEQ_2_3: bitvec[11];
+        attribute CLK_COR_SEQ_2_4: bitvec[11];
+        attribute CHAN_BOND_SEQ_1_1: bitvec[11];
+        attribute CHAN_BOND_SEQ_1_2: bitvec[11];
+        attribute CHAN_BOND_SEQ_1_3: bitvec[11];
+        attribute CHAN_BOND_SEQ_1_4: bitvec[11];
+        attribute CHAN_BOND_SEQ_2_1: bitvec[11];
+        attribute CHAN_BOND_SEQ_2_2: bitvec[11];
+        attribute CHAN_BOND_SEQ_2_3: bitvec[11];
+        attribute CHAN_BOND_SEQ_2_4: bitvec[11];
+        attribute CLK_COR_SEQ_1_MASK: bitvec[4];
+        attribute CLK_COR_SEQ_2_MASK: bitvec[4];
+        attribute CHAN_BOND_SEQ_1_MASK: bitvec[4];
+        attribute CHAN_BOND_SEQ_2_MASK: bitvec[4];
+        attribute CHAN_BOND_TUNE: bitvec[8];
+        attribute CYCLE_LIMIT_SEL: bitvec[2];
+        attribute RXCYCLE_LIMIT_SEL: bitvec[2];
+        attribute DCDR_FILTER: bitvec[3];
+        attribute DIGRX_FWDCLK: bitvec[2];
+        attribute FDET_HYS_CAL: bitvec[3];
+        attribute FDET_HYS_SEL: bitvec[3];
+        attribute FDET_LCK_CAL: bitvec[3];
+        attribute FDET_LCK_SEL: bitvec[3];
+        attribute LOOPCAL_WAIT: bitvec[2];
+        attribute RXAFEEQ: bitvec[9];
+        attribute RXASYNCDIVIDE: bitvec[2];
+        attribute RXCDRLOS: bitvec[6];
+        attribute RXCLKMODE: bitvec[6];
+        attribute RXCLMODE: bitvec[2];
+        attribute RXCMADJ: bitvec[2];
+        attribute RXDATA_SEL: bitvec[2];
+        attribute RXFDET_HYS_CAL: bitvec[3];
+        attribute RXFDET_HYS_SEL: bitvec[3];
+        attribute RXFDET_LCK_CAL: bitvec[3];
+        attribute RXFDET_LCK_SEL: bitvec[3];
+        attribute RXFECONTROL1: bitvec[2];
+        attribute RXFECONTROL2: bitvec[3];
+        attribute RXFETUNE: bitvec[2];
+        attribute RXLKADJ: bitvec[5];
+        attribute RXLOOPCAL_WAIT: bitvec[2];
+        attribute RXLOOPFILT: bitvec[4];
+        attribute RXMODE: bitvec[6];
+        attribute RXRCPADJ: bitvec[3];
+        attribute RXRIBADJ: bitvec[2];
+        attribute RXSLOWDOWN_CAL: bitvec[2];
+        attribute RXVCODAC_INIT: bitvec[10];
+        attribute RX_CLOCK_DIVIDER: bitvec[2];
+        attribute SLOWDOWN_CAL: bitvec[2];
+        attribute TXASYNCDIVIDE: bitvec[2];
+        attribute TXCLKMODE: bitvec[4];
+        attribute TXDATA_SEL: bitvec[2];
+        attribute TXDAT_PRDRV_DAC: bitvec[3];
+        attribute TXDAT_TAP_DAC: bitvec[5];
+        attribute TXLNDR_TST1: bitvec[4];
+        attribute TXLNDR_TST2: bitvec[2];
+        attribute TXPOST_PRDRV_DAC: bitvec[3];
+        attribute TXPOST_TAP_DAC: bitvec[5];
+        attribute TXPRE_PRDRV_DAC: bitvec[3];
+        attribute TXPRE_TAP_DAC: bitvec[5];
+        attribute TXTERMTRIM: bitvec[4];
+        attribute TX_CLOCK_DIVIDER: bitvec[2];
+        attribute VCODAC_INIT: bitvec[10];
+        attribute COMMA_10B_MASK: bitvec[10];
+        attribute RESERVED_CM: bitvec[24];
+        attribute RESERVED_CM2: bitvec[22];
+        attribute RXCRCINITVAL: bitvec[32];
+        attribute RXCTRL1: bitvec[10];
+        attribute RXEQ: bitvec[64];
+        attribute RXTUNE: bitvec[13];
+        attribute TXCRCINITVAL: bitvec[32];
+        attribute TXLNDR_TST3: bitvec[15];
+        attribute CHAN_BOND_LIMIT: bitvec[5];
+        attribute CLK_COR_MIN_LAT: bitvec[6];
+        attribute CLK_COR_MAX_LAT: bitvec[6];
+        attribute SH_INVALID_CNT_MAX: bitvec[8];
+        attribute SH_CNT_MAX: bitvec[8];
+        attribute MCOMMA_VALUE: bitvec[32];
+        attribute PCOMMA_VALUE: bitvec[32];
+
+        // TODO: RXOUTDIV2SEL split
+        // TODO: intify RXUSRDIVISOR, RX_LOS_INVALID_INCR, RX_LOS_THRESHOLD (div4!)
+        attribute ALIGN_COMMA_WORD: GT11_ALIGN_COMMA_WORD;
+        attribute CHAN_BOND_MODE: GT11_CHAN_BOND_MODE;
+        attribute CHAN_BOND_SEQ_LEN: GT11_CHAN_BOND_SEQ_LEN;
+        attribute CLK_COR_SEQ_LEN: GT11_CLK_COR_SEQ_LEN;
+        attribute RXFDCAL_CLOCK_DIVIDE: GT11_FDCAL_CLOCK_DIVIDE;
+        attribute RX_LOS_INVALID_INCR: GT11_RX_LOS_INVALID_INCR;
+        attribute RX_LOS_THRESHOLD: GT11_RX_LOS_THRESHOLD;
+        attribute RXOUTDIV2SEL: GT11_RXTXOUTDIV2SEL;
+        attribute RXPLLNDIVSEL: GT11_PLLNDIVSEL;
+        attribute RXPMACLKSEL: GT11_PMACLKSEL;
+        attribute RXUSRDIVISOR: GT11_RXUSRDIVISOR;
+        attribute TXFDCAL_CLOCK_DIVIDE: GT11_FDCAL_CLOCK_DIVIDE;
+        attribute TXOUTDIV2SEL: GT11_RXTXOUTDIV2SEL;
+    }
+
+    enum GT11_REFCLKSEL { SYNCLK1IN, SYNCLK2IN, RXBCLK, REFCLK, MGTCLK }
+    enum GT11_SYNCLK_DRIVE { NONE, BUF_UP, BUF_DOWN, DRIVE_UP, DRIVE_DOWN, DRIVE_BOTH }
+    bel_class GT11CLK {
+        input REFCLK;
+        output SYNCLK1, SYNCLK2;
+
+        pad CLKP, CLKN: input;
+        pad GNDA: power;
+        pad AVCCAUXMGT: power;
+        pad AVCCAUXTX: power;
+
+        // these attributes are specified on GT11, but actually apply to both GT11 in tile
+        attribute TXADCADJPD: bool;
+        attribute TXAPTST: bool;
+        attribute TXAPD: bool;
+        attribute TXBIASPD: bool;
+        attribute TXCMFPD: bool;
+        attribute TXCMFTST: bool;
+        attribute TXCPSEL: bool;
+        attribute TXDIVPD: bool;
+        attribute TXDIVTST: bool;
+        attribute TXDIVBUFPD: bool;
+        attribute TXDIVBUFTST: bool;
+        attribute TXDIGRX: bool;
+        attribute TXDACTST: bool;
+        attribute TXDACSEL: bool;
+        attribute TXFILTTST: bool;
+        attribute TXPFDTST: bool;
+        attribute TXPFDTX: bool;
+        attribute TXQPPD: bool;
+        attribute TXSLOSEL: bool;
+        attribute TXVCOBUFPD: bool;
+        attribute TXVCOBUFTST: bool;
+        attribute TXVCOPD: bool;
+        attribute TXVCOTST: bool;
+        attribute NATBENABLE: bool;
+        attribute ATBENABLE: bool;
+        attribute ATBBUMPEN: bool;
+        attribute BIASRESSEL: bool;
+        attribute PMATUNE: bool;
+        attribute PMABIASPD: bool;
+        attribute PMACOREPWRENABLE: bool;
+        attribute PMACTRL: bool;
+        attribute VREFSELECT: bool;
+        attribute BANDGAPSEL: bool;
+        attribute IREFBIASMODE: bitvec[2];
+        attribute PMAIREFTRIM: bitvec[4];
+        attribute PMAVBGCTRL: bitvec[5];
+        attribute PMAVREFTRIM: bitvec[4];
+        attribute RXAREGCTRL: bitvec[5];
+        attribute TXCLMODE: bitvec[2];
+        attribute TXLOOPFILT: bitvec[4];
+        attribute TXREGCTRL: bitvec[5];
+        attribute VREFBIASMODE: bitvec[2];
+        attribute ATBSEL: bitvec[18];
+        attribute PMACFG2SPARE: bitvec[46];
+        attribute TXCTRL1: bitvec[10];
+        attribute TXTUNE: bitvec[13];
+        attribute TXABPMACLKSEL: GT11_PMACLKSEL;
+        attribute TXPLLNDIVSEL: GT11_PLLNDIVSEL;
+
+        attribute REFCLKSEL: GT11_REFCLKSEL;
+        attribute SYNCLK1_DRIVE: GT11_SYNCLK_DRIVE;
+        attribute SYNCLK2_DRIVE: GT11_SYNCLK_DRIVE;
+        attribute SYNCLK_DRIVE_ENABLE: bool;
+        attribute SYNCLK_ENABLE: bool;
+    }
 
     if variant virtex4 {
+        region_slot GLOBAL;
+        region_slot GIOB;
+        region_slot HROW;
+        region_slot LEAF;
+        region_slot LEAF_DCM;
+
         wire PULLUP: pullup;
         wire TIE_0: tie 0;
         wire TIE_1: tie 1;
@@ -799,10 +1933,77 @@ target_defs! {
         wire OUT_HALF1_BEL[8]: bel;
         wire OUT_HALF1_TEST[8]: test;
 
-        wire TEST[4]: test;
+        wire IMUX_SPEC[4]: test;
+
+        wire HCLK_ROW[8]: regional HROW;
+        wire RCLK_ROW[2]: regional HROW;
+        wire MGT_ROW[2]: regional HROW;
+
+        wire OUT_BUFG[32]: bel;
+        wire GCLK[32]: regional GLOBAL;
+        wire GCLK_BUF[32]: mux;
+        wire GIOB[16]: regional GIOB;
+        wire IMUX_BUFG_S[32]: multi_branch CLK_S;
+        wire IMUX_BUFG_N[32]: multi_root;
+
+        wire OUT_CLKPAD: bel;
+
+        wire HCLK_IO[8]: regional LEAF;
+        wire RCLK_IO[2]: regional LEAF;
+        wire IMUX_IDELAYCTRL_REFCLK: mux;
+        wire IMUX_BUFR[2]: mux;
+        wire IOCLK[2]: regional LEAF;
+        wire IOCLK_S[2]: branch IO_N;
+        wire IOCLK_N[2]: branch IO_S;
+        wire IOCLK_S_IO[2]: regional LEAF;
+        wire IOCLK_N_IO[2]: regional LEAF;
+        wire VRCLK[2]: mux;
+        wire VRCLK_S[2]: branch IO_N;
+        wire VRCLK_N[2]: branch IO_S;
+
+        wire HCLK_DCM[8]: regional LEAF_DCM;
+        wire GIOB_DCM[16]: regional LEAF_DCM;
+        wire MGT_DCM[4]: regional LEAF_DCM;
+        wire OUT_DCM[12]: mux;
+
+        wire IMUX_CCM_REL[2]: mux;
+        wire OUT_CCM_CLKA1[2]: bel;
+        wire OUT_CCM_CLKA1D2[2]: bel;
+        wire OUT_CCM_CLKA1D4[2]: bel;
+        wire OUT_CCM_CLKA1D8[2]: bel;
+        wire OUT_CCM_CLKB1[2]: bel;
+        wire OUT_CCM_CLKC1[2]: bel;
+        wire OUT_CCM_CLKD1[2]: bel;
+        wire OUT_CCM_REFCLKOUT: bel;
+        wire OUT_CCM_OSCOUT1: bel;
+        wire OUT_CCM_OSCOUT2: bel;
+        wire OUT_DCM_LOCKED: bel;
+
+        wire DCM_DCM_O[24]: mux;
+        wire DCM_DCM_I[24]: branch CMT_PREV;
+
+        wire HCLK_MGT[8]: mux;
+        wire MGT_CLK_OUT[2]: mux;
+        wire MGT_CLK_OUT_SYNCLK: mux;
+        wire MGT_CLK_OUT_FWDCLK[2]: mux;
+        wire MGT_FWDCLK_S[4]: multi_branch MGT_S;
+        wire MGT_FWDCLK_N[4]: multi_root;
+
+        wire IMUX_MGT_GREFCLK: mux;
+        wire IMUX_MGT_REFCLK: mux;
+        wire IMUX_MGT_GREFCLK_PRE[2]: mux;
+        wire IMUX_MGT_REFCLK_PRE[2]: mux;
+        wire OUT_MGT_SYNCLK[2]: bel;
+        wire OUT_MGT_RXPCSHCLKOUT[2]: bel;
+        wire OUT_MGT_TXPCSHCLKOUT[2]: bel;
     }
 
     if variant virtex5 {
+        region_slot GLOBAL;
+        region_slot GIOB;
+        region_slot HROW;
+        region_slot LEAF;
+
         wire PULLUP: pullup;
         wire TIE_0: tie 0;
         wire TIE_1: tie 1;
@@ -1015,6 +2216,11 @@ target_defs! {
     }
 
     if variant virtex6 {
+        region_slot GLOBAL;
+        region_slot GIOB;
+        region_slot HROW;
+        region_slot LEAF;
+
         wire TIE_0: tie 0;
         wire TIE_1: tie 1;
 
@@ -1172,6 +2378,10 @@ target_defs! {
     }
 
     if variant virtex7 {
+        region_slot GLOBAL;
+        region_slot HROW;
+        region_slot LEAF;
+
         wire TIE_0: tie 0;
         wire TIE_1: tie 1;
 
@@ -1347,6 +2557,7 @@ target_defs! {
         wire TEST[4]: test;
     }
 
+    bitrect REG32 = horizontal (1, rev 32);
     if variant virtex4 {
         bitrect INT = vertical (19, rev 80);
         bitrect CLB = vertical (22, rev 80);
@@ -1434,6 +2645,8 @@ target_defs! {
     }
 
     tile_slot BEL {
+        bel_slot SPEC_INT: routing;
+
         if variant virtex4 {
             bel_slot SLICE[4]: SLICE_V4;
         } else {
@@ -1494,12 +2707,21 @@ target_defs! {
             }
         }
 
-        bel_slot ILOGIC[2]: legacy;
-        bel_slot OLOGIC[2]: legacy;
-        bel_slot IODELAY[2]: legacy;
-        bel_slot IDELAY[2]: legacy;
-        bel_slot ODELAY[2]: legacy;
-        bel_slot IOB[2]: legacy;
+        if variant virtex4 {
+            bel_slot ILOGIC[2]: ILOGIC_V4;
+            bel_slot OLOGIC[2]: OLOGIC_V4;
+            bel_slot IODELAY[2]: legacy;
+            bel_slot IDELAY[2]: legacy;
+            bel_slot ODELAY[2]: legacy;
+            bel_slot IOB[2]: IOB_V4;
+        } else {
+            bel_slot ILOGIC[2]: legacy;
+            bel_slot OLOGIC[2]: legacy;
+            bel_slot IODELAY[2]: legacy;
+            bel_slot IDELAY[2]: legacy;
+            bel_slot ODELAY[2]: legacy;
+            bel_slot IOB[2]: legacy;
+        }
         bel_slot IOI: legacy;
         if variant virtex4 {
             tile_class IO {
@@ -1530,7 +2752,11 @@ target_defs! {
             }
         }
 
-        bel_slot DCM[2]: legacy;
+        if variant virtex4 {
+            bel_slot DCM[2]: DCM_V4;
+        } else {
+            bel_slot DCM[2]: legacy;
+        }
         bel_slot PLL: legacy;
         bel_slot MMCM[2]: legacy;
         bel_slot CMT: legacy;
@@ -1572,9 +2798,9 @@ target_defs! {
             }
         }
 
-        bel_slot CCM: legacy;
-        bel_slot PMCD[2]: legacy;
-        bel_slot DPM: legacy;
+        bel_slot CCM: CCM;
+        bel_slot PMCD[2]: PMCD;
+        bel_slot DPM: DPM;
         if variant virtex4 {
             tile_class CCM {
                 cell CELL[4];
@@ -1690,8 +2916,8 @@ target_defs! {
             }
         }
 
-        bel_slot GT11[2]: legacy;
-        bel_slot GT11CLK: legacy;
+        bel_slot GT11[2]: GT11;
+        bel_slot GT11CLK: GT11CLK;
         if variant virtex4 {
             tile_class MGT {
                 cell CELL[32];
@@ -1791,18 +3017,20 @@ target_defs! {
         bel_slot OPAD_TXP[4]: legacy;
         bel_slot OPAD_TXN[4]: legacy;
 
-        bel_slot BUFGCTRL[32]: legacy;
+        if variant virtex4 {
+            bel_slot BUFGCTRL[32]: BUFGCTRL;
+        } else {
+            bel_slot BUFGCTRL[32]: legacy;
+        }
         bel_slot GIO_S: legacy;
         bel_slot GIO_N: legacy;
         bel_slot BUFG_MGTCLK_S: legacy;
         bel_slot BUFG_MGTCLK_N: legacy;
-        bel_slot BUFG_MGTCLK_S_HROW: legacy;
-        bel_slot BUFG_MGTCLK_N_HROW: legacy;
-        bel_slot BUFG_MGTCLK_S_HCLK: legacy;
-        bel_slot BUFG_MGTCLK_N_HCLK: legacy;
         if variant virtex4 {
             tile_class CLK_BUFG {
                 cell CELL[16];
+                cell CELL_E0;
+                cell CELL_E8;
                 bitrect MAIN[16]: CLK;
             }
         }
@@ -1891,21 +3119,44 @@ target_defs! {
     }
 
     tile_slot CFG {
-        bel_slot BSCAN[4]: legacy;
-        bel_slot ICAP[2]: legacy;
-        bel_slot STARTUP: legacy;
-        bel_slot CAPTURE: legacy;
-        bel_slot JTAGPPC: legacy;
-        bel_slot PMV_CFG[2]: legacy;
-        bel_slot DCIRESET: legacy;
-        bel_slot FRAME_ECC: legacy;
-        bel_slot USR_ACCESS: legacy;
-        bel_slot DNA_PORT: legacy;
-        bel_slot KEY_CLEAR: legacy;
-        bel_slot EFUSE_USR: legacy;
-        bel_slot CFG_IO_ACCESS: legacy;
-        bel_slot PMVIOB_CFG: legacy;
-        bel_slot SYSMON: legacy;
+        bel_slot SYSMON_INT: routing;
+        if variant virtex4 {
+            bel_slot BSCAN[4]: BSCAN;
+            bel_slot ICAP[2]: ICAP;
+            bel_slot STARTUP: STARTUP;
+            bel_slot CAPTURE: CAPTURE;
+            bel_slot JTAGPPC: JTAGPPC;
+            bel_slot PMV_CFG[2]: PMV;
+            bel_slot DCIRESET: DCIRESET;
+            bel_slot FRAME_ECC: FRAME_ECC;
+            bel_slot USR_ACCESS: USR_ACCESS;
+            bel_slot DNA_PORT: legacy;
+            bel_slot KEY_CLEAR: legacy;
+            bel_slot EFUSE_USR: legacy;
+            bel_slot CFG_IO_ACCESS: legacy;
+            bel_slot PMVIOB_CFG: legacy;
+        } else {
+            bel_slot BSCAN[4]: legacy;
+            bel_slot ICAP[2]: legacy;
+            bel_slot STARTUP: legacy;
+            bel_slot CAPTURE: legacy;
+            bel_slot JTAGPPC: legacy;
+            bel_slot PMV_CFG[2]: legacy;
+            bel_slot DCIRESET: legacy;
+            bel_slot FRAME_ECC: legacy;
+            bel_slot USR_ACCESS: legacy;
+            bel_slot DNA_PORT: legacy;
+            bel_slot KEY_CLEAR: legacy;
+            bel_slot EFUSE_USR: legacy;
+            bel_slot CFG_IO_ACCESS: legacy;
+            bel_slot PMVIOB_CFG: legacy;
+        }
+        bel_slot MISC_CFG: MISC_CFG;
+        if variant virtex4 {
+            bel_slot SYSMON: SYSMON_V4;
+        } else {
+            bel_slot SYSMON: legacy;
+        }
         bel_slot IPAD_VP: legacy;
         bel_slot IPAD_VN: legacy;
 
@@ -1944,21 +3195,25 @@ target_defs! {
     }
 
     tile_slot CLK {
+        bel_slot CLK_INT: routing;
         bel_slot CLK_IOB: legacy;
-        bel_slot CLK_DCM: legacy;
         bel_slot CLK_CMT: legacy;
         bel_slot CLK_MGT: legacy;
         if variant virtex4 {
             tile_class CLK_DCM_S {
+                cell CELL[8];
                 bitrect MAIN[8]: CLK;
             }
             tile_class CLK_DCM_N {
+                cell CELL[8];
                 bitrect MAIN[8]: CLK;
             }
             tile_class CLK_IOB_S {
+                cell CELL[16];
                 bitrect MAIN[16]: CLK;
             }
             tile_class CLK_IOB_N {
+                cell CELL[16];
                 bitrect MAIN[16]: CLK;
             }
         }
@@ -1986,6 +3241,9 @@ target_defs! {
         bel_slot HCLK_MGT_BUF: legacy;
         if variant [virtex4, virtex5, virtex6] {
             tile_class HCLK_MGT_BUF {
+                if variant virtex4 {
+                    cell CELL;
+                }
                 bitrect MAIN: HCLK;
             }
         }
@@ -2000,14 +3258,16 @@ target_defs! {
     }
 
     tile_slot HROW {
+        bel_slot HROW_INT: routing;
         bel_slot CLK_HROW: legacy;
         if variant virtex4 {
             tile_class CLK_HROW {
+                cell W, E;
                 bitrect MAIN[2]: CLK;
                 bitrect HCLK: HCLK_CLK;
             }
         }
-            if variant virtex5 {
+        if variant virtex5 {
             tile_class CLK_HROW {
                 bitrect MAIN[2]: CLK;
                 bitrect HCLK: HCLK_CLK;
@@ -2022,20 +3282,30 @@ target_defs! {
 
         if variant virtex4 {
             tile_class CLK_TERM {
+                cell CELL;
                 bitrect MAIN: CLK;
             }
 
             tile_class HCLK_TERM {
+                cell CELL;
                 bitrect MAIN: HCLK;
             }
         }
     }
 
     tile_slot HCLK {
-        bel_slot HCLK: legacy;
+        if variant virtex4 {
+            bel_slot HCLK: routing;
+        } else {
+            bel_slot HCLK: legacy;
+        }
         bel_slot HCLK_W: legacy;
         bel_slot HCLK_E: legacy;
-        bel_slot GLOBALSIG: legacy;
+        if variant virtex4 {
+            bel_slot GLOBALSIG: GLOBALSIG;
+        } else {
+            bel_slot GLOBALSIG: legacy;
+        }
 
         if variant [virtex4, virtex5] {
             tile_class HCLK {
@@ -2075,29 +3345,47 @@ target_defs! {
             }
         }
 
+        bel_slot HCLK_IO_INT: routing;
         bel_slot HCLK_IO: legacy;
         bel_slot IOCLK: legacy;
         bel_slot RCLK: legacy;
-        bel_slot HCLK_DCM_HROW: legacy;
-        bel_slot HCLK_DCM: legacy;
-        bel_slot HCLK_DCM_S: legacy;
-        bel_slot HCLK_DCM_N: legacy;
-        bel_slot BUFR[4]: legacy;
-        bel_slot BUFIO[4]: legacy;
-        bel_slot BUFO[2]: legacy;
-        bel_slot IDELAYCTRL: legacy;
-        bel_slot DCI: legacy;
+        if variant virtex4 {
+            bel_slot BUFR[4]: BUFR;
+            bel_slot BUFIO[4]: BUFIO;
+            bel_slot BUFO[2]: legacy;
+            bel_slot IDELAYCTRL: IDELAYCTRL;
+            bel_slot DCI: DCI_V4;
+            bel_slot LVDS: LVDS_V4;
+        } else {
+            bel_slot BUFR[4]: legacy;
+            bel_slot BUFIO[4]: legacy;
+            bel_slot BUFO[2]: legacy;
+            bel_slot IDELAYCTRL: legacy;
+            bel_slot DCI: legacy;
+            bel_slot LVDS: legacy;
+        }
 
         if variant virtex4 {
-            tile_class HCLK_IO_DCI, HCLK_IO_LVDS {
-                cell CELL[3];
+            tile_class HCLK_IO_DCI, HCLK_IO_LVDS, HCLK_IO_CENTER, HCLK_IO_CFG_N, HCLK_IO_DCM_S, HCLK_IO_DCM_N {
+                cell CELL[4];
+                if tile_class [HCLK_IO_DCM_S, HCLK_IO_DCM_N] {
+                    cell CELL_E;
+                }
                 bitrect MAIN: HCLK_IO;
-            }
-            tile_class HCLK_IO_CENTER, HCLK_IO_CFG_N, HCLK_IO_DCM_S, HCLK_IO_DCM_N {
-                cell CELL[2];
-                bitrect MAIN: HCLK_IO;
+
+                bel BUFIO[0] {
+                    input I = CELL[2].OUT_CLKPAD;
+                    output O = CELL[2].IOCLK[0];
+                }
+
+                bel BUFIO[1] {
+                    input I = CELL[1].OUT_CLKPAD;
+                    output O = CELL[2].IOCLK[1];
+                }
             }
             tile_class HCLK_DCM {
+                cell CELL[4];
+                cell CELL_E;
                 bitrect MAIN: HCLK_IO;
             }
         }
@@ -2133,7 +3421,16 @@ target_defs! {
 
         if variant virtex4 {
             tile_class HCLK_MGT {
+                cell CELL;
                 bitrect MAIN: HCLK;
+                switchbox HCLK_IO_INT {
+                    for i in 0..8 {
+                        progbuf HCLK_MGT[i] = HCLK_ROW[i];
+                    }
+                    for i in 0..2 {
+                        progbuf MGT_ROW[i] = MGT_CLK_OUT[i];
+                    }
+                }
             }
         }
     }
@@ -2144,6 +3441,17 @@ target_defs! {
         if variant virtex5 {
             tile_class HCLK_CMT {
                 bitrect MAIN: HCLK_IO;
+            }
+        }
+    }
+
+    tile_slot GLOBAL {
+        bel_slot GLOBAL: GLOBAL;
+        if variant virtex4 {
+            tile_class GLOBAL {
+                bitrect COR: REG32;
+                bitrect CTL: REG32;
+                bel GLOBAL;
             }
         }
     }
@@ -2742,6 +4050,76 @@ target_defs! {
                 }
             }
             connector_class BRKH_N;
+        }
+    }
+
+    connector_slot IO_S {
+        opposite IO_N;
+        if variant virtex4 {
+            connector_class IO_S {
+                pass IOCLK_N = IOCLK;
+                pass VRCLK_N = VRCLK;
+            }
+        }
+    }
+    connector_slot IO_N {
+        opposite IO_S;
+        if variant virtex4 {
+            connector_class IO_N {
+                pass IOCLK_S = IOCLK;
+                pass VRCLK_S = VRCLK;
+            }
+        }
+    }
+
+    connector_slot CLK_S {
+        opposite CLK_N;
+        if variant virtex4 {
+            connector_class CLK_S {
+                pass IMUX_BUFG_S = IMUX_BUFG_N;
+            }
+        }
+    }
+    connector_slot CLK_N {
+        opposite CLK_S;
+        if variant virtex4 {
+            connector_class CLK_N {
+            }
+        }
+    }
+
+    connector_slot MGT_S {
+        opposite MGT_N;
+        if variant virtex4 {
+            connector_class MGT_S {
+                pass MGT_FWDCLK_S = MGT_FWDCLK_N;
+            }
+        }
+    }
+    connector_slot MGT_N {
+        opposite MGT_S;
+        if variant virtex4 {
+            connector_class MGT_N {
+            }
+        }
+    }
+
+    connector_slot CMT_PREV {
+        opposite CMT_NEXT;
+        if variant virtex4 {
+            connector_class CMT_PREV {
+                pass DCM_DCM_I = DCM_DCM_O;
+            }
+            connector_class CMT_PREV_CCM {
+                pass DCM_DCM_I = DCM_DCM_I;
+            }
+        }
+    }
+
+    connector_slot CMT_NEXT {
+        opposite CMT_PREV;
+        if variant virtex4 {
+            connector_class CMT_NEXT;
         }
     }
 }

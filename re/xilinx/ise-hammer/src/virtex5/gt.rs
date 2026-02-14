@@ -2,7 +2,7 @@ use core::ops::Range;
 
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{bslots, virtex5::tcls};
 
 use crate::{
     backend::IseBackend,
@@ -499,11 +499,8 @@ const GTX_HEX_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    for (tile, bel) in [
-        ("GTP", defs::bslots::GTP_DUAL),
-        ("GTX", defs::bslots::GTX_DUAL),
-    ] {
-        let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, tile) else {
+    for (tcid, bel) in [(tcls::GTP, bslots::GTP_DUAL), (tcls::GTX, bslots::GTX_DUAL)] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         let mut bctx = ctx.bel(bel);
@@ -519,18 +516,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for &pin in GT_INVPINS {
             bctx.mode(mode).mutex("USRCLK", "INV").test_inv_legacy(pin);
         }
-        if tile == "GTP" {
+        if tcid == tcls::GTP {
             for &attr in GTP_BOOL_ATTRS {
                 if attr == "CLKINDC_B" {
                     bctx.mode(mode)
-                        .pip(
-                            (defs::bslots::BUFDS[0], "IP"),
-                            (defs::bslots::IPAD_CLKP[0], "O"),
-                        )
-                        .pip(
-                            (defs::bslots::BUFDS[0], "IN"),
-                            (defs::bslots::IPAD_CLKN[0], "O"),
-                        )
+                        .pip((bslots::BUFDS[0], "IP"), (bslots::IPAD_CLKP[0], "O"))
+                        .pip((bslots::BUFDS[0], "IN"), (bslots::IPAD_CLKN[0], "O"))
                         .test_enum_legacy(attr, &["FALSE", "TRUE"]);
                 } else {
                     bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
@@ -547,7 +538,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
             }
             for &(attr, width) in GTP_BIN_ATTRS {
-                bctx.mode(mode).test_multi_attr_bin(attr, width);
+                bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
             }
             for &(attr, width) in GTP_HEX_ATTRS {
                 bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
@@ -567,7 +558,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
             }
             for &(attr, width) in GTX_BIN_ATTRS {
-                bctx.mode(mode).test_multi_attr_bin(attr, width);
+                bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
             }
             for &(attr, width) in GTX_HEX_ATTRS {
                 bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
@@ -582,7 +573,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .mutex("MUX.CLKIN", "CLKPN")
             .test_manual_legacy("MUX.CLKIN", "CLKPN")
-            .pip("CLKIN", (defs::bslots::BUFDS[0], "O"))
+            .pip("CLKIN", (bslots::BUFDS[0], "O"))
             .commit();
         bctx.build()
             .mutex("MUX.CLKIN", "CLKOUT_NORTH_S")
@@ -598,7 +589,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .mutex("MUX.CLKOUT_SOUTH", "CLKPN")
             .test_manual_legacy("MUX.CLKOUT_SOUTH", "CLKPN")
-            .pip("CLKOUT_SOUTH", (defs::bslots::BUFDS[0], "O"))
+            .pip("CLKOUT_SOUTH", (bslots::BUFDS[0], "O"))
             .commit();
         bctx.build()
             .mutex("MUX.CLKOUT_SOUTH", "CLKOUT_SOUTH_N")
@@ -609,7 +600,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .mutex("MUX.CLKOUT_NORTH", "CLKPN")
             .test_manual_legacy("MUX.CLKOUT_NORTH", "CLKPN")
-            .pip("CLKOUT_NORTH", (defs::bslots::BUFDS[0], "O"))
+            .pip("CLKOUT_NORTH", (bslots::BUFDS[0], "O"))
             .commit();
         bctx.build()
             .mutex("MUX.CLKOUT_NORTH", "CLKOUT_NORTH_S")
@@ -617,7 +608,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pip("CLKOUT_NORTH", "CLKOUT_NORTH_S")
             .commit();
 
-        let mut bctx = ctx.bel(defs::bslots::BUFDS[0]);
+        let mut bctx = ctx.bel(bslots::BUFDS[0]);
         bctx.build()
             .null_bits()
             .test_manual_legacy("BUFDS", "1")
@@ -625,7 +616,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
 
         for i in 0..2 {
-            let mut bctx = ctx.bel(defs::bslots::CRC64[i]);
+            let mut bctx = ctx.bel(bslots::CRC64[i]);
             bctx.build()
                 .tile_mutex("CRC_MODE", "64")
                 .test_manual_legacy("PRESENT", "1")
@@ -640,7 +631,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
 
         for i in 0..4 {
-            let mut bctx = ctx.bel(defs::bslots::CRC32[i]);
+            let mut bctx = ctx.bel(bslots::CRC32[i]);
             bctx.build()
                 .tile_mutex("CRC_MODE", "32")
                 .test_manual_legacy("PRESENT", "1")

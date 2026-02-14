@@ -1,16 +1,14 @@
 use prjcombine_re_collector::legacy::{xlat_bit_bi_legacy, xlat_bitvec_legacy};
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex::defs;
+use prjcombine_virtex::defs::{self, tcls};
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    for tile_name in ["BRAM_W", "BRAM_E", "BRAM_M"] {
-        let tcls = backend.edev.db.get_tile_class(tile_name);
-        if backend.edev.tile_index[tcls].is_empty() {
+    for tcid in [tcls::BRAM_W, tcls::BRAM_E, tcls::BRAM_M] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
-        }
-        let mut ctx = FuzzCtx::new_legacy(session, backend, tile_name);
+        };
         let mut bctx = ctx.bel(defs::bslots::BRAM);
         let mode = "BLOCKRAM";
 
@@ -51,11 +49,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tile in ["BRAM_W", "BRAM_E", "BRAM_M"] {
-        let tcls = ctx.edev.db.get_tile_class(tile);
-        if ctx.edev.tile_index[tcls].is_empty() {
+    for tcid in [tcls::BRAM_W, tcls::BRAM_E, tcls::BRAM_M] {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
+        let tile = ctx.edev.db.tile_classes.key(tcid);
         let bel = "BRAM";
         let ti = ctx.extract_bit_bi_legacy(tile, bel, "CLKAMUX", "1", "0");
         ctx.insert_legacy(tile, "INT", "INV.0.IMUX.BRAM.CLKA", ti);

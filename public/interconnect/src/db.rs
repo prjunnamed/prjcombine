@@ -1012,6 +1012,7 @@ impl std::ops::Index<ConnectorClassId> for IntDbIndex {
 pub struct TileClassIndex {
     pub pips_fwd: BTreeMap<TileWireCoord, BTreeSet<PolTileWireCoord>>,
     pub pips_bwd: BTreeMap<TileWireCoord, BTreeSet<PolTileWireCoord>>,
+    pub muxes: BTreeMap<TileWireCoord, Mux>,
 }
 
 #[derive(Clone, Debug)]
@@ -1037,11 +1038,13 @@ impl TileClassIndex {
     pub fn new(tcls: &TileClass) -> Self {
         let mut pips_fwd: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
         let mut pips_bwd: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
+        let mut muxes = BTreeMap::new();
         for bel in tcls.bels.values() {
             if let BelInfo::SwitchBox(sb) = bel {
                 for item in &sb.items {
                     match *item {
                         SwitchBoxItem::Mux(ref mux) => {
+                            muxes.insert(mux.dst, mux.clone());
                             for &src in mux.src.keys() {
                                 pips_fwd
                                     .entry(src.tw)
@@ -1118,7 +1121,11 @@ impl TileClassIndex {
             }
         }
 
-        TileClassIndex { pips_fwd, pips_bwd }
+        TileClassIndex {
+            pips_fwd,
+            pips_bwd,
+            muxes,
+        }
     }
 }
 

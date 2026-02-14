@@ -386,7 +386,7 @@ impl<'a> ExpandedGridNaming<'a> {
     }
 
     pub fn get_bel_naming(&self, bel: BelCoord) -> &BelNaming {
-        let tcrd = self.egrid.get_tile_by_bel(bel);
+        let tcrd = self.egrid.bel_tile(bel);
         let ntile = &self.tiles[&tcrd];
         let naming = &self.db.tile_class_namings[ntile.naming];
         &naming.bels[bel.slot]

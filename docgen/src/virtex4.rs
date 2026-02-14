@@ -46,72 +46,7 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
         let mut misc_used = HashSet::new();
         let mut devdata_used = HashSet::new();
         match kind {
-            "virtex4" => {
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex4",
-                    "iostd-misc",
-                    &["IOSTD:OUTPUT_MISC"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex4",
-                    "iostd-drive",
-                    &["IOSTD:PDRIVE", "IOSTD:NDRIVE"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex4",
-                    "iostd-slew",
-                    &["IOSTD:PSLEW", "IOSTD:NSLEW"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex4",
-                    "iostd-lvds",
-                    &["IOSTD:LVDS_T", "IOSTD:LVDS_C"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex4",
-                    "iostd-lvdsbias",
-                    &["IOSTD:LVDSBIAS"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex4",
-                    "iostd-dci-lvdiv2",
-                    &["IOSTD:DCI:LVDIV2"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex4",
-                    "iostd-dci-mask-term-vcc",
-                    &["IOSTD:DCI:PMASK_TERM_VCC"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex4",
-                    "iostd-dci-mask-term-split",
-                    &["IOSTD:DCI:PMASK_TERM_SPLIT", "IOSTD:DCI:NMASK_TERM_SPLIT"],
-                );
-            }
+            "virtex4" => {}
             "virtex5" => {
                 gen_misc_table(
                     ctx,

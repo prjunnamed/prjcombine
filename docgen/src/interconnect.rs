@@ -1069,7 +1069,6 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
         writeln!(buf, r#"</thead>"#).unwrap();
         writeln!(buf, r#"<tbody>"#).unwrap();
         for (bidx, &bit) in support.bits.iter().enumerate() {
-            write!(buf, r#"<tr>"#).unwrap();
             let bi = BitInfo::WireSupport(bslot, support.wires.clone(), bidx, bit.inv);
             writeln!(
                 buf,

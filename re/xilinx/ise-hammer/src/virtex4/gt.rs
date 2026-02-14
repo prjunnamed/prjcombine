@@ -1,336 +1,67 @@
+use std::collections::BTreeSet;
+
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{DieId, TileCoord};
-use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, FeatureId, OcdMode},
-    legacy::{
-        xlat_bit_legacy, xlat_bitvec_legacy, xlat_enum_default_legacy, xlat_enum_legacy,
-        xlat_enum_legacy_ocd,
-    },
+use prjcombine_interconnect::{
+    db::{BelAttributeType, BelInputId, TileWireCoord, WireSlotIdExt},
+    grid::{DieId, TileCoord},
+};
+use prjcombine_re_collector::diff::{
+    Diff, DiffKey, OcdMode, SpecialId, xlat_bit, xlat_bit_wide, xlat_enum_attr, xlat_enum_raw,
 };
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs::{self, bslots, virtex4::tcls};
+use prjcombine_types::{bits, bsdata::TileBit};
+use prjcombine_virtex4::defs::{
+    self, bcls, bslots, enums,
+    virtex4::{tcls, wires},
+};
 
 use crate::{
-    backend::IseBackend,
+    backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
+        int::{BaseIntPip, FuzzIntPip},
         props::{
             DynProp,
-            relation::{DeltaLegacy, TileRelation},
+            mutex::WireMutexExclusive,
+            relation::{Delta, TileRelation},
         },
     },
+    virtex4::specials,
 };
 
-const GT11_INVPINS: &[&str] = &[
-    "DCLK",
-    "DEN",
-    "DWE",
-    "RXCRCCLK",
-    "RXCRCDATAVALID",
-    "RXCRCINTCLK",
-    "RXCRCRESET",
-    "RXPMARESET",
-    "RXRESET",
-    "RXUSRCLK2",
-    "RXUSRCLK",
-    "SCANEN0",
-    "SCANEN1",
-    "SCANEN2",
-    "SCANMODE0",
-    "SCANMODE1",
-    "SCANMODE2",
-    "TXCRCCLK",
-    "TXCRCDATAVALID",
-    "TXCRCINTCLK",
-    "TXCRCRESET",
-    "TXPMARESET",
-    "TXRESET",
-    "TXUSRCLK2",
-    "TXUSRCLK",
-];
-
-const GT11_BOOL_ATTRS: &[&str] = &[
-    "AUTO_CAL",
-    "BYPASS_CAL",
-    "BYPASS_FDET",
-    "CCCB_ARBITRATOR_DISABLE",
-    "CHAN_BOND_ONE_SHOT",
-    "CHAN_BOND_SEQ_2_USE",
-    "CLK_COR_8B10B_DE",
-    "CLK_CORRECT_USE",
-    "CLK_COR_SEQ_2_USE",
-    "CLK_COR_SEQ_DROP",
-    "COMMA32",
-    "DEC_MCOMMA_DETECT",
-    "DEC_PCOMMA_DETECT",
-    "DEC_VALID_COMMA_ONLY",
-    "DIGRX_SYNC_MODE",
-    "ENABLE_DCDR",
-    "MCOMMA_DETECT",
-    "OPPOSITE_SELECT",
-    "PCOMMA_DETECT",
-    "PCS_BIT_SLIP",
-    "PMA_BIT_SLIP",
-    "PMACLKENABLE",
-    "POWER_ENABLE",
-    "REPEATER",
-    "RESERVED_CB1",
-    "RESERVED_CCA",
-    "RESERVED_CCB",
-    "RESERVED_M2",
-    "RXACTST",
-    "RXADCADJPD",
-    "RXAFEPD",
-    "RXAFETST",
-    "RXAPD",
-    "RXAPTST",
-    "RXAUTO_CAL",
-    "RXBIASPD",
-    "RX_BUFFER_USE",
-    "RXBY_32",
-    "RXBYPASS_CAL",
-    "RXBYPASS_FDET",
-    "RXCLK0_FORCE_PMACLK",
-    "RXCLK0_INVERT_PMALEAF",
-    "RXCMFPD",
-    "RXCMFTST",
-    "RXCPSEL",
-    "RXCPTST",
-    "RXCRCCLOCKDOUBLE",
-    "RXCRCENABLE",
-    "RXCRCINVERTGEN",
-    "RXCRCSAMECLOCK",
-    "RXDACSEL",
-    "RXDACTST",
-    "RXDCCOUPLE",
-    "RXDIGRESET",
-    "RXDIGRX",
-    "RXDIVBUFPD",
-    "RXDIVBUFTST",
-    "RXDIVPD",
-    "RXDIVTST",
-    "RXFILTTST",
-    "RXLB",
-    "RXLKAPD",
-    "RXPDDTST",
-    "RXPD",
-    "RXPFDTST",
-    "RXPFDTX",
-    "RXQPPD",
-    "RXRCPPD",
-    "RXRECCLK1_USE_SYNC",
-    "RXRPDPD",
-    "RXRSDPD",
-    "RXSLOSEL",
-    "RXTADJ",
-    "RXVCOBUFPD",
-    "RXVCOBUFTST",
-    "RXVCO_CTRL_ENABLE",
-    "RXVCOPD",
-    "RXVCOTST",
-    "SAMPLE_8X",
-    "TEST_MODE_1",
-    "TEST_MODE_2",
-    "TEST_MODE_3",
-    "TXAREFBIASSEL",
-    "TX_BUFFER_USE",
-    "TXCFGENABLE",
-    "TXCLK0_FORCE_PMACLK",
-    "TXCLK0_INVERT_PMALEAF",
-    "TXCRCCLOCKDOUBLE",
-    "TXCRCENABLE",
-    "TXCRCINVERTGEN",
-    "TXCRCSAMECLOCK",
-    "TXDIGPD",
-    "TXHIGHSIGNALEN",
-    "TXLVLSHFTPD",
-    "TXOUTCLK1_USE_SYNC",
-    "TXPD",
-    "TXPHASESEL",
-    "TXPOST_TAP_PD",
-    "TXPRE_TAP_PD",
-    "TXSLEWRATE",
-    "VCO_CTRL_ENABLE",
-];
-
-const GT11_ENUM_ATTRS: &[(&str, &[&str])] = &[
-    ("ALIGN_COMMA_WORD", &["1", "2", "4"]),
-    (
-        "CHAN_BOND_MODE",
-        &["NONE", "MASTER", "SLAVE_1_HOP", "SLAVE_2_HOPS"],
-    ),
-    ("CHAN_BOND_SEQ_LEN", &["1", "2", "3", "4", "8"]),
-    ("CLK_COR_SEQ_LEN", &["1", "2", "3", "4", "8"]),
-    ("GT11_MODE", &["SINGLE", "DONT_CARE", "B", "A"]),
-    ("RXFDCAL_CLOCK_DIVIDE", &["TWO", "NONE", "FOUR"]),
-    (
-        "RX_LOS_INVALID_INCR",
-        &["1", "2", "4", "8", "16", "32", "64", "128"],
-    ),
-    (
-        "RX_LOS_THRESHOLD",
-        &["4", "8", "16", "32", "64", "128", "256", "512"],
-    ),
-    ("RXOUTDIV2SEL", &["1", "2", "4", "8", "16", "32"]),
-    ("RXPLLNDIVSEL", &["8", "10", "16", "20", "32", "40"]),
-    ("RXPMACLKSEL", &["REFCLK1", "REFCLK2", "GREFCLK"]),
-    ("RXUSRDIVISOR", &["1", "2", "4", "8", "16"]),
-    ("TXFDCAL_CLOCK_DIVIDE", &["TWO", "NONE", "FOUR"]),
-    ("TXOUTDIV2SEL", &["1", "2", "4", "8", "16", "32"]),
-];
-
-const GT11_DEC_ATTRS: &[(&str, usize)] = &[
-    ("CHAN_BOND_LIMIT", 5),
-    ("CLK_COR_MIN_LAT", 6),
-    ("CLK_COR_MAX_LAT", 6),
-    ("SH_INVALID_CNT_MAX", 8),
-    ("SH_CNT_MAX", 8),
-];
-
-const GT11_BIN_ATTRS: &[(&str, usize)] = &[
-    ("CLK_COR_SEQ_1_1", 11),
-    ("CLK_COR_SEQ_1_2", 11),
-    ("CLK_COR_SEQ_1_3", 11),
-    ("CLK_COR_SEQ_1_4", 11),
-    ("CLK_COR_SEQ_2_1", 11),
-    ("CLK_COR_SEQ_2_2", 11),
-    ("CLK_COR_SEQ_2_3", 11),
-    ("CLK_COR_SEQ_2_4", 11),
-    ("CHAN_BOND_SEQ_1_1", 11),
-    ("CHAN_BOND_SEQ_1_2", 11),
-    ("CHAN_BOND_SEQ_1_3", 11),
-    ("CHAN_BOND_SEQ_1_4", 11),
-    ("CHAN_BOND_SEQ_2_1", 11),
-    ("CHAN_BOND_SEQ_2_2", 11),
-    ("CHAN_BOND_SEQ_2_3", 11),
-    ("CHAN_BOND_SEQ_2_4", 11),
-    ("CLK_COR_SEQ_1_MASK", 4),
-    ("CLK_COR_SEQ_2_MASK", 4),
-    ("CHAN_BOND_SEQ_1_MASK", 4),
-    ("CHAN_BOND_SEQ_2_MASK", 4),
-    ("CHAN_BOND_TUNE", 8),
-    ("CYCLE_LIMIT_SEL", 2),
-    ("RXCYCLE_LIMIT_SEL", 2),
-    ("DCDR_FILTER", 3),
-    ("DIGRX_FWDCLK", 2),
-    ("FDET_HYS_CAL", 3),
-    ("FDET_HYS_SEL", 3),
-    ("FDET_LCK_CAL", 3),
-    ("FDET_LCK_SEL", 3),
-    ("LOOPCAL_WAIT", 2),
-    ("RXAFEEQ", 9),
-    ("RXASYNCDIVIDE", 2),
-    ("RXCDRLOS", 6),
-    ("RXCLKMODE", 6),
-    ("RXCLMODE", 2),
-    ("RXCMADJ", 2),
-    ("RXDATA_SEL", 2),
-    ("RXFDET_HYS_CAL", 3),
-    ("RXFDET_HYS_SEL", 3),
-    ("RXFDET_LCK_CAL", 3),
-    ("RXFDET_LCK_SEL", 3),
-    ("RXFECONTROL1", 2),
-    ("RXFECONTROL2", 3),
-    ("RXFETUNE", 2),
-    ("RXLKADJ", 5),
-    ("RXLOOPCAL_WAIT", 2),
-    ("RXLOOPFILT", 4),
-    ("RXMODE", 6),
-    ("RXRCPADJ", 3),
-    ("RXRIBADJ", 2),
-    ("RXSLOWDOWN_CAL", 2),
-    ("RXVCODAC_INIT", 10),
-    ("RX_CLOCK_DIVIDER", 2),
-    ("SLOWDOWN_CAL", 2),
-    ("TXASYNCDIVIDE", 2),
-    ("TXCLKMODE", 4),
-    ("TXDATA_SEL", 2),
-    ("TXDAT_PRDRV_DAC", 3),
-    ("TXDAT_TAP_DAC", 5),
-    ("TXLNDR_TST1", 4),
-    ("TXLNDR_TST2", 2),
-    ("TXPOST_PRDRV_DAC", 3),
-    ("TXPOST_TAP_DAC", 5),
-    ("TXPRE_PRDRV_DAC", 3),
-    ("TXPRE_TAP_DAC", 5),
-    ("TXTERMTRIM", 4),
-    ("TX_CLOCK_DIVIDER", 2),
-    ("VCODAC_INIT", 10),
-];
-
-const GT11_HEX_ATTRS: &[(&str, usize)] = &[
-    ("COMMA_10B_MASK", 10),
-    ("RESERVED_CM", 24),
-    ("RESERVED_CM2", 22),
-    ("RXCRCINITVAL", 32),
-    ("RXCTRL1", 10),
-    ("RXEQ", 64),
-    ("RXTUNE", 13),
-    ("TXCRCINITVAL", 32),
-    ("TXLNDR_TST3", 15),
-];
-
-const GT11_SHARED_BOOL_ATTRS: &[&str] = &[
-    "TXADCADJPD",
-    "TXAPTST",
-    "TXAPD",
-    "TXBIASPD",
-    "TXCMFPD",
-    "TXCMFTST",
-    "TXCPSEL",
-    "TXDIVPD",
-    "TXDIVTST",
-    "TXDIVBUFPD",
-    "TXDIVBUFTST",
-    "TXDIGRX",
-    "TXDACTST",
-    "TXDACSEL",
-    "TXFILTTST",
-    "TXPFDTST",
-    "TXPFDTX",
-    "TXQPPD",
-    "TXSLOSEL",
-    "TXVCOBUFPD",
-    "TXVCOBUFTST",
-    "TXVCOPD",
-    "TXVCOTST",
-    "NATBENABLE",
-    "ATBENABLE",
-    "ATBBUMPEN",
-    "BIASRESSEL",
-    "PMATUNE",
-    "PMABIASPD",
-    "PMACOREPWRENABLE",
-    "PMACTRL",
-    "VREFSELECT",
-    "BANDGAPSEL",
-];
-
-const GT11_SHARED_BIN_ATTRS: &[(&str, usize)] = &[
-    ("IREFBIASMODE", 2),
-    ("PMAIREFTRIM", 4),
-    ("PMAVBGCTRL", 5),
-    ("PMAVREFTRIM", 4),
-    ("RXAREGCTRL", 5),
-    ("TXCLMODE", 2),
-    ("TXLOOPFILT", 4),
-    ("TXREGCTRL", 5),
-    ("VREFBIASMODE", 2),
-];
-
-const GT11_SHARED_HEX_ATTRS: &[(&str, usize)] = &[
-    ("ATBSEL", 18),
-    ("PMACFG2SPARE", 46),
-    ("TXCTRL1", 10),
-    ("TXTUNE", 13),
+const GT11_INVPINS: &[BelInputId] = &[
+    bcls::GT11::DCLK,
+    bcls::GT11::DEN,
+    bcls::GT11::DWE,
+    bcls::GT11::RXCRCCLK,
+    bcls::GT11::RXCRCDATAVALID,
+    bcls::GT11::RXCRCINTCLK,
+    bcls::GT11::RXCRCRESET,
+    bcls::GT11::RXPMARESET,
+    bcls::GT11::RXRESET,
+    bcls::GT11::RXUSRCLK2,
+    bcls::GT11::RXUSRCLK,
+    bcls::GT11::SCANEN.index_const(0),
+    bcls::GT11::SCANEN.index_const(1),
+    bcls::GT11::SCANEN.index_const(2),
+    bcls::GT11::SCANMODE.index_const(0),
+    bcls::GT11::SCANMODE.index_const(1),
+    bcls::GT11::SCANMODE.index_const(2),
+    bcls::GT11::TXCRCCLK,
+    bcls::GT11::TXCRCDATAVALID,
+    bcls::GT11::TXCRCINTCLK,
+    bcls::GT11::TXCRCRESET,
+    bcls::GT11::TXPMARESET,
+    bcls::GT11::TXRESET,
+    bcls::GT11::TXUSRCLK2,
+    bcls::GT11::TXUSRCLK,
 ];
 
 #[derive(Clone, Debug)]
-struct MgtRepeaterMgt(i32, String, String);
+struct MgtRepeaterMgt(i32, TileWireCoord, SpecialId);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeaterMgt {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -353,12 +84,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeaterMgt {
                 let rcol = if is_w { col } else { col - 1 };
                 let ntcrd = tcrd.with_cr(rcol, row).tile(defs::tslots::CLK);
                 fuzzer.info.features.push(FuzzerFeature {
-                    key: DiffKey::Legacy(FeatureId {
-                        tile: "HCLK_MGT_BUF".into(),
-                        bel: "HCLK_MGT_BUF".into(),
-                        attr: self.1.clone(),
-                        val: self.2.clone(),
-                    }),
+                    key: DiffKey::RoutingSpecial(tcls::HCLK_MGT_BUF, self.1, self.2),
                     rects: edev.tile_bits(ntcrd),
                 });
             }
@@ -386,242 +112,339 @@ impl TileRelation for ClkHrow {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let Some(mut ctx) = FuzzCtx::try_new_legacy(session, backend, "MGT") else {
+    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::MGT) else {
         return;
     };
     for i in 0..2 {
         let bel = format!("GT11[{i}]");
         let mut bctx = ctx.bel(defs::bslots::GT11[i]);
         let mode = "GT11";
-        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
+        bctx.build()
+            .test_bel_special(specials::PRESENT)
+            .mode(mode)
+            .commit();
         for &pin in GT11_INVPINS {
-            bctx.mode(mode).test_inv_legacy(pin);
-        }
-        for &attr in GT11_BOOL_ATTRS {
-            bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
-        }
-        for &(attr, vals) in GT11_ENUM_ATTRS {
-            bctx.mode(mode).test_enum_legacy(attr, vals);
-        }
-        for &(attr, width) in GT11_DEC_ATTRS {
-            bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
-        }
-        for &(attr, width) in GT11_BIN_ATTRS {
-            bctx.mode(mode).test_multi_attr_bin(attr, width);
-        }
-        for &(attr, width) in GT11_HEX_ATTRS {
-            bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
-        }
-        for &attr in GT11_SHARED_BOOL_ATTRS {
-            bctx.mode(mode)
-                .tile_mutex(attr, &bel)
-                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
-        }
-        bctx.mode(mode)
-            .tile_mutex("TXABPMACLKSEL", &bel)
-            .test_enum_legacy("TXABPMACLKSEL", &["REFCLK1", "REFCLK2", "GREFCLK"]);
-        bctx.mode(mode)
-            .tile_mutex("TXPLLNDIVSEL", &bel)
-            .test_enum_legacy("TXPLLNDIVSEL", &["8", "10", "16", "20", "32", "40"]);
-        for &(attr, width) in GT11_SHARED_BIN_ATTRS {
-            bctx.mode(mode)
-                .tile_mutex(attr, &bel)
-                .test_multi_attr_bin(attr, width);
-        }
-        for &(attr, width) in GT11_SHARED_HEX_ATTRS {
-            bctx.mode(mode)
-                .tile_mutex(attr, &bel)
-                .test_multi_attr_hex_legacy(attr, width);
+            bctx.mode(mode).test_bel_input_inv_auto(pin);
         }
 
-        bctx.mode(mode)
-            .attr("MCOMMA_32B_VALUE", "")
-            .test_multi_attr_hex_legacy("MCOMMA_10B_VALUE", 10);
-        bctx.mode(mode)
-            .attr("MCOMMA_10B_VALUE", "")
-            .test_multi_attr_hex_legacy("MCOMMA_32B_VALUE", 32);
-        bctx.mode(mode)
-            .attr("PCOMMA_32B_VALUE", "")
-            .test_multi_attr_hex_legacy("PCOMMA_10B_VALUE", 10);
-        bctx.mode(mode)
-            .attr("PCOMMA_10B_VALUE", "")
-            .test_multi_attr_hex_legacy("PCOMMA_32B_VALUE", 32);
+        for (aid, aname, attr) in &backend.edev.db[bcls::GT11].attributes {
+            match aid {
+                bcls::GT11::DRP | bcls::GT11::DRP_MASK => (),
 
-        let hclk_delta = match i {
+                bcls::GT11::COMMA_10B_MASK
+                | bcls::GT11::RESERVED_CM
+                | bcls::GT11::RESERVED_CM2
+                | bcls::GT11::RXCRCINITVAL
+                | bcls::GT11::RXCTRL1
+                | bcls::GT11::RXEQ
+                | bcls::GT11::RXTUNE
+                | bcls::GT11::TXCRCINITVAL
+                | bcls::GT11::TXLNDR_TST3 => {
+                    let BelAttributeType::BitVec(width) = attr.typ else {
+                        unreachable!()
+                    };
+                    bctx.mode(mode).test_bel_attr_bits(aid).multi_attr(
+                        aname,
+                        MultiValue::Hex(0),
+                        width,
+                    );
+                }
+
+                bcls::GT11::CHAN_BOND_LIMIT
+                | bcls::GT11::CLK_COR_MIN_LAT
+                | bcls::GT11::CLK_COR_MAX_LAT
+                | bcls::GT11::SH_INVALID_CNT_MAX
+                | bcls::GT11::SH_CNT_MAX => {
+                    let BelAttributeType::BitVec(width) = attr.typ else {
+                        unreachable!()
+                    };
+                    bctx.mode(mode).test_bel_attr_bits(aid).multi_attr(
+                        aname,
+                        MultiValue::Dec(0),
+                        width,
+                    );
+                }
+
+                bcls::GT11::MCOMMA_VALUE => {
+                    bctx.mode(mode)
+                        .attr("MCOMMA_32B_VALUE", "")
+                        .test_bel_attr_bits(aid)
+                        .multi_attr("MCOMMA_10B_VALUE", MultiValue::Hex(0), 10);
+                    bctx.mode(mode)
+                        .attr("MCOMMA_10B_VALUE", "")
+                        .test_bel_attr_bits(aid)
+                        .multi_attr("MCOMMA_32B_VALUE", MultiValue::Hex(0), 32);
+                }
+
+                bcls::GT11::PCOMMA_VALUE => {
+                    bctx.mode(mode)
+                        .attr("PCOMMA_32B_VALUE", "")
+                        .test_bel_attr_bits(aid)
+                        .multi_attr("PCOMMA_10B_VALUE", MultiValue::Hex(0), 10);
+                    bctx.mode(mode)
+                        .attr("PCOMMA_10B_VALUE", "")
+                        .test_bel_attr_bits(aid)
+                        .multi_attr("PCOMMA_32B_VALUE", MultiValue::Hex(0), 32);
+                }
+
+                _ => match attr.typ {
+                    BelAttributeType::Bool => {
+                        bctx.mode(mode)
+                            .test_bel_attr_bool_auto(aid, "FALSE", "TRUE");
+                    }
+                    BelAttributeType::BitVec(width) => {
+                        bctx.mode(mode).test_bel_attr_bits(aid).multi_attr(
+                            aname,
+                            MultiValue::Bin,
+                            width,
+                        );
+                    }
+                    BelAttributeType::Enum(_) => {
+                        bctx.mode(mode).test_bel_attr_auto(aid);
+                    }
+                    _ => unreachable!(),
+                },
+            }
+        }
+
+        for val in ["FALSE", "TRUE"] {
+            bctx.mode(mode)
+                .null_bits()
+                .test_bel_special(specials::GT11_PMACLKENABLE)
+                .attr("PMACLKENABLE", val)
+                .commit();
+        }
+
+        for val in ["SINGLE", "DONT_CARE", "B", "A"] {
+            bctx.mode(mode)
+                .null_bits()
+                .test_bel_special(specials::GT11_MODE)
+                .attr("GT11_MODE", val)
+                .commit();
+        }
+
+        for (aid, aname, attr) in &backend.edev.db[bcls::GT11CLK].attributes {
+            match aid {
+                bcls::GT11CLK::REFCLKSEL
+                | bcls::GT11CLK::SYNCLK1_DRIVE
+                | bcls::GT11CLK::SYNCLK2_DRIVE
+                | bcls::GT11CLK::SYNCLK_DRIVE_ENABLE
+                | bcls::GT11CLK::SYNCLK_ENABLE => (),
+
+                bcls::GT11CLK::ATBSEL
+                | bcls::GT11CLK::PMACFG2SPARE
+                | bcls::GT11CLK::TXCTRL1
+                | bcls::GT11CLK::TXTUNE => {
+                    let BelAttributeType::BitVec(width) = attr.typ else {
+                        unreachable!()
+                    };
+                    bctx.mode(mode)
+                        .tile_mutex(aname, &bel)
+                        .test_bel(bslots::GT11CLK)
+                        .test_bel_attr_bits(aid)
+                        .multi_attr(aname, MultiValue::Hex(0), width);
+                }
+
+                _ => match attr.typ {
+                    BelAttributeType::Bool => {
+                        bctx.mode(mode)
+                            .tile_mutex(aname, &bel)
+                            .test_bel(bslots::GT11CLK)
+                            .test_bel_attr_bool_auto(aid, "FALSE", "TRUE");
+                    }
+                    BelAttributeType::BitVec(width) => {
+                        bctx.mode(mode)
+                            .tile_mutex(aname, &bel)
+                            .test_bel(bslots::GT11CLK)
+                            .test_bel_attr_bits(aid)
+                            .multi_attr(aname, MultiValue::Bin, width);
+                    }
+                    BelAttributeType::Enum(_) => {
+                        bctx.mode(mode)
+                            .tile_mutex(aname, &bel)
+                            .test_bel(bslots::GT11CLK)
+                            .test_bel_attr_auto(aid);
+                    }
+                    _ => unreachable!(),
+                },
+            }
+        }
+
+        let hclk_cell = match i {
             0 => 8,
             1 => 24,
             _ => unreachable!(),
         };
-        for pin in ["REFCLK", "PMACLK"] {
-            for i in 0..8 {
-                let obel = defs::bslots::CLK_HROW;
+        for (pin, wt) in [
+            ("REFCLK", wires::IMUX_MGT_REFCLK_PRE[i]),
+            ("PMACLK", wires::IMUX_MGT_GREFCLK_PRE[i]),
+        ] {
+            for j in 0..8 {
+                let wt = wt.cell(16);
+                let wf = wires::HCLK_MGT[j].cell(hclk_cell);
                 bctx.build()
-                    .mutex("HCLK_IN", format!("HCLK{i}"))
+                    .mutex("HCLK_IN", format!("HCLK{j}"))
                     .mutex("HCLK_OUT", pin)
                     .global_mutex("BUFGCTRL_OUT", "USE")
-                    .related_tile_mutex(ClkHrow(hclk_delta), "MODE", "USE")
+                    .related_tile_mutex(ClkHrow(hclk_cell as i32), "MODE", "USE")
                     .related_pip(
-                        ClkHrow(hclk_delta),
-                        (obel, format!("HCLK_L{i}")),
-                        (obel, "GCLK0"),
+                        ClkHrow(hclk_cell as i32),
+                        wires::HCLK_ROW[j].cell(0),
+                        wires::GCLK[0].cell(0),
                     )
                     .related_pip(
-                        ClkHrow(hclk_delta),
-                        (obel, format!("HCLK_R{i}")),
-                        (obel, "GCLK0"),
+                        ClkHrow(hclk_cell as i32),
+                        wires::HCLK_ROW[j].cell(1),
+                        wires::GCLK[0].cell(0),
                     )
-                    .extra_tile_attr_legacy(
-                        DeltaLegacy::new(0, hclk_delta, "HCLK_MGT"),
-                        "HCLK_MGT",
-                        format!("BUF.HCLK{i}"),
-                        "1",
+                    .extra_tile_routing(
+                        Delta::new(0, hclk_cell as i32, tcls::HCLK_MGT),
+                        wires::HCLK_MGT[j].cell(0),
+                        wires::HCLK_ROW[j].cell(0).pos(),
                     )
-                    .test_manual_legacy(format!("MUX.{pin}"), format!("HCLK{i}"))
-                    .pip(pin, format!("HCLK{i}"))
+                    .test_routing(wt, wf.pos())
+                    .prop(FuzzIntPip::new(wt, wf))
                     .commit();
             }
         }
-        for i in 0..2 {
-            for inp in ["SYNCLK_OUT", "FWDCLK0_OUT", "FWDCLK1_OUT"] {
+        let c = 8 + i * 16;
+        for o in 0..2 {
+            let dst = wires::MGT_CLK_OUT[o].cell(c);
+            for w in [
+                wires::MGT_CLK_OUT_SYNCLK,
+                wires::MGT_CLK_OUT_FWDCLK[0],
+                wires::MGT_CLK_OUT_FWDCLK[1],
+            ] {
+                let src = w.cell(c);
                 bctx.build()
                     .global_mutex("MGT_OUT", "TEST")
-                    .mutex(format!("MUX.MGT{i}"), inp)
                     .tile_mutex("SYNCLK", "USE")
                     .mutex("SYNCLK_OUT", "USE")
-                    .pip("SYNCLK_OUT", "SYNCLK1_OUT")
-                    .extra_tile_attr_legacy(
-                        DeltaLegacy::new(0, hclk_delta, "HCLK_MGT"),
-                        "HCLK_MGT",
-                        format!("BUF.MGT{i}"),
-                        "1",
+                    .prop(BaseIntPip::new(
+                        wires::MGT_CLK_OUT_SYNCLK.cell(c),
+                        wires::OUT_MGT_SYNCLK[0].cell(16),
+                    ))
+                    .extra_tile_routing(
+                        Delta::new(0, hclk_cell as i32, tcls::HCLK_MGT),
+                        wires::MGT_ROW[o].cell(0),
+                        wires::MGT_CLK_OUT[o].cell(0).pos(),
                     )
                     .prop(MgtRepeaterMgt(
-                        hclk_delta,
-                        format!("BUF.MGT{i}.MGT"),
-                        "1".into(),
+                        hclk_cell as i32,
+                        wires::MGT_ROW[o].cell(0),
+                        specials::MGT_BUF_MGT,
                     ))
-                    .test_manual_legacy(format!("MUX.MGT{i}"), inp)
-                    .pip(format!("MGT{i}"), inp)
+                    .test_routing(dst, src.pos())
+                    .prop(WireMutexExclusive::new(dst))
+                    .prop(FuzzIntPip::new(dst, src))
                     .commit();
             }
         }
-        for i in [1, 2] {
+        for w in wires::OUT_MGT_SYNCLK {
+            let dst = wires::MGT_CLK_OUT_SYNCLK.cell(c);
+            let src = w.cell(16);
             bctx.build()
                 .tile_mutex("SYNCLK", &bel)
-                .mutex("SYNCLK_OUT", format!("SYNCLK{i}"))
-                .test_manual_legacy("MUX.SYNCLK_OUT", format!("SYNCLK{i}"))
-                .pip("SYNCLK_OUT", format!("SYNCLK{i}_OUT"))
+                .mutex("SYNCLK_OUT", "DRIVE")
+                .test_routing(dst, src.pos())
+                .prop(WireMutexExclusive::new(dst))
+                .prop(FuzzIntPip::new(dst, src))
                 .commit();
         }
-        let obel_clk = defs::bslots::GT11CLK;
-        let (ab, ba, ns, sn) = match i {
-            0 => ('B', 'A', 'S', 'N'),
-            1 => ('A', 'B', 'N', 'S'),
-            _ => unreachable!(),
-        };
-        for i in 0..2 {
-            for j in 1..=4 {
+        for w in wires::MGT_CLK_OUT_FWDCLK {
+            let dst = w.cell(c);
+            let mux = &backend.edev.db_index.tile_classes[tcls::MGT].muxes[&dst];
+            for &src in mux.src.keys() {
                 bctx.build()
-                    .tile_mutex("FWDCLK_MUX_BEL", &bel)
-                    .tile_mutex("FWDCLK_MUX", format!("MUX.FWDCLK{i}_OUT"))
-                    .mutex(format!("MUX.FWDCLK{i}_OUT"), format!("FWDCLK{j}"))
-                    .test_manual_legacy(format!("MUX.FWDCLK{i}_OUT"), format!("FWDCLK{j}"))
-                    .pip(
-                        (obel_clk, format!("FWDCLK{i}{ab}_OUT")),
-                        (obel_clk, format!("{ns}FWDCLK{j}")),
-                    )
+                    .tile_mutex("FWDCLK_MUX", dst)
+                    .test_routing(dst, src)
+                    .prop(WireMutexExclusive::new(dst))
+                    .prop(FuzzIntPip::new(dst, src.tw))
                     .commit();
             }
         }
-        for i in 1..=4 {
-            for pin in [
-                "RXPCSHCLKOUTA",
-                "RXPCSHCLKOUTB",
-                "TXPCSHCLKOUTA",
-                "TXPCSHCLKOUTB",
+        let (w, wo) = match i {
+            0 => (wires::MGT_FWDCLK_S, wires::MGT_FWDCLK_N),
+            1 => (wires::MGT_FWDCLK_N, wires::MGT_FWDCLK_S),
+            _ => unreachable!(),
+        };
+        for j in 0..4 {
+            let dst = w[j].cell(16);
+            for src in [
+                wires::OUT_MGT_RXPCSHCLKOUT[0].cell(16),
+                wires::OUT_MGT_RXPCSHCLKOUT[1].cell(16),
+                wires::OUT_MGT_TXPCSHCLKOUT[0].cell(16),
+                wires::OUT_MGT_TXPCSHCLKOUT[1].cell(16),
             ] {
                 bctx.build()
                     .global_mutex("MGT_FWDCLK_BUF", "DRIVE")
-                    .tile_mutex(format!("MUX.{ab}.FWDCLK{i}"), pin)
-                    .test_manual_legacy(format!("MUX.FWDCLK{i}"), pin)
-                    .pip((obel_clk, format!("{ns}FWDCLK{i}")), (obel_clk, pin))
+                    .test_routing(dst, src.pos())
+                    .prop(WireMutexExclusive::new(dst))
+                    .prop(FuzzIntPip::new(dst, src))
                     .commit();
             }
+            let src = wo[j].cell(16);
+            let help = wires::OUT_MGT_RXPCSHCLKOUT[0].cell(16);
             bctx.build()
                 .global_mutex("MGT_FWDCLK_BUF", "DRIVE")
-                .tile_mutex(format!("MUX.{ab}.FWDCLK{i}"), "FWDCLK")
-                .tile_mutex(format!("MUX.{ba}.FWDCLK{i}"), "FORCE")
-                .pip(
-                    (obel_clk, format!("{sn}FWDCLK{i}")),
-                    (obel_clk, "RXPCSHCLKOUTA"),
-                )
-                .test_manual_legacy(format!("MUX.FWDCLK{i}"), format!("{ba}_FWDCLK{i}"))
-                .pip(
-                    (obel_clk, format!("{ns}FWDCLK{i}")),
-                    (obel_clk, format!("{sn}FWDCLK{i}")),
-                )
+                .prop(WireMutexExclusive::new(src))
+                .prop(BaseIntPip::new(src, help))
+                .test_routing(dst, src.pos())
+                .prop(WireMutexExclusive::new(dst))
+                .prop(FuzzIntPip::new(dst, src))
                 .commit();
         }
     }
+
     let mut bctx = ctx.bel(defs::bslots::GT11CLK);
     let mode = "GT11CLK";
-    bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
-    bctx.mode(mode).test_enum_legacy(
-        "REFCLKSEL",
-        &["REFCLK", "RXBCLK", "MGTCLK", "SYNCLK1IN", "SYNCLK2IN"],
-    );
-    for inp in ["REFCLKA", "REFCLKB"] {
-        bctx.build()
-            .mutex("REFCLK", inp)
-            .test_manual_legacy("MUX.REFCLK", inp)
-            .pip("REFCLK", inp)
-            .commit();
-    }
-    for inp in ["PMACLKA", "PMACLKB"] {
-        bctx.build()
-            .mutex("PMACLK", inp)
-            .test_manual_legacy("MUX.PMACLK", inp)
-            .pip("PMACLK", inp)
-            .commit();
-    }
+    bctx.build()
+        .null_bits()
+        .test_bel_special(specials::PRESENT)
+        .mode(mode)
+        .commit();
+    bctx.mode(mode).test_bel_attr_auto(bcls::GT11CLK::REFCLKSEL);
 
-    for i in [1, 2] {
+    for (i, attr) in [
+        (1, bcls::GT11CLK::SYNCLK1_DRIVE),
+        (2, bcls::GT11CLK::SYNCLK2_DRIVE),
+    ] {
         bctx.build()
             .global_mutex("SYNCLK_BUF_DIR", "UP")
             .tile_mutex("SYNCLK", format!("SYNCLK{i}_BUF_UP"))
             .related_pip(
-                DeltaLegacy::new(0, -32, "MGT"),
-                format!("SYNCLK{i}_N"),
+                Delta::new(0, -32, tcls::MGT),
+                format!("SYNCLK{i}"),
                 format!("SYNCLK{i}OUT"),
             )
-            .related_tile_mutex(DeltaLegacy::new(0, -32, "MGT"), "SYNCLK", "USE")
-            .test_manual_legacy(format!("SYNCLK{i}"), "BUF_UP")
-            .pip(format!("SYNCLK{i}_N"), format!("SYNCLK{i}_S"))
+            .related_tile_mutex(Delta::new(0, -32, tcls::MGT), "SYNCLK", "USE")
+            .test_bel_attr_val(attr, enums::GT11_SYNCLK_DRIVE::BUF_UP)
+            .pip(format!("SYNCLK{i}"), format!("SYNCLK{i}_S"))
             .commit();
         bctx.build()
             .global_mutex("SYNCLK_BUF_DIR", "DOWN")
             .tile_mutex("SYNCLK", format!("SYNCLK{i}_BUF_DOWN"))
             .related_pip(
-                DeltaLegacy::new(0, 32, "MGT"),
+                Delta::new(0, 32, tcls::MGT),
                 format!("SYNCLK{i}_S"),
                 format!("SYNCLK{i}OUT"),
             )
-            .related_tile_mutex(DeltaLegacy::new(0, 32, "MGT"), "SYNCLK", "USE")
-            .test_manual_legacy(format!("SYNCLK{i}"), "BUF_DOWN")
-            .pip(format!("SYNCLK{i}_S"), format!("SYNCLK{i}_N"))
+            .related_tile_mutex(Delta::new(0, 32, tcls::MGT), "SYNCLK", "USE")
+            .test_bel_attr_val(attr, enums::GT11_SYNCLK_DRIVE::BUF_DOWN)
+            .pip(format!("SYNCLK{i}_S"), format!("SYNCLK{i}"))
             .commit();
         bctx.mode(mode)
             .global_mutex("SYNCLK_BUF_DIR", "UP")
             .tile_mutex("SYNCLK", format!("SYNCLK{i}_DRIVE_UP"))
-            .test_manual_legacy(format!("SYNCLK{i}"), "DRIVE_UP")
+            .test_bel_attr_val(attr, enums::GT11_SYNCLK_DRIVE::DRIVE_UP)
             .attr(format!("SYNCLK{i}OUTEN"), "ENABLE")
             .pin(format!("SYNCLK{i}OUT"))
-            .pip(format!("SYNCLK{i}_N"), format!("SYNCLK{i}OUT"))
+            .pip(format!("SYNCLK{i}"), format!("SYNCLK{i}OUT"))
             .commit();
         bctx.mode(mode)
             .global_mutex("SYNCLK_BUF_DIR", "DOWN")
             .tile_mutex("SYNCLK", format!("SYNCLK{i}_DRIVE_DOWN"))
-            .test_manual_legacy(format!("SYNCLK{i}"), "DRIVE_DOWN")
+            .test_bel_attr_val(attr, enums::GT11_SYNCLK_DRIVE::DRIVE_DOWN)
             .attr(format!("SYNCLK{i}OUTEN"), "ENABLE")
             .pin(format!("SYNCLK{i}OUT"))
             .pip(format!("SYNCLK{i}_S"), format!("SYNCLK{i}OUT"))
@@ -629,10 +452,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode)
             .global_mutex_here("SYNCLK_BUF_DIR")
             .tile_mutex("SYNCLK", format!("SYNCLK{i}_DRIVE_BOTH"))
-            .test_manual_legacy(format!("SYNCLK{i}"), "DRIVE_BOTH")
+            .test_bel_attr_val(attr, enums::GT11_SYNCLK_DRIVE::DRIVE_BOTH)
             .attr(format!("SYNCLK{i}OUTEN"), "ENABLE")
             .pin(format!("SYNCLK{i}OUT"))
-            .pip(format!("SYNCLK{i}_N"), format!("SYNCLK{i}OUT"))
+            .pip(format!("SYNCLK{i}"), format!("SYNCLK{i}OUT"))
             .pip(format!("SYNCLK{i}_S"), format!("SYNCLK{i}OUT"))
             .commit();
     }
@@ -646,289 +469,243 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if !ctx.has_tcls(tcid) {
         return;
     }
-    let tile = "MGT";
     fn drp_bit(bel: usize, idx: usize, bit: usize) -> TileBit {
         let tile = bel << 4 | (idx & 7) << 1 | (idx & 0x20) >> 5;
         let bit = bit + 1 + 20 * (idx >> 3 & 3);
         TileBit::new(tile, 19, bit)
     }
     let (_, _, synclk_enable) = Diff::split(
-        ctx.peek_diff_legacy(tile, "GT11[1]", "MUX.SYNCLK_OUT", "SYNCLK1")
-            .clone(),
-        ctx.peek_diff_legacy(tile, "GT11[0]", "MUX.SYNCLK_OUT", "SYNCLK1")
-            .clone(),
+        ctx.peek_diff_routing(
+            tcid,
+            wires::MGT_CLK_OUT_SYNCLK.cell(8),
+            wires::OUT_MGT_SYNCLK[0].cell(16).pos(),
+        )
+        .clone(),
+        ctx.peek_diff_routing(
+            tcid,
+            wires::MGT_CLK_OUT_SYNCLK.cell(24),
+            wires::OUT_MGT_SYNCLK[0].cell(16).pos(),
+        )
+        .clone(),
     );
     for idx in 0..2 {
         let bslot = bslots::GT11[idx];
-        let bel = &format!("GT11[{idx}]");
-        let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
+
+        let mut drp = vec![];
+        let mut drp_mask = vec![];
         for i in 0x40..0x80 {
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("DRP{i:02X}"),
-                TileItem::from_bitvec_inv((0..16).map(|j| drp_bit(idx, i, j)).collect(), false),
-            );
-            let item = TileItem::from_bit_inv(drp_bit(idx, i, 17), false);
-            present.apply_bit_diff_legacy(&item, true, false);
-            ctx.insert_legacy(tile, bel, format!("DRP{i:02X}_MASK"), item);
+            for j in 0..16 {
+                drp.push(drp_bit(idx, i, j).pos());
+            }
+            drp_mask.push(drp_bit(idx, i, 17).pos());
         }
+        present.apply_bitvec_diff(&drp_mask, &bits![1; 64], &bits![0; 64]);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::GT11::DRP, drp);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::GT11::DRP_MASK, drp_mask);
+
         for &pin in GT11_INVPINS {
-            ctx.collect_int_inv_legacy(&[tcls::INT; 32], tcid, bslot, pin, false);
+            ctx.collect_bel_input_inv_int_bi(&[tcls::INT; 32], tcid, bslot, pin);
         }
         for pin in [
-            "RXRESET",
-            "RXCRCRESET",
-            "RXPMARESET",
-            "TXRESET",
-            "TXCRCRESET",
-            "TXPMARESET",
-            "RXCRCINTCLK",
-            "TXCRCINTCLK",
-            "RXCRCCLK",
-            "TXCRCCLK",
-            "RXCRCDATAVALID",
-            "TXCRCDATAVALID",
-            "DCLK",
-            "DEN",
-            "DWE",
+            bcls::GT11::RXRESET,
+            bcls::GT11::RXCRCRESET,
+            bcls::GT11::RXPMARESET,
+            bcls::GT11::TXRESET,
+            bcls::GT11::TXCRCRESET,
+            bcls::GT11::TXPMARESET,
+            bcls::GT11::RXCRCINTCLK,
+            bcls::GT11::TXCRCINTCLK,
+            bcls::GT11::RXCRCCLK,
+            bcls::GT11::TXCRCCLK,
+            bcls::GT11::RXCRCDATAVALID,
+            bcls::GT11::TXCRCDATAVALID,
+            bcls::GT11::DCLK,
+            bcls::GT11::DEN,
+            bcls::GT11::DWE,
         ] {
             present.apply_bit_diff(
-                ctx.item_int_inv_legacy(&[tcls::INT; 32], tcid, bslot, pin),
+                ctx.item_int_inv(&[tcls::INT; 32], tcid, bslot, pin),
                 false,
                 true,
             );
         }
         present.assert_empty();
-        for &attr in GT11_BOOL_ATTRS {
-            if attr == "PMACLKENABLE" {
-                ctx.get_diff_legacy(tile, bel, attr, "FALSE").assert_empty();
-                ctx.get_diff_legacy(tile, bel, attr, "TRUE").assert_empty();
-            } else {
-                ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
+
+        for (aid, _, attr) in &ctx.edev.db[bcls::GT11].attributes {
+            match aid {
+                bcls::GT11::DRP | bcls::GT11::DRP_MASK => (),
+
+                _ => match attr.typ {
+                    BelAttributeType::Bool => {
+                        ctx.collect_bel_attr_bi(tcid, bslot, aid);
+                    }
+                    BelAttributeType::Enum(_) => {
+                        ctx.collect_bel_attr_ocd(tcid, bslot, aid, OcdMode::BitOrder);
+                    }
+                    _ => {
+                        ctx.collect_bel_attr(tcid, bslot, aid);
+                    }
+                },
             }
         }
-        for &(attr, vals) in GT11_ENUM_ATTRS {
-            // TODO: RXOUTDIV2SEL split
-            // TODO: intify RXUSRDIVISOR, RX_LOS_INVALID_INCR, RX_LOS_THRESHOLD (div4!)
-            if attr == "GT11_MODE" {
-                for &val in vals {
-                    ctx.get_diff_legacy(tile, bel, attr, val).assert_empty();
-                }
-            } else {
-                ctx.collect_enum_legacy(tile, bel, attr, vals);
-            }
-        }
-        for &(attr, _) in GT11_DEC_ATTRS {
-            ctx.collect_bitvec_legacy(tile, bel, attr, "");
-        }
-        for &(attr, _) in GT11_BIN_ATTRS {
-            ctx.collect_bitvec_legacy(tile, bel, attr, "");
-        }
-        for &(attr, _) in GT11_HEX_ATTRS {
-            ctx.collect_bitvec_legacy(tile, bel, attr, "");
-        }
 
-        let diffs_10 = ctx.get_diffs_legacy(tile, bel, "MCOMMA_10B_VALUE", "");
-        let diffs_32 = ctx.get_diffs_legacy(tile, bel, "MCOMMA_32B_VALUE", "");
-        assert!(diffs_32.starts_with(&diffs_10));
-        ctx.insert_legacy(tile, bel, "MCOMMA_VALUE", xlat_bitvec_legacy(diffs_32));
-        let diffs_10 = ctx.get_diffs_legacy(tile, bel, "PCOMMA_10B_VALUE", "");
-        let diffs_32 = ctx.get_diffs_legacy(tile, bel, "PCOMMA_32B_VALUE", "");
-        assert!(diffs_32.starts_with(&diffs_10));
-        ctx.insert_legacy(tile, bel, "PCOMMA_VALUE", xlat_bitvec_legacy(diffs_32));
-
-        for &attr in GT11_SHARED_BOOL_ATTRS {
-            let item = ctx.extract_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
-            ctx.insert_legacy(tile, "GT11_COMMON", attr, item);
-        }
-        let item = ctx.extract_enum_legacy(
-            tile,
-            bel,
-            "TXABPMACLKSEL",
-            &["REFCLK1", "REFCLK2", "GREFCLK"],
-        );
-        ctx.insert_legacy(tile, "GT11_COMMON", "TXABPMACLKSEL", item);
-        let item = ctx.extract_enum_legacy(
-            tile,
-            bel,
-            "TXPLLNDIVSEL",
-            &["8", "10", "16", "20", "32", "40"],
-        );
-        ctx.insert_legacy(tile, "GT11_COMMON", "TXPLLNDIVSEL", item);
-        for &(attr, _) in GT11_SHARED_BIN_ATTRS {
-            let item = ctx.extract_bitvec_legacy(tile, bel, attr, "");
-            ctx.insert_legacy(tile, "GT11_COMMON", attr, item);
-        }
-        for &(attr, _) in GT11_SHARED_HEX_ATTRS {
-            let item = ctx.extract_bitvec_legacy(tile, bel, attr, "");
-            ctx.insert_legacy(tile, "GT11_COMMON", attr, item);
-        }
-
-        for attr in ["MUX.PMACLK", "MUX.REFCLK"] {
-            ctx.collect_enum_default_legacy_ocd(
-                tile,
-                bel,
-                attr,
-                &[
-                    "HCLK0", "HCLK1", "HCLK2", "HCLK3", "HCLK4", "HCLK5", "HCLK6", "HCLK7",
-                ],
-                "NONE",
-                OcdMode::BitOrder,
-            );
-        }
-
-        let ba = match idx {
-            1 => 'B',
-            0 => 'A',
-            _ => unreachable!(),
-        };
-        for i in 1..=4 {
-            ctx.collect_enum_default_legacy_ocd(
-                tile,
-                bel,
-                &format!("MUX.FWDCLK{i}"),
-                &[
-                    "RXPCSHCLKOUTA",
-                    "RXPCSHCLKOUTB",
-                    "TXPCSHCLKOUTA",
-                    "TXPCSHCLKOUTB",
-                    &format!("{ba}_FWDCLK{i}")[..],
-                ],
-                "NONE",
-                OcdMode::BitOrder,
-            );
-        }
-
+        let c = 8 + idx * 16;
+        let fwd = [wires::MGT_FWDCLK_S, wires::MGT_FWDCLK_N][idx];
         let (_, _, fwdclk_out_enable) = Diff::split(
-            ctx.peek_diff_legacy(tile, bel, "MUX.FWDCLK0_OUT", "FWDCLK1")
-                .clone(),
-            ctx.peek_diff_legacy(tile, bel, "MUX.FWDCLK1_OUT", "FWDCLK1")
-                .clone(),
+            ctx.peek_diff_routing(
+                tcid,
+                wires::MGT_CLK_OUT_FWDCLK[0].cell(c),
+                fwd[0].cell(16).pos(),
+            )
+            .clone(),
+            ctx.peek_diff_routing(
+                tcid,
+                wires::MGT_CLK_OUT_FWDCLK[1].cell(c),
+                fwd[0].cell(16).pos(),
+            )
+            .clone(),
         );
-        for i in 0..2 {
+        for w in wires::MGT_CLK_OUT_FWDCLK {
+            let dst = w.cell(c);
             let mut diffs = vec![];
-            for j in 1..=4 {
-                let mut diff = ctx.get_diff_legacy(
-                    tile,
-                    bel,
-                    format!("MUX.FWDCLK{i}_OUT"),
-                    format!("FWDCLK{j}"),
-                );
+            for wf in fwd {
+                let src = wf.cell(16).pos();
+                let mut diff = ctx.get_diff_routing(tcid, dst, src);
                 diff = diff.combine(&!&fwdclk_out_enable);
-                diffs.push((format!("FWDCLK{j}"), diff));
+                diffs.push((Some(src), diff));
             }
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("MUX.FWDCLK{i}_OUT"),
-                xlat_enum_legacy_ocd(diffs, OcdMode::BitOrder),
-            );
+            ctx.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::BitOrder));
         }
-        ctx.insert_legacy(
-            tile,
-            "GT11_COMMON",
-            "FWDCLK_OUT_ENABLE",
-            xlat_bit_legacy(fwdclk_out_enable),
+        ctx.insert_support(
+            tcid,
+            BTreeSet::from_iter([
+                wires::MGT_CLK_OUT_FWDCLK[0].cell(8),
+                wires::MGT_CLK_OUT_FWDCLK[1].cell(8),
+                wires::MGT_CLK_OUT_FWDCLK[0].cell(24),
+                wires::MGT_CLK_OUT_FWDCLK[1].cell(24),
+            ]),
+            vec![xlat_bit(fwdclk_out_enable)],
         );
 
-        for i in 0..2 {
-            ctx.collect_enum_default_legacy_ocd(
-                tile,
-                bel,
-                &format!("MUX.MGT{i}"),
-                &["SYNCLK_OUT", "FWDCLK0_OUT", "FWDCLK1_OUT"],
-                "NONE",
-                OcdMode::BitOrder,
-            );
+        let c = 8 + idx * 16;
+        for w in wires::MGT_CLK_OUT {
+            ctx.collect_mux_ocd(tcid, w.cell(c), OcdMode::BitOrder);
         }
-        let mut diffs = vec![];
-        for inp in ["SYNCLK1", "SYNCLK2"] {
-            let mut diff = ctx.get_diff_legacy(tile, bel, "MUX.SYNCLK_OUT", inp);
+        let mut diffs = vec![(None, Default::default())];
+        let dst = wires::MGT_CLK_OUT_SYNCLK.cell(c);
+        for w in wires::OUT_MGT_SYNCLK {
+            let src = w.cell(16).pos();
+            let mut diff = ctx.get_diff_routing(tcid, dst, src);
             diff = diff.combine(&!&synclk_enable);
-            diffs.push((inp.to_string(), diff));
+            diffs.push((Some(src), diff));
         }
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "MUX.SYNCLK_OUT",
-            xlat_enum_default_legacy(diffs, "NONE"),
+        ctx.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::BitOrder));
+    }
+
+    {
+        let bslot = bslots::GT11CLK;
+        for (aid, _, attr) in &ctx.edev.db[bcls::GT11CLK].attributes {
+            match aid {
+                bcls::GT11CLK::SYNCLK1_DRIVE => (),
+                bcls::GT11CLK::SYNCLK2_DRIVE => (),
+                bcls::GT11CLK::SYNCLK_DRIVE_ENABLE => (),
+                bcls::GT11CLK::SYNCLK_ENABLE => (),
+
+                _ => match attr.typ {
+                    BelAttributeType::Bool => {
+                        ctx.collect_bel_attr_bi(tcid, bslot, aid);
+                    }
+                    BelAttributeType::Enum(_) => {
+                        ctx.collect_bel_attr_ocd(tcid, bslot, aid, OcdMode::BitOrder);
+                    }
+                    _ => {
+                        ctx.collect_bel_attr(tcid, bslot, aid);
+                    }
+                },
+            }
+        }
+
+        let (_, _, mut synclk_drive_enable) = Diff::split(
+            ctx.peek_diff_attr_val(
+                tcid,
+                bslot,
+                bcls::GT11CLK::SYNCLK1_DRIVE,
+                enums::GT11_SYNCLK_DRIVE::BUF_DOWN,
+            )
+            .clone(),
+            ctx.peek_diff_attr_val(
+                tcid,
+                bslot,
+                bcls::GT11CLK::SYNCLK2_DRIVE,
+                enums::GT11_SYNCLK_DRIVE::BUF_DOWN,
+            )
+            .clone(),
+        );
+        for attr in [bcls::GT11CLK::SYNCLK1_DRIVE, bcls::GT11CLK::SYNCLK2_DRIVE] {
+            let mut diffs = vec![(enums::GT11_SYNCLK_DRIVE::NONE, Diff::default())];
+            for val in [
+                enums::GT11_SYNCLK_DRIVE::BUF_UP,
+                enums::GT11_SYNCLK_DRIVE::BUF_DOWN,
+                enums::GT11_SYNCLK_DRIVE::DRIVE_UP,
+                enums::GT11_SYNCLK_DRIVE::DRIVE_DOWN,
+                enums::GT11_SYNCLK_DRIVE::DRIVE_BOTH,
+            ] {
+                let mut diff = ctx.get_diff_attr_val(tcid, bslot, attr, val);
+                diff = diff.combine(&!&synclk_drive_enable);
+                diffs.push((val, diff));
+            }
+            ctx.insert_bel_attr_enum(tcid, bslot, attr, xlat_enum_attr(diffs));
+        }
+        synclk_drive_enable = synclk_drive_enable.combine(&!&synclk_enable);
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            bcls::GT11CLK::SYNCLK_DRIVE_ENABLE,
+            xlat_bit(synclk_drive_enable),
+        );
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            bcls::GT11CLK::SYNCLK_ENABLE,
+            xlat_bit(synclk_enable),
         );
     }
-    ctx.get_diff_legacy(tile, "GT11CLK", "PRESENT", "1")
-        .assert_empty();
 
-    let (_, _, mut synclk_drive_enable) = Diff::split(
-        ctx.peek_diff_legacy(tile, "GT11CLK", "SYNCLK1", "BUF_DOWN")
-            .clone(),
-        ctx.peek_diff_legacy(tile, "GT11CLK", "SYNCLK2", "BUF_DOWN")
-            .clone(),
-    );
-    for attr in ["SYNCLK1", "SYNCLK2"] {
-        let mut diffs = vec![("NONE", Diff::default())];
-        for val in ["BUF_UP", "BUF_DOWN", "DRIVE_UP", "DRIVE_DOWN", "DRIVE_BOTH"] {
-            let mut diff = ctx.get_diff_legacy(tile, "GT11CLK", attr, val);
-            diff = diff.combine(&!&synclk_drive_enable);
-            diffs.push((val, diff));
+    ctx.collect_mux(tcid, wires::IMUX_MGT_REFCLK_PRE[0].cell(16));
+    ctx.collect_mux(tcid, wires::IMUX_MGT_REFCLK_PRE[1].cell(16));
+    ctx.collect_mux(tcid, wires::IMUX_MGT_GREFCLK_PRE[0].cell(16));
+    ctx.collect_mux(tcid, wires::IMUX_MGT_GREFCLK_PRE[1].cell(16));
+
+    for i in 0..4 {
+        ctx.collect_mux_ocd(tcid, wires::MGT_FWDCLK_S[i].cell(16), OcdMode::BitOrder);
+        ctx.collect_mux_ocd(tcid, wires::MGT_FWDCLK_N[i].cell(16), OcdMode::BitOrder);
+    }
+
+    {
+        let tcid = tcls::HCLK_MGT;
+        for i in 0..8 {
+            ctx.collect_progbuf(
+                tcid,
+                wires::HCLK_MGT[i].cell(0),
+                wires::HCLK_ROW[i].cell(0).pos(),
+            );
         }
-        ctx.insert_legacy(tile, "GT11_COMMON", attr, xlat_enum_legacy(diffs));
-    }
-    synclk_drive_enable = synclk_drive_enable.combine(&!&synclk_enable);
-    ctx.insert_legacy(
-        tile,
-        "GT11_COMMON",
-        "SYNCLK_DRIVE_ENABLE",
-        xlat_bit_legacy(synclk_drive_enable),
-    );
-    ctx.insert_legacy(
-        tile,
-        "GT11_COMMON",
-        "SYNCLK_ENABLE",
-        xlat_bit_legacy(synclk_enable),
-    );
-
-    let item = ctx.extract_enum_legacy(
-        tile,
-        "GT11CLK",
-        "REFCLKSEL",
-        &["SYNCLK1IN", "SYNCLK2IN", "RXBCLK", "REFCLK", "MGTCLK"],
-    );
-    ctx.insert_legacy(tile, "GT11_COMMON", "REFCLKSEL", item);
-
-    let item = ctx.extract_enum_default_legacy_ocd(
-        tile,
-        "GT11CLK",
-        "MUX.REFCLK",
-        &["REFCLKA", "REFCLKB"],
-        "NONE",
-        OcdMode::BitOrder,
-    );
-    ctx.insert_legacy(tile, "GT11_COMMON", "MUX.REFCLK", item);
-    let item = ctx.extract_enum_default_legacy_ocd(
-        tile,
-        "GT11CLK",
-        "MUX.PMACLK",
-        &["PMACLKA", "PMACLKB"],
-        "NONE",
-        OcdMode::BitOrder,
-    );
-    ctx.insert_legacy(tile, "GT11_COMMON", "MUX.PMACLK", item);
-
-    let tile = "HCLK_MGT";
-    let bel = "HCLK_MGT";
-    for i in 0..8 {
-        ctx.collect_bit_legacy(tile, bel, &format!("BUF.HCLK{i}"), "1");
-    }
-    for i in 0..2 {
-        ctx.collect_bit_legacy(tile, bel, &format!("BUF.MGT{i}"), "1");
+        for i in 0..2 {
+            ctx.collect_progbuf(
+                tcid,
+                wires::MGT_ROW[i].cell(0),
+                wires::MGT_CLK_OUT[i].cell(0).pos(),
+            );
+        }
     }
 
     if !edev.chips[DieId::from_idx(0)].cols_vbrk.is_empty() {
-        let tile = "HCLK_MGT_BUF";
-        let bel = "HCLK_MGT_BUF";
-        let item = ctx.extract_bit_legacy(tile, bel, "BUF.MGT0.MGT", "1");
-        ctx.insert_legacy(tile, bel, "BUF.MGT0", item);
-        let item = ctx.extract_bit_legacy(tile, bel, "BUF.MGT1.MGT", "1");
-        ctx.insert_legacy(tile, bel, "BUF.MGT1", item);
+        let tcid = tcls::HCLK_MGT_BUF;
+        for i in 0..2 {
+            let wire = wires::MGT_ROW[i].cell(0);
+            let diff = ctx.get_diff_routing_special(tcid, wire, specials::MGT_BUF_MGT);
+            ctx.insert_support(tcid, BTreeSet::from_iter([wire]), xlat_bit_wide(diff));
+        }
     }
 }

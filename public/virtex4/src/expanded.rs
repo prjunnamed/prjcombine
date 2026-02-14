@@ -1,6 +1,7 @@
 use crate::bond::{PsPad, SharedCfgPad};
 use crate::chip::{Chip, ChipKind, DisabledPart, GtKind, Interposer, IoKind, RegId, XadcIoLoc};
 use crate::defs;
+use crate::defs::tslots;
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use bimap::BiHashMap;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
@@ -9,7 +10,7 @@ use prjcombine_interconnect::{
     grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord, TileIobId},
 };
 use prjcombine_types::bsdata::BitRectId;
-use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
+use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom, Reg};
 use std::collections::{BTreeSet, HashSet};
 
 #[derive(Clone, Debug)]
@@ -121,8 +122,8 @@ impl ExpandedDevice<'_> {
                     let row_n = self.rows(die_n).first().unwrap() + 1;
                     let cell_s = CellCoord::new(die_s, col, row_s);
                     let cell_n = CellCoord::new(die_n, col, row_n);
-                    if self[cell_s].tiles.contains_id(defs::tslots::INT)
-                        && self[cell_n].tiles.contains_id(defs::tslots::INT)
+                    if self[cell_s].tiles.contains_id(tslots::INT)
+                        && self[cell_n].tiles.contains_id(tslots::INT)
                     {
                         cursed_wires.insert(cell_s.wire(lvb6));
                     }
@@ -945,6 +946,14 @@ impl ExpandedDevice<'_> {
         let tile = &self[tcrd];
         if self.db[tile.class].bitrects.is_empty() {
             EntityVec::new()
+        } else if tcrd.slot == tslots::GLOBAL {
+            match self.kind {
+                ChipKind::Virtex4 => EntityVec::from_iter([
+                    BitRect::Reg(die, Reg::Cor0),
+                    BitRect::Reg(die, Reg::Ctl0),
+                ]),
+                _ => todo!(),
+            }
         } else if self.kind == ChipKind::Virtex4 && tile.class == defs::virtex4::tcls::BRAM {
             EntityVec::from_iter([
                 self.btile_main(die, col, row),
@@ -978,7 +987,7 @@ impl ExpandedDevice<'_> {
             || (self.kind == ChipKind::Virtex4 && tile.class == defs::virtex4::tcls::HCLK_TERM)
             || matches!(
                 tcrd.slot,
-                defs::tslots::HCLK | defs::tslots::HCLK_BEL | defs::tslots::HCLK_CMT
+                tslots::HCLK | tslots::HCLK_BEL | tslots::HCLK_CMT
             )
         {
             EntityVec::from_iter([self.btile_hclk(die, col, row)])
@@ -1013,7 +1022,7 @@ impl ExpandedDevice<'_> {
         } else if self.kind == ChipKind::Virtex4 && tile.class == defs::virtex4::tcls::CLK_BUFG {
             let mut res = EntityVec::new();
             for i in 0..16 {
-                res.push(self.btile_spine(die, row + i));
+                res.push(self.btile_spine(die, row - 8 + i));
             }
             res
         } else if self.kind == ChipKind::Virtex5 && tile.class == defs::virtex5::tcls::CLK_BUFG {
@@ -1117,17 +1126,17 @@ impl ExpandedDevice<'_> {
         let chip = self.chips[die];
         match self.kind {
             ChipKind::Virtex4 => {
-                CellCoord::new(die, self.col_cfg, chip.row_bufg() - 8).tile(defs::tslots::CFG)
+                CellCoord::new(die, self.col_cfg, chip.row_bufg()).tile(tslots::CFG)
             }
             ChipKind::Virtex5 => {
-                CellCoord::new(die, self.col_cfg, chip.row_bufg() - 10).tile(defs::tslots::CFG)
+                CellCoord::new(die, self.col_cfg, chip.row_bufg() - 10).tile(tslots::CFG)
             }
             ChipKind::Virtex6 => {
-                CellCoord::new(die, self.col_cfg, chip.row_bufg()).tile(defs::tslots::CFG)
+                CellCoord::new(die, self.col_cfg, chip.row_bufg()).tile(tslots::CFG)
             }
             ChipKind::Virtex7 => {
                 CellCoord::new(die, self.col_cfg, chip.row_reg_bot(chip.reg_cfg - 1))
-                    .tile(defs::tslots::CFG)
+                    .tile(tslots::CFG)
             }
         }
     }

@@ -27,7 +27,7 @@ pub fn verify_bufgmux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: Bel
             unreachable!()
         };
         if matches!(edge, Dir::H(_)) {
-            let tcrd = endev.edev.get_tile_by_bel(bcrd);
+            let tcrd = endev.edev.bel_tile(bcrd);
             let ntile = &endev.ngrid.tiles[&tcrd];
             let naming = &endev.ngrid.db.tile_class_namings[ntile.naming];
             bel.claim_pip(

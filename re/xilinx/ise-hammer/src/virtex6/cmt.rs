@@ -11,7 +11,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{BitRectId, TileBit, TileItem},
 };
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex6::tcls};
 
 use crate::{
     backend::IseBackend,
@@ -44,7 +44,7 @@ pub fn add_fuzzers<'a>(
     backend: &'a IseBackend<'a>,
     devdata_only: bool,
 ) {
-    let mut ctx = FuzzCtx::new_legacy(session, backend, "CMT");
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CMT);
     if devdata_only {
         for i in 0..2 {
             let mut bctx = ctx.bel(defs::bslots::MMCM[i]);
@@ -314,7 +314,7 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "TEST")
                 .attr("CLKOUT0_DIVIDE_F", "1.5")
                 .attr("CLKFBOUT_MULT_F", "1.5")
-                .test_multi_attr_bin(attr, width);
+                .test_multi_attr_bin_legacy(attr, width);
         }
         for (attr, width) in [
             ("CLKFBOUT_PM", 3),
@@ -331,7 +331,7 @@ pub fn add_fuzzers<'a>(
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
                 .mutex("MODE", "TEST")
                 .attr("INTERP_EN", "00000000")
-                .test_multi_attr_bin(attr, width);
+                .test_multi_attr_bin_legacy(attr, width);
         }
         for (attr, width) in [
             ("CLKBURST_CNT", 4),

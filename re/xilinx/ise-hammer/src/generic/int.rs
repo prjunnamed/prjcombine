@@ -18,6 +18,7 @@ use prjcombine_virtex2::defs::{
     tslots as tslots_v2,
     virtex2::wires as wires_v2,
 };
+use prjcombine_virtex4::defs::virtex4::{bslots as bslots_v4, tcls as tcls_v4, wires as wires_v4};
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -879,19 +880,59 @@ fn skip_permabuf(
                 return true;
             }
         }
+        ExpandedDevice::Virtex4(edev)
+            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4 =>
+        {
+            if wires_v4::GCLK.contains(dst.wire) {
+                return true;
+            }
+        }
         _ => (),
     }
     false
 }
 
-#[allow(clippy::single_match)]
 fn skip_mux(
     edev: &ExpandedDevice,
-    _tcid: TileClassId,
+    tcid: TileClassId,
     bslot: BelSlotId,
     dst: TileWireCoord,
 ) -> bool {
     match edev {
+        ExpandedDevice::Virtex4(edev)
+            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4 =>
+        {
+            if matches!(tcid, tcls_v4::HCLK_MGT | tcls_v4::CLK_BUFG) {
+                return true;
+            }
+            if matches!(
+                bslot,
+                bslots_v4::HCLK
+                    | bslots_v4::HCLK_IO_INT
+                    | bslots_v4::CLK_INT
+                    | bslots_v4::HROW_INT
+                    | bslots_v4::SYSMON_INT
+            ) && dst.wire != wires_v4::IMUX_IDELAYCTRL_REFCLK
+                && !wires_v4::IMUX_BUFR.contains(dst.wire)
+            {
+                return true;
+            }
+            if wires_v4::IMUX_MGT_REFCLK_PRE.contains(dst.wire)
+                || wires_v4::IMUX_MGT_GREFCLK_PRE.contains(dst.wire)
+                || wires_v4::MGT_CLK_OUT.contains(dst.wire)
+                || wires_v4::MGT_CLK_OUT_SYNCLK == dst.wire
+                || wires_v4::MGT_CLK_OUT_FWDCLK.contains(dst.wire)
+                || wires_v4::MGT_FWDCLK_S.contains(dst.wire)
+                || wires_v4::MGT_FWDCLK_N.contains(dst.wire)
+                || wires_v4::IMUX_CCM_REL.contains(dst.wire)
+            {
+                return true;
+            }
+            if matches!(tcid, tcls_v4::CCM | tcls_v4::DCM) && wires_v4::IMUX_SPEC.contains(dst.wire)
+            {
+                return true;
+            }
+        }
         ExpandedDevice::Spartan6(_) => {
             if bslot == bslots_s6::IOI_INT {
                 return true;
@@ -983,6 +1024,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         }
                     }
                     SwitchBoxItem::PairMux(_) => (),
+                    SwitchBoxItem::WireSupport(_) => (),
                     _ => unreachable!(),
                 }
             }
@@ -1008,6 +1050,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut is_empty_ok = false;
             if matches!(ctx.edev, ExpandedDevice::Virtex2(_))
                 && bslot == prjcombine_virtex2::defs::bslots::MULT_INT
+            {
+                is_empty_ok = true;
+            }
+            if matches!(ctx.edev, ExpandedDevice::Virtex4(_))
+                && bslot == prjcombine_virtex4::defs::bslots::HCLK_IO_INT
             {
                 is_empty_ok = true;
             }
@@ -1102,6 +1149,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.collect_delay(tcid, delay.dst, delay.steps.len());
                     }
                     SwitchBoxItem::PairMux(_) => (),
+                    SwitchBoxItem::WireSupport(_) => (),
                     _ => unreachable!(),
                 }
             }

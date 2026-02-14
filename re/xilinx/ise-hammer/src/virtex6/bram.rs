@@ -4,7 +4,9 @@ use prjcombine_re_collector::legacy::{
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bits;
-use prjcombine_virtex4::{chip::ChipKind, defs};
+use prjcombine_virtex4::{
+    chip::ChipKind, defs, defs::virtex6::tcls as tcls_v6, defs::virtex7::tcls as tcls_v7,
+};
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -16,8 +18,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Virtex4(edev) = backend.edev else {
         unreachable!()
     };
+    let tcid = match edev.kind {
+        ChipKind::Virtex6 => tcls_v6::BRAM,
+        ChipKind::Virtex7 => tcls_v7::BRAM,
+        _ => unreachable!(),
+    };
     // TODO: globals: RSR[BT] RSR[BT]P EN_TSTEFUSEDLYCTRL
-    let mut ctx = FuzzCtx::new_legacy(session, backend, "BRAM");
+    let mut ctx = FuzzCtx::new(session, backend, tcid);
     {
         let mut bctx = ctx.bel(defs::bslots::BRAM_F);
         let mode = "RAMB36E1";

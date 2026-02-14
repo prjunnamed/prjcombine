@@ -12,7 +12,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, virtex5::tcls};
 
 use crate::{
     backend::{IseBackend, PinFromKind},
@@ -44,7 +44,7 @@ pub fn add_fuzzers<'a>(
     skip_pll: bool,
     devdata_only: bool,
 ) {
-    let mut ctx = FuzzCtx::new_legacy(session, backend, "CMT");
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CMT);
 
     if devdata_only {
         let mut bctx = ctx.bel(defs::bslots::PLL);
@@ -304,7 +304,7 @@ pub fn add_fuzzers<'a>(
                 bctx.mode(mode)
                     .mutex("MODE", "ATTR")
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                    .test_multi_attr_bin(attr, width);
+                    .test_multi_attr_bin_legacy(attr, width);
             }
             for (attr, width) in [
                 ("DESKEW_ADJUST", 5),
@@ -632,7 +632,7 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "TEST")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .global_xy("PLLADV_*_USE_CALC", "NO")
-                .test_multi_attr_bin(attr, width);
+                .test_multi_attr_bin_legacy(attr, width);
         }
 
         for out in [
@@ -651,7 +651,7 @@ pub fn add_fuzzers<'a>(
                     .mutex("MODE", "TEST")
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                     .global_xy("PLLADV_*_USE_CALC", "NO")
-                    .test_multi_attr_bin(format!("PLL_{out}_{at}"), 6);
+                    .test_multi_attr_bin_legacy(format!("PLL_{out}_{at}"), 6);
             }
         }
         for out in [
@@ -661,7 +661,7 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "TEST")
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .global_xy("PLLADV_*_USE_CALC", "NO")
-                .test_multi_attr_bin(format!("PLL_{out}_PM"), 3);
+                .test_multi_attr_bin_legacy(format!("PLL_{out}_PM"), 3);
         }
         bctx.mode(mode)
             .mutex("MODE", "COMP")
