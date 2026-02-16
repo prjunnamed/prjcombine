@@ -1,13 +1,16 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::TileClassId,
+    db::{EnumValueId, TileClassId, WireSlotIdExt},
     grid::{CellCoord, DieId, RowId, TileCoord, TileIobId},
 };
 use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, FeatureId, OcdMode},
+    diff::{
+        Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
+        xlat_bit_wide, xlat_enum_attr,
+    },
     legacy::{
-        extract_bitvec_val_legacy, extract_bitvec_val_part_legacy, xlat_bit_legacy,
-        xlat_bit_wide_legacy, xlat_bitvec_legacy, xlat_enum_legacy, xlat_enum_legacy_ocd,
+        extract_bitvec_val_part_legacy, xlat_bit_legacy, xlat_bit_wide_legacy, xlat_bitvec_legacy,
+        xlat_enum_legacy, xlat_enum_legacy_ocd,
     },
 };
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
@@ -20,7 +23,10 @@ use prjcombine_types::{
 };
 use prjcombine_virtex4::{
     chip::ChipKind,
-    defs::{self, tslots, virtex5::tcls},
+    defs::{
+        self, bcls, bslots, enums, tslots,
+        virtex5::{tcls, wires},
+    },
     expanded::IoCoord,
 };
 
@@ -29,14 +35,16 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
+        int::BaseIntPip,
         iostd::{DciKind, DiffKind, Iostd},
         props::{
             DynProp,
             bel::BaseBelMode,
+            mutex::WireMutexExclusive,
             relation::{FixedRelation, Related, TileRelation},
         },
     },
-    virtex4::io::IsBonded,
+    virtex4::{io::IsBonded, specials},
 };
 
 const IOSTDS: &[Iostd] = &[
@@ -186,7 +194,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
         for vref in vrefs {
             let site = backend
                 .ngrid
-                .get_bel_name(vref.cell.bel(defs::bslots::IOB[0]))
+                .get_bel_name(vref.cell.bel(bslots::IOB[0]))
                 .unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             fuzzer.info.features.push(FuzzerFeature {
@@ -204,9 +212,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct VrefInternal(pub TileClassId, pub u32);
+pub struct VrefInternalLegacy(pub TileClassId, pub u32);
 
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternalLegacy {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -251,6 +259,58 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {
 }
 
 #[derive(Clone, Copy, Debug)]
+pub struct VrefInternal(pub TileClassId, pub EnumValueId);
+
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {
+    fn dyn_clone(&self) -> Box<DynProp<'b>> {
+        Box::new(Clone::clone(self))
+    }
+
+    fn apply(
+        &self,
+        backend: &IseBackend<'b>,
+        tcrd: TileCoord,
+        mut fuzzer: Fuzzer<IseBackend<'b>>,
+    ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
+        let ExpandedDevice::Virtex4(edev) = backend.edev else {
+            unreachable!()
+        };
+        let chip = edev.chips[tcrd.die];
+        let hclk_row = chip.row_hclk(tcrd.row);
+        // Take exclusive mutex on VREF.
+        let hclk_ioi = tcrd.with_row(hclk_row).tile(tslots::HCLK_BEL);
+        if edev[hclk_ioi].class != self.0 {
+            return None;
+        }
+        fuzzer = fuzzer.fuzz(
+            Key::TileMutex(hclk_ioi, "VREF".to_string()),
+            None,
+            "EXCLUSIVE",
+        );
+        let io = edev.get_io_info(IoCoord {
+            cell: tcrd.cell,
+            iob: TileIobId::from_idx(0),
+        });
+        let val = match self.1 {
+            enums::INTERNAL_VREF::_600 => 600,
+            enums::INTERNAL_VREF::_675 => 675,
+            enums::INTERNAL_VREF::_750 => 750,
+            enums::INTERNAL_VREF::_900 => 900,
+            enums::INTERNAL_VREF::_1080 => 1080,
+            enums::INTERNAL_VREF::_1100 => 1100,
+            enums::INTERNAL_VREF::_1250 => 1250,
+            _ => unreachable!(),
+        };
+        fuzzer = fuzzer.fuzz(Key::InternalVref(io.bank), None, val);
+        fuzzer.info.features.push(FuzzerFeature {
+            key: DiffKey::BelAttrValue(self.0, bslots::BANK, bcls::BANK::INTERNAL_VREF, self.1),
+            rects: edev.tile_bits(hclk_ioi),
+        });
+        Some((fuzzer, false))
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
 struct Dci(Option<&'static str>);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
@@ -280,7 +340,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Ensure nothing is placed in VR.
         let vr_row = RowId::from_idx(tcrd.row.to_idx() / 20 * 20 + 7);
         let tile_vr = tcrd.with_row(vr_row).tile(defs::tslots::BEL);
-        for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
+        for bel in [bslots::IOB[0], bslots::IOB[1]] {
             let site = backend.ngrid.get_bel_name(tile_vr.cell.bel(bel)).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
         }
@@ -324,14 +384,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         let iob_center = tcrd
             .cell
             .with_cr(edev.col_cfg, chip.row_bufg() - 30)
-            .bel(defs::bslots::IOB[0]);
+            .bel(bslots::IOB[0]);
         let site = backend.ngrid.get_bel_name(iob_center).unwrap();
         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
         fuzzer = fuzzer.base(Key::SiteAttr(site, "OUSED".into()), "0");
         fuzzer = fuzzer.base(Key::SiteAttr(site, "OSTANDARD".into()), "LVDCI_33");
         // Ensure anchor VR IOBs are free.
-        for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
+        for bel in [bslots::IOB[0], bslots::IOB[1]] {
             let iob_center_vr = tcrd
                 .cell
                 .with_cr(edev.col_cfg, chip.row_bufg() - 30 + 2)
@@ -401,8 +461,8 @@ pub fn add_fuzzers<'a>(
 
     if devdata_only {
         for i in 0..2 {
-            let bel_other = defs::bslots::IODELAY[i ^ 1];
-            let mut bctx = ctx.bel(defs::bslots::IODELAY[i]);
+            let bel_other = bslots::IODELAY[i ^ 1];
+            let mut bctx = ctx.bel(bslots::IODELAY[i]);
             bctx.mode("IODELAY")
                 .global("LEGIDELAY", "ENABLE")
                 .bel_mode(bel_other, "IODELAY")
@@ -410,7 +470,7 @@ pub fn add_fuzzers<'a>(
                 .bel_attr(bel_other, "IDELAY_TYPE", "FIXED")
                 .prop(Related::new(
                     HclkIoi,
-                    BaseBelMode::new(defs::bslots::IDELAYCTRL, 0, "IDELAYCTRL".into()),
+                    BaseBelMode::new(bslots::IDELAYCTRL, 0, "IDELAYCTRL".into()),
                 ))
                 .test_enum_legacy("IDELAY_TYPE", &["DEFAULT"]);
         }
@@ -430,42 +490,10 @@ pub fn add_fuzzers<'a>(
         })
         .unwrap();
 
-    {
-        let mut bctx = ctx.bel(defs::bslots::IOI);
-        for i in 0..2 {
-            for j in 0..2 {
-                bctx.build()
-                    .mutex(format!("MUX.ICLK{i}"), format!("CKINT{j}"))
-                    .test_manual_legacy(format!("MUX.ICLK{i}"), format!("CKINT{j}"))
-                    .pip(format!("ICLK{i}"), format!("CKINT{j}"))
-                    .commit();
-            }
-            for j in 0..4 {
-                bctx.build()
-                    .mutex(format!("MUX.ICLK{i}"), format!("IOCLK{j}"))
-                    .test_manual_legacy(format!("MUX.ICLK{i}"), format!("IOCLK{j}"))
-                    .pip(format!("ICLK{i}"), format!("IOCLK{j}"))
-                    .commit();
-                bctx.build()
-                    .mutex(format!("MUX.ICLK{i}"), format!("RCLK{j}"))
-                    .test_manual_legacy(format!("MUX.ICLK{i}"), format!("RCLK{j}"))
-                    .pip(format!("ICLK{i}"), format!("RCLK{j}"))
-                    .commit();
-            }
-            for j in 0..10 {
-                bctx.build()
-                    .mutex(format!("MUX.ICLK{i}"), format!("HCLK{j}"))
-                    .test_manual_legacy(format!("MUX.ICLK{i}"), format!("HCLK{j}"))
-                    .pip(format!("ICLK{i}"), format!("HCLK{j}"))
-                    .commit();
-            }
-        }
-    }
-
     for i in 0..2 {
-        let mut bctx = ctx.bel(defs::bslots::ILOGIC[i]);
-        let bel_ologic = defs::bslots::OLOGIC[i];
-        let bel_iodelay = defs::bslots::IODELAY[i];
+        let mut bctx = ctx.bel(bslots::ILOGIC[i]);
+        let bel_ologic = bslots::OLOGIC[i];
+        let bel_iodelay = bslots::IODELAY[i];
         bctx.build()
             .bel_unused(bel_ologic)
             .test_manual_legacy("PRESENT", "ILOGIC")
@@ -477,193 +505,197 @@ pub fn add_fuzzers<'a>(
             .mode("ISERDES")
             .commit();
 
-        for (pin, pin_t, pin_c) in [("CLK", "CLK", "CLK_B"), ("CLKB", "CLKB_B", "CLKB")] {
+        for (wt, pin, pin_t, pin_c) in [
+            (wires::IMUX_ILOGIC_CLK[i], "CLK", "CLK", "CLK_B"),
+            (wires::IMUX_ILOGIC_CLKB[i], "CLKB", "CLKB_B", "CLKB"),
+        ] {
+            let wt = wt.cell(0);
             for j in 0..2 {
-                bctx.build()
-                    .tile_mutex("ICLK", "MUX")
-                    .mutex(format!("MUX.{pin}"), format!("ICLK{j}"))
-                    .test_manual_legacy(format!("MUX.{pin}"), format!("ICLK{j}"))
-                    .pip(pin, (defs::bslots::IOI, format!("ICLK{j}")))
-                    .commit();
+                let wo = wires::IMUX_IO_ICLK_OPTINV[j].cell(0);
+                let wf = wires::IMUX_IO_ICLK[j].cell(0);
                 bctx.mode("ISERDES")
-                    .tile_mutex("ICLK", format!("INV.{pin}.{i}.{j}"))
-                    .pip(pin, (defs::bslots::IOI, format!("ICLK{j}")))
+                    .prop(WireMutexExclusive::new(wt))
+                    .prop(WireMutexExclusive::new(wo))
+                    .prop(WireMutexExclusive::new(wf))
+                    .prop(BaseIntPip::new(wt, wo))
                     .pin(pin)
-                    .test_manual_legacy(format!("INV.ICLK{j}"), "0")
+                    .test_routing(wo, wf.pos())
                     .attr(format!("{pin}INV"), pin_t)
                     .commit();
                 bctx.mode("ISERDES")
-                    .tile_mutex("ICLK", format!("INV.{pin}.{i}.{j}"))
-                    .pip(pin, (defs::bslots::IOI, format!("ICLK{j}")))
+                    .prop(WireMutexExclusive::new(wt))
+                    .prop(WireMutexExclusive::new(wo))
+                    .prop(WireMutexExclusive::new(wf))
+                    .prop(BaseIntPip::new(wt, wo))
                     .pin(pin)
-                    .test_manual_legacy(format!("INV.ICLK{j}"), "1")
+                    .test_routing(wo, wf.neg())
                     .attr(format!("{pin}INV"), pin_c)
                     .commit();
             }
-
-            bctx.mode("ISERDES")
-                .bel_unused(bel_iodelay)
-                .test_inv_legacy("CLKDIV");
-
-            bctx.mode("ISERDES")
-                .attr("INTERFACE_TYPE", "MEMORY")
-                .attr("DATA_RATE", "SDR")
-                .pin("OCLK")
-                .test_enum_suffix_legacy("OCLKINV", "SDR", &["OCLK", "OCLK_B"]);
-            bctx.mode("ISERDES")
-                .attr("INTERFACE_TYPE", "MEMORY")
-                .attr("DATA_RATE", "DDR")
-                .pin("OCLK")
-                .test_enum_suffix_legacy("OCLKINV", "DDR", &["OCLK", "OCLK_B"]);
-
-            bctx.mode("ILOGIC")
-                .attr("IFFTYPE", "#FF")
-                .pin("SR")
-                .test_enum_legacy("SRUSED", &["0"]);
-            bctx.mode("ILOGIC")
-                .attr("IFFTYPE", "#FF")
-                .pin("REV")
-                .test_enum_legacy("REVUSED", &["0"]);
-
-            bctx.mode("ISERDES")
-                .attr("DATA_WIDTH", "2")
-                .test_enum_legacy("SERDES", &["FALSE", "TRUE"]);
-            bctx.mode("ISERDES")
-                .test_enum_legacy("SERDES_MODE", &["MASTER", "SLAVE"]);
-            bctx.mode("ISERDES")
-                .test_enum_legacy("INTERFACE_TYPE", &["NETWORKING", "MEMORY"]);
-            bctx.mode("ISERDES")
-                .attr("SERDES", "FALSE")
-                .test_enum_legacy("DATA_WIDTH", &["2", "3", "4", "5", "6", "7", "8", "10"]);
-            bctx.mode("ISERDES")
-                .attr("SRTYPE", "SYNC")
-                .test_enum_suffix_legacy("BITSLIP_ENABLE", "SYNC", &["FALSE", "TRUE"]);
-            bctx.mode("ISERDES")
-                .attr("SRTYPE", "ASYNC")
-                .test_enum_suffix_legacy("BITSLIP_ENABLE", "ASYNC", &["FALSE", "TRUE"]);
-            bctx.mode("ISERDES").test_enum_legacy("NUM_CE", &["1", "2"]);
-            bctx.mode("ISERDES")
-                .attr("INIT_BITSLIPCNT", "1111")
-                .attr("INIT_RANK1_PARTIAL", "11111")
-                .attr("INIT_RANK2", "111111")
-                .attr("INIT_RANK3", "111111")
-                .attr("INIT_CE", "11")
-                .test_enum_legacy("DATA_RATE", &["SDR", "DDR"]);
-            bctx.mode("ISERDES").test_enum_legacy(
-                "DDR_CLK_EDGE",
-                &["OPPOSITE_EDGE", "SAME_EDGE", "SAME_EDGE_PIPELINED"],
-            );
-
-            bctx.mode("ILOGIC").attr("IFFTYPE", "DDR").test_enum_legacy(
-                "DDR_CLK_EDGE",
-                &["OPPOSITE_EDGE", "SAME_EDGE", "SAME_EDGE_PIPELINED"],
-            );
-            bctx.mode("ILOGIC")
-                .test_enum_legacy("IFFTYPE", &["#FF", "#LATCH", "DDR"]);
-            for attr in [
-                "INIT_Q1", "INIT_Q2", "INIT_Q3", "INIT_Q4", "SRVAL_Q1", "SRVAL_Q2", "SRVAL_Q3",
-                "SRVAL_Q4",
-            ] {
-                bctx.mode("ISERDES").test_enum_legacy(attr, &["0", "1"]);
-            }
-
-            bctx.mode("ILOGIC")
-                .attr("IFFTYPE", "#FF")
-                .test_enum_legacy("SRTYPE", &["SYNC", "ASYNC"]);
-            bctx.mode("ISERDES")
-                .test_enum_legacy("SRTYPE", &["SYNC", "ASYNC"]);
-            bctx.mode("ISERDES")
-                .attr("DATA_RATE", "SDR")
-                .test_multi_attr_bin_legacy("INIT_CE", 2);
-            bctx.mode("ISERDES")
-                .attr("DATA_RATE", "SDR")
-                .test_multi_attr_bin_legacy("INIT_BITSLIPCNT", 4);
-            bctx.mode("ISERDES")
-                .attr("DATA_RATE", "SDR")
-                .test_multi_attr_bin_legacy("INIT_RANK1_PARTIAL", 5);
-            bctx.mode("ISERDES")
-                .attr("DATA_RATE", "SDR")
-                .test_multi_attr_bin_legacy("INIT_RANK2", 6);
-            bctx.mode("ISERDES")
-                .attr("DATA_RATE", "SDR")
-                .test_multi_attr_bin_legacy("INIT_RANK3", 6);
-
-            bctx.mode("ISERDES")
-                .pin("OFB")
-                .test_enum_legacy("OFB_USED", &["FALSE", "TRUE"]);
-            bctx.mode("ISERDES")
-                .pin("TFB")
-                .test_enum_legacy("TFB_USED", &["FALSE", "TRUE"]);
-            bctx.mode("ISERDES")
-                .test_enum_legacy("IOBDELAY", &["NONE", "IFD", "IBUF", "BOTH"]);
-
-            bctx.mode("ILOGIC")
-                .attr("IMUX", "0")
-                .attr("IDELMUX", "1")
-                .attr("IFFMUX", "#OFF")
-                .pin("D")
-                .pin("DDLY")
-                .pin("TFB")
-                .pin("OFB")
-                .pin("O")
-                .test_enum_legacy("D2OBYP_SEL", &["GND", "T"]);
-            bctx.mode("ILOGIC")
-                .attr("IFFMUX", "0")
-                .attr("IFFTYPE", "#FF")
-                .attr("IFFDELMUX", "1")
-                .attr("IMUX", "#OFF")
-                .pin("D")
-                .pin("DDLY")
-                .pin("TFB")
-                .pin("OFB")
-                .test_enum_legacy("D2OFFBYP_SEL", &["GND", "T"]);
-            bctx.mode("ILOGIC")
-                .attr("IDELMUX", "1")
-                .pin("D")
-                .pin("DDLY")
-                .pin("O")
-                .pin("TFB")
-                .pin("OFB")
-                .test_enum_legacy("IMUX", &["0", "1"]);
-            bctx.mode("ILOGIC")
-                .attr("IFFDELMUX", "1")
-                .attr("IFFTYPE", "#FF")
-                .pin("D")
-                .pin("DDLY")
-                .pin("TFB")
-                .pin("OFB")
-                .test_enum_legacy("IFFMUX", &["0", "1"]);
-            bctx.mode("ILOGIC")
-                .attr("IMUX", "1")
-                .attr("IFFMUX", "1")
-                .attr("IFFTYPE", "#FF")
-                .attr("IFFDELMUX", "0")
-                .pin("D")
-                .pin("DDLY")
-                .pin("O")
-                .pin("Q1")
-                .pin("TFB")
-                .pin("OFB")
-                .test_enum_legacy("IDELMUX", &["0", "1"]);
-            bctx.mode("ILOGIC")
-                .attr("IMUX", "1")
-                .attr("IFFMUX", "0")
-                .attr("IFFTYPE", "#FF")
-                .attr("IDELMUX", "0")
-                .attr("D2OFFBYP_SEL", "T")
-                .pin("D")
-                .pin("DDLY")
-                .pin("O")
-                .pin("Q1")
-                .pin("TFB")
-                .pin("OFB")
-                .test_enum_legacy("IFFDELMUX", &["0", "1"]);
         }
+
+        bctx.mode("ISERDES")
+            .bel_unused(bel_iodelay)
+            .test_inv_legacy("CLKDIV");
+
+        bctx.mode("ISERDES")
+            .attr("INTERFACE_TYPE", "MEMORY")
+            .attr("DATA_RATE", "SDR")
+            .pin("OCLK")
+            .test_enum_suffix_legacy("OCLKINV", "SDR", &["OCLK", "OCLK_B"]);
+        bctx.mode("ISERDES")
+            .attr("INTERFACE_TYPE", "MEMORY")
+            .attr("DATA_RATE", "DDR")
+            .pin("OCLK")
+            .test_enum_suffix_legacy("OCLKINV", "DDR", &["OCLK", "OCLK_B"]);
+
+        bctx.mode("ILOGIC")
+            .attr("IFFTYPE", "#FF")
+            .pin("SR")
+            .test_enum_legacy("SRUSED", &["0"]);
+        bctx.mode("ILOGIC")
+            .attr("IFFTYPE", "#FF")
+            .pin("REV")
+            .test_enum_legacy("REVUSED", &["0"]);
+
+        bctx.mode("ISERDES")
+            .attr("DATA_WIDTH", "2")
+            .test_enum_legacy("SERDES", &["FALSE", "TRUE"]);
+        bctx.mode("ISERDES")
+            .test_enum_legacy("SERDES_MODE", &["MASTER", "SLAVE"]);
+        bctx.mode("ISERDES")
+            .test_enum_legacy("INTERFACE_TYPE", &["NETWORKING", "MEMORY"]);
+        bctx.mode("ISERDES")
+            .attr("SERDES", "FALSE")
+            .test_enum_legacy("DATA_WIDTH", &["2", "3", "4", "5", "6", "7", "8", "10"]);
+        bctx.mode("ISERDES")
+            .attr("SRTYPE", "SYNC")
+            .test_enum_suffix_legacy("BITSLIP_ENABLE", "SYNC", &["FALSE", "TRUE"]);
+        bctx.mode("ISERDES")
+            .attr("SRTYPE", "ASYNC")
+            .test_enum_suffix_legacy("BITSLIP_ENABLE", "ASYNC", &["FALSE", "TRUE"]);
+        bctx.mode("ISERDES").test_enum_legacy("NUM_CE", &["1", "2"]);
+        bctx.mode("ISERDES")
+            .attr("INIT_BITSLIPCNT", "1111")
+            .attr("INIT_RANK1_PARTIAL", "11111")
+            .attr("INIT_RANK2", "111111")
+            .attr("INIT_RANK3", "111111")
+            .attr("INIT_CE", "11")
+            .test_enum_legacy("DATA_RATE", &["SDR", "DDR"]);
+        bctx.mode("ISERDES").test_enum_legacy(
+            "DDR_CLK_EDGE",
+            &["OPPOSITE_EDGE", "SAME_EDGE", "SAME_EDGE_PIPELINED"],
+        );
+
+        bctx.mode("ILOGIC").attr("IFFTYPE", "DDR").test_enum_legacy(
+            "DDR_CLK_EDGE",
+            &["OPPOSITE_EDGE", "SAME_EDGE", "SAME_EDGE_PIPELINED"],
+        );
+        bctx.mode("ILOGIC")
+            .test_enum_legacy("IFFTYPE", &["#FF", "#LATCH", "DDR"]);
+        for attr in [
+            "INIT_Q1", "INIT_Q2", "INIT_Q3", "INIT_Q4", "SRVAL_Q1", "SRVAL_Q2", "SRVAL_Q3",
+            "SRVAL_Q4",
+        ] {
+            bctx.mode("ISERDES").test_enum_legacy(attr, &["0", "1"]);
+        }
+
+        bctx.mode("ILOGIC")
+            .attr("IFFTYPE", "#FF")
+            .test_enum_legacy("SRTYPE", &["SYNC", "ASYNC"]);
+        bctx.mode("ISERDES")
+            .test_enum_legacy("SRTYPE", &["SYNC", "ASYNC"]);
+        bctx.mode("ISERDES")
+            .attr("DATA_RATE", "SDR")
+            .test_multi_attr_bin_legacy("INIT_CE", 2);
+        bctx.mode("ISERDES")
+            .attr("DATA_RATE", "SDR")
+            .test_multi_attr_bin_legacy("INIT_BITSLIPCNT", 4);
+        bctx.mode("ISERDES")
+            .attr("DATA_RATE", "SDR")
+            .test_multi_attr_bin_legacy("INIT_RANK1_PARTIAL", 5);
+        bctx.mode("ISERDES")
+            .attr("DATA_RATE", "SDR")
+            .test_multi_attr_bin_legacy("INIT_RANK2", 6);
+        bctx.mode("ISERDES")
+            .attr("DATA_RATE", "SDR")
+            .test_multi_attr_bin_legacy("INIT_RANK3", 6);
+
+        bctx.mode("ISERDES")
+            .pin("OFB")
+            .test_enum_legacy("OFB_USED", &["FALSE", "TRUE"]);
+        bctx.mode("ISERDES")
+            .pin("TFB")
+            .test_enum_legacy("TFB_USED", &["FALSE", "TRUE"]);
+        bctx.mode("ISERDES")
+            .test_enum_legacy("IOBDELAY", &["NONE", "IFD", "IBUF", "BOTH"]);
+
+        bctx.mode("ILOGIC")
+            .attr("IMUX", "0")
+            .attr("IDELMUX", "1")
+            .attr("IFFMUX", "#OFF")
+            .pin("D")
+            .pin("DDLY")
+            .pin("TFB")
+            .pin("OFB")
+            .pin("O")
+            .test_enum_legacy("D2OBYP_SEL", &["GND", "T"]);
+        bctx.mode("ILOGIC")
+            .attr("IFFMUX", "0")
+            .attr("IFFTYPE", "#FF")
+            .attr("IFFDELMUX", "1")
+            .attr("IMUX", "#OFF")
+            .pin("D")
+            .pin("DDLY")
+            .pin("TFB")
+            .pin("OFB")
+            .test_enum_legacy("D2OFFBYP_SEL", &["GND", "T"]);
+        bctx.mode("ILOGIC")
+            .attr("IDELMUX", "1")
+            .pin("D")
+            .pin("DDLY")
+            .pin("O")
+            .pin("TFB")
+            .pin("OFB")
+            .test_enum_legacy("IMUX", &["0", "1"]);
+        bctx.mode("ILOGIC")
+            .attr("IFFDELMUX", "1")
+            .attr("IFFTYPE", "#FF")
+            .pin("D")
+            .pin("DDLY")
+            .pin("TFB")
+            .pin("OFB")
+            .test_enum_legacy("IFFMUX", &["0", "1"]);
+        bctx.mode("ILOGIC")
+            .attr("IMUX", "1")
+            .attr("IFFMUX", "1")
+            .attr("IFFTYPE", "#FF")
+            .attr("IFFDELMUX", "0")
+            .pin("D")
+            .pin("DDLY")
+            .pin("O")
+            .pin("Q1")
+            .pin("TFB")
+            .pin("OFB")
+            .test_enum_legacy("IDELMUX", &["0", "1"]);
+        bctx.mode("ILOGIC")
+            .attr("IMUX", "1")
+            .attr("IFFMUX", "0")
+            .attr("IFFTYPE", "#FF")
+            .attr("IDELMUX", "0")
+            .attr("D2OFFBYP_SEL", "T")
+            .pin("D")
+            .pin("DDLY")
+            .pin("O")
+            .pin("Q1")
+            .pin("TFB")
+            .pin("OFB")
+            .test_enum_legacy("IFFDELMUX", &["0", "1"]);
     }
 
     for i in 0..2 {
-        let mut bctx = ctx.bel(defs::bslots::OLOGIC[i]);
-        let bel_ilogic = defs::bslots::ILOGIC[i];
+        let mut bctx = ctx.bel(bslots::OLOGIC[i]);
+        let bel_ilogic = bslots::ILOGIC[i];
         bctx.build()
             .bel_unused(bel_ilogic)
             .test_manual_legacy("PRESENT", "OLOGIC")
@@ -839,52 +871,12 @@ pub fn add_fuzzers<'a>(
             .test_enum_legacy("DATA_WIDTH", &["2", "3", "4", "5", "6", "7", "8", "10"]);
         bctx.mode("OSERDES")
             .test_multi_attr_bin_legacy("INIT_LOADCNT", 4);
-
-        bctx.build()
-            .mutex("MUX.CLK", "CKINT")
-            .test_manual_legacy("MUX.CLK", "CKINT")
-            .pip("CLKMUX", "CKINT")
-            .commit();
-        bctx.build()
-            .mutex("MUX.CLKDIV", "CKINT")
-            .test_manual_legacy("MUX.CLKDIV", "CKINT")
-            .pip("CLKDIVMUX", "CKINT_DIV")
-            .commit();
-        for i in 0..4 {
-            bctx.build()
-                .mutex("MUX.CLK", format!("IOCLK{i}"))
-                .test_manual_legacy("MUX.CLK", format!("IOCLK{i}"))
-                .pip("CLKMUX", (defs::bslots::IOI, format!("IOCLK{i}")))
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLK", format!("RCLK{i}"))
-                .test_manual_legacy("MUX.CLK", format!("RCLK{i}"))
-                .pip("CLKMUX", (defs::bslots::IOI, format!("RCLK{i}")))
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLKDIV", format!("RCLK{i}"))
-                .test_manual_legacy("MUX.CLKDIV", format!("RCLK{i}"))
-                .pip("CLKDIVMUX", (defs::bslots::IOI, format!("RCLK{i}")))
-                .commit();
-        }
-        for i in 0..10 {
-            bctx.build()
-                .mutex("MUX.CLK", format!("HCLK{i}"))
-                .test_manual_legacy("MUX.CLK", format!("HCLK{i}"))
-                .pip("CLKMUX", (defs::bslots::IOI, format!("HCLK{i}")))
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLKDIV", format!("HCLK{i}"))
-                .test_manual_legacy("MUX.CLKDIV", format!("HCLK{i}"))
-                .pip("CLKDIVMUX", (defs::bslots::IOI, format!("HCLK{i}")))
-                .commit();
-        }
     }
 
     for i in 0..2 {
-        let mut bctx = ctx.bel(defs::bslots::IODELAY[i]);
-        let bel_ilogic = defs::bslots::ILOGIC[i];
-        let bel_other = defs::bslots::IODELAY[i ^ 1];
+        let mut bctx = ctx.bel(bslots::IODELAY[i]);
+        let bel_ilogic = bslots::ILOGIC[i];
+        let bel_other = bslots::IODELAY[i ^ 1];
 
         bctx.build()
             .bel_mode(bel_other, "IODELAY")
@@ -914,7 +906,7 @@ pub fn add_fuzzers<'a>(
             .bel_attr(bel_other, "IDELAY_TYPE", "FIXED")
             .prop(Related::new(
                 HclkIoi,
-                BaseBelMode::new(defs::bslots::IDELAYCTRL, 0, "IDELAYCTRL".into()),
+                BaseBelMode::new(bslots::IDELAYCTRL, 0, "IDELAYCTRL".into()),
             ))
             .test_enum_legacy("IDELAY_TYPE", &["FIXED", "DEFAULT", "VARIABLE"]);
         bctx.mode("IODELAY")
@@ -924,7 +916,7 @@ pub fn add_fuzzers<'a>(
             .bel_attr(bel_other, "IDELAY_TYPE", "FIXED")
             .prop(Related::new(
                 HclkIoi,
-                BaseBelMode::new(defs::bslots::IDELAYCTRL, 0, "IDELAYCTRL".into()),
+                BaseBelMode::new(bslots::IDELAYCTRL, 0, "IDELAYCTRL".into()),
             ))
             .test_manual_legacy("LEGIDELAY", "DISABLE")
             .attr("IDELAY_TYPE", "FIXED")
@@ -932,11 +924,11 @@ pub fn add_fuzzers<'a>(
     }
 
     for i in 0..2 {
-        let bel = defs::bslots::IOB[i];
+        let bel = bslots::IOB[i];
         let mut bctx = ctx.bel(bel);
-        let bel_ologic = defs::bslots::OLOGIC[i];
-        let bel_iodelay = defs::bslots::IODELAY[i];
-        let bel_other = defs::bslots::IOB[i ^ 1];
+        let bel_ologic = bslots::OLOGIC[i];
+        let bel_iodelay = bslots::IODELAY[i];
+        let bel_other = bslots::IOB[i ^ 1];
         bctx.build()
             .global("DCIUPDATEMODE", "ASREQUIRED")
             .raw(Key::Package, &package.name)
@@ -1127,10 +1119,10 @@ pub fn add_fuzzers<'a>(
         }
 
         for (std, vref) in [
-            ("HSTL_I", 750),
-            ("HSTL_III", 900),
-            ("HSTL_III_18", 1080),
-            ("SSTL2_I", 1250),
+            ("HSTL_I", enums::INTERNAL_VREF::_750),
+            ("HSTL_III", enums::INTERNAL_VREF::_900),
+            ("HSTL_III_18", enums::INTERNAL_VREF::_1080),
+            ("SSTL2_I", enums::INTERNAL_VREF::_1250),
         ] {
             bctx.mode("IOB")
                 .attr("OUSED", "")
@@ -1156,7 +1148,7 @@ pub fn add_fuzzers<'a>(
         let mut ctx = FuzzCtx::new_null(session, backend);
         ctx.build()
             .global("ENABLEMISR", "Y")
-            .extra_tiles_by_bel_legacy(defs::bslots::OLOGIC[0], "OLOGIC_COMMON")
+            .extra_tiles_by_bel_legacy(bslots::OLOGIC[0], "OLOGIC_COMMON")
             .test_manual_legacy("OLOGIC_COMMON", "MISR_RESET", "1")
             .global_diff("MISRRESET", "N", "Y")
             .commit();
@@ -1171,18 +1163,18 @@ pub fn add_fuzzers<'a>(
         tcls::HCLK_IO_CMT_N,
     ] {
         if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) {
-            let mut bctx = ctx.bel(defs::bslots::DCI);
+            let mut bctx = ctx.bel(bslots::DCI);
             bctx.build()
                 .global_mutex("GLOBAL_DCI", "NOPE")
-                .test_manual_legacy("TEST_ENABLE", "1")
+                .test_bel_attr_bits(bcls::DCI_V4::TEST_ENABLE)
                 .mode("DCI")
                 .commit();
         }
     }
     let mut ctx = FuzzCtx::new_null(session, backend);
     ctx.build()
-        .extra_tiles_by_bel_legacy(defs::bslots::DCI, "DCI")
-        .test_manual_legacy("DCI", "QUIET", "1")
+        .extra_tiles_by_bel_attr_bits(bslots::DCI, bcls::DCI_V4::QUIET)
+        .test_global_special(specials::DCI_QUIET)
         .global_diff("DCIUPDATEMODE", "CONTINUOUS", "QUIET")
         .commit();
     for bank in [3, 4] {
@@ -1194,11 +1186,10 @@ pub fn add_fuzzers<'a>(
         let mut builder = ctx
             .build()
             .raw(Key::Package, &package.name)
-            .extra_tile_attr_legacy(
+            .extra_tile_attr_bits(
                 FixedRelation(edev.tile_cfg(die)),
-                "MISC",
-                "DCI_CLK_ENABLE",
-                "1",
+                bslots::MISC_CFG,
+                bcls::MISC_CFG::DCI_CLK_ENABLE,
             );
 
         // Find VR and IO rows.
@@ -1209,19 +1200,19 @@ pub fn add_fuzzers<'a>(
         };
         let vr_tile = CellCoord::new(die, edev.col_cfg, vr_row).tile(defs::tslots::BEL);
         let io_tile = CellCoord::new(die, edev.col_cfg, io_row).tile(defs::tslots::BEL);
-        let io_bel = io_tile.cell.bel(defs::bslots::IOB[0]);
+        let io_bel = io_tile.cell.bel(bslots::IOB[0]);
         let hclk_row = chip.row_hclk(io_row);
         let hclk_tcrd = CellCoord::new(die, edev.col_cfg, hclk_row).tile(defs::tslots::HCLK_BEL);
 
         // Ensure nothing is placed in VR.
-        for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
+        for bel in [bslots::IOB[0], bslots::IOB[1]] {
             let site = backend.ngrid.get_bel_name(vr_tile.cell.bel(bel)).unwrap();
             builder = builder.raw(Key::SiteMode(site), None);
         }
         builder = builder.extra_tile_attr_fixed_legacy(vr_tile, "IOB_COMMON", "PRESENT", "VR");
 
         // Set up hclk.
-        builder = builder.extra_tile_attr_fixed_legacy(hclk_tcrd, "DCI", "ENABLE", "1");
+        builder = builder.extra_fixed_bel_attr_bits(hclk_tcrd, bslots::DCI, bcls::DCI_V4::ENABLE);
 
         // Set up the IO and fire.
         let site = backend.ngrid.get_bel_name(io_bel).unwrap();
@@ -1259,9 +1250,9 @@ pub fn add_fuzzers<'a>(
             _ => unreachable!(),
         };
         let io_tile_from = CellCoord::new(die, edev.col_cfg, io_row_from).tile(defs::tslots::BEL);
-        let io_bel_from = io_tile_from.cell.bel(defs::bslots::IOB[0]);
+        let io_bel_from = io_tile_from.cell.bel(bslots::IOB[0]);
         let io_tile_to = CellCoord::new(die, edev.col_cfg, io_row_to).tile(defs::tslots::BEL);
-        let io_bel_to = io_tile_to.cell.bel(defs::bslots::IOB[0]);
+        let io_bel_to = io_tile_to.cell.bel(bslots::IOB[0]);
         let hclk_row_to = chip.row_hclk(io_row_to);
         let hclk_tcrd_to =
             CellCoord::new(die, edev.col_cfg, hclk_row_to).tile(defs::tslots::HCLK_BEL);
@@ -1270,8 +1261,8 @@ pub fn add_fuzzers<'a>(
         let bot = chip.row_reg_bot(chip.row_to_reg(io_row_from));
         for i in 0..chip.rows_per_reg() {
             let row = bot + i;
-            for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
-                if row == io_row_from && bel == defs::bslots::IOB[0] {
+            for bel in [bslots::IOB[0], bslots::IOB[1]] {
+                if row == io_row_from && bel == bslots::IOB[0] {
                     continue;
                 }
                 if let Some(site) = backend
@@ -1305,8 +1296,8 @@ pub fn add_fuzzers<'a>(
         let bot = chip.row_reg_bot(chip.row_to_reg(io_row_to));
         for i in 0..chip.rows_per_reg() {
             let row = bot + i;
-            for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
-                if row == io_row_to && bel == defs::bslots::IOB[0] {
+            for bel in [bslots::IOB[0], bslots::IOB[1]] {
+                if row == io_row_to && bel == bslots::IOB[0] {
                     continue;
                 }
                 if let Some(site) = backend
@@ -1336,15 +1327,14 @@ pub fn add_fuzzers<'a>(
             )
             .raw_diff(Key::DciCascade(bank_to), None, bank_from)
             .extra_tile_attr_fixed_legacy(io_tile_to, "IOB[0]", "OSTD", "LVDCI_33")
-            .extra_tile_attr_fixed_legacy(
+            .extra_fixed_bel_attr_bits(
                 hclk_tcrd_to,
-                "DCI",
+                bslots::DCI,
                 if bank_to == 1 {
-                    "CASCADE_FROM_ABOVE"
+                    bcls::DCI_V4::CASCADE_FROM_ABOVE
                 } else {
-                    "CASCADE_FROM_BELOW"
+                    bcls::DCI_V4::CASCADE_FROM_BELOW
                 },
-                "1",
             )
             .test_manual_legacy("NULL", format!("CASCADE_DCI.{bank_from}.{bank_to}"), "1")
             .commit();
@@ -1352,6 +1342,7 @@ pub fn add_fuzzers<'a>(
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
+    let tcid = tcls::IO;
     let tile = "IO";
 
     if devdata_only {
@@ -1375,44 +1366,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         return;
     }
 
-    {
-        let bel = "IOI";
-        ctx.collect_enum_default_legacy_ocd(
-            tile,
-            bel,
-            "MUX.ICLK0",
-            &[
-                "HCLK0", "HCLK1", "HCLK2", "HCLK3", "HCLK4", "HCLK5", "HCLK6", "HCLK7", "HCLK8",
-                "HCLK9", "IOCLK0", "IOCLK1", "IOCLK2", "IOCLK3", "RCLK0", "RCLK1", "RCLK2",
-                "RCLK3", "CKINT0", "CKINT1",
-            ],
-            "NONE",
-            OcdMode::Mux,
-        );
-        ctx.collect_enum_default_legacy_ocd(
-            tile,
-            bel,
-            "MUX.ICLK1",
-            &[
-                "HCLK0", "HCLK1", "HCLK2", "HCLK3", "HCLK4", "HCLK5", "HCLK6", "HCLK7", "HCLK8",
-                "HCLK9", "IOCLK0", "IOCLK1", "IOCLK2", "IOCLK3", "RCLK0", "RCLK1", "RCLK2",
-                "RCLK3", "CKINT0", "CKINT1",
-            ],
-            "NONE",
-            OcdMode::Mux,
-        );
-        for ibel in ["ILOGIC[0]", "ILOGIC[1]"] {
-            for attr in ["INV.ICLK0", "INV.ICLK1"] {
-                let item = ctx.extract_bit_wide_bi_legacy(tile, ibel, attr, "0", "1");
-                ctx.insert_legacy(tile, bel, attr, item);
-            }
-        }
-    }
+    ctx.collect_mux(tcid, wires::IMUX_IO_ICLK_OPTINV[0].cell(0));
+    ctx.collect_mux(tcid, wires::IMUX_IO_ICLK_OPTINV[1].cell(0));
+
     for i in 0..2 {
         let bel = &format!("ILOGIC[{i}]");
         ctx.collect_inv_legacy(tile, bel, "CLKDIV");
-        ctx.collect_enum_legacy(tile, bel, "MUX.CLK", &["ICLK0", "ICLK1"]);
-        ctx.collect_enum_legacy(tile, bel, "MUX.CLKB", &["ICLK0", "ICLK1"]);
 
         let diff1 = ctx.get_diff_legacy(tile, bel, "OCLKINV.DDR", "OCLK_B");
         let diff2 = ctx.get_diff_legacy(tile, bel, "OCLKINV.DDR", "OCLK");
@@ -1754,30 +1713,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ctx.collect_bit_bi_legacy(tile, bel, "MISR_ENABLE", "FALSE", "TRUE");
         ctx.collect_bit_bi_legacy(tile, bel, "MISR_ENABLE_FDBK", "FALSE", "TRUE");
         ctx.collect_enum_default_legacy(tile, bel, "MISR_CLK_SELECT", &["CLK1", "CLK2"], "NONE");
-
-        ctx.collect_enum_default_legacy_ocd(
-            tile,
-            bel,
-            "MUX.CLK",
-            &[
-                "HCLK0", "HCLK1", "HCLK2", "HCLK3", "HCLK4", "HCLK5", "HCLK6", "HCLK7", "HCLK8",
-                "HCLK9", "IOCLK0", "IOCLK1", "IOCLK2", "IOCLK3", "RCLK0", "RCLK1", "RCLK2",
-                "RCLK3", "CKINT",
-            ],
-            "NONE",
-            OcdMode::Mux,
-        );
-        ctx.collect_enum_default_legacy_ocd(
-            tile,
-            bel,
-            "MUX.CLKDIV",
-            &[
-                "HCLK0", "HCLK1", "HCLK2", "HCLK3", "HCLK4", "HCLK5", "HCLK6", "HCLK7", "HCLK8",
-                "HCLK9", "RCLK0", "RCLK1", "RCLK2", "RCLK3", "CKINT",
-            ],
-            "NONE",
-            OcdMode::Mux,
-        );
     }
     let mut diff = ctx.get_diff_legacy(tile, "OLOGIC_COMMON", "MISR_RESET", "1");
     let diff1 = diff.split_bits_by(|bit| bit.bit.to_idx() >= 32);
@@ -2279,155 +2214,180 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
     }
 
-    let lvdsbias = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 35, 15),
-            TileBit::new(0, 34, 15),
-            TileBit::new(0, 34, 14),
-            TileBit::new(0, 35, 14),
-            TileBit::new(0, 35, 13),
-            TileBit::new(0, 34, 13),
-            TileBit::new(0, 34, 12),
-            TileBit::new(0, 35, 12),
-            TileBit::new(0, 32, 13),
-            TileBit::new(0, 33, 13),
-            TileBit::new(0, 33, 12),
-            TileBit::new(0, 32, 12),
-        ],
-        false,
-    );
-    let lvdiv2 = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 52, 12),
-            TileBit::new(0, 53, 12),
-            TileBit::new(0, 53, 15),
-        ],
-        false,
-    );
-    let pref = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 51, 12),
-            TileBit::new(0, 50, 12),
-            TileBit::new(0, 53, 14),
-            TileBit::new(0, 52, 15),
-        ],
-        false,
-    );
-    let nref = TileItem::from_bitvec_inv(
-        vec![TileBit::new(0, 52, 14), TileBit::new(0, 52, 13)],
-        false,
-    );
-    let pmask_term_vcc = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 50, 15),
-            TileBit::new(0, 50, 14),
-            TileBit::new(0, 51, 14),
-            TileBit::new(0, 51, 13),
-            TileBit::new(0, 50, 13),
-        ],
-        false,
-    );
-    let pmask_term_split = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 46, 13),
-            TileBit::new(0, 46, 12),
-            TileBit::new(0, 47, 12),
-            TileBit::new(0, 48, 15),
-            TileBit::new(0, 49, 15),
-        ],
-        false,
-    );
-    let nmask_term_split = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 48, 13),
-            TileBit::new(0, 49, 13),
-            TileBit::new(0, 49, 12),
-            TileBit::new(0, 48, 12),
-            TileBit::new(0, 51, 15),
-        ],
-        false,
-    );
-    let vref = ctx.extract_enum_default_legacy(
-        "HCLK_IO",
-        "INTERNAL_VREF",
-        "VREF",
-        &["750", "900", "1080", "1250"],
-        "OFF",
-    );
-    let dci_en = ctx.extract_bit_legacy("HCLK_IO_CMT_N", "DCI", "ENABLE", "1");
+    let lvdsbias = vec![
+        TileBit::new(0, 35, 15).pos(),
+        TileBit::new(0, 34, 15).pos(),
+        TileBit::new(0, 34, 14).pos(),
+        TileBit::new(0, 35, 14).pos(),
+        TileBit::new(0, 35, 13).pos(),
+        TileBit::new(0, 34, 13).pos(),
+        TileBit::new(0, 34, 12).pos(),
+        TileBit::new(0, 35, 12).pos(),
+        TileBit::new(0, 32, 13).pos(),
+        TileBit::new(0, 33, 13).pos(),
+        TileBit::new(0, 33, 12).pos(),
+        TileBit::new(0, 32, 12).pos(),
+    ];
+    let lvdiv2 = vec![
+        TileBit::new(0, 52, 12).pos(),
+        TileBit::new(0, 53, 12).pos(),
+        TileBit::new(0, 53, 15).pos(),
+    ];
+    let pref = vec![
+        TileBit::new(0, 51, 12).pos(),
+        TileBit::new(0, 50, 12).pos(),
+        TileBit::new(0, 53, 14).pos(),
+        TileBit::new(0, 52, 15).pos(),
+    ];
+    let nref = vec![TileBit::new(0, 52, 14).pos(), TileBit::new(0, 52, 13).pos()];
+    let pmask_term_vcc = vec![
+        TileBit::new(0, 50, 15).pos(),
+        TileBit::new(0, 50, 14).pos(),
+        TileBit::new(0, 51, 14).pos(),
+        TileBit::new(0, 51, 13).pos(),
+        TileBit::new(0, 50, 13).pos(),
+    ];
+    let pmask_term_split = vec![
+        TileBit::new(0, 46, 13).pos(),
+        TileBit::new(0, 46, 12).pos(),
+        TileBit::new(0, 47, 12).pos(),
+        TileBit::new(0, 48, 15).pos(),
+        TileBit::new(0, 49, 15).pos(),
+    ];
+    let nmask_term_split = vec![
+        TileBit::new(0, 48, 13).pos(),
+        TileBit::new(0, 49, 13).pos(),
+        TileBit::new(0, 49, 12).pos(),
+        TileBit::new(0, 48, 12).pos(),
+        TileBit::new(0, 51, 15).pos(),
+    ];
+    let mut diffs = vec![(enums::INTERNAL_VREF::OFF, Default::default())];
+    for val in [
+        enums::INTERNAL_VREF::_750,
+        enums::INTERNAL_VREF::_900,
+        enums::INTERNAL_VREF::_1080,
+        enums::INTERNAL_VREF::_1250,
+    ] {
+        diffs.push((
+            val,
+            ctx.get_diff_attr_val(tcls::HCLK_IO, bslots::BANK, bcls::BANK::INTERNAL_VREF, val),
+        ));
+    }
+    let vref = xlat_enum_attr(diffs);
+    let dci_en =
+        xlat_bit(ctx.get_diff_attr_bool(tcls::HCLK_IO_CMT_N, bslots::DCI, bcls::DCI_V4::ENABLE));
     let has_bank3 = ctx.has_tcls(tcls::HCLK_IO_CMT_S);
     if has_bank3 {
-        let dci_en_too = ctx.extract_bit_legacy("HCLK_IO_CMT_S", "DCI", "ENABLE", "1");
+        let dci_en_too = xlat_bit(ctx.get_diff_attr_bool(
+            tcls::HCLK_IO_CMT_S,
+            bslots::DCI,
+            bcls::DCI_V4::ENABLE,
+        ));
         assert_eq!(dci_en, dci_en_too);
     }
     let dci_casc_above = if has_bank3 {
-        Some(ctx.extract_bit_legacy("HCLK_IO_CFG_N", "DCI", "CASCADE_FROM_ABOVE", "1"))
+        Some(xlat_bit(ctx.get_diff_attr_bool(
+            tcls::HCLK_IO_CFG_N,
+            bslots::DCI,
+            bcls::DCI_V4::CASCADE_FROM_ABOVE,
+        )))
     } else {
         None
     };
-    let dci_casc_below = ctx.extract_bit_legacy("HCLK_IO_CFG_S", "DCI", "CASCADE_FROM_BELOW", "1");
-    for tile in [
-        "HCLK_IO",
-        "HCLK_IO_CENTER",
-        "HCLK_IO_CFG_S",
-        "HCLK_IO_CFG_N",
-        "HCLK_IO_CMT_S",
-        "HCLK_IO_CMT_N",
+    let dci_casc_below = xlat_bit(ctx.get_diff_attr_bool(
+        tcls::HCLK_IO_CFG_S,
+        bslots::DCI,
+        bcls::DCI_V4::CASCADE_FROM_BELOW,
+    ));
+    for tcid in [
+        tcls::HCLK_IO,
+        tcls::HCLK_IO_CENTER,
+        tcls::HCLK_IO_CFG_S,
+        tcls::HCLK_IO_CFG_N,
+        tcls::HCLK_IO_CMT_S,
+        tcls::HCLK_IO_CMT_N,
     ] {
-        if !ctx.has_tile_legacy(tile) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
-        let bel = "LVDS";
-        ctx.insert_legacy(tile, bel, "LVDSBIAS", lvdsbias.clone());
-        let bel = "INTERNAL_VREF";
-        ctx.insert_legacy(tile, bel, "VREF", vref.clone());
-        let bel = "DCI";
-        ctx.insert_legacy(tile, bel, "ENABLE", dci_en.clone());
-        if let Some(ref dci_casc_above) = dci_casc_above {
-            ctx.insert_legacy(tile, bel, "CASCADE_FROM_ABOVE", dci_casc_above.clone());
+        let bslot = bslots::BANK;
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::BANK::V5_LVDSVIAS, lvdsbias.clone());
+        ctx.insert_bel_attr_enum(tcid, bslot, bcls::BANK::INTERNAL_VREF, vref.clone());
+        let bslot = bslots::DCI;
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCI_V4::ENABLE, dci_en);
+        if let Some(dci_casc_above) = dci_casc_above {
+            ctx.insert_bel_attr_bool(
+                tcid,
+                bslot,
+                bcls::DCI_V4::CASCADE_FROM_ABOVE,
+                dci_casc_above,
+            );
         }
-        ctx.insert_legacy(tile, bel, "CASCADE_FROM_BELOW", dci_casc_below.clone());
-        ctx.insert_legacy(tile, bel, "LVDIV2", lvdiv2.clone());
-        ctx.insert_legacy(tile, bel, "PREF", pref.clone());
-        ctx.insert_legacy(tile, bel, "NREF", nref.clone());
-        ctx.insert_legacy(tile, bel, "PMASK_TERM_VCC", pmask_term_vcc.clone());
-        ctx.insert_legacy(tile, bel, "PMASK_TERM_SPLIT", pmask_term_split.clone());
-        ctx.insert_legacy(tile, bel, "NMASK_TERM_SPLIT", nmask_term_split.clone());
-        ctx.collect_bit_wide_legacy(tile, bel, "TEST_ENABLE", "1");
-        ctx.collect_bit_legacy(tile, bel, "QUIET", "1");
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            bcls::DCI_V4::CASCADE_FROM_BELOW,
+            dci_casc_below,
+        );
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI_V4::V5_LVDIV2, lvdiv2.clone());
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI_V4::PREF, pref.clone());
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI_V4::NREF, nref.clone());
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::DCI_V4::PMASK_TERM_VCC,
+            pmask_term_vcc.clone(),
+        );
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::DCI_V4::PMASK_TERM_SPLIT,
+            pmask_term_split.clone(),
+        );
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            bcls::DCI_V4::NMASK_TERM_SPLIT,
+            nmask_term_split.clone(),
+        );
+        let te = xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, bcls::DCI_V4::TEST_ENABLE));
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI_V4::TEST_ENABLE, te);
+        ctx.collect_bel_attr(tcid, bslot, bcls::DCI_V4::QUIET);
     }
+    let tcid = tcls::HCLK_IO;
     let tile = "HCLK_IO";
     for std in IOSTDS {
         if std.diff == DiffKind::True {
             let bel = "LVDS";
             let diff = ctx.get_diff_legacy(tile, bel, "STD", std.name);
-            let val = extract_bitvec_val_legacy(&lvdsbias, &bits![0; 12], diff);
+            let val = extract_bitvec_val(&lvdsbias, &bits![0; 12], diff);
             ctx.insert_misc_data_legacy(format!("IOSTD:LVDSBIAS:{}", std.name), val);
         }
         if std.dci != DciKind::None {
             let bel = "DCI";
+            let bslot = bslots::DCI;
             let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
             let mut diff = ctx.get_diff_legacy(tile, bel, "STD", std.name);
             match std.dci {
                 DciKind::OutputHalf => {
-                    let val = extract_bitvec_val_part_legacy(
-                        ctx.item_legacy(tile, bel, "LVDIV2"),
+                    let val = extract_bitvec_val_part(
+                        ctx.bel_attr_bitvec(tcid, bslot, bcls::DCI_V4::V5_LVDIV2),
                         &bits![0; 3],
                         &mut diff,
                     );
                     ctx.insert_misc_data_legacy(format!("IOSTD:DCI:LVDIV2:{stdname}"), val);
                 }
                 DciKind::InputVcc | DciKind::BiVcc => {
-                    let val = extract_bitvec_val_part_legacy(
-                        ctx.item_legacy(tile, bel, "PMASK_TERM_VCC"),
+                    let val = extract_bitvec_val_part(
+                        ctx.bel_attr_bitvec(tcid, bslot, bcls::DCI_V4::PMASK_TERM_VCC),
                         &bits![0; 5],
                         &mut diff,
                     );
                     ctx.insert_misc_data_legacy(format!("IOSTD:DCI:PMASK_TERM_VCC:{stdname}"), val);
                 }
                 DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
-                    let val = extract_bitvec_val_part_legacy(
-                        ctx.item_legacy(tile, bel, "PMASK_TERM_SPLIT"),
+                    let val = extract_bitvec_val_part(
+                        ctx.bel_attr_bitvec(tcid, bslot, bcls::DCI_V4::PMASK_TERM_SPLIT),
                         &bits![0; 5],
                         &mut diff,
                     );
@@ -2435,8 +2395,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                         format!("IOSTD:DCI:PMASK_TERM_SPLIT:{stdname}"),
                         val,
                     );
-                    let val = extract_bitvec_val_part_legacy(
-                        ctx.item_legacy(tile, bel, "NMASK_TERM_SPLIT"),
+                    let val = extract_bitvec_val_part(
+                        ctx.bel_attr_bitvec(tcid, bslot, bcls::DCI_V4::NMASK_TERM_SPLIT),
                         &bits![0; 5],
                         &mut diff,
                     );
@@ -2447,7 +2407,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 }
                 _ => {}
             }
-            ctx.insert_legacy(tile, bel, "ENABLE", xlat_bit_legacy(diff));
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCI_V4::ENABLE, xlat_bit(diff));
         }
     }
     ctx.insert_misc_data_legacy("IOSTD:LVDSBIAS:OFF", bits![0; 12]);
@@ -2455,7 +2415,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     ctx.insert_misc_data_legacy("IOSTD:DCI:PMASK_TERM_VCC:OFF", bits![0; 5]);
     ctx.insert_misc_data_legacy("IOSTD:DCI:PMASK_TERM_SPLIT:OFF", bits![0; 5]);
     ctx.insert_misc_data_legacy("IOSTD:DCI:NMASK_TERM_SPLIT:OFF", bits![0; 5]);
-    let tile = "CFG";
-    let bel = "MISC";
-    ctx.collect_bit_wide_legacy(tile, bel, "DCI_CLK_ENABLE", "1");
+    {
+        let tcid = tcls::CFG;
+        let bslot = bslots::MISC_CFG;
+        let bits =
+            xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, bcls::MISC_CFG::DCI_CLK_ENABLE));
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::MISC_CFG::DCI_CLK_ENABLE, bits);
+    }
 }

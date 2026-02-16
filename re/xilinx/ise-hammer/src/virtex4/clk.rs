@@ -288,28 +288,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for &src in mux.src.keys() {
                     let mut builder = bctx.build().mutex("IxMUX", mux.dst);
 
-                    if let Some(idx) = wires::IMUX_BUFG_S.index_of(src.wire) {
+                    if let Some(idx) = wires::IMUX_BUFG_I.index_of(src.wire) {
                         let clk_iob = CellCoord::new(
                             DieId::from_idx(0),
                             edev.col_clk,
-                            edev.row_dcmiob.unwrap(),
+                            if src.cell.to_idx() == 0 {
+                                edev.row_dcmiob.unwrap()
+                            } else {
+                                edev.row_iobdcm.unwrap() - 16
+                            },
                         )
                         .tile(tslots::CLK);
+
                         builder = builder.global_mutex("CLK_IOB_MUXBUS", "USE").related_pip(
                             FixedRelation(clk_iob),
-                            wires::IMUX_BUFG_N[idx].cell(0),
-                            wires::OUT_CLKPAD.cell(0),
-                        )
-                    } else if let Some(idx) = wires::IMUX_BUFG_N.index_of(src.wire) {
-                        let clk_iob = CellCoord::new(
-                            DieId::from_idx(0),
-                            edev.col_clk,
-                            edev.row_iobdcm.unwrap() - 16,
-                        )
-                        .tile(tslots::CLK);
-                        builder = builder.global_mutex("CLK_IOB_MUXBUS", "USE").related_pip(
-                            FixedRelation(clk_iob),
-                            wires::IMUX_BUFG_S[idx].cell(0),
+                            wires::IMUX_BUFG_O[idx].cell(0),
                             wires::OUT_CLKPAD.cell(0),
                         )
                     } else if wires::MGT_ROW.contains(src.wire) {
@@ -401,10 +394,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    for (tcid, muxout, muxin) in [
-        (tcls::CLK_IOB_S, wires::IMUX_BUFG_N, wires::IMUX_BUFG_S),
-        (tcls::CLK_IOB_N, wires::IMUX_BUFG_S, wires::IMUX_BUFG_N),
-    ] {
+    for tcid in [tcls::CLK_IOB_S, tcls::CLK_IOB_N] {
         let mut ctx = FuzzCtx::new(session, backend, tcid);
         let mut bctx = ctx.bel(bslots::SPEC_INT);
         for i in 0..16 {
@@ -424,8 +414,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             _ => unreachable!(),
         };
         for i in 0..32 {
-            let mout = muxout[i].cell(0);
-            let min = muxin[i].cell(0);
+            let mout = wires::IMUX_BUFG_O[i].cell(0);
+            let min = wires::IMUX_BUFG_I[i].cell(0);
             for j in 0..16 {
                 let giob = wires::OUT_CLKPAD.cell(j);
                 bctx.build()
@@ -447,10 +437,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
     }
-    for (tcid, muxout, muxin) in [
-        (tcls::CLK_DCM_S, wires::IMUX_BUFG_N, wires::IMUX_BUFG_S),
-        (tcls::CLK_DCM_N, wires::IMUX_BUFG_S, wires::IMUX_BUFG_N),
-    ] {
+    for tcid in [tcls::CLK_DCM_S, tcls::CLK_DCM_N] {
         let mut ctx = FuzzCtx::new(session, backend, tcid);
         let mut bctx = ctx.bel(bslots::SPEC_INT);
         let clk_dcm = match tcid {
@@ -459,8 +446,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             _ => unreachable!(),
         };
         for i in 0..32 {
-            let mout = muxout[i].cell(0);
-            let min = muxin[i].cell(0);
+            let mout = wires::IMUX_BUFG_O[i].cell(0);
+            let min = wires::IMUX_BUFG_I[i].cell(0);
             for j in 0..24 {
                 let dcm = wires::OUT_DCM[j % 12].cell(j / 12 * 4);
                 bctx.build()
@@ -915,17 +902,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     // hack for small devices (without chain pip in CLK_DCM_*)
-    for (tcid, muxout, muxin) in [
-        (tcls::CLK_DCM_S, wires::IMUX_BUFG_N, wires::IMUX_BUFG_S),
-        (tcls::CLK_DCM_N, wires::IMUX_BUFG_S, wires::IMUX_BUFG_N),
-    ] {
+    for tcid in [tcls::CLK_DCM_S, tcls::CLK_DCM_N] {
         for i in 0..32 {
-            let diff11 =
-                ctx.peek_diff_routing(tcid, muxout[i].cell(0), wires::OUT_DCM[11].cell(0).pos());
-            let diff12 =
-                ctx.peek_diff_routing(tcid, muxout[i].cell(0), wires::OUT_DCM[0].cell(4).pos());
-            let diff18 =
-                ctx.peek_diff_routing(tcid, muxout[i].cell(0), wires::OUT_DCM[6].cell(4).pos());
+            let diff11 = ctx.peek_diff_routing(
+                tcid,
+                wires::IMUX_BUFG_O[i].cell(0),
+                wires::OUT_DCM[11].cell(0).pos(),
+            );
+            let diff12 = ctx.peek_diff_routing(
+                tcid,
+                wires::IMUX_BUFG_O[i].cell(0),
+                wires::OUT_DCM[0].cell(4).pos(),
+            );
+            let diff18 = ctx.peek_diff_routing(
+                tcid,
+                wires::IMUX_BUFG_O[i].cell(0),
+                wires::OUT_DCM[6].cell(4).pos(),
+            );
             let (_, _, mut diff) = Diff::split(diff11.clone(), diff12.clone());
             let (_, diff1, _) = Diff::split(diff12.clone(), diff18.clone());
             assert_eq!(diff1.bits.len(), 1);
@@ -964,8 +957,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             match ctx.diffs.entry(DiffKey::Routing(
                 tcid,
-                muxout[i].cell(0),
-                muxin[i].cell(0).pos(),
+                wires::IMUX_BUFG_O[i].cell(0),
+                wires::IMUX_BUFG_I[i].cell(0).pos(),
             )) {
                 btree_map::Entry::Vacant(e) => {
                     e.insert(vec![diff]);
@@ -976,13 +969,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
     }
-    for (tcid, wires) in [
-        (tcls::CLK_IOB_S, wires::IMUX_BUFG_N),
-        (tcls::CLK_IOB_N, wires::IMUX_BUFG_S),
-        (tcls::CLK_DCM_S, wires::IMUX_BUFG_N),
-        (tcls::CLK_DCM_N, wires::IMUX_BUFG_S),
+    for tcid in [
+        tcls::CLK_IOB_S,
+        tcls::CLK_IOB_N,
+        tcls::CLK_DCM_S,
+        tcls::CLK_DCM_N,
     ] {
-        for w in wires {
+        for w in wires::IMUX_BUFG_O {
             ctx.collect_mux(tcid, w.cell(0));
         }
     }

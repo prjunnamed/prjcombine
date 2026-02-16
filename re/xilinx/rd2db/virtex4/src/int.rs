@@ -267,54 +267,18 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             "CLK_BUFGCTRL_B",
             format!("CLK_BUFGCTRL_MUXED_CLK{i}"),
             0,
-            wires::IMUX_BUFG_S[i],
+            wires::IMUX_BUFG_I[i],
         );
         builder.extra_name_tile_sub(
             "CLK_BUFGCTRL_T",
             format!("CLK_BUFGCTRL_MUXED_CLK{i}"),
             8,
-            wires::IMUX_BUFG_N[i],
+            wires::IMUX_BUFG_I[i],
         );
-        builder.extra_name_tile(
-            "CLK_IOB_B",
-            format!("CLK_IOB_MUXED_CLKP{i}"),
-            wires::IMUX_BUFG_N[i],
-        );
-        builder.extra_name_tile(
-            "CLK_IOB_B",
-            format!("CLK_IOB_MUXED_CLKP_IN{i}"),
-            wires::IMUX_BUFG_S[i],
-        );
-        builder.extra_name_tile(
-            "CLK_IOB_T",
-            format!("CLK_IOB_MUXED_CLKP{i}"),
-            wires::IMUX_BUFG_S[i],
-        );
-        builder.extra_name_tile(
-            "CLK_IOB_T",
-            format!("CLK_IOB_MUXED_CLKP_IN{i}"),
-            wires::IMUX_BUFG_N[i],
-        );
-        builder.extra_name_tile(
-            "CLKV_DCM_B",
-            format!("CLKV_DCM_MUXED_CLKP_OUT{i}"),
-            wires::IMUX_BUFG_N[i],
-        );
-        builder.extra_name_tile(
-            "CLKV_DCM_B",
-            format!("CLK_IOB_MUXED_CLKP_IN{i}"),
-            wires::IMUX_BUFG_S[i],
-        );
-        builder.extra_name_tile(
-            "CLKV_DCM_T",
-            format!("CLKV_DCM_MUXED_CLKP_OUT{i}"),
-            wires::IMUX_BUFG_S[i],
-        );
-        builder.extra_name_tile(
-            "CLKV_DCM_T",
-            format!("CLK_IOB_MUXED_CLKP_IN{i}"),
-            wires::IMUX_BUFG_N[i],
-        );
+        builder.extra_name(format!("CLK_IOB_MUXED_CLKP{i}"), wires::IMUX_BUFG_O[i]);
+        builder.extra_name(format!("CLK_IOB_MUXED_CLKP_IN{i}"), wires::IMUX_BUFG_I[i]);
+        builder.extra_name(format!("CLKV_DCM_MUXED_CLKP_OUT{i}"), wires::IMUX_BUFG_O[i]);
+        builder.extra_name(format!("CLK_IOB_MUXED_CLKP_IN{i}"), wires::IMUX_BUFG_I[i]);
     }
     for i in 0..16 {
         builder.extra_name_tile_sub(
@@ -1393,8 +1357,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .num_cells(16)
                 .switchbox(bslots::CLK_INT)
                 .optin_muxes(&wires::GIOB[..])
-                .optin_muxes(&wires::IMUX_BUFG_S[..])
-                .optin_muxes(&wires::IMUX_BUFG_N[..])
+                .optin_muxes(&wires::IMUX_BUFG_O[..])
                 .extract();
         }
     }
@@ -1408,8 +1371,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .xtile_id(tcid, naming, xy)
                 .num_cells(8)
                 .switchbox(bslots::CLK_INT)
-                .optin_muxes(&wires::IMUX_BUFG_S[..])
-                .optin_muxes(&wires::IMUX_BUFG_N[..])
+                .optin_muxes(&wires::IMUX_BUFG_O[..])
                 .extract();
         }
     }
@@ -1421,8 +1383,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .pips
             .insert(
                 (
-                    wires::IMUX_BUFG_N[i].cell(0),
-                    wires::IMUX_BUFG_S[i].cell(0).pos(),
+                    wires::IMUX_BUFG_O[i].cell(0),
+                    wires::IMUX_BUFG_I[i].cell(0).pos(),
                 ),
                 PipMode::Mux,
             );
@@ -1433,8 +1395,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .pips
             .insert(
                 (
-                    wires::IMUX_BUFG_S[i].cell(0),
-                    wires::IMUX_BUFG_N[i].cell(0).pos(),
+                    wires::IMUX_BUFG_O[i].cell(0),
+                    wires::IMUX_BUFG_I[i].cell(0).pos(),
                 ),
                 PipMode::Mux,
             );

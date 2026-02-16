@@ -39,6 +39,7 @@ pub struct CollectorData {
 
 impl CollectorData {
     pub fn insert_into(mut self, intdb: &mut IntDb, missing_ok: bool) {
+        let copydb = intdb.clone();
         for ((tcid, bslot, aid), attr) in self.bel_attrs {
             let BelInfo::Bel(ref mut bel) = intdb.tile_classes[tcid].bels[bslot] else {
                 unreachable!()
@@ -72,15 +73,16 @@ impl CollectorData {
                             match item {
                                 SwitchBoxItem::Mux(mux) => {
                                     let Some(edata) = self.sb_mux.remove(&(tcid, mux.dst)) else {
-                                        if missing_ok {
-                                            continue;
+                                        if !missing_ok {
+                                            let dst = mux.dst;
+                                            eprintln!(
+                                                "can't find collect enum mux {tcname} {dst}",
+                                                tcname = copydb.tile_classes.key(tcid),
+                                                dst = dst
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid]),
+                                            )
                                         }
-                                        let dst = mux.dst;
-                                        panic!(
-                                            "can't find collect enum mux {tcname} {dst}",
-                                            tcname = intdb.tile_classes.key(tcid),
-                                            dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
-                                        )
+                                        continue;
                                     };
                                     mux.bits = edata.bits;
                                     let mut handled = BTreeSet::new();
@@ -96,13 +98,13 @@ impl CollectorData {
                                         let src = *src;
                                         if !handled.contains(&src) {
                                             let dst = mux.dst;
-                                            panic!(
+                                            eprintln!(
                                                 "can't find mux input {tcname} {dst} {src}",
-                                                tcname = intdb.tile_classes.key(tcid),
-                                                dst =
-                                                    dst.to_string(intdb, &intdb.tile_classes[tcid]),
-                                                src =
-                                                    src.to_string(intdb, &intdb.tile_classes[tcid]),
+                                                tcname = copydb.tile_classes.key(tcid),
+                                                dst = dst
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid]),
+                                                src = src
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid]),
                                             );
                                         }
                                     }
@@ -110,17 +112,19 @@ impl CollectorData {
                                 SwitchBoxItem::ProgBuf(buf) => {
                                     let Some(bit) = self.sb_buf.remove(&(tcid, buf.dst, buf.src))
                                     else {
-                                        if missing_ok {
-                                            continue;
+                                        if !missing_ok {
+                                            let dst = buf.dst;
+                                            let src = buf.src;
+                                            eprintln!(
+                                                "can't find collect bit progbuf {tcname} {dst} {src}",
+                                                tcname = copydb.tile_classes.key(tcid),
+                                                dst = dst
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid]),
+                                                src = src
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid])
+                                            )
                                         }
-                                        let dst = buf.dst;
-                                        let src = buf.src;
-                                        panic!(
-                                            "can't find collect bit progbuf {tcname} {dst} {src}",
-                                            tcname = intdb.tile_classes.key(tcid),
-                                            dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
-                                            src = src.to_string(intdb, &intdb.tile_classes[tcid])
-                                        )
+                                        continue;
                                     };
                                     buf.bit = bit;
                                 }
@@ -129,63 +133,69 @@ impl CollectorData {
                                     let Some(bit) =
                                         self.sb_pass.remove(&(tcid, pass.dst, pass.src))
                                     else {
-                                        if missing_ok {
-                                            continue;
+                                        if !missing_ok {
+                                            let dst = pass.dst;
+                                            let src = pass.src;
+                                            eprintln!(
+                                                "can't find collect bit pass {tcname} {dst} {src}",
+                                                tcname = copydb.tile_classes.key(tcid),
+                                                dst = dst
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid]),
+                                                src = src
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid])
+                                            )
                                         }
-                                        let dst = pass.dst;
-                                        let src = pass.src;
-                                        panic!(
-                                            "can't find collect bit pass {tcname} {dst} {src}",
-                                            tcname = intdb.tile_classes.key(tcid),
-                                            dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
-                                            src = src.to_string(intdb, &intdb.tile_classes[tcid])
-                                        )
+                                        continue;
                                     };
                                     pass.bit = bit;
                                 }
                                 SwitchBoxItem::BiPass(pass) => {
                                     let Some(bit) = self.sb_bipass.remove(&(tcid, pass.a, pass.b))
                                     else {
-                                        if missing_ok {
-                                            continue;
+                                        if !missing_ok {
+                                            let dst = pass.a;
+                                            let src = pass.b;
+                                            eprintln!(
+                                                "can't find collect bit bipass {tcname} {dst} {src}",
+                                                tcname = copydb.tile_classes.key(tcid),
+                                                dst = dst
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid]),
+                                                src = src
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid])
+                                            )
                                         }
-                                        let dst = pass.a;
-                                        let src = pass.b;
-                                        panic!(
-                                            "can't find collect bit bipass {tcname} {dst} {src}",
-                                            tcname = intdb.tile_classes.key(tcid),
-                                            dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
-                                            src = src.to_string(intdb, &intdb.tile_classes[tcid])
-                                        )
+                                        continue;
                                     };
                                     pass.bit = bit;
                                 }
                                 SwitchBoxItem::ProgInv(inv) => {
                                     let Some(bit) = self.sb_inv.remove(&(tcid, inv.dst)) else {
-                                        if missing_ok {
-                                            continue;
+                                        if !missing_ok {
+                                            let twc = inv.dst;
+                                            eprintln!(
+                                                "can't find collect bit proginv {tcname} {wire}",
+                                                tcname = copydb.tile_classes.key(tcid),
+                                                wire = twc
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid])
+                                            )
                                         }
-                                        let twc = inv.dst;
-                                        panic!(
-                                            "can't find collect bit proginv {tcname} {wire}",
-                                            tcname = intdb.tile_classes.key(tcid),
-                                            wire = twc.to_string(intdb, &intdb.tile_classes[tcid])
-                                        )
+                                        continue;
                                     };
                                     inv.bit = bit;
                                 }
                                 SwitchBoxItem::ProgDelay(delay) => {
                                     let Some(mut data) = self.sb_delay.remove(&(tcid, delay.dst))
                                     else {
-                                        if missing_ok {
-                                            continue;
+                                        if !missing_ok {
+                                            let twc = delay.dst;
+                                            eprintln!(
+                                                "can't find collect progdelay {tcname} {wire}",
+                                                tcname = copydb.tile_classes.key(tcid),
+                                                wire = twc
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid])
+                                            )
                                         }
-                                        let twc = delay.dst;
-                                        panic!(
-                                            "can't find collect progdelay {tcname} {wire}",
-                                            tcname = intdb.tile_classes.key(tcid),
-                                            wire = twc.to_string(intdb, &intdb.tile_classes[tcid])
-                                        )
+                                        continue;
                                     };
                                     delay.bits = data.bits;
                                     for (i, val) in delay.steps.iter_mut().enumerate() {
@@ -197,35 +207,36 @@ impl CollectorData {
                                     let Some(bit) =
                                         self.sb_bidi.remove(&(tcid, bidi.conn, bidi.wire))
                                     else {
-                                        if missing_ok {
-                                            continue;
+                                        if !missing_ok {
+                                            let conn = bidi.conn;
+                                            let twc = bidi.wire;
+                                            eprintln!(
+                                                "can't find collect bit bidi {tcname} {conn} {wire}",
+                                                tcname = copydb.tile_classes.key(tcid),
+                                                conn = intdb.conn_slots.key(conn),
+                                                wire = twc
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid])
+                                            )
                                         }
-                                        let conn = bidi.conn;
-                                        let twc = bidi.wire;
-                                        panic!(
-                                            "can't find collect bit bidi {tcname} {conn} {wire}",
-                                            tcname = intdb.tile_classes.key(tcid),
-                                            conn = intdb.conn_slots.key(conn),
-                                            wire = twc.to_string(intdb, &intdb.tile_classes[tcid])
-                                        )
+                                        continue;
                                     };
                                     bidi.bit_upstream = bit;
                                 }
                                 SwitchBoxItem::PairMux(mux) => {
                                     let Some(edata) = self.sb_pairmux.remove(&(tcid, mux.dst))
                                     else {
-                                        if missing_ok {
-                                            continue;
+                                        if !missing_ok {
+                                            let dst = mux.dst;
+                                            eprintln!(
+                                                "can't find collect enum pair mux {tcname} {dst0} {dst1}",
+                                                tcname = copydb.tile_classes.key(tcid),
+                                                dst0 = dst[0]
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid]),
+                                                dst1 = dst[1]
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid]),
+                                            )
                                         }
-                                        let dst = mux.dst;
-                                        panic!(
-                                            "can't find collect enum pair mux {tcname} {dst0} {dst1}",
-                                            tcname = intdb.tile_classes.key(tcid),
-                                            dst0 =
-                                                dst[0].to_string(intdb, &intdb.tile_classes[tcid]),
-                                            dst1 =
-                                                dst[1].to_string(intdb, &intdb.tile_classes[tcid]),
-                                        )
+                                        continue;
                                     };
                                     mux.bits = edata.bits;
                                     let mut handled = BTreeSet::new();
@@ -237,20 +248,26 @@ impl CollectorData {
                                         let src = *src;
                                         if !handled.contains(&src) {
                                             let dst = mux.dst;
-                                            panic!(
+                                            eprintln!(
                                                 "can't find mux input {tcname} ({dst0}, {dst1}) ({src0}, {src1})",
-                                                tcname = intdb.tile_classes.key(tcid),
+                                                tcname = copydb.tile_classes.key(tcid),
                                                 dst0 = dst[0]
-                                                    .to_string(intdb, &intdb.tile_classes[tcid]),
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid]),
                                                 dst1 = dst[1]
-                                                    .to_string(intdb, &intdb.tile_classes[tcid]),
+                                                    .to_string(&copydb, &copydb.tile_classes[tcid]),
                                                 src0 = if let Some(src) = src[0] {
-                                                    src.to_string(intdb, &intdb.tile_classes[tcid])
+                                                    src.to_string(
+                                                        &copydb,
+                                                        &copydb.tile_classes[tcid],
+                                                    )
                                                 } else {
                                                     "_".to_string()
                                                 },
                                                 src1 = if let Some(src) = src[0] {
-                                                    src.to_string(intdb, &intdb.tile_classes[tcid])
+                                                    src.to_string(
+                                                        &copydb,
+                                                        &copydb.tile_classes[tcid],
+                                                    )
                                                 } else {
                                                     "_".to_string()
                                                 },
@@ -262,19 +279,19 @@ impl CollectorData {
                                     let Some(bits) =
                                         self.sb_support.remove(&(tcid, support.wires.clone()))
                                     else {
-                                        if missing_ok {
-                                            continue;
+                                        if !missing_ok {
+                                            let wires = support
+                                                .wires
+                                                .clone()
+                                                .iter()
+                                                .map(|w| w.to_string(&copydb, &copydb[tcid]))
+                                                .join(", ");
+                                            eprintln!(
+                                                "can't find collect bit support {tcname} {wires}",
+                                                tcname = copydb.tile_classes.key(tcid),
+                                            )
                                         }
-                                        let wires = support
-                                            .wires
-                                            .clone()
-                                            .iter()
-                                            .map(|w| w.to_string(intdb, &intdb[tcid]))
-                                            .join(", ");
-                                        panic!(
-                                            "can't find collect bit support {tcname} {wires}",
-                                            tcname = intdb.tile_classes.key(tcid),
-                                        )
+                                        continue;
                                     };
                                     support.bits = bits;
                                 }
@@ -288,7 +305,7 @@ impl CollectorData {
                             }
                             panic!(
                                 "can't find collect group testmux {tcname} {bel}",
-                                tcname = intdb.tile_classes.key(tcid),
+                                tcname = copydb.tile_classes.key(tcid),
                                 bel = intdb.bel_slots.key(bslot),
                             )
                         };

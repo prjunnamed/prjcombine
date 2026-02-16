@@ -319,6 +319,18 @@ pub trait FuzzBuilderBase<'b>: Sized {
         ))
     }
 
+    fn extra_tile_attr_bits<R: TileRelation + 'b>(
+        self,
+        relation: R,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+    ) -> Self {
+        self.prop(ExtraTile::new(
+            relation,
+            ExtraKeyBelAttrBits::new(bslot, attr, 0, true),
+        ))
+    }
+
     fn extra_tile_bel_special<R: TileRelation + 'b>(
         self,
         relation: R,
@@ -444,6 +456,11 @@ impl<'b> FuzzBuilderBase<'b> for FuzzBuilder<'_, 'b> {
 }
 
 impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
+    pub fn props(mut self, props: impl IntoIterator<Item = Box<DynProp<'b>>>) -> Self {
+        self.props.extend(props);
+        self
+    }
+
     pub fn test_raw(self, key: DiffKey) -> FuzzBuilderTestManual<'sm, 'b> {
         FuzzBuilderTestManual {
             session: self.session,
@@ -498,20 +515,6 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
         let attr = attr.as_ref();
         let val = val.as_ref();
         self.extra_tile_reg(reg, tile, bel)
-            .test_manual_legacy(bel, attr, val)
-    }
-
-    pub fn test_reg_present(
-        self,
-        reg: Reg,
-        tile: impl Into<String>,
-        bel: &'static str,
-        attr: impl AsRef<str>,
-        val: impl AsRef<str>,
-    ) -> FuzzBuilderTestManual<'sm, 'b> {
-        let attr = attr.as_ref();
-        let val = val.as_ref();
-        self.extra_tile_reg_present(reg, tile, bel)
             .test_manual_legacy(bel, attr, val)
     }
 

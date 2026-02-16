@@ -19,6 +19,7 @@ use prjcombine_virtex2::defs::{
     virtex2::wires as wires_v2,
 };
 use prjcombine_virtex4::defs::virtex4::{bslots as bslots_v4, tcls as tcls_v4, wires as wires_v4};
+use prjcombine_virtex4::defs::virtex5::{tcls as tcls_v5, wires as wires_v5};
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -887,6 +888,13 @@ fn skip_permabuf(
                 return true;
             }
         }
+        ExpandedDevice::Virtex4(edev)
+            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5 =>
+        {
+            if src.wire == wires_v5::OUT_CMT[10] {
+                return true;
+            }
+        }
         _ => (),
     }
     false
@@ -929,6 +937,29 @@ fn skip_mux(
                 return true;
             }
             if matches!(tcid, tcls_v4::CCM | tcls_v4::DCM) && wires_v4::IMUX_SPEC.contains(dst.wire)
+            {
+                return true;
+            }
+        }
+        ExpandedDevice::Virtex4(edev)
+            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5 =>
+        {
+            if matches!(bslot, bslots_v4::HROW_INT | bslots_v4::CLK_INT)
+                && !wires_v5::GIOB.contains(dst.wire)
+            {
+                return true;
+            }
+            if wires_v5::RCLK.contains(dst.wire)
+                || wires_v5::RCLK_IO.contains(dst.wire)
+                || wires_v5::RCLK_ROW.contains(dst.wire)
+                || wires_v5::IMUX_IO_ICLK_OPTINV.contains(dst.wire)
+                || wires_v5::IMUX_DCM_CLKIN.contains(dst.wire)
+                || wires_v5::IMUX_DCM_CLKFB.contains(dst.wire)
+                || wires_v5::IMUX_PLL_CLKFB == dst.wire
+                || wires_v5::OMUX_PLL_SKEWCLKIN1 == dst.wire
+                || wires_v5::OMUX_PLL_SKEWCLKIN2 == dst.wire
+                || wires_v5::OUT_CMT.contains(dst.wire)
+                || wires_v5::MGT_BUF.contains(dst.wire)
             {
                 return true;
             }
@@ -1055,6 +1086,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             if matches!(ctx.edev, ExpandedDevice::Virtex4(_))
                 && bslot == prjcombine_virtex4::defs::bslots::HCLK_IO_INT
+            {
+                is_empty_ok = true;
+            }
+            if let ExpandedDevice::Virtex4(edev) = ctx.edev
+                && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5
+                && tcid == tcls_v5::IO
             {
                 is_empty_ok = true;
             }

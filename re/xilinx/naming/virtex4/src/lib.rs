@@ -7,7 +7,7 @@ use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{
     bond::PsPad,
     chip::{CfgRowKind, ChipKind, GtKind, RegId},
-    defs,
+    defs::{self, bslots},
     expanded::{ExpandedDevice, IoCoord},
     gtz::GtzIntColId,
 };
@@ -56,7 +56,7 @@ pub struct ExpandedNamedDevice<'a> {
 impl ExpandedNamedDevice<'_> {
     pub fn get_io_name(&self, io: IoCoord) -> &str {
         self.ngrid
-            .get_bel_name(io.cell.bel(defs::bslots::IOB[io.iob.to_idx()]))
+            .get_bel_name(io.cell.bel(bslots::IOB[io.iob.to_idx()]))
             .unwrap()
     }
 
@@ -77,11 +77,11 @@ impl ExpandedNamedDevice<'_> {
                             bank: idx,
                             pad_vp: self
                                 .ngrid
-                                .get_bel_name_sub(cell.bel(defs::bslots::SYSMON), 1)
+                                .get_bel_name_sub(cell.bel(bslots::SYSMON), 1)
                                 .unwrap(),
                             pad_vn: self
                                 .ngrid
-                                .get_bel_name_sub(cell.bel(defs::bslots::SYSMON), 2)
+                                .get_bel_name_sub(cell.bel(bslots::SYSMON), 2)
                                 .unwrap(),
                             vaux: (0..8)
                                 .map(|idx| self.edev.get_sysmon_vaux(cell, idx))
@@ -91,22 +91,20 @@ impl ExpandedNamedDevice<'_> {
                     }
                 }
                 ChipKind::Virtex5 => {
-                    let col = self.edev.col_cfg;
-                    let row = chip.row_reg_hclk(chip.reg_cfg - 1);
-                    let cell = CellCoord::new(die, col, row);
+                    let tcrd = self.edev.tile_cfg(die);
                     res.push(SysMon {
-                        cell,
+                        cell: tcrd.cell,
                         bank: 0,
                         pad_vp: self
                             .ngrid
-                            .get_bel_name(cell.bel(defs::bslots::IPAD_VP))
+                            .get_bel_name_sub(tcrd.cell.bel(bslots::SYSMON), 1)
                             .unwrap(),
                         pad_vn: self
                             .ngrid
-                            .get_bel_name(cell.bel(defs::bslots::IPAD_VN))
+                            .get_bel_name_sub(tcrd.cell.bel(bslots::SYSMON), 2)
                             .unwrap(),
                         vaux: (0..16)
-                            .map(|idx| self.edev.get_sysmon_vaux(cell, idx))
+                            .map(|idx| self.edev.get_sysmon_vaux(tcrd.cell, idx))
                             .collect(),
                     });
                 }
@@ -117,14 +115,8 @@ impl ExpandedNamedDevice<'_> {
                     res.push(SysMon {
                         cell,
                         bank: 0,
-                        pad_vp: self
-                            .ngrid
-                            .get_bel_name(cell.bel(defs::bslots::IPAD_VP))
-                            .unwrap(),
-                        pad_vn: self
-                            .ngrid
-                            .get_bel_name(cell.bel(defs::bslots::IPAD_VN))
-                            .unwrap(),
+                        pad_vp: self.ngrid.get_bel_name(cell.bel(bslots::IPAD_VP)).unwrap(),
+                        pad_vn: self.ngrid.get_bel_name(cell.bel(bslots::IPAD_VN)).unwrap(),
                         vaux: (0..16)
                             .map(|idx| self.edev.get_sysmon_vaux(cell, idx))
                             .collect(),
@@ -138,14 +130,8 @@ impl ExpandedNamedDevice<'_> {
                         res.push(SysMon {
                             cell,
                             bank: 0,
-                            pad_vp: self
-                                .ngrid
-                                .get_bel_name(cell.bel(defs::bslots::IPAD_VP))
-                                .unwrap(),
-                            pad_vn: self
-                                .ngrid
-                                .get_bel_name(cell.bel(defs::bslots::IPAD_VN))
-                                .unwrap(),
+                            pad_vp: self.ngrid.get_bel_name(cell.bel(bslots::IPAD_VP)).unwrap(),
+                            pad_vn: self.ngrid.get_bel_name(cell.bel(bslots::IPAD_VN)).unwrap(),
                             vaux: (0..16)
                                 .map(|idx| self.edev.get_sysmon_vaux(cell, idx))
                                 .collect(),
@@ -396,10 +382,10 @@ impl ExpandedNamedDevice<'_> {
                             .map(|ccell| {
                                 (
                                     self.ngrid
-                                        .get_bel_name(ccell.bel(defs::bslots::OPAD_TXP[0]))
+                                        .get_bel_name(ccell.bel(bslots::OPAD_TXP[0]))
                                         .unwrap(),
                                     self.ngrid
-                                        .get_bel_name(ccell.bel(defs::bslots::OPAD_TXN[0]))
+                                        .get_bel_name(ccell.bel(bslots::OPAD_TXN[0]))
                                         .unwrap(),
                                 )
                             })
@@ -409,10 +395,10 @@ impl ExpandedNamedDevice<'_> {
                             .map(|ccell| {
                                 (
                                     self.ngrid
-                                        .get_bel_name(ccell.bel(defs::bslots::IPAD_RXP[0]))
+                                        .get_bel_name(ccell.bel(bslots::IPAD_RXP[0]))
                                         .unwrap(),
                                     self.ngrid
-                                        .get_bel_name(ccell.bel(defs::bslots::IPAD_RXN[0]))
+                                        .get_bel_name(ccell.bel(bslots::IPAD_RXN[0]))
                                         .unwrap(),
                                 )
                             })
@@ -427,27 +413,27 @@ impl ExpandedNamedDevice<'_> {
 
     pub fn get_ps_pin_name(&self, io: PsPad) -> &str {
         let slot = match io {
-            PsPad::Mio(i) => defs::bslots::IOPAD_MIO[i as usize],
-            PsPad::Clk => defs::bslots::IOPAD_PSCLK,
-            PsPad::PorB => defs::bslots::IOPAD_PSPORB,
-            PsPad::SrstB => defs::bslots::IOPAD_PSSRSTB,
-            PsPad::DdrDq(i) => defs::bslots::IOPAD_DDRDQ[i as usize],
-            PsPad::DdrDm(i) => defs::bslots::IOPAD_DDRDM[i as usize],
-            PsPad::DdrDqsP(i) => defs::bslots::IOPAD_DDRDQSP[i as usize],
-            PsPad::DdrDqsN(i) => defs::bslots::IOPAD_DDRDQSN[i as usize],
-            PsPad::DdrA(i) => defs::bslots::IOPAD_DDRA[i as usize],
-            PsPad::DdrBa(i) => defs::bslots::IOPAD_DDRBA[i as usize],
-            PsPad::DdrVrP => defs::bslots::IOPAD_DDRVRP,
-            PsPad::DdrVrN => defs::bslots::IOPAD_DDRVRN,
-            PsPad::DdrCkP => defs::bslots::IOPAD_DDRCKP,
-            PsPad::DdrCkN => defs::bslots::IOPAD_DDRCKN,
-            PsPad::DdrCke => defs::bslots::IOPAD_DDRCKE,
-            PsPad::DdrOdt => defs::bslots::IOPAD_DDRODT,
-            PsPad::DdrDrstB => defs::bslots::IOPAD_DDRDRSTB,
-            PsPad::DdrCsB => defs::bslots::IOPAD_DDRCSB,
-            PsPad::DdrRasB => defs::bslots::IOPAD_DDRRASB,
-            PsPad::DdrCasB => defs::bslots::IOPAD_DDRCASB,
-            PsPad::DdrWeB => defs::bslots::IOPAD_DDRWEB,
+            PsPad::Mio(i) => bslots::IOPAD_MIO[i as usize],
+            PsPad::Clk => bslots::IOPAD_PSCLK,
+            PsPad::PorB => bslots::IOPAD_PSPORB,
+            PsPad::SrstB => bslots::IOPAD_PSSRSTB,
+            PsPad::DdrDq(i) => bslots::IOPAD_DDRDQ[i as usize],
+            PsPad::DdrDm(i) => bslots::IOPAD_DDRDM[i as usize],
+            PsPad::DdrDqsP(i) => bslots::IOPAD_DDRDQSP[i as usize],
+            PsPad::DdrDqsN(i) => bslots::IOPAD_DDRDQSN[i as usize],
+            PsPad::DdrA(i) => bslots::IOPAD_DDRA[i as usize],
+            PsPad::DdrBa(i) => bslots::IOPAD_DDRBA[i as usize],
+            PsPad::DdrVrP => bslots::IOPAD_DDRVRP,
+            PsPad::DdrVrN => bslots::IOPAD_DDRVRN,
+            PsPad::DdrCkP => bslots::IOPAD_DDRCKP,
+            PsPad::DdrCkN => bslots::IOPAD_DDRCKN,
+            PsPad::DdrCke => bslots::IOPAD_DDRCKE,
+            PsPad::DdrOdt => bslots::IOPAD_DDRODT,
+            PsPad::DdrDrstB => bslots::IOPAD_DDRDRSTB,
+            PsPad::DdrCsB => bslots::IOPAD_DDRCSB,
+            PsPad::DdrRasB => bslots::IOPAD_DDRRASB,
+            PsPad::DdrCasB => bslots::IOPAD_DDRCASB,
+            PsPad::DdrWeB => bslots::IOPAD_DDRWEB,
         };
         let die = DieId::from_idx(0);
         let chip = self.edev.chips[die];

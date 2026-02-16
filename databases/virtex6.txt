@@ -22730,6 +22730,17 @@ intdb {
 		V5,
 	}
 
+	enum INTERNAL_VREF {
+		OFF,
+		_600,
+		_675,
+		_750,
+		_900,
+		_1080,
+		_1100,
+		_1250,
+	}
+
 	enum DCM_CLKDV_MODE {
 		HALF,
 		INT,
@@ -22832,6 +22843,14 @@ intdb {
 		TEST,
 	}
 
+	enum JTAGPPC_NUM_PPC {
+		_0,
+		_1,
+		_2,
+		_3,
+		_4,
+	}
+
 	enum ICAP_WIDTH {
 		X8,
 		X16,
@@ -22865,7 +22884,7 @@ intdb {
 		JTAGCLK,
 	}
 
-	enum CONFIG_RATE {
+	enum CONFIG_RATE_V4 {
 		_4,
 		_5,
 		_7,
@@ -22885,6 +22904,26 @@ intdb {
 		_130,
 	}
 
+	enum CONFIG_RATE_V5 {
+		_2,
+		_6,
+		_9,
+		_13,
+		_17,
+		_20,
+		_24,
+		_27,
+		_31,
+		_35,
+		_38,
+		_42,
+		_46,
+		_49,
+		_53,
+		_56,
+		_60,
+	}
+
 	enum SECURITY {
 		NONE,
 		LEVEL1,
@@ -22894,6 +22933,24 @@ intdb {
 	enum ICAP_SELECT {
 		BOTTOM,
 		TOP,
+	}
+
+	enum BPI_PAGE_SIZE {
+		_1,
+		_4,
+		_8,
+	}
+
+	enum BPI_1ST_READ_CYCLE {
+		_1,
+		_2,
+		_3,
+		_4,
+	}
+
+	enum ENCRYPT_KEY_SELECT {
+		BBRAM,
+		EFUSE,
 	}
 
 	enum GT11_ALIGN_COMMA_WORD {
@@ -23106,6 +23163,17 @@ intdb {
 		attribute ALMOST_FULL_OFFSET: bitvec[12];
 	}
 
+	bel_class BRAM_V5 {
+	}
+
+	bel_class PMVBRAM {
+		input DISABLE0;
+		input DISABLE1;
+		output O;
+		output ODIV2;
+		output ODIV4;
+	}
+
 	bel_class DSP_V4 {
 		input A[18];
 		input B[18];
@@ -23146,6 +23214,9 @@ intdb {
 		input RSTC;
 		attribute MUX_CLK: bitvec[1];
 		attribute CREG: bool;
+	}
+
+	bel_class DSP_V5 {
 	}
 
 	bel_class ILOGIC_V4 {
@@ -23275,6 +23346,10 @@ intdb {
 	bel_class GLOBALSIG {
 	}
 
+	bel_class HCLK_CMT_DRP {
+		attribute DRP_MASK: bool;
+	}
+
 	bel_class BUFGCTRL {
 		input I0;
 		input I1;
@@ -23352,6 +23427,11 @@ intdb {
 
 	bel_class LVDS_V4 {
 		attribute LVDSBIAS: bitvec[10];
+	}
+
+	bel_class BANK {
+		attribute V5_LVDSVIAS: bitvec[12];
+		attribute INTERNAL_VREF: INTERNAL_VREF;
 	}
 
 	bel_class DCM_V4 {
@@ -23584,6 +23664,73 @@ intdb {
 		attribute PROM_DATA: bitvec[8];
 	}
 
+	bel_class SYSMON_V5 {
+		input CONVST;
+		input CONVSTCLK;
+		input RESET;
+		input DCLK;
+		input DEN;
+		input DWE;
+		input DADDR[7];
+		input DI[16];
+		input TESTADCCLK[4];
+		input TESTADCIN[20];
+		input TESTSCANCLKA;
+		input TESTSCANCLKB;
+		input TESTSCANCLKC;
+		input TESTSCANCLKD;
+		input TESTSCANCLKE;
+		input TESTSCANMODEA;
+		input TESTSCANMODEB;
+		input TESTSCANMODEC;
+		input TESTSCANMODED;
+		input TESTSCANMODEE;
+		input TESTSCANRESET;
+		input TESTSEA;
+		input TESTSEB;
+		input TESTSEC;
+		input TESTSED;
+		input TESTSEE;
+		input TESTSEL;
+		input TESTSIA;
+		input TESTSIB;
+		input TESTSIC;
+		input TESTSID;
+		input TESTSIE;
+		input TESTENJTAG;
+		input TESTDRCK;
+		input TESTRST;
+		input TESTSHIFT;
+		input TESTUPDATE;
+		input TESTCAPTURE;
+		input TESTTDI;
+		output ALM[3];
+		output BUSY;
+		output CHANNEL[5];
+		output EOC;
+		output EOS;
+		output OT;
+		output DRDY;
+		output DO[16];
+		output JTAGBUSY;
+		output JTAGLOCKED;
+		output JTAGMODIFIED;
+		output TESTADCOUT[20];
+		output TESTDB[16];
+		output TESTSOA;
+		output TESTSOB;
+		output TESTSOC;
+		output TESTSOD;
+		output TESTSOE;
+		output TESTTDO;
+		attribute INIT: bitvec[16][24];
+		attribute SYSMON_TEST_A: bitvec[16];
+		attribute SYSMON_TEST_B: bitvec[16];
+		attribute SYSMON_TEST_C: bitvec[16];
+		attribute SYSMON_TEST_D: bitvec[16];
+		attribute SYSMON_TEST_E: bitvec[16];
+	}
+
 	bel_class STARTUP {
 		input CLK;
 		input GTS;
@@ -23593,6 +23740,10 @@ intdb {
 		input USRDONEO;
 		input USRDONETS;
 		output EOS;
+		output CFGCLK;
+		output CFGMCLK;
+		output DINSPI;
+		output TCKSPI;
 		attribute USER_GTS_GSR_ENABLE: bool;
 		attribute GTS_SYNC: bool;
 		attribute GSR_SYNC: bool;
@@ -23633,6 +23784,7 @@ intdb {
 		output TMS;
 		output TDIPPC;
 		attribute ENABLE: bool;
+		attribute NUM_PPC: JTAGPPC_NUM_PPC;
 	}
 
 	bel_class PMV {
@@ -23653,11 +23805,22 @@ intdb {
 		output ERROR;
 		output SYNDROMEVALID;
 		output SYNDROME[12];
+		output CRCERROR;
+		output ECCERROR;
 	}
 
 	bel_class USR_ACCESS {
 		output DATAVALID;
 		output DATA[32];
+		output CFGCLK;
+	}
+
+	bel_class KEY_CLEAR {
+		input KEYCLEARB;
+	}
+
+	bel_class EFUSE_USR {
+		output EFUSEUSR[32];
 	}
 
 	bel_class MISC_CFG {
@@ -23708,13 +23871,22 @@ intdb {
 		attribute MATCH_CYCLE: STARTUP_CYCLE;
 		attribute DONE_CYCLE: STARTUP_CYCLE;
 		attribute STARTUP_CLOCK: STARTUP_CLOCK;
-		attribute CONFIG_RATE: CONFIG_RATE;
+		attribute CONFIG_RATE_V4: CONFIG_RATE_V4;
+		attribute CONFIG_RATE_V5: CONFIG_RATE_V5;
 		attribute CAPTURE_ONESHOT: bool;
 		attribute DRIVE_DONE: bool;
 		attribute DONE_PIPE: bool;
 		attribute DCM_SHUTDOWN: bool;
 		attribute POWERDOWN_STATUS: bool;
 		attribute CRC_ENABLE: bool;
+		attribute BPI_PAGE_SIZE: BPI_PAGE_SIZE;
+		attribute BPI_1ST_READ_CYCLE: BPI_1ST_READ_CYCLE;
+		attribute POST_CRC_EN: bool;
+		attribute POST_CRC_NO_PIN: bool;
+		attribute POST_CRC_RECONFIG: bool;
+		attribute RETAIN_CONFIG_STATUS: bool;
+		attribute POST_CRC_SEL: bitvec[1];
+		attribute PERSIST_DEASSERT_AT_DESYNCH: bool;
 		attribute GTS_USR_B: bool;
 		attribute EN_VTEST: bool;
 		attribute VGG_TEST: bool;
@@ -23723,6 +23895,21 @@ intdb {
 		attribute ENCRYPT: bool;
 		attribute GLUTMASK: bool;
 		attribute ICAP_SELECT: ICAP_SELECT;
+		attribute CONFIG_FALLBACK: bool;
+		attribute ENCRYPT_KEY_SELECT: ENCRYPT_KEY_SELECT;
+		attribute OVERTEMP_POWERDOWN: bool;
+		attribute SELECTMAP_ABORT: bool;
+		attribute VGG_SEL: bitvec[5];
+		attribute VBG_DLL_SEL: bitvec[5];
+		attribute VBG_SEL: bitvec[5];
+		attribute TIMER: bitvec[24];
+		attribute TIMER_CFG: bool;
+		attribute TIMER_USR: bool;
+		attribute V5_NEXT_CONFIG_ADDR: bitvec[26];
+		attribute V7_NEXT_CONFIG_ADDR: bitvec[29];
+		attribute REVISION_SELECT_TRISTATE: bool;
+		attribute REVISION_SELECT: bitvec[2];
+		attribute DD_OVERRIDE: bool;
 	}
 
 	bel_class PPC405 {
@@ -24134,8 +24321,13 @@ intdb {
 	}
 
 	bel_class EMAC_V4 {
-		input DCREMACENABLE;
 		input RESET;
+		input DCREMACCLK;
+		input DCREMACENABLE;
+		input DCREMACREAD;
+		input DCREMACWRITE;
+		input DCREMACABUS[10];
+		input DCREMACDBUS[32];
 		input HOSTCLK;
 		input HOSTREQ;
 		input HOSTOPCODE[2];
@@ -24180,6 +24372,7 @@ intdb {
 		input PHYEMAC0RXRUNDISP;
 		input PHYEMAC0SIGNALDET;
 		input PHYEMAC0TXBUFERR;
+		input PHYEMAC0TXGMIIMIICLKIN;
 		input TIEEMAC0CONFIGVEC[80];
 		input TIEEMAC0UNICASTADDR[48];
 		input CLIENTEMAC1DCMLOCKED;
@@ -24219,9 +24412,14 @@ intdb {
 		input PHYEMAC1RXRUNDISP;
 		input PHYEMAC1SIGNALDET;
 		input PHYEMAC1TXBUFERR;
+		input PHYEMAC1TXGMIIMIICLKIN;
 		input TIEEMAC1CONFIGVEC[80];
 		input TIEEMAC1UNICASTADDR[48];
+		input TESTSELI;
+		input TSTSEEMACI;
 		input TSTSIEMACI[7];
+		output EMACDCRACK;
+		output EMACDCRDBUS[32];
 		output DCRHOSTDONEIR;
 		output HOSTMIIMRDY;
 		output HOSTRDDATA[32];
@@ -24240,11 +24438,12 @@ intdb {
 		output EMAC0CLIENTTXACK;
 		output EMAC0CLIENTTXCLIENTCLKOUT;
 		output EMAC0CLIENTTXCOLLISION;
-		output EMAC0CLIENTTXGMIIMIICLKOUT;
 		output EMAC0CLIENTTXRETRANSMIT;
 		output EMAC0CLIENTTXSTATS;
 		output EMAC0CLIENTTXSTATSBYTEVLD;
 		output EMAC0CLIENTTXSTATSVLD;
+		output EMAC0CLIENTTXGMIIMIICLKOUT;
+		output EMAC0TOBUS[5];
 		output EMAC0PHYENCOMMAALIGN;
 		output EMAC0PHYLOOPBACKMSB;
 		output EMAC0PHYMCLKOUT;
@@ -24261,6 +24460,8 @@ intdb {
 		output EMAC0PHYTXD[8];
 		output EMAC0PHYTXEN;
 		output EMAC0PHYTXER;
+		output EMAC0PHYTXGMIIMIICLKOUT;
+		output EMAC0SPEEDIS10100;
 		output EMAC1CLIENTANINTERRUPT;
 		output EMAC1CLIENTRXBADFRAME;
 		output EMAC1CLIENTRXCLIENTCLKOUT;
@@ -24276,11 +24477,12 @@ intdb {
 		output EMAC1CLIENTTXACK;
 		output EMAC1CLIENTTXCLIENTCLKOUT;
 		output EMAC1CLIENTTXCOLLISION;
-		output EMAC1CLIENTTXGMIIMIICLKOUT;
 		output EMAC1CLIENTTXRETRANSMIT;
 		output EMAC1CLIENTTXSTATS;
 		output EMAC1CLIENTTXSTATSBYTEVLD;
 		output EMAC1CLIENTTXSTATSVLD;
+		output EMAC1CLIENTTXGMIIMIICLKOUT;
+		output EMAC1TOBUS[5];
 		output EMAC1PHYENCOMMAALIGN;
 		output EMAC1PHYLOOPBACKMSB;
 		output EMAC1PHYMCLKOUT;
@@ -24297,7 +24499,91 @@ intdb {
 		output EMAC1PHYTXD[8];
 		output EMAC1PHYTXEN;
 		output EMAC1PHYTXER;
+		output EMAC1PHYTXGMIIMIICLKOUT;
+		output EMAC1SPEEDIS10100;
 		output TSTSOEMACO[7];
+		attribute EMAC0_1000BASEX_ENABLE: bool;
+		attribute EMAC0_ADDRFILTER_ENABLE: bool;
+		attribute EMAC0_BYTEPHY: bool;
+		attribute EMAC0_CONFIGVEC_79: bool;
+		attribute EMAC0_DCRBASEADDR: bitvec[8];
+		attribute EMAC0_FUNCTION: bitvec[3];
+		attribute EMAC0_GTLOOPBACK: bool;
+		attribute EMAC0_HOST_ENABLE: bool;
+		attribute EMAC0_LINKTIMERVAL: bitvec[9];
+		attribute EMAC0_LTCHECK_DISABLE: bool;
+		attribute EMAC0_MDIO_ENABLE: bool;
+		attribute EMAC0_PAUSEADDR: bitvec[48];
+		attribute EMAC0_PHYINITAUTONEG_ENABLE: bool;
+		attribute EMAC0_PHYISOLATE: bool;
+		attribute EMAC0_PHYLOOPBACKMSB: bool;
+		attribute EMAC0_PHYPOWERDOWN: bool;
+		attribute EMAC0_PHYRESET: bool;
+		attribute EMAC0_RGMII_ENABLE: bool;
+		attribute EMAC0_RX16BITCLIENT_ENABLE: bool;
+		attribute EMAC0_RXFLOWCTRL_ENABLE: bool;
+		attribute EMAC0_RXHALFDUPLEX: bool;
+		attribute EMAC0_RXINBANDFCS_ENABLE: bool;
+		attribute EMAC0_RXJUMBOFRAME_ENABLE: bool;
+		attribute EMAC0_RXRESET: bool;
+		attribute EMAC0_RXVLAN_ENABLE: bool;
+		attribute EMAC0_RX_ENABLE: bool;
+		attribute EMAC0_SGMII_ENABLE: bool;
+		attribute EMAC0_SPEED_LSB: bool;
+		attribute EMAC0_SPEED_MSB: bool;
+		attribute EMAC0_TX16BITCLIENT_ENABLE: bool;
+		attribute EMAC0_TXFLOWCTRL_ENABLE: bool;
+		attribute EMAC0_TXHALFDUPLEX: bool;
+		attribute EMAC0_TXIFGADJUST_ENABLE: bool;
+		attribute EMAC0_TXINBANDFCS_ENABLE: bool;
+		attribute EMAC0_TXJUMBOFRAME_ENABLE: bool;
+		attribute EMAC0_TXRESET: bool;
+		attribute EMAC0_TXVLAN_ENABLE: bool;
+		attribute EMAC0_TX_ENABLE: bool;
+		attribute EMAC0_UNICASTADDR: bitvec[48];
+		attribute EMAC0_UNIDIRECTION_ENABLE: bool;
+		attribute EMAC0_USECLKEN: bool;
+		attribute EMAC1_1000BASEX_ENABLE: bool;
+		attribute EMAC1_ADDRFILTER_ENABLE: bool;
+		attribute EMAC1_BYTEPHY: bool;
+		attribute EMAC1_CONFIGVEC_79: bool;
+		attribute EMAC1_DCRBASEADDR: bitvec[8];
+		attribute EMAC1_FUNCTION: bitvec[3];
+		attribute EMAC1_GTLOOPBACK: bool;
+		attribute EMAC1_HOST_ENABLE: bool;
+		attribute EMAC1_LINKTIMERVAL: bitvec[9];
+		attribute EMAC1_LTCHECK_DISABLE: bool;
+		attribute EMAC1_MDIO_ENABLE: bool;
+		attribute EMAC1_PAUSEADDR: bitvec[48];
+		attribute EMAC1_PHYINITAUTONEG_ENABLE: bool;
+		attribute EMAC1_PHYISOLATE: bool;
+		attribute EMAC1_PHYLOOPBACKMSB: bool;
+		attribute EMAC1_PHYPOWERDOWN: bool;
+		attribute EMAC1_PHYRESET: bool;
+		attribute EMAC1_RGMII_ENABLE: bool;
+		attribute EMAC1_RX16BITCLIENT_ENABLE: bool;
+		attribute EMAC1_RXFLOWCTRL_ENABLE: bool;
+		attribute EMAC1_RXHALFDUPLEX: bool;
+		attribute EMAC1_RXINBANDFCS_ENABLE: bool;
+		attribute EMAC1_RXJUMBOFRAME_ENABLE: bool;
+		attribute EMAC1_RXRESET: bool;
+		attribute EMAC1_RXVLAN_ENABLE: bool;
+		attribute EMAC1_RX_ENABLE: bool;
+		attribute EMAC1_SGMII_ENABLE: bool;
+		attribute EMAC1_SPEED_LSB: bool;
+		attribute EMAC1_SPEED_MSB: bool;
+		attribute EMAC1_TX16BITCLIENT_ENABLE: bool;
+		attribute EMAC1_TXFLOWCTRL_ENABLE: bool;
+		attribute EMAC1_TXHALFDUPLEX: bool;
+		attribute EMAC1_TXIFGADJUST_ENABLE: bool;
+		attribute EMAC1_TXINBANDFCS_ENABLE: bool;
+		attribute EMAC1_TXJUMBOFRAME_ENABLE: bool;
+		attribute EMAC1_TXRESET: bool;
+		attribute EMAC1_TXVLAN_ENABLE: bool;
+		attribute EMAC1_TX_ENABLE: bool;
+		attribute EMAC1_UNICASTADDR: bitvec[48];
+		attribute EMAC1_UNIDIRECTION_ENABLE: bool;
+		attribute EMAC1_USECLKEN: bool;
 	}
 
 	bel_class GT11 {
@@ -30215,8 +30501,6 @@ intdb {
 		bel_slot BUFGCTRL[31]: legacy;
 		bel_slot GIO_S: legacy;
 		bel_slot GIO_N: legacy;
-		bel_slot BUFG_MGTCLK_S: legacy;
-		bel_slot BUFG_MGTCLK_N: legacy;
 		bel_slot GCLK_BUF: legacy;
 		bel_slot HCLK_GTX: legacy;
 		bel_slot HCLK_GTH: legacy;
@@ -46745,9 +47029,6 @@ intdb {
 
 	tile_slot CLK {
 		bel_slot CLK_INT: routing;
-		bel_slot CLK_IOB: legacy;
-		bel_slot CLK_CMT: legacy;
-		bel_slot CLK_MGT: legacy;
 		bel_slot HCLK_MGT_BUF: legacy;
 		bel_slot INT_LCLK_W: legacy;
 		bel_slot INT_LCLK_E: legacy;
@@ -46762,7 +47043,6 @@ intdb {
 
 	tile_slot HROW {
 		bel_slot HROW_INT: routing;
-		bel_slot CLK_HROW: legacy;
 		bel_slot HCLK_QBUF: legacy;
 
 		tile_class HCLK_QBUF {
@@ -46829,8 +47109,7 @@ intdb {
 		bel_slot PMVBRAM_NC: legacy;
 		bel_slot HCLK_IO_INT: routing;
 		bel_slot HCLK_IO: legacy;
-		bel_slot IOCLK: legacy;
-		bel_slot RCLK: legacy;
+		bel_slot HCLK_CMT_DRP: HCLK_CMT_DRP;
 		bel_slot BUFR[0]: legacy;
 		bel_slot BUFR[1]: legacy;
 		bel_slot BUFR[2]: legacy;
@@ -46843,7 +47122,8 @@ intdb {
 		bel_slot BUFO[1]: legacy;
 		bel_slot IDELAYCTRL: legacy;
 		bel_slot DCI: legacy;
-		bel_slot LVDS: legacy;
+		bel_slot BANK: BANK;
+		bel_slot LVDS: LVDS_V4;
 		bel_slot BRKH_GTX: legacy;
 
 		tile_class PMVBRAM {
@@ -46965,11 +47245,6 @@ intdb {
 			// wire CELL[1].OUT_BEL[6]             IDELAYCTRL.RDY
 			// wire CELL[1].OUT_BEL[11]            DCI.DCIDONE
 		}
-	}
-
-	tile_slot HCLK_CMT {
-		bel_slot HCLK_CMT_HCLK: legacy;
-		bel_slot HCLK_CMT_GIOB: legacy;
 	}
 
 	tile_slot GLOBAL {
@@ -47612,12 +47887,12 @@ intdb {
 		opposite IO_S;
 	}
 
-	connector_slot CLK_S {
-		opposite CLK_N;
+	connector_slot CLK_PREV {
+		opposite CLK_NEXT;
 	}
 
-	connector_slot CLK_N {
-		opposite CLK_S;
+	connector_slot CLK_NEXT {
+		opposite CLK_PREV;
 	}
 
 	connector_slot MGT_S {
@@ -47634,6 +47909,14 @@ intdb {
 
 	connector_slot CMT_NEXT {
 		opposite CMT_PREV;
+	}
+
+	connector_slot MGT_ROW_PREV {
+		opposite MGT_ROW_NEXT;
+	}
+
+	connector_slot MGT_ROW_NEXT {
+		opposite MGT_ROW_PREV;
 	}
 }
 

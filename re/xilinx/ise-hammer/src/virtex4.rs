@@ -8,4 +8,4 @@ pub mod gt;
 pub mod io;
 pub mod misc;
 pub mod ppc;
-mod specials;
+pub mod specials;

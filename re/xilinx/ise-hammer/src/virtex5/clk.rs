@@ -1,24 +1,35 @@
+use std::collections::BTreeSet;
+
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::TileClassId,
+    db::{PolTileWireCoord, TileClassId, TileWireCoord, WireSlotIdExt},
     grid::{DieId, TileCoord},
 };
-use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, FeatureId, OcdMode},
-    legacy::{xlat_bit_legacy, xlat_bit_wide_legacy, xlat_enum_legacy_ocd},
+use prjcombine_re_collector::diff::{
+    Diff, DiffKey, OcdMode, SpecialId, extract_common_diff, xlat_bit, xlat_bit_wide, xlat_enum_raw,
 };
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::defs::{self, tslots, virtex5::tcls};
+use prjcombine_types::bsdata::TileBit;
+use prjcombine_virtex4::defs::{
+    self, bcls, bslots, tslots,
+    virtex5::{tcls, wires},
+};
 
 use crate::{
     backend::{IseBackend, Key},
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{DynProp, pip::PinFar, relation::TileRelation},
+        int::{BaseIntPip, FuzzIntPip},
+        props::{
+            DynProp,
+            mutex::{WireMutexExclusive, WireMutexShared},
+            relation::{Related, TileRelation},
+        },
     },
+    virtex4::specials,
 };
 
 #[derive(Copy, Clone, Debug)]
@@ -47,12 +58,12 @@ impl TileRelation for HclkCmt {
             unreachable!()
         };
         let row = edev.chips[tcrd.die].row_hclk(tcrd.row);
-        Some(tcrd.with_row(row).tile(defs::tslots::HCLK_CMT))
+        Some(tcrd.with_row(row).tile(defs::tslots::HCLK_BEL))
     }
 }
 
 #[derive(Clone, Debug)]
-struct HclkBramMgtPrev(String, &'static str);
+struct HclkBramMgtPrev(TileWireCoord, PolTileWireCoord);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkBramMgtPrev {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -80,12 +91,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkBramMgtPrev {
         if let Some(&col) = col {
             let ntcrd = tcrd.with_col(col).tile(defs::tslots::CLK);
             fuzzer.info.features.push(FuzzerFeature {
-                key: DiffKey::Legacy(FeatureId {
-                    tile: "HCLK_MGT_BUF".into(),
-                    bel: "HCLK_MGT_BUF".into(),
-                    attr: self.0.clone(),
-                    val: self.1.into(),
-                }),
+                key: DiffKey::Routing(tcls::HCLK_MGT_BUF, self.0, self.1),
                 rects: edev.tile_bits(ntcrd),
             });
             sad = false;
@@ -95,9 +101,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkBramMgtPrev {
 }
 
 #[derive(Clone, Debug)]
-struct HclkIoiCenter(TileClassId, &'static str, String, &'static str);
+struct HclkIoiCenterSupport(TileClassId, TileWireCoord);
 
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenterSupport {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -118,12 +124,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
             && ntile.class == self.0
         {
             fuzzer.info.features.push(FuzzerFeature {
-                key: DiffKey::Legacy(FeatureId {
-                    tile: edev.db.tile_classes.key(self.0).into(),
-                    bel: self.1.into(),
-                    attr: self.2.clone(),
-                    val: self.3.into(),
-                }),
+                key: DiffKey::RoutingSpecial(self.0, self.1, specials::SUPPORT),
                 rects: edev.tile_bits(ntcrd),
             });
             sad = false;
@@ -133,7 +134,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
 }
 
 #[derive(Clone, Debug)]
-struct AllIodelay(&'static str, &'static str);
+struct AllIodelay(&'static str, SpecialId);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllIodelay {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -153,24 +154,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllIodelay {
         let bot = chip.row_reg_bot(chip.row_to_reg(tcrd.row));
         for i in 0..chip.rows_per_reg() {
             let row = bot + i;
-            let Some(ntcrd) =
-                edev.find_tile_by_bel(tcrd.with_row(row).bel(defs::bslots::IODELAY[0]))
+            let Some(ntcrd) = edev.find_tile_by_bel(tcrd.with_row(row).bel(bslots::IODELAY[0]))
             else {
                 continue;
             };
-            for bel in [defs::bslots::IODELAY[0], defs::bslots::IODELAY[1]] {
+            for bel in [bslots::IODELAY[0], bslots::IODELAY[1]] {
                 if let Some(site) = backend.ngrid.get_bel_name(ntcrd.bel(bel)) {
                     fuzzer = fuzzer.fuzz(Key::SiteMode(site), None, "IODELAY");
                     fuzzer = fuzzer.fuzz(Key::SiteAttr(site, "IDELAY_TYPE".into()), None, self.0);
                 }
             }
             fuzzer.info.features.push(FuzzerFeature {
-                key: DiffKey::Legacy(FeatureId {
-                    tile: "IO".into(),
-                    bel: "IODELAY_BOTH".into(),
-                    attr: "IDELAYCTRL_MODE".into(),
-                    val: self.1.into(),
-                }),
+                key: DiffKey::BelSpecial(tcls::IO, bslots::IODELAY[0], self.1),
                 rects: edev.tile_bits(ntcrd),
             });
         }
@@ -185,183 +180,130 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     {
         let mut ctx = FuzzCtx::new(session, backend, tcls::CLK_BUFG);
         for i in 0..32 {
-            let mut bctx = ctx.bel(defs::bslots::BUFGCTRL[i]);
+            let mut bctx = ctx.bel(bslots::BUFGCTRL[i]);
             bctx.build()
-                .test_manual_legacy("PRESENT", "1")
+                .null_bits()
+                .test_bel_special(specials::PRESENT)
                 .mode("BUFGCTRL")
                 .commit();
-            for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
-                bctx.mode("BUFGCTRL").test_inv_legacy(pin);
+            for pin in [
+                bcls::BUFGCTRL::CE0,
+                bcls::BUFGCTRL::CE1,
+                bcls::BUFGCTRL::S0,
+                bcls::BUFGCTRL::S1,
+                bcls::BUFGCTRL::IGNORE0,
+                bcls::BUFGCTRL::IGNORE1,
+            ] {
+                bctx.mode("BUFGCTRL").test_bel_input_inv_auto(pin);
             }
+            bctx.mode("BUFGCTRL").test_bel_attr_bool_auto(
+                bcls::BUFGCTRL::PRESELECT_I0,
+                "FALSE",
+                "TRUE",
+            );
+            bctx.mode("BUFGCTRL").test_bel_attr_bool_auto(
+                bcls::BUFGCTRL::PRESELECT_I1,
+                "FALSE",
+                "TRUE",
+            );
+            bctx.mode("BUFGCTRL").test_bel_attr_bool_auto(
+                bcls::BUFGCTRL::CREATE_EDGE,
+                "FALSE",
+                "TRUE",
+            );
             bctx.mode("BUFGCTRL")
-                .test_enum_legacy("PRESELECT_I0", &["FALSE", "TRUE"]);
-            bctx.mode("BUFGCTRL")
-                .test_enum_legacy("PRESELECT_I1", &["FALSE", "TRUE"]);
-            bctx.mode("BUFGCTRL")
-                .test_enum_legacy("CREATE_EDGE", &["FALSE", "TRUE"]);
-            bctx.mode("BUFGCTRL")
-                .test_enum_legacy("INIT_OUT", &["0", "1"]);
-
-            for j in 0..2 {
-                for val in ["CKINT0", "CKINT1"] {
-                    bctx.build()
-                        .mutex(format!("MUX.I{j}"), val)
-                        .test_manual_legacy(format!("MUX.I{j}"), val)
-                        .pip(format!("I{j}MUX"), val)
-                        .commit();
-                }
-                bctx.build()
-                    .mutex(format!("MUX.I{j}"), "MUXBUS")
-                    .test_manual_legacy(format!("MUX.I{j}"), "MUXBUS")
-                    .pip(format!("I{j}MUX"), format!("MUXBUS{j}"))
-                    .commit();
-                for k in 0..16 {
-                    let obel = defs::bslots::BUFGCTRL[if i < 16 { k } else { k + 16 }];
-                    let val = format!("GFB{k}");
-                    bctx.build()
-                        .mutex(format!("MUX.I{j}"), &val)
-                        .test_manual_legacy(format!("MUX.I{j}"), val)
-                        .pip(format!("I{j}MUX"), (obel, "GFB"))
-                        .commit();
-                }
-                for k in 0..5 {
-                    for lr in ['L', 'R'] {
-                        let val = format!("MGT_{lr}{k}");
-                        let pin = format!("MGT_O_{lr}{k}");
-                        let obel = if i < 16 {
-                            defs::bslots::BUFG_MGTCLK_S
-                        } else {
-                            defs::bslots::BUFG_MGTCLK_N
-                        };
-                        bctx.build()
-                            .mutex(format!("MUX.I{j}"), &val)
-                            .test_manual_legacy(format!("MUX.I{j}"), &val)
-                            .pip(format!("I{j}MUX"), (obel, pin))
-                            .commit();
-                    }
-                }
-            }
-            bctx.build()
-                .test_manual_legacy("I0_FABRIC_OUT", "1")
-                .pin_pips("I0MUX")
-                .commit();
-            bctx.build()
-                .test_manual_legacy("I1_FABRIC_OUT", "1")
-                .pin_pips("I1MUX")
-                .commit();
+                .test_bel_attr_bool_auto(bcls::BUFGCTRL::INIT_OUT, "0", "1");
         }
-        for bel in [defs::bslots::BUFG_MGTCLK_S, defs::bslots::BUFG_MGTCLK_N] {
-            let mut bctx = ctx.bel(bel);
+        for (ct, co, cf) in [(0, 0, 0), (0, 5, 20), (10, 0, 10), (10, 5, 21)] {
+            if co == 0 && edev.col_lgt.is_none() {
+                continue;
+            }
             for i in 0..5 {
-                for lr in ['L', 'R'] {
-                    if lr == 'L' && edev.col_lgt.is_none() {
-                        continue;
-                    }
-                    bctx.build()
-                        .test_manual_legacy(format!("BUF.MGT_{lr}{i}"), "1")
-                        .pip(format!("MGT_O_{lr}{i}"), format!("MGT_I_{lr}{i}"))
-                        .commit();
-                }
+                let wt = wires::MGT_BUF[co + i].cell(ct);
+                let wf = wires::MGT_ROW_I[i].cell(cf);
+                ctx.build()
+                    .test_routing(wt, wf.pos())
+                    .prop(FuzzIntPip::new(wt, wf))
+                    .commit();
             }
         }
     }
     {
         let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK);
-        let mut bctx = ctx.bel(defs::bslots::HCLK);
-        for i in 0..10 {
-            bctx.test_manual_legacy(format!("BUF.HCLK{i}"), "1")
-                .pip(format!("HCLK_O{i}"), format!("HCLK_I{i}"))
-                .commit();
-        }
         for i in 0..4 {
-            bctx.build()
+            let wt = wires::RCLK[i].cell(0);
+            let wf = wires::RCLK_ROW[i].cell(0);
+            ctx.build()
                 .related_tile_mutex(Rclk, "RCLK_MODE", "USE")
-                .related_pip(
+                .prop(Related::new(
                     Rclk,
-                    (defs::bslots::IOCLK, format!("RCLK_I{i}")),
-                    (defs::bslots::IOCLK, "VRCLK0"),
-                )
-                .test_manual_legacy(format!("BUF.RCLK{i}"), "1")
-                .pip(format!("RCLK_O{i}"), format!("RCLK_I{i}"))
+                    BaseIntPip::new(wires::RCLK_ROW[i].cell(2), wires::VRCLK[0].cell(2)),
+                ))
+                .test_routing(wt, wf.pos())
+                .prop(FuzzIntPip::new(wt, wf))
                 .commit();
         }
     }
     {
         let mut ctx = FuzzCtx::new(session, backend, tcls::CLK_HROW);
-        let mut bctx = ctx.bel(defs::bslots::CLK_HROW);
-        for lr in ['L', 'R'] {
+        for co in 0..2 {
+            let lr = ['L', 'R'][co];
             for i in 0..10 {
+                let wt = wires::HCLK_ROW[i].cell(co);
                 for j in 0..32 {
-                    bctx.build()
+                    let wf = wires::GCLK[j].cell(0);
+                    ctx.build()
                         .tile_mutex(format!("IN_HCLK_{lr}{i}"), format!("GCLK{j}"))
                         .tile_mutex(format!("OUT_GCLK{j}"), format!("HCLK_{lr}{i}"))
-                        .test_manual_legacy(format!("MUX.HCLK_{lr}{i}"), format!("GCLK{j}"))
-                        .pip(format!("HCLK_{lr}{i}"), format!("GCLK{j}"))
+                        .test_routing(wt, wf.pos())
+                        .prop(FuzzIntPip::new(wt, wf))
                         .commit();
                 }
             }
         }
     }
-    for (tcid, bel) in [
-        (tcls::CLK_IOB_S, defs::bslots::CLK_IOB),
-        (tcls::CLK_IOB_N, defs::bslots::CLK_IOB),
-        (tcls::CLK_CMT_S, defs::bslots::CLK_CMT),
-        (tcls::CLK_CMT_N, defs::bslots::CLK_CMT),
-        (tcls::CLK_MGT_S, defs::bslots::CLK_MGT),
-        (tcls::CLK_MGT_N, defs::bslots::CLK_MGT),
+    for tcid in [
+        tcls::CLK_IOB_S,
+        tcls::CLK_IOB_N,
+        tcls::CLK_CMT_S,
+        tcls::CLK_CMT_N,
+        tcls::CLK_MGT_S,
+        tcls::CLK_MGT_N,
     ] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
-        let mut bctx = ctx.bel(bel);
+        let mut bctx = ctx.bel(bslots::CLK_INT);
         for i in 0..32 {
-            let mux = format!("MUX.MUXBUS{i}");
-            let mout = format!("MUXBUS_O{i}");
-            let min = format!("MUXBUS_I{i}");
-            for lr in ['L', 'R'] {
-                if lr == 'L' && edev.col_lgt.is_none() && bel != defs::bslots::CLK_IOB {
-                    continue;
+            let dst = wires::IMUX_BUFG_O[i].cell(0);
+
+            for &src in edev.db_index.tile_classes[tcid].muxes[&dst].src.keys() {
+                let mut builder = bctx.build().prop(WireMutexExclusive::new(dst));
+                if let Some(idx) = wires::MGT_BUF.index_of(src.wire) {
+                    if idx < 5
+                        && edev.col_lgt.is_none()
+                        && !matches!(tcid, tcls::CLK_IOB_S | tcls::CLK_IOB_N)
+                    {
+                        continue;
+                    }
+                    let fake_src = edev.db_index.tile_classes[tcid].pips_bwd[&src.tw]
+                        .iter()
+                        .next()
+                        .copied()
+                        .unwrap();
+                    builder = builder
+                        .prop(WireMutexExclusive::new(src.tw))
+                        .prop(FuzzIntPip::new(dst, fake_src.tw));
+                } else {
+                    builder = builder
+                        .prop(WireMutexShared::new(src.tw))
+                        .prop(FuzzIntPip::new(dst, src.tw));
                 }
-                for j in 0..5 {
-                    bctx.build()
-                        .tile_mutex(&mux, format!("MGT_{lr}{j}"))
-                        .tile_mutex(format!("MGT_{lr}{j}"), &mout)
-                        .test_manual_legacy(&mux, format!("MGT_{lr}{j}"))
-                        .pip(&mout, format!("MGT_{lr}{j}"))
-                        .commit();
+                if wires::OUT_CMT.contains(src.wire) {
+                    builder = builder.related_tile_mutex(HclkCmt, "ENABLE", "NOPE");
                 }
-            }
-            if bel == defs::bslots::CLK_CMT {
-                for j in 0..28 {
-                    bctx.build()
-                        .related_tile_mutex(HclkCmt, "ENABLE", "NOPE")
-                        .tile_mutex(&mux, format!("CMT_CLK{j}"))
-                        .test_manual_legacy(&mux, format!("CMT_CLK{j}"))
-                        .pip(&mout, format!("CMT_CLK{j}"))
-                        .commit();
-                }
-            }
-            if bel == defs::bslots::CLK_IOB {
-                for j in 0..10 {
-                    bctx.build()
-                        .tile_mutex(&mux, format!("GIOB{j}"))
-                        .test_manual_legacy(&mux, format!("GIOB{j}"))
-                        .pip(&mout, format!("PAD_BUF{j}"))
-                        .commit();
-                }
-            }
-            bctx.build()
-                .tile_mutex(&mux, "PASS")
-                .test_manual_legacy(&mux, "PASS")
-                .pip(&mout, &min)
-                .commit();
-        }
-        if bel == defs::bslots::CLK_IOB {
-            for i in 0..10 {
-                bctx.build()
-                    .test_manual_legacy(format!("BUF.GIOB{i}"), "1")
-                    .pip(format!("GIOB{i}"), format!("PAD_BUF{i}"))
-                    .commit();
+
+                builder.test_routing(dst, src).commit();
             }
         }
     }
@@ -379,144 +321,106 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let tcls = &backend.edev.db[tcid];
 
         for i in 0..4 {
-            let bel = defs::bslots::BUFIO[i];
+            let bel = bslots::BUFIO[i];
             if !tcls.bels.contains_id(bel) {
                 continue;
             }
             let mut bctx = ctx.bel(bel);
-            bctx.test_manual_legacy("PRESENT", "1")
+            bctx.build()
+                .null_bits()
+                .test_bel_special(specials::PRESENT)
                 .mode("BUFIO")
                 .commit();
             bctx.mode("BUFIO")
                 .tile_mutex("BUFIO", format!("TEST_BUFIO{i}"))
-                .test_manual_legacy("ENABLE", "1")
+                .test_bel_attr_bits(bcls::BUFIO::ENABLE)
                 .pin("O")
                 .commit();
         }
         for i in 0..2 {
-            let bel = defs::bslots::BUFR[i];
+            let bel = bslots::BUFR[i];
             if !tcls.bels.contains_id(bel) {
                 continue;
             }
             let mut bctx = ctx.bel(bel);
 
-            bctx.test_manual_legacy("ENABLE", "1").mode("BUFR").commit();
-            bctx.mode("BUFR").test_enum_legacy(
-                "BUFR_DIVIDE",
-                &["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"],
-            );
-            for pin in ["MGT0", "MGT1", "MGT2", "MGT3", "MGT4", "CKINT0", "CKINT1"] {
-                bctx.mode("BUFR")
-                    .mutex("MUX.I", pin)
-                    .test_manual_legacy("MUX.I", pin)
-                    .pip("I", (defs::bslots::RCLK, pin))
-                    .commit();
-            }
-            for j in 0..4 {
-                bctx.mode("BUFR")
-                    .mutex("MUX.I", format!("BUFIO{j}"))
-                    .test_manual_legacy("MUX.I", format!("BUFIO{j}"))
-                    .pip("I", (PinFar, defs::bslots::BUFIO[j], "I"))
-                    .commit();
-            }
+            bctx.build()
+                .test_bel_attr_bits(bcls::BUFR::ENABLE)
+                .mode("BUFR")
+                .commit();
+            bctx.mode("BUFR")
+                .test_bel_attr_rename("BUFR_DIVIDE", bcls::BUFR::DIVIDE);
         }
-        {
-            let mut bctx = ctx.bel(defs::bslots::IOCLK);
-            for i in 0..10 {
-                bctx.test_manual_legacy(format!("BUF.HCLK{i}"), "1")
-                    .pip(format!("HCLK_O{i}"), format!("HCLK_I{i}"))
-                    .commit();
-            }
+        for i in 0..4 {
+            let wt = wires::RCLK_IO[i].cell(2);
+            let wf = wires::RCLK_ROW[i].cell(2);
+            ctx.build()
+                .related_tile_mutex(Rclk, "RCLK_MODE", "USE")
+                .prop(Related::new(
+                    Rclk,
+                    BaseIntPip::new(wires::RCLK_ROW[i].cell(2), wires::VRCLK[0].cell(2)),
+                ))
+                .test_routing(wt, wf.pos())
+                .prop(FuzzIntPip::new(wt, wf))
+                .commit();
+        }
+        if tcid == tcls::HCLK_IO {
             for i in 0..4 {
-                bctx.build()
-                    .related_tile_mutex(Rclk, "RCLK_MODE", "USE")
-                    .related_pip(
-                        Rclk,
-                        (defs::bslots::IOCLK, format!("RCLK_I{i}")),
-                        (defs::bslots::IOCLK, "VRCLK0"),
-                    )
-                    .test_manual_legacy(format!("BUF.RCLK{i}"), "1")
-                    .pip(format!("RCLK_O{i}"), format!("RCLK_I{i}"))
-                    .commit();
-            }
-            if tcid == tcls::HCLK_IO {
-                for i in 0..4 {
-                    for inp in [
-                        "VRCLK0", "VRCLK1", "VRCLK_S0", "VRCLK_S1", "VRCLK_N0", "VRCLK_N1",
+                let dst = wires::RCLK_ROW[i].cell(2);
+                for src in [
+                    wires::VRCLK[0].cell(2),
+                    wires::VRCLK[1].cell(2),
+                    wires::VRCLK_S[0].cell(2),
+                    wires::VRCLK_S[1].cell(2),
+                    wires::VRCLK_N[0].cell(2),
+                    wires::VRCLK_N[1].cell(2),
+                ] {
+                    let mut extras: Vec<Box<DynProp>> = vec![];
+                    for otcls in [
+                        tcls::HCLK_IO_CENTER,
+                        tcls::HCLK_IO_CFG_S,
+                        tcls::HCLK_IO_CFG_N,
+                        tcls::HCLK_IO_CMT_S,
+                        tcls::HCLK_IO_CMT_N,
                     ] {
-                        let mut extras: Vec<Box<DynProp>> = vec![];
-                        for otcls in [
-                            tcls::HCLK_IO_CENTER,
-                            tcls::HCLK_IO_CFG_S,
-                            tcls::HCLK_IO_CFG_N,
-                            tcls::HCLK_IO_CMT_S,
-                            tcls::HCLK_IO_CMT_N,
-                        ] {
-                            if !backend.edev.tile_index[otcls].is_empty() {
-                                extras.push(Box::new(HclkIoiCenter(
-                                    otcls,
-                                    "IOCLK",
-                                    format!("ENABLE.RCLK{i}"),
-                                    "1",
-                                )));
-                            }
+                        if !backend.edev.tile_index[otcls].is_empty() {
+                            extras.push(Box::new(HclkIoiCenterSupport(otcls, dst)));
                         }
-                        bctx.build()
-                            .tile_mutex("RCLK_MODE", "TEST")
-                            .mutex(format!("MUX.RCLK{i}"), inp)
-                            .props(extras)
-                            .test_manual_legacy(format!("MUX.RCLK{i}"), inp)
-                            .pip(format!("RCLK_I{i}"), inp)
-                            .commit();
                     }
+                    ctx.build()
+                        .tile_mutex("RCLK_MODE", "TEST")
+                        .prop(WireMutexExclusive::new(dst))
+                        .props(extras)
+                        .test_routing(dst, src.pos())
+                        .prop(FuzzIntPip::new(dst, src))
+                        .commit();
                 }
             }
         }
         {
-            let mut bctx = ctx.bel(defs::bslots::IDELAYCTRL);
-            for i in 0..10 {
-                bctx.build()
-                    .mutex("MUX.REFCLK", format!("HCLK{i}"))
-                    .test_manual_legacy("MUX.REFCLK", format!("HCLK{i}"))
-                    .pip("REFCLK", (defs::bslots::IOCLK, format!("HCLK_O{i}")))
-                    .commit();
-            }
+            let mut bctx = ctx.bel(bslots::IDELAYCTRL);
             bctx.build()
                 .global("LEGIDELAY", "DISABLE")
                 .unused()
-                .prop(AllIodelay("DEFAULT", "DEFAULT_ONLY"))
-                .test_manual_legacy("MODE", "DEFAULT_ONLY")
+                .prop(AllIodelay(
+                    "DEFAULT",
+                    specials::IDELAYCTRL_IODELAY_DEFAULT_ONLY,
+                ))
+                .test_bel_special(specials::IDELAYCTRL_IODELAY_DEFAULT_ONLY)
                 .commit();
             bctx.build()
                 .global("LEGIDELAY", "DISABLE")
-                .prop(AllIodelay("FIXED", "FULL"))
-                .test_manual_legacy("MODE", "FULL")
+                .prop(AllIodelay("FIXED", specials::IDELAYCTRL_IODELAY_FULL))
+                .test_bel_special(specials::IDELAYCTRL_IODELAY_FULL)
                 .mode("IDELAYCTRL")
                 .commit();
         }
     }
-    {
-        let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK_CMT);
-        let mut bctx = ctx.bel(defs::bslots::HCLK_CMT_HCLK);
-        for i in 0..10 {
-            bctx.build()
-                .global_mutex("HCLK_CMT", "TEST")
-                .test_manual_legacy(format!("BUF.HCLK{i}"), "1")
-                .pip(format!("HCLK_O{i}"), format!("HCLK_I{i}"))
-                .commit();
-        }
-        let mut bctx = ctx.bel(defs::bslots::HCLK_CMT_GIOB);
-        for i in 0..10 {
-            bctx.build()
-                .global_mutex("HCLK_CMT", "TEST")
-                .test_manual_legacy(format!("BUF.GIOB{i}"), "1")
-                .pip(format!("GIOB_O{i}"), format!("GIOB_I{i}"))
-                .commit();
-        }
-    }
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::HCLK_MGT_BUF) {
-        let mut bctx = ctx.bel(defs::bslots::HCLK_MGT_BUF);
+        let mut bctx = ctx.bel(bslots::CLK_INT);
         for i in 0..5 {
+            let dst = wires::MGT_ROW_O[i].cell(0);
+            let src = wires::MGT_ROW_I[i].cell(0).pos();
             let mut extra = None;
             let cols_mgt_buf = &edev.chips[DieId::from_idx(0)].cols_mgt_buf;
             let num_l = cols_mgt_buf
@@ -530,14 +434,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .filter(|&col| col > edev.col_clk)
                 .count();
             if num_l > 1 || num_r > 1 {
-                extra = Some(HclkBramMgtPrev(format!("BUF.MGT{i}"), "1"));
+                extra = Some(HclkBramMgtPrev(dst, src));
             }
             bctx.build()
                 // overzealous, but I don't care
                 .global_mutex_here("HCLK_MGT")
                 .maybe_prop(extra)
-                .test_manual_legacy(format!("BUF.MGT{i}"), "1")
-                .pip(format!("MGT_O{i}"), format!("MGT_I{i}"))
+                .test_routing(dst, src)
+                .prop(FuzzIntPip::new(dst, src.tw))
                 .commit();
         }
     }
@@ -548,310 +452,241 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         unreachable!()
     };
     {
-        let tile = "CLK_BUFG";
-        for i in 0..32 {
-            let bel = format!("BUFGCTRL[{i}]");
-            let bel = &bel;
-            ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-                .assert_empty();
-            for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
-                ctx.collect_inv_legacy(tile, bel, pin);
+        let tcid = tcls::CLK_BUFG;
+        for bslot in bslots::BUFGCTRL {
+            for pin in [
+                bcls::BUFGCTRL::CE0,
+                bcls::BUFGCTRL::CE1,
+                bcls::BUFGCTRL::S0,
+                bcls::BUFGCTRL::S1,
+                bcls::BUFGCTRL::IGNORE0,
+                bcls::BUFGCTRL::IGNORE1,
+            ] {
+                ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
             }
-            ctx.collect_bit_bi_legacy(tile, bel, "PRESELECT_I0", "FALSE", "TRUE");
-            ctx.collect_bit_bi_legacy(tile, bel, "PRESELECT_I1", "FALSE", "TRUE");
-            ctx.collect_bit_bi_legacy(tile, bel, "CREATE_EDGE", "FALSE", "TRUE");
-            ctx.collect_bit_bi_legacy(tile, bel, "INIT_OUT", "0", "1");
-
-            for attr in ["MUX.I0", "MUX.I1"] {
-                ctx.collect_enum_default_legacy_ocd(
-                    tile,
-                    bel,
-                    attr,
-                    &[
-                        "MUXBUS", "CKINT0", "CKINT1", "GFB0", "GFB1", "GFB2", "GFB3", "GFB4",
-                        "GFB5", "GFB6", "GFB7", "GFB8", "GFB9", "GFB10", "GFB11", "GFB12", "GFB13",
-                        "GFB14", "GFB15", "MGT_L0", "MGT_L1", "MGT_L2", "MGT_L3", "MGT_L4",
-                        "MGT_R0", "MGT_R1", "MGT_R2", "MGT_R3", "MGT_R4",
-                    ],
-                    "NONE",
-                    OcdMode::Mux,
-                );
-            }
-
-            ctx.collect_bit_legacy(tile, bel, "I0_FABRIC_OUT", "1");
-            ctx.collect_bit_legacy(tile, bel, "I1_FABRIC_OUT", "1");
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFGCTRL::PRESELECT_I0);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFGCTRL::PRESELECT_I1);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFGCTRL::CREATE_EDGE);
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFGCTRL::INIT_OUT);
         }
 
-        for bel in ["BUFG_MGTCLK_S", "BUFG_MGTCLK_N"] {
+        for (ct, co, cf) in [(0, 0, 0), (0, 5, 20), (10, 0, 10), (10, 5, 21)] {
+            if co == 0 && edev.col_lgt.is_none() {
+                continue;
+            }
             for i in 0..5 {
-                for lr in ['L', 'R'] {
-                    if lr == 'L' && edev.col_lgt.is_none() {
-                        continue;
-                    }
-                    ctx.collect_bit_legacy(tile, bel, &format!("BUF.MGT_{lr}{i}"), "1");
-                }
+                let wt = wires::MGT_BUF[co + i].cell(ct);
+                let wf = wires::MGT_ROW_I[i].cell(cf);
+                ctx.collect_progbuf(tcid, wt, wf.pos());
             }
         }
     }
     {
-        let tile = "HCLK";
-        let bel = "HCLK";
-        for i in 0..10 {
-            ctx.collect_bit_legacy(tile, bel, &format!("BUF.HCLK{i}"), "1");
-        }
+        let tcid = tcls::HCLK;
         for i in 0..4 {
-            ctx.collect_bit_legacy(tile, bel, &format!("BUF.RCLK{i}"), "1");
+            ctx.collect_progbuf(
+                tcid,
+                wires::RCLK[i].cell(0),
+                wires::RCLK_ROW[i].cell(0).pos(),
+            );
         }
     }
     {
-        let tile = "CLK_HROW";
-        let bel = "CLK_HROW";
+        let tcid = tcls::CLK_HROW;
         let mut inp_diffs = vec![];
         for i in 0..32 {
             let diff_l = ctx
-                .peek_diff_legacy(tile, bel, "MUX.HCLK_L0", format!("GCLK{i}"))
+                .peek_diff_routing(
+                    tcid,
+                    wires::HCLK_ROW[0].cell(0),
+                    wires::GCLK[i].cell(0).pos(),
+                )
                 .clone();
             let diff_r = ctx
-                .peek_diff_legacy(tile, bel, "MUX.HCLK_R0", format!("GCLK{i}"))
+                .peek_diff_routing(
+                    tcid,
+                    wires::HCLK_ROW[0].cell(1),
+                    wires::GCLK[i].cell(0).pos(),
+                )
                 .clone();
             let (_, _, diff) = Diff::split(diff_l, diff_r);
             inp_diffs.push(diff);
         }
-        for i in 0..10 {
-            for lr in ['L', 'R'] {
-                let mut inps = vec![("NONE".to_string(), Diff::default())];
+        for co in 0..2 {
+            for i in 0..10 {
+                let dst = wires::HCLK_ROW[i].cell(co);
+                let mut diffs = vec![(None, Diff::default())];
                 for j in 0..32 {
-                    let mut diff = ctx.get_diff_legacy(
-                        tile,
-                        bel,
-                        format!("MUX.HCLK_{lr}{i}"),
-                        format!("GCLK{j}"),
-                    );
+                    let fake_src = wires::GCLK[j].cell(0).pos();
+                    let src = wires::GCLK_BUF[j].cell(0).pos();
+                    let mut diff = ctx.get_diff_routing(tcid, dst, fake_src);
                     diff = diff.combine(&!&inp_diffs[j]);
-                    inps.push((format!("GCLK{j}"), diff));
+                    diffs.push((Some(src), diff));
                 }
-                ctx.insert_legacy(
-                    tile,
-                    bel,
-                    format!("MUX.HCLK_{lr}{i}"),
-                    xlat_enum_legacy_ocd(inps, OcdMode::Mux),
-                );
+                ctx.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::Mux));
             }
         }
+
         for (i, diff) in inp_diffs.into_iter().enumerate() {
-            ctx.insert_legacy(tile, bel, format!("BUF.GCLK{i}"), xlat_bit_legacy(diff));
+            let dst = wires::GCLK_BUF[i].cell(0);
+            let src = wires::GCLK[i].cell(0).pos();
+
+            ctx.insert_progbuf(tcid, dst, src, xlat_bit(diff));
         }
     }
-    for (tile, bel) in [
-        ("CLK_IOB_S", "CLK_IOB"),
-        ("CLK_IOB_N", "CLK_IOB"),
-        ("CLK_CMT_S", "CLK_CMT"),
-        ("CLK_CMT_N", "CLK_CMT"),
-        ("CLK_MGT_S", "CLK_MGT"),
-        ("CLK_MGT_N", "CLK_MGT"),
+    for tcid in [
+        tcls::CLK_IOB_S,
+        tcls::CLK_IOB_N,
+        tcls::CLK_CMT_S,
+        tcls::CLK_CMT_N,
+        tcls::CLK_MGT_S,
+        tcls::CLK_MGT_N,
     ] {
-        if !ctx.has_tile_legacy(tile) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
-        for i in 0..5 {
-            for lr in ['L', 'R'] {
-                if lr == 'L' && edev.col_lgt.is_none() && bel != "CLK_IOB" {
-                    continue;
-                }
-                let diff_a = ctx
-                    .peek_diff_legacy(tile, bel, "MUX.MUXBUS0", format!("MGT_{lr}{i}"))
-                    .clone();
-                let diff_b = ctx
-                    .peek_diff_legacy(tile, bel, "MUX.MUXBUS1", format!("MGT_{lr}{i}"))
-                    .clone();
-                let (_, _, diff) = Diff::split(diff_a, diff_b);
-                ctx.insert_legacy(tile, bel, format!("BUF.MGT_{lr}{i}"), xlat_bit_legacy(diff));
+        for i in 0..10 {
+            if i < 5 && edev.col_lgt.is_none() && !matches!(tcid, tcls::CLK_IOB_S | tcls::CLK_IOB_N)
+            {
+                continue;
             }
+            let dst = wires::MGT_BUF[i].cell(0);
+            let src = if i < 5 {
+                wires::MGT_ROW_I[i].cell(0)
+            } else {
+                wires::MGT_ROW_I[i - 5].cell(10)
+            };
+            let diff_a = ctx
+                .peek_diff_routing(tcid, wires::IMUX_BUFG_O[0].cell(0), dst.pos())
+                .clone();
+            let diff_b = ctx
+                .peek_diff_routing(tcid, wires::IMUX_BUFG_O[1].cell(0), dst.pos())
+                .clone();
+            let (_, _, diff) = Diff::split(diff_a, diff_b);
+            ctx.insert_progbuf(tcid, dst, src.pos(), xlat_bit(diff));
         }
         for i in 0..32 {
-            let mut diffs = vec![
-                ("NONE".to_string(), Diff::default()),
-                (
-                    "PASS".to_string(),
-                    ctx.get_diff_legacy(tile, bel, format!("MUX.MUXBUS{i}"), "PASS"),
-                ),
-            ];
-            for j in 0..5 {
-                for lr in ['L', 'R'] {
-                    if lr == 'L' && edev.col_lgt.is_none() && bel != "CLK_IOB" {
+            let dst = wires::IMUX_BUFG_O[i].cell(0);
+
+            let mut diffs = vec![(None, Diff::default())];
+            for &src in edev.db_index.tile_classes[tcid].muxes[&dst].src.keys() {
+                if let Some(idx) = wires::MGT_BUF.index_of(src.wire) {
+                    let fake_src = if idx < 5 {
+                        wires::MGT_ROW_I[idx].cell(0)
+                    } else {
+                        wires::MGT_ROW_I[idx - 5].cell(10)
+                    };
+                    if idx < 5
+                        && edev.col_lgt.is_none()
+                        && !matches!(tcid, tcls::CLK_IOB_S | tcls::CLK_IOB_N)
+                    {
                         continue;
                     }
-                    let mut diff = ctx.get_diff_legacy(
-                        tile,
-                        bel,
-                        format!("MUX.MUXBUS{i}"),
-                        format!("MGT_{lr}{j}"),
-                    );
-                    diff.apply_bit_diff_legacy(
-                        ctx.item_legacy(tile, bel, &format!("BUF.MGT_{lr}{j}")),
-                        true,
-                        false,
-                    );
-                    diffs.push((format!("MGT_{lr}{j}"), diff));
+                    let mut diff = ctx.get_diff_routing(tcid, dst, src);
+                    diff.apply_bit_diff(ctx.sb_progbuf(tcid, src.tw, fake_src.pos()), true, false);
+                    diffs.push((Some(src), diff));
+                } else {
+                    let diff = ctx.get_diff_routing(tcid, dst, src);
+                    diffs.push((Some(src), diff));
                 }
             }
-            if bel == "CLK_CMT" {
-                for j in 0..28 {
-                    diffs.push((
-                        format!("CMT_CLK{j}"),
-                        ctx.get_diff_legacy(
-                            tile,
-                            bel,
-                            format!("MUX.MUXBUS{i}"),
-                            format!("CMT_CLK{j}"),
-                        ),
-                    ));
-                }
-            }
-            if bel == "CLK_IOB" {
-                for j in 0..10 {
-                    diffs.push((
-                        format!("GIOB{j}"),
-                        ctx.get_diff_legacy(
-                            tile,
-                            bel,
-                            format!("MUX.MUXBUS{i}"),
-                            format!("GIOB{j}"),
-                        ),
-                    ));
-                }
-            }
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("MUX.MUXBUS{i}"),
-                xlat_enum_legacy_ocd(diffs, OcdMode::Mux),
-            );
-        }
-        if bel == "CLK_IOB" {
-            for i in 0..10 {
-                ctx.collect_bit_wide_legacy(tile, bel, &format!("BUF.GIOB{i}"), "1");
-            }
+            ctx.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::Mux));
         }
     }
-    for tile in [
-        "HCLK_IO",
-        "HCLK_IO_CENTER",
-        "HCLK_IO_CFG_S",
-        "HCLK_IO_CFG_N",
-        "HCLK_IO_CMT_S",
-        "HCLK_IO_CMT_N",
+    for tcid in [
+        tcls::HCLK_IO,
+        tcls::HCLK_IO_CENTER,
+        tcls::HCLK_IO_CFG_S,
+        tcls::HCLK_IO_CFG_N,
+        tcls::HCLK_IO_CMT_S,
+        tcls::HCLK_IO_CMT_N,
     ] {
-        let tcid = edev.db.get_tile_class(tile);
         let tcls = &edev.db[tcid];
 
-        if !ctx.has_tile_legacy(tile) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
         let mut diffs = vec![];
         for i in 0..4 {
-            let bel = format!("BUFIO[{i}]");
-            if !tcls.bels.contains_id(defs::bslots::BUFIO[i]) {
+            let bslot = bslots::BUFIO[i];
+            if !tcls.bels.contains_id(bslot) {
                 continue;
             }
-            ctx.get_diff_legacy(tile, &bel, "PRESENT", "1")
-                .assert_empty();
-            let diff = ctx.get_diff_legacy(tile, &bel, "ENABLE", "1");
-            diffs.push((bel, diff));
+            let diff = ctx.get_diff_attr_bool(tcid, bslot, bcls::BUFIO::ENABLE);
+            diffs.push((bslot, diff));
         }
-        let (_, _, enable) = Diff::split(diffs[0].1.clone(), diffs[1].1.clone());
-        for (bel, mut diff) in diffs {
-            diff = diff.combine(&!&enable);
-            ctx.insert_legacy(tile, bel, "ENABLE", xlat_bit_legacy(diff));
+        let enable = extract_common_diff(&mut diffs);
+        for (bslot, diff) in diffs {
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::BUFIO::ENABLE, xlat_bit(diff));
         }
-        ctx.insert_legacy(tile, "IOCLK", "IOCLK_ENABLE", xlat_bit_wide_legacy(enable));
+        ctx.insert_support(
+            tcid,
+            wires::IOCLK.into_iter().map(|w| w.cell(2)).collect(),
+            xlat_bit_wide(enable),
+        );
 
-        if tile == "HCLK_IO" {
+        if tcid == tcls::HCLK_IO {
             for i in 0..2 {
-                let bel = format!("BUFR[{i}]");
-                let bel = &bel;
-                ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-                ctx.collect_enum_legacy(
-                    tile,
-                    bel,
-                    "BUFR_DIVIDE",
-                    &["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"],
-                );
-                ctx.collect_enum_default_legacy(
-                    tile,
-                    bel,
-                    "MUX.I",
-                    &[
-                        "CKINT0", "CKINT1", "BUFIO0", "BUFIO1", "BUFIO2", "BUFIO3", "MGT0", "MGT1",
-                        "MGT2", "MGT3", "MGT4",
-                    ],
-                    "NONE",
-                );
+                let bslot = bslots::BUFR[i];
+                ctx.collect_bel_attr(tcid, bslot, bcls::BUFR::ENABLE);
+                ctx.collect_bel_attr(tcid, bslot, bcls::BUFR::DIVIDE);
             }
             for i in 0..4 {
-                let item = ctx.extract_enum_default_legacy_ocd(
-                    tile,
-                    "IOCLK",
-                    &format!("MUX.RCLK{i}"),
-                    &[
-                        "VRCLK0", "VRCLK1", "VRCLK_S0", "VRCLK_S1", "VRCLK_N0", "VRCLK_N1",
-                    ],
-                    "NONE",
-                    OcdMode::Mux,
-                );
-                ctx.insert_legacy(tile, "RCLK", format!("MUX.RCLK{i}"), item);
+                ctx.collect_mux(tcid, wires::RCLK_ROW[i].cell(2));
             }
         } else {
             for i in 0..4 {
-                ctx.collect_bit_legacy(tile, "IOCLK", &format!("ENABLE.RCLK{i}"), "1");
+                let wire = wires::RCLK_ROW[i].cell(2);
+                let bit = xlat_bit(ctx.get_diff_routing_special(tcid, wire, specials::SUPPORT));
+                ctx.insert_support(tcid, BTreeSet::from_iter([wire]), vec![bit]);
             }
         }
-        {
-            let bel = "IOCLK";
-            for i in 0..10 {
-                ctx.collect_bit_legacy(tile, bel, &format!("BUF.HCLK{i}"), "1");
-            }
-            for i in 0..4 {
-                ctx.collect_bit_legacy(tile, bel, &format!("BUF.RCLK{i}"), "1");
-            }
-        }
-        {
-            let bel = "IDELAYCTRL";
-            ctx.collect_enum_default_legacy(
-                tile,
-                bel,
-                "MUX.REFCLK",
-                &[
-                    "HCLK0", "HCLK1", "HCLK2", "HCLK3", "HCLK4", "HCLK5", "HCLK6", "HCLK7",
-                    "HCLK8", "HCLK9",
-                ],
-                "NONE",
+        for i in 0..4 {
+            ctx.collect_progbuf(
+                tcid,
+                wires::RCLK_IO[i].cell(2),
+                wires::RCLK_ROW[i].cell(2).pos(),
             );
-            ctx.collect_enum_default_legacy(tile, bel, "MODE", &["FULL", "DEFAULT_ONLY"], "NONE");
+        }
+        {
+            let bslot = bslots::IDELAYCTRL;
+            let vctl_sel = vec![TileBit::new(0, 36, 13).pos(), TileBit::new(0, 36, 14).pos()];
+            let mut diff_full =
+                ctx.get_diff_bel_special(tcid, bslot, specials::IDELAYCTRL_IODELAY_FULL);
+            let mut diff_default =
+                ctx.get_diff_bel_special(tcid, bslot, specials::IDELAYCTRL_IODELAY_DEFAULT_ONLY);
+            diff_full.apply_bitvec_diff_int(&vctl_sel, 1, 0);
+            diff_default.apply_bitvec_diff_int(&vctl_sel, 3, 0);
+            ctx.insert_bel_attr_bool(
+                tcid,
+                bslot,
+                bcls::IDELAYCTRL::DLL_ENABLE,
+                xlat_bit(diff_full.combine(&!&diff_default)),
+            );
+            ctx.insert_bel_attr_bool(
+                tcid,
+                bslot,
+                bcls::IDELAYCTRL::DELAY_ENABLE,
+                xlat_bit(diff_default),
+            );
+            ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::IDELAYCTRL::VCTL_SEL, vctl_sel);
         }
     }
     {
-        let tile = "IO";
-        let bel = "IODELAY_BOTH";
+        let tcid = tcls::IO;
+        let bslot = bslots::IODELAY[0];
         // don't worry about it kitten
-        ctx.get_diff_legacy(tile, bel, "IDELAYCTRL_MODE", "DEFAULT_ONLY");
-        ctx.get_diff_legacy(tile, bel, "IDELAYCTRL_MODE", "FULL");
-    }
-    {
-        let tile = "HCLK_CMT";
-        let bel = "HCLK_CMT";
-        for i in 0..10 {
-            let item = ctx.extract_bit_legacy(tile, "HCLK_CMT_HCLK", &format!("BUF.HCLK{i}"), "1");
-            ctx.insert_legacy(tile, bel, format!("BUF.HCLK{i}"), item);
-            let item = ctx.extract_bit_legacy(tile, "HCLK_CMT_GIOB", &format!("BUF.GIOB{i}"), "1");
-            ctx.insert_legacy(tile, bel, format!("BUF.GIOB{i}"), item);
-        }
+        ctx.get_diff_bel_special(tcid, bslot, specials::IDELAYCTRL_IODELAY_DEFAULT_ONLY);
+        ctx.get_diff_bel_special(tcid, bslot, specials::IDELAYCTRL_IODELAY_FULL);
     }
     if ctx.has_tcls(tcls::HCLK_MGT_BUF) {
-        let tile = "HCLK_MGT_BUF";
-        let bel = "HCLK_MGT_BUF";
+        let tcid = tcls::HCLK_MGT_BUF;
         for i in 0..5 {
-            ctx.collect_bit_legacy(tile, bel, &format!("BUF.MGT{i}"), "1");
+            ctx.collect_progbuf(
+                tcid,
+                wires::MGT_ROW_O[i].cell(0),
+                wires::MGT_ROW_I[i].cell(0).pos(),
+            );
         }
     }
 }

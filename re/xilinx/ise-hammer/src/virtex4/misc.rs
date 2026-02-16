@@ -349,7 +349,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             "ENABLE",
         );
         bctx.build()
-            .test_global_attr_rename("CONFIGRATE", bcls::GLOBAL::CONFIG_RATE);
+            .test_global_attr_rename("CONFIGRATE", bcls::GLOBAL::CONFIG_RATE_V4);
 
         // CTL
         bctx.build().test_global_attr_bool_rename(
@@ -643,7 +643,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ],
         );
         ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::STARTUP_CLOCK);
-        ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::CONFIG_RATE, OcdMode::BitOrder);
+        ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::CONFIG_RATE_V4, OcdMode::BitOrder);
         ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DRIVE_DONE);
         ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DONE_PIPE);
         ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DCM_SHUTDOWN);

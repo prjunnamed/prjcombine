@@ -22644,6 +22644,17 @@ intdb {
 		V5,
 	}
 
+	enum INTERNAL_VREF {
+		OFF,
+		_600,
+		_675,
+		_750,
+		_900,
+		_1080,
+		_1100,
+		_1250,
+	}
+
 	enum DCM_CLKDV_MODE {
 		HALF,
 		INT,
@@ -22746,6 +22757,14 @@ intdb {
 		TEST,
 	}
 
+	enum JTAGPPC_NUM_PPC {
+		_0,
+		_1,
+		_2,
+		_3,
+		_4,
+	}
+
 	enum ICAP_WIDTH {
 		X8,
 		X16,
@@ -22779,7 +22798,7 @@ intdb {
 		JTAGCLK,
 	}
 
-	enum CONFIG_RATE {
+	enum CONFIG_RATE_V4 {
 		_4,
 		_5,
 		_7,
@@ -22799,6 +22818,26 @@ intdb {
 		_130,
 	}
 
+	enum CONFIG_RATE_V5 {
+		_2,
+		_6,
+		_9,
+		_13,
+		_17,
+		_20,
+		_24,
+		_27,
+		_31,
+		_35,
+		_38,
+		_42,
+		_46,
+		_49,
+		_53,
+		_56,
+		_60,
+	}
+
 	enum SECURITY {
 		NONE,
 		LEVEL1,
@@ -22808,6 +22847,24 @@ intdb {
 	enum ICAP_SELECT {
 		BOTTOM,
 		TOP,
+	}
+
+	enum BPI_PAGE_SIZE {
+		_1,
+		_4,
+		_8,
+	}
+
+	enum BPI_1ST_READ_CYCLE {
+		_1,
+		_2,
+		_3,
+		_4,
+	}
+
+	enum ENCRYPT_KEY_SELECT {
+		BBRAM,
+		EFUSE,
 	}
 
 	enum GT11_ALIGN_COMMA_WORD {
@@ -23020,6 +23077,17 @@ intdb {
 		attribute ALMOST_FULL_OFFSET: bitvec[12];
 	}
 
+	bel_class BRAM_V5 {
+	}
+
+	bel_class PMVBRAM {
+		input DISABLE0;
+		input DISABLE1;
+		output O;
+		output ODIV2;
+		output ODIV4;
+	}
+
 	bel_class DSP_V4 {
 		input A[18];
 		input B[18];
@@ -23060,6 +23128,9 @@ intdb {
 		input RSTC;
 		attribute MUX_CLK: bitvec[1];
 		attribute CREG: bool;
+	}
+
+	bel_class DSP_V5 {
 	}
 
 	bel_class ILOGIC_V4 {
@@ -23189,6 +23260,10 @@ intdb {
 	bel_class GLOBALSIG {
 	}
 
+	bel_class HCLK_CMT_DRP {
+		attribute DRP_MASK: bool;
+	}
+
 	bel_class BUFGCTRL {
 		input I0;
 		input I1;
@@ -23266,6 +23341,11 @@ intdb {
 
 	bel_class LVDS_V4 {
 		attribute LVDSBIAS: bitvec[10];
+	}
+
+	bel_class BANK {
+		attribute V5_LVDSVIAS: bitvec[12];
+		attribute INTERNAL_VREF: INTERNAL_VREF;
 	}
 
 	bel_class DCM_V4 {
@@ -23498,6 +23578,73 @@ intdb {
 		attribute PROM_DATA: bitvec[8];
 	}
 
+	bel_class SYSMON_V5 {
+		input CONVST;
+		input CONVSTCLK;
+		input RESET;
+		input DCLK;
+		input DEN;
+		input DWE;
+		input DADDR[7];
+		input DI[16];
+		input TESTADCCLK[4];
+		input TESTADCIN[20];
+		input TESTSCANCLKA;
+		input TESTSCANCLKB;
+		input TESTSCANCLKC;
+		input TESTSCANCLKD;
+		input TESTSCANCLKE;
+		input TESTSCANMODEA;
+		input TESTSCANMODEB;
+		input TESTSCANMODEC;
+		input TESTSCANMODED;
+		input TESTSCANMODEE;
+		input TESTSCANRESET;
+		input TESTSEA;
+		input TESTSEB;
+		input TESTSEC;
+		input TESTSED;
+		input TESTSEE;
+		input TESTSEL;
+		input TESTSIA;
+		input TESTSIB;
+		input TESTSIC;
+		input TESTSID;
+		input TESTSIE;
+		input TESTENJTAG;
+		input TESTDRCK;
+		input TESTRST;
+		input TESTSHIFT;
+		input TESTUPDATE;
+		input TESTCAPTURE;
+		input TESTTDI;
+		output ALM[3];
+		output BUSY;
+		output CHANNEL[5];
+		output EOC;
+		output EOS;
+		output OT;
+		output DRDY;
+		output DO[16];
+		output JTAGBUSY;
+		output JTAGLOCKED;
+		output JTAGMODIFIED;
+		output TESTADCOUT[20];
+		output TESTDB[16];
+		output TESTSOA;
+		output TESTSOB;
+		output TESTSOC;
+		output TESTSOD;
+		output TESTSOE;
+		output TESTTDO;
+		attribute INIT: bitvec[16][24];
+		attribute SYSMON_TEST_A: bitvec[16];
+		attribute SYSMON_TEST_B: bitvec[16];
+		attribute SYSMON_TEST_C: bitvec[16];
+		attribute SYSMON_TEST_D: bitvec[16];
+		attribute SYSMON_TEST_E: bitvec[16];
+	}
+
 	bel_class STARTUP {
 		input CLK;
 		input GTS;
@@ -23507,6 +23654,10 @@ intdb {
 		input USRDONEO;
 		input USRDONETS;
 		output EOS;
+		output CFGCLK;
+		output CFGMCLK;
+		output DINSPI;
+		output TCKSPI;
 		attribute USER_GTS_GSR_ENABLE: bool;
 		attribute GTS_SYNC: bool;
 		attribute GSR_SYNC: bool;
@@ -23547,6 +23698,7 @@ intdb {
 		output TMS;
 		output TDIPPC;
 		attribute ENABLE: bool;
+		attribute NUM_PPC: JTAGPPC_NUM_PPC;
 	}
 
 	bel_class PMV {
@@ -23567,11 +23719,22 @@ intdb {
 		output ERROR;
 		output SYNDROMEVALID;
 		output SYNDROME[12];
+		output CRCERROR;
+		output ECCERROR;
 	}
 
 	bel_class USR_ACCESS {
 		output DATAVALID;
 		output DATA[32];
+		output CFGCLK;
+	}
+
+	bel_class KEY_CLEAR {
+		input KEYCLEARB;
+	}
+
+	bel_class EFUSE_USR {
+		output EFUSEUSR[32];
 	}
 
 	bel_class MISC_CFG {
@@ -23622,13 +23785,22 @@ intdb {
 		attribute MATCH_CYCLE: STARTUP_CYCLE;
 		attribute DONE_CYCLE: STARTUP_CYCLE;
 		attribute STARTUP_CLOCK: STARTUP_CLOCK;
-		attribute CONFIG_RATE: CONFIG_RATE;
+		attribute CONFIG_RATE_V4: CONFIG_RATE_V4;
+		attribute CONFIG_RATE_V5: CONFIG_RATE_V5;
 		attribute CAPTURE_ONESHOT: bool;
 		attribute DRIVE_DONE: bool;
 		attribute DONE_PIPE: bool;
 		attribute DCM_SHUTDOWN: bool;
 		attribute POWERDOWN_STATUS: bool;
 		attribute CRC_ENABLE: bool;
+		attribute BPI_PAGE_SIZE: BPI_PAGE_SIZE;
+		attribute BPI_1ST_READ_CYCLE: BPI_1ST_READ_CYCLE;
+		attribute POST_CRC_EN: bool;
+		attribute POST_CRC_NO_PIN: bool;
+		attribute POST_CRC_RECONFIG: bool;
+		attribute RETAIN_CONFIG_STATUS: bool;
+		attribute POST_CRC_SEL: bitvec[1];
+		attribute PERSIST_DEASSERT_AT_DESYNCH: bool;
 		attribute GTS_USR_B: bool;
 		attribute EN_VTEST: bool;
 		attribute VGG_TEST: bool;
@@ -23637,6 +23809,21 @@ intdb {
 		attribute ENCRYPT: bool;
 		attribute GLUTMASK: bool;
 		attribute ICAP_SELECT: ICAP_SELECT;
+		attribute CONFIG_FALLBACK: bool;
+		attribute ENCRYPT_KEY_SELECT: ENCRYPT_KEY_SELECT;
+		attribute OVERTEMP_POWERDOWN: bool;
+		attribute SELECTMAP_ABORT: bool;
+		attribute VGG_SEL: bitvec[5];
+		attribute VBG_DLL_SEL: bitvec[5];
+		attribute VBG_SEL: bitvec[5];
+		attribute TIMER: bitvec[24];
+		attribute TIMER_CFG: bool;
+		attribute TIMER_USR: bool;
+		attribute V5_NEXT_CONFIG_ADDR: bitvec[26];
+		attribute V7_NEXT_CONFIG_ADDR: bitvec[29];
+		attribute REVISION_SELECT_TRISTATE: bool;
+		attribute REVISION_SELECT: bitvec[2];
+		attribute DD_OVERRIDE: bool;
 	}
 
 	bel_class PPC405 {
@@ -24048,8 +24235,13 @@ intdb {
 	}
 
 	bel_class EMAC_V4 {
-		input DCREMACENABLE;
 		input RESET;
+		input DCREMACCLK;
+		input DCREMACENABLE;
+		input DCREMACREAD;
+		input DCREMACWRITE;
+		input DCREMACABUS[10];
+		input DCREMACDBUS[32];
 		input HOSTCLK;
 		input HOSTREQ;
 		input HOSTOPCODE[2];
@@ -24094,6 +24286,7 @@ intdb {
 		input PHYEMAC0RXRUNDISP;
 		input PHYEMAC0SIGNALDET;
 		input PHYEMAC0TXBUFERR;
+		input PHYEMAC0TXGMIIMIICLKIN;
 		input TIEEMAC0CONFIGVEC[80];
 		input TIEEMAC0UNICASTADDR[48];
 		input CLIENTEMAC1DCMLOCKED;
@@ -24133,9 +24326,14 @@ intdb {
 		input PHYEMAC1RXRUNDISP;
 		input PHYEMAC1SIGNALDET;
 		input PHYEMAC1TXBUFERR;
+		input PHYEMAC1TXGMIIMIICLKIN;
 		input TIEEMAC1CONFIGVEC[80];
 		input TIEEMAC1UNICASTADDR[48];
+		input TESTSELI;
+		input TSTSEEMACI;
 		input TSTSIEMACI[7];
+		output EMACDCRACK;
+		output EMACDCRDBUS[32];
 		output DCRHOSTDONEIR;
 		output HOSTMIIMRDY;
 		output HOSTRDDATA[32];
@@ -24154,11 +24352,12 @@ intdb {
 		output EMAC0CLIENTTXACK;
 		output EMAC0CLIENTTXCLIENTCLKOUT;
 		output EMAC0CLIENTTXCOLLISION;
-		output EMAC0CLIENTTXGMIIMIICLKOUT;
 		output EMAC0CLIENTTXRETRANSMIT;
 		output EMAC0CLIENTTXSTATS;
 		output EMAC0CLIENTTXSTATSBYTEVLD;
 		output EMAC0CLIENTTXSTATSVLD;
+		output EMAC0CLIENTTXGMIIMIICLKOUT;
+		output EMAC0TOBUS[5];
 		output EMAC0PHYENCOMMAALIGN;
 		output EMAC0PHYLOOPBACKMSB;
 		output EMAC0PHYMCLKOUT;
@@ -24175,6 +24374,8 @@ intdb {
 		output EMAC0PHYTXD[8];
 		output EMAC0PHYTXEN;
 		output EMAC0PHYTXER;
+		output EMAC0PHYTXGMIIMIICLKOUT;
+		output EMAC0SPEEDIS10100;
 		output EMAC1CLIENTANINTERRUPT;
 		output EMAC1CLIENTRXBADFRAME;
 		output EMAC1CLIENTRXCLIENTCLKOUT;
@@ -24190,11 +24391,12 @@ intdb {
 		output EMAC1CLIENTTXACK;
 		output EMAC1CLIENTTXCLIENTCLKOUT;
 		output EMAC1CLIENTTXCOLLISION;
-		output EMAC1CLIENTTXGMIIMIICLKOUT;
 		output EMAC1CLIENTTXRETRANSMIT;
 		output EMAC1CLIENTTXSTATS;
 		output EMAC1CLIENTTXSTATSBYTEVLD;
 		output EMAC1CLIENTTXSTATSVLD;
+		output EMAC1CLIENTTXGMIIMIICLKOUT;
+		output EMAC1TOBUS[5];
 		output EMAC1PHYENCOMMAALIGN;
 		output EMAC1PHYLOOPBACKMSB;
 		output EMAC1PHYMCLKOUT;
@@ -24211,7 +24413,91 @@ intdb {
 		output EMAC1PHYTXD[8];
 		output EMAC1PHYTXEN;
 		output EMAC1PHYTXER;
+		output EMAC1PHYTXGMIIMIICLKOUT;
+		output EMAC1SPEEDIS10100;
 		output TSTSOEMACO[7];
+		attribute EMAC0_1000BASEX_ENABLE: bool;
+		attribute EMAC0_ADDRFILTER_ENABLE: bool;
+		attribute EMAC0_BYTEPHY: bool;
+		attribute EMAC0_CONFIGVEC_79: bool;
+		attribute EMAC0_DCRBASEADDR: bitvec[8];
+		attribute EMAC0_FUNCTION: bitvec[3];
+		attribute EMAC0_GTLOOPBACK: bool;
+		attribute EMAC0_HOST_ENABLE: bool;
+		attribute EMAC0_LINKTIMERVAL: bitvec[9];
+		attribute EMAC0_LTCHECK_DISABLE: bool;
+		attribute EMAC0_MDIO_ENABLE: bool;
+		attribute EMAC0_PAUSEADDR: bitvec[48];
+		attribute EMAC0_PHYINITAUTONEG_ENABLE: bool;
+		attribute EMAC0_PHYISOLATE: bool;
+		attribute EMAC0_PHYLOOPBACKMSB: bool;
+		attribute EMAC0_PHYPOWERDOWN: bool;
+		attribute EMAC0_PHYRESET: bool;
+		attribute EMAC0_RGMII_ENABLE: bool;
+		attribute EMAC0_RX16BITCLIENT_ENABLE: bool;
+		attribute EMAC0_RXFLOWCTRL_ENABLE: bool;
+		attribute EMAC0_RXHALFDUPLEX: bool;
+		attribute EMAC0_RXINBANDFCS_ENABLE: bool;
+		attribute EMAC0_RXJUMBOFRAME_ENABLE: bool;
+		attribute EMAC0_RXRESET: bool;
+		attribute EMAC0_RXVLAN_ENABLE: bool;
+		attribute EMAC0_RX_ENABLE: bool;
+		attribute EMAC0_SGMII_ENABLE: bool;
+		attribute EMAC0_SPEED_LSB: bool;
+		attribute EMAC0_SPEED_MSB: bool;
+		attribute EMAC0_TX16BITCLIENT_ENABLE: bool;
+		attribute EMAC0_TXFLOWCTRL_ENABLE: bool;
+		attribute EMAC0_TXHALFDUPLEX: bool;
+		attribute EMAC0_TXIFGADJUST_ENABLE: bool;
+		attribute EMAC0_TXINBANDFCS_ENABLE: bool;
+		attribute EMAC0_TXJUMBOFRAME_ENABLE: bool;
+		attribute EMAC0_TXRESET: bool;
+		attribute EMAC0_TXVLAN_ENABLE: bool;
+		attribute EMAC0_TX_ENABLE: bool;
+		attribute EMAC0_UNICASTADDR: bitvec[48];
+		attribute EMAC0_UNIDIRECTION_ENABLE: bool;
+		attribute EMAC0_USECLKEN: bool;
+		attribute EMAC1_1000BASEX_ENABLE: bool;
+		attribute EMAC1_ADDRFILTER_ENABLE: bool;
+		attribute EMAC1_BYTEPHY: bool;
+		attribute EMAC1_CONFIGVEC_79: bool;
+		attribute EMAC1_DCRBASEADDR: bitvec[8];
+		attribute EMAC1_FUNCTION: bitvec[3];
+		attribute EMAC1_GTLOOPBACK: bool;
+		attribute EMAC1_HOST_ENABLE: bool;
+		attribute EMAC1_LINKTIMERVAL: bitvec[9];
+		attribute EMAC1_LTCHECK_DISABLE: bool;
+		attribute EMAC1_MDIO_ENABLE: bool;
+		attribute EMAC1_PAUSEADDR: bitvec[48];
+		attribute EMAC1_PHYINITAUTONEG_ENABLE: bool;
+		attribute EMAC1_PHYISOLATE: bool;
+		attribute EMAC1_PHYLOOPBACKMSB: bool;
+		attribute EMAC1_PHYPOWERDOWN: bool;
+		attribute EMAC1_PHYRESET: bool;
+		attribute EMAC1_RGMII_ENABLE: bool;
+		attribute EMAC1_RX16BITCLIENT_ENABLE: bool;
+		attribute EMAC1_RXFLOWCTRL_ENABLE: bool;
+		attribute EMAC1_RXHALFDUPLEX: bool;
+		attribute EMAC1_RXINBANDFCS_ENABLE: bool;
+		attribute EMAC1_RXJUMBOFRAME_ENABLE: bool;
+		attribute EMAC1_RXRESET: bool;
+		attribute EMAC1_RXVLAN_ENABLE: bool;
+		attribute EMAC1_RX_ENABLE: bool;
+		attribute EMAC1_SGMII_ENABLE: bool;
+		attribute EMAC1_SPEED_LSB: bool;
+		attribute EMAC1_SPEED_MSB: bool;
+		attribute EMAC1_TX16BITCLIENT_ENABLE: bool;
+		attribute EMAC1_TXFLOWCTRL_ENABLE: bool;
+		attribute EMAC1_TXHALFDUPLEX: bool;
+		attribute EMAC1_TXIFGADJUST_ENABLE: bool;
+		attribute EMAC1_TXINBANDFCS_ENABLE: bool;
+		attribute EMAC1_TXJUMBOFRAME_ENABLE: bool;
+		attribute EMAC1_TXRESET: bool;
+		attribute EMAC1_TXVLAN_ENABLE: bool;
+		attribute EMAC1_TX_ENABLE: bool;
+		attribute EMAC1_UNICASTADDR: bitvec[48];
+		attribute EMAC1_UNIDIRECTION_ENABLE: bool;
+		attribute EMAC1_USECLKEN: bool;
 	}
 
 	bel_class GT11 {
@@ -25489,70 +25775,70 @@ intdb {
 	wire GIOB[13]: regional GIOB;
 	wire GIOB[14]: regional GIOB;
 	wire GIOB[15]: regional GIOB;
-	wire IMUX_BUFG_S[0]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[1]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[2]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[3]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[4]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[5]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[6]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[7]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[8]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[9]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[10]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[11]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[12]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[13]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[14]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[15]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[16]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[17]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[18]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[19]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[20]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[21]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[22]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[23]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[24]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[25]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[26]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[27]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[28]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[29]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[30]: multi_branch CLK_S;
-	wire IMUX_BUFG_S[31]: multi_branch CLK_S;
-	wire IMUX_BUFG_N[0]: multi_root;
-	wire IMUX_BUFG_N[1]: multi_root;
-	wire IMUX_BUFG_N[2]: multi_root;
-	wire IMUX_BUFG_N[3]: multi_root;
-	wire IMUX_BUFG_N[4]: multi_root;
-	wire IMUX_BUFG_N[5]: multi_root;
-	wire IMUX_BUFG_N[6]: multi_root;
-	wire IMUX_BUFG_N[7]: multi_root;
-	wire IMUX_BUFG_N[8]: multi_root;
-	wire IMUX_BUFG_N[9]: multi_root;
-	wire IMUX_BUFG_N[10]: multi_root;
-	wire IMUX_BUFG_N[11]: multi_root;
-	wire IMUX_BUFG_N[12]: multi_root;
-	wire IMUX_BUFG_N[13]: multi_root;
-	wire IMUX_BUFG_N[14]: multi_root;
-	wire IMUX_BUFG_N[15]: multi_root;
-	wire IMUX_BUFG_N[16]: multi_root;
-	wire IMUX_BUFG_N[17]: multi_root;
-	wire IMUX_BUFG_N[18]: multi_root;
-	wire IMUX_BUFG_N[19]: multi_root;
-	wire IMUX_BUFG_N[20]: multi_root;
-	wire IMUX_BUFG_N[21]: multi_root;
-	wire IMUX_BUFG_N[22]: multi_root;
-	wire IMUX_BUFG_N[23]: multi_root;
-	wire IMUX_BUFG_N[24]: multi_root;
-	wire IMUX_BUFG_N[25]: multi_root;
-	wire IMUX_BUFG_N[26]: multi_root;
-	wire IMUX_BUFG_N[27]: multi_root;
-	wire IMUX_BUFG_N[28]: multi_root;
-	wire IMUX_BUFG_N[29]: multi_root;
-	wire IMUX_BUFG_N[30]: multi_root;
-	wire IMUX_BUFG_N[31]: multi_root;
+	wire IMUX_BUFG_O[0]: mux;
+	wire IMUX_BUFG_O[1]: mux;
+	wire IMUX_BUFG_O[2]: mux;
+	wire IMUX_BUFG_O[3]: mux;
+	wire IMUX_BUFG_O[4]: mux;
+	wire IMUX_BUFG_O[5]: mux;
+	wire IMUX_BUFG_O[6]: mux;
+	wire IMUX_BUFG_O[7]: mux;
+	wire IMUX_BUFG_O[8]: mux;
+	wire IMUX_BUFG_O[9]: mux;
+	wire IMUX_BUFG_O[10]: mux;
+	wire IMUX_BUFG_O[11]: mux;
+	wire IMUX_BUFG_O[12]: mux;
+	wire IMUX_BUFG_O[13]: mux;
+	wire IMUX_BUFG_O[14]: mux;
+	wire IMUX_BUFG_O[15]: mux;
+	wire IMUX_BUFG_O[16]: mux;
+	wire IMUX_BUFG_O[17]: mux;
+	wire IMUX_BUFG_O[18]: mux;
+	wire IMUX_BUFG_O[19]: mux;
+	wire IMUX_BUFG_O[20]: mux;
+	wire IMUX_BUFG_O[21]: mux;
+	wire IMUX_BUFG_O[22]: mux;
+	wire IMUX_BUFG_O[23]: mux;
+	wire IMUX_BUFG_O[24]: mux;
+	wire IMUX_BUFG_O[25]: mux;
+	wire IMUX_BUFG_O[26]: mux;
+	wire IMUX_BUFG_O[27]: mux;
+	wire IMUX_BUFG_O[28]: mux;
+	wire IMUX_BUFG_O[29]: mux;
+	wire IMUX_BUFG_O[30]: mux;
+	wire IMUX_BUFG_O[31]: mux;
+	wire IMUX_BUFG_I[0]: branch CLK_PREV;
+	wire IMUX_BUFG_I[1]: branch CLK_PREV;
+	wire IMUX_BUFG_I[2]: branch CLK_PREV;
+	wire IMUX_BUFG_I[3]: branch CLK_PREV;
+	wire IMUX_BUFG_I[4]: branch CLK_PREV;
+	wire IMUX_BUFG_I[5]: branch CLK_PREV;
+	wire IMUX_BUFG_I[6]: branch CLK_PREV;
+	wire IMUX_BUFG_I[7]: branch CLK_PREV;
+	wire IMUX_BUFG_I[8]: branch CLK_PREV;
+	wire IMUX_BUFG_I[9]: branch CLK_PREV;
+	wire IMUX_BUFG_I[10]: branch CLK_PREV;
+	wire IMUX_BUFG_I[11]: branch CLK_PREV;
+	wire IMUX_BUFG_I[12]: branch CLK_PREV;
+	wire IMUX_BUFG_I[13]: branch CLK_PREV;
+	wire IMUX_BUFG_I[14]: branch CLK_PREV;
+	wire IMUX_BUFG_I[15]: branch CLK_PREV;
+	wire IMUX_BUFG_I[16]: branch CLK_PREV;
+	wire IMUX_BUFG_I[17]: branch CLK_PREV;
+	wire IMUX_BUFG_I[18]: branch CLK_PREV;
+	wire IMUX_BUFG_I[19]: branch CLK_PREV;
+	wire IMUX_BUFG_I[20]: branch CLK_PREV;
+	wire IMUX_BUFG_I[21]: branch CLK_PREV;
+	wire IMUX_BUFG_I[22]: branch CLK_PREV;
+	wire IMUX_BUFG_I[23]: branch CLK_PREV;
+	wire IMUX_BUFG_I[24]: branch CLK_PREV;
+	wire IMUX_BUFG_I[25]: branch CLK_PREV;
+	wire IMUX_BUFG_I[26]: branch CLK_PREV;
+	wire IMUX_BUFG_I[27]: branch CLK_PREV;
+	wire IMUX_BUFG_I[28]: branch CLK_PREV;
+	wire IMUX_BUFG_I[29]: branch CLK_PREV;
+	wire IMUX_BUFG_I[30]: branch CLK_PREV;
+	wire IMUX_BUFG_I[31]: branch CLK_PREV;
 	wire OUT_CLKPAD: bel;
 	wire HCLK_IO[0]: regional LEAF;
 	wire HCLK_IO[1]: regional LEAF;
@@ -29814,8 +30100,6 @@ intdb {
 		bel_slot BUFGCTRL[31]: BUFGCTRL;
 		bel_slot GIO_S: legacy;
 		bel_slot GIO_N: legacy;
-		bel_slot BUFG_MGTCLK_S: legacy;
-		bel_slot BUFG_MGTCLK_N: legacy;
 		bel_slot GCLK_BUF: legacy;
 		bel_slot HCLK_GTX: legacy;
 		bel_slot HCLK_GTH: legacy;
@@ -36487,8 +36771,8 @@ intdb {
 			}
 
 			bel EMAC {
-				input DCREMACENABLE = CELL_W[17].IMUX_IMUX[15];
 				input RESET = CELL_W[2].IMUX_IMUX[14];
+				input DCREMACENABLE = CELL_W[17].IMUX_IMUX[15];
 				input HOSTCLK = ~CELL_W[16].IMUX_CLK_OPTINV[0];
 				input HOSTREQ = CELL_W[17].IMUX_IMUX[9];
 				input HOSTOPCODE[0] = CELL_W[17].IMUX_IMUX[7];
@@ -37056,11 +37340,11 @@ intdb {
 				output EMAC0CLIENTTXACK = CELL_W[2].OUT_BEST_TMIN[2];
 				output EMAC0CLIENTTXCLIENTCLKOUT = CELL_W[2].OUT_BEST_TMIN[0];
 				output EMAC0CLIENTTXCOLLISION = CELL_W[2].OUT_BEST_TMIN[3];
-				output EMAC0CLIENTTXGMIIMIICLKOUT = CELL_W[3].OUT_BEST_TMIN[2];
 				output EMAC0CLIENTTXRETRANSMIT = CELL_W[2].OUT_BEST_TMIN[4];
 				output EMAC0CLIENTTXSTATS = CELL_W[4].OUT_BEST_TMIN[4];
 				output EMAC0CLIENTTXSTATSBYTEVLD = CELL_W[0].OUT_SEC_TMIN[0];
 				output EMAC0CLIENTTXSTATSVLD = CELL_W[0].OUT_BEST_TMIN[7];
+				output EMAC0CLIENTTXGMIIMIICLKOUT = CELL_W[3].OUT_BEST_TMIN[2];
 				output EMAC0PHYENCOMMAALIGN = CELL_W[9].OUT_SEC_TMIN[4];
 				output EMAC0PHYLOOPBACKMSB = CELL_W[3].OUT_BEST_TMIN[3];
 				output EMAC0PHYMCLKOUT = CELL_W[5].OUT_BEST_TMIN[1];
@@ -37120,11 +37404,11 @@ intdb {
 				output EMAC1CLIENTTXACK = CELL_W[21].OUT_BEST_TMIN[2];
 				output EMAC1CLIENTTXCLIENTCLKOUT = CELL_W[21].OUT_BEST_TMIN[1];
 				output EMAC1CLIENTTXCOLLISION = CELL_W[21].OUT_BEST_TMIN[3];
-				output EMAC1CLIENTTXGMIIMIICLKOUT = CELL_W[20].OUT_BEST_TMIN[2];
 				output EMAC1CLIENTTXRETRANSMIT = CELL_W[21].OUT_BEST_TMIN[4];
 				output EMAC1CLIENTTXSTATS = CELL_W[19].OUT_BEST_TMIN[4];
 				output EMAC1CLIENTTXSTATSBYTEVLD = CELL_W[21].OUT_BEST_TMIN[5];
 				output EMAC1CLIENTTXSTATSVLD = CELL_W[21].OUT_BEST_TMIN[7];
+				output EMAC1CLIENTTXGMIIMIICLKOUT = CELL_W[20].OUT_BEST_TMIN[2];
 				output EMAC1PHYENCOMMAALIGN = CELL_W[15].OUT_SEC_TMIN[4];
 				output EMAC1PHYLOOPBACKMSB = CELL_W[20].OUT_BEST_TMIN[3];
 				output EMAC1PHYMCLKOUT = CELL_W[18].OUT_BEST_TMIN[1];
@@ -44379,7 +44663,7 @@ intdb {
 				mux CELL[0].IMUX_SPEC[0] @[MAIN[1][1][28], MAIN[1][1][29], MAIN[1][1][26], MAIN[1][0][30], MAIN[1][1][27], MAIN[1][1][22], MAIN[1][1][23], MAIN[1][1][24], MAIN[1][1][25], MAIN[1][0][31], MAIN[1][1][20], MAIN[1][1][21]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[1] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[1] = 0b000100000100,
 					CELL[1].IMUX_IMUX[3] = 0b001000001000,
 					CELL[1].IMUX_IMUX[11] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44405,7 +44689,7 @@ intdb {
 				mux CELL[0].IMUX_SPEC[1] @[MAIN[1][0][28], MAIN[1][0][29], MAIN[1][0][26], MAIN[1][1][30], MAIN[1][0][27], MAIN[1][0][22], MAIN[1][0][23], MAIN[1][0][24], MAIN[1][0][25], MAIN[1][1][31], MAIN[1][0][20], MAIN[1][0][21]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[0] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[0] = 0b000100000100,
 					CELL[1].IMUX_IMUX[3] = 0b001000001000,
 					CELL[1].IMUX_IMUX[11] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44431,7 +44715,7 @@ intdb {
 				mux CELL[0].IMUX_SPEC[2] @[MAIN[1][1][44], MAIN[1][1][45], MAIN[1][1][42], MAIN[1][0][46], MAIN[1][1][43], MAIN[1][1][38], MAIN[1][1][39], MAIN[1][1][40], MAIN[1][1][41], MAIN[1][0][47], MAIN[1][1][36], MAIN[1][1][37]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[3] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[3] = 0b000100000100,
 					CELL[1].IMUX_IMUX[7] = 0b001000001000,
 					CELL[1].IMUX_IMUX[15] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44457,7 +44741,7 @@ intdb {
 				mux CELL[0].IMUX_SPEC[3] @[MAIN[1][0][44], MAIN[1][0][45], MAIN[1][0][42], MAIN[1][1][46], MAIN[1][0][43], MAIN[1][0][38], MAIN[1][0][39], MAIN[1][0][40], MAIN[1][0][41], MAIN[1][1][47], MAIN[1][0][36], MAIN[1][0][37]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[2] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[2] = 0b000100000100,
 					CELL[1].IMUX_IMUX[7] = 0b001000001000,
 					CELL[1].IMUX_IMUX[15] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44483,7 +44767,7 @@ intdb {
 				mux CELL[1].IMUX_SPEC[0] @[MAIN[1][1][60], MAIN[1][1][61], MAIN[1][1][58], MAIN[1][0][62], MAIN[1][1][59], MAIN[1][1][54], MAIN[1][1][55], MAIN[1][1][56], MAIN[1][1][57], MAIN[1][0][63], MAIN[1][1][52], MAIN[1][1][53]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[5] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[5] = 0b000100000100,
 					CELL[1].IMUX_IMUX[19] = 0b001000001000,
 					CELL[1].IMUX_IMUX[27] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44509,7 +44793,7 @@ intdb {
 				mux CELL[1].IMUX_SPEC[1] @[MAIN[1][0][60], MAIN[1][0][61], MAIN[1][0][58], MAIN[1][1][62], MAIN[1][0][59], MAIN[1][0][54], MAIN[1][0][55], MAIN[1][0][56], MAIN[1][0][57], MAIN[1][1][63], MAIN[1][0][52], MAIN[1][0][53]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[4] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[4] = 0b000100000100,
 					CELL[1].IMUX_IMUX[19] = 0b001000001000,
 					CELL[1].IMUX_IMUX[27] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44535,7 +44819,7 @@ intdb {
 				mux CELL[1].IMUX_SPEC[2] @[MAIN[1][1][76], MAIN[1][1][77], MAIN[1][1][74], MAIN[1][0][78], MAIN[1][1][75], MAIN[1][1][70], MAIN[1][1][71], MAIN[1][1][72], MAIN[1][1][73], MAIN[1][0][79], MAIN[1][1][68], MAIN[1][1][69]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[7] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[7] = 0b000100000100,
 					CELL[1].IMUX_IMUX[23] = 0b001000001000,
 					CELL[1].IMUX_IMUX[31] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44561,7 +44845,7 @@ intdb {
 				mux CELL[1].IMUX_SPEC[3] @[MAIN[1][0][76], MAIN[1][0][77], MAIN[1][0][74], MAIN[1][1][78], MAIN[1][0][75], MAIN[1][0][70], MAIN[1][0][71], MAIN[1][0][72], MAIN[1][0][73], MAIN[1][1][79], MAIN[1][0][68], MAIN[1][0][69]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[6] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[6] = 0b000100000100,
 					CELL[1].IMUX_IMUX[23] = 0b001000001000,
 					CELL[1].IMUX_IMUX[31] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44587,7 +44871,7 @@ intdb {
 				mux CELL[2].IMUX_SPEC[0] @[MAIN[2][1][28], MAIN[2][1][29], MAIN[2][1][26], MAIN[2][0][30], MAIN[2][1][27], MAIN[2][1][22], MAIN[2][1][23], MAIN[2][1][24], MAIN[2][1][25], MAIN[2][0][31], MAIN[2][1][20], MAIN[2][1][21]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[9] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[9] = 0b000100000100,
 					CELL[2].IMUX_IMUX[3] = 0b001000001000,
 					CELL[2].IMUX_IMUX[11] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44613,7 +44897,7 @@ intdb {
 				mux CELL[2].IMUX_SPEC[1] @[MAIN[2][0][28], MAIN[2][0][29], MAIN[2][0][26], MAIN[2][1][30], MAIN[2][0][27], MAIN[2][0][22], MAIN[2][0][23], MAIN[2][0][24], MAIN[2][0][25], MAIN[2][1][31], MAIN[2][0][20], MAIN[2][0][21]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[8] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[8] = 0b000100000100,
 					CELL[2].IMUX_IMUX[3] = 0b001000001000,
 					CELL[2].IMUX_IMUX[11] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44639,7 +44923,7 @@ intdb {
 				mux CELL[2].IMUX_SPEC[2] @[MAIN[2][1][44], MAIN[2][1][45], MAIN[2][1][42], MAIN[2][0][46], MAIN[2][1][43], MAIN[2][1][38], MAIN[2][1][39], MAIN[2][1][40], MAIN[2][1][41], MAIN[2][0][47], MAIN[2][1][36], MAIN[2][1][37]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[11] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[11] = 0b000100000100,
 					CELL[2].IMUX_IMUX[7] = 0b001000001000,
 					CELL[2].IMUX_IMUX[15] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44665,7 +44949,7 @@ intdb {
 				mux CELL[2].IMUX_SPEC[3] @[MAIN[2][0][44], MAIN[2][0][45], MAIN[2][0][42], MAIN[2][1][46], MAIN[2][0][43], MAIN[2][0][38], MAIN[2][0][39], MAIN[2][0][40], MAIN[2][0][41], MAIN[2][1][47], MAIN[2][0][36], MAIN[2][0][37]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[10] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[10] = 0b000100000100,
 					CELL[2].IMUX_IMUX[7] = 0b001000001000,
 					CELL[2].IMUX_IMUX[15] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44691,7 +44975,7 @@ intdb {
 				mux CELL[3].IMUX_SPEC[0] @[MAIN[2][1][60], MAIN[2][1][61], MAIN[2][1][58], MAIN[2][0][62], MAIN[2][1][59], MAIN[2][1][54], MAIN[2][1][55], MAIN[2][1][56], MAIN[2][1][57], MAIN[2][0][63], MAIN[2][1][52], MAIN[2][1][53]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[13] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[13] = 0b000100000100,
 					CELL[2].IMUX_IMUX[19] = 0b001000001000,
 					CELL[2].IMUX_IMUX[27] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44717,7 +45001,7 @@ intdb {
 				mux CELL[3].IMUX_SPEC[1] @[MAIN[2][0][60], MAIN[2][0][61], MAIN[2][0][58], MAIN[2][1][62], MAIN[2][0][59], MAIN[2][0][54], MAIN[2][0][55], MAIN[2][0][56], MAIN[2][0][57], MAIN[2][1][63], MAIN[2][0][52], MAIN[2][0][53]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[12] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[12] = 0b000100000100,
 					CELL[2].IMUX_IMUX[19] = 0b001000001000,
 					CELL[2].IMUX_IMUX[27] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44743,7 +45027,7 @@ intdb {
 				mux CELL[3].IMUX_SPEC[2] @[MAIN[2][1][76], MAIN[2][1][77], MAIN[2][1][74], MAIN[2][0][78], MAIN[2][1][75], MAIN[2][1][70], MAIN[2][1][71], MAIN[2][1][72], MAIN[2][1][73], MAIN[2][0][79], MAIN[2][1][68], MAIN[2][1][69]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[15] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[15] = 0b000100000100,
 					CELL[2].IMUX_IMUX[23] = 0b001000001000,
 					CELL[2].IMUX_IMUX[31] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44769,7 +45053,7 @@ intdb {
 				mux CELL[3].IMUX_SPEC[3] @[MAIN[2][0][76], MAIN[2][0][77], MAIN[2][0][74], MAIN[2][1][78], MAIN[2][0][75], MAIN[2][0][70], MAIN[2][0][71], MAIN[2][0][72], MAIN[2][0][73], MAIN[2][1][79], MAIN[2][0][68], MAIN[2][0][69]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[14] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[14] = 0b000100000100,
 					CELL[2].IMUX_IMUX[23] = 0b001000001000,
 					CELL[2].IMUX_IMUX[31] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44795,7 +45079,7 @@ intdb {
 				mux CELL[4].IMUX_SPEC[0] @[MAIN[3][1][28], MAIN[3][1][29], MAIN[3][1][26], MAIN[3][0][30], MAIN[3][1][27], MAIN[3][1][22], MAIN[3][1][23], MAIN[3][1][24], MAIN[3][1][25], MAIN[3][0][31], MAIN[3][1][20], MAIN[3][1][21]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[17] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[17] = 0b000100000100,
 					CELL[3].IMUX_IMUX[3] = 0b001000001000,
 					CELL[3].IMUX_IMUX[11] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44821,7 +45105,7 @@ intdb {
 				mux CELL[4].IMUX_SPEC[1] @[MAIN[3][0][28], MAIN[3][0][29], MAIN[3][0][26], MAIN[3][1][30], MAIN[3][0][27], MAIN[3][0][22], MAIN[3][0][23], MAIN[3][0][24], MAIN[3][0][25], MAIN[3][1][31], MAIN[3][0][20], MAIN[3][0][21]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[16] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[16] = 0b000100000100,
 					CELL[3].IMUX_IMUX[3] = 0b001000001000,
 					CELL[3].IMUX_IMUX[11] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44847,7 +45131,7 @@ intdb {
 				mux CELL[4].IMUX_SPEC[2] @[MAIN[3][1][44], MAIN[3][1][45], MAIN[3][1][42], MAIN[3][0][46], MAIN[3][1][43], MAIN[3][1][38], MAIN[3][1][39], MAIN[3][1][40], MAIN[3][1][41], MAIN[3][0][47], MAIN[3][1][36], MAIN[3][1][37]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[19] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[19] = 0b000100000100,
 					CELL[3].IMUX_IMUX[7] = 0b001000001000,
 					CELL[3].IMUX_IMUX[15] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44873,7 +45157,7 @@ intdb {
 				mux CELL[4].IMUX_SPEC[3] @[MAIN[3][0][44], MAIN[3][0][45], MAIN[3][0][42], MAIN[3][1][46], MAIN[3][0][43], MAIN[3][0][38], MAIN[3][0][39], MAIN[3][0][40], MAIN[3][0][41], MAIN[3][1][47], MAIN[3][0][36], MAIN[3][0][37]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[18] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[18] = 0b000100000100,
 					CELL[3].IMUX_IMUX[7] = 0b001000001000,
 					CELL[3].IMUX_IMUX[15] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44899,7 +45183,7 @@ intdb {
 				mux CELL[5].IMUX_SPEC[0] @[MAIN[3][1][60], MAIN[3][1][61], MAIN[3][1][58], MAIN[3][0][62], MAIN[3][1][59], MAIN[3][1][54], MAIN[3][1][55], MAIN[3][1][56], MAIN[3][1][57], MAIN[3][0][63], MAIN[3][1][52], MAIN[3][1][53]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[21] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[21] = 0b000100000100,
 					CELL[3].IMUX_IMUX[19] = 0b001000001000,
 					CELL[3].IMUX_IMUX[27] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44925,7 +45209,7 @@ intdb {
 				mux CELL[5].IMUX_SPEC[1] @[MAIN[3][0][60], MAIN[3][0][61], MAIN[3][0][58], MAIN[3][1][62], MAIN[3][0][59], MAIN[3][0][54], MAIN[3][0][55], MAIN[3][0][56], MAIN[3][0][57], MAIN[3][1][63], MAIN[3][0][52], MAIN[3][0][53]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[20] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[20] = 0b000100000100,
 					CELL[3].IMUX_IMUX[19] = 0b001000001000,
 					CELL[3].IMUX_IMUX[27] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44951,7 +45235,7 @@ intdb {
 				mux CELL[5].IMUX_SPEC[2] @[MAIN[3][1][76], MAIN[3][1][77], MAIN[3][1][74], MAIN[3][0][78], MAIN[3][1][75], MAIN[3][1][70], MAIN[3][1][71], MAIN[3][1][72], MAIN[3][1][73], MAIN[3][0][79], MAIN[3][1][68], MAIN[3][1][69]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[23] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[23] = 0b000100000100,
 					CELL[3].IMUX_IMUX[23] = 0b001000001000,
 					CELL[3].IMUX_IMUX[31] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -44977,7 +45261,7 @@ intdb {
 				mux CELL[5].IMUX_SPEC[3] @[MAIN[3][0][76], MAIN[3][0][77], MAIN[3][0][74], MAIN[3][1][78], MAIN[3][0][75], MAIN[3][0][70], MAIN[3][0][71], MAIN[3][0][72], MAIN[3][0][73], MAIN[3][1][79], MAIN[3][0][68], MAIN[3][0][69]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[22] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[22] = 0b000100000100,
 					CELL[3].IMUX_IMUX[23] = 0b001000001000,
 					CELL[3].IMUX_IMUX[31] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -45003,7 +45287,7 @@ intdb {
 				mux CELL[6].IMUX_SPEC[0] @[MAIN[4][1][28], MAIN[4][1][29], MAIN[4][1][26], MAIN[4][0][30], MAIN[4][1][27], MAIN[4][1][22], MAIN[4][1][23], MAIN[4][1][24], MAIN[4][1][25], MAIN[4][0][31], MAIN[4][1][20], MAIN[4][1][21]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[25] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[25] = 0b000100000100,
 					CELL[4].IMUX_IMUX[3] = 0b001000001000,
 					CELL[4].IMUX_IMUX[11] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -45029,7 +45313,7 @@ intdb {
 				mux CELL[6].IMUX_SPEC[1] @[MAIN[4][0][28], MAIN[4][0][29], MAIN[4][0][26], MAIN[4][1][30], MAIN[4][0][27], MAIN[4][0][22], MAIN[4][0][23], MAIN[4][0][24], MAIN[4][0][25], MAIN[4][1][31], MAIN[4][0][20], MAIN[4][0][21]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[24] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[24] = 0b000100000100,
 					CELL[4].IMUX_IMUX[3] = 0b001000001000,
 					CELL[4].IMUX_IMUX[11] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -45055,7 +45339,7 @@ intdb {
 				mux CELL[6].IMUX_SPEC[2] @[MAIN[4][1][44], MAIN[4][1][45], MAIN[4][1][42], MAIN[4][0][46], MAIN[4][1][43], MAIN[4][1][38], MAIN[4][1][39], MAIN[4][1][40], MAIN[4][1][41], MAIN[4][0][47], MAIN[4][1][36], MAIN[4][1][37]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[27] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[27] = 0b000100000100,
 					CELL[4].IMUX_IMUX[7] = 0b001000001000,
 					CELL[4].IMUX_IMUX[15] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -45081,7 +45365,7 @@ intdb {
 				mux CELL[6].IMUX_SPEC[3] @[MAIN[4][0][44], MAIN[4][0][45], MAIN[4][0][42], MAIN[4][1][46], MAIN[4][0][43], MAIN[4][0][38], MAIN[4][0][39], MAIN[4][0][40], MAIN[4][0][41], MAIN[4][1][47], MAIN[4][0][36], MAIN[4][0][37]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[26] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[26] = 0b000100000100,
 					CELL[4].IMUX_IMUX[7] = 0b001000001000,
 					CELL[4].IMUX_IMUX[15] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -45107,7 +45391,7 @@ intdb {
 				mux CELL[7].IMUX_SPEC[0] @[MAIN[4][1][60], MAIN[4][1][61], MAIN[4][1][58], MAIN[4][0][62], MAIN[4][1][59], MAIN[4][1][54], MAIN[4][1][55], MAIN[4][1][56], MAIN[4][1][57], MAIN[4][0][63], MAIN[4][1][52], MAIN[4][1][53]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[29] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[29] = 0b000100000100,
 					CELL[4].IMUX_IMUX[19] = 0b001000001000,
 					CELL[4].IMUX_IMUX[27] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -45133,7 +45417,7 @@ intdb {
 				mux CELL[7].IMUX_SPEC[1] @[MAIN[4][0][60], MAIN[4][0][61], MAIN[4][0][58], MAIN[4][1][62], MAIN[4][0][59], MAIN[4][0][54], MAIN[4][0][55], MAIN[4][0][56], MAIN[4][0][57], MAIN[4][1][63], MAIN[4][0][52], MAIN[4][0][53]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[28] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[28] = 0b000100000100,
 					CELL[4].IMUX_IMUX[19] = 0b001000001000,
 					CELL[4].IMUX_IMUX[27] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -45159,7 +45443,7 @@ intdb {
 				mux CELL[7].IMUX_SPEC[2] @[MAIN[4][1][76], MAIN[4][1][77], MAIN[4][1][74], MAIN[4][0][78], MAIN[4][1][75], MAIN[4][1][70], MAIN[4][1][71], MAIN[4][1][72], MAIN[4][1][73], MAIN[4][0][79], MAIN[4][1][68], MAIN[4][1][69]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[31] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[31] = 0b000100000100,
 					CELL[4].IMUX_IMUX[23] = 0b001000001000,
 					CELL[4].IMUX_IMUX[31] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -45185,7 +45469,7 @@ intdb {
 				mux CELL[7].IMUX_SPEC[3] @[MAIN[4][0][76], MAIN[4][0][77], MAIN[4][0][74], MAIN[4][1][78], MAIN[4][0][75], MAIN[4][0][70], MAIN[4][0][71], MAIN[4][0][72], MAIN[4][0][73], MAIN[4][1][79], MAIN[4][0][68], MAIN[4][0][69]] {
 					CELL[0].MGT_ROW[0] = 0b000010000001,
 					CELL[0].MGT_ROW[1] = 0b000010000010,
-					CELL[0].IMUX_BUFG_S[30] = 0b000100000100,
+					CELL[0].IMUX_BUFG_I[30] = 0b000100000100,
 					CELL[4].IMUX_IMUX[23] = 0b001000001000,
 					CELL[4].IMUX_IMUX[31] = 0b001000010000,
 					CELL[8].OUT_BUFG[0] = 0b010000001000,
@@ -45227,7 +45511,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[31] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[31] = 0b010001000000,
 					CELL[11].IMUX_IMUX[3] = 0b100000000100,
 					CELL[11].IMUX_IMUX[11] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45253,7 +45537,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[30] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[30] = 0b010001000000,
 					CELL[11].IMUX_IMUX[3] = 0b100000000100,
 					CELL[11].IMUX_IMUX[11] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45279,7 +45563,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[29] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[29] = 0b010001000000,
 					CELL[11].IMUX_IMUX[7] = 0b100000000100,
 					CELL[11].IMUX_IMUX[15] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45305,7 +45589,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[28] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[28] = 0b010001000000,
 					CELL[11].IMUX_IMUX[7] = 0b100000000100,
 					CELL[11].IMUX_IMUX[15] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45331,7 +45615,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[27] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[27] = 0b010001000000,
 					CELL[11].IMUX_IMUX[19] = 0b100000000100,
 					CELL[11].IMUX_IMUX[27] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45357,7 +45641,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[26] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[26] = 0b010001000000,
 					CELL[11].IMUX_IMUX[19] = 0b100000000100,
 					CELL[11].IMUX_IMUX[27] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45383,7 +45667,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[25] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[25] = 0b010001000000,
 					CELL[11].IMUX_IMUX[23] = 0b100000000100,
 					CELL[11].IMUX_IMUX[31] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45409,7 +45693,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[24] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[24] = 0b010001000000,
 					CELL[11].IMUX_IMUX[23] = 0b100000000100,
 					CELL[11].IMUX_IMUX[31] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45435,7 +45719,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[23] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[23] = 0b010001000000,
 					CELL[12].IMUX_IMUX[3] = 0b100000000100,
 					CELL[12].IMUX_IMUX[11] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45461,7 +45745,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[22] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[22] = 0b010001000000,
 					CELL[12].IMUX_IMUX[3] = 0b100000000100,
 					CELL[12].IMUX_IMUX[11] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45487,7 +45771,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[21] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[21] = 0b010001000000,
 					CELL[12].IMUX_IMUX[7] = 0b100000000100,
 					CELL[12].IMUX_IMUX[15] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45513,7 +45797,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[20] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[20] = 0b010001000000,
 					CELL[12].IMUX_IMUX[7] = 0b100000000100,
 					CELL[12].IMUX_IMUX[15] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45539,7 +45823,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[19] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[19] = 0b010001000000,
 					CELL[12].IMUX_IMUX[19] = 0b100000000100,
 					CELL[12].IMUX_IMUX[27] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45565,7 +45849,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[18] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[18] = 0b010001000000,
 					CELL[12].IMUX_IMUX[19] = 0b100000000100,
 					CELL[12].IMUX_IMUX[27] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45591,7 +45875,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[17] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[17] = 0b010001000000,
 					CELL[12].IMUX_IMUX[23] = 0b100000000100,
 					CELL[12].IMUX_IMUX[31] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45617,7 +45901,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[16] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[16] = 0b010001000000,
 					CELL[12].IMUX_IMUX[23] = 0b100000000100,
 					CELL[12].IMUX_IMUX[31] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45643,7 +45927,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[15] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[15] = 0b010001000000,
 					CELL[13].IMUX_IMUX[3] = 0b100000000100,
 					CELL[13].IMUX_IMUX[11] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45669,7 +45953,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[14] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[14] = 0b010001000000,
 					CELL[13].IMUX_IMUX[3] = 0b100000000100,
 					CELL[13].IMUX_IMUX[11] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45695,7 +45979,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[13] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[13] = 0b010001000000,
 					CELL[13].IMUX_IMUX[7] = 0b100000000100,
 					CELL[13].IMUX_IMUX[15] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45721,7 +46005,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[12] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[12] = 0b010001000000,
 					CELL[13].IMUX_IMUX[7] = 0b100000000100,
 					CELL[13].IMUX_IMUX[15] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45747,7 +46031,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[11] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[11] = 0b010001000000,
 					CELL[13].IMUX_IMUX[19] = 0b100000000100,
 					CELL[13].IMUX_IMUX[27] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45773,7 +46057,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[10] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[10] = 0b010001000000,
 					CELL[13].IMUX_IMUX[19] = 0b100000000100,
 					CELL[13].IMUX_IMUX[27] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45799,7 +46083,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[9] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[9] = 0b010001000000,
 					CELL[13].IMUX_IMUX[23] = 0b100000000100,
 					CELL[13].IMUX_IMUX[31] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45825,7 +46109,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[8] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[8] = 0b010001000000,
 					CELL[13].IMUX_IMUX[23] = 0b100000000100,
 					CELL[13].IMUX_IMUX[31] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45851,7 +46135,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[7] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[7] = 0b010001000000,
 					CELL[14].IMUX_IMUX[3] = 0b100000000100,
 					CELL[14].IMUX_IMUX[11] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45877,7 +46161,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[6] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[6] = 0b010001000000,
 					CELL[14].IMUX_IMUX[3] = 0b100000000100,
 					CELL[14].IMUX_IMUX[11] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45903,7 +46187,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[5] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[5] = 0b010001000000,
 					CELL[14].IMUX_IMUX[7] = 0b100000000100,
 					CELL[14].IMUX_IMUX[15] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45929,7 +46213,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[4] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[4] = 0b010001000000,
 					CELL[14].IMUX_IMUX[7] = 0b100000000100,
 					CELL[14].IMUX_IMUX[15] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45955,7 +46239,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[3] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[3] = 0b010001000000,
 					CELL[14].IMUX_IMUX[19] = 0b100000000100,
 					CELL[14].IMUX_IMUX[27] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -45981,7 +46265,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[2] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[2] = 0b010001000000,
 					CELL[14].IMUX_IMUX[19] = 0b100000000100,
 					CELL[14].IMUX_IMUX[27] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -46007,7 +46291,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[1] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[1] = 0b010001000000,
 					CELL[14].IMUX_IMUX[23] = 0b100000000100,
 					CELL[14].IMUX_IMUX[31] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -46033,7 +46317,7 @@ intdb {
 					CELL[8].OUT_BUFG[29] = 0b000010001000,
 					CELL[8].OUT_BUFG[30] = 0b000010010000,
 					CELL[8].OUT_BUFG[31] = 0b000010100000,
-					CELL[8].IMUX_BUFG_N[0] = 0b010001000000,
+					CELL[8].IMUX_BUFG_I[0] = 0b010001000000,
 					CELL[14].IMUX_IMUX[23] = 0b100000000100,
 					CELL[14].IMUX_IMUX[31] = 0b100000001000,
 					CELL_E8.MGT_ROW[0] = 0b100000000001,
@@ -46971,8 +47255,8 @@ intdb {
 		bel_slot FRAME_ECC: FRAME_ECC;
 		bel_slot USR_ACCESS: USR_ACCESS;
 		bel_slot DNA_PORT: legacy;
-		bel_slot KEY_CLEAR: legacy;
-		bel_slot EFUSE_USR: legacy;
+		bel_slot KEY_CLEAR: KEY_CLEAR;
+		bel_slot EFUSE_USR: EFUSE_USR;
 		bel_slot CFG_IO_ACCESS: legacy;
 		bel_slot PMVIOB_CFG: legacy;
 		bel_slot MISC_CFG: MISC_CFG;
@@ -47996,9 +48280,6 @@ intdb {
 
 	tile_slot CLK {
 		bel_slot CLK_INT: routing;
-		bel_slot CLK_IOB: legacy;
-		bel_slot CLK_CMT: legacy;
-		bel_slot CLK_MGT: legacy;
 		bel_slot HCLK_MGT_BUF: legacy;
 		bel_slot INT_LCLK_W: legacy;
 		bel_slot INT_LCLK_E: legacy;
@@ -48022,8 +48303,8 @@ intdb {
 			bitrect MAIN[7]: Vertical (3, rev 80);
 
 			switchbox CLK_INT {
-				mux CELL[0].IMUX_BUFG_N[0] @[MAIN[2][0][10], MAIN[2][0][11], MAIN[2][0][12], MAIN[2][0][13], MAIN[2][0][6], MAIN[2][0][19], MAIN[2][0][18], MAIN[2][0][17], MAIN[2][0][16], MAIN[2][0][15], MAIN[2][0][14], MAIN[2][0][7], MAIN[2][0][8], MAIN[2][0][5], MAIN[2][0][4], MAIN[2][0][3], MAIN[2][0][0]] {
-					CELL[0].IMUX_BUFG_S[0] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[0] @[MAIN[2][0][10], MAIN[2][0][11], MAIN[2][0][12], MAIN[2][0][13], MAIN[2][0][6], MAIN[2][0][19], MAIN[2][0][18], MAIN[2][0][17], MAIN[2][0][16], MAIN[2][0][15], MAIN[2][0][14], MAIN[2][0][7], MAIN[2][0][8], MAIN[2][0][5], MAIN[2][0][4], MAIN[2][0][3], MAIN[2][0][0]] {
+					CELL[0].IMUX_BUFG_I[0] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48050,8 +48331,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[1] @[MAIN[2][2][10], MAIN[2][2][11], MAIN[2][2][12], MAIN[2][2][13], MAIN[2][2][6], MAIN[2][2][19], MAIN[2][2][18], MAIN[2][2][17], MAIN[2][2][16], MAIN[2][2][15], MAIN[2][2][14], MAIN[2][2][7], MAIN[2][2][8], MAIN[2][2][5], MAIN[2][2][4], MAIN[2][2][3], MAIN[2][2][0]] {
-					CELL[0].IMUX_BUFG_S[1] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[1] @[MAIN[2][2][10], MAIN[2][2][11], MAIN[2][2][12], MAIN[2][2][13], MAIN[2][2][6], MAIN[2][2][19], MAIN[2][2][18], MAIN[2][2][17], MAIN[2][2][16], MAIN[2][2][15], MAIN[2][2][14], MAIN[2][2][7], MAIN[2][2][8], MAIN[2][2][5], MAIN[2][2][4], MAIN[2][2][3], MAIN[2][2][0]] {
+					CELL[0].IMUX_BUFG_I[1] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48078,8 +48359,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[2] @[MAIN[2][0][30], MAIN[2][0][31], MAIN[2][0][32], MAIN[2][0][33], MAIN[2][0][26], MAIN[2][0][39], MAIN[2][0][38], MAIN[2][0][37], MAIN[2][0][36], MAIN[2][0][35], MAIN[2][0][34], MAIN[2][0][27], MAIN[2][0][28], MAIN[2][0][25], MAIN[2][0][24], MAIN[2][0][23], MAIN[2][0][20]] {
-					CELL[0].IMUX_BUFG_S[2] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[2] @[MAIN[2][0][30], MAIN[2][0][31], MAIN[2][0][32], MAIN[2][0][33], MAIN[2][0][26], MAIN[2][0][39], MAIN[2][0][38], MAIN[2][0][37], MAIN[2][0][36], MAIN[2][0][35], MAIN[2][0][34], MAIN[2][0][27], MAIN[2][0][28], MAIN[2][0][25], MAIN[2][0][24], MAIN[2][0][23], MAIN[2][0][20]] {
+					CELL[0].IMUX_BUFG_I[2] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48106,8 +48387,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[3] @[MAIN[2][2][30], MAIN[2][2][31], MAIN[2][2][32], MAIN[2][2][33], MAIN[2][2][26], MAIN[2][2][39], MAIN[2][2][38], MAIN[2][2][37], MAIN[2][2][36], MAIN[2][2][35], MAIN[2][2][34], MAIN[2][2][27], MAIN[2][2][28], MAIN[2][2][25], MAIN[2][2][24], MAIN[2][2][23], MAIN[2][2][20]] {
-					CELL[0].IMUX_BUFG_S[3] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[3] @[MAIN[2][2][30], MAIN[2][2][31], MAIN[2][2][32], MAIN[2][2][33], MAIN[2][2][26], MAIN[2][2][39], MAIN[2][2][38], MAIN[2][2][37], MAIN[2][2][36], MAIN[2][2][35], MAIN[2][2][34], MAIN[2][2][27], MAIN[2][2][28], MAIN[2][2][25], MAIN[2][2][24], MAIN[2][2][23], MAIN[2][2][20]] {
+					CELL[0].IMUX_BUFG_I[3] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48134,8 +48415,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[4] @[MAIN[2][0][50], MAIN[2][0][51], MAIN[2][0][52], MAIN[2][0][53], MAIN[2][0][46], MAIN[2][0][59], MAIN[2][0][58], MAIN[2][0][57], MAIN[2][0][56], MAIN[2][0][55], MAIN[2][0][54], MAIN[2][0][47], MAIN[2][0][48], MAIN[2][0][45], MAIN[2][0][44], MAIN[2][0][43], MAIN[2][0][40]] {
-					CELL[0].IMUX_BUFG_S[4] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[4] @[MAIN[2][0][50], MAIN[2][0][51], MAIN[2][0][52], MAIN[2][0][53], MAIN[2][0][46], MAIN[2][0][59], MAIN[2][0][58], MAIN[2][0][57], MAIN[2][0][56], MAIN[2][0][55], MAIN[2][0][54], MAIN[2][0][47], MAIN[2][0][48], MAIN[2][0][45], MAIN[2][0][44], MAIN[2][0][43], MAIN[2][0][40]] {
+					CELL[0].IMUX_BUFG_I[4] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48162,8 +48443,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[5] @[MAIN[2][2][50], MAIN[2][2][51], MAIN[2][2][52], MAIN[2][2][53], MAIN[2][2][46], MAIN[2][2][59], MAIN[2][2][58], MAIN[2][2][57], MAIN[2][2][56], MAIN[2][2][55], MAIN[2][2][54], MAIN[2][2][47], MAIN[2][2][48], MAIN[2][2][45], MAIN[2][2][44], MAIN[2][2][43], MAIN[2][2][40]] {
-					CELL[0].IMUX_BUFG_S[5] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[5] @[MAIN[2][2][50], MAIN[2][2][51], MAIN[2][2][52], MAIN[2][2][53], MAIN[2][2][46], MAIN[2][2][59], MAIN[2][2][58], MAIN[2][2][57], MAIN[2][2][56], MAIN[2][2][55], MAIN[2][2][54], MAIN[2][2][47], MAIN[2][2][48], MAIN[2][2][45], MAIN[2][2][44], MAIN[2][2][43], MAIN[2][2][40]] {
+					CELL[0].IMUX_BUFG_I[5] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48190,8 +48471,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[6] @[MAIN[2][0][70], MAIN[2][0][71], MAIN[2][0][72], MAIN[2][0][73], MAIN[2][0][66], MAIN[2][0][79], MAIN[2][0][78], MAIN[2][0][77], MAIN[2][0][76], MAIN[2][0][75], MAIN[2][0][74], MAIN[2][0][67], MAIN[2][0][68], MAIN[2][0][65], MAIN[2][0][64], MAIN[2][0][63], MAIN[2][0][60]] {
-					CELL[0].IMUX_BUFG_S[6] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[6] @[MAIN[2][0][70], MAIN[2][0][71], MAIN[2][0][72], MAIN[2][0][73], MAIN[2][0][66], MAIN[2][0][79], MAIN[2][0][78], MAIN[2][0][77], MAIN[2][0][76], MAIN[2][0][75], MAIN[2][0][74], MAIN[2][0][67], MAIN[2][0][68], MAIN[2][0][65], MAIN[2][0][64], MAIN[2][0][63], MAIN[2][0][60]] {
+					CELL[0].IMUX_BUFG_I[6] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48218,8 +48499,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[7] @[MAIN[2][2][70], MAIN[2][2][71], MAIN[2][2][72], MAIN[2][2][73], MAIN[2][2][66], MAIN[2][2][79], MAIN[2][2][78], MAIN[2][2][77], MAIN[2][2][76], MAIN[2][2][75], MAIN[2][2][74], MAIN[2][2][67], MAIN[2][2][68], MAIN[2][2][65], MAIN[2][2][64], MAIN[2][2][63], MAIN[2][2][60]] {
-					CELL[0].IMUX_BUFG_S[7] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[7] @[MAIN[2][2][70], MAIN[2][2][71], MAIN[2][2][72], MAIN[2][2][73], MAIN[2][2][66], MAIN[2][2][79], MAIN[2][2][78], MAIN[2][2][77], MAIN[2][2][76], MAIN[2][2][75], MAIN[2][2][74], MAIN[2][2][67], MAIN[2][2][68], MAIN[2][2][65], MAIN[2][2][64], MAIN[2][2][63], MAIN[2][2][60]] {
+					CELL[0].IMUX_BUFG_I[7] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48246,8 +48527,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[8] @[MAIN[3][0][10], MAIN[3][0][11], MAIN[3][0][12], MAIN[3][0][13], MAIN[3][0][6], MAIN[3][0][19], MAIN[3][0][18], MAIN[3][0][17], MAIN[3][0][16], MAIN[3][0][15], MAIN[3][0][14], MAIN[3][0][7], MAIN[3][0][8], MAIN[3][0][5], MAIN[3][0][4], MAIN[3][0][3], MAIN[3][0][0]] {
-					CELL[0].IMUX_BUFG_S[8] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[8] @[MAIN[3][0][10], MAIN[3][0][11], MAIN[3][0][12], MAIN[3][0][13], MAIN[3][0][6], MAIN[3][0][19], MAIN[3][0][18], MAIN[3][0][17], MAIN[3][0][16], MAIN[3][0][15], MAIN[3][0][14], MAIN[3][0][7], MAIN[3][0][8], MAIN[3][0][5], MAIN[3][0][4], MAIN[3][0][3], MAIN[3][0][0]] {
+					CELL[0].IMUX_BUFG_I[8] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48274,8 +48555,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[9] @[MAIN[3][2][10], MAIN[3][2][11], MAIN[3][2][12], MAIN[3][2][13], MAIN[3][2][6], MAIN[3][2][19], MAIN[3][2][18], MAIN[3][2][17], MAIN[3][2][16], MAIN[3][2][15], MAIN[3][2][14], MAIN[3][2][7], MAIN[3][2][8], MAIN[3][2][5], MAIN[3][2][4], MAIN[3][2][3], MAIN[3][2][0]] {
-					CELL[0].IMUX_BUFG_S[9] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[9] @[MAIN[3][2][10], MAIN[3][2][11], MAIN[3][2][12], MAIN[3][2][13], MAIN[3][2][6], MAIN[3][2][19], MAIN[3][2][18], MAIN[3][2][17], MAIN[3][2][16], MAIN[3][2][15], MAIN[3][2][14], MAIN[3][2][7], MAIN[3][2][8], MAIN[3][2][5], MAIN[3][2][4], MAIN[3][2][3], MAIN[3][2][0]] {
+					CELL[0].IMUX_BUFG_I[9] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48302,8 +48583,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[10] @[MAIN[3][0][30], MAIN[3][0][31], MAIN[3][0][32], MAIN[3][0][33], MAIN[3][0][26], MAIN[3][0][39], MAIN[3][0][38], MAIN[3][0][37], MAIN[3][0][36], MAIN[3][0][35], MAIN[3][0][34], MAIN[3][0][27], MAIN[3][0][28], MAIN[3][0][25], MAIN[3][0][24], MAIN[3][0][23], MAIN[3][0][20]] {
-					CELL[0].IMUX_BUFG_S[10] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[10] @[MAIN[3][0][30], MAIN[3][0][31], MAIN[3][0][32], MAIN[3][0][33], MAIN[3][0][26], MAIN[3][0][39], MAIN[3][0][38], MAIN[3][0][37], MAIN[3][0][36], MAIN[3][0][35], MAIN[3][0][34], MAIN[3][0][27], MAIN[3][0][28], MAIN[3][0][25], MAIN[3][0][24], MAIN[3][0][23], MAIN[3][0][20]] {
+					CELL[0].IMUX_BUFG_I[10] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48330,8 +48611,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[11] @[MAIN[3][2][30], MAIN[3][2][31], MAIN[3][2][32], MAIN[3][2][33], MAIN[3][2][26], MAIN[3][2][39], MAIN[3][2][38], MAIN[3][2][37], MAIN[3][2][36], MAIN[3][2][35], MAIN[3][2][34], MAIN[3][2][27], MAIN[3][2][28], MAIN[3][2][25], MAIN[3][2][24], MAIN[3][2][23], MAIN[3][2][20]] {
-					CELL[0].IMUX_BUFG_S[11] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[11] @[MAIN[3][2][30], MAIN[3][2][31], MAIN[3][2][32], MAIN[3][2][33], MAIN[3][2][26], MAIN[3][2][39], MAIN[3][2][38], MAIN[3][2][37], MAIN[3][2][36], MAIN[3][2][35], MAIN[3][2][34], MAIN[3][2][27], MAIN[3][2][28], MAIN[3][2][25], MAIN[3][2][24], MAIN[3][2][23], MAIN[3][2][20]] {
+					CELL[0].IMUX_BUFG_I[11] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48358,8 +48639,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[12] @[MAIN[3][0][50], MAIN[3][0][51], MAIN[3][0][52], MAIN[3][0][53], MAIN[3][0][46], MAIN[3][0][59], MAIN[3][0][58], MAIN[3][0][57], MAIN[3][0][56], MAIN[3][0][55], MAIN[3][0][54], MAIN[3][0][47], MAIN[3][0][48], MAIN[3][0][45], MAIN[3][0][44], MAIN[3][0][43], MAIN[3][0][40]] {
-					CELL[0].IMUX_BUFG_S[12] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[12] @[MAIN[3][0][50], MAIN[3][0][51], MAIN[3][0][52], MAIN[3][0][53], MAIN[3][0][46], MAIN[3][0][59], MAIN[3][0][58], MAIN[3][0][57], MAIN[3][0][56], MAIN[3][0][55], MAIN[3][0][54], MAIN[3][0][47], MAIN[3][0][48], MAIN[3][0][45], MAIN[3][0][44], MAIN[3][0][43], MAIN[3][0][40]] {
+					CELL[0].IMUX_BUFG_I[12] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48386,8 +48667,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[13] @[MAIN[3][2][50], MAIN[3][2][51], MAIN[3][2][52], MAIN[3][2][53], MAIN[3][2][46], MAIN[3][2][59], MAIN[3][2][58], MAIN[3][2][57], MAIN[3][2][56], MAIN[3][2][55], MAIN[3][2][54], MAIN[3][2][47], MAIN[3][2][48], MAIN[3][2][45], MAIN[3][2][44], MAIN[3][2][43], MAIN[3][2][40]] {
-					CELL[0].IMUX_BUFG_S[13] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[13] @[MAIN[3][2][50], MAIN[3][2][51], MAIN[3][2][52], MAIN[3][2][53], MAIN[3][2][46], MAIN[3][2][59], MAIN[3][2][58], MAIN[3][2][57], MAIN[3][2][56], MAIN[3][2][55], MAIN[3][2][54], MAIN[3][2][47], MAIN[3][2][48], MAIN[3][2][45], MAIN[3][2][44], MAIN[3][2][43], MAIN[3][2][40]] {
+					CELL[0].IMUX_BUFG_I[13] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48414,8 +48695,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[14] @[MAIN[3][0][70], MAIN[3][0][71], MAIN[3][0][72], MAIN[3][0][73], MAIN[3][0][66], MAIN[3][0][79], MAIN[3][0][78], MAIN[3][0][77], MAIN[3][0][76], MAIN[3][0][75], MAIN[3][0][74], MAIN[3][0][67], MAIN[3][0][68], MAIN[3][0][65], MAIN[3][0][64], MAIN[3][0][63], MAIN[3][0][60]] {
-					CELL[0].IMUX_BUFG_S[14] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[14] @[MAIN[3][0][70], MAIN[3][0][71], MAIN[3][0][72], MAIN[3][0][73], MAIN[3][0][66], MAIN[3][0][79], MAIN[3][0][78], MAIN[3][0][77], MAIN[3][0][76], MAIN[3][0][75], MAIN[3][0][74], MAIN[3][0][67], MAIN[3][0][68], MAIN[3][0][65], MAIN[3][0][64], MAIN[3][0][63], MAIN[3][0][60]] {
+					CELL[0].IMUX_BUFG_I[14] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48442,8 +48723,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[15] @[MAIN[3][2][70], MAIN[3][2][71], MAIN[3][2][72], MAIN[3][2][73], MAIN[3][2][66], MAIN[3][2][79], MAIN[3][2][78], MAIN[3][2][77], MAIN[3][2][76], MAIN[3][2][75], MAIN[3][2][74], MAIN[3][2][67], MAIN[3][2][68], MAIN[3][2][65], MAIN[3][2][64], MAIN[3][2][63], MAIN[3][2][60]] {
-					CELL[0].IMUX_BUFG_S[15] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[15] @[MAIN[3][2][70], MAIN[3][2][71], MAIN[3][2][72], MAIN[3][2][73], MAIN[3][2][66], MAIN[3][2][79], MAIN[3][2][78], MAIN[3][2][77], MAIN[3][2][76], MAIN[3][2][75], MAIN[3][2][74], MAIN[3][2][67], MAIN[3][2][68], MAIN[3][2][65], MAIN[3][2][64], MAIN[3][2][63], MAIN[3][2][60]] {
+					CELL[0].IMUX_BUFG_I[15] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48470,8 +48751,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[16] @[MAIN[4][0][10], MAIN[4][0][11], MAIN[4][0][12], MAIN[4][0][13], MAIN[4][0][6], MAIN[4][0][19], MAIN[4][0][18], MAIN[4][0][17], MAIN[4][0][16], MAIN[4][0][15], MAIN[4][0][14], MAIN[4][0][7], MAIN[4][0][8], MAIN[4][0][5], MAIN[4][0][4], MAIN[4][0][3], MAIN[4][0][0]] {
-					CELL[0].IMUX_BUFG_S[16] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[16] @[MAIN[4][0][10], MAIN[4][0][11], MAIN[4][0][12], MAIN[4][0][13], MAIN[4][0][6], MAIN[4][0][19], MAIN[4][0][18], MAIN[4][0][17], MAIN[4][0][16], MAIN[4][0][15], MAIN[4][0][14], MAIN[4][0][7], MAIN[4][0][8], MAIN[4][0][5], MAIN[4][0][4], MAIN[4][0][3], MAIN[4][0][0]] {
+					CELL[0].IMUX_BUFG_I[16] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48498,8 +48779,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[17] @[MAIN[4][2][10], MAIN[4][2][11], MAIN[4][2][12], MAIN[4][2][13], MAIN[4][2][6], MAIN[4][2][19], MAIN[4][2][18], MAIN[4][2][17], MAIN[4][2][16], MAIN[4][2][15], MAIN[4][2][14], MAIN[4][2][7], MAIN[4][2][8], MAIN[4][2][5], MAIN[4][2][4], MAIN[4][2][3], MAIN[4][2][0]] {
-					CELL[0].IMUX_BUFG_S[17] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[17] @[MAIN[4][2][10], MAIN[4][2][11], MAIN[4][2][12], MAIN[4][2][13], MAIN[4][2][6], MAIN[4][2][19], MAIN[4][2][18], MAIN[4][2][17], MAIN[4][2][16], MAIN[4][2][15], MAIN[4][2][14], MAIN[4][2][7], MAIN[4][2][8], MAIN[4][2][5], MAIN[4][2][4], MAIN[4][2][3], MAIN[4][2][0]] {
+					CELL[0].IMUX_BUFG_I[17] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48526,8 +48807,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[18] @[MAIN[4][0][30], MAIN[4][0][31], MAIN[4][0][32], MAIN[4][0][33], MAIN[4][0][26], MAIN[4][0][39], MAIN[4][0][38], MAIN[4][0][37], MAIN[4][0][36], MAIN[4][0][35], MAIN[4][0][34], MAIN[4][0][27], MAIN[4][0][28], MAIN[4][0][25], MAIN[4][0][24], MAIN[4][0][23], MAIN[4][0][20]] {
-					CELL[0].IMUX_BUFG_S[18] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[18] @[MAIN[4][0][30], MAIN[4][0][31], MAIN[4][0][32], MAIN[4][0][33], MAIN[4][0][26], MAIN[4][0][39], MAIN[4][0][38], MAIN[4][0][37], MAIN[4][0][36], MAIN[4][0][35], MAIN[4][0][34], MAIN[4][0][27], MAIN[4][0][28], MAIN[4][0][25], MAIN[4][0][24], MAIN[4][0][23], MAIN[4][0][20]] {
+					CELL[0].IMUX_BUFG_I[18] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48554,8 +48835,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[19] @[MAIN[4][2][30], MAIN[4][2][31], MAIN[4][2][32], MAIN[4][2][33], MAIN[4][2][26], MAIN[4][2][39], MAIN[4][2][38], MAIN[4][2][37], MAIN[4][2][36], MAIN[4][2][35], MAIN[4][2][34], MAIN[4][2][27], MAIN[4][2][28], MAIN[4][2][25], MAIN[4][2][24], MAIN[4][2][23], MAIN[4][2][20]] {
-					CELL[0].IMUX_BUFG_S[19] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[19] @[MAIN[4][2][30], MAIN[4][2][31], MAIN[4][2][32], MAIN[4][2][33], MAIN[4][2][26], MAIN[4][2][39], MAIN[4][2][38], MAIN[4][2][37], MAIN[4][2][36], MAIN[4][2][35], MAIN[4][2][34], MAIN[4][2][27], MAIN[4][2][28], MAIN[4][2][25], MAIN[4][2][24], MAIN[4][2][23], MAIN[4][2][20]] {
+					CELL[0].IMUX_BUFG_I[19] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48582,8 +48863,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[20] @[MAIN[4][0][50], MAIN[4][0][51], MAIN[4][0][52], MAIN[4][0][53], MAIN[4][0][46], MAIN[4][0][59], MAIN[4][0][58], MAIN[4][0][57], MAIN[4][0][56], MAIN[4][0][55], MAIN[4][0][54], MAIN[4][0][47], MAIN[4][0][48], MAIN[4][0][45], MAIN[4][0][44], MAIN[4][0][43], MAIN[4][0][40]] {
-					CELL[0].IMUX_BUFG_S[20] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[20] @[MAIN[4][0][50], MAIN[4][0][51], MAIN[4][0][52], MAIN[4][0][53], MAIN[4][0][46], MAIN[4][0][59], MAIN[4][0][58], MAIN[4][0][57], MAIN[4][0][56], MAIN[4][0][55], MAIN[4][0][54], MAIN[4][0][47], MAIN[4][0][48], MAIN[4][0][45], MAIN[4][0][44], MAIN[4][0][43], MAIN[4][0][40]] {
+					CELL[0].IMUX_BUFG_I[20] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48610,8 +48891,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[21] @[MAIN[4][2][50], MAIN[4][2][51], MAIN[4][2][52], MAIN[4][2][53], MAIN[4][2][46], MAIN[4][2][59], MAIN[4][2][58], MAIN[4][2][57], MAIN[4][2][56], MAIN[4][2][55], MAIN[4][2][54], MAIN[4][2][47], MAIN[4][2][48], MAIN[4][2][45], MAIN[4][2][44], MAIN[4][2][43], MAIN[4][2][40]] {
-					CELL[0].IMUX_BUFG_S[21] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[21] @[MAIN[4][2][50], MAIN[4][2][51], MAIN[4][2][52], MAIN[4][2][53], MAIN[4][2][46], MAIN[4][2][59], MAIN[4][2][58], MAIN[4][2][57], MAIN[4][2][56], MAIN[4][2][55], MAIN[4][2][54], MAIN[4][2][47], MAIN[4][2][48], MAIN[4][2][45], MAIN[4][2][44], MAIN[4][2][43], MAIN[4][2][40]] {
+					CELL[0].IMUX_BUFG_I[21] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48638,8 +48919,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[22] @[MAIN[4][0][70], MAIN[4][0][71], MAIN[4][0][72], MAIN[4][0][73], MAIN[4][0][66], MAIN[4][0][79], MAIN[4][0][78], MAIN[4][0][77], MAIN[4][0][76], MAIN[4][0][75], MAIN[4][0][74], MAIN[4][0][67], MAIN[4][0][68], MAIN[4][0][65], MAIN[4][0][64], MAIN[4][0][63], MAIN[4][0][60]] {
-					CELL[0].IMUX_BUFG_S[22] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[22] @[MAIN[4][0][70], MAIN[4][0][71], MAIN[4][0][72], MAIN[4][0][73], MAIN[4][0][66], MAIN[4][0][79], MAIN[4][0][78], MAIN[4][0][77], MAIN[4][0][76], MAIN[4][0][75], MAIN[4][0][74], MAIN[4][0][67], MAIN[4][0][68], MAIN[4][0][65], MAIN[4][0][64], MAIN[4][0][63], MAIN[4][0][60]] {
+					CELL[0].IMUX_BUFG_I[22] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48666,8 +48947,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[23] @[MAIN[4][2][70], MAIN[4][2][71], MAIN[4][2][72], MAIN[4][2][73], MAIN[4][2][66], MAIN[4][2][79], MAIN[4][2][78], MAIN[4][2][77], MAIN[4][2][76], MAIN[4][2][75], MAIN[4][2][74], MAIN[4][2][67], MAIN[4][2][68], MAIN[4][2][65], MAIN[4][2][64], MAIN[4][2][63], MAIN[4][2][60]] {
-					CELL[0].IMUX_BUFG_S[23] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[23] @[MAIN[4][2][70], MAIN[4][2][71], MAIN[4][2][72], MAIN[4][2][73], MAIN[4][2][66], MAIN[4][2][79], MAIN[4][2][78], MAIN[4][2][77], MAIN[4][2][76], MAIN[4][2][75], MAIN[4][2][74], MAIN[4][2][67], MAIN[4][2][68], MAIN[4][2][65], MAIN[4][2][64], MAIN[4][2][63], MAIN[4][2][60]] {
+					CELL[0].IMUX_BUFG_I[23] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48694,8 +48975,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[24] @[MAIN[5][0][10], MAIN[5][0][11], MAIN[5][0][12], MAIN[5][0][13], MAIN[5][0][6], MAIN[5][0][19], MAIN[5][0][18], MAIN[5][0][17], MAIN[5][0][16], MAIN[5][0][15], MAIN[5][0][14], MAIN[5][0][7], MAIN[5][0][8], MAIN[5][0][5], MAIN[5][0][4], MAIN[5][0][3], MAIN[5][0][0]] {
-					CELL[0].IMUX_BUFG_S[24] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[24] @[MAIN[5][0][10], MAIN[5][0][11], MAIN[5][0][12], MAIN[5][0][13], MAIN[5][0][6], MAIN[5][0][19], MAIN[5][0][18], MAIN[5][0][17], MAIN[5][0][16], MAIN[5][0][15], MAIN[5][0][14], MAIN[5][0][7], MAIN[5][0][8], MAIN[5][0][5], MAIN[5][0][4], MAIN[5][0][3], MAIN[5][0][0]] {
+					CELL[0].IMUX_BUFG_I[24] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48722,8 +49003,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[25] @[MAIN[5][2][10], MAIN[5][2][11], MAIN[5][2][12], MAIN[5][2][13], MAIN[5][2][6], MAIN[5][2][19], MAIN[5][2][18], MAIN[5][2][17], MAIN[5][2][16], MAIN[5][2][15], MAIN[5][2][14], MAIN[5][2][7], MAIN[5][2][8], MAIN[5][2][5], MAIN[5][2][4], MAIN[5][2][3], MAIN[5][2][0]] {
-					CELL[0].IMUX_BUFG_S[25] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[25] @[MAIN[5][2][10], MAIN[5][2][11], MAIN[5][2][12], MAIN[5][2][13], MAIN[5][2][6], MAIN[5][2][19], MAIN[5][2][18], MAIN[5][2][17], MAIN[5][2][16], MAIN[5][2][15], MAIN[5][2][14], MAIN[5][2][7], MAIN[5][2][8], MAIN[5][2][5], MAIN[5][2][4], MAIN[5][2][3], MAIN[5][2][0]] {
+					CELL[0].IMUX_BUFG_I[25] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48750,8 +49031,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[26] @[MAIN[5][0][30], MAIN[5][0][31], MAIN[5][0][32], MAIN[5][0][33], MAIN[5][0][26], MAIN[5][0][39], MAIN[5][0][38], MAIN[5][0][37], MAIN[5][0][36], MAIN[5][0][35], MAIN[5][0][34], MAIN[5][0][27], MAIN[5][0][28], MAIN[5][0][25], MAIN[5][0][24], MAIN[5][0][23], MAIN[5][0][20]] {
-					CELL[0].IMUX_BUFG_S[26] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[26] @[MAIN[5][0][30], MAIN[5][0][31], MAIN[5][0][32], MAIN[5][0][33], MAIN[5][0][26], MAIN[5][0][39], MAIN[5][0][38], MAIN[5][0][37], MAIN[5][0][36], MAIN[5][0][35], MAIN[5][0][34], MAIN[5][0][27], MAIN[5][0][28], MAIN[5][0][25], MAIN[5][0][24], MAIN[5][0][23], MAIN[5][0][20]] {
+					CELL[0].IMUX_BUFG_I[26] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48778,8 +49059,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[27] @[MAIN[5][2][30], MAIN[5][2][31], MAIN[5][2][32], MAIN[5][2][33], MAIN[5][2][26], MAIN[5][2][39], MAIN[5][2][38], MAIN[5][2][37], MAIN[5][2][36], MAIN[5][2][35], MAIN[5][2][34], MAIN[5][2][27], MAIN[5][2][28], MAIN[5][2][25], MAIN[5][2][24], MAIN[5][2][23], MAIN[5][2][20]] {
-					CELL[0].IMUX_BUFG_S[27] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[27] @[MAIN[5][2][30], MAIN[5][2][31], MAIN[5][2][32], MAIN[5][2][33], MAIN[5][2][26], MAIN[5][2][39], MAIN[5][2][38], MAIN[5][2][37], MAIN[5][2][36], MAIN[5][2][35], MAIN[5][2][34], MAIN[5][2][27], MAIN[5][2][28], MAIN[5][2][25], MAIN[5][2][24], MAIN[5][2][23], MAIN[5][2][20]] {
+					CELL[0].IMUX_BUFG_I[27] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48806,8 +49087,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[28] @[MAIN[5][0][50], MAIN[5][0][51], MAIN[5][0][52], MAIN[5][0][53], MAIN[5][0][46], MAIN[5][0][59], MAIN[5][0][58], MAIN[5][0][57], MAIN[5][0][56], MAIN[5][0][55], MAIN[5][0][54], MAIN[5][0][47], MAIN[5][0][48], MAIN[5][0][45], MAIN[5][0][44], MAIN[5][0][43], MAIN[5][0][40]] {
-					CELL[0].IMUX_BUFG_S[28] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[28] @[MAIN[5][0][50], MAIN[5][0][51], MAIN[5][0][52], MAIN[5][0][53], MAIN[5][0][46], MAIN[5][0][59], MAIN[5][0][58], MAIN[5][0][57], MAIN[5][0][56], MAIN[5][0][55], MAIN[5][0][54], MAIN[5][0][47], MAIN[5][0][48], MAIN[5][0][45], MAIN[5][0][44], MAIN[5][0][43], MAIN[5][0][40]] {
+					CELL[0].IMUX_BUFG_I[28] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48834,8 +49115,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[29] @[MAIN[5][2][50], MAIN[5][2][51], MAIN[5][2][52], MAIN[5][2][53], MAIN[5][2][46], MAIN[5][2][59], MAIN[5][2][58], MAIN[5][2][57], MAIN[5][2][56], MAIN[5][2][55], MAIN[5][2][54], MAIN[5][2][47], MAIN[5][2][48], MAIN[5][2][45], MAIN[5][2][44], MAIN[5][2][43], MAIN[5][2][40]] {
-					CELL[0].IMUX_BUFG_S[29] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[29] @[MAIN[5][2][50], MAIN[5][2][51], MAIN[5][2][52], MAIN[5][2][53], MAIN[5][2][46], MAIN[5][2][59], MAIN[5][2][58], MAIN[5][2][57], MAIN[5][2][56], MAIN[5][2][55], MAIN[5][2][54], MAIN[5][2][47], MAIN[5][2][48], MAIN[5][2][45], MAIN[5][2][44], MAIN[5][2][43], MAIN[5][2][40]] {
+					CELL[0].IMUX_BUFG_I[29] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48862,8 +49143,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[30] @[MAIN[5][0][70], MAIN[5][0][71], MAIN[5][0][72], MAIN[5][0][73], MAIN[5][0][66], MAIN[5][0][79], MAIN[5][0][78], MAIN[5][0][77], MAIN[5][0][76], MAIN[5][0][75], MAIN[5][0][74], MAIN[5][0][67], MAIN[5][0][68], MAIN[5][0][65], MAIN[5][0][64], MAIN[5][0][63], MAIN[5][0][60]] {
-					CELL[0].IMUX_BUFG_S[30] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[30] @[MAIN[5][0][70], MAIN[5][0][71], MAIN[5][0][72], MAIN[5][0][73], MAIN[5][0][66], MAIN[5][0][79], MAIN[5][0][78], MAIN[5][0][77], MAIN[5][0][76], MAIN[5][0][75], MAIN[5][0][74], MAIN[5][0][67], MAIN[5][0][68], MAIN[5][0][65], MAIN[5][0][64], MAIN[5][0][63], MAIN[5][0][60]] {
+					CELL[0].IMUX_BUFG_I[30] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48890,8 +49171,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[31] @[MAIN[5][2][70], MAIN[5][2][71], MAIN[5][2][72], MAIN[5][2][73], MAIN[5][2][66], MAIN[5][2][79], MAIN[5][2][78], MAIN[5][2][77], MAIN[5][2][76], MAIN[5][2][75], MAIN[5][2][74], MAIN[5][2][67], MAIN[5][2][68], MAIN[5][2][65], MAIN[5][2][64], MAIN[5][2][63], MAIN[5][2][60]] {
-					CELL[0].IMUX_BUFG_S[31] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[31] @[MAIN[5][2][70], MAIN[5][2][71], MAIN[5][2][72], MAIN[5][2][73], MAIN[5][2][66], MAIN[5][2][79], MAIN[5][2][78], MAIN[5][2][77], MAIN[5][2][76], MAIN[5][2][75], MAIN[5][2][74], MAIN[5][2][67], MAIN[5][2][68], MAIN[5][2][65], MAIN[5][2][64], MAIN[5][2][63], MAIN[5][2][60]] {
+					CELL[0].IMUX_BUFG_I[31] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48940,8 +49221,8 @@ intdb {
 			bitrect MAIN[7]: Vertical (3, rev 80);
 
 			switchbox CLK_INT {
-				mux CELL[0].IMUX_BUFG_S[0] @[MAIN[5][0][69], MAIN[5][0][68], MAIN[5][0][67], MAIN[5][0][66], MAIN[5][0][72], MAIN[5][0][60], MAIN[5][0][61], MAIN[5][0][62], MAIN[5][0][63], MAIN[5][0][64], MAIN[5][0][65], MAIN[5][0][73], MAIN[5][0][79], MAIN[5][0][76], MAIN[5][0][75], MAIN[5][0][74], MAIN[5][0][71]] {
-					CELL[0].IMUX_BUFG_N[0] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[0] @[MAIN[5][0][69], MAIN[5][0][68], MAIN[5][0][67], MAIN[5][0][66], MAIN[5][0][72], MAIN[5][0][60], MAIN[5][0][61], MAIN[5][0][62], MAIN[5][0][63], MAIN[5][0][64], MAIN[5][0][65], MAIN[5][0][73], MAIN[5][0][79], MAIN[5][0][76], MAIN[5][0][75], MAIN[5][0][74], MAIN[5][0][71]] {
+					CELL[0].IMUX_BUFG_I[0] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48968,8 +49249,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[1] @[MAIN[5][2][69], MAIN[5][2][68], MAIN[5][2][67], MAIN[5][2][66], MAIN[5][2][72], MAIN[5][2][60], MAIN[5][2][61], MAIN[5][2][62], MAIN[5][2][63], MAIN[5][2][64], MAIN[5][2][65], MAIN[5][2][73], MAIN[5][2][79], MAIN[5][2][76], MAIN[5][2][75], MAIN[5][2][74], MAIN[5][2][71]] {
-					CELL[0].IMUX_BUFG_N[1] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[1] @[MAIN[5][2][69], MAIN[5][2][68], MAIN[5][2][67], MAIN[5][2][66], MAIN[5][2][72], MAIN[5][2][60], MAIN[5][2][61], MAIN[5][2][62], MAIN[5][2][63], MAIN[5][2][64], MAIN[5][2][65], MAIN[5][2][73], MAIN[5][2][79], MAIN[5][2][76], MAIN[5][2][75], MAIN[5][2][74], MAIN[5][2][71]] {
+					CELL[0].IMUX_BUFG_I[1] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -48996,8 +49277,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[2] @[MAIN[5][0][49], MAIN[5][0][48], MAIN[5][0][47], MAIN[5][0][46], MAIN[5][0][52], MAIN[5][0][40], MAIN[5][0][41], MAIN[5][0][42], MAIN[5][0][43], MAIN[5][0][44], MAIN[5][0][45], MAIN[5][0][53], MAIN[5][0][59], MAIN[5][0][56], MAIN[5][0][55], MAIN[5][0][54], MAIN[5][0][51]] {
-					CELL[0].IMUX_BUFG_N[2] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[2] @[MAIN[5][0][49], MAIN[5][0][48], MAIN[5][0][47], MAIN[5][0][46], MAIN[5][0][52], MAIN[5][0][40], MAIN[5][0][41], MAIN[5][0][42], MAIN[5][0][43], MAIN[5][0][44], MAIN[5][0][45], MAIN[5][0][53], MAIN[5][0][59], MAIN[5][0][56], MAIN[5][0][55], MAIN[5][0][54], MAIN[5][0][51]] {
+					CELL[0].IMUX_BUFG_I[2] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49024,8 +49305,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[3] @[MAIN[5][2][49], MAIN[5][2][48], MAIN[5][2][47], MAIN[5][2][46], MAIN[5][2][52], MAIN[5][2][40], MAIN[5][2][41], MAIN[5][2][42], MAIN[5][2][43], MAIN[5][2][44], MAIN[5][2][45], MAIN[5][2][53], MAIN[5][2][59], MAIN[5][2][56], MAIN[5][2][55], MAIN[5][2][54], MAIN[5][2][51]] {
-					CELL[0].IMUX_BUFG_N[3] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[3] @[MAIN[5][2][49], MAIN[5][2][48], MAIN[5][2][47], MAIN[5][2][46], MAIN[5][2][52], MAIN[5][2][40], MAIN[5][2][41], MAIN[5][2][42], MAIN[5][2][43], MAIN[5][2][44], MAIN[5][2][45], MAIN[5][2][53], MAIN[5][2][59], MAIN[5][2][56], MAIN[5][2][55], MAIN[5][2][54], MAIN[5][2][51]] {
+					CELL[0].IMUX_BUFG_I[3] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49052,8 +49333,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[4] @[MAIN[5][0][29], MAIN[5][0][28], MAIN[5][0][27], MAIN[5][0][26], MAIN[5][0][32], MAIN[5][0][20], MAIN[5][0][21], MAIN[5][0][22], MAIN[5][0][23], MAIN[5][0][24], MAIN[5][0][25], MAIN[5][0][33], MAIN[5][0][39], MAIN[5][0][36], MAIN[5][0][35], MAIN[5][0][34], MAIN[5][0][31]] {
-					CELL[0].IMUX_BUFG_N[4] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[4] @[MAIN[5][0][29], MAIN[5][0][28], MAIN[5][0][27], MAIN[5][0][26], MAIN[5][0][32], MAIN[5][0][20], MAIN[5][0][21], MAIN[5][0][22], MAIN[5][0][23], MAIN[5][0][24], MAIN[5][0][25], MAIN[5][0][33], MAIN[5][0][39], MAIN[5][0][36], MAIN[5][0][35], MAIN[5][0][34], MAIN[5][0][31]] {
+					CELL[0].IMUX_BUFG_I[4] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49080,8 +49361,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[5] @[MAIN[5][2][29], MAIN[5][2][28], MAIN[5][2][27], MAIN[5][2][26], MAIN[5][2][32], MAIN[5][2][20], MAIN[5][2][21], MAIN[5][2][22], MAIN[5][2][23], MAIN[5][2][24], MAIN[5][2][25], MAIN[5][2][33], MAIN[5][2][39], MAIN[5][2][36], MAIN[5][2][35], MAIN[5][2][34], MAIN[5][2][31]] {
-					CELL[0].IMUX_BUFG_N[5] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[5] @[MAIN[5][2][29], MAIN[5][2][28], MAIN[5][2][27], MAIN[5][2][26], MAIN[5][2][32], MAIN[5][2][20], MAIN[5][2][21], MAIN[5][2][22], MAIN[5][2][23], MAIN[5][2][24], MAIN[5][2][25], MAIN[5][2][33], MAIN[5][2][39], MAIN[5][2][36], MAIN[5][2][35], MAIN[5][2][34], MAIN[5][2][31]] {
+					CELL[0].IMUX_BUFG_I[5] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49108,8 +49389,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[6] @[MAIN[5][0][9], MAIN[5][0][8], MAIN[5][0][7], MAIN[5][0][6], MAIN[5][0][12], MAIN[5][0][0], MAIN[5][0][1], MAIN[5][0][2], MAIN[5][0][3], MAIN[5][0][4], MAIN[5][0][5], MAIN[5][0][13], MAIN[5][0][19], MAIN[5][0][16], MAIN[5][0][15], MAIN[5][0][14], MAIN[5][0][11]] {
-					CELL[0].IMUX_BUFG_N[6] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[6] @[MAIN[5][0][9], MAIN[5][0][8], MAIN[5][0][7], MAIN[5][0][6], MAIN[5][0][12], MAIN[5][0][0], MAIN[5][0][1], MAIN[5][0][2], MAIN[5][0][3], MAIN[5][0][4], MAIN[5][0][5], MAIN[5][0][13], MAIN[5][0][19], MAIN[5][0][16], MAIN[5][0][15], MAIN[5][0][14], MAIN[5][0][11]] {
+					CELL[0].IMUX_BUFG_I[6] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49136,8 +49417,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[7] @[MAIN[5][2][9], MAIN[5][2][8], MAIN[5][2][7], MAIN[5][2][6], MAIN[5][2][12], MAIN[5][2][0], MAIN[5][2][1], MAIN[5][2][2], MAIN[5][2][3], MAIN[5][2][4], MAIN[5][2][5], MAIN[5][2][13], MAIN[5][2][19], MAIN[5][2][16], MAIN[5][2][15], MAIN[5][2][14], MAIN[5][2][11]] {
-					CELL[0].IMUX_BUFG_N[7] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[7] @[MAIN[5][2][9], MAIN[5][2][8], MAIN[5][2][7], MAIN[5][2][6], MAIN[5][2][12], MAIN[5][2][0], MAIN[5][2][1], MAIN[5][2][2], MAIN[5][2][3], MAIN[5][2][4], MAIN[5][2][5], MAIN[5][2][13], MAIN[5][2][19], MAIN[5][2][16], MAIN[5][2][15], MAIN[5][2][14], MAIN[5][2][11]] {
+					CELL[0].IMUX_BUFG_I[7] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49164,8 +49445,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[8] @[MAIN[4][0][69], MAIN[4][0][68], MAIN[4][0][67], MAIN[4][0][66], MAIN[4][0][72], MAIN[4][0][60], MAIN[4][0][61], MAIN[4][0][62], MAIN[4][0][63], MAIN[4][0][64], MAIN[4][0][65], MAIN[4][0][73], MAIN[4][0][79], MAIN[4][0][76], MAIN[4][0][75], MAIN[4][0][74], MAIN[4][0][71]] {
-					CELL[0].IMUX_BUFG_N[8] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[8] @[MAIN[4][0][69], MAIN[4][0][68], MAIN[4][0][67], MAIN[4][0][66], MAIN[4][0][72], MAIN[4][0][60], MAIN[4][0][61], MAIN[4][0][62], MAIN[4][0][63], MAIN[4][0][64], MAIN[4][0][65], MAIN[4][0][73], MAIN[4][0][79], MAIN[4][0][76], MAIN[4][0][75], MAIN[4][0][74], MAIN[4][0][71]] {
+					CELL[0].IMUX_BUFG_I[8] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49192,8 +49473,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[9] @[MAIN[4][2][69], MAIN[4][2][68], MAIN[4][2][67], MAIN[4][2][66], MAIN[4][2][72], MAIN[4][2][60], MAIN[4][2][61], MAIN[4][2][62], MAIN[4][2][63], MAIN[4][2][64], MAIN[4][2][65], MAIN[4][2][73], MAIN[4][2][79], MAIN[4][2][76], MAIN[4][2][75], MAIN[4][2][74], MAIN[4][2][71]] {
-					CELL[0].IMUX_BUFG_N[9] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[9] @[MAIN[4][2][69], MAIN[4][2][68], MAIN[4][2][67], MAIN[4][2][66], MAIN[4][2][72], MAIN[4][2][60], MAIN[4][2][61], MAIN[4][2][62], MAIN[4][2][63], MAIN[4][2][64], MAIN[4][2][65], MAIN[4][2][73], MAIN[4][2][79], MAIN[4][2][76], MAIN[4][2][75], MAIN[4][2][74], MAIN[4][2][71]] {
+					CELL[0].IMUX_BUFG_I[9] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49220,8 +49501,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[10] @[MAIN[4][0][49], MAIN[4][0][48], MAIN[4][0][47], MAIN[4][0][46], MAIN[4][0][52], MAIN[4][0][40], MAIN[4][0][41], MAIN[4][0][42], MAIN[4][0][43], MAIN[4][0][44], MAIN[4][0][45], MAIN[4][0][53], MAIN[4][0][59], MAIN[4][0][56], MAIN[4][0][55], MAIN[4][0][54], MAIN[4][0][51]] {
-					CELL[0].IMUX_BUFG_N[10] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[10] @[MAIN[4][0][49], MAIN[4][0][48], MAIN[4][0][47], MAIN[4][0][46], MAIN[4][0][52], MAIN[4][0][40], MAIN[4][0][41], MAIN[4][0][42], MAIN[4][0][43], MAIN[4][0][44], MAIN[4][0][45], MAIN[4][0][53], MAIN[4][0][59], MAIN[4][0][56], MAIN[4][0][55], MAIN[4][0][54], MAIN[4][0][51]] {
+					CELL[0].IMUX_BUFG_I[10] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49248,8 +49529,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[11] @[MAIN[4][2][49], MAIN[4][2][48], MAIN[4][2][47], MAIN[4][2][46], MAIN[4][2][52], MAIN[4][2][40], MAIN[4][2][41], MAIN[4][2][42], MAIN[4][2][43], MAIN[4][2][44], MAIN[4][2][45], MAIN[4][2][53], MAIN[4][2][59], MAIN[4][2][56], MAIN[4][2][55], MAIN[4][2][54], MAIN[4][2][51]] {
-					CELL[0].IMUX_BUFG_N[11] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[11] @[MAIN[4][2][49], MAIN[4][2][48], MAIN[4][2][47], MAIN[4][2][46], MAIN[4][2][52], MAIN[4][2][40], MAIN[4][2][41], MAIN[4][2][42], MAIN[4][2][43], MAIN[4][2][44], MAIN[4][2][45], MAIN[4][2][53], MAIN[4][2][59], MAIN[4][2][56], MAIN[4][2][55], MAIN[4][2][54], MAIN[4][2][51]] {
+					CELL[0].IMUX_BUFG_I[11] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49276,8 +49557,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[12] @[MAIN[4][0][29], MAIN[4][0][28], MAIN[4][0][27], MAIN[4][0][26], MAIN[4][0][32], MAIN[4][0][20], MAIN[4][0][21], MAIN[4][0][22], MAIN[4][0][23], MAIN[4][0][24], MAIN[4][0][25], MAIN[4][0][33], MAIN[4][0][39], MAIN[4][0][36], MAIN[4][0][35], MAIN[4][0][34], MAIN[4][0][31]] {
-					CELL[0].IMUX_BUFG_N[12] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[12] @[MAIN[4][0][29], MAIN[4][0][28], MAIN[4][0][27], MAIN[4][0][26], MAIN[4][0][32], MAIN[4][0][20], MAIN[4][0][21], MAIN[4][0][22], MAIN[4][0][23], MAIN[4][0][24], MAIN[4][0][25], MAIN[4][0][33], MAIN[4][0][39], MAIN[4][0][36], MAIN[4][0][35], MAIN[4][0][34], MAIN[4][0][31]] {
+					CELL[0].IMUX_BUFG_I[12] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49304,8 +49585,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[13] @[MAIN[4][2][29], MAIN[4][2][28], MAIN[4][2][27], MAIN[4][2][26], MAIN[4][2][32], MAIN[4][2][20], MAIN[4][2][21], MAIN[4][2][22], MAIN[4][2][23], MAIN[4][2][24], MAIN[4][2][25], MAIN[4][2][33], MAIN[4][2][39], MAIN[4][2][36], MAIN[4][2][35], MAIN[4][2][34], MAIN[4][2][31]] {
-					CELL[0].IMUX_BUFG_N[13] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[13] @[MAIN[4][2][29], MAIN[4][2][28], MAIN[4][2][27], MAIN[4][2][26], MAIN[4][2][32], MAIN[4][2][20], MAIN[4][2][21], MAIN[4][2][22], MAIN[4][2][23], MAIN[4][2][24], MAIN[4][2][25], MAIN[4][2][33], MAIN[4][2][39], MAIN[4][2][36], MAIN[4][2][35], MAIN[4][2][34], MAIN[4][2][31]] {
+					CELL[0].IMUX_BUFG_I[13] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49332,8 +49613,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[14] @[MAIN[4][0][9], MAIN[4][0][8], MAIN[4][0][7], MAIN[4][0][6], MAIN[4][0][12], MAIN[4][0][0], MAIN[4][0][1], MAIN[4][0][2], MAIN[4][0][3], MAIN[4][0][4], MAIN[4][0][5], MAIN[4][0][13], MAIN[4][0][19], MAIN[4][0][16], MAIN[4][0][15], MAIN[4][0][14], MAIN[4][0][11]] {
-					CELL[0].IMUX_BUFG_N[14] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[14] @[MAIN[4][0][9], MAIN[4][0][8], MAIN[4][0][7], MAIN[4][0][6], MAIN[4][0][12], MAIN[4][0][0], MAIN[4][0][1], MAIN[4][0][2], MAIN[4][0][3], MAIN[4][0][4], MAIN[4][0][5], MAIN[4][0][13], MAIN[4][0][19], MAIN[4][0][16], MAIN[4][0][15], MAIN[4][0][14], MAIN[4][0][11]] {
+					CELL[0].IMUX_BUFG_I[14] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49360,8 +49641,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[15] @[MAIN[4][2][9], MAIN[4][2][8], MAIN[4][2][7], MAIN[4][2][6], MAIN[4][2][12], MAIN[4][2][0], MAIN[4][2][1], MAIN[4][2][2], MAIN[4][2][3], MAIN[4][2][4], MAIN[4][2][5], MAIN[4][2][13], MAIN[4][2][19], MAIN[4][2][16], MAIN[4][2][15], MAIN[4][2][14], MAIN[4][2][11]] {
-					CELL[0].IMUX_BUFG_N[15] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[15] @[MAIN[4][2][9], MAIN[4][2][8], MAIN[4][2][7], MAIN[4][2][6], MAIN[4][2][12], MAIN[4][2][0], MAIN[4][2][1], MAIN[4][2][2], MAIN[4][2][3], MAIN[4][2][4], MAIN[4][2][5], MAIN[4][2][13], MAIN[4][2][19], MAIN[4][2][16], MAIN[4][2][15], MAIN[4][2][14], MAIN[4][2][11]] {
+					CELL[0].IMUX_BUFG_I[15] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49388,8 +49669,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[16] @[MAIN[3][0][69], MAIN[3][0][68], MAIN[3][0][67], MAIN[3][0][66], MAIN[3][0][72], MAIN[3][0][60], MAIN[3][0][61], MAIN[3][0][62], MAIN[3][0][63], MAIN[3][0][64], MAIN[3][0][65], MAIN[3][0][73], MAIN[3][0][79], MAIN[3][0][76], MAIN[3][0][75], MAIN[3][0][74], MAIN[3][0][71]] {
-					CELL[0].IMUX_BUFG_N[16] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[16] @[MAIN[3][0][69], MAIN[3][0][68], MAIN[3][0][67], MAIN[3][0][66], MAIN[3][0][72], MAIN[3][0][60], MAIN[3][0][61], MAIN[3][0][62], MAIN[3][0][63], MAIN[3][0][64], MAIN[3][0][65], MAIN[3][0][73], MAIN[3][0][79], MAIN[3][0][76], MAIN[3][0][75], MAIN[3][0][74], MAIN[3][0][71]] {
+					CELL[0].IMUX_BUFG_I[16] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49416,8 +49697,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[17] @[MAIN[3][2][69], MAIN[3][2][68], MAIN[3][2][67], MAIN[3][2][66], MAIN[3][2][72], MAIN[3][2][60], MAIN[3][2][61], MAIN[3][2][62], MAIN[3][2][63], MAIN[3][2][64], MAIN[3][2][65], MAIN[3][2][73], MAIN[3][2][79], MAIN[3][2][76], MAIN[3][2][75], MAIN[3][2][74], MAIN[3][2][71]] {
-					CELL[0].IMUX_BUFG_N[17] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[17] @[MAIN[3][2][69], MAIN[3][2][68], MAIN[3][2][67], MAIN[3][2][66], MAIN[3][2][72], MAIN[3][2][60], MAIN[3][2][61], MAIN[3][2][62], MAIN[3][2][63], MAIN[3][2][64], MAIN[3][2][65], MAIN[3][2][73], MAIN[3][2][79], MAIN[3][2][76], MAIN[3][2][75], MAIN[3][2][74], MAIN[3][2][71]] {
+					CELL[0].IMUX_BUFG_I[17] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49444,8 +49725,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[18] @[MAIN[3][0][49], MAIN[3][0][48], MAIN[3][0][47], MAIN[3][0][46], MAIN[3][0][52], MAIN[3][0][40], MAIN[3][0][41], MAIN[3][0][42], MAIN[3][0][43], MAIN[3][0][44], MAIN[3][0][45], MAIN[3][0][53], MAIN[3][0][59], MAIN[3][0][56], MAIN[3][0][55], MAIN[3][0][54], MAIN[3][0][51]] {
-					CELL[0].IMUX_BUFG_N[18] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[18] @[MAIN[3][0][49], MAIN[3][0][48], MAIN[3][0][47], MAIN[3][0][46], MAIN[3][0][52], MAIN[3][0][40], MAIN[3][0][41], MAIN[3][0][42], MAIN[3][0][43], MAIN[3][0][44], MAIN[3][0][45], MAIN[3][0][53], MAIN[3][0][59], MAIN[3][0][56], MAIN[3][0][55], MAIN[3][0][54], MAIN[3][0][51]] {
+					CELL[0].IMUX_BUFG_I[18] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49472,8 +49753,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[19] @[MAIN[3][2][49], MAIN[3][2][48], MAIN[3][2][47], MAIN[3][2][46], MAIN[3][2][52], MAIN[3][2][40], MAIN[3][2][41], MAIN[3][2][42], MAIN[3][2][43], MAIN[3][2][44], MAIN[3][2][45], MAIN[3][2][53], MAIN[3][2][59], MAIN[3][2][56], MAIN[3][2][55], MAIN[3][2][54], MAIN[3][2][51]] {
-					CELL[0].IMUX_BUFG_N[19] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[19] @[MAIN[3][2][49], MAIN[3][2][48], MAIN[3][2][47], MAIN[3][2][46], MAIN[3][2][52], MAIN[3][2][40], MAIN[3][2][41], MAIN[3][2][42], MAIN[3][2][43], MAIN[3][2][44], MAIN[3][2][45], MAIN[3][2][53], MAIN[3][2][59], MAIN[3][2][56], MAIN[3][2][55], MAIN[3][2][54], MAIN[3][2][51]] {
+					CELL[0].IMUX_BUFG_I[19] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49500,8 +49781,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[20] @[MAIN[3][0][29], MAIN[3][0][28], MAIN[3][0][27], MAIN[3][0][26], MAIN[3][0][32], MAIN[3][0][20], MAIN[3][0][21], MAIN[3][0][22], MAIN[3][0][23], MAIN[3][0][24], MAIN[3][0][25], MAIN[3][0][33], MAIN[3][0][39], MAIN[3][0][36], MAIN[3][0][35], MAIN[3][0][34], MAIN[3][0][31]] {
-					CELL[0].IMUX_BUFG_N[20] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[20] @[MAIN[3][0][29], MAIN[3][0][28], MAIN[3][0][27], MAIN[3][0][26], MAIN[3][0][32], MAIN[3][0][20], MAIN[3][0][21], MAIN[3][0][22], MAIN[3][0][23], MAIN[3][0][24], MAIN[3][0][25], MAIN[3][0][33], MAIN[3][0][39], MAIN[3][0][36], MAIN[3][0][35], MAIN[3][0][34], MAIN[3][0][31]] {
+					CELL[0].IMUX_BUFG_I[20] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49528,8 +49809,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[21] @[MAIN[3][2][29], MAIN[3][2][28], MAIN[3][2][27], MAIN[3][2][26], MAIN[3][2][32], MAIN[3][2][20], MAIN[3][2][21], MAIN[3][2][22], MAIN[3][2][23], MAIN[3][2][24], MAIN[3][2][25], MAIN[3][2][33], MAIN[3][2][39], MAIN[3][2][36], MAIN[3][2][35], MAIN[3][2][34], MAIN[3][2][31]] {
-					CELL[0].IMUX_BUFG_N[21] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[21] @[MAIN[3][2][29], MAIN[3][2][28], MAIN[3][2][27], MAIN[3][2][26], MAIN[3][2][32], MAIN[3][2][20], MAIN[3][2][21], MAIN[3][2][22], MAIN[3][2][23], MAIN[3][2][24], MAIN[3][2][25], MAIN[3][2][33], MAIN[3][2][39], MAIN[3][2][36], MAIN[3][2][35], MAIN[3][2][34], MAIN[3][2][31]] {
+					CELL[0].IMUX_BUFG_I[21] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49556,8 +49837,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[22] @[MAIN[3][0][9], MAIN[3][0][8], MAIN[3][0][7], MAIN[3][0][6], MAIN[3][0][12], MAIN[3][0][0], MAIN[3][0][1], MAIN[3][0][2], MAIN[3][0][3], MAIN[3][0][4], MAIN[3][0][5], MAIN[3][0][13], MAIN[3][0][19], MAIN[3][0][16], MAIN[3][0][15], MAIN[3][0][14], MAIN[3][0][11]] {
-					CELL[0].IMUX_BUFG_N[22] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[22] @[MAIN[3][0][9], MAIN[3][0][8], MAIN[3][0][7], MAIN[3][0][6], MAIN[3][0][12], MAIN[3][0][0], MAIN[3][0][1], MAIN[3][0][2], MAIN[3][0][3], MAIN[3][0][4], MAIN[3][0][5], MAIN[3][0][13], MAIN[3][0][19], MAIN[3][0][16], MAIN[3][0][15], MAIN[3][0][14], MAIN[3][0][11]] {
+					CELL[0].IMUX_BUFG_I[22] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49584,8 +49865,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[23] @[MAIN[3][2][9], MAIN[3][2][8], MAIN[3][2][7], MAIN[3][2][6], MAIN[3][2][12], MAIN[3][2][0], MAIN[3][2][1], MAIN[3][2][2], MAIN[3][2][3], MAIN[3][2][4], MAIN[3][2][5], MAIN[3][2][13], MAIN[3][2][19], MAIN[3][2][16], MAIN[3][2][15], MAIN[3][2][14], MAIN[3][2][11]] {
-					CELL[0].IMUX_BUFG_N[23] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[23] @[MAIN[3][2][9], MAIN[3][2][8], MAIN[3][2][7], MAIN[3][2][6], MAIN[3][2][12], MAIN[3][2][0], MAIN[3][2][1], MAIN[3][2][2], MAIN[3][2][3], MAIN[3][2][4], MAIN[3][2][5], MAIN[3][2][13], MAIN[3][2][19], MAIN[3][2][16], MAIN[3][2][15], MAIN[3][2][14], MAIN[3][2][11]] {
+					CELL[0].IMUX_BUFG_I[23] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49612,8 +49893,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[24] @[MAIN[2][0][69], MAIN[2][0][68], MAIN[2][0][67], MAIN[2][0][66], MAIN[2][0][72], MAIN[2][0][60], MAIN[2][0][61], MAIN[2][0][62], MAIN[2][0][63], MAIN[2][0][64], MAIN[2][0][65], MAIN[2][0][73], MAIN[2][0][79], MAIN[2][0][76], MAIN[2][0][75], MAIN[2][0][74], MAIN[2][0][71]] {
-					CELL[0].IMUX_BUFG_N[24] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[24] @[MAIN[2][0][69], MAIN[2][0][68], MAIN[2][0][67], MAIN[2][0][66], MAIN[2][0][72], MAIN[2][0][60], MAIN[2][0][61], MAIN[2][0][62], MAIN[2][0][63], MAIN[2][0][64], MAIN[2][0][65], MAIN[2][0][73], MAIN[2][0][79], MAIN[2][0][76], MAIN[2][0][75], MAIN[2][0][74], MAIN[2][0][71]] {
+					CELL[0].IMUX_BUFG_I[24] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49640,8 +49921,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[25] @[MAIN[2][2][69], MAIN[2][2][68], MAIN[2][2][67], MAIN[2][2][66], MAIN[2][2][72], MAIN[2][2][60], MAIN[2][2][61], MAIN[2][2][62], MAIN[2][2][63], MAIN[2][2][64], MAIN[2][2][65], MAIN[2][2][73], MAIN[2][2][79], MAIN[2][2][76], MAIN[2][2][75], MAIN[2][2][74], MAIN[2][2][71]] {
-					CELL[0].IMUX_BUFG_N[25] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[25] @[MAIN[2][2][69], MAIN[2][2][68], MAIN[2][2][67], MAIN[2][2][66], MAIN[2][2][72], MAIN[2][2][60], MAIN[2][2][61], MAIN[2][2][62], MAIN[2][2][63], MAIN[2][2][64], MAIN[2][2][65], MAIN[2][2][73], MAIN[2][2][79], MAIN[2][2][76], MAIN[2][2][75], MAIN[2][2][74], MAIN[2][2][71]] {
+					CELL[0].IMUX_BUFG_I[25] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49668,8 +49949,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[26] @[MAIN[2][0][49], MAIN[2][0][48], MAIN[2][0][47], MAIN[2][0][46], MAIN[2][0][52], MAIN[2][0][40], MAIN[2][0][41], MAIN[2][0][42], MAIN[2][0][43], MAIN[2][0][44], MAIN[2][0][45], MAIN[2][0][53], MAIN[2][0][59], MAIN[2][0][56], MAIN[2][0][55], MAIN[2][0][54], MAIN[2][0][51]] {
-					CELL[0].IMUX_BUFG_N[26] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[26] @[MAIN[2][0][49], MAIN[2][0][48], MAIN[2][0][47], MAIN[2][0][46], MAIN[2][0][52], MAIN[2][0][40], MAIN[2][0][41], MAIN[2][0][42], MAIN[2][0][43], MAIN[2][0][44], MAIN[2][0][45], MAIN[2][0][53], MAIN[2][0][59], MAIN[2][0][56], MAIN[2][0][55], MAIN[2][0][54], MAIN[2][0][51]] {
+					CELL[0].IMUX_BUFG_I[26] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49696,8 +49977,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[27] @[MAIN[2][2][49], MAIN[2][2][48], MAIN[2][2][47], MAIN[2][2][46], MAIN[2][2][52], MAIN[2][2][40], MAIN[2][2][41], MAIN[2][2][42], MAIN[2][2][43], MAIN[2][2][44], MAIN[2][2][45], MAIN[2][2][53], MAIN[2][2][59], MAIN[2][2][56], MAIN[2][2][55], MAIN[2][2][54], MAIN[2][2][51]] {
-					CELL[0].IMUX_BUFG_N[27] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[27] @[MAIN[2][2][49], MAIN[2][2][48], MAIN[2][2][47], MAIN[2][2][46], MAIN[2][2][52], MAIN[2][2][40], MAIN[2][2][41], MAIN[2][2][42], MAIN[2][2][43], MAIN[2][2][44], MAIN[2][2][45], MAIN[2][2][53], MAIN[2][2][59], MAIN[2][2][56], MAIN[2][2][55], MAIN[2][2][54], MAIN[2][2][51]] {
+					CELL[0].IMUX_BUFG_I[27] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49724,8 +50005,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[28] @[MAIN[2][0][29], MAIN[2][0][28], MAIN[2][0][27], MAIN[2][0][26], MAIN[2][0][32], MAIN[2][0][20], MAIN[2][0][21], MAIN[2][0][22], MAIN[2][0][23], MAIN[2][0][24], MAIN[2][0][25], MAIN[2][0][33], MAIN[2][0][39], MAIN[2][0][36], MAIN[2][0][35], MAIN[2][0][34], MAIN[2][0][31]] {
-					CELL[0].IMUX_BUFG_N[28] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[28] @[MAIN[2][0][29], MAIN[2][0][28], MAIN[2][0][27], MAIN[2][0][26], MAIN[2][0][32], MAIN[2][0][20], MAIN[2][0][21], MAIN[2][0][22], MAIN[2][0][23], MAIN[2][0][24], MAIN[2][0][25], MAIN[2][0][33], MAIN[2][0][39], MAIN[2][0][36], MAIN[2][0][35], MAIN[2][0][34], MAIN[2][0][31]] {
+					CELL[0].IMUX_BUFG_I[28] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49752,8 +50033,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[29] @[MAIN[2][2][29], MAIN[2][2][28], MAIN[2][2][27], MAIN[2][2][26], MAIN[2][2][32], MAIN[2][2][20], MAIN[2][2][21], MAIN[2][2][22], MAIN[2][2][23], MAIN[2][2][24], MAIN[2][2][25], MAIN[2][2][33], MAIN[2][2][39], MAIN[2][2][36], MAIN[2][2][35], MAIN[2][2][34], MAIN[2][2][31]] {
-					CELL[0].IMUX_BUFG_N[29] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[29] @[MAIN[2][2][29], MAIN[2][2][28], MAIN[2][2][27], MAIN[2][2][26], MAIN[2][2][32], MAIN[2][2][20], MAIN[2][2][21], MAIN[2][2][22], MAIN[2][2][23], MAIN[2][2][24], MAIN[2][2][25], MAIN[2][2][33], MAIN[2][2][39], MAIN[2][2][36], MAIN[2][2][35], MAIN[2][2][34], MAIN[2][2][31]] {
+					CELL[0].IMUX_BUFG_I[29] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49780,8 +50061,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[30] @[MAIN[2][0][9], MAIN[2][0][8], MAIN[2][0][7], MAIN[2][0][6], MAIN[2][0][12], MAIN[2][0][0], MAIN[2][0][1], MAIN[2][0][2], MAIN[2][0][3], MAIN[2][0][4], MAIN[2][0][5], MAIN[2][0][13], MAIN[2][0][19], MAIN[2][0][16], MAIN[2][0][15], MAIN[2][0][14], MAIN[2][0][11]] {
-					CELL[0].IMUX_BUFG_N[30] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[30] @[MAIN[2][0][9], MAIN[2][0][8], MAIN[2][0][7], MAIN[2][0][6], MAIN[2][0][12], MAIN[2][0][0], MAIN[2][0][1], MAIN[2][0][2], MAIN[2][0][3], MAIN[2][0][4], MAIN[2][0][5], MAIN[2][0][13], MAIN[2][0][19], MAIN[2][0][16], MAIN[2][0][15], MAIN[2][0][14], MAIN[2][0][11]] {
+					CELL[0].IMUX_BUFG_I[30] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49808,8 +50089,8 @@ intdb {
 					CELL[4].OUT_DCM[11] = 0b10000100000011111,
 					off = 0b00000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[31] @[MAIN[2][2][9], MAIN[2][2][8], MAIN[2][2][7], MAIN[2][2][6], MAIN[2][2][12], MAIN[2][2][0], MAIN[2][2][1], MAIN[2][2][2], MAIN[2][2][3], MAIN[2][2][4], MAIN[2][2][5], MAIN[2][2][13], MAIN[2][2][19], MAIN[2][2][16], MAIN[2][2][15], MAIN[2][2][14], MAIN[2][2][11]] {
-					CELL[0].IMUX_BUFG_N[31] = 0b00001000000111111,
+				mux CELL[0].IMUX_BUFG_O[31] @[MAIN[2][2][9], MAIN[2][2][8], MAIN[2][2][7], MAIN[2][2][6], MAIN[2][2][12], MAIN[2][2][0], MAIN[2][2][1], MAIN[2][2][2], MAIN[2][2][3], MAIN[2][2][4], MAIN[2][2][5], MAIN[2][2][13], MAIN[2][2][19], MAIN[2][2][16], MAIN[2][2][15], MAIN[2][2][14], MAIN[2][2][11]] {
+					CELL[0].IMUX_BUFG_I[31] = 0b00001000000111111,
 					CELL[0].OUT_DCM[0] = 0b00010000001011111,
 					CELL[0].OUT_DCM[1] = 0b00010000010011111,
 					CELL[0].OUT_DCM[2] = 0b00010000100011111,
@@ -49938,8 +50219,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b11111,
 					off = 0b00000,
 				}
-				mux CELL[0].IMUX_BUFG_N[0] @[MAIN[11][0][19], MAIN[11][0][18], MAIN[11][0][17], MAIN[11][0][16], MAIN[11][0][4], MAIN[11][2][15], MAIN[11][2][13], MAIN[11][0][13], MAIN[11][0][14], MAIN[11][0][0], MAIN[11][0][10], MAIN[11][0][7], MAIN[11][0][6], MAIN[11][0][5], MAIN[11][0][2]] {
-					CELL[0].IMUX_BUFG_S[0] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[0] @[MAIN[11][0][19], MAIN[11][0][18], MAIN[11][0][17], MAIN[11][0][16], MAIN[11][0][4], MAIN[11][2][15], MAIN[11][2][13], MAIN[11][0][13], MAIN[11][0][14], MAIN[11][0][0], MAIN[11][0][10], MAIN[11][0][7], MAIN[11][0][6], MAIN[11][0][5], MAIN[11][0][2]] {
+					CELL[0].IMUX_BUFG_I[0] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -49958,8 +50239,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[1] @[MAIN[11][2][19], MAIN[11][2][18], MAIN[11][2][17], MAIN[11][2][16], MAIN[11][2][4], MAIN[11][2][14], MAIN[11][2][12], MAIN[11][0][12], MAIN[11][0][15], MAIN[11][2][0], MAIN[11][2][10], MAIN[11][2][7], MAIN[11][2][6], MAIN[11][2][5], MAIN[11][2][2]] {
-					CELL[0].IMUX_BUFG_S[1] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[1] @[MAIN[11][2][19], MAIN[11][2][18], MAIN[11][2][17], MAIN[11][2][16], MAIN[11][2][4], MAIN[11][2][14], MAIN[11][2][12], MAIN[11][0][12], MAIN[11][0][15], MAIN[11][2][0], MAIN[11][2][10], MAIN[11][2][7], MAIN[11][2][6], MAIN[11][2][5], MAIN[11][2][2]] {
+					CELL[0].IMUX_BUFG_I[1] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -49978,8 +50259,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[2] @[MAIN[11][0][39], MAIN[11][0][38], MAIN[11][0][37], MAIN[11][0][36], MAIN[11][0][24], MAIN[11][2][35], MAIN[11][2][33], MAIN[11][0][33], MAIN[11][0][34], MAIN[11][0][20], MAIN[11][0][30], MAIN[11][0][27], MAIN[11][0][26], MAIN[11][0][25], MAIN[11][0][22]] {
-					CELL[0].IMUX_BUFG_S[2] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[2] @[MAIN[11][0][39], MAIN[11][0][38], MAIN[11][0][37], MAIN[11][0][36], MAIN[11][0][24], MAIN[11][2][35], MAIN[11][2][33], MAIN[11][0][33], MAIN[11][0][34], MAIN[11][0][20], MAIN[11][0][30], MAIN[11][0][27], MAIN[11][0][26], MAIN[11][0][25], MAIN[11][0][22]] {
+					CELL[0].IMUX_BUFG_I[2] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -49998,8 +50279,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[3] @[MAIN[11][2][39], MAIN[11][2][38], MAIN[11][2][37], MAIN[11][2][36], MAIN[11][2][24], MAIN[11][2][34], MAIN[11][2][32], MAIN[11][0][32], MAIN[11][0][35], MAIN[11][2][20], MAIN[11][2][30], MAIN[11][2][27], MAIN[11][2][26], MAIN[11][2][25], MAIN[11][2][22]] {
-					CELL[0].IMUX_BUFG_S[3] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[3] @[MAIN[11][2][39], MAIN[11][2][38], MAIN[11][2][37], MAIN[11][2][36], MAIN[11][2][24], MAIN[11][2][34], MAIN[11][2][32], MAIN[11][0][32], MAIN[11][0][35], MAIN[11][2][20], MAIN[11][2][30], MAIN[11][2][27], MAIN[11][2][26], MAIN[11][2][25], MAIN[11][2][22]] {
+					CELL[0].IMUX_BUFG_I[3] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50018,8 +50299,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[4] @[MAIN[11][0][59], MAIN[11][0][58], MAIN[11][0][57], MAIN[11][0][56], MAIN[11][0][44], MAIN[11][2][55], MAIN[11][2][53], MAIN[11][0][53], MAIN[11][0][54], MAIN[11][0][40], MAIN[11][0][50], MAIN[11][0][47], MAIN[11][0][46], MAIN[11][0][45], MAIN[11][0][42]] {
-					CELL[0].IMUX_BUFG_S[4] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[4] @[MAIN[11][0][59], MAIN[11][0][58], MAIN[11][0][57], MAIN[11][0][56], MAIN[11][0][44], MAIN[11][2][55], MAIN[11][2][53], MAIN[11][0][53], MAIN[11][0][54], MAIN[11][0][40], MAIN[11][0][50], MAIN[11][0][47], MAIN[11][0][46], MAIN[11][0][45], MAIN[11][0][42]] {
+					CELL[0].IMUX_BUFG_I[4] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50038,8 +50319,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[5] @[MAIN[11][2][59], MAIN[11][2][58], MAIN[11][2][57], MAIN[11][2][56], MAIN[11][2][44], MAIN[11][2][54], MAIN[11][2][52], MAIN[11][0][52], MAIN[11][0][55], MAIN[11][2][40], MAIN[11][2][50], MAIN[11][2][47], MAIN[11][2][46], MAIN[11][2][45], MAIN[11][2][42]] {
-					CELL[0].IMUX_BUFG_S[5] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[5] @[MAIN[11][2][59], MAIN[11][2][58], MAIN[11][2][57], MAIN[11][2][56], MAIN[11][2][44], MAIN[11][2][54], MAIN[11][2][52], MAIN[11][0][52], MAIN[11][0][55], MAIN[11][2][40], MAIN[11][2][50], MAIN[11][2][47], MAIN[11][2][46], MAIN[11][2][45], MAIN[11][2][42]] {
+					CELL[0].IMUX_BUFG_I[5] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50058,8 +50339,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[6] @[MAIN[11][0][79], MAIN[11][0][78], MAIN[11][0][77], MAIN[11][0][76], MAIN[11][0][64], MAIN[11][2][75], MAIN[11][2][73], MAIN[11][0][73], MAIN[11][0][74], MAIN[11][0][60], MAIN[11][0][70], MAIN[11][0][67], MAIN[11][0][66], MAIN[11][0][65], MAIN[11][0][62]] {
-					CELL[0].IMUX_BUFG_S[6] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[6] @[MAIN[11][0][79], MAIN[11][0][78], MAIN[11][0][77], MAIN[11][0][76], MAIN[11][0][64], MAIN[11][2][75], MAIN[11][2][73], MAIN[11][0][73], MAIN[11][0][74], MAIN[11][0][60], MAIN[11][0][70], MAIN[11][0][67], MAIN[11][0][66], MAIN[11][0][65], MAIN[11][0][62]] {
+					CELL[0].IMUX_BUFG_I[6] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50078,8 +50359,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[7] @[MAIN[11][2][79], MAIN[11][2][78], MAIN[11][2][77], MAIN[11][2][76], MAIN[11][2][64], MAIN[11][2][74], MAIN[11][2][72], MAIN[11][0][72], MAIN[11][0][75], MAIN[11][2][60], MAIN[11][2][70], MAIN[11][2][67], MAIN[11][2][66], MAIN[11][2][65], MAIN[11][2][62]] {
-					CELL[0].IMUX_BUFG_S[7] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[7] @[MAIN[11][2][79], MAIN[11][2][78], MAIN[11][2][77], MAIN[11][2][76], MAIN[11][2][64], MAIN[11][2][74], MAIN[11][2][72], MAIN[11][0][72], MAIN[11][0][75], MAIN[11][2][60], MAIN[11][2][70], MAIN[11][2][67], MAIN[11][2][66], MAIN[11][2][65], MAIN[11][2][62]] {
+					CELL[0].IMUX_BUFG_I[7] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50098,8 +50379,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[8] @[MAIN[12][0][19], MAIN[12][0][18], MAIN[12][0][17], MAIN[12][0][16], MAIN[12][0][4], MAIN[12][2][15], MAIN[12][2][13], MAIN[12][0][13], MAIN[12][0][14], MAIN[12][0][0], MAIN[12][0][10], MAIN[12][0][7], MAIN[12][0][6], MAIN[12][0][5], MAIN[12][0][2]] {
-					CELL[0].IMUX_BUFG_S[8] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[8] @[MAIN[12][0][19], MAIN[12][0][18], MAIN[12][0][17], MAIN[12][0][16], MAIN[12][0][4], MAIN[12][2][15], MAIN[12][2][13], MAIN[12][0][13], MAIN[12][0][14], MAIN[12][0][0], MAIN[12][0][10], MAIN[12][0][7], MAIN[12][0][6], MAIN[12][0][5], MAIN[12][0][2]] {
+					CELL[0].IMUX_BUFG_I[8] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50118,8 +50399,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[9] @[MAIN[12][2][19], MAIN[12][2][18], MAIN[12][2][17], MAIN[12][2][16], MAIN[12][2][4], MAIN[12][2][14], MAIN[12][2][12], MAIN[12][0][12], MAIN[12][0][15], MAIN[12][2][0], MAIN[12][2][10], MAIN[12][2][7], MAIN[12][2][6], MAIN[12][2][5], MAIN[12][2][2]] {
-					CELL[0].IMUX_BUFG_S[9] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[9] @[MAIN[12][2][19], MAIN[12][2][18], MAIN[12][2][17], MAIN[12][2][16], MAIN[12][2][4], MAIN[12][2][14], MAIN[12][2][12], MAIN[12][0][12], MAIN[12][0][15], MAIN[12][2][0], MAIN[12][2][10], MAIN[12][2][7], MAIN[12][2][6], MAIN[12][2][5], MAIN[12][2][2]] {
+					CELL[0].IMUX_BUFG_I[9] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50138,8 +50419,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[10] @[MAIN[12][0][39], MAIN[12][0][38], MAIN[12][0][37], MAIN[12][0][36], MAIN[12][0][24], MAIN[12][2][35], MAIN[12][2][33], MAIN[12][0][33], MAIN[12][0][34], MAIN[12][0][20], MAIN[12][0][30], MAIN[12][0][27], MAIN[12][0][26], MAIN[12][0][25], MAIN[12][0][22]] {
-					CELL[0].IMUX_BUFG_S[10] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[10] @[MAIN[12][0][39], MAIN[12][0][38], MAIN[12][0][37], MAIN[12][0][36], MAIN[12][0][24], MAIN[12][2][35], MAIN[12][2][33], MAIN[12][0][33], MAIN[12][0][34], MAIN[12][0][20], MAIN[12][0][30], MAIN[12][0][27], MAIN[12][0][26], MAIN[12][0][25], MAIN[12][0][22]] {
+					CELL[0].IMUX_BUFG_I[10] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50158,8 +50439,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[11] @[MAIN[12][2][39], MAIN[12][2][38], MAIN[12][2][37], MAIN[12][2][36], MAIN[12][2][24], MAIN[12][2][34], MAIN[12][2][32], MAIN[12][0][32], MAIN[12][0][35], MAIN[12][2][20], MAIN[12][2][30], MAIN[12][2][27], MAIN[12][2][26], MAIN[12][2][25], MAIN[12][2][22]] {
-					CELL[0].IMUX_BUFG_S[11] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[11] @[MAIN[12][2][39], MAIN[12][2][38], MAIN[12][2][37], MAIN[12][2][36], MAIN[12][2][24], MAIN[12][2][34], MAIN[12][2][32], MAIN[12][0][32], MAIN[12][0][35], MAIN[12][2][20], MAIN[12][2][30], MAIN[12][2][27], MAIN[12][2][26], MAIN[12][2][25], MAIN[12][2][22]] {
+					CELL[0].IMUX_BUFG_I[11] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50178,8 +50459,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[12] @[MAIN[12][0][59], MAIN[12][0][58], MAIN[12][0][57], MAIN[12][0][56], MAIN[12][0][44], MAIN[12][2][55], MAIN[12][2][53], MAIN[12][0][53], MAIN[12][0][54], MAIN[12][0][40], MAIN[12][0][50], MAIN[12][0][47], MAIN[12][0][46], MAIN[12][0][45], MAIN[12][0][42]] {
-					CELL[0].IMUX_BUFG_S[12] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[12] @[MAIN[12][0][59], MAIN[12][0][58], MAIN[12][0][57], MAIN[12][0][56], MAIN[12][0][44], MAIN[12][2][55], MAIN[12][2][53], MAIN[12][0][53], MAIN[12][0][54], MAIN[12][0][40], MAIN[12][0][50], MAIN[12][0][47], MAIN[12][0][46], MAIN[12][0][45], MAIN[12][0][42]] {
+					CELL[0].IMUX_BUFG_I[12] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50198,8 +50479,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[13] @[MAIN[12][2][59], MAIN[12][2][58], MAIN[12][2][57], MAIN[12][2][56], MAIN[12][2][44], MAIN[12][2][54], MAIN[12][2][52], MAIN[12][0][52], MAIN[12][0][55], MAIN[12][2][40], MAIN[12][2][50], MAIN[12][2][47], MAIN[12][2][46], MAIN[12][2][45], MAIN[12][2][42]] {
-					CELL[0].IMUX_BUFG_S[13] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[13] @[MAIN[12][2][59], MAIN[12][2][58], MAIN[12][2][57], MAIN[12][2][56], MAIN[12][2][44], MAIN[12][2][54], MAIN[12][2][52], MAIN[12][0][52], MAIN[12][0][55], MAIN[12][2][40], MAIN[12][2][50], MAIN[12][2][47], MAIN[12][2][46], MAIN[12][2][45], MAIN[12][2][42]] {
+					CELL[0].IMUX_BUFG_I[13] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50218,8 +50499,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[14] @[MAIN[12][0][79], MAIN[12][0][78], MAIN[12][0][77], MAIN[12][0][76], MAIN[12][0][64], MAIN[12][2][75], MAIN[12][2][73], MAIN[12][0][73], MAIN[12][0][74], MAIN[12][0][60], MAIN[12][0][70], MAIN[12][0][67], MAIN[12][0][66], MAIN[12][0][65], MAIN[12][0][62]] {
-					CELL[0].IMUX_BUFG_S[14] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[14] @[MAIN[12][0][79], MAIN[12][0][78], MAIN[12][0][77], MAIN[12][0][76], MAIN[12][0][64], MAIN[12][2][75], MAIN[12][2][73], MAIN[12][0][73], MAIN[12][0][74], MAIN[12][0][60], MAIN[12][0][70], MAIN[12][0][67], MAIN[12][0][66], MAIN[12][0][65], MAIN[12][0][62]] {
+					CELL[0].IMUX_BUFG_I[14] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50238,8 +50519,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[15] @[MAIN[12][2][79], MAIN[12][2][78], MAIN[12][2][77], MAIN[12][2][76], MAIN[12][2][64], MAIN[12][2][74], MAIN[12][2][72], MAIN[12][0][72], MAIN[12][0][75], MAIN[12][2][60], MAIN[12][2][70], MAIN[12][2][67], MAIN[12][2][66], MAIN[12][2][65], MAIN[12][2][62]] {
-					CELL[0].IMUX_BUFG_S[15] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[15] @[MAIN[12][2][79], MAIN[12][2][78], MAIN[12][2][77], MAIN[12][2][76], MAIN[12][2][64], MAIN[12][2][74], MAIN[12][2][72], MAIN[12][0][72], MAIN[12][0][75], MAIN[12][2][60], MAIN[12][2][70], MAIN[12][2][67], MAIN[12][2][66], MAIN[12][2][65], MAIN[12][2][62]] {
+					CELL[0].IMUX_BUFG_I[15] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50258,8 +50539,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[16] @[MAIN[13][0][19], MAIN[13][0][18], MAIN[13][0][17], MAIN[13][0][16], MAIN[13][0][4], MAIN[13][2][15], MAIN[13][2][13], MAIN[13][0][13], MAIN[13][0][14], MAIN[13][0][0], MAIN[13][0][10], MAIN[13][0][7], MAIN[13][0][6], MAIN[13][0][5], MAIN[13][0][2]] {
-					CELL[0].IMUX_BUFG_S[16] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[16] @[MAIN[13][0][19], MAIN[13][0][18], MAIN[13][0][17], MAIN[13][0][16], MAIN[13][0][4], MAIN[13][2][15], MAIN[13][2][13], MAIN[13][0][13], MAIN[13][0][14], MAIN[13][0][0], MAIN[13][0][10], MAIN[13][0][7], MAIN[13][0][6], MAIN[13][0][5], MAIN[13][0][2]] {
+					CELL[0].IMUX_BUFG_I[16] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50278,8 +50559,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[17] @[MAIN[13][2][19], MAIN[13][2][18], MAIN[13][2][17], MAIN[13][2][16], MAIN[13][2][4], MAIN[13][2][14], MAIN[13][2][12], MAIN[13][0][12], MAIN[13][0][15], MAIN[13][2][0], MAIN[13][2][10], MAIN[13][2][7], MAIN[13][2][6], MAIN[13][2][5], MAIN[13][2][2]] {
-					CELL[0].IMUX_BUFG_S[17] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[17] @[MAIN[13][2][19], MAIN[13][2][18], MAIN[13][2][17], MAIN[13][2][16], MAIN[13][2][4], MAIN[13][2][14], MAIN[13][2][12], MAIN[13][0][12], MAIN[13][0][15], MAIN[13][2][0], MAIN[13][2][10], MAIN[13][2][7], MAIN[13][2][6], MAIN[13][2][5], MAIN[13][2][2]] {
+					CELL[0].IMUX_BUFG_I[17] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50298,8 +50579,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[18] @[MAIN[13][0][39], MAIN[13][0][38], MAIN[13][0][37], MAIN[13][0][36], MAIN[13][0][24], MAIN[13][2][35], MAIN[13][2][33], MAIN[13][0][33], MAIN[13][0][34], MAIN[13][0][20], MAIN[13][0][30], MAIN[13][0][27], MAIN[13][0][26], MAIN[13][0][25], MAIN[13][0][22]] {
-					CELL[0].IMUX_BUFG_S[18] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[18] @[MAIN[13][0][39], MAIN[13][0][38], MAIN[13][0][37], MAIN[13][0][36], MAIN[13][0][24], MAIN[13][2][35], MAIN[13][2][33], MAIN[13][0][33], MAIN[13][0][34], MAIN[13][0][20], MAIN[13][0][30], MAIN[13][0][27], MAIN[13][0][26], MAIN[13][0][25], MAIN[13][0][22]] {
+					CELL[0].IMUX_BUFG_I[18] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50318,8 +50599,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[19] @[MAIN[13][2][39], MAIN[13][2][38], MAIN[13][2][37], MAIN[13][2][36], MAIN[13][2][24], MAIN[13][2][34], MAIN[13][2][32], MAIN[13][0][32], MAIN[13][0][35], MAIN[13][2][20], MAIN[13][2][30], MAIN[13][2][27], MAIN[13][2][26], MAIN[13][2][25], MAIN[13][2][22]] {
-					CELL[0].IMUX_BUFG_S[19] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[19] @[MAIN[13][2][39], MAIN[13][2][38], MAIN[13][2][37], MAIN[13][2][36], MAIN[13][2][24], MAIN[13][2][34], MAIN[13][2][32], MAIN[13][0][32], MAIN[13][0][35], MAIN[13][2][20], MAIN[13][2][30], MAIN[13][2][27], MAIN[13][2][26], MAIN[13][2][25], MAIN[13][2][22]] {
+					CELL[0].IMUX_BUFG_I[19] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50338,8 +50619,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[20] @[MAIN[13][0][59], MAIN[13][0][58], MAIN[13][0][57], MAIN[13][0][56], MAIN[13][0][44], MAIN[13][2][55], MAIN[13][2][53], MAIN[13][0][53], MAIN[13][0][54], MAIN[13][0][40], MAIN[13][0][50], MAIN[13][0][47], MAIN[13][0][46], MAIN[13][0][45], MAIN[13][0][42]] {
-					CELL[0].IMUX_BUFG_S[20] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[20] @[MAIN[13][0][59], MAIN[13][0][58], MAIN[13][0][57], MAIN[13][0][56], MAIN[13][0][44], MAIN[13][2][55], MAIN[13][2][53], MAIN[13][0][53], MAIN[13][0][54], MAIN[13][0][40], MAIN[13][0][50], MAIN[13][0][47], MAIN[13][0][46], MAIN[13][0][45], MAIN[13][0][42]] {
+					CELL[0].IMUX_BUFG_I[20] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50358,8 +50639,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[21] @[MAIN[13][2][59], MAIN[13][2][58], MAIN[13][2][57], MAIN[13][2][56], MAIN[13][2][44], MAIN[13][2][54], MAIN[13][2][52], MAIN[13][0][52], MAIN[13][0][55], MAIN[13][2][40], MAIN[13][2][50], MAIN[13][2][47], MAIN[13][2][46], MAIN[13][2][45], MAIN[13][2][42]] {
-					CELL[0].IMUX_BUFG_S[21] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[21] @[MAIN[13][2][59], MAIN[13][2][58], MAIN[13][2][57], MAIN[13][2][56], MAIN[13][2][44], MAIN[13][2][54], MAIN[13][2][52], MAIN[13][0][52], MAIN[13][0][55], MAIN[13][2][40], MAIN[13][2][50], MAIN[13][2][47], MAIN[13][2][46], MAIN[13][2][45], MAIN[13][2][42]] {
+					CELL[0].IMUX_BUFG_I[21] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50378,8 +50659,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[22] @[MAIN[13][0][79], MAIN[13][0][78], MAIN[13][0][77], MAIN[13][0][76], MAIN[13][0][64], MAIN[13][2][75], MAIN[13][2][73], MAIN[13][0][73], MAIN[13][0][74], MAIN[13][0][60], MAIN[13][0][70], MAIN[13][0][67], MAIN[13][0][66], MAIN[13][0][65], MAIN[13][0][62]] {
-					CELL[0].IMUX_BUFG_S[22] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[22] @[MAIN[13][0][79], MAIN[13][0][78], MAIN[13][0][77], MAIN[13][0][76], MAIN[13][0][64], MAIN[13][2][75], MAIN[13][2][73], MAIN[13][0][73], MAIN[13][0][74], MAIN[13][0][60], MAIN[13][0][70], MAIN[13][0][67], MAIN[13][0][66], MAIN[13][0][65], MAIN[13][0][62]] {
+					CELL[0].IMUX_BUFG_I[22] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50398,8 +50679,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[23] @[MAIN[13][2][79], MAIN[13][2][78], MAIN[13][2][77], MAIN[13][2][76], MAIN[13][2][64], MAIN[13][2][74], MAIN[13][2][72], MAIN[13][0][72], MAIN[13][0][75], MAIN[13][2][60], MAIN[13][2][70], MAIN[13][2][67], MAIN[13][2][66], MAIN[13][2][65], MAIN[13][2][62]] {
-					CELL[0].IMUX_BUFG_S[23] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[23] @[MAIN[13][2][79], MAIN[13][2][78], MAIN[13][2][77], MAIN[13][2][76], MAIN[13][2][64], MAIN[13][2][74], MAIN[13][2][72], MAIN[13][0][72], MAIN[13][0][75], MAIN[13][2][60], MAIN[13][2][70], MAIN[13][2][67], MAIN[13][2][66], MAIN[13][2][65], MAIN[13][2][62]] {
+					CELL[0].IMUX_BUFG_I[23] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50418,8 +50699,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[24] @[MAIN[14][0][19], MAIN[14][0][18], MAIN[14][0][17], MAIN[14][0][16], MAIN[14][0][4], MAIN[14][2][15], MAIN[14][2][13], MAIN[14][0][13], MAIN[14][0][14], MAIN[14][0][0], MAIN[14][0][10], MAIN[14][0][7], MAIN[14][0][6], MAIN[14][0][5], MAIN[14][0][2]] {
-					CELL[0].IMUX_BUFG_S[24] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[24] @[MAIN[14][0][19], MAIN[14][0][18], MAIN[14][0][17], MAIN[14][0][16], MAIN[14][0][4], MAIN[14][2][15], MAIN[14][2][13], MAIN[14][0][13], MAIN[14][0][14], MAIN[14][0][0], MAIN[14][0][10], MAIN[14][0][7], MAIN[14][0][6], MAIN[14][0][5], MAIN[14][0][2]] {
+					CELL[0].IMUX_BUFG_I[24] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50438,8 +50719,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[25] @[MAIN[14][2][19], MAIN[14][2][18], MAIN[14][2][17], MAIN[14][2][16], MAIN[14][2][4], MAIN[14][2][14], MAIN[14][2][12], MAIN[14][0][12], MAIN[14][0][15], MAIN[14][2][0], MAIN[14][2][10], MAIN[14][2][7], MAIN[14][2][6], MAIN[14][2][5], MAIN[14][2][2]] {
-					CELL[0].IMUX_BUFG_S[25] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[25] @[MAIN[14][2][19], MAIN[14][2][18], MAIN[14][2][17], MAIN[14][2][16], MAIN[14][2][4], MAIN[14][2][14], MAIN[14][2][12], MAIN[14][0][12], MAIN[14][0][15], MAIN[14][2][0], MAIN[14][2][10], MAIN[14][2][7], MAIN[14][2][6], MAIN[14][2][5], MAIN[14][2][2]] {
+					CELL[0].IMUX_BUFG_I[25] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50458,8 +50739,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[26] @[MAIN[14][0][39], MAIN[14][0][38], MAIN[14][0][37], MAIN[14][0][36], MAIN[14][0][24], MAIN[14][2][35], MAIN[14][2][33], MAIN[14][0][33], MAIN[14][0][34], MAIN[14][0][20], MAIN[14][0][30], MAIN[14][0][27], MAIN[14][0][26], MAIN[14][0][25], MAIN[14][0][22]] {
-					CELL[0].IMUX_BUFG_S[26] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[26] @[MAIN[14][0][39], MAIN[14][0][38], MAIN[14][0][37], MAIN[14][0][36], MAIN[14][0][24], MAIN[14][2][35], MAIN[14][2][33], MAIN[14][0][33], MAIN[14][0][34], MAIN[14][0][20], MAIN[14][0][30], MAIN[14][0][27], MAIN[14][0][26], MAIN[14][0][25], MAIN[14][0][22]] {
+					CELL[0].IMUX_BUFG_I[26] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50478,8 +50759,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[27] @[MAIN[14][2][39], MAIN[14][2][38], MAIN[14][2][37], MAIN[14][2][36], MAIN[14][2][24], MAIN[14][2][34], MAIN[14][2][32], MAIN[14][0][32], MAIN[14][0][35], MAIN[14][2][20], MAIN[14][2][30], MAIN[14][2][27], MAIN[14][2][26], MAIN[14][2][25], MAIN[14][2][22]] {
-					CELL[0].IMUX_BUFG_S[27] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[27] @[MAIN[14][2][39], MAIN[14][2][38], MAIN[14][2][37], MAIN[14][2][36], MAIN[14][2][24], MAIN[14][2][34], MAIN[14][2][32], MAIN[14][0][32], MAIN[14][0][35], MAIN[14][2][20], MAIN[14][2][30], MAIN[14][2][27], MAIN[14][2][26], MAIN[14][2][25], MAIN[14][2][22]] {
+					CELL[0].IMUX_BUFG_I[27] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50498,8 +50779,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[28] @[MAIN[14][0][59], MAIN[14][0][58], MAIN[14][0][57], MAIN[14][0][56], MAIN[14][0][44], MAIN[14][2][55], MAIN[14][2][53], MAIN[14][0][53], MAIN[14][0][54], MAIN[14][0][40], MAIN[14][0][50], MAIN[14][0][47], MAIN[14][0][46], MAIN[14][0][45], MAIN[14][0][42]] {
-					CELL[0].IMUX_BUFG_S[28] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[28] @[MAIN[14][0][59], MAIN[14][0][58], MAIN[14][0][57], MAIN[14][0][56], MAIN[14][0][44], MAIN[14][2][55], MAIN[14][2][53], MAIN[14][0][53], MAIN[14][0][54], MAIN[14][0][40], MAIN[14][0][50], MAIN[14][0][47], MAIN[14][0][46], MAIN[14][0][45], MAIN[14][0][42]] {
+					CELL[0].IMUX_BUFG_I[28] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50518,8 +50799,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[29] @[MAIN[14][2][59], MAIN[14][2][58], MAIN[14][2][57], MAIN[14][2][56], MAIN[14][2][44], MAIN[14][2][54], MAIN[14][2][52], MAIN[14][0][52], MAIN[14][0][55], MAIN[14][2][40], MAIN[14][2][50], MAIN[14][2][47], MAIN[14][2][46], MAIN[14][2][45], MAIN[14][2][42]] {
-					CELL[0].IMUX_BUFG_S[29] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[29] @[MAIN[14][2][59], MAIN[14][2][58], MAIN[14][2][57], MAIN[14][2][56], MAIN[14][2][44], MAIN[14][2][54], MAIN[14][2][52], MAIN[14][0][52], MAIN[14][0][55], MAIN[14][2][40], MAIN[14][2][50], MAIN[14][2][47], MAIN[14][2][46], MAIN[14][2][45], MAIN[14][2][42]] {
+					CELL[0].IMUX_BUFG_I[29] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50538,8 +50819,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[30] @[MAIN[14][0][79], MAIN[14][0][78], MAIN[14][0][77], MAIN[14][0][76], MAIN[14][0][64], MAIN[14][2][75], MAIN[14][2][73], MAIN[14][0][73], MAIN[14][0][74], MAIN[14][0][60], MAIN[14][0][70], MAIN[14][0][67], MAIN[14][0][66], MAIN[14][0][65], MAIN[14][0][62]] {
-					CELL[0].IMUX_BUFG_S[30] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[30] @[MAIN[14][0][79], MAIN[14][0][78], MAIN[14][0][77], MAIN[14][0][76], MAIN[14][0][64], MAIN[14][2][75], MAIN[14][2][73], MAIN[14][0][73], MAIN[14][0][74], MAIN[14][0][60], MAIN[14][0][70], MAIN[14][0][67], MAIN[14][0][66], MAIN[14][0][65], MAIN[14][0][62]] {
+					CELL[0].IMUX_BUFG_I[30] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50558,8 +50839,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_N[31] @[MAIN[14][2][79], MAIN[14][2][78], MAIN[14][2][77], MAIN[14][2][76], MAIN[14][2][64], MAIN[14][2][74], MAIN[14][2][72], MAIN[14][0][72], MAIN[14][0][75], MAIN[14][2][60], MAIN[14][2][70], MAIN[14][2][67], MAIN[14][2][66], MAIN[14][2][65], MAIN[14][2][62]] {
-					CELL[0].IMUX_BUFG_S[31] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[31] @[MAIN[14][2][79], MAIN[14][2][78], MAIN[14][2][77], MAIN[14][2][76], MAIN[14][2][64], MAIN[14][2][74], MAIN[14][2][72], MAIN[14][0][72], MAIN[14][0][75], MAIN[14][2][60], MAIN[14][2][70], MAIN[14][2][67], MAIN[14][2][66], MAIN[14][2][65], MAIN[14][2][62]] {
+					CELL[0].IMUX_BUFG_I[31] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50680,8 +50961,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b11111,
 					off = 0b00000,
 				}
-				mux CELL[0].IMUX_BUFG_S[0] @[MAIN[4][0][60], MAIN[4][0][61], MAIN[4][0][62], MAIN[4][0][63], MAIN[4][0][79], MAIN[4][2][64], MAIN[4][2][66], MAIN[4][0][66], MAIN[4][0][65], MAIN[4][0][75], MAIN[4][0][77], MAIN[4][0][74], MAIN[4][0][73], MAIN[4][0][72], MAIN[4][0][69]] {
-					CELL[0].IMUX_BUFG_N[0] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[0] @[MAIN[4][0][60], MAIN[4][0][61], MAIN[4][0][62], MAIN[4][0][63], MAIN[4][0][79], MAIN[4][2][64], MAIN[4][2][66], MAIN[4][0][66], MAIN[4][0][65], MAIN[4][0][75], MAIN[4][0][77], MAIN[4][0][74], MAIN[4][0][73], MAIN[4][0][72], MAIN[4][0][69]] {
+					CELL[0].IMUX_BUFG_I[0] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50700,8 +50981,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[1] @[MAIN[4][2][60], MAIN[4][2][61], MAIN[4][2][62], MAIN[4][2][63], MAIN[4][2][79], MAIN[4][2][65], MAIN[4][2][67], MAIN[4][0][67], MAIN[4][0][64], MAIN[4][2][75], MAIN[4][2][77], MAIN[4][2][74], MAIN[4][2][73], MAIN[4][2][72], MAIN[4][2][69]] {
-					CELL[0].IMUX_BUFG_N[1] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[1] @[MAIN[4][2][60], MAIN[4][2][61], MAIN[4][2][62], MAIN[4][2][63], MAIN[4][2][79], MAIN[4][2][65], MAIN[4][2][67], MAIN[4][0][67], MAIN[4][0][64], MAIN[4][2][75], MAIN[4][2][77], MAIN[4][2][74], MAIN[4][2][73], MAIN[4][2][72], MAIN[4][2][69]] {
+					CELL[0].IMUX_BUFG_I[1] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50720,8 +51001,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[2] @[MAIN[4][0][40], MAIN[4][0][41], MAIN[4][0][42], MAIN[4][0][43], MAIN[4][0][59], MAIN[4][2][44], MAIN[4][2][46], MAIN[4][0][46], MAIN[4][0][45], MAIN[4][0][55], MAIN[4][0][57], MAIN[4][0][54], MAIN[4][0][53], MAIN[4][0][52], MAIN[4][0][49]] {
-					CELL[0].IMUX_BUFG_N[2] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[2] @[MAIN[4][0][40], MAIN[4][0][41], MAIN[4][0][42], MAIN[4][0][43], MAIN[4][0][59], MAIN[4][2][44], MAIN[4][2][46], MAIN[4][0][46], MAIN[4][0][45], MAIN[4][0][55], MAIN[4][0][57], MAIN[4][0][54], MAIN[4][0][53], MAIN[4][0][52], MAIN[4][0][49]] {
+					CELL[0].IMUX_BUFG_I[2] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50740,8 +51021,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[3] @[MAIN[4][2][40], MAIN[4][2][41], MAIN[4][2][42], MAIN[4][2][43], MAIN[4][2][59], MAIN[4][2][45], MAIN[4][2][47], MAIN[4][0][47], MAIN[4][0][44], MAIN[4][2][55], MAIN[4][2][57], MAIN[4][2][54], MAIN[4][2][53], MAIN[4][2][52], MAIN[4][2][49]] {
-					CELL[0].IMUX_BUFG_N[3] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[3] @[MAIN[4][2][40], MAIN[4][2][41], MAIN[4][2][42], MAIN[4][2][43], MAIN[4][2][59], MAIN[4][2][45], MAIN[4][2][47], MAIN[4][0][47], MAIN[4][0][44], MAIN[4][2][55], MAIN[4][2][57], MAIN[4][2][54], MAIN[4][2][53], MAIN[4][2][52], MAIN[4][2][49]] {
+					CELL[0].IMUX_BUFG_I[3] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50760,8 +51041,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[4] @[MAIN[4][0][20], MAIN[4][0][21], MAIN[4][0][22], MAIN[4][0][23], MAIN[4][0][39], MAIN[4][2][24], MAIN[4][2][26], MAIN[4][0][26], MAIN[4][0][25], MAIN[4][0][35], MAIN[4][0][37], MAIN[4][0][34], MAIN[4][0][33], MAIN[4][0][32], MAIN[4][0][29]] {
-					CELL[0].IMUX_BUFG_N[4] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[4] @[MAIN[4][0][20], MAIN[4][0][21], MAIN[4][0][22], MAIN[4][0][23], MAIN[4][0][39], MAIN[4][2][24], MAIN[4][2][26], MAIN[4][0][26], MAIN[4][0][25], MAIN[4][0][35], MAIN[4][0][37], MAIN[4][0][34], MAIN[4][0][33], MAIN[4][0][32], MAIN[4][0][29]] {
+					CELL[0].IMUX_BUFG_I[4] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50780,8 +51061,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[5] @[MAIN[4][2][20], MAIN[4][2][21], MAIN[4][2][22], MAIN[4][2][23], MAIN[4][2][39], MAIN[4][2][25], MAIN[4][2][27], MAIN[4][0][27], MAIN[4][0][24], MAIN[4][2][35], MAIN[4][2][37], MAIN[4][2][34], MAIN[4][2][33], MAIN[4][2][32], MAIN[4][2][29]] {
-					CELL[0].IMUX_BUFG_N[5] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[5] @[MAIN[4][2][20], MAIN[4][2][21], MAIN[4][2][22], MAIN[4][2][23], MAIN[4][2][39], MAIN[4][2][25], MAIN[4][2][27], MAIN[4][0][27], MAIN[4][0][24], MAIN[4][2][35], MAIN[4][2][37], MAIN[4][2][34], MAIN[4][2][33], MAIN[4][2][32], MAIN[4][2][29]] {
+					CELL[0].IMUX_BUFG_I[5] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50800,8 +51081,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[6] @[MAIN[4][0][0], MAIN[4][0][1], MAIN[4][0][2], MAIN[4][0][3], MAIN[4][0][19], MAIN[4][2][4], MAIN[4][2][6], MAIN[4][0][6], MAIN[4][0][5], MAIN[4][0][15], MAIN[4][0][17], MAIN[4][0][14], MAIN[4][0][13], MAIN[4][0][12], MAIN[4][0][9]] {
-					CELL[0].IMUX_BUFG_N[6] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[6] @[MAIN[4][0][0], MAIN[4][0][1], MAIN[4][0][2], MAIN[4][0][3], MAIN[4][0][19], MAIN[4][2][4], MAIN[4][2][6], MAIN[4][0][6], MAIN[4][0][5], MAIN[4][0][15], MAIN[4][0][17], MAIN[4][0][14], MAIN[4][0][13], MAIN[4][0][12], MAIN[4][0][9]] {
+					CELL[0].IMUX_BUFG_I[6] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50820,8 +51101,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[7] @[MAIN[4][2][0], MAIN[4][2][1], MAIN[4][2][2], MAIN[4][2][3], MAIN[4][2][19], MAIN[4][2][5], MAIN[4][2][7], MAIN[4][0][7], MAIN[4][0][4], MAIN[4][2][15], MAIN[4][2][17], MAIN[4][2][14], MAIN[4][2][13], MAIN[4][2][12], MAIN[4][2][9]] {
-					CELL[0].IMUX_BUFG_N[7] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[7] @[MAIN[4][2][0], MAIN[4][2][1], MAIN[4][2][2], MAIN[4][2][3], MAIN[4][2][19], MAIN[4][2][5], MAIN[4][2][7], MAIN[4][0][7], MAIN[4][0][4], MAIN[4][2][15], MAIN[4][2][17], MAIN[4][2][14], MAIN[4][2][13], MAIN[4][2][12], MAIN[4][2][9]] {
+					CELL[0].IMUX_BUFG_I[7] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50840,8 +51121,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[8] @[MAIN[3][0][60], MAIN[3][0][61], MAIN[3][0][62], MAIN[3][0][63], MAIN[3][0][79], MAIN[3][2][64], MAIN[3][2][66], MAIN[3][0][66], MAIN[3][0][65], MAIN[3][0][75], MAIN[3][0][77], MAIN[3][0][74], MAIN[3][0][73], MAIN[3][0][72], MAIN[3][0][69]] {
-					CELL[0].IMUX_BUFG_N[8] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[8] @[MAIN[3][0][60], MAIN[3][0][61], MAIN[3][0][62], MAIN[3][0][63], MAIN[3][0][79], MAIN[3][2][64], MAIN[3][2][66], MAIN[3][0][66], MAIN[3][0][65], MAIN[3][0][75], MAIN[3][0][77], MAIN[3][0][74], MAIN[3][0][73], MAIN[3][0][72], MAIN[3][0][69]] {
+					CELL[0].IMUX_BUFG_I[8] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50860,8 +51141,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[9] @[MAIN[3][2][60], MAIN[3][2][61], MAIN[3][2][62], MAIN[3][2][63], MAIN[3][2][79], MAIN[3][2][65], MAIN[3][2][67], MAIN[3][0][67], MAIN[3][0][64], MAIN[3][2][75], MAIN[3][2][77], MAIN[3][2][74], MAIN[3][2][73], MAIN[3][2][72], MAIN[3][2][69]] {
-					CELL[0].IMUX_BUFG_N[9] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[9] @[MAIN[3][2][60], MAIN[3][2][61], MAIN[3][2][62], MAIN[3][2][63], MAIN[3][2][79], MAIN[3][2][65], MAIN[3][2][67], MAIN[3][0][67], MAIN[3][0][64], MAIN[3][2][75], MAIN[3][2][77], MAIN[3][2][74], MAIN[3][2][73], MAIN[3][2][72], MAIN[3][2][69]] {
+					CELL[0].IMUX_BUFG_I[9] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50880,8 +51161,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[10] @[MAIN[3][0][40], MAIN[3][0][41], MAIN[3][0][42], MAIN[3][0][43], MAIN[3][0][59], MAIN[3][2][44], MAIN[3][2][46], MAIN[3][0][46], MAIN[3][0][45], MAIN[3][0][55], MAIN[3][0][57], MAIN[3][0][54], MAIN[3][0][53], MAIN[3][0][52], MAIN[3][0][49]] {
-					CELL[0].IMUX_BUFG_N[10] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[10] @[MAIN[3][0][40], MAIN[3][0][41], MAIN[3][0][42], MAIN[3][0][43], MAIN[3][0][59], MAIN[3][2][44], MAIN[3][2][46], MAIN[3][0][46], MAIN[3][0][45], MAIN[3][0][55], MAIN[3][0][57], MAIN[3][0][54], MAIN[3][0][53], MAIN[3][0][52], MAIN[3][0][49]] {
+					CELL[0].IMUX_BUFG_I[10] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50900,8 +51181,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[11] @[MAIN[3][2][40], MAIN[3][2][41], MAIN[3][2][42], MAIN[3][2][43], MAIN[3][2][59], MAIN[3][2][45], MAIN[3][2][47], MAIN[3][0][47], MAIN[3][0][44], MAIN[3][2][55], MAIN[3][2][57], MAIN[3][2][54], MAIN[3][2][53], MAIN[3][2][52], MAIN[3][2][49]] {
-					CELL[0].IMUX_BUFG_N[11] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[11] @[MAIN[3][2][40], MAIN[3][2][41], MAIN[3][2][42], MAIN[3][2][43], MAIN[3][2][59], MAIN[3][2][45], MAIN[3][2][47], MAIN[3][0][47], MAIN[3][0][44], MAIN[3][2][55], MAIN[3][2][57], MAIN[3][2][54], MAIN[3][2][53], MAIN[3][2][52], MAIN[3][2][49]] {
+					CELL[0].IMUX_BUFG_I[11] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50920,8 +51201,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[12] @[MAIN[3][0][20], MAIN[3][0][21], MAIN[3][0][22], MAIN[3][0][23], MAIN[3][0][39], MAIN[3][2][24], MAIN[3][2][26], MAIN[3][0][26], MAIN[3][0][25], MAIN[3][0][35], MAIN[3][0][37], MAIN[3][0][34], MAIN[3][0][33], MAIN[3][0][32], MAIN[3][0][29]] {
-					CELL[0].IMUX_BUFG_N[12] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[12] @[MAIN[3][0][20], MAIN[3][0][21], MAIN[3][0][22], MAIN[3][0][23], MAIN[3][0][39], MAIN[3][2][24], MAIN[3][2][26], MAIN[3][0][26], MAIN[3][0][25], MAIN[3][0][35], MAIN[3][0][37], MAIN[3][0][34], MAIN[3][0][33], MAIN[3][0][32], MAIN[3][0][29]] {
+					CELL[0].IMUX_BUFG_I[12] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50940,8 +51221,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[13] @[MAIN[3][2][20], MAIN[3][2][21], MAIN[3][2][22], MAIN[3][2][23], MAIN[3][2][39], MAIN[3][2][25], MAIN[3][2][27], MAIN[3][0][27], MAIN[3][0][24], MAIN[3][2][35], MAIN[3][2][37], MAIN[3][2][34], MAIN[3][2][33], MAIN[3][2][32], MAIN[3][2][29]] {
-					CELL[0].IMUX_BUFG_N[13] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[13] @[MAIN[3][2][20], MAIN[3][2][21], MAIN[3][2][22], MAIN[3][2][23], MAIN[3][2][39], MAIN[3][2][25], MAIN[3][2][27], MAIN[3][0][27], MAIN[3][0][24], MAIN[3][2][35], MAIN[3][2][37], MAIN[3][2][34], MAIN[3][2][33], MAIN[3][2][32], MAIN[3][2][29]] {
+					CELL[0].IMUX_BUFG_I[13] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50960,8 +51241,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[14] @[MAIN[3][0][0], MAIN[3][0][1], MAIN[3][0][2], MAIN[3][0][3], MAIN[3][0][19], MAIN[3][2][4], MAIN[3][2][6], MAIN[3][0][6], MAIN[3][0][5], MAIN[3][0][15], MAIN[3][0][17], MAIN[3][0][14], MAIN[3][0][13], MAIN[3][0][12], MAIN[3][0][9]] {
-					CELL[0].IMUX_BUFG_N[14] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[14] @[MAIN[3][0][0], MAIN[3][0][1], MAIN[3][0][2], MAIN[3][0][3], MAIN[3][0][19], MAIN[3][2][4], MAIN[3][2][6], MAIN[3][0][6], MAIN[3][0][5], MAIN[3][0][15], MAIN[3][0][17], MAIN[3][0][14], MAIN[3][0][13], MAIN[3][0][12], MAIN[3][0][9]] {
+					CELL[0].IMUX_BUFG_I[14] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -50980,8 +51261,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[15] @[MAIN[3][2][0], MAIN[3][2][1], MAIN[3][2][2], MAIN[3][2][3], MAIN[3][2][19], MAIN[3][2][5], MAIN[3][2][7], MAIN[3][0][7], MAIN[3][0][4], MAIN[3][2][15], MAIN[3][2][17], MAIN[3][2][14], MAIN[3][2][13], MAIN[3][2][12], MAIN[3][2][9]] {
-					CELL[0].IMUX_BUFG_N[15] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[15] @[MAIN[3][2][0], MAIN[3][2][1], MAIN[3][2][2], MAIN[3][2][3], MAIN[3][2][19], MAIN[3][2][5], MAIN[3][2][7], MAIN[3][0][7], MAIN[3][0][4], MAIN[3][2][15], MAIN[3][2][17], MAIN[3][2][14], MAIN[3][2][13], MAIN[3][2][12], MAIN[3][2][9]] {
+					CELL[0].IMUX_BUFG_I[15] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51000,8 +51281,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[16] @[MAIN[2][0][60], MAIN[2][0][61], MAIN[2][0][62], MAIN[2][0][63], MAIN[2][0][79], MAIN[2][2][64], MAIN[2][2][66], MAIN[2][0][66], MAIN[2][0][65], MAIN[2][0][75], MAIN[2][0][77], MAIN[2][0][74], MAIN[2][0][73], MAIN[2][0][72], MAIN[2][0][69]] {
-					CELL[0].IMUX_BUFG_N[16] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[16] @[MAIN[2][0][60], MAIN[2][0][61], MAIN[2][0][62], MAIN[2][0][63], MAIN[2][0][79], MAIN[2][2][64], MAIN[2][2][66], MAIN[2][0][66], MAIN[2][0][65], MAIN[2][0][75], MAIN[2][0][77], MAIN[2][0][74], MAIN[2][0][73], MAIN[2][0][72], MAIN[2][0][69]] {
+					CELL[0].IMUX_BUFG_I[16] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51020,8 +51301,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[17] @[MAIN[2][2][60], MAIN[2][2][61], MAIN[2][2][62], MAIN[2][2][63], MAIN[2][2][79], MAIN[2][2][65], MAIN[2][2][67], MAIN[2][0][67], MAIN[2][0][64], MAIN[2][2][75], MAIN[2][2][77], MAIN[2][2][74], MAIN[2][2][73], MAIN[2][2][72], MAIN[2][2][69]] {
-					CELL[0].IMUX_BUFG_N[17] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[17] @[MAIN[2][2][60], MAIN[2][2][61], MAIN[2][2][62], MAIN[2][2][63], MAIN[2][2][79], MAIN[2][2][65], MAIN[2][2][67], MAIN[2][0][67], MAIN[2][0][64], MAIN[2][2][75], MAIN[2][2][77], MAIN[2][2][74], MAIN[2][2][73], MAIN[2][2][72], MAIN[2][2][69]] {
+					CELL[0].IMUX_BUFG_I[17] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51040,8 +51321,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[18] @[MAIN[2][0][40], MAIN[2][0][41], MAIN[2][0][42], MAIN[2][0][43], MAIN[2][0][59], MAIN[2][2][44], MAIN[2][2][46], MAIN[2][0][46], MAIN[2][0][45], MAIN[2][0][55], MAIN[2][0][57], MAIN[2][0][54], MAIN[2][0][53], MAIN[2][0][52], MAIN[2][0][49]] {
-					CELL[0].IMUX_BUFG_N[18] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[18] @[MAIN[2][0][40], MAIN[2][0][41], MAIN[2][0][42], MAIN[2][0][43], MAIN[2][0][59], MAIN[2][2][44], MAIN[2][2][46], MAIN[2][0][46], MAIN[2][0][45], MAIN[2][0][55], MAIN[2][0][57], MAIN[2][0][54], MAIN[2][0][53], MAIN[2][0][52], MAIN[2][0][49]] {
+					CELL[0].IMUX_BUFG_I[18] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51060,8 +51341,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[19] @[MAIN[2][2][40], MAIN[2][2][41], MAIN[2][2][42], MAIN[2][2][43], MAIN[2][2][59], MAIN[2][2][45], MAIN[2][2][47], MAIN[2][0][47], MAIN[2][0][44], MAIN[2][2][55], MAIN[2][2][57], MAIN[2][2][54], MAIN[2][2][53], MAIN[2][2][52], MAIN[2][2][49]] {
-					CELL[0].IMUX_BUFG_N[19] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[19] @[MAIN[2][2][40], MAIN[2][2][41], MAIN[2][2][42], MAIN[2][2][43], MAIN[2][2][59], MAIN[2][2][45], MAIN[2][2][47], MAIN[2][0][47], MAIN[2][0][44], MAIN[2][2][55], MAIN[2][2][57], MAIN[2][2][54], MAIN[2][2][53], MAIN[2][2][52], MAIN[2][2][49]] {
+					CELL[0].IMUX_BUFG_I[19] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51080,8 +51361,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[20] @[MAIN[2][0][20], MAIN[2][0][21], MAIN[2][0][22], MAIN[2][0][23], MAIN[2][0][39], MAIN[2][2][24], MAIN[2][2][26], MAIN[2][0][26], MAIN[2][0][25], MAIN[2][0][35], MAIN[2][0][37], MAIN[2][0][34], MAIN[2][0][33], MAIN[2][0][32], MAIN[2][0][29]] {
-					CELL[0].IMUX_BUFG_N[20] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[20] @[MAIN[2][0][20], MAIN[2][0][21], MAIN[2][0][22], MAIN[2][0][23], MAIN[2][0][39], MAIN[2][2][24], MAIN[2][2][26], MAIN[2][0][26], MAIN[2][0][25], MAIN[2][0][35], MAIN[2][0][37], MAIN[2][0][34], MAIN[2][0][33], MAIN[2][0][32], MAIN[2][0][29]] {
+					CELL[0].IMUX_BUFG_I[20] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51100,8 +51381,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[21] @[MAIN[2][2][20], MAIN[2][2][21], MAIN[2][2][22], MAIN[2][2][23], MAIN[2][2][39], MAIN[2][2][25], MAIN[2][2][27], MAIN[2][0][27], MAIN[2][0][24], MAIN[2][2][35], MAIN[2][2][37], MAIN[2][2][34], MAIN[2][2][33], MAIN[2][2][32], MAIN[2][2][29]] {
-					CELL[0].IMUX_BUFG_N[21] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[21] @[MAIN[2][2][20], MAIN[2][2][21], MAIN[2][2][22], MAIN[2][2][23], MAIN[2][2][39], MAIN[2][2][25], MAIN[2][2][27], MAIN[2][0][27], MAIN[2][0][24], MAIN[2][2][35], MAIN[2][2][37], MAIN[2][2][34], MAIN[2][2][33], MAIN[2][2][32], MAIN[2][2][29]] {
+					CELL[0].IMUX_BUFG_I[21] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51120,8 +51401,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[22] @[MAIN[2][0][0], MAIN[2][0][1], MAIN[2][0][2], MAIN[2][0][3], MAIN[2][0][19], MAIN[2][2][4], MAIN[2][2][6], MAIN[2][0][6], MAIN[2][0][5], MAIN[2][0][15], MAIN[2][0][17], MAIN[2][0][14], MAIN[2][0][13], MAIN[2][0][12], MAIN[2][0][9]] {
-					CELL[0].IMUX_BUFG_N[22] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[22] @[MAIN[2][0][0], MAIN[2][0][1], MAIN[2][0][2], MAIN[2][0][3], MAIN[2][0][19], MAIN[2][2][4], MAIN[2][2][6], MAIN[2][0][6], MAIN[2][0][5], MAIN[2][0][15], MAIN[2][0][17], MAIN[2][0][14], MAIN[2][0][13], MAIN[2][0][12], MAIN[2][0][9]] {
+					CELL[0].IMUX_BUFG_I[22] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51140,8 +51421,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[23] @[MAIN[2][2][0], MAIN[2][2][1], MAIN[2][2][2], MAIN[2][2][3], MAIN[2][2][19], MAIN[2][2][5], MAIN[2][2][7], MAIN[2][0][7], MAIN[2][0][4], MAIN[2][2][15], MAIN[2][2][17], MAIN[2][2][14], MAIN[2][2][13], MAIN[2][2][12], MAIN[2][2][9]] {
-					CELL[0].IMUX_BUFG_N[23] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[23] @[MAIN[2][2][0], MAIN[2][2][1], MAIN[2][2][2], MAIN[2][2][3], MAIN[2][2][19], MAIN[2][2][5], MAIN[2][2][7], MAIN[2][0][7], MAIN[2][0][4], MAIN[2][2][15], MAIN[2][2][17], MAIN[2][2][14], MAIN[2][2][13], MAIN[2][2][12], MAIN[2][2][9]] {
+					CELL[0].IMUX_BUFG_I[23] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51160,8 +51441,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[24] @[MAIN[1][0][60], MAIN[1][0][61], MAIN[1][0][62], MAIN[1][0][63], MAIN[1][0][79], MAIN[1][2][64], MAIN[1][2][66], MAIN[1][0][66], MAIN[1][0][65], MAIN[1][0][75], MAIN[1][0][77], MAIN[1][0][74], MAIN[1][0][73], MAIN[1][0][72], MAIN[1][0][69]] {
-					CELL[0].IMUX_BUFG_N[24] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[24] @[MAIN[1][0][60], MAIN[1][0][61], MAIN[1][0][62], MAIN[1][0][63], MAIN[1][0][79], MAIN[1][2][64], MAIN[1][2][66], MAIN[1][0][66], MAIN[1][0][65], MAIN[1][0][75], MAIN[1][0][77], MAIN[1][0][74], MAIN[1][0][73], MAIN[1][0][72], MAIN[1][0][69]] {
+					CELL[0].IMUX_BUFG_I[24] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51180,8 +51461,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[25] @[MAIN[1][2][60], MAIN[1][2][61], MAIN[1][2][62], MAIN[1][2][63], MAIN[1][2][79], MAIN[1][2][65], MAIN[1][2][67], MAIN[1][0][67], MAIN[1][0][64], MAIN[1][2][75], MAIN[1][2][77], MAIN[1][2][74], MAIN[1][2][73], MAIN[1][2][72], MAIN[1][2][69]] {
-					CELL[0].IMUX_BUFG_N[25] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[25] @[MAIN[1][2][60], MAIN[1][2][61], MAIN[1][2][62], MAIN[1][2][63], MAIN[1][2][79], MAIN[1][2][65], MAIN[1][2][67], MAIN[1][0][67], MAIN[1][0][64], MAIN[1][2][75], MAIN[1][2][77], MAIN[1][2][74], MAIN[1][2][73], MAIN[1][2][72], MAIN[1][2][69]] {
+					CELL[0].IMUX_BUFG_I[25] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51200,8 +51481,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[26] @[MAIN[1][0][40], MAIN[1][0][41], MAIN[1][0][42], MAIN[1][0][43], MAIN[1][0][59], MAIN[1][2][44], MAIN[1][2][46], MAIN[1][0][46], MAIN[1][0][45], MAIN[1][0][55], MAIN[1][0][57], MAIN[1][0][54], MAIN[1][0][53], MAIN[1][0][52], MAIN[1][0][49]] {
-					CELL[0].IMUX_BUFG_N[26] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[26] @[MAIN[1][0][40], MAIN[1][0][41], MAIN[1][0][42], MAIN[1][0][43], MAIN[1][0][59], MAIN[1][2][44], MAIN[1][2][46], MAIN[1][0][46], MAIN[1][0][45], MAIN[1][0][55], MAIN[1][0][57], MAIN[1][0][54], MAIN[1][0][53], MAIN[1][0][52], MAIN[1][0][49]] {
+					CELL[0].IMUX_BUFG_I[26] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51220,8 +51501,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[27] @[MAIN[1][2][40], MAIN[1][2][41], MAIN[1][2][42], MAIN[1][2][43], MAIN[1][2][59], MAIN[1][2][45], MAIN[1][2][47], MAIN[1][0][47], MAIN[1][0][44], MAIN[1][2][55], MAIN[1][2][57], MAIN[1][2][54], MAIN[1][2][53], MAIN[1][2][52], MAIN[1][2][49]] {
-					CELL[0].IMUX_BUFG_N[27] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[27] @[MAIN[1][2][40], MAIN[1][2][41], MAIN[1][2][42], MAIN[1][2][43], MAIN[1][2][59], MAIN[1][2][45], MAIN[1][2][47], MAIN[1][0][47], MAIN[1][0][44], MAIN[1][2][55], MAIN[1][2][57], MAIN[1][2][54], MAIN[1][2][53], MAIN[1][2][52], MAIN[1][2][49]] {
+					CELL[0].IMUX_BUFG_I[27] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51240,8 +51521,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[28] @[MAIN[1][0][20], MAIN[1][0][21], MAIN[1][0][22], MAIN[1][0][23], MAIN[1][0][39], MAIN[1][2][24], MAIN[1][2][26], MAIN[1][0][26], MAIN[1][0][25], MAIN[1][0][35], MAIN[1][0][37], MAIN[1][0][34], MAIN[1][0][33], MAIN[1][0][32], MAIN[1][0][29]] {
-					CELL[0].IMUX_BUFG_N[28] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[28] @[MAIN[1][0][20], MAIN[1][0][21], MAIN[1][0][22], MAIN[1][0][23], MAIN[1][0][39], MAIN[1][2][24], MAIN[1][2][26], MAIN[1][0][26], MAIN[1][0][25], MAIN[1][0][35], MAIN[1][0][37], MAIN[1][0][34], MAIN[1][0][33], MAIN[1][0][32], MAIN[1][0][29]] {
+					CELL[0].IMUX_BUFG_I[28] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51260,8 +51541,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[29] @[MAIN[1][2][20], MAIN[1][2][21], MAIN[1][2][22], MAIN[1][2][23], MAIN[1][2][39], MAIN[1][2][25], MAIN[1][2][27], MAIN[1][0][27], MAIN[1][0][24], MAIN[1][2][35], MAIN[1][2][37], MAIN[1][2][34], MAIN[1][2][33], MAIN[1][2][32], MAIN[1][2][29]] {
-					CELL[0].IMUX_BUFG_N[29] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[29] @[MAIN[1][2][20], MAIN[1][2][21], MAIN[1][2][22], MAIN[1][2][23], MAIN[1][2][39], MAIN[1][2][25], MAIN[1][2][27], MAIN[1][0][27], MAIN[1][0][24], MAIN[1][2][35], MAIN[1][2][37], MAIN[1][2][34], MAIN[1][2][33], MAIN[1][2][32], MAIN[1][2][29]] {
+					CELL[0].IMUX_BUFG_I[29] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51280,8 +51561,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[30] @[MAIN[1][0][0], MAIN[1][0][1], MAIN[1][0][2], MAIN[1][0][3], MAIN[1][0][19], MAIN[1][2][4], MAIN[1][2][6], MAIN[1][0][6], MAIN[1][0][5], MAIN[1][0][15], MAIN[1][0][17], MAIN[1][0][14], MAIN[1][0][13], MAIN[1][0][12], MAIN[1][0][9]] {
-					CELL[0].IMUX_BUFG_N[30] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[30] @[MAIN[1][0][0], MAIN[1][0][1], MAIN[1][0][2], MAIN[1][0][3], MAIN[1][0][19], MAIN[1][2][4], MAIN[1][2][6], MAIN[1][0][6], MAIN[1][0][5], MAIN[1][0][15], MAIN[1][0][17], MAIN[1][0][14], MAIN[1][0][13], MAIN[1][0][12], MAIN[1][0][9]] {
+					CELL[0].IMUX_BUFG_I[30] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51300,8 +51581,8 @@ intdb {
 					CELL[15].OUT_CLKPAD = 0b100001000011111,
 					off = 0b000000000000000,
 				}
-				mux CELL[0].IMUX_BUFG_S[31] @[MAIN[1][2][0], MAIN[1][2][1], MAIN[1][2][2], MAIN[1][2][3], MAIN[1][2][19], MAIN[1][2][5], MAIN[1][2][7], MAIN[1][0][7], MAIN[1][0][4], MAIN[1][2][15], MAIN[1][2][17], MAIN[1][2][14], MAIN[1][2][13], MAIN[1][2][12], MAIN[1][2][9]] {
-					CELL[0].IMUX_BUFG_N[31] = 0b000010000111111,
+				mux CELL[0].IMUX_BUFG_O[31] @[MAIN[1][2][0], MAIN[1][2][1], MAIN[1][2][2], MAIN[1][2][3], MAIN[1][2][19], MAIN[1][2][5], MAIN[1][2][7], MAIN[1][0][7], MAIN[1][0][4], MAIN[1][2][15], MAIN[1][2][17], MAIN[1][2][14], MAIN[1][2][13], MAIN[1][2][12], MAIN[1][2][9]] {
+					CELL[0].IMUX_BUFG_I[31] = 0b000010000111111,
 					CELL[0].OUT_CLKPAD = 0b000100001011111,
 					CELL[1].OUT_CLKPAD = 0b001000001011111,
 					CELL[2].OUT_CLKPAD = 0b010000001011111,
@@ -51336,7 +51617,6 @@ intdb {
 
 	tile_slot HROW {
 		bel_slot HROW_INT: routing;
-		bel_slot CLK_HROW: legacy;
 		bel_slot HCLK_QBUF: legacy;
 
 		tile_class CLK_HROW {
@@ -51995,8 +52275,7 @@ intdb {
 		bel_slot PMVBRAM_NC: legacy;
 		bel_slot HCLK_IO_INT: routing;
 		bel_slot HCLK_IO: legacy;
-		bel_slot IOCLK: legacy;
-		bel_slot RCLK: legacy;
+		bel_slot HCLK_CMT_DRP: HCLK_CMT_DRP;
 		bel_slot BUFR[0]: BUFR;
 		bel_slot BUFR[1]: BUFR;
 		bel_slot BUFR[2]: BUFR;
@@ -52009,6 +52288,7 @@ intdb {
 		bel_slot BUFO[1]: legacy;
 		bel_slot IDELAYCTRL: IDELAYCTRL;
 		bel_slot DCI: DCI_V4;
+		bel_slot BANK: BANK;
 		bel_slot LVDS: LVDS_V4;
 		bel_slot BRKH_GTX: legacy;
 
@@ -52999,11 +53279,6 @@ intdb {
 		}
 	}
 
-	tile_slot HCLK_CMT {
-		bel_slot HCLK_CMT_HCLK: legacy;
-		bel_slot HCLK_CMT_GIOB: legacy;
-	}
-
 	tile_slot GLOBAL {
 		bel_slot GLOBAL: GLOBAL;
 
@@ -53066,7 +53341,7 @@ intdb {
 					USERCLK = 0b01,
 					JTAGCLK = 0b10,
 				}
-				attribute CONFIG_RATE @[COR[0][22], COR[0][21], COR[0][20], COR[0][19], COR[0][18], COR[0][17]] {
+				attribute CONFIG_RATE_V4 @[COR[0][22], COR[0][21], COR[0][20], COR[0][19], COR[0][18], COR[0][17]] {
 					_4 = 0b000010,
 					_5 = 0b010001,
 					_7 = 0b000100,
@@ -55007,49 +55282,49 @@ intdb {
 		}
 	}
 
-	connector_slot CLK_S {
-		opposite CLK_N;
+	connector_slot CLK_PREV {
+		opposite CLK_NEXT;
 
-		connector_class CLK_S {
-			pass IMUX_BUFG_S[0] = IMUX_BUFG_N[0];
-			pass IMUX_BUFG_S[1] = IMUX_BUFG_N[1];
-			pass IMUX_BUFG_S[2] = IMUX_BUFG_N[2];
-			pass IMUX_BUFG_S[3] = IMUX_BUFG_N[3];
-			pass IMUX_BUFG_S[4] = IMUX_BUFG_N[4];
-			pass IMUX_BUFG_S[5] = IMUX_BUFG_N[5];
-			pass IMUX_BUFG_S[6] = IMUX_BUFG_N[6];
-			pass IMUX_BUFG_S[7] = IMUX_BUFG_N[7];
-			pass IMUX_BUFG_S[8] = IMUX_BUFG_N[8];
-			pass IMUX_BUFG_S[9] = IMUX_BUFG_N[9];
-			pass IMUX_BUFG_S[10] = IMUX_BUFG_N[10];
-			pass IMUX_BUFG_S[11] = IMUX_BUFG_N[11];
-			pass IMUX_BUFG_S[12] = IMUX_BUFG_N[12];
-			pass IMUX_BUFG_S[13] = IMUX_BUFG_N[13];
-			pass IMUX_BUFG_S[14] = IMUX_BUFG_N[14];
-			pass IMUX_BUFG_S[15] = IMUX_BUFG_N[15];
-			pass IMUX_BUFG_S[16] = IMUX_BUFG_N[16];
-			pass IMUX_BUFG_S[17] = IMUX_BUFG_N[17];
-			pass IMUX_BUFG_S[18] = IMUX_BUFG_N[18];
-			pass IMUX_BUFG_S[19] = IMUX_BUFG_N[19];
-			pass IMUX_BUFG_S[20] = IMUX_BUFG_N[20];
-			pass IMUX_BUFG_S[21] = IMUX_BUFG_N[21];
-			pass IMUX_BUFG_S[22] = IMUX_BUFG_N[22];
-			pass IMUX_BUFG_S[23] = IMUX_BUFG_N[23];
-			pass IMUX_BUFG_S[24] = IMUX_BUFG_N[24];
-			pass IMUX_BUFG_S[25] = IMUX_BUFG_N[25];
-			pass IMUX_BUFG_S[26] = IMUX_BUFG_N[26];
-			pass IMUX_BUFG_S[27] = IMUX_BUFG_N[27];
-			pass IMUX_BUFG_S[28] = IMUX_BUFG_N[28];
-			pass IMUX_BUFG_S[29] = IMUX_BUFG_N[29];
-			pass IMUX_BUFG_S[30] = IMUX_BUFG_N[30];
-			pass IMUX_BUFG_S[31] = IMUX_BUFG_N[31];
+		connector_class CLK_PREV {
+			pass IMUX_BUFG_I[0] = IMUX_BUFG_O[0];
+			pass IMUX_BUFG_I[1] = IMUX_BUFG_O[1];
+			pass IMUX_BUFG_I[2] = IMUX_BUFG_O[2];
+			pass IMUX_BUFG_I[3] = IMUX_BUFG_O[3];
+			pass IMUX_BUFG_I[4] = IMUX_BUFG_O[4];
+			pass IMUX_BUFG_I[5] = IMUX_BUFG_O[5];
+			pass IMUX_BUFG_I[6] = IMUX_BUFG_O[6];
+			pass IMUX_BUFG_I[7] = IMUX_BUFG_O[7];
+			pass IMUX_BUFG_I[8] = IMUX_BUFG_O[8];
+			pass IMUX_BUFG_I[9] = IMUX_BUFG_O[9];
+			pass IMUX_BUFG_I[10] = IMUX_BUFG_O[10];
+			pass IMUX_BUFG_I[11] = IMUX_BUFG_O[11];
+			pass IMUX_BUFG_I[12] = IMUX_BUFG_O[12];
+			pass IMUX_BUFG_I[13] = IMUX_BUFG_O[13];
+			pass IMUX_BUFG_I[14] = IMUX_BUFG_O[14];
+			pass IMUX_BUFG_I[15] = IMUX_BUFG_O[15];
+			pass IMUX_BUFG_I[16] = IMUX_BUFG_O[16];
+			pass IMUX_BUFG_I[17] = IMUX_BUFG_O[17];
+			pass IMUX_BUFG_I[18] = IMUX_BUFG_O[18];
+			pass IMUX_BUFG_I[19] = IMUX_BUFG_O[19];
+			pass IMUX_BUFG_I[20] = IMUX_BUFG_O[20];
+			pass IMUX_BUFG_I[21] = IMUX_BUFG_O[21];
+			pass IMUX_BUFG_I[22] = IMUX_BUFG_O[22];
+			pass IMUX_BUFG_I[23] = IMUX_BUFG_O[23];
+			pass IMUX_BUFG_I[24] = IMUX_BUFG_O[24];
+			pass IMUX_BUFG_I[25] = IMUX_BUFG_O[25];
+			pass IMUX_BUFG_I[26] = IMUX_BUFG_O[26];
+			pass IMUX_BUFG_I[27] = IMUX_BUFG_O[27];
+			pass IMUX_BUFG_I[28] = IMUX_BUFG_O[28];
+			pass IMUX_BUFG_I[29] = IMUX_BUFG_O[29];
+			pass IMUX_BUFG_I[30] = IMUX_BUFG_O[30];
+			pass IMUX_BUFG_I[31] = IMUX_BUFG_O[31];
 		}
 	}
 
-	connector_slot CLK_N {
-		opposite CLK_S;
+	connector_slot CLK_NEXT {
+		opposite CLK_PREV;
 
-		connector_class CLK_N {
+		connector_class CLK_NEXT {
 		}
 	}
 
@@ -55134,6 +55409,14 @@ intdb {
 
 		connector_class CMT_NEXT {
 		}
+	}
+
+	connector_slot MGT_ROW_PREV {
+		opposite MGT_ROW_NEXT;
+	}
+
+	connector_slot MGT_ROW_NEXT {
+		opposite MGT_ROW_PREV;
 	}
 
 	table IOB_DATA {

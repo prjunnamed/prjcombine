@@ -36,7 +36,7 @@ use crate::{
         },
     },
     virtex4::io::IsBonded,
-    virtex5::io::{DiffOut, HclkIoi, VrefInternal},
+    virtex5::io::{DiffOut, HclkIoi, VrefInternalLegacy},
 };
 
 const HP_IOSTDS: &[Iostd] = &[
@@ -1421,7 +1421,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("I")
                             .raw(Key::Package, &package.name)
                             .prop(IsBonded(bel))
-                            .prop(VrefInternal(tcls::HCLK_IO_HP, vref))
+                            .prop(VrefInternalLegacy(tcls::HCLK_IO_HP, vref))
                             .test_manual_legacy("ISTD", format!("{std}.LP"))
                             .attr("IUSED", "0")
                             .attr("ISTANDARD", std)
@@ -1975,7 +1975,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .pin("I")
                             .raw(Key::Package, &package.name)
                             .prop(IsBonded(bel))
-                            .prop(VrefInternal(tcls::HCLK_IO_HR, vref))
+                            .prop(VrefInternalLegacy(tcls::HCLK_IO_HR, vref))
                             .test_manual_legacy("ISTD", format!("{std}.LP"))
                             .attr("IUSED", "0")
                             .attr("ISTANDARD", std)

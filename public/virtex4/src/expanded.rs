@@ -592,7 +592,7 @@ impl ExpandedDevice<'_> {
                         cell: CellCoord {
                             die,
                             col: self.col_lio.unwrap(),
-                            row: row + dy,
+                            row: row - 10 + dy,
                         },
                         iob: TileIobId::from_idx(1),
                     },
@@ -600,7 +600,7 @@ impl ExpandedDevice<'_> {
                         cell: CellCoord {
                             die,
                             col: self.col_lio.unwrap(),
-                            row: row + dy,
+                            row: row - 10 + dy,
                         },
                         iob: TileIobId::from_idx(0),
                     },
@@ -952,6 +952,15 @@ impl ExpandedDevice<'_> {
                     BitRect::Reg(die, Reg::Cor0),
                     BitRect::Reg(die, Reg::Ctl0),
                 ]),
+                ChipKind::Virtex5 => EntityVec::from_iter([
+                    BitRect::Reg(die, Reg::Cor0),
+                    BitRect::Reg(die, Reg::Cor1),
+                    BitRect::Reg(die, Reg::Ctl0),
+                    BitRect::Reg(die, Reg::Ctl1),
+                    BitRect::Reg(die, Reg::Timer),
+                    BitRect::Reg(die, Reg::WbStar),
+                    BitRect::Reg(die, Reg::Testmode),
+                ]),
                 _ => todo!(),
             }
         } else if self.kind == ChipKind::Virtex4 && tile.class == defs::virtex4::tcls::BRAM {
@@ -985,10 +994,7 @@ impl ExpandedDevice<'_> {
             || (self.kind == ChipKind::Virtex5 && tile.class == defs::virtex5::tcls::HCLK_MGT_BUF)
             || (self.kind == ChipKind::Virtex6 && tile.class == defs::virtex6::tcls::HCLK_MGT_BUF)
             || (self.kind == ChipKind::Virtex4 && tile.class == defs::virtex4::tcls::HCLK_TERM)
-            || matches!(
-                tcrd.slot,
-                tslots::HCLK | tslots::HCLK_BEL | tslots::HCLK_CMT
-            )
+            || matches!(tcrd.slot, tslots::HCLK | tslots::HCLK_BEL)
         {
             EntityVec::from_iter([self.btile_hclk(die, col, row)])
         } else if self.kind == ChipKind::Virtex4
@@ -1028,7 +1034,7 @@ impl ExpandedDevice<'_> {
         } else if self.kind == ChipKind::Virtex5 && tile.class == defs::virtex5::tcls::CLK_BUFG {
             let mut res = EntityVec::new();
             for i in 0..20 {
-                res.push(self.btile_spine(die, row + i));
+                res.push(self.btile_spine(die, row - 10 + i));
             }
             res
         } else if (self.kind == ChipKind::Virtex4 && tile.class == defs::virtex4::tcls::CLK_HROW)
@@ -1125,13 +1131,7 @@ impl ExpandedDevice<'_> {
     pub fn tile_cfg(&self, die: DieId) -> TileCoord {
         let chip = self.chips[die];
         match self.kind {
-            ChipKind::Virtex4 => {
-                CellCoord::new(die, self.col_cfg, chip.row_bufg()).tile(tslots::CFG)
-            }
-            ChipKind::Virtex5 => {
-                CellCoord::new(die, self.col_cfg, chip.row_bufg() - 10).tile(tslots::CFG)
-            }
-            ChipKind::Virtex6 => {
+            ChipKind::Virtex4 | ChipKind::Virtex5 | ChipKind::Virtex6 => {
                 CellCoord::new(die, self.col_cfg, chip.row_bufg()).tile(tslots::CFG)
             }
             ChipKind::Virtex7 => {

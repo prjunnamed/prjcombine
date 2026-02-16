@@ -1,8 +1,11 @@
 use std::collections::BTreeMap;
 
-use prjcombine_interconnect::grid::TileCoord;
+use prjcombine_interconnect::{
+    db::{BelInfo, SwitchBoxItem, WireSlotIdExt},
+    grid::TileCoord,
+};
 use prjcombine_re_collector::{
-    diff::{Diff, OcdMode},
+    diff::{Diff, DiffKey, OcdMode, xlat_bit, xlat_enum_raw},
     legacy::{extract_bitvec_val_part_legacy, xlat_bit_legacy, xlat_enum_legacy},
 };
 use prjcombine_re_hammer::Session;
@@ -12,14 +15,22 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs::{self, virtex5::tcls};
+use prjcombine_virtex4::defs::{
+    self, bcls, bslots,
+    virtex5::{tcls, wires},
+};
 
 use crate::{
     backend::{IseBackend, PinFromKind},
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::TileRelation,
+        int::{BaseIntPip, FuzzIntPip},
+        props::{
+            extra::{ExtraKeyFixed, ExtraTile},
+            mutex::{WireMutexExclusive, WireMutexShared},
+            relation::TileRelation,
+        },
     },
 };
 
@@ -33,7 +44,7 @@ impl TileRelation for HclkCmt {
         };
         let chip = edev.chips[tcrd.die];
         let row = chip.row_hclk(tcrd.row);
-        Some(tcrd.with_row(row).tile(defs::tslots::HCLK_CMT))
+        Some(tcrd.with_row(row).tile(defs::tslots::HCLK_BEL))
     }
 }
 
@@ -47,11 +58,20 @@ pub fn add_fuzzers<'a>(
     let mut ctx = FuzzCtx::new(session, backend, tcls::CMT);
 
     if devdata_only {
-        let mut bctx = ctx.bel(defs::bslots::PLL);
+        let mut bctx = ctx.bel(bslots::PLL);
         bctx.build()
             .global_xy("PLLADV_*_USE_CALC", "NO")
             .related_tile_mutex_exclusive(HclkCmt, "ENABLE")
-            .extra_tile_attr_legacy(HclkCmt, "HCLK_CMT", "DRP_MASK", "1")
+            .prop(ExtraTile::new(
+                HclkCmt,
+                ExtraKeyFixed::new(DiffKey::BelAttrBit(
+                    tcls::HCLK_CMT,
+                    bslots::HCLK_CMT_DRP,
+                    bcls::HCLK_CMT_DRP::DRP_MASK,
+                    0,
+                    true,
+                )),
+            ))
             .test_manual_legacy("ENABLE", "1")
             .mode("PLL_ADV")
             .commit();
@@ -60,11 +80,20 @@ pub fn add_fuzzers<'a>(
 
     if !skip_dcm {
         for i in 0..2 {
-            let mut bctx = ctx.bel(defs::bslots::DCM[i]);
+            let mut bctx = ctx.bel(bslots::DCM[i]);
             let mode = "DCM_ADV";
             bctx.build()
                 .related_tile_mutex_exclusive(HclkCmt, "ENABLE")
-                .extra_tile_attr_legacy(HclkCmt, "HCLK_CMT", "DRP_MASK", "1")
+                .prop(ExtraTile::new(
+                    HclkCmt,
+                    ExtraKeyFixed::new(DiffKey::BelAttrBit(
+                        tcls::HCLK_CMT,
+                        bslots::HCLK_CMT_DRP,
+                        bcls::HCLK_CMT_DRP::DRP_MASK,
+                        0,
+                        true,
+                    )),
+                ))
                 .test_manual_legacy("ENABLE", "1")
                 .mode(mode)
                 .commit();
@@ -417,78 +446,59 @@ pub fn add_fuzzers<'a>(
                 .attr("PHASE_SHIFT", "-1")
                 .commit();
 
-            for (pin, opin) in [("CLKIN", "CLKFB"), ("CLKFB", "CLKIN")] {
-                for i in 0..10 {
-                    bctx.mode(mode)
+            for (dst, odst) in [
+                (
+                    wires::IMUX_DCM_CLKIN[i].cell(0),
+                    wires::IMUX_DCM_CLKFB[i].cell(0),
+                ),
+                (
+                    wires::IMUX_DCM_CLKFB[i].cell(0),
+                    wires::IMUX_DCM_CLKIN[i].cell(0),
+                ),
+            ] {
+                let mux = &backend.edev.db_index.tile_classes[tcls::CMT].muxes[&dst];
+                for &src in mux.src.keys() {
+                    let mut builder = bctx
+                        .mode(mode)
                         .global_mutex("HCLK_CMT", "USE")
                         .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                         .attr("CLK_FEEDBACK", "1X")
-                        .mutex("MUX.CLK", format!("{pin}.HCLK{i}"))
-                        .pip(opin, (defs::bslots::CMT, format!("HCLK{i}")))
-                        .test_manual_legacy(format!("MUX.{pin}"), format!("HCLK{i}"))
-                        .pip(pin, (defs::bslots::CMT, format!("HCLK{i}")))
+                        .prop(WireMutexExclusive::new(dst))
+                        .prop(WireMutexShared::new(src.tw))
+                        .prop(WireMutexExclusive::new(odst));
+                    if wires::HCLK_CMT.contains(src.wire) || wires::GIOB_CMT.contains(src.wire) {
+                        builder = builder.prop(BaseIntPip::new(odst, src.tw));
+                    }
+                    if matches!(
+                        src.wire,
+                        wires::OMUX_PLL_SKEWCLKIN1 | wires::OMUX_PLL_SKEWCLKIN2
+                    ) {
+                        builder = builder.bel_unused(bslots::PLL);
+                    }
+                    builder
+                        .test_routing(dst, src)
+                        .prop(FuzzIntPip::new(dst, src.tw))
                         .commit();
                 }
-                for i in 0..10 {
-                    bctx.mode(mode)
-                        .global_mutex("HCLK_CMT", "USE")
-                        .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                        .attr("CLK_FEEDBACK", "1X")
-                        .mutex("MUX.CLK", format!("{pin}.GIOB{i}"))
-                        .pip(opin, (defs::bslots::CMT, format!("GIOB{i}")))
-                        .test_manual_legacy(format!("MUX.{pin}"), format!("GIOB{i}"))
-                        .pip(pin, (defs::bslots::CMT, format!("GIOB{i}")))
-                        .commit();
-                }
-                for i in 0..3 {
-                    bctx.mode(mode)
-                        .global_mutex("HCLK_CMT", "USE")
-                        .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                        .attr("CLK_FEEDBACK", "1X")
-                        .mutex("MUX.CLK", format!("{pin}.CKINT{i}"))
-                        .test_manual_legacy(format!("MUX.{pin}"), format!("CKINT{i}"))
-                        .pip(pin, format!("CKINT{i}"))
-                        .commit();
-                }
-                bctx.mode(mode)
-                    .global_mutex("HCLK_CMT", "USE")
-                    .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                    .attr("CLK_FEEDBACK", "1X")
-                    .bel_unused(defs::bslots::PLL)
-                    .mutex("MUX.CLK", format!("{pin}.CLK_FROM_PLL"))
-                    .test_manual_legacy(format!("MUX.{pin}"), "CLK_FROM_PLL")
-                    .pip(pin, (defs::bslots::PLL, format!("CLK_TO_DCM{i}")))
-                    .commit();
-            }
-
-            for (idx, pin) in [
-                "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV", "CLKFX",
-                "CLKFX180", "CONCUR",
-            ]
-            .into_iter()
-            .enumerate()
-            {
-                let idx = i * 18 + idx;
-                bctx.build()
-                    .mutex("MUX.CLK_TO_PLL", pin)
-                    .test_manual_legacy("MUX.CLK_TO_PLL", pin)
-                    .pip("MUXED_CLK", (defs::bslots::CMT, format!("OUT{idx}")))
-                    .commit();
-                bctx.build()
-                    .mutex("MUX.SKEWCLKIN2", pin)
-                    .test_manual_legacy("MUX.SKEWCLKIN2", pin)
-                    .pip("SKEWCLKIN2", (defs::bslots::CMT, format!("OUT{idx}_TEST")))
-                    .commit();
             }
         }
     }
     if !skip_pll {
-        let mut bctx = ctx.bel(defs::bslots::PLL);
+        let mut bctx = ctx.bel(bslots::PLL);
         let mode = "PLL_ADV";
         bctx.build()
             .global_xy("PLLADV_*_USE_CALC", "NO")
             .related_tile_mutex_exclusive(HclkCmt, "ENABLE")
-            .extra_tile_attr_legacy(HclkCmt, "HCLK_CMT", "DRP_MASK", "1")
+            .prop(ExtraTile::new(
+                HclkCmt,
+                ExtraKeyFixed::new(DiffKey::BelAttrBit(
+                    tcls::HCLK_CMT,
+                    bslots::HCLK_CMT_DRP,
+                    bcls::HCLK_CMT_DRP::DRP_MASK,
+                    0,
+                    true,
+                )),
+            ))
             .test_manual_legacy("ENABLE", "1")
             .mode(mode)
             .commit();
@@ -692,132 +702,121 @@ pub fn add_fuzzers<'a>(
             }
         }
 
-        for (pin, opin) in [("CLKIN1", "CLKFBIN"), ("CLKFBIN", "CLKIN1")] {
-            for i in 0..10 {
-                bctx.mode(mode)
-                    .global_mutex("HCLK_CMT", "USE")
-                    .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                    .mutex("MODE", "CALC")
-                    .mutex("MUX.CLK", format!("{pin}.HCLK{i}"))
-                    .pip(opin, (defs::bslots::CMT, format!("HCLK{i}")))
-                    .test_manual_legacy(format!("MUX.{pin}"), format!("HCLK{i}"))
-                    .pip(pin, (defs::bslots::CMT, format!("HCLK{i}")))
-                    .commit();
-            }
-            for i in 0..10 {
-                bctx.mode(mode)
-                    .global_mutex("HCLK_CMT", "USE")
-                    .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                    .mutex("MODE", "CALC")
-                    .mutex("MUX.CLK", format!("{pin}.GIOB{i}"))
-                    .pip(opin, (defs::bslots::CMT, format!("GIOB{i}")))
-                    .test_manual_legacy(format!("MUX.{pin}"), format!("GIOB{i}"))
-                    .pip(pin, (defs::bslots::CMT, format!("GIOB{i}")))
-                    .commit();
-            }
-            bctx.mode(mode)
+        let dst = wires::IMUX_PLL_CLKFB.cell(0);
+        let odst = wires::IMUX_PLL_CLKIN1.cell(0);
+        let mux = &backend.edev.db_index.tile_classes[tcls::CMT].muxes[&dst];
+        for &src in mux.src.keys() {
+            let mut builder = bctx
+                .mode(mode)
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                 .mutex("MODE", "CALC")
-                .mutex("MUX.CLK", format!("{pin}.CLKFBDCM"))
-                .pip(opin, "CLKFBDCM")
-                .test_manual_legacy(format!("MUX.{pin}"), "CLKFBDCM")
-                .pip(pin, "CLKFBDCM")
-                .commit();
+                .prop(WireMutexExclusive::new(dst))
+                .prop(WireMutexExclusive::new(odst))
+                .prop(WireMutexShared::new(src.tw));
+            if wires::HCLK_CMT.contains(src.wire) || wires::GIOB_CMT.contains(src.wire) {
+                builder = builder
+                    .global_mutex("HCLK_CMT", "USE")
+                    .prop(BaseIntPip::new(odst, src.tw));
+            } else {
+                builder = builder.prop(BaseIntPip::new(odst, wires::OUT_PLL_CLKFBDCM.cell(0)));
+            }
+            let mut builder = builder
+                .test_routing(dst, src)
+                .prop(FuzzIntPip::new(dst, src.tw));
+            if !wires::HCLK_CMT.contains(src.wire)
+                && !wires::GIOB_CMT.contains(src.wire)
+                && src.wire != wires::OUT_PLL_CLKFBDCM
+            {
+                builder = builder.pip("CLKFBIN", "CLKFB_ALT");
+            }
+            builder.commit();
         }
-        bctx.mode(mode)
-            .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-            .mutex("MODE", "CALC")
-            .mutex("MUX.CLK", "CLKIN1.CKINT0")
-            .pip("CLKFBIN", "CLKFBDCM")
-            .test_manual_legacy("MUX.CLKIN1", "CKINT0")
-            .pip("CLK_DCM_MUX", "CKINT0")
-            .pip("CLKIN1", "CLK_DCM_MUX")
-            .commit();
-        bctx.mode(mode)
-            .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-            .mutex("MODE", "CALC")
-            .mutex("MUX.CLK", "CLKIN1.CLK_FROM_DCM0")
-            .pip("CLKFBIN", "CLKFBDCM")
-            .test_manual_legacy("MUX.CLKIN1", "CLK_FROM_DCM0")
-            .pip("CLK_DCM_MUX", (defs::bslots::DCM[0], "MUXED_CLK"))
-            .pip("CLKIN1", "CLK_DCM_MUX")
-            .commit();
-        bctx.mode(mode)
-            .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-            .mutex("MODE", "CALC")
-            .mutex("MUX.CLK", "CLKIN1.CLK_FROM_DCM1")
-            .pip("CLKFBIN", "CLKFBDCM")
-            .test_manual_legacy("MUX.CLKIN1", "CLK_FROM_DCM1")
-            .pip("CLK_DCM_MUX", (defs::bslots::DCM[1], "MUXED_CLK"))
-            .pip("CLKIN1", "CLK_DCM_MUX")
-            .commit();
-        bctx.mode(mode)
-            .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-            .mutex("MODE", "CALC")
-            .mutex("MUX.CLK", "CLKFBIN.CKINT1")
-            .pip("CLKIN1", "CLKFBDCM")
-            .test_manual_legacy("MUX.CLKFBIN", "CKINT1")
-            .pip("CLK_FB_FROM_DCM", "CKINT1")
-            .pip("CLKFBIN", "CLK_FB_FROM_DCM")
-            .commit();
-        bctx.mode(mode)
-            .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-            .mutex("MODE", "CALC")
-            .mutex("MUX.CLK", "CLKFBIN.CLKFBOUT")
-            .pip("CLKIN1", "CLKFBDCM")
-            .test_manual_legacy("MUX.CLKFBIN", "CLKFBOUT")
-            .pip("CLK_FB_FROM_DCM", (defs::bslots::CMT, "OUT11"))
-            .pip("CLKFBIN", "CLK_FB_FROM_DCM")
-            .commit();
+
+        let dst = wires::IMUX_PLL_CLKIN1.cell(0);
+        let odst = wires::IMUX_PLL_CLKFB.cell(0);
+        for src in wires::GIOB_CMT
+            .into_iter()
+            .chain(wires::HCLK_CMT)
+            .chain([
+                wires::OUT_PLL_CLKFBDCM,
+                wires::OMUX_DCM_SKEWCLKIN1[0],
+                wires::OMUX_DCM_SKEWCLKIN1[1],
+            ])
+            .map(|w| w.cell(0))
+            .chain([wires::IMUX_CLK[0].cell(3)])
+        {
+            let mut builder = bctx
+                .mode(mode)
+                .related_tile_mutex(HclkCmt, "ENABLE", "USE")
+                .mutex("MODE", "CALC")
+                .prop(WireMutexExclusive::new(dst))
+                .prop(WireMutexExclusive::new(odst))
+                .prop(WireMutexShared::new(src));
+            if wires::HCLK_CMT.contains(src.wire) || wires::GIOB_CMT.contains(src.wire) {
+                builder = builder
+                    .global_mutex("HCLK_CMT", "USE")
+                    .prop(BaseIntPip::new(odst, src));
+            } else {
+                builder = builder.prop(BaseIntPip::new(odst, wires::OUT_PLL_CLKFBDCM.cell(0)));
+            }
+            let mut builder = builder
+                .test_routing(dst, src.pos())
+                .prop(FuzzIntPip::new(dst, src));
+            if !wires::HCLK_CMT.contains(src.wire)
+                && !wires::GIOB_CMT.contains(src.wire)
+                && src.wire != wires::OUT_PLL_CLKFBDCM
+            {
+                builder = builder.pip("CLKIN1", "CLKIN_ALT");
+            }
+            builder.commit();
+        }
+
+        let dst = wires::IMUX_PLL_CLKIN2.cell(0);
+        let src = wires::GIOB_CMT[5].cell(0);
         bctx.mode(mode)
             .global_mutex("HCLK_CMT", "USE")
             .related_tile_mutex(HclkCmt, "ENABLE", "USE")
             .mutex("MODE", "CALC")
-            .mutex("MUX.CLK", "CLKIN2")
-            .pip("CLKFBIN", (defs::bslots::CMT, "GIOB5"))
+            .prop(WireMutexExclusive::new(dst))
+            .prop(WireMutexExclusive::new(odst))
+            .prop(WireMutexShared::new(src))
+            .prop(BaseIntPip::new(odst, src))
             .test_manual_legacy("CLKINSEL_MODE", "DYNAMIC")
-            .pip("CLKIN2", (defs::bslots::CMT, "GIOB5"))
+            .prop(FuzzIntPip::new(dst, src))
             .commit();
 
-        for opin in ["CLK_TO_DCM0", "CLK_TO_DCM1"] {
-            for i in 0..6 {
+        for w in [wires::OMUX_PLL_SKEWCLKIN1, wires::OMUX_PLL_SKEWCLKIN2] {
+            let dst = w.cell(0);
+            let mux = &backend.edev.db_index.tile_classes[tcls::CMT].muxes[&dst];
+            for &src in mux.src.keys() {
                 bctx.mode(mode)
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                    .mutex(format!("MUX.{opin}"), format!("CLKOUTDCM{i}"))
-                    .test_manual_legacy(format!("MUX.{opin}"), format!("CLKOUTDCM{i}"))
-                    .pip(opin, format!("CLKOUTDCM{i}"))
+                    .prop(WireMutexExclusive::new(dst))
+                    .test_routing(dst, src)
+                    .prop(FuzzIntPip::new(dst, src.tw))
                     .commit();
             }
         }
-        bctx.mode(mode)
-            .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-            .mutex("MUX.CLK_TO_DCM1", "CLKFBDCM")
-            .test_manual_legacy("MUX.CLK_TO_DCM1", "CLKFBDCM")
-            .pip("CLK_TO_DCM1", "CLKFBDCM_TEST")
-            .commit();
     }
     {
-        let mut bctx = ctx.bel(defs::bslots::CMT);
-        for (name, bel, pin) in [
-            ("DCM0_CLKFB", defs::bslots::DCM[0], "CLKFB_TEST"),
-            ("DCM0_CLKIN", defs::bslots::DCM[0], "CLKIN_TEST"),
-            ("DCM1_CLKFB", defs::bslots::DCM[1], "CLKFB_TEST"),
-            ("DCM1_CLKIN", defs::bslots::DCM[1], "CLKIN_TEST"),
-            ("PLL_CLKIN", defs::bslots::PLL, "CLKIN1_TEST"),
-            ("PLL_CLKINFB", defs::bslots::PLL, "CLKINFB_TEST"),
-        ] {
+        let mut bctx = ctx.bel(bslots::SPEC_INT);
+        let dst = wires::OUT_CMT[10].cell(0);
+        let mux = &backend.edev.db_index.tile_classes[tcls::CMT].muxes[&dst];
+        for &src in mux.src.keys() {
             bctx.build()
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .bel_mode(defs::bslots::PLL, "PLL_ADV")
-                .mutex("MUX.OUT10", name)
-                .test_manual_legacy("MUX.OUT10", name)
-                .pip("OUT10", (bel, pin))
+                .bel_mode(bslots::PLL, "PLL_ADV")
+                .prop(WireMutexExclusive::new(dst))
+                .prop(WireMutexShared::new(src.tw))
+                .test_routing(dst, src)
+                .prop(FuzzIntPip::new(dst, src.tw))
                 .commit();
         }
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, devdata_only: bool) {
+    let tcid = tcls::CMT;
     let tile = "CMT";
     if devdata_only {
         let bel = "PLL";
@@ -828,29 +827,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
             &mut enable,
         );
         ctx.insert_device_data_legacy("PLL:PLL_IN_DLY_SET", dly_val);
-        let tile = "HCLK_CMT";
-        let bel = "HCLK_CMT";
-        ctx.collect_bit_legacy(tile, bel, "DRP_MASK", "1");
+
+        {
+            let tcid = tcls::HCLK_CMT;
+            let bslot = bslots::HCLK_CMT_DRP;
+            let bit = xlat_bit(ctx.get_diff_attr_bool(tcid, bslot, bcls::HCLK_CMT_DRP::DRP_MASK));
+            for tcid in [tcls::HCLK_CMT, tcls::HCLK_IO_CMT_N, tcls::HCLK_IO_CMT_S] {
+                ctx.insert_bel_attr_bool(tcid, bslot, bcls::HCLK_CMT_DRP::DRP_MASK, bit);
+            }
+        }
+
         return;
     }
-    {
-        let bel = "CMT";
-        ctx.collect_enum_default_legacy_ocd(
-            tile,
-            bel,
-            "MUX.OUT10",
-            &[
-                "DCM0_CLKFB",
-                "DCM0_CLKIN",
-                "DCM1_CLKFB",
-                "DCM1_CLKIN",
-                "PLL_CLKIN",
-                "PLL_CLKINFB",
-            ],
-            "NONE",
-            OcdMode::Mux,
-        );
-    }
+    ctx.collect_mux_ocd(tcid, wires::OUT_CMT[10].cell(0), OcdMode::BitOrderDrpV5);
+
     if !skip_dcm {
         for i in 0..2 {
             let bel = &format!("DCM[{i}]");
@@ -1262,56 +1252,38 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
                 }
             }
 
+            let ref_src = wires::IMUX_CLK[0].cell(i * 7).pos();
             let (_, _, diff) = Diff::split(
-                ctx.peek_diff_legacy(tile, bel, "MUX.CLKIN", "CKINT0")
+                ctx.peek_diff_routing(tcid, wires::IMUX_DCM_CLKIN[i].cell(0), ref_src)
                     .clone(),
-                ctx.peek_diff_legacy(tile, bel, "MUX.CLKFB", "CKINT0")
+                ctx.peek_diff_routing(tcid, wires::IMUX_DCM_CLKFB[i].cell(0), ref_src)
                     .clone(),
             );
             let en = xlat_bit_legacy(diff);
-            for attr in ["MUX.CLKIN", "MUX.CLKFB"] {
+            for dst in [
+                wires::IMUX_DCM_CLKIN[i].cell(0),
+                wires::IMUX_DCM_CLKFB[i].cell(0),
+            ] {
                 let mut diffs = vec![];
-                for i in 0..10 {
-                    diffs.push((
-                        format!("GIOB{i}"),
-                        ctx.get_diff_legacy(tile, bel, attr, format!("GIOB{i}")),
-                    ));
+                let mux = &ctx.edev.db_index.tile_classes[tcls::CMT].muxes[&dst];
+                for &src in mux.src.keys() {
+                    let mut diff = ctx.get_diff_routing(tcid, dst, src);
+                    if wires::HCLK_CMT.contains(src.wire) || wires::GIOB_CMT.contains(src.wire) {
+                        // ok
+                    } else {
+                        diff.apply_bit_diff_legacy(&en, true, false);
+                    }
+                    diffs.push((Some(src), diff));
                 }
-                for i in 0..10 {
-                    diffs.push((
-                        format!("HCLK{i}"),
-                        ctx.get_diff_legacy(tile, bel, attr, format!("HCLK{i}")),
-                    ));
-                }
-                for i in 0..3 {
-                    let mut diff = ctx.get_diff_legacy(tile, bel, attr, format!("CKINT{i}"));
-                    diff.apply_bit_diff_legacy(&en, true, false);
-                    diffs.push((format!("CKINT{i}"), diff));
-                }
-                let mut diff = ctx.get_diff_legacy(tile, bel, attr, "CLK_FROM_PLL");
-                diff.apply_bit_diff_legacy(&en, true, false);
-                diffs.push(("CLK_FROM_PLL".to_string(), diff));
-                ctx.insert_legacy(tile, bel, attr, xlat_enum_legacy(diffs));
+                ctx.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::BitOrderDrpV5));
             }
             ctx.insert_legacy(tile, bel, "CLKIN_CLKFB_ENABLE", en);
 
-            for attr in ["MUX.CLK_TO_PLL", "MUX.SKEWCLKIN2"] {
-                ctx.collect_enum_legacy(
-                    tile,
-                    bel,
-                    attr,
-                    &[
-                        "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV", "CLKFX",
-                        "CLKFX180", "CONCUR",
-                    ],
-                );
-            }
-
             let mut enable = ctx.get_diff_legacy(tile, bel, "ENABLE", "1");
-            enable.apply_enum_diff_legacy(
-                ctx.item_legacy(tile, "CMT", "MUX.OUT10"),
-                "NONE",
-                "DCM1_CLKIN",
+            enable.apply_enum_diff_raw(
+                ctx.sb_mux(tcid, wires::OUT_CMT[10].cell(0)),
+                &None,
+                &Some(wires::IMUX_DCM_CLKIN[1].cell(0).pos()),
             );
             enable.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "CLKDV_MODE"), "INT", "HALF");
             enable.apply_bitvec_diff_int_legacy(
@@ -1511,84 +1483,64 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
 
         ctx.collect_enum_default_legacy(tile, bel, "CLKINSEL_MODE", &["DYNAMIC"], "STATIC");
         let item = xlat_bit_legacy(
-            ctx.peek_diff_legacy(tile, bel, "MUX.CLKIN1", "GIOB5")
-                .clone(),
+            ctx.peek_diff_routing(
+                tcid,
+                wires::IMUX_PLL_CLKIN1.cell(0),
+                wires::GIOB_CMT[5].cell(0).pos(),
+            )
+            .clone(),
         );
         ctx.insert_legacy(tile, bel, "CLKINSEL_STATIC", item);
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "MUX.CLKFBIN",
-            &[
-                "GIOB0", "GIOB1", "GIOB2", "HCLK0", "HCLK1", "HCLK2", "GIOB3", "GIOB4", "HCLK3",
-                "HCLK4", "GIOB5", "GIOB6", "GIOB7", "HCLK5", "HCLK6", "HCLK7", "GIOB8", "GIOB9",
-                "HCLK8", "HCLK9", "CLKFBOUT", "CLKFBDCM", "CKINT1",
-            ],
-        );
+        ctx.collect_mux_ocd(tcid, wires::IMUX_PLL_CLKFB.cell(0), OcdMode::BitOrderDrpV5);
+
+        let BelInfo::SwitchBox(ref sb) = ctx.edev.db[tcid].bels[bslots::SPEC_INT] else {
+            unreachable!()
+        };
+        let pair_mux = sb
+            .items
+            .iter()
+            .find_map(|item| {
+                if let SwitchBoxItem::PairMux(pm) = item {
+                    Some(pm)
+                } else {
+                    None
+                }
+            })
+            .unwrap();
+
         let mut diffs = vec![];
-        for (v0, v1) in [
-            ("GIOB0", "GIOB5"),
-            ("GIOB1", "GIOB6"),
-            ("GIOB2", "GIOB7"),
-            ("HCLK0", "HCLK5"),
-            ("HCLK1", "HCLK6"),
-            ("HCLK2", "HCLK7"),
-            ("GIOB3", "GIOB8"),
-            ("GIOB4", "GIOB9"),
-            ("HCLK3", "HCLK8"),
-            ("HCLK4", "HCLK9"),
-            ("NONE", "CLKFBDCM"),
-            ("CLK_FROM_DCM0", "NONE"),
-            ("CLK_FROM_DCM1", "NONE"),
-            ("CKINT0", "NONE"),
-        ] {
-            let name = format!("{v0}_{v1}");
-            if v0 != "NONE" {
+        for &srcs in pair_mux.src.keys() {
+            if let Some(src0) = srcs[0] {
                 diffs.push((
-                    name.clone(),
-                    ctx.get_diff_legacy(tile, bel, "MUX.CLKIN1", v0),
+                    srcs,
+                    ctx.get_diff_routing(tcid, wires::IMUX_PLL_CLKIN1.cell(0), src0),
                 ));
             }
-            if v1 != "NONE" {
-                let mut diff = ctx.get_diff_legacy(tile, bel, "MUX.CLKIN1", v1);
+            if let Some(src1) = srcs[1] {
+                let mut diff = ctx.get_diff_routing(tcid, wires::IMUX_PLL_CLKIN1.cell(0), src1);
                 diff.apply_bit_diff_legacy(
                     ctx.item_legacy(tile, bel, "CLKINSEL_STATIC"),
                     true,
                     false,
                 );
-                diffs.push((name, diff));
+                diffs.push((srcs, diff));
             }
         }
-        ctx.insert_legacy(tile, bel, "MUX.CLKIN", xlat_enum_legacy(diffs));
-
-        ctx.collect_enum_default_legacy(
-            tile,
-            bel,
-            "MUX.CLK_TO_DCM0",
-            &[
-                "CLKOUTDCM0",
-                "CLKOUTDCM1",
-                "CLKOUTDCM2",
-                "CLKOUTDCM3",
-                "CLKOUTDCM4",
-                "CLKOUTDCM5",
-            ],
-            "NONE",
+        ctx.insert_pairmux(
+            tcid,
+            pair_mux.dst,
+            xlat_enum_raw(diffs, OcdMode::BitOrderDrpV5),
         );
-        ctx.collect_enum_default_legacy(
-            tile,
-            bel,
-            "MUX.CLK_TO_DCM1",
-            &[
-                "CLKOUTDCM0",
-                "CLKOUTDCM1",
-                "CLKOUTDCM2",
-                "CLKOUTDCM3",
-                "CLKOUTDCM4",
-                "CLKOUTDCM5",
-                "CLKFBDCM",
-            ],
-            "NONE",
+
+        ctx.collect_mux_ocd(
+            tcid,
+            wires::OMUX_PLL_SKEWCLKIN1.cell(0),
+            OcdMode::BitOrderDrpV5,
+        );
+        ctx.collect_mux_ocd(
+            tcid,
+            wires::OMUX_PLL_SKEWCLKIN2.cell(0),
+            OcdMode::BitOrderDrpV5,
         );
 
         for mult in 1..=64 {
@@ -1684,20 +1636,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
         enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "PLL_EN_DLY"), 1, 0);
         enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "PLL_IN_DLY_MX_SEL"), 8, 0);
         enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "INV.REL"), 1, 0);
-        enable.apply_enum_diff_legacy(
-            ctx.item_legacy(tile, bel, "MUX.CLK_TO_DCM0"),
-            "NONE",
-            "CLKOUTDCM0",
+        enable.apply_enum_diff_raw(
+            ctx.sb_mux(tcid, wires::OMUX_PLL_SKEWCLKIN1.cell(0)),
+            &None,
+            &Some(wires::OUT_PLL_CLKOUTDCM[0].cell(0).pos()),
         );
-        enable.apply_enum_diff_legacy(
-            ctx.item_legacy(tile, bel, "MUX.CLK_TO_DCM1"),
-            "NONE",
-            "CLKOUTDCM0",
+        enable.apply_enum_diff_raw(
+            ctx.sb_mux(tcid, wires::OMUX_PLL_SKEWCLKIN2.cell(0)),
+            &None,
+            &Some(wires::OUT_PLL_CLKOUTDCM[0].cell(0).pos()),
         );
-        enable.apply_enum_diff_legacy(
-            ctx.item_legacy(tile, "CMT", "MUX.OUT10"),
-            "NONE",
-            "DCM1_CLKIN",
+        enable.apply_enum_diff_raw(
+            ctx.sb_mux(tcid, wires::OUT_CMT[10].cell(0)),
+            &None,
+            &Some(wires::IMUX_DCM_CLKIN[1].cell(0).pos()),
         );
         ctx.insert_legacy(tile, bel, "PLL_EN", xlat_bit_legacy(enable));
 
@@ -1742,8 +1694,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
         ctx.insert_device_data_legacy("PLL:PLL_IN_DLY_SET", dly_val);
     }
     {
-        let tile = "HCLK_CMT";
-        let bel = "HCLK_CMT";
-        ctx.collect_bit_legacy(tile, bel, "DRP_MASK", "1");
+        let tcid = tcls::HCLK_CMT;
+        let bslot = bslots::HCLK_CMT_DRP;
+        let bit = xlat_bit(ctx.get_diff_attr_bool(tcid, bslot, bcls::HCLK_CMT_DRP::DRP_MASK));
+        for tcid in [tcls::HCLK_CMT, tcls::HCLK_IO_CMT_N, tcls::HCLK_IO_CMT_S] {
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::HCLK_CMT_DRP::DRP_MASK, bit);
+        }
     }
 }

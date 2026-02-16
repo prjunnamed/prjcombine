@@ -21,6 +21,23 @@ pub trait KeyMaker: Clone + core::fmt::Debug {
 }
 
 #[derive(Clone, Debug)]
+pub struct ExtraKeyFixed {
+    key: DiffKey,
+}
+
+impl ExtraKeyFixed {
+    pub fn new(key: DiffKey) -> Self {
+        Self { key }
+    }
+}
+
+impl KeyMaker for ExtraKeyFixed {
+    fn make_key(&self, _backend: &IseBackend, _main_key: &DiffKey, _tcid: TileClassId) -> DiffKey {
+        self.key.clone()
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct ExtraKeyLegacy {
     pub bel: String,
 }

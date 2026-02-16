@@ -380,6 +380,10 @@ impl Collector<'_, '_> {
         self.get_diff_raw(&DiffKey::BelInputInvSpecial(tcid, bslot, pin, spec, val))
     }
 
+    pub fn get_diff_global_special(&mut self, spec: SpecialId) -> Diff {
+        self.get_diff_raw(&DiffKey::GlobalSpecial(spec))
+    }
+
     pub fn peek_diff_attr_bit(
         &self,
         tcid: TileClassId,

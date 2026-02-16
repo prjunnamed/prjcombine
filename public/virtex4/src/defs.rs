@@ -123,6 +123,18 @@ target_defs! {
         attribute ALMOST_FULL_OFFSET: bitvec[12];
     }
 
+    bel_class BRAM_V5 {
+        // TODO
+    }
+
+    bel_class PMVBRAM {
+        input DISABLE0;
+        input DISABLE1;
+        output O;
+        output ODIV2;
+        output ODIV4;
+    }
+
     enum DSP_B_INPUT { DIRECT, CASCADE }
     enum DSP_REG2 {_0, _1, _2 }
     bel_class DSP_V4 {
@@ -156,6 +168,10 @@ target_defs! {
 
         attribute MUX_CLK: bitvec[1];
         attribute CREG: bool;
+    }
+
+    bel_class DSP_V5 {
+        // TODO
     }
 
     // TODO: enums, bel slots
@@ -371,6 +387,10 @@ target_defs! {
     bel_class GLOBALSIG {
     }
 
+    bel_class HCLK_CMT_DRP {
+        attribute DRP_MASK: bool;
+    }
+
     bel_class BUFGCTRL {
         input I0, I1;
         input S0, S1;
@@ -422,7 +442,7 @@ target_defs! {
         // virtex5 settings:
         // - 00: no delay used
         // - 01: calibrated delay used
-        // - 11: uncalibrated delay used
+        // - 11: no calibrated delay used, uncalibrated delay used
         // virtex6 settings:
         // - 00: no delay used or calibrated delay used
         // - 10 uncalibrated delay used
@@ -465,6 +485,27 @@ target_defs! {
 
     bel_class LVDS_V4 {
         attribute LVDSBIAS: bitvec[10];
+    }
+
+    enum INTERNAL_VREF {
+        OFF,
+        // virtex6 and up only
+        _600,
+        // virtex7 only
+        _675,
+        _750,
+        _900,
+        // virtex5 only
+        _1080,
+        // virtex6 and up only
+        _1100,
+        _1250,
+    }
+    bel_class BANK {
+        // virtex5 and up; virtex4 has this on a separate bel
+        attribute V5_LVDSVIAS: bitvec[12];
+        // virtex5 and up
+        attribute INTERNAL_VREF: INTERNAL_VREF;
     }
 
     enum DCM_CLKDV_MODE { HALF, INT }
@@ -711,6 +752,81 @@ target_defs! {
         attribute PROM_DATA: bitvec[8];
     }
 
+    bel_class SYSMON_V5 {
+        input CONVST;
+        input CONVSTCLK;
+        input RESET;
+        output ALM[3];
+        output BUSY;
+        output CHANNEL[5];
+        output EOC;
+        output EOS;
+        output OT;
+
+        input DCLK;
+        input DEN;
+        input DWE;
+        input DADDR[7];
+        input DI[16];
+        output DRDY;
+        output DO[16];
+
+        output JTAGBUSY;
+        output JTAGLOCKED;
+        output JTAGMODIFIED;
+
+        input TESTADCCLK[4];
+        input TESTADCIN[20];
+        output TESTADCOUT[20];
+        output TESTDB[16];
+
+        input TESTSCANCLKA;
+        input TESTSCANCLKB;
+        input TESTSCANCLKC;
+        input TESTSCANCLKD;
+        input TESTSCANCLKE;
+        input TESTSCANMODEA;
+        input TESTSCANMODEB;
+        input TESTSCANMODEC;
+        input TESTSCANMODED;
+        input TESTSCANMODEE;
+        input TESTSCANRESET;
+        input TESTSEA;
+        input TESTSEB;
+        input TESTSEC;
+        input TESTSED;
+        input TESTSEE;
+        input TESTSEL;
+        input TESTSIA;
+        input TESTSIB;
+        input TESTSIC;
+        input TESTSID;
+        input TESTSIE;
+        output TESTSOA;
+        output TESTSOB;
+        output TESTSOC;
+        output TESTSOD;
+        output TESTSOE;
+
+        input TESTENJTAG;
+        input TESTDRCK;
+        input TESTRST;
+        input TESTSHIFT;
+        input TESTUPDATE;
+        input TESTCAPTURE;
+        input TESTTDI;
+        output TESTTDO;
+
+        // address 0x40..0x58
+        attribute INIT: bitvec[16][24];
+
+        attribute SYSMON_TEST_A: bitvec[16];
+        attribute SYSMON_TEST_B: bitvec[16];
+        attribute SYSMON_TEST_C: bitvec[16];
+        attribute SYSMON_TEST_D: bitvec[16];
+        attribute SYSMON_TEST_E: bitvec[16];
+    }
+
     bel_class STARTUP {
         input CLK;
         input GTS, GSR;
@@ -718,9 +834,13 @@ target_defs! {
         input USRDONEO, USRDONETS;
         output EOS;
 
+        // virtex5 only
+        output CFGCLK, CFGMCLK, DINSPI, TCKSPI;
+
         attribute USER_GTS_GSR_ENABLE: bool;
         attribute GTS_SYNC: bool;
         attribute GSR_SYNC: bool;
+        // virtex4 only
         attribute GWE_SYNC: bool;
         attribute USRCCLK_ENABLE: bool;
     }
@@ -751,13 +871,18 @@ target_defs! {
         attribute ENABLE: bool;
     }
 
+    enum JTAGPPC_NUM_PPC { _0, _1, _2, _3, _4 }
     bel_class JTAGPPC {
         input TDOPPC;
         output TCK;
         output TMS;
         output TDIPPC;
 
+        // virtex4 only
         attribute ENABLE: bool;
+
+        // virtex5 only
+        attribute NUM_PPC: JTAGPPC_NUM_PPC;
     }
 
     bel_class PMV {
@@ -777,11 +902,25 @@ target_defs! {
         output ERROR;
         output SYNDROMEVALID;
         output SYNDROME[12];
+
+        // virtex5 and up only
+        output CRCERROR, ECCERROR;
     }
 
     bel_class USR_ACCESS {
         output DATAVALID;
         output DATA[32];
+
+        // virtex5 and up only
+        output CFGCLK;
+    }
+
+    bel_class KEY_CLEAR {
+        input KEYCLEARB;
+    }
+
+    bel_class EFUSE_USR {
+        output EFUSEUSR[32];
     }
 
     // X16 only supported on virtex5 and up
@@ -790,6 +929,7 @@ target_defs! {
     bel_class MISC_CFG {
         pad HSWAPEN: input;
         pad PROG_B: input;
+        // virtex4 only
         pad POWERDOWN_B: input;
         pad DONE: inout;
         pad M0, M1, M2: input;
@@ -828,9 +968,13 @@ target_defs! {
 
     enum STARTUP_CYCLE { _0, _1, _2, _3, _4, _5, _6, DONE, KEEP, NOWAIT }
     enum STARTUP_CLOCK { CCLK, USERCLK, JTAGCLK }
-    enum CONFIG_RATE { _4, _5, _7, _8, _9, _10, _13, _15, _20, _26, _30, _34, _41, _51, _55, _60, _130 }
+    enum CONFIG_RATE_V4 { _4, _5, _7, _8, _9, _10, _13, _15, _20, _26, _30, _34, _41, _51, _55, _60, _130 }
+    enum CONFIG_RATE_V5 { _2, _6, _9, _13, _17, _20, _24, _27, _31, _35, _38, _42, _46, _49, _53, _56, _60 }
     enum SECURITY { NONE, LEVEL1, LEVEL2 }
     enum ICAP_SELECT { BOTTOM, TOP }
+    enum BPI_PAGE_SIZE { _1, _4, _8 }
+    enum BPI_1ST_READ_CYCLE { _1, _2, _3, _4 }
+    enum ENCRYPT_KEY_SELECT { BBRAM, EFUSE }
     bel_class GLOBAL {
         // COR
         attribute GWE_CYCLE: STARTUP_CYCLE;
@@ -839,7 +983,8 @@ target_defs! {
         attribute MATCH_CYCLE: STARTUP_CYCLE;
         attribute DONE_CYCLE: STARTUP_CYCLE;
         attribute STARTUP_CLOCK: STARTUP_CLOCK;
-        attribute CONFIG_RATE: CONFIG_RATE;
+        attribute CONFIG_RATE_V4: CONFIG_RATE_V4;
+        attribute CONFIG_RATE_V5: CONFIG_RATE_V5;
         attribute CAPTURE_ONESHOT: bool;
         attribute DRIVE_DONE: bool;
         attribute DONE_PIPE: bool;
@@ -847,15 +992,50 @@ target_defs! {
         attribute POWERDOWN_STATUS: bool;
         attribute CRC_ENABLE: bool;
 
+        // COR1 (virtex5 and up only)
+        attribute BPI_PAGE_SIZE: BPI_PAGE_SIZE;
+        attribute BPI_1ST_READ_CYCLE: BPI_1ST_READ_CYCLE;
+        attribute POST_CRC_EN: bool;
+        attribute POST_CRC_NO_PIN: bool;
+        attribute POST_CRC_RECONFIG: bool;
+        attribute RETAIN_CONFIG_STATUS: bool;
+        attribute POST_CRC_SEL: bitvec[1];
+        attribute PERSIST_DEASSERT_AT_DESYNCH: bool;
+
         // CTL
         attribute GTS_USR_B: bool;
+        // virtex4 only
         attribute EN_VTEST: bool;
+        // virtex4 only
         attribute VGG_TEST: bool;
         attribute PERSIST: bool;
         attribute SECURITY: SECURITY;
         attribute ENCRYPT: bool;
         attribute GLUTMASK: bool;
         attribute ICAP_SELECT: ICAP_SELECT;
+        // the following are virtex5 and up only
+        attribute CONFIG_FALLBACK: bool;
+        attribute ENCRYPT_KEY_SELECT: ENCRYPT_KEY_SELECT;
+        attribute OVERTEMP_POWERDOWN: bool;
+        attribute SELECTMAP_ABORT: bool;
+        attribute VGG_SEL: bitvec[5];
+        attribute VBG_DLL_SEL: bitvec[5];
+        attribute VBG_SEL: bitvec[5];
+
+        // TIMER (virtex5 and up only)
+        attribute TIMER: bitvec[24];
+        attribute TIMER_CFG: bool;
+        attribute TIMER_USR: bool;
+
+        // WBSTAR (virtex5 and up only)
+        attribute V5_NEXT_CONFIG_ADDR: bitvec[26];
+        attribute V7_NEXT_CONFIG_ADDR: bitvec[29];
+        attribute REVISION_SELECT_TRISTATE: bool;
+        attribute REVISION_SELECT: bitvec[2];
+
+        // TESTMODE (virtex5 and up only)
+        attribute DD_OVERRIDE: bool;
+
     }
 
     bel_class PPC405 {
@@ -1286,10 +1466,19 @@ target_defs! {
     }
 
     bel_class EMAC_V4 {
-        input DCREMACENABLE;
-        output DCRHOSTDONEIR;
-
         input RESET;
+
+        // all except DCREMACENABLE are non-routable on virtex4 (bolted directly to PPC)
+        input DCREMACCLK;
+        input DCREMACENABLE;
+        input DCREMACREAD;
+        input DCREMACWRITE;
+        input DCREMACABUS[10];
+        input DCREMACDBUS[32];
+        output EMACDCRACK;
+        output EMACDCRDBUS[32];
+
+        output DCRHOSTDONEIR;
 
         input HOSTCLK;
         input HOSTREQ;
@@ -1330,13 +1519,16 @@ target_defs! {
             output "EMAC{i}CLIENTTXACK";
             output "EMAC{i}CLIENTTXCLIENTCLKOUT";
             output "EMAC{i}CLIENTTXCOLLISION";
-            output "EMAC{i}CLIENTTXGMIIMIICLKOUT";
             output "EMAC{i}CLIENTTXRETRANSMIT";
             output "EMAC{i}CLIENTTXSTATS";
             output "EMAC{i}CLIENTTXSTATSBYTEVLD";
             output "EMAC{i}CLIENTTXSTATSVLD";
+            // virtex4 only
+            output "EMAC{i}CLIENTTXGMIIMIICLKOUT";
 
             input "EMAC{i}TIBUS"[5];
+            // virtex5 only
+            output "EMAC{i}TOBUS"[5];
 
             input "PHYEMAC{i}COL";
             input "PHYEMAC{i}CRS";
@@ -1362,6 +1554,8 @@ target_defs! {
             input "PHYEMAC{i}RXRUNDISP";
             input "PHYEMAC{i}SIGNALDET";
             input "PHYEMAC{i}TXBUFERR";
+            // virtex5 only
+            input "PHYEMAC{i}TXGMIIMIICLKIN";
 
             output "EMAC{i}PHYENCOMMAALIGN";
             output "EMAC{i}PHYLOOPBACKMSB";
@@ -1379,15 +1573,65 @@ target_defs! {
             output "EMAC{i}PHYTXD"[8];
             output "EMAC{i}PHYTXEN";
             output "EMAC{i}PHYTXER";
+            // virtex5 only
+            output "EMAC{i}PHYTXGMIIMIICLKOUT";
+            output "EMAC{i}SPEEDIS10100";
 
+            // virtex4 only
             input "TIEEMAC{i}CONFIGVEC"[80];
             input "TIEEMAC{i}UNICASTADDR"[48];
+
+            // virtex5 only
+            attribute "EMAC{i}_1000BASEX_ENABLE": bool;
+            attribute "EMAC{i}_ADDRFILTER_ENABLE": bool;
+            attribute "EMAC{i}_BYTEPHY": bool;
+            attribute "EMAC{i}_CONFIGVEC_79": bool;
+            attribute "EMAC{i}_DCRBASEADDR": bitvec[8];
+            attribute "EMAC{i}_FUNCTION": bitvec[3];
+            attribute "EMAC{i}_GTLOOPBACK": bool;
+            attribute "EMAC{i}_HOST_ENABLE": bool;
+            attribute "EMAC{i}_LINKTIMERVAL": bitvec[9];
+            attribute "EMAC{i}_LTCHECK_DISABLE": bool;
+            attribute "EMAC{i}_MDIO_ENABLE": bool;
+            attribute "EMAC{i}_PAUSEADDR": bitvec[48];
+            attribute "EMAC{i}_PHYINITAUTONEG_ENABLE": bool;
+            attribute "EMAC{i}_PHYISOLATE": bool;
+            attribute "EMAC{i}_PHYLOOPBACKMSB": bool;
+            attribute "EMAC{i}_PHYPOWERDOWN": bool;
+            attribute "EMAC{i}_PHYRESET": bool;
+            attribute "EMAC{i}_RGMII_ENABLE": bool;
+            attribute "EMAC{i}_RX16BITCLIENT_ENABLE": bool;
+            attribute "EMAC{i}_RXFLOWCTRL_ENABLE": bool;
+            attribute "EMAC{i}_RXHALFDUPLEX": bool;
+            attribute "EMAC{i}_RXINBANDFCS_ENABLE": bool;
+            attribute "EMAC{i}_RXJUMBOFRAME_ENABLE": bool;
+            attribute "EMAC{i}_RXRESET": bool;
+            attribute "EMAC{i}_RXVLAN_ENABLE": bool;
+            attribute "EMAC{i}_RX_ENABLE": bool;
+            attribute "EMAC{i}_SGMII_ENABLE": bool;
+            attribute "EMAC{i}_SPEED_LSB": bool;
+            attribute "EMAC{i}_SPEED_MSB": bool;
+            attribute "EMAC{i}_TX16BITCLIENT_ENABLE": bool;
+            attribute "EMAC{i}_TXFLOWCTRL_ENABLE": bool;
+            attribute "EMAC{i}_TXHALFDUPLEX": bool;
+            attribute "EMAC{i}_TXIFGADJUST_ENABLE": bool;
+            attribute "EMAC{i}_TXINBANDFCS_ENABLE": bool;
+            attribute "EMAC{i}_TXJUMBOFRAME_ENABLE": bool;
+            attribute "EMAC{i}_TXRESET": bool;
+            attribute "EMAC{i}_TXVLAN_ENABLE": bool;
+            attribute "EMAC{i}_TX_ENABLE": bool;
+            attribute "EMAC{i}_UNICASTADDR": bitvec[48];
+            attribute "EMAC{i}_UNIDIRECTION_ENABLE": bool;
+            attribute "EMAC{i}_USECLKEN": bool;
         }
+
+        // virtex5 only
+        input TESTSELI;
+        input TSTSEEMACI;
 
         input TSTSIEMACI[7];
         output TSTSOEMACO[7];
     }
-
 
     enum GT11_ALIGN_COMMA_WORD { _1, _2, _4 }
     enum GT11_CHAN_BOND_MODE { NONE, MASTER, SLAVE_1_HOP, SLAVE_2_HOPS }
@@ -1943,8 +2187,8 @@ target_defs! {
         wire GCLK[32]: regional GLOBAL;
         wire GCLK_BUF[32]: mux;
         wire GIOB[16]: regional GIOB;
-        wire IMUX_BUFG_S[32]: multi_branch CLK_S;
-        wire IMUX_BUFG_N[32]: multi_root;
+        wire IMUX_BUFG_O[32]: mux;
+        wire IMUX_BUFG_I[32]: branch CLK_PREV;
 
         wire OUT_CLKPAD: bel;
 
@@ -2212,7 +2456,54 @@ target_defs! {
         wire OUT_N17_PENT: branch S;
         wire OUT_S18_PENT: branch N;
 
-        wire TEST[4]: test;
+        wire IMUX_SPEC[4]: test;
+
+        wire HCLK_ROW[10]: regional HROW;
+        wire RCLK_ROW[4]: regional HROW;
+        wire MGT_ROW_I[5]: branch MGT_ROW_PREV;
+        wire MGT_ROW_O[5]: mux;
+
+        wire OUT_BUFG[32]: bel;
+        wire GCLK[32]: regional GLOBAL;
+        wire GCLK_BUF[32]: mux;
+        wire GIOB[10]: regional GIOB;
+        wire IMUX_BUFG_O[32]: mux;
+        wire IMUX_BUFG_I[32]: branch CLK_PREV;
+            wire MGT_BUF[10]: mux;
+
+        wire OUT_CLKPAD: bel;
+
+        wire HCLK_IO[10]: regional LEAF;
+        wire RCLK_IO[4]: regional LEAF;
+        wire IMUX_IDELAYCTRL_REFCLK: mux;
+        wire IMUX_BUFR[2]: mux;
+        wire IOCLK[4]: regional LEAF;
+        wire VRCLK[2]: mux;
+        wire VRCLK_S[2]: branch IO_N;
+        wire VRCLK_N[2]: branch IO_S;
+
+        wire IMUX_IO_ICLK[2]: mux;
+        // ?!?!??!?? why three bits for inversion
+        wire IMUX_IO_ICLK_OPTINV[2]: mux;
+        wire IMUX_ILOGIC_CLK[2]: mux;
+        wire IMUX_ILOGIC_CLKB[2]: mux;
+
+        wire HCLK_CMT[10]: regional LEAF;
+        wire GIOB_CMT[10]: regional LEAF;
+
+        wire OUT_CMT[28]: bel;
+            wire IMUX_DCM_CLKIN[2]: mux;
+            wire IMUX_DCM_CLKFB[2]: mux;
+            wire OMUX_DCM_SKEWCLKIN1[2]: mux;
+            wire OMUX_DCM_SKEWCLKIN2[2]: mux;
+            wire IMUX_PLL_CLKIN1: mux;
+            wire IMUX_PLL_CLKIN2: mux;
+            wire IMUX_PLL_CLKFB: mux;
+            wire TEST_PLL_CLKIN: bel;
+            wire OMUX_PLL_SKEWCLKIN1: mux;
+            wire OMUX_PLL_SKEWCLKIN2: mux;
+            wire OUT_PLL_CLKOUTDCM[6]: bel;
+            wire OUT_PLL_CLKFBDCM: bel;
     }
 
     if variant virtex6 {
@@ -2873,7 +3164,7 @@ target_defs! {
             }
         }
 
-        if variant virtex4 {
+        if variant [virtex4, virtex5] {
             bel_slot EMAC: EMAC_V4;
         } else {
             bel_slot EMAC: legacy;
@@ -3017,15 +3308,13 @@ target_defs! {
         bel_slot OPAD_TXP[4]: legacy;
         bel_slot OPAD_TXN[4]: legacy;
 
-        if variant virtex4 {
+        if variant [virtex4, virtex5] {
             bel_slot BUFGCTRL[32]: BUFGCTRL;
         } else {
             bel_slot BUFGCTRL[32]: legacy;
         }
         bel_slot GIO_S: legacy;
         bel_slot GIO_N: legacy;
-        bel_slot BUFG_MGTCLK_S: legacy;
-        bel_slot BUFG_MGTCLK_N: legacy;
         if variant virtex4 {
             tile_class CLK_BUFG {
                 cell CELL[16];
@@ -3037,6 +3326,8 @@ target_defs! {
         if variant virtex5 {
             tile_class CLK_BUFG {
                 cell CELL[20];
+                cell CELL_E0;
+                cell CELL_E10;
                 bitrect MAIN[20]: CLK;
             }
         }
@@ -3120,7 +3411,7 @@ target_defs! {
 
     tile_slot CFG {
         bel_slot SYSMON_INT: routing;
-        if variant virtex4 {
+        if variant [virtex4, virtex5] {
             bel_slot BSCAN[4]: BSCAN;
             bel_slot ICAP[2]: ICAP;
             bel_slot STARTUP: STARTUP;
@@ -3131,8 +3422,8 @@ target_defs! {
             bel_slot FRAME_ECC: FRAME_ECC;
             bel_slot USR_ACCESS: USR_ACCESS;
             bel_slot DNA_PORT: legacy;
-            bel_slot KEY_CLEAR: legacy;
-            bel_slot EFUSE_USR: legacy;
+            bel_slot KEY_CLEAR: KEY_CLEAR;
+            bel_slot EFUSE_USR: EFUSE_USR;
             bel_slot CFG_IO_ACCESS: legacy;
             bel_slot PMVIOB_CFG: legacy;
         } else {
@@ -3154,6 +3445,8 @@ target_defs! {
         bel_slot MISC_CFG: MISC_CFG;
         if variant virtex4 {
             bel_slot SYSMON: SYSMON_V4;
+        } else if variant virtex5 {
+            bel_slot SYSMON: SYSMON_V5;
         } else {
             bel_slot SYSMON: legacy;
         }
@@ -3196,44 +3489,30 @@ target_defs! {
 
     tile_slot CLK {
         bel_slot CLK_INT: routing;
-        bel_slot CLK_IOB: legacy;
-        bel_slot CLK_CMT: legacy;
-        bel_slot CLK_MGT: legacy;
         if variant virtex4 {
-            tile_class CLK_DCM_S {
+            tile_class CLK_DCM_S, CLK_DCM_N {
                 cell CELL[8];
                 bitrect MAIN[8]: CLK;
             }
-            tile_class CLK_DCM_N {
-                cell CELL[8];
-                bitrect MAIN[8]: CLK;
-            }
-            tile_class CLK_IOB_S {
-                cell CELL[16];
-                bitrect MAIN[16]: CLK;
-            }
-            tile_class CLK_IOB_N {
+            tile_class CLK_IOB_S, CLK_IOB_N {
                 cell CELL[16];
                 bitrect MAIN[16]: CLK;
             }
         }
         if variant virtex5 {
-            tile_class CLK_CMT_S {
+            tile_class CLK_CMT_S, CLK_CMT_N {
+                cell CELL[10];
+                cell CELL_E;
                 bitrect MAIN[10]: CLK;
             }
-            tile_class CLK_CMT_N {
+            tile_class CLK_IOB_S, CLK_IOB_N {
+                cell CELL[10];
+                cell CELL_E;
                 bitrect MAIN[10]: CLK;
             }
-            tile_class CLK_IOB_S {
-                bitrect MAIN[10]: CLK;
-            }
-            tile_class CLK_IOB_N {
-                bitrect MAIN[10]: CLK;
-            }
-            tile_class CLK_MGT_S {
-                bitrect MAIN[10]: CLK;
-            }
-            tile_class CLK_MGT_N {
+            tile_class CLK_MGT_S, CLK_MGT_N {
+                cell CELL[10];
+                cell CELL_E;
                 bitrect MAIN[10]: CLK;
             }
         }
@@ -3241,7 +3520,7 @@ target_defs! {
         bel_slot HCLK_MGT_BUF: legacy;
         if variant [virtex4, virtex5, virtex6] {
             tile_class HCLK_MGT_BUF {
-                if variant virtex4 {
+                if variant [virtex4, virtex5] {
                     cell CELL;
                 }
                 bitrect MAIN: HCLK;
@@ -3259,16 +3538,9 @@ target_defs! {
 
     tile_slot HROW {
         bel_slot HROW_INT: routing;
-        bel_slot CLK_HROW: legacy;
-        if variant virtex4 {
+        if variant [virtex4, virtex5] {
             tile_class CLK_HROW {
                 cell W, E;
-                bitrect MAIN[2]: CLK;
-                bitrect HCLK: HCLK_CLK;
-            }
-        }
-        if variant virtex5 {
-            tile_class CLK_HROW {
                 bitrect MAIN[2]: CLK;
                 bitrect HCLK: HCLK_CLK;
             }
@@ -3294,14 +3566,14 @@ target_defs! {
     }
 
     tile_slot HCLK {
-        if variant virtex4 {
+        if variant [virtex4, virtex5] {
             bel_slot HCLK: routing;
         } else {
             bel_slot HCLK: legacy;
         }
         bel_slot HCLK_W: legacy;
         bel_slot HCLK_E: legacy;
-        if variant virtex4 {
+        if variant [virtex4, virtex5] {
             bel_slot GLOBALSIG: GLOBALSIG;
         } else {
             bel_slot GLOBALSIG: legacy;
@@ -3327,8 +3599,13 @@ target_defs! {
     }
 
     tile_slot HCLK_BEL {
-        bel_slot PMVBRAM: legacy;
-        bel_slot PMVBRAM_NC: legacy;
+        if variant virtex5 {
+            bel_slot PMVBRAM: PMVBRAM;
+            bel_slot PMVBRAM_NC: PMVBRAM;
+        } else {
+            bel_slot PMVBRAM: legacy;
+            bel_slot PMVBRAM_NC: legacy;
+        }
 
         if variant [virtex5] {
             tile_class PMVBRAM {
@@ -3347,23 +3624,22 @@ target_defs! {
 
         bel_slot HCLK_IO_INT: routing;
         bel_slot HCLK_IO: legacy;
-        bel_slot IOCLK: legacy;
-        bel_slot RCLK: legacy;
-        if variant virtex4 {
+        bel_slot HCLK_CMT_DRP: HCLK_CMT_DRP;
+        if variant [virtex4, virtex5] {
             bel_slot BUFR[4]: BUFR;
             bel_slot BUFIO[4]: BUFIO;
             bel_slot BUFO[2]: legacy;
             bel_slot IDELAYCTRL: IDELAYCTRL;
             bel_slot DCI: DCI_V4;
-            bel_slot LVDS: LVDS_V4;
         } else {
             bel_slot BUFR[4]: legacy;
             bel_slot BUFIO[4]: legacy;
             bel_slot BUFO[2]: legacy;
             bel_slot IDELAYCTRL: legacy;
             bel_slot DCI: legacy;
-            bel_slot LVDS: legacy;
         }
+        bel_slot BANK: BANK;
+        bel_slot LVDS: LVDS_V4;
 
         if variant virtex4 {
             tile_class HCLK_IO_DCI, HCLK_IO_LVDS, HCLK_IO_CENTER, HCLK_IO_CFG_N, HCLK_IO_DCM_S, HCLK_IO_DCM_N {
@@ -3390,12 +3666,8 @@ target_defs! {
             }
         }
         if variant virtex5 {
-            tile_class HCLK_IO {
+            tile_class HCLK_IO, HCLK_IO_CENTER, HCLK_IO_CFG_S, HCLK_IO_CMT_S, HCLK_IO_CFG_N, HCLK_IO_CMT_N, HCLK_CMT {
                 cell CELL[4];
-                bitrect MAIN: HCLK_IO;
-            }
-            tile_class HCLK_IO_CENTER, HCLK_IO_CFG_S, HCLK_IO_CMT_S, HCLK_IO_CFG_N, HCLK_IO_CMT_N {
-                cell CELL[2];
                 bitrect MAIN: HCLK_IO;
             }
         }
@@ -3435,22 +3707,24 @@ target_defs! {
         }
     }
 
-    tile_slot HCLK_CMT {
-        bel_slot HCLK_CMT_HCLK: legacy;
-        bel_slot HCLK_CMT_GIOB: legacy;
-        if variant virtex5 {
-            tile_class HCLK_CMT {
-                bitrect MAIN: HCLK_IO;
-            }
-        }
-    }
-
     tile_slot GLOBAL {
         bel_slot GLOBAL: GLOBAL;
         if variant virtex4 {
             tile_class GLOBAL {
                 bitrect COR: REG32;
                 bitrect CTL: REG32;
+                bel GLOBAL;
+            }
+        }
+        if variant virtex5 {
+            tile_class GLOBAL {
+                bitrect COR0: REG32;
+                bitrect COR1: REG32;
+                bitrect CTL0: REG32;
+                bitrect CTL1: REG32;
+                bitrect TIMER: REG32;
+                bitrect WBSTAR: REG32;
+                bitrect TESTMODE: REG32;
                 bel GLOBAL;
             }
         }
@@ -4055,35 +4329,39 @@ target_defs! {
 
     connector_slot IO_S {
         opposite IO_N;
-        if variant virtex4 {
+        if variant [virtex4, virtex5] {
             connector_class IO_S {
-                pass IOCLK_N = IOCLK;
+                if variant virtex4 {
+                    pass IOCLK_N = IOCLK;
+                }
                 pass VRCLK_N = VRCLK;
             }
         }
     }
     connector_slot IO_N {
         opposite IO_S;
-        if variant virtex4 {
+        if variant [virtex4, virtex5] {
             connector_class IO_N {
-                pass IOCLK_S = IOCLK;
+                if variant virtex4 {
+                    pass IOCLK_S = IOCLK;
+                }
                 pass VRCLK_S = VRCLK;
             }
         }
     }
 
-    connector_slot CLK_S {
-        opposite CLK_N;
-        if variant virtex4 {
-            connector_class CLK_S {
-                pass IMUX_BUFG_S = IMUX_BUFG_N;
+    connector_slot CLK_PREV {
+        opposite CLK_NEXT;
+        if variant [virtex4, virtex5] {
+            connector_class CLK_PREV {
+                pass IMUX_BUFG_I = IMUX_BUFG_O;
             }
         }
     }
-    connector_slot CLK_N {
-        opposite CLK_S;
-        if variant virtex4 {
-            connector_class CLK_N {
+    connector_slot CLK_NEXT {
+        opposite CLK_PREV;
+        if variant [virtex4, virtex5] {
+            connector_class CLK_NEXT {
             }
         }
     }
@@ -4120,6 +4398,25 @@ target_defs! {
         opposite CMT_PREV;
         if variant virtex4 {
             connector_class CMT_NEXT;
+        }
+    }
+
+    connector_slot MGT_ROW_PREV {
+        opposite MGT_ROW_NEXT;
+        if variant virtex5 {
+            connector_class MGT_ROW_PREV {
+                pass MGT_ROW_I = MGT_ROW_O;
+            }
+            connector_class MGT_ROW_PREV_PASS {
+                pass MGT_ROW_I = MGT_ROW_I;
+            }
+        }
+    }
+
+    connector_slot MGT_ROW_NEXT {
+        opposite MGT_ROW_PREV;
+        if variant virtex5 {
+            connector_class MGT_ROW_NEXT;
         }
     }
 }

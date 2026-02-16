@@ -27,7 +27,7 @@ use crate::{
         props::DynProp,
     },
     virtex4::io::IsBonded,
-    virtex5::io::{DiffOut, HclkIoi, VrefInternal},
+    virtex5::io::{DiffOut, HclkIoi, VrefInternalLegacy},
 };
 
 const IOSTDS: &[Iostd] = &[
@@ -1173,7 +1173,7 @@ pub fn add_fuzzers<'a>(
                 .pin("I")
                 .raw(Key::Package, &package.name)
                 .prop(IsBonded(bel))
-                .prop(VrefInternal(tcls::HCLK_IO, vref))
+                .prop(VrefInternalLegacy(tcls::HCLK_IO, vref))
                 .test_manual_legacy("ISTD", format!("{std}.LP"))
                 .attr("IUSED", "0")
                 .attr("ISTANDARD", std)

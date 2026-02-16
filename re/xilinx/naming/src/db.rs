@@ -55,6 +55,21 @@ pub struct TileClassNaming {
     pub intf_wires_in: BTreeMap<TileWireCoord, IntfWireInNaming>,
 }
 
+impl TileClassNaming {
+    pub fn add_wire(&mut self, wire: TileWireCoord, name: impl Into<String>) {
+        let name = name.into();
+        self.wires.insert(
+            wire,
+            WireNaming {
+                name,
+                alt_name: None,
+                alt_pips_to: Default::default(),
+                alt_pips_from: Default::default(),
+            },
+        );
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct WireNaming {
     pub name: String,

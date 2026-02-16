@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map, hash_map
 
 use itertools::Itertools;
 use prjcombine_entity::{
-    EntityPartVec, EntityVec,
+    EntityId, EntityPartVec, EntityVec,
     id::{EntityIdU16, EntityTag},
 };
 use prjcombine_interconnect::{
@@ -380,6 +380,7 @@ pub fn xlat_bit_wide_bi(diff0: Diff, diff1: Diff) -> Vec<PolTileBit> {
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum OcdMode<'a> {
     BitOrder,
+    BitOrderDrpV5,
     BitOrderDrpV6,
     ValueOrder,
     Mux,
@@ -421,6 +422,9 @@ pub fn xlat_enum_raw<K: Clone + Debug + Eq + PartialEq + Ord + PartialOrd>(
             }
             core::cmp::Ordering::Equal
         });
+    }
+    if ocd == OcdMode::BitOrderDrpV5 {
+        bits_vec.sort_by_key(|a| (a.rect, a.bit, a.frame.to_idx() ^ (a.bit.to_idx() & 1)))
     }
     if ocd == OcdMode::BitOrderDrpV6 {
         bits_vec.sort_by(|a, b| {

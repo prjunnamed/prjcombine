@@ -294,6 +294,8 @@ impl Expander<'_, '_> {
         }
 
         let mut prev = None;
+        let mut cc_n = ccls::CLK_NEXT;
+        let mut cc_s = ccls::CLK_PREV;
         for cell in self.egrid.column(self.die, self.col_cfg) {
             if let Some(tile) = self.egrid.get_tile(cell.tile(tslots::CLK))
                 && matches!(
@@ -302,18 +304,15 @@ impl Expander<'_, '_> {
                 )
             {
                 if let Some(prev) = prev {
-                    self.egrid
-                        .fill_conn_pair_id(prev, cell, ccls::CLK_N, ccls::CLK_S);
+                    self.egrid.fill_conn_pair_id(prev, cell, cc_n, cc_s);
                 }
                 prev = Some(cell);
             } else if cell.row == self.chip.row_bufg() {
-                self.egrid.fill_conn_pair_id(
-                    prev.unwrap(),
-                    cell.delta(0, -8),
-                    ccls::CLK_N,
-                    ccls::CLK_S,
-                );
+                self.egrid
+                    .fill_conn_pair_id(prev.unwrap(), cell.delta(0, -8), cc_n, cc_s);
                 prev = Some(cell);
+                cc_n = ccls::CLK_PREV;
+                cc_s = ccls::CLK_NEXT;
             }
         }
     }
