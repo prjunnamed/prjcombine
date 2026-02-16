@@ -549,7 +549,7 @@
 
 <tr><td>PRBSCNTRESET1</td><td>input</td><td>CELL[8].IMUX_IMUX_DELAY[2]</td></tr>
 
-<tr><td>REFCLKOUT</td><td>output</td><td>CELL[10].OUT_BEL[8]</td></tr>
+<tr><td>REFCLKOUT</td><td>output</td><td>CELL[10].OUT_BEL[8], CELL[10].MGT_ROW_O[2]</td></tr>
 
 <tr><td>REFCLKPWRDNB</td><td>input</td><td>CELL[9].IMUX_IMUX_DELAY[18]</td></tr>
 
@@ -969,9 +969,9 @@
 
 <tr><td>RXPRBSERR1</td><td>output</td><td>CELL[3].OUT_BEL[11]</td></tr>
 
-<tr><td>RXRECCLK0</td><td>output</td><td>CELL[12].OUT_BEL[13]</td></tr>
+<tr><td>RXRECCLK0</td><td>output</td><td>CELL[10].MGT_ROW_O[0], CELL[12].OUT_BEL[13]</td></tr>
 
-<tr><td>RXRECCLK1</td><td>output</td><td>CELL[7].OUT_BEL[20]</td></tr>
+<tr><td>RXRECCLK1</td><td>output</td><td>CELL[7].OUT_BEL[20], CELL[10].MGT_ROW_O[1]</td></tr>
 
 <tr><td>RXRESET0</td><td>input</td><td>CELL[12].IMUX_IMUX_DELAY[42]</td></tr>
 
@@ -1365,9 +1365,9 @@
 
 <tr><td>TXKERR13</td><td>output</td><td>CELL[2].OUT_BEL[10]</td></tr>
 
-<tr><td>TXOUTCLK0</td><td>output</td><td>CELL[10].OUT_BEL[13]</td></tr>
+<tr><td>TXOUTCLK0</td><td>output</td><td>CELL[10].OUT_BEL[13], CELL[10].MGT_ROW_O[3]</td></tr>
 
-<tr><td>TXOUTCLK1</td><td>output</td><td>CELL[9].OUT_BEL[2]</td></tr>
+<tr><td>TXOUTCLK1</td><td>output</td><td>CELL[9].OUT_BEL[2], CELL[10].MGT_ROW_O[4]</td></tr>
 
 <tr><td>TXPMASETPHASE0</td><td>input</td><td>CELL[10].IMUX_IMUX_DELAY[17]</td></tr>
 
@@ -3708,6 +3708,16 @@
 <tr><td>CELL[10].OUT_BEL[22]</td><td>GTX_DUAL.PMATSTCLK</td></tr>
 
 <tr><td>CELL[10].OUT_BEL[23]</td><td>CRC32[2].CRCOUT1</td></tr>
+
+<tr><td>CELL[10].MGT_ROW_O[0]</td><td>GTX_DUAL.RXRECCLK0</td></tr>
+
+<tr><td>CELL[10].MGT_ROW_O[1]</td><td>GTX_DUAL.RXRECCLK1</td></tr>
+
+<tr><td>CELL[10].MGT_ROW_O[2]</td><td>GTX_DUAL.REFCLKOUT</td></tr>
+
+<tr><td>CELL[10].MGT_ROW_O[3]</td><td>GTX_DUAL.TXOUTCLK0</td></tr>
+
+<tr><td>CELL[10].MGT_ROW_O[4]</td><td>GTX_DUAL.TXOUTCLK1</td></tr>
 
 <tr><td>CELL[11].IMUX_CLK[0]</td><td>GTX_DUAL.TXUSRCLK0</td></tr>
 

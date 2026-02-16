@@ -4715,9 +4715,9 @@
 </thead>
 
 <tbody>
-<tr><td>DCREMACENABLE</td><td>in</td><td>CELL_W[17].IMUX_IMUX[15]</td></tr>
-
 <tr><td>RESET</td><td>in</td><td>CELL_W[2].IMUX_IMUX[14]</td></tr>
+
+<tr><td>DCREMACENABLE</td><td>in</td><td>CELL_W[17].IMUX_IMUX[15]</td></tr>
 
 <tr><td>HOSTCLK</td><td>in</td><td>~CELL_W[16].IMUX_CLK_OPTINV[0]</td></tr>
 
@@ -5853,8 +5853,6 @@
 
 <tr><td>EMAC0CLIENTTXCOLLISION</td><td>out</td><td>CELL_W[2].OUT_BEST_TMIN[3]</td></tr>
 
-<tr><td>EMAC0CLIENTTXGMIIMIICLKOUT</td><td>out</td><td>CELL_W[3].OUT_BEST_TMIN[2]</td></tr>
-
 <tr><td>EMAC0CLIENTTXRETRANSMIT</td><td>out</td><td>CELL_W[2].OUT_BEST_TMIN[4]</td></tr>
 
 <tr><td>EMAC0CLIENTTXSTATS</td><td>out</td><td>CELL_W[4].OUT_BEST_TMIN[4]</td></tr>
@@ -5862,6 +5860,8 @@
 <tr><td>EMAC0CLIENTTXSTATSBYTEVLD</td><td>out</td><td>CELL_W[0].OUT_SEC_TMIN[0]</td></tr>
 
 <tr><td>EMAC0CLIENTTXSTATSVLD</td><td>out</td><td>CELL_W[0].OUT_BEST_TMIN[7]</td></tr>
+
+<tr><td>EMAC0CLIENTTXGMIIMIICLKOUT</td><td>out</td><td>CELL_W[3].OUT_BEST_TMIN[2]</td></tr>
 
 <tr><td>EMAC0PHYENCOMMAALIGN</td><td>out</td><td>CELL_W[9].OUT_SEC_TMIN[4]</td></tr>
 
@@ -5981,8 +5981,6 @@
 
 <tr><td>EMAC1CLIENTTXCOLLISION</td><td>out</td><td>CELL_W[21].OUT_BEST_TMIN[3]</td></tr>
 
-<tr><td>EMAC1CLIENTTXGMIIMIICLKOUT</td><td>out</td><td>CELL_W[20].OUT_BEST_TMIN[2]</td></tr>
-
 <tr><td>EMAC1CLIENTTXRETRANSMIT</td><td>out</td><td>CELL_W[21].OUT_BEST_TMIN[4]</td></tr>
 
 <tr><td>EMAC1CLIENTTXSTATS</td><td>out</td><td>CELL_W[19].OUT_BEST_TMIN[4]</td></tr>
@@ -5990,6 +5988,8 @@
 <tr><td>EMAC1CLIENTTXSTATSBYTEVLD</td><td>out</td><td>CELL_W[21].OUT_BEST_TMIN[5]</td></tr>
 
 <tr><td>EMAC1CLIENTTXSTATSVLD</td><td>out</td><td>CELL_W[21].OUT_BEST_TMIN[7]</td></tr>
+
+<tr><td>EMAC1CLIENTTXGMIIMIICLKOUT</td><td>out</td><td>CELL_W[20].OUT_BEST_TMIN[2]</td></tr>
 
 <tr><td>EMAC1PHYENCOMMAALIGN</td><td>out</td><td>CELL_W[15].OUT_SEC_TMIN[4]</td></tr>
 
@@ -6051,6 +6051,20 @@
 
 <tr><td>TSTSOEMACO[6]</td><td>out</td><td>CELL_E[13].OUT_HALF0_BEL[2], CELL_E[13].OUT_HALF1_BEL[2]</td></tr>
 
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex4 PPC bel EMAC_V4 attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>EMAC</th></tr>
+
+</thead>
+
+<tbody>
 </tbody>
 
 </table>

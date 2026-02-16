@@ -153,187 +153,626 @@
                     <main>
                         <h1 id="configuration-registers"><a class="header" href="#configuration-registers">Configuration registers</a></h1>
 <p>TODO: document</p>
-<h2 id="cor"><a class="header" href="#cor"><code>COR</code></a></h2>
+<h2 id="tile-global"><a class="header" href="#tile-global">Tile GLOBAL</a></h2>
+<p>Cells: 0</p>
+<h3 id="bels-global"><a class="header" href="#bels-global">Bels GLOBAL</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex5 REG.COR rect R0</caption>
+<caption>virtex5 GLOBAL bel GLOBAL pins</caption>
 <thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>GLOBAL</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL bel GLOBAL attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>GLOBAL</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>GWE_CYCLE</td><td><a href="#virtex5-GLOBAL-GLOBAL-GWE_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>GTS_CYCLE</td><td><a href="#virtex5-GLOBAL-GLOBAL-GTS_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>LOCK_CYCLE</td><td><a href="#virtex5-GLOBAL-GLOBAL-LOCK_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>MATCH_CYCLE</td><td><a href="#virtex5-GLOBAL-GLOBAL-MATCH_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>DONE_CYCLE</td><td><a href="#virtex5-GLOBAL-GLOBAL-DONE_CYCLE">[enum: STARTUP_CYCLE]</a></td></tr>
+
+<tr><td>STARTUP_CLOCK</td><td><a href="#virtex5-GLOBAL-GLOBAL-STARTUP_CLOCK">[enum: STARTUP_CLOCK]</a></td></tr>
+
+<tr><td>CONFIG_RATE_V5</td><td><a href="#virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5">[enum: CONFIG_RATE_V5]</a></td></tr>
+
+<tr><td>CAPTURE_ONESHOT</td><td id="virtex5-GLOBAL-GLOBAL-CAPTURE_ONESHOT"><a href="#virtex5-GLOBAL-bit-COR0[0][23]">COR0[0][23]</a></td></tr>
+
+<tr><td>DRIVE_DONE</td><td id="virtex5-GLOBAL-GLOBAL-DRIVE_DONE"><a href="#virtex5-GLOBAL-bit-COR0[0][24]">COR0[0][24]</a></td></tr>
+
+<tr><td>DONE_PIPE</td><td id="virtex5-GLOBAL-GLOBAL-DONE_PIPE"><a href="#virtex5-GLOBAL-bit-COR0[0][25]">COR0[0][25]</a></td></tr>
+
+<tr><td>CRC_ENABLE</td><td id="virtex5-GLOBAL-GLOBAL-CRC_ENABLE"><a href="#virtex5-GLOBAL-bit-COR0[0][28]">!COR0[0][28]</a></td></tr>
+
+<tr><td>BPI_PAGE_SIZE</td><td><a href="#virtex5-GLOBAL-GLOBAL-BPI_PAGE_SIZE">[enum: BPI_PAGE_SIZE]</a></td></tr>
+
+<tr><td>BPI_1ST_READ_CYCLE</td><td><a href="#virtex5-GLOBAL-GLOBAL-BPI_1ST_READ_CYCLE">[enum: BPI_1ST_READ_CYCLE]</a></td></tr>
+
+<tr><td>POST_CRC_EN</td><td id="virtex5-GLOBAL-GLOBAL-POST_CRC_EN"><a href="#virtex5-GLOBAL-bit-COR1[0][8]">COR1[0][8]</a></td></tr>
+
+<tr><td>POST_CRC_NO_PIN</td><td id="virtex5-GLOBAL-GLOBAL-POST_CRC_NO_PIN"><a href="#virtex5-GLOBAL-bit-COR1[0][9]">COR1[0][9]</a></td></tr>
+
+<tr><td>POST_CRC_RECONFIG</td><td id="virtex5-GLOBAL-GLOBAL-POST_CRC_RECONFIG"><a href="#virtex5-GLOBAL-bit-COR1[0][23]">COR1[0][23]</a></td></tr>
+
+<tr><td>RETAIN_CONFIG_STATUS</td><td id="virtex5-GLOBAL-GLOBAL-RETAIN_CONFIG_STATUS"><a href="#virtex5-GLOBAL-bit-COR1[0][25]">!COR1[0][25]</a></td></tr>
+
+<tr><td>POST_CRC_SEL bit 0</td><td id="virtex5-GLOBAL-GLOBAL-POST_CRC_SEL[0]"><a href="#virtex5-GLOBAL-bit-COR1[0][7]">COR1[0][7]</a></td></tr>
+
+<tr><td>PERSIST_DEASSERT_AT_DESYNCH</td><td id="virtex5-GLOBAL-GLOBAL-PERSIST_DEASSERT_AT_DESYNCH"><a href="#virtex5-GLOBAL-bit-COR1[0][17]">COR1[0][17]</a></td></tr>
+
+<tr><td>GTS_USR_B</td><td id="virtex5-GLOBAL-GLOBAL-GTS_USR_B"><a href="#virtex5-GLOBAL-bit-CTL0[0][0]">CTL0[0][0]</a></td></tr>
+
+<tr><td>PERSIST</td><td id="virtex5-GLOBAL-GLOBAL-PERSIST"><a href="#virtex5-GLOBAL-bit-CTL0[0][3]">CTL0[0][3]</a></td></tr>
+
+<tr><td>SECURITY</td><td><a href="#virtex5-GLOBAL-GLOBAL-SECURITY">[enum: SECURITY]</a></td></tr>
+
+<tr><td>ENCRYPT</td><td id="virtex5-GLOBAL-GLOBAL-ENCRYPT"><a href="#virtex5-GLOBAL-bit-CTL0[0][6]">CTL0[0][6]</a></td></tr>
+
+<tr><td>GLUTMASK</td><td id="virtex5-GLOBAL-GLOBAL-GLUTMASK"><a href="#virtex5-GLOBAL-bit-CTL0[0][8]">!CTL0[0][8]</a></td></tr>
+
+<tr><td>ICAP_SELECT</td><td><a href="#virtex5-GLOBAL-GLOBAL-ICAP_SELECT">[enum: ICAP_SELECT]</a></td></tr>
+
+<tr><td>CONFIG_FALLBACK</td><td id="virtex5-GLOBAL-GLOBAL-CONFIG_FALLBACK"><a href="#virtex5-GLOBAL-bit-CTL0[0][10]">!CTL0[0][10]</a></td></tr>
+
+<tr><td>ENCRYPT_KEY_SELECT</td><td><a href="#virtex5-GLOBAL-GLOBAL-ENCRYPT_KEY_SELECT">[enum: ENCRYPT_KEY_SELECT]</a></td></tr>
+
+<tr><td>OVERTEMP_POWERDOWN</td><td id="virtex5-GLOBAL-GLOBAL-OVERTEMP_POWERDOWN"><a href="#virtex5-GLOBAL-bit-CTL0[0][12]">CTL0[0][12]</a></td></tr>
+
+<tr><td>SELECTMAP_ABORT</td><td id="virtex5-GLOBAL-GLOBAL-SELECTMAP_ABORT"><a href="#virtex5-GLOBAL-bit-CTL0[0][9]">!CTL0[0][9]</a></td></tr>
+
+<tr><td>VGG_SEL bit 0</td><td id="virtex5-GLOBAL-GLOBAL-VGG_SEL[0]"><a href="#virtex5-GLOBAL-bit-CTL0[0][13]">CTL0[0][13]</a></td></tr>
+
+<tr><td>VGG_SEL bit 1</td><td id="virtex5-GLOBAL-GLOBAL-VGG_SEL[1]"><a href="#virtex5-GLOBAL-bit-CTL0[0][14]">CTL0[0][14]</a></td></tr>
+
+<tr><td>VGG_SEL bit 2</td><td id="virtex5-GLOBAL-GLOBAL-VGG_SEL[2]"><a href="#virtex5-GLOBAL-bit-CTL0[0][15]">CTL0[0][15]</a></td></tr>
+
+<tr><td>VGG_SEL bit 3</td><td id="virtex5-GLOBAL-GLOBAL-VGG_SEL[3]"><a href="#virtex5-GLOBAL-bit-CTL0[0][16]">CTL0[0][16]</a></td></tr>
+
+<tr><td>VGG_SEL bit 4</td><td id="virtex5-GLOBAL-GLOBAL-VGG_SEL[4]"><a href="#virtex5-GLOBAL-bit-CTL0[0][17]">CTL0[0][17]</a></td></tr>
+
+<tr><td>VBG_DLL_SEL bit 0</td><td id="virtex5-GLOBAL-GLOBAL-VBG_DLL_SEL[0]"><a href="#virtex5-GLOBAL-bit-CTL0[0][18]">CTL0[0][18]</a></td></tr>
+
+<tr><td>VBG_DLL_SEL bit 1</td><td id="virtex5-GLOBAL-GLOBAL-VBG_DLL_SEL[1]"><a href="#virtex5-GLOBAL-bit-CTL0[0][19]">CTL0[0][19]</a></td></tr>
+
+<tr><td>VBG_DLL_SEL bit 2</td><td id="virtex5-GLOBAL-GLOBAL-VBG_DLL_SEL[2]"><a href="#virtex5-GLOBAL-bit-CTL0[0][20]">CTL0[0][20]</a></td></tr>
+
+<tr><td>VBG_DLL_SEL bit 3</td><td id="virtex5-GLOBAL-GLOBAL-VBG_DLL_SEL[3]"><a href="#virtex5-GLOBAL-bit-CTL0[0][21]">CTL0[0][21]</a></td></tr>
+
+<tr><td>VBG_DLL_SEL bit 4</td><td id="virtex5-GLOBAL-GLOBAL-VBG_DLL_SEL[4]"><a href="#virtex5-GLOBAL-bit-CTL0[0][22]">CTL0[0][22]</a></td></tr>
+
+<tr><td>VBG_SEL bit 0</td><td id="virtex5-GLOBAL-GLOBAL-VBG_SEL[0]"><a href="#virtex5-GLOBAL-bit-CTL0[0][23]">CTL0[0][23]</a></td></tr>
+
+<tr><td>VBG_SEL bit 1</td><td id="virtex5-GLOBAL-GLOBAL-VBG_SEL[1]"><a href="#virtex5-GLOBAL-bit-CTL0[0][24]">CTL0[0][24]</a></td></tr>
+
+<tr><td>VBG_SEL bit 2</td><td id="virtex5-GLOBAL-GLOBAL-VBG_SEL[2]"><a href="#virtex5-GLOBAL-bit-CTL0[0][25]">CTL0[0][25]</a></td></tr>
+
+<tr><td>VBG_SEL bit 3</td><td id="virtex5-GLOBAL-GLOBAL-VBG_SEL[3]"><a href="#virtex5-GLOBAL-bit-CTL0[0][26]">CTL0[0][26]</a></td></tr>
+
+<tr><td>VBG_SEL bit 4</td><td id="virtex5-GLOBAL-GLOBAL-VBG_SEL[4]"><a href="#virtex5-GLOBAL-bit-CTL0[0][27]">CTL0[0][27]</a></td></tr>
+
+<tr><td>TIMER bit 0</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[0]"><a href="#virtex5-GLOBAL-bit-TIMER[0][0]">TIMER[0][0]</a></td></tr>
+
+<tr><td>TIMER bit 1</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[1]"><a href="#virtex5-GLOBAL-bit-TIMER[0][1]">TIMER[0][1]</a></td></tr>
+
+<tr><td>TIMER bit 2</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[2]"><a href="#virtex5-GLOBAL-bit-TIMER[0][2]">TIMER[0][2]</a></td></tr>
+
+<tr><td>TIMER bit 3</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[3]"><a href="#virtex5-GLOBAL-bit-TIMER[0][3]">TIMER[0][3]</a></td></tr>
+
+<tr><td>TIMER bit 4</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[4]"><a href="#virtex5-GLOBAL-bit-TIMER[0][4]">TIMER[0][4]</a></td></tr>
+
+<tr><td>TIMER bit 5</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[5]"><a href="#virtex5-GLOBAL-bit-TIMER[0][5]">TIMER[0][5]</a></td></tr>
+
+<tr><td>TIMER bit 6</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[6]"><a href="#virtex5-GLOBAL-bit-TIMER[0][6]">TIMER[0][6]</a></td></tr>
+
+<tr><td>TIMER bit 7</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[7]"><a href="#virtex5-GLOBAL-bit-TIMER[0][7]">TIMER[0][7]</a></td></tr>
+
+<tr><td>TIMER bit 8</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[8]"><a href="#virtex5-GLOBAL-bit-TIMER[0][8]">TIMER[0][8]</a></td></tr>
+
+<tr><td>TIMER bit 9</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[9]"><a href="#virtex5-GLOBAL-bit-TIMER[0][9]">TIMER[0][9]</a></td></tr>
+
+<tr><td>TIMER bit 10</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[10]"><a href="#virtex5-GLOBAL-bit-TIMER[0][10]">TIMER[0][10]</a></td></tr>
+
+<tr><td>TIMER bit 11</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[11]"><a href="#virtex5-GLOBAL-bit-TIMER[0][11]">TIMER[0][11]</a></td></tr>
+
+<tr><td>TIMER bit 12</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[12]"><a href="#virtex5-GLOBAL-bit-TIMER[0][12]">TIMER[0][12]</a></td></tr>
+
+<tr><td>TIMER bit 13</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[13]"><a href="#virtex5-GLOBAL-bit-TIMER[0][13]">TIMER[0][13]</a></td></tr>
+
+<tr><td>TIMER bit 14</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[14]"><a href="#virtex5-GLOBAL-bit-TIMER[0][14]">TIMER[0][14]</a></td></tr>
+
+<tr><td>TIMER bit 15</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[15]"><a href="#virtex5-GLOBAL-bit-TIMER[0][15]">TIMER[0][15]</a></td></tr>
+
+<tr><td>TIMER bit 16</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[16]"><a href="#virtex5-GLOBAL-bit-TIMER[0][16]">TIMER[0][16]</a></td></tr>
+
+<tr><td>TIMER bit 17</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[17]"><a href="#virtex5-GLOBAL-bit-TIMER[0][17]">TIMER[0][17]</a></td></tr>
+
+<tr><td>TIMER bit 18</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[18]"><a href="#virtex5-GLOBAL-bit-TIMER[0][18]">TIMER[0][18]</a></td></tr>
+
+<tr><td>TIMER bit 19</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[19]"><a href="#virtex5-GLOBAL-bit-TIMER[0][19]">TIMER[0][19]</a></td></tr>
+
+<tr><td>TIMER bit 20</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[20]"><a href="#virtex5-GLOBAL-bit-TIMER[0][20]">TIMER[0][20]</a></td></tr>
+
+<tr><td>TIMER bit 21</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[21]"><a href="#virtex5-GLOBAL-bit-TIMER[0][21]">TIMER[0][21]</a></td></tr>
+
+<tr><td>TIMER bit 22</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[22]"><a href="#virtex5-GLOBAL-bit-TIMER[0][22]">TIMER[0][22]</a></td></tr>
+
+<tr><td>TIMER bit 23</td><td id="virtex5-GLOBAL-GLOBAL-TIMER[23]"><a href="#virtex5-GLOBAL-bit-TIMER[0][23]">TIMER[0][23]</a></td></tr>
+
+<tr><td>TIMER_CFG</td><td id="virtex5-GLOBAL-GLOBAL-TIMER_CFG"><a href="#virtex5-GLOBAL-bit-TIMER[0][24]">TIMER[0][24]</a></td></tr>
+
+<tr><td>TIMER_USR</td><td id="virtex5-GLOBAL-GLOBAL-TIMER_USR"><a href="#virtex5-GLOBAL-bit-TIMER[0][25]">TIMER[0][25]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 0</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[0]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][0]">WBSTAR[0][0]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 1</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[1]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][1]">WBSTAR[0][1]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 2</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[2]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][2]">WBSTAR[0][2]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 3</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[3]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][3]">WBSTAR[0][3]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 4</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[4]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][4]">WBSTAR[0][4]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 5</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[5]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][5]">WBSTAR[0][5]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 6</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[6]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][6]">WBSTAR[0][6]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 7</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[7]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][7]">WBSTAR[0][7]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 8</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[8]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][8]">WBSTAR[0][8]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 9</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[9]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][9]">WBSTAR[0][9]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 10</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[10]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][10]">WBSTAR[0][10]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 11</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[11]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][11]">WBSTAR[0][11]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 12</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[12]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][12]">WBSTAR[0][12]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 13</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[13]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][13]">WBSTAR[0][13]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 14</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[14]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][14]">WBSTAR[0][14]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 15</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[15]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][15]">WBSTAR[0][15]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 16</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[16]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][16]">WBSTAR[0][16]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 17</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[17]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][17]">WBSTAR[0][17]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 18</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[18]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][18]">WBSTAR[0][18]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 19</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[19]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][19]">WBSTAR[0][19]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 20</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[20]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][20]">WBSTAR[0][20]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 21</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[21]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][21]">WBSTAR[0][21]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 22</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[22]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][22]">WBSTAR[0][22]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 23</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[23]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][23]">WBSTAR[0][23]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 24</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[24]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][24]">WBSTAR[0][24]</a></td></tr>
+
+<tr><td>V5_NEXT_CONFIG_ADDR bit 25</td><td id="virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[25]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][25]">WBSTAR[0][25]</a></td></tr>
+
+<tr><td>REVISION_SELECT_TRISTATE</td><td id="virtex5-GLOBAL-GLOBAL-REVISION_SELECT_TRISTATE"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][26]">!WBSTAR[0][26]</a></td></tr>
+
+<tr><td>REVISION_SELECT bit 0</td><td id="virtex5-GLOBAL-GLOBAL-REVISION_SELECT[0]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][27]">WBSTAR[0][27]</a></td></tr>
+
+<tr><td>REVISION_SELECT bit 1</td><td id="virtex5-GLOBAL-GLOBAL-REVISION_SELECT[1]"><a href="#virtex5-GLOBAL-bit-WBSTAR[0][28]">WBSTAR[0][28]</a></td></tr>
+
+<tr><td>DD_OVERRIDE</td><td id="virtex5-GLOBAL-GLOBAL-DD_OVERRIDE"><a href="#virtex5-GLOBAL-bit-TESTMODE[0][14]">TESTMODE[0][14]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL enum STARTUP_CYCLE</caption>
+<thead>
+<tr id="virtex5-GLOBAL-GLOBAL-GWE_CYCLE"><th>GLOBAL.GWE_CYCLE</th><td id="virtex5-GLOBAL-GLOBAL-GWE_CYCLE[2]"><a href="#virtex5-GLOBAL-bit-COR0[0][2]">COR0[0][2]</a></td><td id="virtex5-GLOBAL-GLOBAL-GWE_CYCLE[1]"><a href="#virtex5-GLOBAL-bit-COR0[0][1]">COR0[0][1]</a></td><td id="virtex5-GLOBAL-GLOBAL-GWE_CYCLE[0]"><a href="#virtex5-GLOBAL-bit-COR0[0][0]">COR0[0][0]</a></td></tr>
+
+<tr id="virtex5-GLOBAL-GLOBAL-GTS_CYCLE"><th>GLOBAL.GTS_CYCLE</th><td id="virtex5-GLOBAL-GLOBAL-GTS_CYCLE[2]"><a href="#virtex5-GLOBAL-bit-COR0[0][5]">COR0[0][5]</a></td><td id="virtex5-GLOBAL-GLOBAL-GTS_CYCLE[1]"><a href="#virtex5-GLOBAL-bit-COR0[0][4]">COR0[0][4]</a></td><td id="virtex5-GLOBAL-GLOBAL-GTS_CYCLE[0]"><a href="#virtex5-GLOBAL-bit-COR0[0][3]">COR0[0][3]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>_2</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_3</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_4</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_5</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_6</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>DONE</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>KEEP</td><td>1</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL enum STARTUP_CYCLE</caption>
+<thead>
+<tr id="virtex5-GLOBAL-GLOBAL-LOCK_CYCLE"><th>GLOBAL.LOCK_CYCLE</th><td id="virtex5-GLOBAL-GLOBAL-LOCK_CYCLE[2]"><a href="#virtex5-GLOBAL-bit-COR0[0][8]">COR0[0][8]</a></td><td id="virtex5-GLOBAL-GLOBAL-LOCK_CYCLE[1]"><a href="#virtex5-GLOBAL-bit-COR0[0][7]">COR0[0][7]</a></td><td id="virtex5-GLOBAL-GLOBAL-LOCK_CYCLE[0]"><a href="#virtex5-GLOBAL-bit-COR0[0][6]">COR0[0][6]</a></td></tr>
+
+<tr id="virtex5-GLOBAL-GLOBAL-MATCH_CYCLE"><th>GLOBAL.MATCH_CYCLE</th><td id="virtex5-GLOBAL-GLOBAL-MATCH_CYCLE[2]"><a href="#virtex5-GLOBAL-bit-COR0[0][11]">COR0[0][11]</a></td><td id="virtex5-GLOBAL-GLOBAL-MATCH_CYCLE[1]"><a href="#virtex5-GLOBAL-bit-COR0[0][10]">COR0[0][10]</a></td><td id="virtex5-GLOBAL-GLOBAL-MATCH_CYCLE[0]"><a href="#virtex5-GLOBAL-bit-COR0[0][9]">COR0[0][9]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_0</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>_1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_2</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_3</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_4</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_5</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>_6</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>NOWAIT</td><td>1</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL enum STARTUP_CYCLE</caption>
+<thead>
+<tr id="virtex5-GLOBAL-GLOBAL-DONE_CYCLE"><th>GLOBAL.DONE_CYCLE</th><td id="virtex5-GLOBAL-GLOBAL-DONE_CYCLE[2]"><a href="#virtex5-GLOBAL-bit-COR0[0][14]">COR0[0][14]</a></td><td id="virtex5-GLOBAL-GLOBAL-DONE_CYCLE[1]"><a href="#virtex5-GLOBAL-bit-COR0[0][13]">COR0[0][13]</a></td><td id="virtex5-GLOBAL-GLOBAL-DONE_CYCLE[0]"><a href="#virtex5-GLOBAL-bit-COR0[0][12]">COR0[0][12]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>_2</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_3</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_4</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_5</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_6</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>KEEP</td><td>1</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL enum STARTUP_CLOCK</caption>
+<thead>
+<tr id="virtex5-GLOBAL-GLOBAL-STARTUP_CLOCK"><th>GLOBAL.STARTUP_CLOCK</th><td id="virtex5-GLOBAL-GLOBAL-STARTUP_CLOCK[1]"><a href="#virtex5-GLOBAL-bit-COR0[0][16]">COR0[0][16]</a></td><td id="virtex5-GLOBAL-GLOBAL-STARTUP_CLOCK[0]"><a href="#virtex5-GLOBAL-bit-COR0[0][15]">COR0[0][15]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CCLK</td><td>0</td><td>0</td></tr>
+
+<tr><td>USERCLK</td><td>0</td><td>1</td></tr>
+
+<tr><td>JTAGCLK</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL enum CONFIG_RATE_V5</caption>
+<thead>
+<tr id="virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5"><th>GLOBAL.CONFIG_RATE_V5</th><td id="virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[5]"><a href="#virtex5-GLOBAL-bit-COR0[0][22]">COR0[0][22]</a></td><td id="virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[4]"><a href="#virtex5-GLOBAL-bit-COR0[0][21]">COR0[0][21]</a></td><td id="virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[3]"><a href="#virtex5-GLOBAL-bit-COR0[0][20]">COR0[0][20]</a></td><td id="virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[2]"><a href="#virtex5-GLOBAL-bit-COR0[0][19]">COR0[0][19]</a></td><td id="virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[1]"><a href="#virtex5-GLOBAL-bit-COR0[0][18]">COR0[0][18]</a></td><td id="virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[0]"><a href="#virtex5-GLOBAL-bit-COR0[0][17]">COR0[0][17]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_2</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+
+<tr><td>_6</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_9</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_13</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_17</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+
+<tr><td>_20</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>_24</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_27</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+
+<tr><td>_31</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_35</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>_38</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+
+<tr><td>_42</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+
+<tr><td>_46</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_49</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+
+<tr><td>_53</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+
+<tr><td>_56</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_60</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL enum BPI_PAGE_SIZE</caption>
+<thead>
+<tr id="virtex5-GLOBAL-GLOBAL-BPI_PAGE_SIZE"><th>GLOBAL.BPI_PAGE_SIZE</th><td id="virtex5-GLOBAL-GLOBAL-BPI_PAGE_SIZE[1]"><a href="#virtex5-GLOBAL-bit-COR1[0][1]">COR1[0][1]</a></td><td id="virtex5-GLOBAL-GLOBAL-BPI_PAGE_SIZE[0]"><a href="#virtex5-GLOBAL-bit-COR1[0][0]">COR1[0][0]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_4</td><td>0</td><td>1</td></tr>
+
+<tr><td>_8</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL enum BPI_1ST_READ_CYCLE</caption>
+<thead>
+<tr id="virtex5-GLOBAL-GLOBAL-BPI_1ST_READ_CYCLE"><th>GLOBAL.BPI_1ST_READ_CYCLE</th><td id="virtex5-GLOBAL-GLOBAL-BPI_1ST_READ_CYCLE[1]"><a href="#virtex5-GLOBAL-bit-COR1[0][3]">COR1[0][3]</a></td><td id="virtex5-GLOBAL-GLOBAL-BPI_1ST_READ_CYCLE[0]"><a href="#virtex5-GLOBAL-bit-COR1[0][2]">COR1[0][2]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>_1</td><td>0</td><td>0</td></tr>
+
+<tr><td>_2</td><td>0</td><td>1</td></tr>
+
+<tr><td>_3</td><td>1</td><td>0</td></tr>
+
+<tr><td>_4</td><td>1</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL enum SECURITY</caption>
+<thead>
+<tr id="virtex5-GLOBAL-GLOBAL-SECURITY"><th>GLOBAL.SECURITY</th><td id="virtex5-GLOBAL-GLOBAL-SECURITY[1]"><a href="#virtex5-GLOBAL-bit-CTL0[0][5]">CTL0[0][5]</a></td><td id="virtex5-GLOBAL-GLOBAL-SECURITY[0]"><a href="#virtex5-GLOBAL-bit-CTL0[0][4]">CTL0[0][4]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>NONE</td><td>0</td><td>0</td></tr>
+
+<tr><td>LEVEL1</td><td>0</td><td>1</td></tr>
+
+<tr><td>LEVEL2</td><td>1</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL enum ICAP_SELECT</caption>
+<thead>
+<tr id="virtex5-GLOBAL-GLOBAL-ICAP_SELECT"><th>GLOBAL.ICAP_SELECT</th><td id="virtex5-GLOBAL-GLOBAL-ICAP_SELECT[0]"><a href="#virtex5-GLOBAL-bit-CTL0[0][30]">CTL0[0][30]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>BOTTOM</td><td>1</td></tr>
+
+<tr><td>TOP</td><td>0</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL enum ENCRYPT_KEY_SELECT</caption>
+<thead>
+<tr id="virtex5-GLOBAL-GLOBAL-ENCRYPT_KEY_SELECT"><th>GLOBAL.ENCRYPT_KEY_SELECT</th><td id="virtex5-GLOBAL-GLOBAL-ENCRYPT_KEY_SELECT[0]"><a href="#virtex5-GLOBAL-bit-CTL0[0][31]">CTL0[0][31]</a></td></tr>
+
+</thead>
+
+<tbody>
+<tr><td>BBRAM</td><td>0</td></tr>
+
+<tr><td>EFUSE</td><td>1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL rect COR0</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="32">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B31</th>
+<th>B30</th>
+<th>B29</th>
+<th>B28</th>
+<th>B27</th>
+<th>B26</th>
+<th>B25</th>
+<th>B24</th>
+<th>B23</th>
+<th>B22</th>
+<th>B21</th>
+<th>B20</th>
+<th>B19</th>
+<th>B18</th>
+<th>B17</th>
+<th>B16</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-virtex5-REG.COR-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-virtex5-REG.COR-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-virtex5-REG.COR-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-virtex5-REG.COR-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[0]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-virtex5-REG.COR-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[1]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-virtex5-REG.COR-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[2]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-virtex5-REG.COR-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[0]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-virtex5-REG.COR-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[1]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-virtex5-REG.COR-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[2]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-virtex5-REG.COR-STARTUP:MATCH_CYCLE">STARTUP:MATCH_CYCLE[0]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-virtex5-REG.COR-STARTUP:MATCH_CYCLE">STARTUP:MATCH_CYCLE[1]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-virtex5-REG.COR-STARTUP:MATCH_CYCLE">STARTUP:MATCH_CYCLE[2]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-virtex5-REG.COR-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[0]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-virtex5-REG.COR-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[1]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-virtex5-REG.COR-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[2]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-virtex5-REG.COR-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK[0]</a>
-</td>
-</tr>
-
-<tr><td>B16</td>
-<td title="R0.F0.B16">
-<a href="#tile-virtex5-REG.COR-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK[1]</a>
-</td>
-</tr>
-
-<tr><td>B17</td>
-<td title="R0.F0.B17">
-<a href="#tile-virtex5-REG.COR-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[0]</a>
-</td>
-</tr>
-
-<tr><td>B18</td>
-<td title="R0.F0.B18">
-<a href="#tile-virtex5-REG.COR-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[1]</a>
-</td>
-</tr>
-
-<tr><td>B19</td>
-<td title="R0.F0.B19">
-<a href="#tile-virtex5-REG.COR-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[2]</a>
-</td>
-</tr>
-
-<tr><td>B20</td>
-<td title="R0.F0.B20">
-<a href="#tile-virtex5-REG.COR-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[3]</a>
-</td>
-</tr>
-
-<tr><td>B21</td>
-<td title="R0.F0.B21">
-<a href="#tile-virtex5-REG.COR-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[4]</a>
-</td>
-</tr>
-
-<tr><td>B22</td>
-<td title="R0.F0.B22">
-<a href="#tile-virtex5-REG.COR-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[5]</a>
-</td>
-</tr>
-
-<tr><td>B23</td>
-<td title="R0.F0.B23">
-<a href="#tile-virtex5-REG.COR-CAPTURE:ONESHOT">CAPTURE:ONESHOT</a>
-</td>
-</tr>
-
-<tr><td>B24</td>
-<td title="R0.F0.B24">
-<a href="#tile-virtex5-REG.COR-STARTUP:DRIVE_DONE">STARTUP:DRIVE_DONE</a>
-</td>
-</tr>
-
-<tr><td>B25</td>
-<td title="R0.F0.B25">
-<a href="#tile-virtex5-REG.COR-STARTUP:DONE_PIPE">STARTUP:DONE_PIPE</a>
-</td>
-</tr>
-
-<tr><td>B26</td>
+<tr><td>F0</td>
 <td>-</td>
-</tr>
-
-<tr><td>B27</td>
 <td>-</td>
-</tr>
-
-<tr><td>B28</td>
-<td title="R0.F0.B28">
-<a href="#tile-virtex5-REG.COR-STARTUP:CRC">~STARTUP:CRC</a>
+<td>-</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][28]" title="COR0[0][28]">
+<a href="#virtex5-GLOBAL-GLOBAL-CRC_ENABLE">GLOBAL: ! CRC_ENABLE</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][25]" title="COR0[0][25]">
+<a href="#virtex5-GLOBAL-GLOBAL-DONE_PIPE">GLOBAL:  DONE_PIPE</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][24]" title="COR0[0][24]">
+<a href="#virtex5-GLOBAL-GLOBAL-DRIVE_DONE">GLOBAL:  DRIVE_DONE</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][23]" title="COR0[0][23]">
+<a href="#virtex5-GLOBAL-GLOBAL-CAPTURE_ONESHOT">GLOBAL:  CAPTURE_ONESHOT</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][22]" title="COR0[0][22]">
+<a href="#virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[5]">GLOBAL:  CONFIG_RATE_V5 bit 5</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][21]" title="COR0[0][21]">
+<a href="#virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[4]">GLOBAL:  CONFIG_RATE_V5 bit 4</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][20]" title="COR0[0][20]">
+<a href="#virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[3]">GLOBAL:  CONFIG_RATE_V5 bit 3</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][19]" title="COR0[0][19]">
+<a href="#virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[2]">GLOBAL:  CONFIG_RATE_V5 bit 2</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][18]" title="COR0[0][18]">
+<a href="#virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[1]">GLOBAL:  CONFIG_RATE_V5 bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][17]" title="COR0[0][17]">
+<a href="#virtex5-GLOBAL-GLOBAL-CONFIG_RATE_V5[0]">GLOBAL:  CONFIG_RATE_V5 bit 0</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][16]" title="COR0[0][16]">
+<a href="#virtex5-GLOBAL-GLOBAL-STARTUP_CLOCK[1]">GLOBAL:  STARTUP_CLOCK bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][15]" title="COR0[0][15]">
+<a href="#virtex5-GLOBAL-GLOBAL-STARTUP_CLOCK[0]">GLOBAL:  STARTUP_CLOCK bit 0</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][14]" title="COR0[0][14]">
+<a href="#virtex5-GLOBAL-GLOBAL-DONE_CYCLE[2]">GLOBAL:  DONE_CYCLE bit 2</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][13]" title="COR0[0][13]">
+<a href="#virtex5-GLOBAL-GLOBAL-DONE_CYCLE[1]">GLOBAL:  DONE_CYCLE bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][12]" title="COR0[0][12]">
+<a href="#virtex5-GLOBAL-GLOBAL-DONE_CYCLE[0]">GLOBAL:  DONE_CYCLE bit 0</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][11]" title="COR0[0][11]">
+<a href="#virtex5-GLOBAL-GLOBAL-MATCH_CYCLE[2]">GLOBAL:  MATCH_CYCLE bit 2</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][10]" title="COR0[0][10]">
+<a href="#virtex5-GLOBAL-GLOBAL-MATCH_CYCLE[1]">GLOBAL:  MATCH_CYCLE bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][9]" title="COR0[0][9]">
+<a href="#virtex5-GLOBAL-GLOBAL-MATCH_CYCLE[0]">GLOBAL:  MATCH_CYCLE bit 0</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][8]" title="COR0[0][8]">
+<a href="#virtex5-GLOBAL-GLOBAL-LOCK_CYCLE[2]">GLOBAL:  LOCK_CYCLE bit 2</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][7]" title="COR0[0][7]">
+<a href="#virtex5-GLOBAL-GLOBAL-LOCK_CYCLE[1]">GLOBAL:  LOCK_CYCLE bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][6]" title="COR0[0][6]">
+<a href="#virtex5-GLOBAL-GLOBAL-LOCK_CYCLE[0]">GLOBAL:  LOCK_CYCLE bit 0</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][5]" title="COR0[0][5]">
+<a href="#virtex5-GLOBAL-GLOBAL-GTS_CYCLE[2]">GLOBAL:  GTS_CYCLE bit 2</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][4]" title="COR0[0][4]">
+<a href="#virtex5-GLOBAL-GLOBAL-GTS_CYCLE[1]">GLOBAL:  GTS_CYCLE bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][3]" title="COR0[0][3]">
+<a href="#virtex5-GLOBAL-GLOBAL-GTS_CYCLE[0]">GLOBAL:  GTS_CYCLE bit 0</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][2]" title="COR0[0][2]">
+<a href="#virtex5-GLOBAL-GLOBAL-GWE_CYCLE[2]">GLOBAL:  GWE_CYCLE bit 2</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][1]" title="COR0[0][1]">
+<a href="#virtex5-GLOBAL-GLOBAL-GWE_CYCLE[1]">GLOBAL:  GWE_CYCLE bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR0[0][0]" title="COR0[0][0]">
+<a href="#virtex5-GLOBAL-GLOBAL-GWE_CYCLE[0]">GLOBAL:  GWE_CYCLE bit 0</a>
 </td>
 </tr>
 
@@ -344,592 +783,100 @@
 
 <div class="table-wrapper">
 <table>
+<caption>virtex5 GLOBAL rect COR1</caption>
 <thead>
-<tr><th id="tile-virtex5-REG.COR-CAPTURE:ONESHOT">CAPTURE:ONESHOT</th>
-<th>0.F0.B23</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.COR-STARTUP:DONE_PIPE">STARTUP:DONE_PIPE</th>
-<th>0.F0.B25</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.COR-STARTUP:DRIVE_DONE">STARTUP:DRIVE_DONE</th>
-<th>0.F0.B24</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.COR-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE</th>
-<th>0.F0.B22</th>
-<th>0.F0.B21</th>
-<th>0.F0.B20</th>
-<th>0.F0.B19</th>
-<th>0.F0.B18</th>
-<th>0.F0.B17</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>2</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>6</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>9</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>13</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>17</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>20</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>24</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>27</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>31</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>35</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>38</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>42</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>49</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>53</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>60</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>46</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>56</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.COR-STARTUP:CRC">STARTUP:CRC</th>
-<th>0.F0.B28</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.COR-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE</th>
-<th>0.F0.B14</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>4</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>5</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>6</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>KEEP</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.COR-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.COR-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>4</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>5</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>6</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>DONE</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>KEEP</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.COR-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.COR-STARTUP:MATCH_CYCLE">STARTUP:MATCH_CYCLE</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>3</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>4</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>5</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>6</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NOWAIT</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.COR-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK</th>
-<th>0.F0.B16</th>
-<th>0.F0.B15</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>CCLK</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>USERCLK</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>JTAGCLK</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="cor1"><a class="header" href="#cor1"><code>COR1</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>virtex5 REG.COR1 rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="32">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B31</th>
+<th>B30</th>
+<th>B29</th>
+<th>B28</th>
+<th>B27</th>
+<th>B26</th>
+<th>B25</th>
+<th>B24</th>
+<th>B23</th>
+<th>B22</th>
+<th>B21</th>
+<th>B20</th>
+<th>B19</th>
+<th>B18</th>
+<th>B17</th>
+<th>B16</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-virtex5-REG.COR1-MISC:BPI_PAGE_SIZE">MISC:BPI_PAGE_SIZE[0]</a>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex5-GLOBAL-bit-COR1[0][25]" title="COR1[0][25]">
+<a href="#virtex5-GLOBAL-GLOBAL-RETAIN_CONFIG_STATUS">GLOBAL: ! RETAIN_CONFIG_STATUS</a>
 </td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-virtex5-REG.COR1-MISC:BPI_PAGE_SIZE">MISC:BPI_PAGE_SIZE[1]</a>
+<td>-</td>
+<td id="virtex5-GLOBAL-bit-COR1[0][23]" title="COR1[0][23]">
+<a href="#virtex5-GLOBAL-GLOBAL-POST_CRC_RECONFIG">GLOBAL:  POST_CRC_RECONFIG</a>
 </td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-virtex5-REG.COR1-MISC:BPI_1ST_READ_CYCLE">MISC:BPI_1ST_READ_CYCLE[0]</a>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex5-GLOBAL-bit-COR1[0][17]" title="COR1[0][17]">
+<a href="#virtex5-GLOBAL-GLOBAL-PERSIST_DEASSERT_AT_DESYNCH">GLOBAL:  PERSIST_DEASSERT_AT_DESYNCH</a>
 </td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-virtex5-REG.COR1-MISC:BPI_1ST_READ_CYCLE">MISC:BPI_1ST_READ_CYCLE[1]</a>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex5-GLOBAL-bit-COR1[0][9]" title="COR1[0][9]">
+<a href="#virtex5-GLOBAL-GLOBAL-POST_CRC_NO_PIN">GLOBAL:  POST_CRC_NO_PIN</a>
 </td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-virtex5-REG.COR1-MISC:POST_CRC_SEL">MISC:POST_CRC_SEL</a>
+<td id="virtex5-GLOBAL-bit-COR1[0][8]" title="COR1[0][8]">
+<a href="#virtex5-GLOBAL-GLOBAL-POST_CRC_EN">GLOBAL:  POST_CRC_EN</a>
 </td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-virtex5-REG.COR1-MISC:POST_CRC_EN">MISC:POST_CRC_EN</a>
+<td id="virtex5-GLOBAL-bit-COR1[0][7]" title="COR1[0][7]">
+<a href="#virtex5-GLOBAL-GLOBAL-POST_CRC_SEL[0]">GLOBAL:  POST_CRC_SEL bit 0</a>
 </td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-virtex5-REG.COR1-MISC:POST_CRC_NO_PIN">MISC:POST_CRC_NO_PIN</a>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex5-GLOBAL-bit-COR1[0][3]" title="COR1[0][3]">
+<a href="#virtex5-GLOBAL-GLOBAL-BPI_1ST_READ_CYCLE[1]">GLOBAL:  BPI_1ST_READ_CYCLE bit 1</a>
 </td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td>-</td>
-</tr>
-
-<tr><td>B15</td>
-<td>-</td>
-</tr>
-
-<tr><td>B16</td>
-<td>-</td>
-</tr>
-
-<tr><td>B17</td>
-<td>-</td>
-</tr>
-
-<tr><td>B18</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td>-</td>
-</tr>
-
-<tr><td>B21</td>
-<td>-</td>
-</tr>
-
-<tr><td>B22</td>
-<td>-</td>
-</tr>
-
-<tr><td>B23</td>
-<td title="R0.F0.B23">
-<a href="#tile-virtex5-REG.COR1-MISC:POST_CRC_RECONFIG">MISC:POST_CRC_RECONFIG</a>
+<td id="virtex5-GLOBAL-bit-COR1[0][2]" title="COR1[0][2]">
+<a href="#virtex5-GLOBAL-GLOBAL-BPI_1ST_READ_CYCLE[0]">GLOBAL:  BPI_1ST_READ_CYCLE bit 0</a>
 </td>
-</tr>
-
-<tr><td>B24</td>
-<td>-</td>
-</tr>
-
-<tr><td>B25</td>
-<td title="R0.F0.B25">
-<a href="#tile-virtex5-REG.COR1-MISC:RETAIN_CONFIG_STATUS">~MISC:RETAIN_CONFIG_STATUS</a>
+<td id="virtex5-GLOBAL-bit-COR1[0][1]" title="COR1[0][1]">
+<a href="#virtex5-GLOBAL-GLOBAL-BPI_PAGE_SIZE[1]">GLOBAL:  BPI_PAGE_SIZE bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-COR1[0][0]" title="COR1[0][0]">
+<a href="#virtex5-GLOBAL-GLOBAL-BPI_PAGE_SIZE[0]">GLOBAL:  BPI_PAGE_SIZE bit 0</a>
 </td>
 </tr>
 
@@ -940,316 +887,132 @@ inverted
 
 <div class="table-wrapper">
 <table>
+<caption>virtex5 GLOBAL rect CTL0</caption>
 <thead>
-<tr><th id="tile-virtex5-REG.COR1-MISC:BPI_1ST_READ_CYCLE">MISC:BPI_1ST_READ_CYCLE</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>2</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>3</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>4</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.COR1-MISC:BPI_PAGE_SIZE">MISC:BPI_PAGE_SIZE</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>4</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>8</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.COR1-MISC:POST_CRC_EN">MISC:POST_CRC_EN</th>
-<th>0.F0.B8</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.COR1-MISC:POST_CRC_NO_PIN">MISC:POST_CRC_NO_PIN</th>
-<th>0.F0.B9</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.COR1-MISC:POST_CRC_RECONFIG">MISC:POST_CRC_RECONFIG</th>
-<th>0.F0.B23</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.COR1-MISC:POST_CRC_SEL">MISC:POST_CRC_SEL</th>
-<th>0.F0.B7</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.COR1-MISC:RETAIN_CONFIG_STATUS">MISC:RETAIN_CONFIG_STATUS</th>
-<th>0.F0.B25</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="ctl"><a class="header" href="#ctl"><code>CTL</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>virtex5 REG.CTL rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="32">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B31</th>
+<th>B30</th>
+<th>B29</th>
+<th>B28</th>
+<th>B27</th>
+<th>B26</th>
+<th>B25</th>
+<th>B24</th>
+<th>B23</th>
+<th>B22</th>
+<th>B21</th>
+<th>B20</th>
+<th>B19</th>
+<th>B18</th>
+<th>B17</th>
+<th>B16</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-virtex5-REG.CTL-MISC:GTS_USR_B">MISC:GTS_USR_B</a>
+<tr><td>F0</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][31]" title="CTL0[0][31]">
+<a href="#virtex5-GLOBAL-GLOBAL-ENCRYPT_KEY_SELECT[0]">GLOBAL:  ENCRYPT_KEY_SELECT bit 0</a>
 </td>
-</tr>
-
-<tr><td>B1</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][30]" title="CTL0[0][30]">
+<a href="#virtex5-GLOBAL-GLOBAL-ICAP_SELECT[0]">GLOBAL:  ICAP_SELECT bit 0</a>
+</td>
 <td>-</td>
-</tr>
-
-<tr><td>B2</td>
 <td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-virtex5-REG.CTL-MISC:PERSIST">MISC:PERSIST</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][27]" title="CTL0[0][27]">
+<a href="#virtex5-GLOBAL-GLOBAL-VBG_SEL[4]">GLOBAL:  VBG_SEL bit 4</a>
 </td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-virtex5-REG.CTL-MISC:SECURITY">MISC:SECURITY[0]</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][26]" title="CTL0[0][26]">
+<a href="#virtex5-GLOBAL-GLOBAL-VBG_SEL[3]">GLOBAL:  VBG_SEL bit 3</a>
 </td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-virtex5-REG.CTL-MISC:SECURITY">MISC:SECURITY[1]</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][25]" title="CTL0[0][25]">
+<a href="#virtex5-GLOBAL-GLOBAL-VBG_SEL[2]">GLOBAL:  VBG_SEL bit 2</a>
 </td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-virtex5-REG.CTL-MISC:ENCRYPT">MISC:ENCRYPT</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][24]" title="CTL0[0][24]">
+<a href="#virtex5-GLOBAL-GLOBAL-VBG_SEL[1]">GLOBAL:  VBG_SEL bit 1</a>
 </td>
-</tr>
-
-<tr><td>B7</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][23]" title="CTL0[0][23]">
+<a href="#virtex5-GLOBAL-GLOBAL-VBG_SEL[0]">GLOBAL:  VBG_SEL bit 0</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][22]" title="CTL0[0][22]">
+<a href="#virtex5-GLOBAL-GLOBAL-VBG_DLL_SEL[4]">GLOBAL:  VBG_DLL_SEL bit 4</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][21]" title="CTL0[0][21]">
+<a href="#virtex5-GLOBAL-GLOBAL-VBG_DLL_SEL[3]">GLOBAL:  VBG_DLL_SEL bit 3</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][20]" title="CTL0[0][20]">
+<a href="#virtex5-GLOBAL-GLOBAL-VBG_DLL_SEL[2]">GLOBAL:  VBG_DLL_SEL bit 2</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][19]" title="CTL0[0][19]">
+<a href="#virtex5-GLOBAL-GLOBAL-VBG_DLL_SEL[1]">GLOBAL:  VBG_DLL_SEL bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][18]" title="CTL0[0][18]">
+<a href="#virtex5-GLOBAL-GLOBAL-VBG_DLL_SEL[0]">GLOBAL:  VBG_DLL_SEL bit 0</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][17]" title="CTL0[0][17]">
+<a href="#virtex5-GLOBAL-GLOBAL-VGG_SEL[4]">GLOBAL:  VGG_SEL bit 4</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][16]" title="CTL0[0][16]">
+<a href="#virtex5-GLOBAL-GLOBAL-VGG_SEL[3]">GLOBAL:  VGG_SEL bit 3</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][15]" title="CTL0[0][15]">
+<a href="#virtex5-GLOBAL-GLOBAL-VGG_SEL[2]">GLOBAL:  VGG_SEL bit 2</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][14]" title="CTL0[0][14]">
+<a href="#virtex5-GLOBAL-GLOBAL-VGG_SEL[1]">GLOBAL:  VGG_SEL bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][13]" title="CTL0[0][13]">
+<a href="#virtex5-GLOBAL-GLOBAL-VGG_SEL[0]">GLOBAL:  VGG_SEL bit 0</a>
+</td>
+<td id="virtex5-GLOBAL-bit-CTL0[0][12]" title="CTL0[0][12]">
+<a href="#virtex5-GLOBAL-GLOBAL-OVERTEMP_POWERDOWN">GLOBAL:  OVERTEMP_POWERDOWN</a>
+</td>
 <td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-virtex5-REG.CTL-MISC:GLUTMASK">~MISC:GLUTMASK</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][10]" title="CTL0[0][10]">
+<a href="#virtex5-GLOBAL-GLOBAL-CONFIG_FALLBACK">GLOBAL: ! CONFIG_FALLBACK</a>
 </td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-virtex5-REG.CTL-MISC:SELECTMAP_ABORT">~MISC:SELECTMAP_ABORT</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][9]" title="CTL0[0][9]">
+<a href="#virtex5-GLOBAL-GLOBAL-SELECTMAP_ABORT">GLOBAL: ! SELECTMAP_ABORT</a>
 </td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-virtex5-REG.CTL-MISC:CONFIG_FALLBACK">~MISC:CONFIG_FALLBACK</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][8]" title="CTL0[0][8]">
+<a href="#virtex5-GLOBAL-GLOBAL-GLUTMASK">GLOBAL: ! GLUTMASK</a>
 </td>
-</tr>
-
-<tr><td>B11</td>
 <td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-virtex5-REG.CTL-MISC:OVERTEMP_POWERDOWN">MISC:OVERTEMP_POWERDOWN</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][6]" title="CTL0[0][6]">
+<a href="#virtex5-GLOBAL-GLOBAL-ENCRYPT">GLOBAL:  ENCRYPT</a>
 </td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-virtex5-REG.CTL-MISC:VGG_SEL">MISC:VGG_SEL[0]</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][5]" title="CTL0[0][5]">
+<a href="#virtex5-GLOBAL-GLOBAL-SECURITY[1]">GLOBAL:  SECURITY bit 1</a>
 </td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-virtex5-REG.CTL-MISC:VGG_SEL">MISC:VGG_SEL[1]</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][4]" title="CTL0[0][4]">
+<a href="#virtex5-GLOBAL-GLOBAL-SECURITY[0]">GLOBAL:  SECURITY bit 0</a>
 </td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-virtex5-REG.CTL-MISC:VGG_SEL">MISC:VGG_SEL[2]</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][3]" title="CTL0[0][3]">
+<a href="#virtex5-GLOBAL-GLOBAL-PERSIST">GLOBAL:  PERSIST</a>
 </td>
-</tr>
-
-<tr><td>B16</td>
-<td title="R0.F0.B16">
-<a href="#tile-virtex5-REG.CTL-MISC:VGG_SEL">MISC:VGG_SEL[3]</a>
-</td>
-</tr>
-
-<tr><td>B17</td>
-<td title="R0.F0.B17">
-<a href="#tile-virtex5-REG.CTL-MISC:VGG_SEL">MISC:VGG_SEL[4]</a>
-</td>
-</tr>
-
-<tr><td>B18</td>
-<td title="R0.F0.B18">
-<a href="#tile-virtex5-REG.CTL-MISC:VBG_DLL_SEL">MISC:VBG_DLL_SEL[0]</a>
-</td>
-</tr>
-
-<tr><td>B19</td>
-<td title="R0.F0.B19">
-<a href="#tile-virtex5-REG.CTL-MISC:VBG_DLL_SEL">MISC:VBG_DLL_SEL[1]</a>
-</td>
-</tr>
-
-<tr><td>B20</td>
-<td title="R0.F0.B20">
-<a href="#tile-virtex5-REG.CTL-MISC:VBG_DLL_SEL">MISC:VBG_DLL_SEL[2]</a>
-</td>
-</tr>
-
-<tr><td>B21</td>
-<td title="R0.F0.B21">
-<a href="#tile-virtex5-REG.CTL-MISC:VBG_DLL_SEL">MISC:VBG_DLL_SEL[3]</a>
-</td>
-</tr>
-
-<tr><td>B22</td>
-<td title="R0.F0.B22">
-<a href="#tile-virtex5-REG.CTL-MISC:VBG_DLL_SEL">MISC:VBG_DLL_SEL[4]</a>
-</td>
-</tr>
-
-<tr><td>B23</td>
-<td title="R0.F0.B23">
-<a href="#tile-virtex5-REG.CTL-MISC:VBG_SEL">MISC:VBG_SEL[0]</a>
-</td>
-</tr>
-
-<tr><td>B24</td>
-<td title="R0.F0.B24">
-<a href="#tile-virtex5-REG.CTL-MISC:VBG_SEL">MISC:VBG_SEL[1]</a>
-</td>
-</tr>
-
-<tr><td>B25</td>
-<td title="R0.F0.B25">
-<a href="#tile-virtex5-REG.CTL-MISC:VBG_SEL">MISC:VBG_SEL[2]</a>
-</td>
-</tr>
-
-<tr><td>B26</td>
-<td title="R0.F0.B26">
-<a href="#tile-virtex5-REG.CTL-MISC:VBG_SEL">MISC:VBG_SEL[3]</a>
-</td>
-</tr>
-
-<tr><td>B27</td>
-<td title="R0.F0.B27">
-<a href="#tile-virtex5-REG.CTL-MISC:VBG_SEL">MISC:VBG_SEL[4]</a>
-</td>
-</tr>
-
-<tr><td>B28</td>
 <td>-</td>
-</tr>
-
-<tr><td>B29</td>
 <td>-</td>
-</tr>
-
-<tr><td>B30</td>
-<td title="R0.F0.B30">
-<a href="#tile-virtex5-REG.CTL-MISC:ICAP_SELECT">MISC:ICAP_SELECT[0]</a>
-</td>
-</tr>
-
-<tr><td>B31</td>
-<td title="R0.F0.B31">
-<a href="#tile-virtex5-REG.CTL-MISC:ENCRYPT_KEY_SELECT">MISC:ENCRYPT_KEY_SELECT[0]</a>
+<td id="virtex5-GLOBAL-bit-CTL0[0][0]" title="CTL0[0][0]">
+<a href="#virtex5-GLOBAL-GLOBAL-GTS_USR_B">GLOBAL:  GTS_USR_B</a>
 </td>
 </tr>
 
@@ -1260,356 +1023,81 @@ inverted
 
 <div class="table-wrapper">
 <table>
+<caption>virtex5 GLOBAL rect CTL1</caption>
 <thead>
-<tr><th id="tile-virtex5-REG.CTL-MISC:CONFIG_FALLBACK">MISC:CONFIG_FALLBACK</th>
-<th>0.F0.B10</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.CTL-MISC:GLUTMASK">MISC:GLUTMASK</th>
-<th>0.F0.B8</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.CTL-MISC:SELECTMAP_ABORT">MISC:SELECTMAP_ABORT</th>
-<th>0.F0.B9</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.CTL-MISC:ENCRYPT">MISC:ENCRYPT</th>
-<th>0.F0.B6</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.CTL-MISC:GTS_USR_B">MISC:GTS_USR_B</th>
-<th>0.F0.B0</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.CTL-MISC:OVERTEMP_POWERDOWN">MISC:OVERTEMP_POWERDOWN</th>
-<th>0.F0.B12</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.CTL-MISC:PERSIST">MISC:PERSIST</th>
-<th>0.F0.B3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.CTL-MISC:ENCRYPT_KEY_SELECT">MISC:ENCRYPT_KEY_SELECT</th>
-<th>0.F0.B31</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>BBRAM</td>
-<td>0</td>
-</tr>
-
-<tr><td>EFUSE</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.CTL-MISC:ICAP_SELECT">MISC:ICAP_SELECT</th>
-<th>0.F0.B30</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>TOP</td>
-<td>0</td>
-</tr>
-
-<tr><td>BOTTOM</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.CTL-MISC:SECURITY">MISC:SECURITY</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>LEVEL1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>LEVEL2</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.CTL-MISC:VBG_DLL_SEL">MISC:VBG_DLL_SEL</th>
-<th>0.F0.B22</th>
-<th>0.F0.B21</th>
-<th>0.F0.B20</th>
-<th>0.F0.B19</th>
-<th>0.F0.B18</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.CTL-MISC:VBG_SEL">MISC:VBG_SEL</th>
-<th>0.F0.B27</th>
-<th>0.F0.B26</th>
-<th>0.F0.B25</th>
-<th>0.F0.B24</th>
-<th>0.F0.B23</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.CTL-MISC:VGG_SEL">MISC:VGG_SEL</th>
-<th>0.F0.B17</th>
-<th>0.F0.B16</th>
-<th>0.F0.B15</th>
-<th>0.F0.B14</th>
-<th>0.F0.B13</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="timer"><a class="header" href="#timer"><code>TIMER</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>virtex5 REG.TIMER rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="32">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B31</th>
+<th>B30</th>
+<th>B29</th>
+<th>B28</th>
+<th>B27</th>
+<th>B26</th>
+<th>B25</th>
+<th>B24</th>
+<th>B23</th>
+<th>B22</th>
+<th>B21</th>
+<th>B20</th>
+<th>B19</th>
+<th>B18</th>
+<th>B17</th>
+<th>B16</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[0]</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[1]</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[2]</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[3]</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[4]</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[5]</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[6]</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[7]</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[8]</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[9]</a>
-</td>
-</tr>
-
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[10]</a>
-</td>
-</tr>
-
-<tr><td>B11</td>
-<td title="R0.F0.B11">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[11]</a>
-</td>
-</tr>
-
-<tr><td>B12</td>
-<td title="R0.F0.B12">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[12]</a>
-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R0.F0.B13">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[13]</a>
-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[14]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R0.F0.B15">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[15]</a>
-</td>
-</tr>
-
-<tr><td>B16</td>
-<td title="R0.F0.B16">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[16]</a>
-</td>
-</tr>
-
-<tr><td>B17</td>
-<td title="R0.F0.B17">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[17]</a>
-</td>
-</tr>
-
-<tr><td>B18</td>
-<td title="R0.F0.B18">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[18]</a>
-</td>
-</tr>
-
-<tr><td>B19</td>
-<td title="R0.F0.B19">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[19]</a>
-</td>
-</tr>
-
-<tr><td>B20</td>
-<td title="R0.F0.B20">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[20]</a>
-</td>
-</tr>
-
-<tr><td>B21</td>
-<td title="R0.F0.B21">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[21]</a>
-</td>
-</tr>
-
-<tr><td>B22</td>
-<td title="R0.F0.B22">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[22]</a>
-</td>
-</tr>
-
-<tr><td>B23</td>
-<td title="R0.F0.B23">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER[23]</a>
-</td>
-</tr>
-
-<tr><td>B24</td>
-<td title="R0.F0.B24">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG</a>
-</td>
-</tr>
-
-<tr><td>B25</td>
-<td title="R0.F0.B25">
-<a href="#tile-virtex5-REG.TIMER-MISC:TIMER_USR">MISC:TIMER_USR</a>
-</td>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>
@@ -1619,169 +1107,132 @@ non-inverted
 
 <div class="table-wrapper">
 <table>
+<caption>virtex5 GLOBAL rect TIMER</caption>
 <thead>
-<tr><th id="tile-virtex5-REG.TIMER-MISC:TIMER">MISC:TIMER</th>
-<th>0.F0.B23</th>
-<th>0.F0.B22</th>
-<th>0.F0.B21</th>
-<th>0.F0.B20</th>
-<th>0.F0.B19</th>
-<th>0.F0.B18</th>
-<th>0.F0.B17</th>
-<th>0.F0.B16</th>
-<th>0.F0.B15</th>
-<th>0.F0.B14</th>
-<th>0.F0.B13</th>
-<th>0.F0.B12</th>
-<th>0.F0.B11</th>
-<th>0.F0.B10</th>
-<th>0.F0.B9</th>
-<th>0.F0.B8</th>
-<th>0.F0.B7</th>
-<th>0.F0.B6</th>
-<th>0.F0.B5</th>
-<th>0.F0.B4</th>
-<th>0.F0.B3</th>
-<th>0.F0.B2</th>
-<th>0.F0.B1</th>
-<th>0.F0.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[23]</td>
-<td>[22]</td>
-<td>[21]</td>
-<td>[20]</td>
-<td>[19]</td>
-<td>[18]</td>
-<td>[17]</td>
-<td>[16]</td>
-<td>[15]</td>
-<td>[14]</td>
-<td>[13]</td>
-<td>[12]</td>
-<td>[11]</td>
-<td>[10]</td>
-<td>[9]</td>
-<td>[8]</td>
-<td>[7]</td>
-<td>[6]</td>
-<td>[5]</td>
-<td>[4]</td>
-<td>[3]</td>
-<td>[2]</td>
-<td>[1]</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-REG.TIMER-MISC:TIMER_CFG">MISC:TIMER_CFG</th>
-<th>0.F0.B24</th>
-</tr>
-
-<tr><th id="tile-virtex5-REG.TIMER-MISC:TIMER_USR">MISC:TIMER_USR</th>
-<th>0.F0.B25</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="testmode"><a class="header" href="#testmode"><code>TESTMODE</code></a></h2>
-<div class="table-wrapper">
-<table>
-<caption>virtex5 REG.TESTMODE rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="32">Bit</th></tr>
 
 <tr>
-<th>F0</th>
+<th>B31</th>
+<th>B30</th>
+<th>B29</th>
+<th>B28</th>
+<th>B27</th>
+<th>B26</th>
+<th>B25</th>
+<th>B24</th>
+<th>B23</th>
+<th>B22</th>
+<th>B21</th>
+<th>B20</th>
+<th>B19</th>
+<th>B18</th>
+<th>B17</th>
+<th>B16</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>B0</td>
+<tr><td>F0</td>
 <td>-</td>
-</tr>
-
-<tr><td>B1</td>
 <td>-</td>
-</tr>
-
-<tr><td>B2</td>
 <td>-</td>
-</tr>
-
-<tr><td>B3</td>
 <td>-</td>
-</tr>
-
-<tr><td>B4</td>
 <td>-</td>
-</tr>
-
-<tr><td>B5</td>
 <td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R0.F0.B14">
-<a href="#tile-virtex5-REG.TESTMODE-MISC:DD_OVERRIDE">MISC:DD_OVERRIDE</a>
+<td id="virtex5-GLOBAL-bit-TIMER[0][25]" title="TIMER[0][25]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER_USR">GLOBAL:  TIMER_USR</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][24]" title="TIMER[0][24]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER_CFG">GLOBAL:  TIMER_CFG</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][23]" title="TIMER[0][23]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[23]">GLOBAL:  TIMER bit 23</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][22]" title="TIMER[0][22]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[22]">GLOBAL:  TIMER bit 22</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][21]" title="TIMER[0][21]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[21]">GLOBAL:  TIMER bit 21</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][20]" title="TIMER[0][20]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[20]">GLOBAL:  TIMER bit 20</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][19]" title="TIMER[0][19]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[19]">GLOBAL:  TIMER bit 19</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][18]" title="TIMER[0][18]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[18]">GLOBAL:  TIMER bit 18</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][17]" title="TIMER[0][17]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[17]">GLOBAL:  TIMER bit 17</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][16]" title="TIMER[0][16]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[16]">GLOBAL:  TIMER bit 16</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][15]" title="TIMER[0][15]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[15]">GLOBAL:  TIMER bit 15</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][14]" title="TIMER[0][14]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[14]">GLOBAL:  TIMER bit 14</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][13]" title="TIMER[0][13]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[13]">GLOBAL:  TIMER bit 13</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][12]" title="TIMER[0][12]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[12]">GLOBAL:  TIMER bit 12</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][11]" title="TIMER[0][11]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[11]">GLOBAL:  TIMER bit 11</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][10]" title="TIMER[0][10]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[10]">GLOBAL:  TIMER bit 10</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][9]" title="TIMER[0][9]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[9]">GLOBAL:  TIMER bit 9</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][8]" title="TIMER[0][8]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[8]">GLOBAL:  TIMER bit 8</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][7]" title="TIMER[0][7]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[7]">GLOBAL:  TIMER bit 7</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][6]" title="TIMER[0][6]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[6]">GLOBAL:  TIMER bit 6</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][5]" title="TIMER[0][5]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[5]">GLOBAL:  TIMER bit 5</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][4]" title="TIMER[0][4]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[4]">GLOBAL:  TIMER bit 4</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][3]" title="TIMER[0][3]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[3]">GLOBAL:  TIMER bit 3</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][2]" title="TIMER[0][2]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[2]">GLOBAL:  TIMER bit 2</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][1]" title="TIMER[0][1]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[1]">GLOBAL:  TIMER bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-TIMER[0][0]" title="TIMER[0][0]">
+<a href="#virtex5-GLOBAL-GLOBAL-TIMER[0]">GLOBAL:  TIMER bit 0</a>
 </td>
 </tr>
 
@@ -1792,18 +1243,225 @@ non-inverted
 
 <div class="table-wrapper">
 <table>
+<caption>virtex5 GLOBAL rect WBSTAR</caption>
 <thead>
-<tr><th id="tile-virtex5-REG.TESTMODE-MISC:DD_OVERRIDE">MISC:DD_OVERRIDE</th>
-<th>0.F0.B14</th>
+<tr><th rowspan="2">Frame</th><th colspan="32">Bit</th></tr>
+
+<tr>
+<th>B31</th>
+<th>B30</th>
+<th>B29</th>
+<th>B28</th>
+<th>B27</th>
+<th>B26</th>
+<th>B25</th>
+<th>B24</th>
+<th>B23</th>
+<th>B22</th>
+<th>B21</th>
+<th>B20</th>
+<th>B19</th>
+<th>B18</th>
+<th>B17</th>
+<th>B16</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>
-non-inverted
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][28]" title="WBSTAR[0][28]">
+<a href="#virtex5-GLOBAL-GLOBAL-REVISION_SELECT[1]">GLOBAL:  REVISION_SELECT bit 1</a>
 </td>
-<td>[0]</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][27]" title="WBSTAR[0][27]">
+<a href="#virtex5-GLOBAL-GLOBAL-REVISION_SELECT[0]">GLOBAL:  REVISION_SELECT bit 0</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][26]" title="WBSTAR[0][26]">
+<a href="#virtex5-GLOBAL-GLOBAL-REVISION_SELECT_TRISTATE">GLOBAL: ! REVISION_SELECT_TRISTATE</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][25]" title="WBSTAR[0][25]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[25]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 25</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][24]" title="WBSTAR[0][24]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[24]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 24</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][23]" title="WBSTAR[0][23]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[23]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 23</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][22]" title="WBSTAR[0][22]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[22]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 22</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][21]" title="WBSTAR[0][21]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[21]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 21</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][20]" title="WBSTAR[0][20]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[20]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 20</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][19]" title="WBSTAR[0][19]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[19]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 19</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][18]" title="WBSTAR[0][18]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[18]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 18</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][17]" title="WBSTAR[0][17]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[17]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 17</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][16]" title="WBSTAR[0][16]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[16]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 16</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][15]" title="WBSTAR[0][15]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[15]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 15</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][14]" title="WBSTAR[0][14]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[14]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 14</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][13]" title="WBSTAR[0][13]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[13]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 13</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][12]" title="WBSTAR[0][12]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[12]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 12</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][11]" title="WBSTAR[0][11]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[11]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 11</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][10]" title="WBSTAR[0][10]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[10]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 10</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][9]" title="WBSTAR[0][9]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[9]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 9</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][8]" title="WBSTAR[0][8]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[8]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 8</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][7]" title="WBSTAR[0][7]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[7]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 7</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][6]" title="WBSTAR[0][6]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[6]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 6</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][5]" title="WBSTAR[0][5]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[5]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 5</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][4]" title="WBSTAR[0][4]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[4]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 4</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][3]" title="WBSTAR[0][3]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[3]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 3</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][2]" title="WBSTAR[0][2]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[2]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 2</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][1]" title="WBSTAR[0][1]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[1]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 1</a>
+</td>
+<td id="virtex5-GLOBAL-bit-WBSTAR[0][0]" title="WBSTAR[0][0]">
+<a href="#virtex5-GLOBAL-GLOBAL-V5_NEXT_CONFIG_ADDR[0]">GLOBAL:  V5_NEXT_CONFIG_ADDR bit 0</a>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 GLOBAL rect TESTMODE</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="32">Bit</th></tr>
+
+<tr>
+<th>B31</th>
+<th>B30</th>
+<th>B29</th>
+<th>B28</th>
+<th>B27</th>
+<th>B26</th>
+<th>B25</th>
+<th>B24</th>
+<th>B23</th>
+<th>B22</th>
+<th>B21</th>
+<th>B20</th>
+<th>B19</th>
+<th>B18</th>
+<th>B17</th>
+<th>B16</th>
+<th>B15</th>
+<th>B14</th>
+<th>B13</th>
+<th>B12</th>
+<th>B11</th>
+<th>B10</th>
+<th>B9</th>
+<th>B8</th>
+<th>B7</th>
+<th>B6</th>
+<th>B5</th>
+<th>B4</th>
+<th>B3</th>
+<th>B2</th>
+<th>B1</th>
+<th>B0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="virtex5-GLOBAL-bit-TESTMODE[0][14]" title="TESTMODE[0][14]">
+<a href="#virtex5-GLOBAL-GLOBAL-DD_OVERRIDE">GLOBAL:  DD_OVERRIDE</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>

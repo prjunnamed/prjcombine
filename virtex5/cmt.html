@@ -155,6 +155,644 @@
 <p>TODO: describe this madness</p>
 <h2 id="tile-cmt"><a class="header" href="#tile-cmt">Tile CMT</a></h2>
 <p>Cells: 10</p>
+<h3 id="switchbox-spec_int"><a class="header" href="#switchbox-spec_int">Switchbox SPEC_INT</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT permanent buffers</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CELL[5].OUT_BEL[20]</td><td>CELL[0].OUT_CMT[10]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes OUT_CMT[10]</caption>
+<thead>
+<tr><th colspan="3">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OUT_CMT[10]-2"><a href="#virtex5-CMT-bit-MAIN[6][28][45]">MAIN[6][28][45]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OUT_CMT[10]-1"><a href="#virtex5-CMT-bit-MAIN[6][29][45]">MAIN[6][29][45]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OUT_CMT[10]-0"><a href="#virtex5-CMT-bit-MAIN[6][28][44]">MAIN[6][28][44]</a></td><td>CELL[0].OUT_CMT[10]</td></tr>
+
+<tr><th colspan="3"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>CELL[0].IMUX_DCM_CLKIN[1]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>CELL[0].IMUX_DCM_CLKIN[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>CELL[0].TEST_PLL_CLKIN</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>CELL[0].IMUX_PLL_CLKFB</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>CELL[0].IMUX_DCM_CLKFB[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>CELL[0].IMUX_DCM_CLKFB[0]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes IMUX_DCM_CLKIN[0]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[0]-4"><a href="#virtex5-CMT-bit-MAIN[1][29][2]">MAIN[1][29][2]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[0]-3"><a href="#virtex5-CMT-bit-MAIN[1][28][1]">MAIN[1][28][1]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[0]-2"><a href="#virtex5-CMT-bit-MAIN[1][29][1]">MAIN[1][29][1]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[0]-1"><a href="#virtex5-CMT-bit-MAIN[1][29][0]">MAIN[1][29][0]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[0]-0"><a href="#virtex5-CMT-bit-MAIN[1][28][0]">MAIN[1][28][0]</a></td><td>CELL[0].IMUX_DCM_CLKIN[0]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[0]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[2]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].GIOB_CMT[1]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].GIOB_CMT[3]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[6]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[8]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>CELL[0].GIOB_CMT[7]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>CELL[0].GIOB_CMT[9]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[4]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[0].GIOB_CMT[5]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[4]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].HCLK_CMT[5]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[8]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].IMUX_CLK[0]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[9]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>CELL[0].IMUX_CLK[1]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[6]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[0].IMUX_IMUX[6]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>CELL[0].OMUX_PLL_SKEWCLKIN1</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes IMUX_DCM_CLKIN[1]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[1]-4"><a href="#virtex5-CMT-bit-MAIN[8][29][2]">MAIN[8][29][2]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[1]-3"><a href="#virtex5-CMT-bit-MAIN[8][28][1]">MAIN[8][28][1]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[1]-2"><a href="#virtex5-CMT-bit-MAIN[8][29][1]">MAIN[8][29][1]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[1]-1"><a href="#virtex5-CMT-bit-MAIN[8][29][0]">MAIN[8][29][0]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[1]-0"><a href="#virtex5-CMT-bit-MAIN[8][28][0]">MAIN[8][28][0]</a></td><td>CELL[0].IMUX_DCM_CLKIN[1]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[0]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[2]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].GIOB_CMT[1]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].GIOB_CMT[3]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[6]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[8]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>CELL[0].GIOB_CMT[7]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>CELL[0].GIOB_CMT[9]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[4]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[0].GIOB_CMT[5]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[4]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].HCLK_CMT[5]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[8]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[7].IMUX_CLK[0]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[9]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>CELL[7].IMUX_CLK[1]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[6]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[7].IMUX_IMUX[12]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>CELL[0].OMUX_PLL_SKEWCLKIN2</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes IMUX_DCM_CLKFB[0]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[0]-4"><a href="#virtex5-CMT-bit-MAIN[1][29][4]">MAIN[1][29][4]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[0]-3"><a href="#virtex5-CMT-bit-MAIN[1][28][4]">MAIN[1][28][4]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[0]-2"><a href="#virtex5-CMT-bit-MAIN[1][28][3]">MAIN[1][28][3]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[0]-1"><a href="#virtex5-CMT-bit-MAIN[1][29][3]">MAIN[1][29][3]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[0]-0"><a href="#virtex5-CMT-bit-MAIN[1][28][2]">MAIN[1][28][2]</a></td><td>CELL[0].IMUX_DCM_CLKFB[0]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[0]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[1]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].GIOB_CMT[4]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].GIOB_CMT[5]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[2]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[3]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[2]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[3]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[6]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>CELL[0].HCLK_CMT[7]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[4]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[5]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[6]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[7]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[0]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].HCLK_CMT[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[8]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[9]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[8]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[9]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[0].IMUX_IMUX[6]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>CELL[0].OMUX_PLL_SKEWCLKIN1</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[0].IMUX_CLK[0]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>CELL[0].IMUX_CLK[1]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes IMUX_DCM_CLKFB[1]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[1]-4"><a href="#virtex5-CMT-bit-MAIN[8][29][4]">MAIN[8][29][4]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[1]-3"><a href="#virtex5-CMT-bit-MAIN[8][28][4]">MAIN[8][28][4]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[1]-2"><a href="#virtex5-CMT-bit-MAIN[8][28][3]">MAIN[8][28][3]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[1]-1"><a href="#virtex5-CMT-bit-MAIN[8][29][3]">MAIN[8][29][3]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[1]-0"><a href="#virtex5-CMT-bit-MAIN[8][28][2]">MAIN[8][28][2]</a></td><td>CELL[0].IMUX_DCM_CLKFB[1]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[0]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[1]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].GIOB_CMT[4]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].GIOB_CMT[5]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[2]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[3]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[2]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[3]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[6]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>CELL[0].HCLK_CMT[7]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[4]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[5]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[6]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[7]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[0]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].HCLK_CMT[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[8]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[9]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[8]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[9]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[7].IMUX_IMUX[12]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>CELL[0].OMUX_PLL_SKEWCLKIN2</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[7].IMUX_CLK[0]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>CELL[7].IMUX_CLK[1]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes OMUX_DCM_SKEWCLKIN1[0]</caption>
+<thead>
+<tr><th colspan="4">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[0]-3"><a href="#virtex5-CMT-bit-MAIN[1][28][6]">MAIN[1][28][6]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[0]-2"><a href="#virtex5-CMT-bit-MAIN[1][29][6]">MAIN[1][29][6]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[0]-1"><a href="#virtex5-CMT-bit-MAIN[1][29][5]">MAIN[1][29][5]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[0]-0"><a href="#virtex5-CMT-bit-MAIN[1][28][5]">MAIN[1][28][5]</a></td><td>CELL[0].OMUX_DCM_SKEWCLKIN1[0]</td></tr>
+
+<tr><th colspan="4"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[0]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[1]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].OUT_CMT[2]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].OUT_CMT[3]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[4]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[5]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>CELL[0].OUT_CMT[6]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>CELL[0].OUT_CMT[7]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[8]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[9]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes OMUX_DCM_SKEWCLKIN1[1]</caption>
+<thead>
+<tr><th colspan="4">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[1]-3"><a href="#virtex5-CMT-bit-MAIN[8][28][6]">MAIN[8][28][6]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[1]-2"><a href="#virtex5-CMT-bit-MAIN[8][29][6]">MAIN[8][29][6]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[1]-1"><a href="#virtex5-CMT-bit-MAIN[8][29][5]">MAIN[8][29][5]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[1]-0"><a href="#virtex5-CMT-bit-MAIN[8][28][5]">MAIN[8][28][5]</a></td><td>CELL[0].OMUX_DCM_SKEWCLKIN1[1]</td></tr>
+
+<tr><th colspan="4"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[18]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[19]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].OUT_CMT[20]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].OUT_CMT[21]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[22]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[23]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>CELL[0].OUT_CMT[24]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>CELL[0].OUT_CMT[25]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[26]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[27]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes OMUX_DCM_SKEWCLKIN2[0]</caption>
+<thead>
+<tr><th colspan="4">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[0]-3"><a href="#virtex5-CMT-bit-MAIN[1][29][9]">MAIN[1][29][9]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[0]-2"><a href="#virtex5-CMT-bit-MAIN[1][28][9]">MAIN[1][28][9]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[0]-1"><a href="#virtex5-CMT-bit-MAIN[1][28][8]">MAIN[1][28][8]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[0]-0"><a href="#virtex5-CMT-bit-MAIN[1][29][8]">MAIN[1][29][8]</a></td><td>CELL[0].OMUX_DCM_SKEWCLKIN2[0]</td></tr>
+
+<tr><th colspan="4"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[0]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[1]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].OUT_CMT[2]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].OUT_CMT[3]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[4]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[5]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>CELL[0].OUT_CMT[6]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>CELL[0].OUT_CMT[7]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[8]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[9]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes OMUX_DCM_SKEWCLKIN2[1]</caption>
+<thead>
+<tr><th colspan="4">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[1]-3"><a href="#virtex5-CMT-bit-MAIN[8][29][9]">MAIN[8][29][9]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[1]-2"><a href="#virtex5-CMT-bit-MAIN[8][28][9]">MAIN[8][28][9]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[1]-1"><a href="#virtex5-CMT-bit-MAIN[8][28][8]">MAIN[8][28][8]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[1]-0"><a href="#virtex5-CMT-bit-MAIN[8][29][8]">MAIN[8][29][8]</a></td><td>CELL[0].OMUX_DCM_SKEWCLKIN2[1]</td></tr>
+
+<tr><th colspan="4"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[18]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[19]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].OUT_CMT[20]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].OUT_CMT[21]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[22]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[23]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>CELL[0].OUT_CMT[24]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>CELL[0].OUT_CMT[25]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].OUT_CMT[26]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>CELL[0].OUT_CMT[27]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes IMUX_PLL_CLKFB</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKFB-4"><a href="#virtex5-CMT-bit-MAIN[6][29][52]">MAIN[6][29][52]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKFB-3"><a href="#virtex5-CMT-bit-MAIN[6][28][52]">MAIN[6][28][52]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKFB-2"><a href="#virtex5-CMT-bit-MAIN[6][28][51]">MAIN[6][28][51]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKFB-1"><a href="#virtex5-CMT-bit-MAIN[6][29][51]">MAIN[6][29][51]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKFB-0"><a href="#virtex5-CMT-bit-MAIN[6][28][50]">MAIN[6][28][50]</a></td><td>CELL[0].IMUX_PLL_CLKFB</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[0]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[1]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[1]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>CELL[0].HCLK_CMT[2]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[2]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[5]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[6]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[6]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>CELL[0].HCLK_CMT[7]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[7]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[5]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[4]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[4]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[8]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>CELL[0].GIOB_CMT[9]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[0].OUT_PLL_CLKFBDCM</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>CELL[0].OUT_CMT[11]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[8]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[9]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>CELL[4].IMUX_CLK[0]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes OMUX_PLL_SKEWCLKIN1</caption>
+<thead>
+<tr><th colspan="3">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN1-2"><a href="#virtex5-CMT-bit-MAIN[6][29][54]">MAIN[6][29][54]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN1-1"><a href="#virtex5-CMT-bit-MAIN[6][28][53]">MAIN[6][28][53]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN1-0"><a href="#virtex5-CMT-bit-MAIN[6][29][53]">MAIN[6][29][53]</a></td><td>CELL[0].OMUX_PLL_SKEWCLKIN1</td></tr>
+
+<tr><th colspan="3"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>CELL[0].OUT_PLL_CLKOUTDCM[0]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>CELL[0].OUT_PLL_CLKOUTDCM[2]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>CELL[0].OUT_PLL_CLKOUTDCM[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>CELL[0].OUT_PLL_CLKOUTDCM[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>CELL[0].OUT_PLL_CLKOUTDCM[4]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>off</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>CELL[0].OUT_PLL_CLKOUTDCM[5]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT muxes OMUX_PLL_SKEWCLKIN2</caption>
+<thead>
+<tr><th colspan="3">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN2-2"><a href="#virtex5-CMT-bit-MAIN[6][28][55]">MAIN[6][28][55]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN2-1"><a href="#virtex5-CMT-bit-MAIN[6][29][55]">MAIN[6][29][55]</a></td><td id="virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN2-0"><a href="#virtex5-CMT-bit-MAIN[6][28][54]">MAIN[6][28][54]</a></td><td>CELL[0].OMUX_PLL_SKEWCLKIN2</td></tr>
+
+<tr><th colspan="3"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>CELL[0].OUT_PLL_CLKOUTDCM[0]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>CELL[0].OUT_PLL_CLKOUTDCM[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>CELL[0].OUT_PLL_CLKOUTDCM[4]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>CELL[0].OUT_PLL_CLKOUTDCM[5]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>CELL[0].OUT_PLL_CLKOUTDCM[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>CELL[0].OUT_PLL_CLKOUTDCM[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>off</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>CELL[0].OUT_PLL_CLKFBDCM</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex5 CMT switchbox SPEC_INT pair mux CELL[0].IMUX_PLL_CLKIN1 CELL[0].IMUX_PLL_CLKIN2</caption>
+<thead>
+<tr><th colspan="4">Bits</th><th>Destination A</th><th>Destination B</th></tr>
+
+<tr><th id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKIN1-CELL[0].IMUX_PLL_CLKIN2-3"><a href="#virtex5-CMT-bit-MAIN[6][28][49]">MAIN[6][28][49]</a></th><th id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKIN1-CELL[0].IMUX_PLL_CLKIN2-2"><a href="#virtex5-CMT-bit-MAIN[6][29][49]">MAIN[6][29][49]</a></th><th id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKIN1-CELL[0].IMUX_PLL_CLKIN2-1"><a href="#virtex5-CMT-bit-MAIN[6][29][48]">MAIN[6][29][48]</a></th><th id="virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKIN1-CELL[0].IMUX_PLL_CLKIN2-0"><a href="#virtex5-CMT-bit-MAIN[6][28][48]">MAIN[6][28][48]</a></th><th>CELL[0].IMUX_PLL_CLKIN1</th><th>CELL[0].IMUX_PLL_CLKIN2</th></tr>
+</thead>
+
+<tbody>
+<tr><td>0</td><td>0</td><td>1</td><td>1</td><td>-</td><td>CELL[0].OUT_PLL_CLKFBDCM</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>0</td><td>CELL[0].HCLK_CMT[0]</td><td>CELL[0].HCLK_CMT[5]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[1]</td><td>CELL[0].HCLK_CMT[6]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>CELL[0].HCLK_CMT[2]</td><td>CELL[0].HCLK_CMT[7]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[3]</td><td>CELL[0].HCLK_CMT[8]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>CELL[0].HCLK_CMT[4]</td><td>CELL[0].HCLK_CMT[9]</td></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[0]</td><td>CELL[0].GIOB_CMT[5]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[1]</td><td>CELL[0].GIOB_CMT[6]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[0].GIOB_CMT[2]</td><td>CELL[0].GIOB_CMT[7]</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[0].GIOB_CMT[3]</td><td>CELL[0].GIOB_CMT[8]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>CELL[0].GIOB_CMT[4]</td><td>CELL[0].GIOB_CMT[9]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>CELL[0].OMUX_DCM_SKEWCLKIN1[0]</td><td>-</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>CELL[0].OMUX_DCM_SKEWCLKIN1[1]</td><td>-</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>CELL[3].IMUX_CLK[0]</td><td>-</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
 <h3 id="bel-dcm0"><a class="header" href="#bel-dcm0">Bel DCM[0]</a></h3>
 <div class="table-wrapper">
 <table>
@@ -165,11 +803,29 @@
 </thead>
 
 <tbody>
-<tr><td>CKINT0</td><td>input</td><td>CELL[0].IMUX_CLK[0]</td></tr>
+<tr><td>CLK0</td><td>output</td><td>CELL[0].OUT_CMT[0]</td></tr>
 
-<tr><td>CKINT1</td><td>input</td><td>CELL[0].IMUX_CLK[1]</td></tr>
+<tr><td>CLK180</td><td>output</td><td>CELL[0].OUT_CMT[2]</td></tr>
 
-<tr><td>CKINT2</td><td>input</td><td>CELL[0].IMUX_IMUX[6]</td></tr>
+<tr><td>CLK270</td><td>output</td><td>CELL[0].OUT_CMT[3]</td></tr>
+
+<tr><td>CLK2X</td><td>output</td><td>CELL[0].OUT_CMT[4]</td></tr>
+
+<tr><td>CLK2X180</td><td>output</td><td>CELL[0].OUT_CMT[5]</td></tr>
+
+<tr><td>CLK90</td><td>output</td><td>CELL[0].OUT_CMT[1]</td></tr>
+
+<tr><td>CLKDV</td><td>output</td><td>CELL[0].OUT_CMT[6]</td></tr>
+
+<tr><td>CLKFB</td><td>input</td><td>CELL[0].IMUX_DCM_CLKFB[0]</td></tr>
+
+<tr><td>CLKFX</td><td>output</td><td>CELL[0].OUT_CMT[7]</td></tr>
+
+<tr><td>CLKFX180</td><td>output</td><td>CELL[0].OUT_CMT[8]</td></tr>
+
+<tr><td>CLKIN</td><td>input</td><td>CELL[0].IMUX_DCM_CLKIN[0]</td></tr>
+
+<tr><td>CONCUR</td><td>output</td><td>CELL[0].OUT_CMT[9]</td></tr>
 
 <tr><td>CTLGO</td><td>input</td><td>CELL[2].IMUX_IMUX[3]</td></tr>
 
@@ -301,6 +957,10 @@
 
 <tr><td>SCANOUT1</td><td>output</td><td>CELL[0].OUT_BEL[1]</td></tr>
 
+<tr><td>SKEWCLKIN1</td><td>input</td><td>CELL[0].OMUX_DCM_SKEWCLKIN1[0]</td></tr>
+
+<tr><td>SKEWCLKIN2</td><td>input</td><td>CELL[0].OMUX_DCM_SKEWCLKIN2[0]</td></tr>
+
 <tr><td>SKEWIN</td><td>input</td><td>CELL[8].IMUX_CLK[1]</td></tr>
 
 <tr><td>SKEWOUT</td><td>output</td><td>CELL[0].OUT_BEL[3]</td></tr>
@@ -322,11 +982,29 @@
 </thead>
 
 <tbody>
-<tr><td>CKINT0</td><td>input</td><td>CELL[7].IMUX_CLK[0]</td></tr>
+<tr><td>CLK0</td><td>output</td><td>CELL[0].OUT_CMT[18]</td></tr>
 
-<tr><td>CKINT1</td><td>input</td><td>CELL[7].IMUX_CLK[1]</td></tr>
+<tr><td>CLK180</td><td>output</td><td>CELL[0].OUT_CMT[20]</td></tr>
 
-<tr><td>CKINT2</td><td>input</td><td>CELL[7].IMUX_IMUX[12]</td></tr>
+<tr><td>CLK270</td><td>output</td><td>CELL[0].OUT_CMT[21]</td></tr>
+
+<tr><td>CLK2X</td><td>output</td><td>CELL[0].OUT_CMT[22]</td></tr>
+
+<tr><td>CLK2X180</td><td>output</td><td>CELL[0].OUT_CMT[23]</td></tr>
+
+<tr><td>CLK90</td><td>output</td><td>CELL[0].OUT_CMT[19]</td></tr>
+
+<tr><td>CLKDV</td><td>output</td><td>CELL[0].OUT_CMT[24]</td></tr>
+
+<tr><td>CLKFB</td><td>input</td><td>CELL[0].IMUX_DCM_CLKFB[1]</td></tr>
+
+<tr><td>CLKFX</td><td>output</td><td>CELL[0].OUT_CMT[25]</td></tr>
+
+<tr><td>CLKFX180</td><td>output</td><td>CELL[0].OUT_CMT[26]</td></tr>
+
+<tr><td>CLKIN</td><td>input</td><td>CELL[0].IMUX_DCM_CLKIN[1]</td></tr>
+
+<tr><td>CONCUR</td><td>output</td><td>CELL[0].OUT_CMT[27]</td></tr>
 
 <tr><td>CTLGO</td><td>input</td><td>CELL[9].IMUX_IMUX[3]</td></tr>
 
@@ -458,6 +1136,10 @@
 
 <tr><td>SCANOUT1</td><td>output</td><td>CELL[7].OUT_BEL[1]</td></tr>
 
+<tr><td>SKEWCLKIN1</td><td>input</td><td>CELL[0].OMUX_DCM_SKEWCLKIN1[1]</td></tr>
+
+<tr><td>SKEWCLKIN2</td><td>input</td><td>CELL[0].OMUX_DCM_SKEWCLKIN2[1]</td></tr>
+
 <tr><td>SKEWIN</td><td>input</td><td>CELL[1].IMUX_CLK[1]</td></tr>
 
 <tr><td>SKEWOUT</td><td>output</td><td>CELL[7].OUT_BEL[3]</td></tr>
@@ -479,13 +1161,43 @@
 </thead>
 
 <tbody>
-<tr><td>CKINT0</td><td>input</td><td>CELL[3].IMUX_CLK[0]</td></tr>
-
-<tr><td>CKINT1</td><td>input</td><td>CELL[4].IMUX_CLK[0]</td></tr>
-
 <tr><td>CLKBRST</td><td>input</td><td>CELL[5].IMUX_IMUX[19]</td></tr>
 
+<tr><td>CLKFBDCM</td><td>output</td><td>CELL[0].OUT_PLL_CLKFBDCM</td></tr>
+
+<tr><td>CLKFBIN</td><td>input</td><td>CELL[0].IMUX_PLL_CLKFB</td></tr>
+
+<tr><td>CLKFBOUT</td><td>output</td><td>CELL[0].OUT_CMT[11]</td></tr>
+
+<tr><td>CLKIN1</td><td>input</td><td>CELL[0].IMUX_PLL_CLKIN1</td></tr>
+
+<tr><td>CLKIN2</td><td>input</td><td>CELL[0].IMUX_PLL_CLKIN2</td></tr>
+
 <tr><td>CLKINSEL</td><td>input</td><td>CELL[4].IMUX_IMUX[30]</td></tr>
+
+<tr><td>CLKOUT0</td><td>output</td><td>CELL[0].OUT_CMT[12]</td></tr>
+
+<tr><td>CLKOUT1</td><td>output</td><td>CELL[0].OUT_CMT[13]</td></tr>
+
+<tr><td>CLKOUT2</td><td>output</td><td>CELL[0].OUT_CMT[14]</td></tr>
+
+<tr><td>CLKOUT3</td><td>output</td><td>CELL[0].OUT_CMT[15]</td></tr>
+
+<tr><td>CLKOUT4</td><td>output</td><td>CELL[0].OUT_CMT[16]</td></tr>
+
+<tr><td>CLKOUT5</td><td>output</td><td>CELL[0].OUT_CMT[17]</td></tr>
+
+<tr><td>CLKOUTDCM0</td><td>output</td><td>CELL[0].OUT_PLL_CLKOUTDCM[0]</td></tr>
+
+<tr><td>CLKOUTDCM1</td><td>output</td><td>CELL[0].OUT_PLL_CLKOUTDCM[1]</td></tr>
+
+<tr><td>CLKOUTDCM2</td><td>output</td><td>CELL[0].OUT_PLL_CLKOUTDCM[2]</td></tr>
+
+<tr><td>CLKOUTDCM3</td><td>output</td><td>CELL[0].OUT_PLL_CLKOUTDCM[3]</td></tr>
+
+<tr><td>CLKOUTDCM4</td><td>output</td><td>CELL[0].OUT_PLL_CLKOUTDCM[4]</td></tr>
+
+<tr><td>CLKOUTDCM5</td><td>output</td><td>CELL[0].OUT_PLL_CLKOUTDCM[5]</td></tr>
 
 <tr><td>DADDR0</td><td>input</td><td>CELL[5].IMUX_IMUX[20]</td></tr>
 
@@ -581,6 +1293,10 @@
 
 <tr><td>RST</td><td>input</td><td>CELL[4].IMUX_CTRL_SITE[0]</td></tr>
 
+<tr><td>SKEWCLKIN1</td><td>input</td><td>CELL[0].OMUX_PLL_SKEWCLKIN2</td></tr>
+
+<tr><td>SKEWCLKIN2</td><td>input</td><td>CELL[0].OMUX_PLL_SKEWCLKIN1</td></tr>
+
 <tr><td>SKEWRST</td><td>input</td><td>CELL[3].IMUX_IMUX[28]</td></tr>
 
 <tr><td>SKEWSTB</td><td>input</td><td>CELL[3].IMUX_CLK[1]</td></tr>
@@ -655,22 +1371,7 @@
 
 <tr><td>TEST9</td><td>output</td><td>CELL[3].OUT_BEL[17]</td></tr>
 
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bel-cmt"><a class="header" href="#bel-cmt">Bel CMT</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>virtex5 CMT bel CMT</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td>OUT10</td><td>output</td><td>CELL[5].OUT_BEL[20]</td></tr>
+<tr><td>TEST_CLKIN</td><td>output</td><td>CELL[0].TEST_PLL_CLKIN</td></tr>
 
 </tbody>
 
@@ -687,10 +1388,6 @@
 </thead>
 
 <tbody>
-<tr><td>CELL[0].IMUX_CLK[0]</td><td>DCM[0].CKINT0</td></tr>
-
-<tr><td>CELL[0].IMUX_CLK[1]</td><td>DCM[0].CKINT1</td></tr>
-
 <tr><td>CELL[0].IMUX_CTRL_SITE[0]</td><td>DCM[0].SKEWRST</td></tr>
 
 <tr><td>CELL[0].IMUX_IMUX[0]</td><td>DCM[0].SCANIN0</td></tr>
@@ -703,8 +1400,6 @@
 
 <tr><td>CELL[0].IMUX_IMUX[4]</td><td>DCM[0].SCANIN4</td></tr>
 
-<tr><td>CELL[0].IMUX_IMUX[6]</td><td>DCM[0].CKINT2</td></tr>
-
 <tr><td>CELL[0].OUT_BEL[0]</td><td>DCM[0].DRDY</td></tr>
 
 <tr><td>CELL[0].OUT_BEL[1]</td><td>DCM[0].SCANOUT1</td></tr>
@@ -712,6 +1407,102 @@
 <tr><td>CELL[0].OUT_BEL[2]</td><td>DCM[0].SCANOUT0</td></tr>
 
 <tr><td>CELL[0].OUT_BEL[3]</td><td>DCM[0].SKEWOUT</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[0]</td><td>DCM[0].CLK0</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[1]</td><td>DCM[0].CLK90</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[2]</td><td>DCM[0].CLK180</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[3]</td><td>DCM[0].CLK270</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[4]</td><td>DCM[0].CLK2X</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[5]</td><td>DCM[0].CLK2X180</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[6]</td><td>DCM[0].CLKDV</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[7]</td><td>DCM[0].CLKFX</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[8]</td><td>DCM[0].CLKFX180</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[9]</td><td>DCM[0].CONCUR</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[11]</td><td>PLL.CLKFBOUT</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[12]</td><td>PLL.CLKOUT0</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[13]</td><td>PLL.CLKOUT1</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[14]</td><td>PLL.CLKOUT2</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[15]</td><td>PLL.CLKOUT3</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[16]</td><td>PLL.CLKOUT4</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[17]</td><td>PLL.CLKOUT5</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[18]</td><td>DCM[1].CLK0</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[19]</td><td>DCM[1].CLK90</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[20]</td><td>DCM[1].CLK180</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[21]</td><td>DCM[1].CLK270</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[22]</td><td>DCM[1].CLK2X</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[23]</td><td>DCM[1].CLK2X180</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[24]</td><td>DCM[1].CLKDV</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[25]</td><td>DCM[1].CLKFX</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[26]</td><td>DCM[1].CLKFX180</td></tr>
+
+<tr><td>CELL[0].OUT_CMT[27]</td><td>DCM[1].CONCUR</td></tr>
+
+<tr><td>CELL[0].IMUX_DCM_CLKIN[0]</td><td>DCM[0].CLKIN</td></tr>
+
+<tr><td>CELL[0].IMUX_DCM_CLKIN[1]</td><td>DCM[1].CLKIN</td></tr>
+
+<tr><td>CELL[0].IMUX_DCM_CLKFB[0]</td><td>DCM[0].CLKFB</td></tr>
+
+<tr><td>CELL[0].IMUX_DCM_CLKFB[1]</td><td>DCM[1].CLKFB</td></tr>
+
+<tr><td>CELL[0].OMUX_DCM_SKEWCLKIN1[0]</td><td>DCM[0].SKEWCLKIN1</td></tr>
+
+<tr><td>CELL[0].OMUX_DCM_SKEWCLKIN1[1]</td><td>DCM[1].SKEWCLKIN1</td></tr>
+
+<tr><td>CELL[0].OMUX_DCM_SKEWCLKIN2[0]</td><td>DCM[0].SKEWCLKIN2</td></tr>
+
+<tr><td>CELL[0].OMUX_DCM_SKEWCLKIN2[1]</td><td>DCM[1].SKEWCLKIN2</td></tr>
+
+<tr><td>CELL[0].IMUX_PLL_CLKIN1</td><td>PLL.CLKIN1</td></tr>
+
+<tr><td>CELL[0].IMUX_PLL_CLKIN2</td><td>PLL.CLKIN2</td></tr>
+
+<tr><td>CELL[0].IMUX_PLL_CLKFB</td><td>PLL.CLKFBIN</td></tr>
+
+<tr><td>CELL[0].TEST_PLL_CLKIN</td><td>PLL.TEST_CLKIN</td></tr>
+
+<tr><td>CELL[0].OMUX_PLL_SKEWCLKIN1</td><td>PLL.SKEWCLKIN2</td></tr>
+
+<tr><td>CELL[0].OMUX_PLL_SKEWCLKIN2</td><td>PLL.SKEWCLKIN1</td></tr>
+
+<tr><td>CELL[0].OUT_PLL_CLKOUTDCM[0]</td><td>PLL.CLKOUTDCM0</td></tr>
+
+<tr><td>CELL[0].OUT_PLL_CLKOUTDCM[1]</td><td>PLL.CLKOUTDCM1</td></tr>
+
+<tr><td>CELL[0].OUT_PLL_CLKOUTDCM[2]</td><td>PLL.CLKOUTDCM2</td></tr>
+
+<tr><td>CELL[0].OUT_PLL_CLKOUTDCM[3]</td><td>PLL.CLKOUTDCM3</td></tr>
+
+<tr><td>CELL[0].OUT_PLL_CLKOUTDCM[4]</td><td>PLL.CLKOUTDCM4</td></tr>
+
+<tr><td>CELL[0].OUT_PLL_CLKOUTDCM[5]</td><td>PLL.CLKOUTDCM5</td></tr>
+
+<tr><td>CELL[0].OUT_PLL_CLKFBDCM</td><td>PLL.CLKFBDCM</td></tr>
 
 <tr><td>CELL[1].IMUX_CLK[0]</td><td>DCM[0].DCLK</td></tr>
 
@@ -829,8 +1620,6 @@
 
 <tr><td>CELL[2].OUT_BEL[11]</td><td>DCM[0].PSDONE</td></tr>
 
-<tr><td>CELL[3].IMUX_CLK[0]</td><td>PLL.CKINT0</td></tr>
-
 <tr><td>CELL[3].IMUX_CLK[1]</td><td>PLL.SKEWSTB</td></tr>
 
 <tr><td>CELL[3].IMUX_IMUX[2]</td><td>PLL.MANPULF</td></tr>
@@ -864,8 +1653,6 @@
 <tr><td>CELL[3].OUT_BEL[21]</td><td>PLL.LOCKED</td></tr>
 
 <tr><td>CELL[3].OUT_BEL[23]</td><td>PLL.TEST2</td></tr>
-
-<tr><td>CELL[4].IMUX_CLK[0]</td><td>PLL.CKINT1</td></tr>
 
 <tr><td>CELL[4].IMUX_CTRL_SITE[0]</td><td>PLL.RST</td></tr>
 
@@ -967,8 +1754,6 @@
 
 <tr><td>CELL[5].OUT_BEL[19]</td><td>PLL.TEST34</td></tr>
 
-<tr><td>CELL[5].OUT_BEL[20]</td><td>CMT.OUT10</td></tr>
-
 <tr><td>CELL[6].IMUX_IMUX[2]</td><td>PLL.DI5</td></tr>
 
 <tr><td>CELL[6].IMUX_IMUX[3]</td><td>PLL.DI2</td></tr>
@@ -1009,10 +1794,6 @@
 
 <tr><td>CELL[6].OUT_BEL[23]</td><td>PLL.DO3</td></tr>
 
-<tr><td>CELL[7].IMUX_CLK[0]</td><td>DCM[1].CKINT0</td></tr>
-
-<tr><td>CELL[7].IMUX_CLK[1]</td><td>DCM[1].CKINT1</td></tr>
-
 <tr><td>CELL[7].IMUX_CTRL_SITE[0]</td><td>DCM[1].SKEWRST</td></tr>
 
 <tr><td>CELL[7].IMUX_IMUX[0]</td><td>DCM[1].SCANIN0</td></tr>
@@ -1024,8 +1805,6 @@
 <tr><td>CELL[7].IMUX_IMUX[3]</td><td>DCM[1].SCANIN3</td></tr>
 
 <tr><td>CELL[7].IMUX_IMUX[4]</td><td>DCM[1].SCANIN4</td></tr>
-
-<tr><td>CELL[7].IMUX_IMUX[12]</td><td>DCM[1].CKINT2</td></tr>
 
 <tr><td>CELL[7].OUT_BEL[0]</td><td>DCM[1].DRDY</td></tr>
 
@@ -8049,8 +8828,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[1][28][9]" title="MAIN[1][28][9]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[0]-2">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN2[0] bit 2</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[1][29][9]" title="MAIN[1][29][9]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[0]-3">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN2[0] bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -8106,8 +8889,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[1][28][8]" title="MAIN[1][28][8]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[0]-1">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN2[0] bit 1</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[1][29][8]" title="MAIN[1][29][8]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[0]-0">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN2[0] bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -8220,8 +9007,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[1][28][6]" title="MAIN[1][28][6]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[0]-3">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN1[0] bit 3</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[1][29][6]" title="MAIN[1][29][6]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[0]-2">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN1[0] bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -8277,8 +9068,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[1][28][5]" title="MAIN[1][28][5]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[0]-0">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN1[0] bit 0</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[1][29][5]" title="MAIN[1][29][5]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[0]-1">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN1[0] bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -8334,8 +9129,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[1][28][4]" title="MAIN[1][28][4]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[0]-3">SPEC_INT: mux CELL[0].IMUX_DCM_CLKFB[0] bit 3</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[1][29][4]" title="MAIN[1][29][4]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[0]-4">SPEC_INT: mux CELL[0].IMUX_DCM_CLKFB[0] bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -8391,8 +9190,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[1][28][3]" title="MAIN[1][28][3]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[0]-2">SPEC_INT: mux CELL[0].IMUX_DCM_CLKFB[0] bit 2</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[1][29][3]" title="MAIN[1][29][3]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[0]-1">SPEC_INT: mux CELL[0].IMUX_DCM_CLKFB[0] bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -8448,8 +9251,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[1][28][2]" title="MAIN[1][28][2]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[0]-0">SPEC_INT: mux CELL[0].IMUX_DCM_CLKFB[0] bit 0</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[1][29][2]" title="MAIN[1][29][2]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[0]-4">SPEC_INT: mux CELL[0].IMUX_DCM_CLKIN[0] bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -8505,8 +9312,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[1][28][1]" title="MAIN[1][28][1]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[0]-3">SPEC_INT: mux CELL[0].IMUX_DCM_CLKIN[0] bit 3</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[1][29][1]" title="MAIN[1][29][1]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[0]-2">SPEC_INT: mux CELL[0].IMUX_DCM_CLKIN[0] bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -8562,8 +9373,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[1][28][0]" title="MAIN[1][28][0]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[0]-0">SPEC_INT: mux CELL[0].IMUX_DCM_CLKIN[0] bit 0</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[1][29][0]" title="MAIN[1][29][0]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[0]-1">SPEC_INT: mux CELL[0].IMUX_DCM_CLKIN[0] bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -24022,8 +24837,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[6][28][55]" title="MAIN[6][28][55]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN2-2">SPEC_INT: mux CELL[0].OMUX_PLL_SKEWCLKIN2 bit 2</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[6][29][55]" title="MAIN[6][29][55]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN2-1">SPEC_INT: mux CELL[0].OMUX_PLL_SKEWCLKIN2 bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -24079,8 +24898,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[6][28][54]" title="MAIN[6][28][54]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN2-0">SPEC_INT: mux CELL[0].OMUX_PLL_SKEWCLKIN2 bit 0</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[6][29][54]" title="MAIN[6][29][54]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN1-2">SPEC_INT: mux CELL[0].OMUX_PLL_SKEWCLKIN1 bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -24136,8 +24959,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[6][28][53]" title="MAIN[6][28][53]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN1-1">SPEC_INT: mux CELL[0].OMUX_PLL_SKEWCLKIN1 bit 1</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[6][29][53]" title="MAIN[6][29][53]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_PLL_SKEWCLKIN1-0">SPEC_INT: mux CELL[0].OMUX_PLL_SKEWCLKIN1 bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -24193,8 +25020,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[6][28][52]" title="MAIN[6][28][52]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKFB-3">SPEC_INT: mux CELL[0].IMUX_PLL_CLKFB bit 3</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[6][29][52]" title="MAIN[6][29][52]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKFB-4">SPEC_INT: mux CELL[0].IMUX_PLL_CLKFB bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -24250,8 +25081,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[6][28][51]" title="MAIN[6][28][51]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKFB-2">SPEC_INT: mux CELL[0].IMUX_PLL_CLKFB bit 2</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[6][29][51]" title="MAIN[6][29][51]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKFB-1">SPEC_INT: mux CELL[0].IMUX_PLL_CLKFB bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -24307,7 +25142,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[6][28][50]" title="MAIN[6][28][50]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKFB-0">SPEC_INT: mux CELL[0].IMUX_PLL_CLKFB bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -24364,8 +25201,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[6][28][49]" title="MAIN[6][28][49]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKIN1-CELL[0].IMUX_PLL_CLKIN2-3">SPEC_INT: pair mux (CELL[0].IMUX_PLL_CLKIN1, CELL[0].IMUX_PLL_CLKIN2) bit 3</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[6][29][49]" title="MAIN[6][29][49]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKIN1-CELL[0].IMUX_PLL_CLKIN2-2">SPEC_INT: pair mux (CELL[0].IMUX_PLL_CLKIN1, CELL[0].IMUX_PLL_CLKIN2) bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -24421,8 +25262,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[6][28][48]" title="MAIN[6][28][48]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKIN1-CELL[0].IMUX_PLL_CLKIN2-0">SPEC_INT: pair mux (CELL[0].IMUX_PLL_CLKIN1, CELL[0].IMUX_PLL_CLKIN2) bit 0</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[6][29][48]" title="MAIN[6][29][48]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_PLL_CLKIN1-CELL[0].IMUX_PLL_CLKIN2-1">SPEC_INT: pair mux (CELL[0].IMUX_PLL_CLKIN1, CELL[0].IMUX_PLL_CLKIN2) bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -24592,8 +25437,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[6][28][45]" title="MAIN[6][28][45]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OUT_CMT[10]-2">SPEC_INT: mux CELL[0].OUT_CMT[10] bit 2</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[6][29][45]" title="MAIN[6][29][45]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OUT_CMT[10]-1">SPEC_INT: mux CELL[0].OUT_CMT[10] bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -24649,7 +25498,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[6][28][44]" title="MAIN[6][28][44]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OUT_CMT[10]-0">SPEC_INT: mux CELL[0].OUT_CMT[10] bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -34082,8 +34933,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[8][28][9]" title="MAIN[8][28][9]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[1]-2">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN2[1] bit 2</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[8][29][9]" title="MAIN[8][29][9]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[1]-3">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN2[1] bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -34139,8 +34994,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[8][28][8]" title="MAIN[8][28][8]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[1]-1">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN2[1] bit 1</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[8][29][8]" title="MAIN[8][29][8]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN2[1]-0">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN2[1] bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -34253,8 +35112,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[8][28][6]" title="MAIN[8][28][6]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[1]-3">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN1[1] bit 3</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[8][29][6]" title="MAIN[8][29][6]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[1]-2">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN1[1] bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -34310,8 +35173,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[8][28][5]" title="MAIN[8][28][5]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[1]-0">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN1[1] bit 0</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[8][29][5]" title="MAIN[8][29][5]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].OMUX_DCM_SKEWCLKIN1[1]-1">SPEC_INT: mux CELL[0].OMUX_DCM_SKEWCLKIN1[1] bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -34367,8 +35234,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[8][28][4]" title="MAIN[8][28][4]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[1]-3">SPEC_INT: mux CELL[0].IMUX_DCM_CLKFB[1] bit 3</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[8][29][4]" title="MAIN[8][29][4]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[1]-4">SPEC_INT: mux CELL[0].IMUX_DCM_CLKFB[1] bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -34424,8 +35295,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[8][28][3]" title="MAIN[8][28][3]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[1]-2">SPEC_INT: mux CELL[0].IMUX_DCM_CLKFB[1] bit 2</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[8][29][3]" title="MAIN[8][29][3]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[1]-1">SPEC_INT: mux CELL[0].IMUX_DCM_CLKFB[1] bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -34481,8 +35356,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[8][28][2]" title="MAIN[8][28][2]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKFB[1]-0">SPEC_INT: mux CELL[0].IMUX_DCM_CLKFB[1] bit 0</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[8][29][2]" title="MAIN[8][29][2]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[1]-4">SPEC_INT: mux CELL[0].IMUX_DCM_CLKIN[1] bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -34538,8 +35417,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[8][28][1]" title="MAIN[8][28][1]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[1]-3">SPEC_INT: mux CELL[0].IMUX_DCM_CLKIN[1] bit 3</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[8][29][1]" title="MAIN[8][29][1]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[1]-2">SPEC_INT: mux CELL[0].IMUX_DCM_CLKIN[1] bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -34595,8 +35478,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex5-CMT-bit-MAIN[8][28][0]" title="MAIN[8][28][0]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[1]-0">SPEC_INT: mux CELL[0].IMUX_DCM_CLKIN[1] bit 0</a>
+</td>
+<td id="virtex5-CMT-bit-MAIN[8][29][0]" title="MAIN[8][29][0]">
+<a href="#virtex5-CMT-SPEC_INT-mux-CELL[0].IMUX_DCM_CLKIN[1]-1">SPEC_INT: mux CELL[0].IMUX_DCM_CLKIN[1] bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -42995,11 +43882,9 @@
 <td>-</td>
 <td title="R1.F28.B9">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP49">DCM[0]:DRP49[2]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.SKEWCLKIN2">DCM[0]:MUX.SKEWCLKIN2[2]</a>
 </td>
 <td title="R1.F29.B9">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP49">DCM[0]:DRP49[3]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.SKEWCLKIN2">DCM[0]:MUX.SKEWCLKIN2[3]</a>
 </td>
 </tr>
 
@@ -43034,11 +43919,9 @@
 <td>-</td>
 <td title="R1.F28.B8">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP49">DCM[0]:DRP49[1]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.SKEWCLKIN2">DCM[0]:MUX.SKEWCLKIN2[1]</a>
 </td>
 <td title="R1.F29.B8">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP49">DCM[0]:DRP49[0]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.SKEWCLKIN2">DCM[0]:MUX.SKEWCLKIN2[0]</a>
 </td>
 </tr>
 
@@ -43112,11 +43995,9 @@
 <td>-</td>
 <td title="R1.F28.B6">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[13]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLK_TO_PLL">DCM[0]:MUX.CLK_TO_PLL[3]</a>
 </td>
 <td title="R1.F29.B6">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[12]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLK_TO_PLL">DCM[0]:MUX.CLK_TO_PLL[2]</a>
 </td>
 </tr>
 
@@ -43151,11 +44032,9 @@
 <td>-</td>
 <td title="R1.F28.B5">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[10]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLK_TO_PLL">DCM[0]:MUX.CLK_TO_PLL[0]</a>
 </td>
 <td title="R1.F29.B5">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[11]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLK_TO_PLL">DCM[0]:MUX.CLK_TO_PLL[1]</a>
 </td>
 </tr>
 
@@ -43190,11 +44069,9 @@
 <td>-</td>
 <td title="R1.F28.B4">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[9]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLKFB">DCM[0]:MUX.CLKFB[4]</a>
 </td>
 <td title="R1.F29.B4">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[8]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLKFB">DCM[0]:MUX.CLKFB[3]</a>
 </td>
 </tr>
 
@@ -43229,11 +44106,9 @@
 <td>-</td>
 <td title="R1.F28.B3">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[6]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLKFB">DCM[0]:MUX.CLKFB[1]</a>
 </td>
 <td title="R1.F29.B3">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[7]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLKFB">DCM[0]:MUX.CLKFB[2]</a>
 </td>
 </tr>
 
@@ -43268,11 +44143,9 @@
 <td>-</td>
 <td title="R1.F28.B2">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[5]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLKFB">DCM[0]:MUX.CLKFB[0]</a>
 </td>
 <td title="R1.F29.B2">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[4]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLKIN">DCM[0]:MUX.CLKIN[4]</a>
 </td>
 </tr>
 
@@ -43307,11 +44180,9 @@
 <td>-</td>
 <td title="R1.F28.B1">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[2]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLKIN">DCM[0]:MUX.CLKIN[2]</a>
 </td>
 <td title="R1.F29.B1">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[3]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLKIN">DCM[0]:MUX.CLKIN[3]</a>
 </td>
 </tr>
 
@@ -43346,11 +44217,9 @@
 <td>-</td>
 <td title="R1.F28.B0">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[1]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLKIN">DCM[0]:MUX.CLKIN[1]</a>
 </td>
 <td title="R1.F29.B0">
 <a href="#tile-virtex5-CMT-DCM[0]:DRP48">DCM[0]:DRP48[0]</a>
-<a href="#tile-virtex5-CMT-DCM[0]:MUX.CLKIN">DCM[0]:MUX.CLKIN[0]</a>
 </td>
 </tr>
 
@@ -53897,11 +54766,9 @@
 <td>-</td>
 <td title="R6.F28.B55">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[14]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLK_TO_DCM1">PLL:MUX.CLK_TO_DCM1[0]</a>
 </td>
 <td title="R6.F29.B55">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[15]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLK_TO_DCM1">PLL:MUX.CLK_TO_DCM1[1]</a>
 </td>
 </tr>
 
@@ -53936,11 +54803,9 @@
 <td>-</td>
 <td title="R6.F28.B54">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[13]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLK_TO_DCM1">PLL:MUX.CLK_TO_DCM1[2]</a>
 </td>
 <td title="R6.F29.B54">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[12]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLK_TO_DCM0">PLL:MUX.CLK_TO_DCM0[1]</a>
 </td>
 </tr>
 
@@ -53975,11 +54840,9 @@
 <td>-</td>
 <td title="R6.F28.B53">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[10]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLK_TO_DCM0">PLL:MUX.CLK_TO_DCM0[2]</a>
 </td>
 <td title="R6.F29.B53">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[11]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLK_TO_DCM0">PLL:MUX.CLK_TO_DCM0[0]</a>
 </td>
 </tr>
 
@@ -54014,11 +54877,9 @@
 <td>-</td>
 <td title="R6.F28.B52">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[9]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLKFBIN">PLL:MUX.CLKFBIN[4]</a>
 </td>
 <td title="R6.F29.B52">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[8]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLKFBIN">PLL:MUX.CLKFBIN[3]</a>
 </td>
 </tr>
 
@@ -54053,11 +54914,9 @@
 <td>-</td>
 <td title="R6.F28.B51">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[6]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLKFBIN">PLL:MUX.CLKFBIN[1]</a>
 </td>
 <td title="R6.F29.B51">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[7]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLKFBIN">PLL:MUX.CLKFBIN[2]</a>
 </td>
 </tr>
 
@@ -54092,7 +54951,6 @@
 <td>-</td>
 <td title="R6.F28.B50">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[5]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLKFBIN">PLL:MUX.CLKFBIN[0]</a>
 </td>
 <td title="R6.F29.B50">
 <a href="#tile-virtex5-CMT-PLL:CLKINSEL_STATIC">PLL:CLKINSEL_STATIC</a>
@@ -54131,11 +54989,9 @@
 <td>-</td>
 <td title="R6.F28.B49">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[2]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLKIN">PLL:MUX.CLKIN[2]</a>
 </td>
 <td title="R6.F29.B49">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[3]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLKIN">PLL:MUX.CLKIN[3]</a>
 </td>
 </tr>
 
@@ -54170,11 +55026,9 @@
 <td>-</td>
 <td title="R6.F28.B48">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[1]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLKIN">PLL:MUX.CLKIN[1]</a>
 </td>
 <td title="R6.F29.B48">
 <a href="#tile-virtex5-CMT-PLL:DRP1E">PLL:DRP1E[0]</a>
-<a href="#tile-virtex5-CMT-PLL:MUX.CLKIN">PLL:MUX.CLKIN[0]</a>
 </td>
 </tr>
 
@@ -54286,11 +55140,9 @@
 <td>-</td>
 <td>-</td>
 <td title="R6.F28.B45">
-<a href="#tile-virtex5-CMT-CMT:MUX.OUT10">CMT:MUX.OUT10[1]</a>
 <a href="#tile-virtex5-CMT-PLL:DRP1D">PLL:DRP1D[10]</a>
 </td>
 <td title="R6.F29.B45">
-<a href="#tile-virtex5-CMT-CMT:MUX.OUT10">CMT:MUX.OUT10[2]</a>
 <a href="#tile-virtex5-CMT-PLL:DRP1D">PLL:DRP1D[11]</a>
 </td>
 </tr>
@@ -54325,7 +55177,6 @@
 <td>-</td>
 <td>-</td>
 <td title="R6.F28.B44">
-<a href="#tile-virtex5-CMT-CMT:MUX.OUT10">CMT:MUX.OUT10[0]</a>
 <a href="#tile-virtex5-CMT-PLL:DRP1D">PLL:DRP1D[9]</a>
 </td>
 <td title="R6.F29.B44">
@@ -60699,11 +61550,9 @@
 <td>-</td>
 <td title="R8.F28.B9">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP49">DCM[1]:DRP49[2]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.SKEWCLKIN2">DCM[1]:MUX.SKEWCLKIN2[2]</a>
 </td>
 <td title="R8.F29.B9">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP49">DCM[1]:DRP49[3]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.SKEWCLKIN2">DCM[1]:MUX.SKEWCLKIN2[3]</a>
 </td>
 </tr>
 
@@ -60738,11 +61587,9 @@
 <td>-</td>
 <td title="R8.F28.B8">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP49">DCM[1]:DRP49[1]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.SKEWCLKIN2">DCM[1]:MUX.SKEWCLKIN2[1]</a>
 </td>
 <td title="R8.F29.B8">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP49">DCM[1]:DRP49[0]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.SKEWCLKIN2">DCM[1]:MUX.SKEWCLKIN2[0]</a>
 </td>
 </tr>
 
@@ -60816,11 +61663,9 @@
 <td>-</td>
 <td title="R8.F28.B6">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[13]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLK_TO_PLL">DCM[1]:MUX.CLK_TO_PLL[3]</a>
 </td>
 <td title="R8.F29.B6">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[12]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLK_TO_PLL">DCM[1]:MUX.CLK_TO_PLL[2]</a>
 </td>
 </tr>
 
@@ -60855,11 +61700,9 @@
 <td>-</td>
 <td title="R8.F28.B5">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[10]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLK_TO_PLL">DCM[1]:MUX.CLK_TO_PLL[0]</a>
 </td>
 <td title="R8.F29.B5">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[11]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLK_TO_PLL">DCM[1]:MUX.CLK_TO_PLL[1]</a>
 </td>
 </tr>
 
@@ -60894,11 +61737,9 @@
 <td>-</td>
 <td title="R8.F28.B4">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[9]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLKFB">DCM[1]:MUX.CLKFB[4]</a>
 </td>
 <td title="R8.F29.B4">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[8]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLKFB">DCM[1]:MUX.CLKFB[3]</a>
 </td>
 </tr>
 
@@ -60933,11 +61774,9 @@
 <td>-</td>
 <td title="R8.F28.B3">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[6]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLKFB">DCM[1]:MUX.CLKFB[1]</a>
 </td>
 <td title="R8.F29.B3">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[7]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLKFB">DCM[1]:MUX.CLKFB[2]</a>
 </td>
 </tr>
 
@@ -60972,11 +61811,9 @@
 <td>-</td>
 <td title="R8.F28.B2">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[5]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLKFB">DCM[1]:MUX.CLKFB[0]</a>
 </td>
 <td title="R8.F29.B2">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[4]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLKIN">DCM[1]:MUX.CLKIN[4]</a>
 </td>
 </tr>
 
@@ -61011,11 +61848,9 @@
 <td>-</td>
 <td title="R8.F28.B1">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[2]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLKIN">DCM[1]:MUX.CLKIN[2]</a>
 </td>
 <td title="R8.F29.B1">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[3]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLKIN">DCM[1]:MUX.CLKIN[3]</a>
 </td>
 </tr>
 
@@ -61050,11 +61885,9 @@
 <td>-</td>
 <td title="R8.F28.B0">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[1]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLKIN">DCM[1]:MUX.CLKIN[1]</a>
 </td>
 <td title="R8.F29.B0">
 <a href="#tile-virtex5-CMT-DCM[1]:DRP48">DCM[1]:DRP48[0]</a>
-<a href="#tile-virtex5-CMT-DCM[1]:MUX.CLKIN">DCM[1]:MUX.CLKIN[0]</a>
 </td>
 </tr>
 
@@ -63594,65 +64427,6 @@
 <a href="#tile-virtex5-CMT-DCM[1]:CLKFX_DIVIDE">DCM[1]:CLKFX_DIVIDE[0]</a>
 <a href="#tile-virtex5-CMT-DCM[1]:DRP50">DCM[1]:DRP50[0]</a>
 </td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-CMT-CMT:MUX.OUT10">CMT:MUX.OUT10</th>
-<th>6.F29.B45</th>
-<th>6.F28.B45</th>
-<th>6.F28.B44</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>DCM1_CLKIN</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>DCM0_CLKIN</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>DCM1_CLKFB</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>DCM0_CLKFB</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>PLL_CLKIN</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>PLL_CLKINFB</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
 </tr>
 
 </tbody>
@@ -67450,350 +68224,6 @@ non-inverted
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-virtex5-CMT-DCM[0]:MUX.CLKFB">DCM[0]:MUX.CLKFB</th>
-<th>1.F28.B4</th>
-<th>1.F29.B4</th>
-<th>1.F29.B3</th>
-<th>1.F28.B3</th>
-<th>1.F28.B2</th>
-</tr>
-
-<tr><th id="tile-virtex5-CMT-DCM[0]:MUX.CLKIN">DCM[0]:MUX.CLKIN</th>
-<th>1.F29.B2</th>
-<th>1.F29.B1</th>
-<th>1.F28.B1</th>
-<th>1.F28.B0</th>
-<th>1.F29.B0</th>
-</tr>
-
-<tr><th id="tile-virtex5-CMT-DCM[1]:MUX.CLKFB">DCM[1]:MUX.CLKFB</th>
-<th>8.F28.B4</th>
-<th>8.F29.B4</th>
-<th>8.F29.B3</th>
-<th>8.F28.B3</th>
-<th>8.F28.B2</th>
-</tr>
-
-<tr><th id="tile-virtex5-CMT-DCM[1]:MUX.CLKIN">DCM[1]:MUX.CLKIN</th>
-<th>8.F29.B2</th>
-<th>8.F29.B1</th>
-<th>8.F28.B1</th>
-<th>8.F28.B0</th>
-<th>8.F29.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>GIOB0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB2</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB3</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB4</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB5</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB6</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB7</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB8</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB9</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK4</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK5</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK6</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK7</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK8</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK9</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>CKINT0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>CKINT1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>CKINT2</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLK_FROM_PLL</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-CMT-DCM[0]:MUX.CLK_TO_PLL">DCM[0]:MUX.CLK_TO_PLL</th>
-<th>1.F28.B6</th>
-<th>1.F29.B6</th>
-<th>1.F29.B5</th>
-<th>1.F28.B5</th>
-</tr>
-
-<tr><th id="tile-virtex5-CMT-DCM[0]:MUX.SKEWCLKIN2">DCM[0]:MUX.SKEWCLKIN2</th>
-<th>1.F29.B9</th>
-<th>1.F28.B9</th>
-<th>1.F28.B8</th>
-<th>1.F29.B8</th>
-</tr>
-
-<tr><th id="tile-virtex5-CMT-DCM[1]:MUX.CLK_TO_PLL">DCM[1]:MUX.CLK_TO_PLL</th>
-<th>8.F28.B6</th>
-<th>8.F29.B6</th>
-<th>8.F29.B5</th>
-<th>8.F28.B5</th>
-</tr>
-
-<tr><th id="tile-virtex5-CMT-DCM[1]:MUX.SKEWCLKIN2">DCM[1]:MUX.SKEWCLKIN2</th>
-<th>8.F29.B9</th>
-<th>8.F28.B9</th>
-<th>8.F28.B8</th>
-<th>8.F29.B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>CLK0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLK90</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLK180</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLK270</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLK2X</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLK2X180</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLKDV</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLKFX</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLKFX180</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>CONCUR</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
 <tr><th id="tile-virtex5-CMT-DCM[0]:PHASE_SHIFT">DCM[0]:PHASE_SHIFT</th>
 <th>2.F28.B44</th>
 <th>2.F29.B44</th>
@@ -67885,449 +68315,6 @@ non-inverted
 </tr>
 
 <tr><td>DYNAMIC</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-CMT-PLL:MUX.CLKFBIN">PLL:MUX.CLKFBIN</th>
-<th>6.F28.B52</th>
-<th>6.F29.B52</th>
-<th>6.F29.B51</th>
-<th>6.F28.B51</th>
-<th>6.F28.B50</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>GIOB0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB2</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK2</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB3</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB4</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK3</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK4</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB5</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB6</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB7</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK5</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK6</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK7</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB8</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB9</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK8</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK9</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLKFBDCM</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLKFBOUT</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>CKINT1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-CMT-PLL:MUX.CLKIN">PLL:MUX.CLKIN</th>
-<th>6.F29.B49</th>
-<th>6.F28.B49</th>
-<th>6.F28.B48</th>
-<th>6.F29.B48</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>GIOB0_GIOB5</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB1_GIOB6</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB2_GIOB7</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK0_HCLK5</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK1_HCLK6</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK2_HCLK7</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>GIOB3_GIOB8</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>GIOB4_GIOB9</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>HCLK3_HCLK8</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>HCLK4_HCLK9</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>NONE_CLKFBDCM</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLK_FROM_DCM0_NONE</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLK_FROM_DCM1_NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>CKINT0_NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-CMT-PLL:MUX.CLK_TO_DCM0">PLL:MUX.CLK_TO_DCM0</th>
-<th>6.F28.B53</th>
-<th>6.F29.B54</th>
-<th>6.F29.B53</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>CLKOUTDCM0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLKOUTDCM2</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLKOUTDCM4</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLKOUTDCM1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLKOUTDCM3</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLKOUTDCM5</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex5-CMT-PLL:MUX.CLK_TO_DCM1">PLL:MUX.CLK_TO_DCM1</th>
-<th>6.F28.B54</th>
-<th>6.F29.B55</th>
-<th>6.F28.B55</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>CLKOUTDCM0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLKOUTDCM2</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLKOUTDCM4</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLKOUTDCM1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLKOUTDCM3</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>CLKOUTDCM5</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>CLKFBDCM</td>
-<td>1</td>
-<td>1</td>
 <td>1</td>
 </tr>
 
