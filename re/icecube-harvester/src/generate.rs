@@ -71,7 +71,7 @@ impl Generator<'_> {
     }
 
     fn get_inps(&mut self, num: usize) -> Vec<(InstId, InstPin)> {
-        let res = Vec::from_iter(self.signals.choose_multiple(&mut self.rng, num).cloned());
+        let res = Vec::from_iter(self.signals.sample(&mut self.rng, num).cloned());
         for sig in &res {
             self.unused_signals.remove(sig);
         }
@@ -294,7 +294,7 @@ impl Generator<'_> {
         } else {
             ["D_OUT_0", "D_OUT_1", "OUTPUT_ENABLE"]
         };
-        for &pin in in_pins.choose_multiple(&mut self.rng, num_inps) {
+        for &pin in in_pins.sample(&mut self.rng, num_inps) {
             let (sinst, spin) = inps.choose(&mut self.rng).unwrap().clone();
             io.connect(pin, sinst, spin);
             if pin.ends_with("ENABLE") {
@@ -498,7 +498,7 @@ impl Generator<'_> {
         }
         let inst = self.design.insts.push(inst);
         let num_outps = self.rng.random_range(1..=outps.len());
-        for outp in outps.choose_multiple(&mut self.rng, num_outps) {
+        for outp in outps.sample(&mut self.rng, num_outps) {
             let mut lut = Instance::new("SB_LUT4");
             lut.prop("LUT_INIT", "16'h0000");
             lut.connect("I0", inst, outp.clone());
@@ -863,7 +863,7 @@ impl Generator<'_> {
         }
         let inst = self.design.insts.push(inst);
         let num_outps = self.rng.random_range(1..=outps.len());
-        for outp in outps.choose_multiple(&mut self.rng, num_outps) {
+        for outp in outps.sample(&mut self.rng, num_outps) {
             self.add_out_raw(inst, outp.clone());
         }
     }
@@ -914,7 +914,7 @@ impl Generator<'_> {
         }
         let inst = self.design.insts.push(inst);
         let num_outps = self.rng.random_range(1..=outps.len());
-        for outp in outps.choose_multiple(&mut self.rng, num_outps) {
+        for outp in outps.sample(&mut self.rng, num_outps) {
             self.add_out_raw(inst, outp.clone());
         }
     }
@@ -1354,7 +1354,7 @@ impl Generator<'_> {
             let inst = self.design.insts.push(inst);
             let outps = std::mem::take(&mut outps[ii]);
             let num_outps = self.rng.random_range(1..=outps.len());
-            for outp in outps.choose_multiple(&mut self.rng, num_outps) {
+            for outp in outps.sample(&mut self.rng, num_outps) {
                 self.add_out_raw(inst, outp.clone());
             }
         }
@@ -1554,7 +1554,7 @@ impl Generator<'_> {
             }
         }
         let num_outps = self.rng.random_range(1..=outps.len());
-        for outp in outps.choose_multiple(&mut self.rng, num_outps) {
+        for outp in outps.sample(&mut self.rng, num_outps) {
             let mut lut = Instance::new("SB_LUT4");
             lut.prop("LUT_INIT", "16'h0000");
             lut.connect("I0", inst, outp.clone());

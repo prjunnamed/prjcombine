@@ -38,7 +38,7 @@ use prjcombine_types::{
     bsdata::{BitRectId, PolTileBit, TileBit},
     speed::Speed,
 };
-use rand::Rng;
+use rand::RngExt;
 use rayon::prelude::*;
 use run::{Design, InstPin, RawLoc, RunResult, get_cached_designs, remove_cache_key, run};
 use sample::{get_golden_mux_stats, make_sample, wanted_keys_global, wanted_keys_tiled};

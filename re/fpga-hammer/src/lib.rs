@@ -114,13 +114,13 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerGen<'b, B> {
             let mut rng = rand::rng();
             'find: {
                 if locs.len() > 20 {
-                    for &loc in locs.choose_multiple(&mut rng, 20) {
+                    for &loc in locs.sample(&mut rng, 20) {
                         if let Some(x) = self.try_generate(backend, kv, loc) {
                             break 'find x;
                         }
                     }
                 }
-                for &loc in locs.choose_multiple(&mut rng, locs.len()) {
+                for &loc in locs.sample(&mut rng, locs.len()) {
                     if let Some(x) = self.try_generate(backend, kv, loc) {
                         break 'find x;
                     }
@@ -163,7 +163,7 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerChainGen<'b, B> {
             let mut rng = rand::rng();
             'find: {
                 if locs.len() > 20 {
-                    for &loc in locs.choose_multiple(&mut rng, 20) {
+                    for &loc in locs.sample(&mut rng, 20) {
                         if let Some(x) = self.orig.try_generate(backend, kv, loc) {
                             for &prop in &self.sad_props {
                                 if !x.1.contains(&prop) {
@@ -173,7 +173,7 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerChainGen<'b, B> {
                         }
                     }
                 }
-                for &loc in locs.choose_multiple(&mut rng, locs.len()) {
+                for &loc in locs.sample(&mut rng, locs.len()) {
                     if let Some(x) = self.orig.try_generate(backend, kv, loc) {
                         for &prop in &self.sad_props {
                             if !x.1.contains(&prop) {

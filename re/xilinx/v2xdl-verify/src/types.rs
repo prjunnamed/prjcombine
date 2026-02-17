@@ -1,6 +1,6 @@
 use rand::rngs::SmallRng;
 
-use rand::{Rng, SeedableRng};
+use rand::{RngExt, make_rng};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum BitVal {
@@ -352,7 +352,7 @@ impl TestGenCtx {
     pub fn new() -> Self {
         Self {
             ctr: 0,
-            rng: SmallRng::from_os_rng(),
+            rng: make_rng(),
         }
     }
     pub fn get_ctr(&mut self) -> u32 {

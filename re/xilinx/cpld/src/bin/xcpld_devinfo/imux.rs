@@ -67,7 +67,7 @@ fn gather_imux_once(
         if dev.kind == DeviceKind::Xpla3 {
             cands.push(ImuxInput::Pup);
         }
-        let imux_set: Vec<_> = cands.choose_multiple(&mut rng, sz).copied().collect();
+        let imux_set: Vec<_> = cands.sample(&mut rng, sz).copied().collect();
         imux_sets.push(imux_set);
         let cands: Vec<_> = dev
             .io

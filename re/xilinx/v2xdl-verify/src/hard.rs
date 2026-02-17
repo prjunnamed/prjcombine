@@ -1382,11 +1382,7 @@ pub fn gen_ppc405(test: &mut Test, ctx: &mut TestGenCtx, is_adv: bool) {
 
 fn gen_arb_config(ctx: &mut TestGenCtx) -> Vec<BitVal> {
     let mut res = ctx.gen_bits(32);
-    for (i, v) in [0, 1, 2, 3, 4]
-        .choose_multiple(&mut ctx.rng, 5)
-        .copied()
-        .enumerate()
-    {
+    for (i, v) in [0, 1, 2, 3, 4].sample(&mut ctx.rng, 5).copied().enumerate() {
         res[4 * (i + 1)] = if v & 1 != 0 { BitVal::S1 } else { BitVal::S0 };
         res[4 * (i + 1) + 1] = if v & 2 != 0 { BitVal::S1 } else { BitVal::S0 };
         res[4 * (i + 1) + 2] = if v & 4 != 0 { BitVal::S1 } else { BitVal::S0 };
