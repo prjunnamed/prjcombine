@@ -154,27 +154,13 @@ impl ExpandedDevice<'_> {
         if bcrd.slot == bslots::SLICE[0] {
             let mut bcrd = bcrd;
             loop {
-                if let Some(cell) = self.cell_delta(bcrd.cell, 0, -1) {
-                    bcrd.cell = cell;
-                } else {
-                    return None;
-                }
+                bcrd.cell = self.cell_delta(bcrd.cell, 0, -1)?;
                 if self.has_bel(bcrd) {
                     return Some(bcrd);
                 }
             }
         } else if bcrd.slot == bslots::DSP {
-            let mut bcrd = bcrd;
-            loop {
-                if let Some(cell) = self.cell_delta(bcrd.cell, 0, -4) {
-                    bcrd.cell = cell;
-                } else {
-                    return None;
-                }
-                if self.has_bel(bcrd) {
-                    return Some(bcrd);
-                }
-            }
+            self.bel_delta(bcrd.cell, 0, -4, bcrd.slot)
         } else {
             panic!("not a carry-chain bel: {}", bcrd.to_string(self.db))
         }

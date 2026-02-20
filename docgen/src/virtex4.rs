@@ -1,12 +1,15 @@
 use std::collections::HashSet;
 
+use indexmap::IndexMap;
+use prjcombine_virtex4::defs::devdata;
+
 use crate::{
     DocgenContext,
     bsdata::{
         FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_bstiles,
         gen_devdata_table, gen_misc_table,
     },
-    interconnect::gen_intdb,
+    interconnect::{gen_devdata, gen_intdb},
 };
 
 pub fn gen_virtex4(ctx: &mut DocgenContext) {
@@ -42,110 +45,40 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
         .unwrap();
         let part_names = Vec::from_iter(db.devices.iter().map(|part| part.name.as_str()));
         gen_intdb(ctx, kind, &db.int);
+        let mut devdata = IndexMap::new();
+        for device in &db.devices {
+            devdata.insert(device.name.as_str(), &device.data);
+        }
+
         gen_bstiles(ctx, kind, &db.bsdata, orientation);
         let mut misc_used = HashSet::new();
         let mut devdata_used = HashSet::new();
         match kind {
             "virtex4" => {}
             "virtex5" => {
-                gen_misc_table(
+                gen_devdata(
                     ctx,
-                    &db.bsdata,
-                    &mut misc_used,
                     "virtex5",
-                    "iostd-misc",
-                    &["IOSTD:OUTPUT_MISC"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex5",
-                    "iostd-drive",
-                    &["IOSTD:PDRIVE", "IOSTD:NDRIVE"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex5",
-                    "iostd-slew",
-                    &["IOSTD:PSLEW", "IOSTD:NSLEW"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex5",
-                    "iostd-lvds",
-                    &["IOSTD:LVDS_T", "IOSTD:LVDS_C"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex5",
-                    "iostd-lvdsbias",
-                    &["IOSTD:LVDSBIAS"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex5",
-                    "iostd-dci-lvdiv2",
-                    &["IOSTD:DCI:LVDIV2"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex5",
-                    "iostd-dci-mask-term-vcc",
-                    &["IOSTD:DCI:PMASK_TERM_VCC"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex5",
-                    "iostd-dci-mask-term-split",
-                    &["IOSTD:DCI:PMASK_TERM_SPLIT", "IOSTD:DCI:NMASK_TERM_SPLIT"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex5",
-                    "pll-filter",
-                    &["PLL:PLL_CP", "PLL:PLL_RES", "PLL:PLL_LFHF"],
-                );
-                gen_devdata_table(
-                    ctx,
-                    &db.bsdata,
-                    &part_names,
-                    &mut devdata_used,
-                    "virtex5",
+                    &db.int,
                     "iodelay-default",
-                    &["IODELAY:DEFAULT_IDELAY_VALUE"],
+                    &devdata,
+                    &[devdata::IODELAY_V5_IDELAY_DEFAULT],
                 );
-                gen_devdata_table(
+                gen_devdata(
                     ctx,
-                    &db.bsdata,
-                    &part_names,
-                    &mut devdata_used,
                     "virtex5",
+                    &db.int,
                     "ppc-clock-delay",
-                    &["PPC:CLOCK_DELAY"],
+                    &devdata,
+                    &[devdata::PPC440_CLOCK_DELAY],
                 );
-                gen_devdata_table(
+                gen_devdata(
                     ctx,
-                    &db.bsdata,
-                    &part_names,
-                    &mut devdata_used,
                     "virtex5",
+                    &db.int,
                     "pll-in-dly-set",
-                    &["PLL:PLL_IN_DLY_SET"],
+                    &devdata,
+                    &[devdata::PLL_IN_DLY_SET],
                 );
             }
             "virtex6" => {

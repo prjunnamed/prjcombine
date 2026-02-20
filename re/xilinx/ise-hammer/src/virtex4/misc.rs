@@ -119,12 +119,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let obel = bslots::ICAP[i ^ 1];
             bctx.build()
                 .bel_unused(obel)
-                .test_bel_attr_bits(bcls::ICAP::ENABLE)
+                .test_bel_attr_bits(bcls::ICAP_V4::ENABLE)
                 .mode("ICAP")
                 .commit();
-            bctx.mode("ICAP").test_bel_input_inv_auto(bcls::ICAP::CLK);
-            bctx.mode("ICAP").test_bel_input_inv_auto(bcls::ICAP::CE);
-            bctx.mode("ICAP").test_bel_input_inv_auto(bcls::ICAP::WRITE);
+            bctx.mode("ICAP")
+                .test_bel_input_inv_auto(bcls::ICAP_V4::CLK);
+            bctx.mode("ICAP").test_bel_input_inv_auto(bcls::ICAP_V4::CE);
+            bctx.mode("ICAP")
+                .test_bel_input_inv_auto(bcls::ICAP_V4::WRITE);
             for (val, vname) in [
                 (enums::ICAP_WIDTH::X8, "X8"),
                 (enums::ICAP_WIDTH::X32, "X32"),
@@ -528,7 +530,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bel_attr(tcid, bslot, bcls::BSCAN::ENABLE);
         }
         for bslot in bslots::ICAP {
-            ctx.collect_bel_attr(tcid, bslot, bcls::ICAP::ENABLE);
+            ctx.collect_bel_attr(tcid, bslot, bcls::ICAP_V4::ENABLE);
         }
         ctx.collect_bel_attr(tcid, bslots::JTAGPPC, bcls::JTAGPPC::ENABLE);
         ctx.collect_bel_attr(tcid, bslots::DCIRESET, bcls::DCIRESET::ENABLE);
@@ -552,7 +554,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         for bslot in bslots::ICAP {
-            for pin in [bcls::ICAP::CLK, bcls::ICAP::CE, bcls::ICAP::WRITE] {
+            for pin in [bcls::ICAP_V4::CLK, bcls::ICAP_V4::CE, bcls::ICAP_V4::WRITE] {
                 ctx.collect_bel_input_inv_int_bi(&[tcls::INT; 16], tcid, bslot, pin);
             }
         }

@@ -1,106 +1,31 @@
-use prjcombine_re_collector::legacy::extract_bitvec_val_legacy;
+use prjcombine_interconnect::db::{BelAttributeType, BelInputId};
+use prjcombine_re_collector::diff::extract_bitvec_val;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
-use prjcombine_virtex4::defs::{self, virtex5::tcls};
+use prjcombine_virtex4::defs::{bcls, bslots, devdata, virtex5::tcls};
 
 use crate::{
     backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
     generic::fbuild::{FuzzBuilderBase, FuzzCtx},
+    virtex4::specials,
 };
 
-const PPC_INVPINS: &[&str] = &[
-    "CPMC440CLK",
-    "CPMC440TIMERCLOCK",
-    "CPMDCRCLK",
-    "CPMDMA0LLCLK",
-    "CPMDMA1LLCLK",
-    "CPMDMA2LLCLK",
-    "CPMDMA3LLCLK",
-    "CPMFCMCLK",
-    "CPMINTERCONNECTCLK",
-    "CPMMCCLK",
-    "CPMPPCMPLBCLK",
-    "CPMPPCS0PLBCLK",
-    "CPMPPCS1PLBCLK",
-    "JTGC440TCK",
-];
-
-const PPC_BOOL_ATTRS: &[&str] = &[
-    "DCR_AUTOLOCK_ENABLE",
-    "MI_CONTROL_BIT6",
-    "PPCDM_ASYNCMODE",
-    "PPCDS_ASYNCMODE",
-    "PPCS0_WIDTH_128N64",
-    "PPCS1_WIDTH_128N64",
-];
-
-const PPC_HEX_ATTRS: &[(&str, usize)] = &[
-    ("APU_CONTROL", 17),
-    ("APU_UDI0", 24),
-    ("APU_UDI1", 24),
-    ("APU_UDI2", 24),
-    ("APU_UDI3", 24),
-    ("APU_UDI4", 24),
-    ("APU_UDI5", 24),
-    ("APU_UDI6", 24),
-    ("APU_UDI7", 24),
-    ("APU_UDI8", 24),
-    ("APU_UDI9", 24),
-    ("APU_UDI10", 24),
-    ("APU_UDI11", 24),
-    ("APU_UDI12", 24),
-    ("APU_UDI13", 24),
-    ("APU_UDI14", 24),
-    ("APU_UDI15", 24),
-    ("DMA0_CONTROL", 8),
-    ("DMA0_RXCHANNELCTRL", 32),
-    ("DMA0_TXCHANNELCTRL", 32),
-    ("DMA0_RXIRQTIMER", 10),
-    ("DMA0_TXIRQTIMER", 10),
-    ("DMA1_CONTROL", 8),
-    ("DMA1_RXCHANNELCTRL", 32),
-    ("DMA1_TXCHANNELCTRL", 32),
-    ("DMA1_RXIRQTIMER", 10),
-    ("DMA1_TXIRQTIMER", 10),
-    ("DMA2_CONTROL", 8),
-    ("DMA2_RXCHANNELCTRL", 32),
-    ("DMA2_TXCHANNELCTRL", 32),
-    ("DMA2_RXIRQTIMER", 10),
-    ("DMA2_TXIRQTIMER", 10),
-    ("DMA3_CONTROL", 8),
-    ("DMA3_RXCHANNELCTRL", 32),
-    ("DMA3_TXCHANNELCTRL", 32),
-    ("DMA3_RXIRQTIMER", 10),
-    ("DMA3_TXIRQTIMER", 10),
-    ("INTERCONNECT_IMASK", 32),
-    ("INTERCONNECT_TMPL_SEL", 32),
-    ("MI_ARBCONFIG", 32),
-    ("MI_BANKCONFLICT_MASK", 32),
-    ("MI_CONTROL", 32),
-    ("MI_ROWCONFLICT_MASK", 32),
-    ("PPCM_ARBCONFIG", 32),
-    ("PPCM_CONTROL", 32),
-    ("PPCM_COUNTER", 32),
-    ("PPCS0_CONTROL", 32),
-    ("PPCS1_CONTROL", 32),
-    ("PPCS0_ADDRMAP_TMPL0", 32),
-    ("PPCS1_ADDRMAP_TMPL0", 32),
-    ("XBAR_ADDRMAP_TMPL0", 32),
-    ("PPCS0_ADDRMAP_TMPL1", 32),
-    ("PPCS1_ADDRMAP_TMPL1", 32),
-    ("XBAR_ADDRMAP_TMPL1", 32),
-    ("PPCS0_ADDRMAP_TMPL2", 32),
-    ("PPCS1_ADDRMAP_TMPL2", 32),
-    ("XBAR_ADDRMAP_TMPL2", 32),
-    ("PPCS0_ADDRMAP_TMPL3", 32),
-    ("PPCS1_ADDRMAP_TMPL3", 32),
-    ("XBAR_ADDRMAP_TMPL3", 32),
-    ("APU_TEST", 3),
-    ("DCR_TEST", 3),
-    ("DMA_TEST", 3),
-    ("MIB_TEST", 3),
-    ("PLB_TEST", 4),
+const PPC_INVPINS: &[BelInputId] = &[
+    bcls::PPC440::CPMC440CLK,
+    bcls::PPC440::CPMC440TIMERCLOCK,
+    bcls::PPC440::CPMDCRCLK,
+    bcls::PPC440::CPMDMA0LLCLK,
+    bcls::PPC440::CPMDMA1LLCLK,
+    bcls::PPC440::CPMDMA2LLCLK,
+    bcls::PPC440::CPMDMA3LLCLK,
+    bcls::PPC440::CPMFCMCLK,
+    bcls::PPC440::CPMINTERCONNECTCLK,
+    bcls::PPC440::CPMMCCLK,
+    bcls::PPC440::CPMPPCMPLBCLK,
+    bcls::PPC440::CPMPPCS0PLBCLK,
+    bcls::PPC440::CPMPPCS1PLBCLK,
+    bcls::PPC440::JTGC440TCK,
 ];
 
 pub fn add_fuzzers<'a>(
@@ -111,75 +36,125 @@ pub fn add_fuzzers<'a>(
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::PPC) else {
         return;
     };
-    let mut bctx = ctx.bel(defs::bslots::PPC);
+    let mut bctx = ctx.bel(bslots::PPC);
     let mode = "PPC440";
 
     if !devdata_only {
         bctx.build()
+            .null_bits()
             .no_global("PPCCLKDLY")
-            .test_manual_legacy("PRESENT", "1")
+            .test_bel_special(specials::PRESENT)
             .mode(mode)
             .commit();
 
         for &pin in PPC_INVPINS {
-            bctx.mode(mode).no_global("PPCCLKDLY").test_inv_legacy(pin);
-        }
-        for &attr in PPC_BOOL_ATTRS {
             bctx.mode(mode)
                 .no_global("PPCCLKDLY")
-                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
+                .test_bel_input_inv_auto(pin);
         }
-        for &(attr, width) in PPC_HEX_ATTRS {
+
+        for (aid, _, attr) in &backend.edev.db[bcls::PPC440].attributes {
+            match attr.typ {
+                BelAttributeType::Bool => {
+                    bctx.mode(mode)
+                        .no_global("PPCCLKDLY")
+                        .test_bel_attr_bool_auto(aid, "FALSE", "TRUE");
+                }
+                BelAttributeType::BitVec(_width) => {
+                    if aid == bcls::PPC440::CLOCK_DELAY {
+                        bctx.mode(mode)
+                            .attr("CLOCK_DELAY", "TRUE")
+                            .test_bel_attr_bits(bcls::PPC440::CLOCK_DELAY)
+                            .multi_global("PPCCLKDLY", MultiValue::Bin, 5);
+                    } else {
+                        bctx.mode(mode)
+                            .no_global("PPCCLKDLY")
+                            .test_bel_attr_multi(aid, MultiValue::Hex(0));
+                    }
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        for val in ["FALSE", "TRUE"] {
+            bctx.mode(mode)
+                .null_bits()
+                .no_global("PPCCLKDLY")
+                .test_bel_special(specials::PPC_MI_CONTROL_BIT6)
+                .attr("MI_CONTROL_BIT6", val)
+                .commit();
+        }
+
+        for (val, vname) in [(false, "FALSE"), (true, "TRUE")] {
             bctx.mode(mode)
                 .no_global("PPCCLKDLY")
-                .test_multi_attr_hex_legacy(attr, width);
+                .test_bel_attr_special_bits_bi(
+                    bcls::PPC440::CLOCK_DELAY,
+                    specials::PPC_CLOCK_DELAY,
+                    0,
+                    val,
+                )
+                .attr("CLOCK_DELAY", vname)
+                .commit();
         }
-        bctx.mode(mode)
-            .attr("CLOCK_DELAY", "TRUE")
-            .test_manual_legacy("CLOCK_DELAY", "")
-            .multi_global("PPCCLKDLY", MultiValue::Bin, 5);
-        bctx.mode(mode)
-            .no_global("PPCCLKDLY")
-            .test_enum_legacy("CLOCK_DELAY", &["FALSE", "TRUE"]);
     } else {
         bctx.mode(mode)
             .no_global("PPCCLKDLY")
-            .test_enum_legacy("CLOCK_DELAY", &["FALSE"]);
+            .test_bel_attr_special_bits_bi(
+                bcls::PPC440::CLOCK_DELAY,
+                specials::PPC_CLOCK_DELAY,
+                0,
+                false,
+            )
+            .attr("CLOCK_DELAY", "FALSE")
+            .commit();
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
-    if !ctx.has_tcls(tcls::PPC) {
+    let tcid = tcls::PPC;
+    if !ctx.has_tcls(tcid) {
         return;
     }
-    let tile = "PPC";
-    let bel = "PPC";
+    let bslot = bslots::PPC;
     if !devdata_only {
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
         for &pin in PPC_INVPINS {
-            ctx.collect_inv_legacy(tile, bel, pin);
+            ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
         }
-        ctx.collect_bitvec_legacy(tile, bel, "CLOCK_DELAY", "");
-        for &attr in PPC_BOOL_ATTRS {
-            if attr == "MI_CONTROL_BIT6" {
-                ctx.get_diff_legacy(tile, bel, attr, "FALSE").assert_empty();
-                ctx.get_diff_legacy(tile, bel, attr, "TRUE").assert_empty();
-            } else {
-                ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
+        for (aid, _, attr) in &ctx.edev.db[bcls::PPC440].attributes {
+            match attr.typ {
+                BelAttributeType::Bool => {
+                    ctx.collect_bel_attr_bi(tcid, bslot, aid);
+                }
+                BelAttributeType::BitVec(_width) => {
+                    ctx.collect_bel_attr(tcid, bslot, aid);
+                }
+                _ => unreachable!(),
             }
         }
-        for &(attr, _) in PPC_HEX_ATTRS {
-            ctx.collect_bitvec_legacy(tile, bel, attr, "");
-        }
-        ctx.get_diff_legacy(tile, bel, "CLOCK_DELAY", "TRUE")
-            .assert_empty();
+
+        ctx.get_diff_attr_special_bit_bi(
+            tcid,
+            bslot,
+            bcls::PPC440::CLOCK_DELAY,
+            specials::PPC_CLOCK_DELAY,
+            0,
+            true,
+        )
+        .assert_empty();
     }
-    let diff = ctx.get_diff_legacy(tile, bel, "CLOCK_DELAY", "FALSE");
-    let val = extract_bitvec_val_legacy(
-        ctx.item_legacy(tile, bel, "CLOCK_DELAY"),
+    let diff = ctx.get_diff_attr_special_bit_bi(
+        tcid,
+        bslot,
+        bcls::PPC440::CLOCK_DELAY,
+        specials::PPC_CLOCK_DELAY,
+        0,
+        false,
+    );
+    let val = extract_bitvec_val(
+        ctx.bel_attr_bitvec(tcid, bslot, bcls::PPC440::CLOCK_DELAY),
         &bits![0; 5],
         diff,
     );
-    ctx.insert_device_data_legacy("PPC:CLOCK_DELAY", val);
+    ctx.insert_devdata_bitvec(devdata::PPC440_CLOCK_DELAY, val);
 }

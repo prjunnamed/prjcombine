@@ -240,8 +240,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("CLK")
                     .test_bel_attr_subset_rename(
                         "AFFMUX",
-                        bcls::SLICE::MUX_AFF,
-                        &[enums::SLICE_MUX_AFF::AX, enums::SLICE_MUX_AFF::O6],
+                        bcls::SLICE::MUX_FFA,
+                        &[enums::SLICE_MUX_FFA::AX, enums::SLICE_MUX_FFA::O6],
                     );
                 bctx.mode("SLICEX")
                     .attr("B6LUT", "#LUT:0")
@@ -251,8 +251,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("CLK")
                     .test_bel_attr_subset_rename(
                         "BFFMUX",
-                        bcls::SLICE::MUX_BFF,
-                        &[enums::SLICE_MUX_BFF::BX, enums::SLICE_MUX_BFF::O6],
+                        bcls::SLICE::MUX_FFB,
+                        &[enums::SLICE_MUX_FFB::BX, enums::SLICE_MUX_FFB::O6],
                     );
                 bctx.mode("SLICEX")
                     .attr("C6LUT", "#LUT:0")
@@ -262,8 +262,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("CLK")
                     .test_bel_attr_subset_rename(
                         "CFFMUX",
-                        bcls::SLICE::MUX_CFF,
-                        &[enums::SLICE_MUX_CFF::CX, enums::SLICE_MUX_CFF::O6],
+                        bcls::SLICE::MUX_FFC,
+                        &[enums::SLICE_MUX_FFC::CX, enums::SLICE_MUX_FFC::O6],
                     );
                 bctx.mode("SLICEX")
                     .attr("D6LUT", "#LUT:0")
@@ -273,8 +273,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("CLK")
                     .test_bel_attr_subset_rename(
                         "DFFMUX",
-                        bcls::SLICE::MUX_DFF,
-                        &[enums::SLICE_MUX_DFF::DX, enums::SLICE_MUX_DFF::O6],
+                        bcls::SLICE::MUX_FFD,
+                        &[enums::SLICE_MUX_FFD::DX, enums::SLICE_MUX_FFD::O6],
                     );
             } else {
                 // [ABCD]MUX
@@ -358,7 +358,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("AX")
                     .pin("AQ")
                     .pin("CLK")
-                    .test_bel_attr_rename("AFFMUX", bcls::SLICE::MUX_AFF);
+                    .test_bel_attr_rename("AFFMUX", bcls::SLICE::MUX_FFA);
                 bctx.mode("SLICEL")
                     .attr("B6LUT", "#LUT:0")
                     .attr("B5LUT", "#LUT:0")
@@ -367,7 +367,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("BX")
                     .pin("BQ")
                     .pin("CLK")
-                    .test_bel_attr_rename("BFFMUX", bcls::SLICE::MUX_BFF);
+                    .test_bel_attr_rename("BFFMUX", bcls::SLICE::MUX_FFB);
                 bctx.mode("SLICEL")
                     .attr("C6LUT", "#LUT:0")
                     .attr("C5LUT", "#LUT:0")
@@ -376,7 +376,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("CX")
                     .pin("CQ")
                     .pin("CLK")
-                    .test_bel_attr_rename("CFFMUX", bcls::SLICE::MUX_CFF);
+                    .test_bel_attr_rename("CFFMUX", bcls::SLICE::MUX_FFC);
                 if is_m {
                     bctx.mode("SLICEM")
                         .attr("A6LUT", "#LUT:0")
@@ -387,7 +387,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("DX")
                         .pin("DQ")
                         .pin("CLK")
-                        .test_bel_attr_rename("DFFMUX", bcls::SLICE::MUX_DFF);
+                        .test_bel_attr_rename("DFFMUX", bcls::SLICE::MUX_FFD);
                 } else {
                     bctx.mode("SLICEL")
                         .attr("D6LUT", "#LUT:0")
@@ -399,13 +399,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .pin("CLK")
                         .test_bel_attr_subset_rename(
                             "DFFMUX",
-                            bcls::SLICE::MUX_DFF,
+                            bcls::SLICE::MUX_FFD,
                             &[
-                                enums::SLICE_MUX_DFF::O5,
-                                enums::SLICE_MUX_DFF::O6,
-                                enums::SLICE_MUX_DFF::XOR,
-                                enums::SLICE_MUX_DFF::CY,
-                                enums::SLICE_MUX_DFF::DX,
+                                enums::SLICE_MUX_FFD::O5,
+                                enums::SLICE_MUX_FFD::O6,
+                                enums::SLICE_MUX_FFD::XOR,
+                                enums::SLICE_MUX_FFD::CY,
+                                enums::SLICE_MUX_FFD::DX,
                             ],
                         );
                 }
@@ -463,11 +463,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("DFF", vname)
                     .commit();
             }
-            for attr in [
-                bcls::SLICE::AFFSRINIT,
-                bcls::SLICE::BFFSRINIT,
-                bcls::SLICE::CFFSRINIT,
-                bcls::SLICE::DFFSRINIT,
+            for (attr, aname) in [
+                (bcls::SLICE::FFA_SRINIT, "AFFSRINIT"),
+                (bcls::SLICE::FFB_SRINIT, "BFFSRINIT"),
+                (bcls::SLICE::FFC_SRINIT, "CFFSRINIT"),
+                (bcls::SLICE::FFD_SRINIT, "DFFSRINIT"),
             ] {
                 bctx.mode("SLICEX")
                     .attr("AFF", "#FF")
@@ -479,7 +479,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("CQ")
                     .pin("DQ")
                     .pin("CLK")
-                    .test_bel_attr_bool_auto(attr, "SRINIT0", "SRINIT1");
+                    .test_bel_attr_bool_rename(aname, attr, "SRINIT0", "SRINIT1");
             }
             bctx.mode("SLICEX")
                 .attr("AOUTMUX", "A5Q")
@@ -487,28 +487,48 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("A6LUT", "#LUT:0")
                 .pin("AMUX")
                 .pin("CLK")
-                .test_bel_attr_bool_auto(bcls::SLICE::A5FFSRINIT, "SRINIT0", "SRINIT1");
+                .test_bel_attr_bool_rename(
+                    "A5FFSRINIT",
+                    bcls::SLICE::FFA5_SRINIT,
+                    "SRINIT0",
+                    "SRINIT1",
+                );
             bctx.mode("SLICEX")
                 .attr("BOUTMUX", "B5Q")
                 .attr("B5LUT", "#LUT:0")
                 .attr("B6LUT", "#LUT:0")
                 .pin("BMUX")
                 .pin("CLK")
-                .test_bel_attr_bool_auto(bcls::SLICE::B5FFSRINIT, "SRINIT0", "SRINIT1");
+                .test_bel_attr_bool_rename(
+                    "B5FFSRINIT",
+                    bcls::SLICE::FFB5_SRINIT,
+                    "SRINIT0",
+                    "SRINIT1",
+                );
             bctx.mode("SLICEX")
                 .attr("COUTMUX", "C5Q")
                 .attr("C5LUT", "#LUT:0")
                 .attr("C6LUT", "#LUT:0")
                 .pin("CMUX")
                 .pin("CLK")
-                .test_bel_attr_bool_auto(bcls::SLICE::C5FFSRINIT, "SRINIT0", "SRINIT1");
+                .test_bel_attr_bool_rename(
+                    "C5FFSRINIT",
+                    bcls::SLICE::FFC5_SRINIT,
+                    "SRINIT0",
+                    "SRINIT1",
+                );
             bctx.mode("SLICEX")
                 .attr("DOUTMUX", "D5Q")
                 .attr("D5LUT", "#LUT:0")
                 .attr("D6LUT", "#LUT:0")
                 .pin("DMUX")
                 .pin("CLK")
-                .test_bel_attr_bool_auto(bcls::SLICE::D5FFSRINIT, "SRINIT0", "SRINIT1");
+                .test_bel_attr_bool_rename(
+                    "D5FFSRINIT",
+                    bcls::SLICE::FFD5_SRINIT,
+                    "SRINIT0",
+                    "SRINIT1",
+                );
             bctx.mode("SLICEX")
                 .attr("AFF", "#FF")
                 .pin("AQ")
@@ -623,26 +643,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_bel_attr_subset(
                     tcid,
                     bslot,
-                    bcls::SLICE::MUX_AFF,
-                    &[enums::SLICE_MUX_AFF::O6, enums::SLICE_MUX_AFF::AX],
+                    bcls::SLICE::MUX_FFA,
+                    &[enums::SLICE_MUX_FFA::O6, enums::SLICE_MUX_FFA::AX],
                 );
                 ctx.collect_bel_attr_subset(
                     tcid,
                     bslot,
-                    bcls::SLICE::MUX_BFF,
-                    &[enums::SLICE_MUX_BFF::O6, enums::SLICE_MUX_BFF::BX],
+                    bcls::SLICE::MUX_FFB,
+                    &[enums::SLICE_MUX_FFB::O6, enums::SLICE_MUX_FFB::BX],
                 );
                 ctx.collect_bel_attr_subset(
                     tcid,
                     bslot,
-                    bcls::SLICE::MUX_CFF,
-                    &[enums::SLICE_MUX_CFF::O6, enums::SLICE_MUX_CFF::CX],
+                    bcls::SLICE::MUX_FFC,
+                    &[enums::SLICE_MUX_FFC::O6, enums::SLICE_MUX_FFC::CX],
                 );
                 ctx.collect_bel_attr_subset(
                     tcid,
                     bslot,
-                    bcls::SLICE::MUX_DFF,
-                    &[enums::SLICE_MUX_DFF::O6, enums::SLICE_MUX_DFF::DX],
+                    bcls::SLICE::MUX_FFD,
+                    &[enums::SLICE_MUX_FFD::O6, enums::SLICE_MUX_FFD::DX],
                 );
             } else {
                 ctx.collect_bel_attr_default_ocd(
@@ -690,22 +710,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         OcdMode::Mux,
                     );
                 }
-                ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::MUX_AFF);
-                ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::MUX_BFF);
-                ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::MUX_CFF);
+                ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::MUX_FFA);
+                ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::MUX_FFB);
+                ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::MUX_FFC);
                 if is_m {
-                    ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::MUX_DFF);
+                    ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::MUX_FFD);
                 } else {
                     ctx.collect_bel_attr_subset(
                         tcid,
                         bslot,
-                        bcls::SLICE::MUX_DFF,
+                        bcls::SLICE::MUX_FFD,
                         &[
-                            enums::SLICE_MUX_DFF::O6,
-                            enums::SLICE_MUX_DFF::O5,
-                            enums::SLICE_MUX_DFF::XOR,
-                            enums::SLICE_MUX_DFF::CY,
-                            enums::SLICE_MUX_DFF::DX,
+                            enums::SLICE_MUX_FFD::O6,
+                            enums::SLICE_MUX_FFD::O5,
+                            enums::SLICE_MUX_FFD::XOR,
+                            enums::SLICE_MUX_FFD::CY,
+                            enums::SLICE_MUX_FFD::DX,
                         ],
                     );
                 }
@@ -718,14 +738,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bel_attr(tcid, bslot, bcls::SLICE::FF_CE_ENABLE);
             ctx.collect_bel_attr_bi(tcid, bslot, bcls::SLICE::FF_LATCH);
             for attr in [
-                bcls::SLICE::AFFSRINIT,
-                bcls::SLICE::BFFSRINIT,
-                bcls::SLICE::CFFSRINIT,
-                bcls::SLICE::DFFSRINIT,
-                bcls::SLICE::A5FFSRINIT,
-                bcls::SLICE::B5FFSRINIT,
-                bcls::SLICE::C5FFSRINIT,
-                bcls::SLICE::D5FFSRINIT,
+                bcls::SLICE::FFA_SRINIT,
+                bcls::SLICE::FFB_SRINIT,
+                bcls::SLICE::FFC_SRINIT,
+                bcls::SLICE::FFD_SRINIT,
+                bcls::SLICE::FFA5_SRINIT,
+                bcls::SLICE::FFB5_SRINIT,
+                bcls::SLICE::FFC5_SRINIT,
+                bcls::SLICE::FFD5_SRINIT,
             ] {
                 ctx.collect_bel_attr_bi(tcid, bslot, attr);
             }

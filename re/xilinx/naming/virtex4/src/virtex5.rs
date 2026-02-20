@@ -318,50 +318,44 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 } else {
                     gty * 6 + 6
                 };
-                ntile.add_bel(slot, format!("{kind}_DUAL_X{gtx}Y{gty}"));
-                ntile.add_bel(bslots::BUFDS[0], format!("BUFDS_X{gtx}Y{gty}"));
-                ntile.add_bel(bslots::CRC64[0], format!("CRC64_X{gtx}Y{y}", y = gty * 2));
-                ntile.add_bel(
-                    bslots::CRC64[1],
-                    format!("CRC64_X{gtx}Y{y}", y = gty * 2 + 1),
+                ntile.add_bel_multi(
+                    slot,
+                    [
+                        format!("{kind}_DUAL_X{gtx}Y{gty}"),
+                        format!("BUFDS_X{gtx}Y{gty}"),
+                        format!("IPAD_X{ipx}Y{y}", y = ipy + 5),
+                        format!("IPAD_X{ipx}Y{y}", y = ipy + 4),
+                        format!("IPAD_X{ipx}Y{y}", y = ipy + 1),
+                        format!("IPAD_X{ipx}Y{ipy}"),
+                        format!("IPAD_X{ipx}Y{y}", y = ipy + 3),
+                        format!("IPAD_X{ipx}Y{y}", y = ipy + 2),
+                        format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 1),
+                        format!("OPAD_X{gtx}Y{y}", y = gty * 4),
+                        format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 3),
+                        format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 2),
+                    ],
                 );
-                ntile.add_bel(bslots::CRC32[0], format!("CRC32_X{gtx}Y{y}", y = gty * 4));
+                ntile.add_bel_multi(
+                    bslots::CRC32[0],
+                    [
+                        format!("CRC32_X{gtx}Y{y}", y = gty * 4),
+                        format!("CRC64_X{gtx}Y{y}", y = gty * 2),
+                    ],
+                );
                 ntile.add_bel(
                     bslots::CRC32[1],
                     format!("CRC32_X{gtx}Y{y}", y = gty * 4 + 1),
                 );
-                ntile.add_bel(
+                ntile.add_bel_multi(
                     bslots::CRC32[2],
-                    format!("CRC32_X{gtx}Y{y}", y = gty * 4 + 2),
+                    [
+                        format!("CRC32_X{gtx}Y{y}", y = gty * 4 + 3),
+                        format!("CRC64_X{gtx}Y{y}", y = gty * 2 + 1),
+                    ],
                 );
                 ntile.add_bel(
                     bslots::CRC32[3],
-                    format!("CRC32_X{gtx}Y{y}", y = gty * 4 + 3),
-                );
-                ntile.add_bel(bslots::IPAD_RXP[0], format!("IPAD_X{ipx}Y{y}", y = ipy + 1));
-                ntile.add_bel(bslots::IPAD_RXN[0], format!("IPAD_X{ipx}Y{ipy}"));
-                ntile.add_bel(bslots::IPAD_RXP[1], format!("IPAD_X{ipx}Y{y}", y = ipy + 3));
-                ntile.add_bel(bslots::IPAD_RXN[1], format!("IPAD_X{ipx}Y{y}", y = ipy + 2));
-                ntile.add_bel(
-                    bslots::IPAD_CLKP[0],
-                    format!("IPAD_X{ipx}Y{y}", y = ipy + 5),
-                );
-                ntile.add_bel(
-                    bslots::IPAD_CLKN[0],
-                    format!("IPAD_X{ipx}Y{y}", y = ipy + 4),
-                );
-                ntile.add_bel(
-                    bslots::OPAD_TXP[0],
-                    format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 1),
-                );
-                ntile.add_bel(bslots::OPAD_TXN[0], format!("OPAD_X{gtx}Y{y}", y = gty * 4));
-                ntile.add_bel(
-                    bslots::OPAD_TXP[1],
-                    format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 3),
-                );
-                ntile.add_bel(
-                    bslots::OPAD_TXN[1],
-                    format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 2),
+                    format!("CRC32_X{gtx}Y{y}", y = gty * 4 + 2),
                 );
             }
             tcls::CFG => {

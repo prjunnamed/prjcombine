@@ -24084,7 +24084,7 @@ intdb {
 		O5,
 	}
 
-	enum SLICE_MUX_AFF {
+	enum SLICE_MUX_FFA {
 		AX,
 		O6,
 		O5,
@@ -24093,7 +24093,7 @@ intdb {
 		F7,
 	}
 
-	enum SLICE_MUX_BFF {
+	enum SLICE_MUX_FFB {
 		BX,
 		O6,
 		O5,
@@ -24102,7 +24102,7 @@ intdb {
 		F8,
 	}
 
-	enum SLICE_MUX_CFF {
+	enum SLICE_MUX_FFC {
 		CX,
 		O6,
 		O5,
@@ -24111,7 +24111,7 @@ intdb {
 		F7,
 	}
 
-	enum SLICE_MUX_DFF {
+	enum SLICE_MUX_FFD {
 		DX,
 		O6,
 		O5,
@@ -24952,22 +24952,22 @@ intdb {
 		attribute MUX_BCY0: SLICE_MUX_BCY0;
 		attribute MUX_CCY0: SLICE_MUX_CCY0;
 		attribute MUX_DCY0: SLICE_MUX_DCY0;
-		attribute MUX_AFF: SLICE_MUX_AFF;
-		attribute MUX_BFF: SLICE_MUX_BFF;
-		attribute MUX_CFF: SLICE_MUX_CFF;
-		attribute MUX_DFF: SLICE_MUX_DFF;
+		attribute MUX_FFA: SLICE_MUX_FFA;
+		attribute MUX_FFB: SLICE_MUX_FFB;
+		attribute MUX_FFC: SLICE_MUX_FFC;
+		attribute MUX_FFD: SLICE_MUX_FFD;
 		attribute FF_LATCH: bool;
 		attribute FF_SR_ENABLE: bool;
 		attribute FF_SR_SYNC: bool;
 		attribute FF_CE_ENABLE: bool;
-		attribute AFFSRINIT: bitvec[1];
-		attribute BFFSRINIT: bitvec[1];
-		attribute CFFSRINIT: bitvec[1];
-		attribute DFFSRINIT: bitvec[1];
-		attribute A5FFSRINIT: bitvec[1];
-		attribute B5FFSRINIT: bitvec[1];
-		attribute C5FFSRINIT: bitvec[1];
-		attribute D5FFSRINIT: bitvec[1];
+		attribute FFA_SRINIT: bitvec[1];
+		attribute FFB_SRINIT: bitvec[1];
+		attribute FFC_SRINIT: bitvec[1];
+		attribute FFD_SRINIT: bitvec[1];
+		attribute FFA5_SRINIT: bitvec[1];
+		attribute FFB5_SRINIT: bitvec[1];
+		attribute FFC5_SRINIT: bitvec[1];
+		attribute FFD5_SRINIT: bitvec[1];
 		attribute MUX_AOUT: SLICE_MUX_AOUT;
 		attribute MUX_BOUT: SLICE_MUX_BOUT;
 		attribute MUX_COUT: SLICE_MUX_COUT;
@@ -36159,7 +36159,7 @@ intdb {
 					DX = 0b0,
 					O5 = 0b1,
 				}
-				attribute MUX_AFF @[MAIN[25][6], MAIN[25][4], MAIN[25][5], MAIN[25][7]] {
+				attribute MUX_FFA @[MAIN[25][6], MAIN[25][4], MAIN[25][5], MAIN[25][7]] {
 					AX = 0b0011,
 					O6 = 0b0000,
 					O5 = 0b0100,
@@ -36167,7 +36167,7 @@ intdb {
 					CY = 0b1101,
 					F7 = 0b0111,
 				}
-				attribute MUX_BFF @[MAIN[25][27], MAIN[25][25], MAIN[25][24], MAIN[25][26]] {
+				attribute MUX_FFB @[MAIN[25][27], MAIN[25][25], MAIN[25][24], MAIN[25][26]] {
 					BX = 0b0011,
 					O6 = 0b0000,
 					O5 = 0b0100,
@@ -36175,7 +36175,7 @@ intdb {
 					CY = 0b1101,
 					F8 = 0b0111,
 				}
-				attribute MUX_CFF @[MAIN[25][40], MAIN[25][42], MAIN[25][43], MAIN[25][41]] {
+				attribute MUX_FFC @[MAIN[25][40], MAIN[25][42], MAIN[25][43], MAIN[25][41]] {
 					CX = 0b0011,
 					O6 = 0b0000,
 					O5 = 0b0100,
@@ -36183,7 +36183,7 @@ intdb {
 					CY = 0b1101,
 					F7 = 0b0111,
 				}
-				attribute MUX_DFF @[MAIN[25][58], MAIN[25][57], MAIN[25][56], MAIN[25][59]] {
+				attribute MUX_FFD @[MAIN[25][58], MAIN[25][57], MAIN[25][56], MAIN[25][59]] {
 					DX = 0b1010,
 					O6 = 0b0000,
 					O5 = 0b0001,
@@ -36194,14 +36194,14 @@ intdb {
 				attribute FF_SR_ENABLE @MAIN[25][37];
 				attribute FF_SR_SYNC @MAIN[25][36];
 				attribute FF_CE_ENABLE @MAIN[25][35];
-				attribute AFFSRINIT @[MAIN[25][8]];
-				attribute BFFSRINIT @[MAIN[25][10]];
-				attribute CFFSRINIT @[MAIN[25][51]];
-				attribute DFFSRINIT @[MAIN[25][52]];
-				attribute A5FFSRINIT @[MAIN[20][16]];
-				attribute B5FFSRINIT @[MAIN[20][23]];
-				attribute C5FFSRINIT @[MAIN[20][42]];
-				attribute D5FFSRINIT @[MAIN[20][47]];
+				attribute FFA_SRINIT @[MAIN[25][8]];
+				attribute FFB_SRINIT @[MAIN[25][10]];
+				attribute FFC_SRINIT @[MAIN[25][51]];
+				attribute FFD_SRINIT @[MAIN[25][52]];
+				attribute FFA5_SRINIT @[MAIN[20][16]];
+				attribute FFB5_SRINIT @[MAIN[20][23]];
+				attribute FFC5_SRINIT @[MAIN[20][42]];
+				attribute FFD5_SRINIT @[MAIN[20][47]];
 				attribute MUX_AOUT @[MAIN[25][2], MAIN[25][1], MAIN[25][0], MAIN[25][3]] {
 					NONE = 0b0000,
 					A5Q = 0b0001,
@@ -36287,19 +36287,19 @@ intdb {
 				attribute B6LUT @[MAIN[28][5], MAIN[28][4], MAIN[29][5], MAIN[29][4], MAIN[28][7], MAIN[28][6], MAIN[29][7], MAIN[29][6], MAIN[28][3], MAIN[28][2], MAIN[29][3], MAIN[29][2], MAIN[28][1], MAIN[28][0], MAIN[29][1], MAIN[29][0], MAIN[28][13], MAIN[28][12], MAIN[29][13], MAIN[29][12], MAIN[28][15], MAIN[28][14], MAIN[29][15], MAIN[29][14], MAIN[28][11], MAIN[28][10], MAIN[29][11], MAIN[29][10], MAIN[28][9], MAIN[28][8], MAIN[29][9], MAIN[29][8], MAIN[28][21], MAIN[28][20], MAIN[29][21], MAIN[29][20], MAIN[28][23], MAIN[28][22], MAIN[29][23], MAIN[29][22], MAIN[28][19], MAIN[28][18], MAIN[29][19], MAIN[29][18], MAIN[28][17], MAIN[28][16], MAIN[29][17], MAIN[29][16], MAIN[28][29], MAIN[28][28], MAIN[29][29], MAIN[29][28], MAIN[28][31], MAIN[28][30], MAIN[29][31], MAIN[29][30], MAIN[28][27], MAIN[28][26], MAIN[29][27], MAIN[29][26], MAIN[28][25], MAIN[28][24], MAIN[29][25], MAIN[29][24]];
 				attribute C6LUT @[MAIN[26][58], MAIN[26][59], MAIN[27][58], MAIN[27][59], MAIN[26][56], MAIN[26][57], MAIN[27][56], MAIN[27][57], MAIN[26][60], MAIN[26][61], MAIN[27][60], MAIN[27][61], MAIN[26][62], MAIN[26][63], MAIN[27][62], MAIN[27][63], MAIN[26][50], MAIN[26][51], MAIN[27][50], MAIN[27][51], MAIN[26][48], MAIN[26][49], MAIN[27][48], MAIN[27][49], MAIN[26][52], MAIN[26][53], MAIN[27][52], MAIN[27][53], MAIN[26][54], MAIN[26][55], MAIN[27][54], MAIN[27][55], MAIN[26][42], MAIN[26][43], MAIN[27][42], MAIN[27][43], MAIN[26][40], MAIN[26][41], MAIN[27][40], MAIN[27][41], MAIN[26][44], MAIN[26][45], MAIN[27][44], MAIN[27][45], MAIN[26][46], MAIN[26][47], MAIN[27][46], MAIN[27][47], MAIN[26][34], MAIN[26][35], MAIN[27][34], MAIN[27][35], MAIN[26][32], MAIN[26][33], MAIN[27][32], MAIN[27][33], MAIN[26][36], MAIN[26][37], MAIN[27][36], MAIN[27][37], MAIN[26][38], MAIN[26][39], MAIN[27][38], MAIN[27][39]];
 				attribute D6LUT @[MAIN[28][58], MAIN[28][59], MAIN[29][58], MAIN[29][59], MAIN[28][56], MAIN[28][57], MAIN[29][56], MAIN[29][57], MAIN[28][60], MAIN[28][61], MAIN[29][60], MAIN[29][61], MAIN[28][62], MAIN[28][63], MAIN[29][62], MAIN[29][63], MAIN[28][50], MAIN[28][51], MAIN[29][50], MAIN[29][51], MAIN[28][48], MAIN[28][49], MAIN[29][48], MAIN[29][49], MAIN[28][52], MAIN[28][53], MAIN[29][52], MAIN[29][53], MAIN[28][54], MAIN[28][55], MAIN[29][54], MAIN[29][55], MAIN[28][42], MAIN[28][43], MAIN[29][42], MAIN[29][43], MAIN[28][40], MAIN[28][41], MAIN[29][40], MAIN[29][41], MAIN[28][44], MAIN[28][45], MAIN[29][44], MAIN[29][45], MAIN[28][46], MAIN[28][47], MAIN[29][46], MAIN[29][47], MAIN[28][34], MAIN[28][35], MAIN[29][34], MAIN[29][35], MAIN[28][32], MAIN[28][33], MAIN[29][32], MAIN[29][33], MAIN[28][36], MAIN[28][37], MAIN[29][36], MAIN[29][37], MAIN[28][38], MAIN[28][39], MAIN[29][38], MAIN[29][39]];
-				attribute MUX_AFF @[MAIN[25][18]] {
+				attribute MUX_FFA @[MAIN[25][18]] {
 					AX = 0b1,
 					O6 = 0b0,
 				}
-				attribute MUX_BFF @[MAIN[25][19]] {
+				attribute MUX_FFB @[MAIN[25][19]] {
 					BX = 0b1,
 					O6 = 0b0,
 				}
-				attribute MUX_CFF @[MAIN[25][33]] {
+				attribute MUX_FFC @[MAIN[25][33]] {
 					CX = 0b1,
 					O6 = 0b0,
 				}
-				attribute MUX_DFF @[MAIN[25][34]] {
+				attribute MUX_FFD @[MAIN[25][34]] {
 					DX = 0b1,
 					O6 = 0b0,
 				}
@@ -36307,14 +36307,14 @@ intdb {
 				attribute FF_SR_ENABLE @MAIN[25][31];
 				attribute FF_SR_SYNC @MAIN[25][30];
 				attribute FF_CE_ENABLE @MAIN[25][32];
-				attribute AFFSRINIT @[MAIN[25][13]];
-				attribute BFFSRINIT @[MAIN[25][17]];
-				attribute CFFSRINIT @[MAIN[20][41]];
-				attribute DFFSRINIT @[MAIN[25][50]];
-				attribute A5FFSRINIT @[MAIN[20][17]];
-				attribute B5FFSRINIT @[MAIN[20][21]];
-				attribute C5FFSRINIT @[MAIN[20][40]];
-				attribute D5FFSRINIT @[MAIN[20][46]];
+				attribute FFA_SRINIT @[MAIN[25][13]];
+				attribute FFB_SRINIT @[MAIN[25][17]];
+				attribute FFC_SRINIT @[MAIN[20][41]];
+				attribute FFD_SRINIT @[MAIN[25][50]];
+				attribute FFA5_SRINIT @[MAIN[20][17]];
+				attribute FFB5_SRINIT @[MAIN[20][21]];
+				attribute FFC5_SRINIT @[MAIN[20][40]];
+				attribute FFD5_SRINIT @[MAIN[20][46]];
 				attribute MUX_AOUT @[MAIN[25][16]] {
 					A5Q = 0b0,
 					O5 = 0b1,
@@ -36549,7 +36549,7 @@ intdb {
 					DX = 0b0,
 					O5 = 0b1,
 				}
-				attribute MUX_AFF @[MAIN[26][6], MAIN[26][4], MAIN[26][5], MAIN[26][7]] {
+				attribute MUX_FFA @[MAIN[26][6], MAIN[26][4], MAIN[26][5], MAIN[26][7]] {
 					AX = 0b0011,
 					O6 = 0b0000,
 					O5 = 0b0100,
@@ -36557,7 +36557,7 @@ intdb {
 					CY = 0b1101,
 					F7 = 0b0111,
 				}
-				attribute MUX_BFF @[MAIN[26][27], MAIN[26][25], MAIN[26][24], MAIN[26][26]] {
+				attribute MUX_FFB @[MAIN[26][27], MAIN[26][25], MAIN[26][24], MAIN[26][26]] {
 					BX = 0b0011,
 					O6 = 0b0000,
 					O5 = 0b0100,
@@ -36565,7 +36565,7 @@ intdb {
 					CY = 0b1101,
 					F8 = 0b0111,
 				}
-				attribute MUX_CFF @[MAIN[26][40], MAIN[26][42], MAIN[26][43], MAIN[26][41]] {
+				attribute MUX_FFC @[MAIN[26][40], MAIN[26][42], MAIN[26][43], MAIN[26][41]] {
 					CX = 0b0011,
 					O6 = 0b0000,
 					O5 = 0b0100,
@@ -36573,7 +36573,7 @@ intdb {
 					CY = 0b1101,
 					F7 = 0b0111,
 				}
-				attribute MUX_DFF @[MAIN[26][57], MAIN[26][59], MAIN[26][58], MAIN[26][56]] {
+				attribute MUX_FFD @[MAIN[26][57], MAIN[26][59], MAIN[26][58], MAIN[26][56]] {
 					DX = 0b0011,
 					O6 = 0b0000,
 					O5 = 0b0100,
@@ -36585,14 +36585,14 @@ intdb {
 				attribute FF_SR_ENABLE @MAIN[26][37];
 				attribute FF_SR_SYNC @MAIN[26][36];
 				attribute FF_CE_ENABLE @MAIN[26][35];
-				attribute AFFSRINIT @[MAIN[20][18]];
-				attribute BFFSRINIT @[MAIN[26][10]];
-				attribute CFFSRINIT @[MAIN[26][51]];
-				attribute DFFSRINIT @[MAIN[26][52]];
-				attribute A5FFSRINIT @[MAIN[20][16]];
-				attribute B5FFSRINIT @[MAIN[20][23]];
-				attribute C5FFSRINIT @[MAIN[20][42]];
-				attribute D5FFSRINIT @[MAIN[20][47]];
+				attribute FFA_SRINIT @[MAIN[20][18]];
+				attribute FFB_SRINIT @[MAIN[26][10]];
+				attribute FFC_SRINIT @[MAIN[26][51]];
+				attribute FFD_SRINIT @[MAIN[26][52]];
+				attribute FFA5_SRINIT @[MAIN[20][16]];
+				attribute FFB5_SRINIT @[MAIN[20][23]];
+				attribute FFC5_SRINIT @[MAIN[20][42]];
+				attribute FFD5_SRINIT @[MAIN[20][47]];
 				attribute MUX_AOUT @[MAIN[26][2], MAIN[26][1], MAIN[26][0], MAIN[26][3]] {
 					NONE = 0b0000,
 					A5Q = 0b0001,
@@ -36679,19 +36679,19 @@ intdb {
 				attribute B6LUT @[MAIN[29][5], MAIN[29][4], MAIN[30][5], MAIN[30][4], MAIN[29][7], MAIN[29][6], MAIN[30][7], MAIN[30][6], MAIN[29][3], MAIN[29][2], MAIN[30][3], MAIN[30][2], MAIN[29][1], MAIN[29][0], MAIN[30][1], MAIN[30][0], MAIN[29][13], MAIN[29][12], MAIN[30][13], MAIN[30][12], MAIN[29][15], MAIN[29][14], MAIN[30][15], MAIN[30][14], MAIN[29][11], MAIN[29][10], MAIN[30][11], MAIN[30][10], MAIN[29][9], MAIN[29][8], MAIN[30][9], MAIN[30][8], MAIN[29][21], MAIN[29][20], MAIN[30][21], MAIN[30][20], MAIN[29][23], MAIN[29][22], MAIN[30][23], MAIN[30][22], MAIN[29][19], MAIN[29][18], MAIN[30][19], MAIN[30][18], MAIN[29][17], MAIN[29][16], MAIN[30][17], MAIN[30][16], MAIN[29][29], MAIN[29][28], MAIN[30][29], MAIN[30][28], MAIN[29][31], MAIN[29][30], MAIN[30][31], MAIN[30][30], MAIN[29][27], MAIN[29][26], MAIN[30][27], MAIN[30][26], MAIN[29][25], MAIN[29][24], MAIN[30][25], MAIN[30][24]];
 				attribute C6LUT @[MAIN[27][58], MAIN[27][59], MAIN[28][58], MAIN[28][59], MAIN[27][56], MAIN[27][57], MAIN[28][56], MAIN[28][57], MAIN[27][60], MAIN[27][61], MAIN[28][60], MAIN[28][61], MAIN[27][62], MAIN[27][63], MAIN[28][62], MAIN[28][63], MAIN[27][50], MAIN[27][51], MAIN[28][50], MAIN[28][51], MAIN[27][48], MAIN[27][49], MAIN[28][48], MAIN[28][49], MAIN[27][52], MAIN[27][53], MAIN[28][52], MAIN[28][53], MAIN[27][54], MAIN[27][55], MAIN[28][54], MAIN[28][55], MAIN[27][42], MAIN[27][43], MAIN[28][42], MAIN[28][43], MAIN[27][40], MAIN[27][41], MAIN[28][40], MAIN[28][41], MAIN[27][44], MAIN[27][45], MAIN[28][44], MAIN[28][45], MAIN[27][46], MAIN[27][47], MAIN[28][46], MAIN[28][47], MAIN[27][34], MAIN[27][35], MAIN[28][34], MAIN[28][35], MAIN[27][32], MAIN[27][33], MAIN[28][32], MAIN[28][33], MAIN[27][36], MAIN[27][37], MAIN[28][36], MAIN[28][37], MAIN[27][38], MAIN[27][39], MAIN[28][38], MAIN[28][39]];
 				attribute D6LUT @[MAIN[29][58], MAIN[29][59], MAIN[30][58], MAIN[30][59], MAIN[29][56], MAIN[29][57], MAIN[30][56], MAIN[30][57], MAIN[29][60], MAIN[29][61], MAIN[30][60], MAIN[30][61], MAIN[29][62], MAIN[29][63], MAIN[30][62], MAIN[30][63], MAIN[29][50], MAIN[29][51], MAIN[30][50], MAIN[30][51], MAIN[29][48], MAIN[29][49], MAIN[30][48], MAIN[30][49], MAIN[29][52], MAIN[29][53], MAIN[30][52], MAIN[30][53], MAIN[29][54], MAIN[29][55], MAIN[30][54], MAIN[30][55], MAIN[29][42], MAIN[29][43], MAIN[30][42], MAIN[30][43], MAIN[29][40], MAIN[29][41], MAIN[30][40], MAIN[30][41], MAIN[29][44], MAIN[29][45], MAIN[30][44], MAIN[30][45], MAIN[29][46], MAIN[29][47], MAIN[30][46], MAIN[30][47], MAIN[29][34], MAIN[29][35], MAIN[30][34], MAIN[30][35], MAIN[29][32], MAIN[29][33], MAIN[30][32], MAIN[30][33], MAIN[29][36], MAIN[29][37], MAIN[30][36], MAIN[30][37], MAIN[29][38], MAIN[29][39], MAIN[30][38], MAIN[30][39]];
-				attribute MUX_AFF @[MAIN[26][18]] {
+				attribute MUX_FFA @[MAIN[26][18]] {
 					AX = 0b1,
 					O6 = 0b0,
 				}
-				attribute MUX_BFF @[MAIN[26][19]] {
+				attribute MUX_FFB @[MAIN[26][19]] {
 					BX = 0b1,
 					O6 = 0b0,
 				}
-				attribute MUX_CFF @[MAIN[26][33]] {
+				attribute MUX_FFC @[MAIN[26][33]] {
 					CX = 0b1,
 					O6 = 0b0,
 				}
-				attribute MUX_DFF @[MAIN[26][34]] {
+				attribute MUX_FFD @[MAIN[26][34]] {
 					DX = 0b1,
 					O6 = 0b0,
 				}
@@ -36699,14 +36699,14 @@ intdb {
 				attribute FF_SR_ENABLE @MAIN[26][31];
 				attribute FF_SR_SYNC @MAIN[26][30];
 				attribute FF_CE_ENABLE @MAIN[26][32];
-				attribute AFFSRINIT @[MAIN[26][13]];
-				attribute BFFSRINIT @[MAIN[26][17]];
-				attribute CFFSRINIT @[MAIN[20][41]];
-				attribute DFFSRINIT @[MAIN[26][50]];
-				attribute A5FFSRINIT @[MAIN[20][17]];
-				attribute B5FFSRINIT @[MAIN[20][21]];
-				attribute C5FFSRINIT @[MAIN[20][40]];
-				attribute D5FFSRINIT @[MAIN[20][46]];
+				attribute FFA_SRINIT @[MAIN[26][13]];
+				attribute FFB_SRINIT @[MAIN[26][17]];
+				attribute FFC_SRINIT @[MAIN[20][41]];
+				attribute FFD_SRINIT @[MAIN[26][50]];
+				attribute FFA5_SRINIT @[MAIN[20][17]];
+				attribute FFB5_SRINIT @[MAIN[20][21]];
+				attribute FFC5_SRINIT @[MAIN[20][40]];
+				attribute FFD5_SRINIT @[MAIN[20][46]];
 				attribute MUX_AOUT @[MAIN[26][16]] {
 					A5Q = 0b0,
 					O5 = 0b1,

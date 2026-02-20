@@ -110,7 +110,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for i in 0..2 {
         let mut bctx = ctx.bel(defs::bslots::ICAP[i]);
         bctx.build()
-            .test_bel_attr_bits(bcls::ICAP::ENABLE)
+            .test_bel_attr_bits(bcls::ICAP_V4::ENABLE)
             .mode("ICAP")
             .commit();
         bctx.mode("ICAP")
@@ -500,7 +500,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bel_attr(tcid, bslot, bcls::BSCAN::ENABLE);
     }
     for bslot in bslots::ICAP {
-        ctx.collect_bel_attr(tcid, bslot, bcls::ICAP::ENABLE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::ICAP_V4::ENABLE);
     }
     ctx.collect_bel_attr(tcid, bslots::DCIRESET, bcls::DCIRESET::ENABLE);
 

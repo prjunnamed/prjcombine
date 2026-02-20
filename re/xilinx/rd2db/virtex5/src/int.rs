@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{IntDb, PairMux, SwitchBoxItem, TileWireCoord, WireSlotIdExt, WireSupport},
+    db::{BelInfo, IntDb, PairMux, SwitchBoxItem, TileWireCoord, WireSlotIdExt, WireSupport},
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, NamingDb, PipNaming, RawTileId};
@@ -870,32 +870,53 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let intf = builder.ndb.get_tile_class_naming("INTF");
 
     if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
-        let mut int_xy = Vec::new();
-        let mut intf_xy = Vec::new();
-        for dy in 0..5 {
-            int_xy.push(xy.delta(-2, dy));
-            intf_xy.push((xy.delta(-1, dy), intf));
+        let mut bel = builder
+            .bel_xy(bslots::BRAM, "RAMB36", 0, 0)
+            .pin_rename("CLKARDCLKL", "CLKAL")
+            .pin_rename("CLKARDCLKU", "CLKAU")
+            .pin_rename("CLKBWRCLKL", "CLKBL")
+            .pin_rename("CLKBWRCLKU", "CLKBU")
+            .pin_rename("ENARDENL", "ENAL")
+            .pin_rename("ENBWRENL", "ENBL")
+            .pin_rename("SSRARSTL", "SSRAL")
+            .pin_rename("REGCLKARDRCLKL", "REGCLKAL")
+            .pin_rename("REGCLKARDRCLKU", "REGCLKAU")
+            .pin_rename("REGCLKBWRRCLKL", "REGCLKBL")
+            .pin_rename("REGCLKBWRRCLKU", "REGCLKBU")
+            .pins_name_only(&[
+                "CASCADEOUTLATA",
+                "CASCADEOUTLATB",
+                "CASCADEOUTREGA",
+                "CASCADEOUTREGB",
+            ])
+            .pin_name_only("CASCADEINLATA", 1)
+            .pin_name_only("CASCADEINLATB", 1)
+            .pin_name_only("CASCADEINREGA", 1)
+            .pin_name_only("CASCADEINREGB", 1);
+        for ul in ['L', 'U'] {
+            for ab in ['A', 'B'] {
+                for i in 0..16 {
+                    bel = bel.pin_rename(format!("DI{ab}DI{ul}{i}"), format!("DI{ab}{ul}{i}"));
+                    bel = bel.pin_rename(format!("DO{ab}DO{ul}{i}"), format!("DO{ab}{ul}{i}"));
+                }
+                for i in 0..2 {
+                    bel = bel.pin_rename(format!("DIP{ab}DIP{ul}{i}"), format!("DIP{ab}{ul}{i}"));
+                    bel = bel.pin_rename(format!("DOP{ab}DOP{ul}{i}"), format!("DOP{ab}{ul}{i}"));
+                }
+            }
         }
-        builder.extract_xtile_bels_intf_id(
-            tcls::BRAM,
-            xy,
-            &[],
-            &int_xy,
-            &intf_xy,
-            "BRAM",
-            &[builder
-                .bel_xy(bslots::BRAM, "RAMB36", 0, 0)
-                .pins_name_only(&[
-                    "CASCADEOUTLATA",
-                    "CASCADEOUTLATB",
-                    "CASCADEOUTREGA",
-                    "CASCADEOUTREGB",
-                ])
-                .pin_name_only("CASCADEINLATA", 1)
-                .pin_name_only("CASCADEINLATB", 1)
-                .pin_name_only("CASCADEINREGA", 1)
-                .pin_name_only("CASCADEINREGB", 1)],
-        );
+        let mut x = builder
+            .xtile_id(tcls::BRAM, "BRAM", xy)
+            .num_cells(5)
+            .bel(bel);
+        for dy in 0..5 {
+            x = x.ref_int(xy.delta(-2, dy as i32), dy).ref_single(
+                xy.delta(-1, dy as i32),
+                dy,
+                intf,
+            );
+        }
+        x.extract();
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("HCLK_BRAM").iter().next() {
@@ -1218,6 +1239,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     "DDLY",
                     "TFB",
                     "OFB",
+                    "OCLK",
                 ])
                 .extra_wire("I_IOB", &["IOI_IBUF1"]);
             let bel_ilogic1 = builder
@@ -1231,6 +1253,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     "DDLY",
                     "TFB",
                     "OFB",
+                    "OCLK",
                 ])
                 .extra_wire("I_IOB", &["IOI_IBUF0"])
                 .extra_int_out_force("CLKPAD", wires::OUT_CLKPAD.cell(0), "IOI_I_2GCLK0");
@@ -1246,10 +1269,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire("O_IOB", &["IOI_O0"]);
             let bel_iodelay0 = builder
                 .bel_xy(bslots::IODELAY[0], "IODELAY", 0, 0)
-                .pins_name_only(&["IDATAIN", "ODATAIN", "T", "DATAOUT"]);
+                .pins_name_only(&["IDATAIN", "ODATAIN", "T", "DATAOUT", "C"]);
             let bel_iodelay1 = builder
                 .bel_xy(bslots::IODELAY[1], "IODELAY", 0, 1)
-                .pins_name_only(&["IDATAIN", "ODATAIN", "T", "DATAOUT"]);
+                .pins_name_only(&["IDATAIN", "ODATAIN", "T", "DATAOUT", "C"]);
 
             let mut bel_iob0 = builder
                 .bel_xy(bslots::IOB[0], "IOB", 0, 0)
@@ -1893,7 +1916,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             } else {
                 (bslots::GTX_DUAL, "GTX_DUAL")
             };
-            let bels = [
+            let mut bels = vec![
                 builder
                     .bel_xy(slot, gtkind, 0, 0)
                     .pins_name_only(&[
@@ -1906,49 +1929,71 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_int_in(
                         "GREFCLK",
                         &["GT3_GREFCLK", "GTX_GREFCLK", "GTX_LEFT_GREFCLK"],
-                    ),
-                builder
-                    .bel_xy(bslots::BUFDS[0], "BUFDS", 0, 0)
-                    .pins_name_only(&["IP", "IN", "O"]),
-                builder.bel_xy(bslots::CRC64[0], "CRC64", 0, 0),
-                builder.bel_xy(bslots::CRC64[1], "CRC64", 0, 1),
-                builder.bel_xy(bslots::CRC32[0], "CRC32", 0, 0),
-                builder.bel_xy(bslots::CRC32[1], "CRC32", 0, 1),
-                builder.bel_xy(bslots::CRC32[2], "CRC32", 0, 2),
-                builder.bel_xy(bslots::CRC32[3], "CRC32", 0, 3),
-                builder
-                    .bel_xy(bslots::IPAD_RXP[0], "IPAD", 0, 1)
-                    .pins_name_only(&["O"]),
-                builder
-                    .bel_xy(bslots::IPAD_RXN[0], "IPAD", 0, 0)
-                    .pins_name_only(&["O"]),
-                builder
-                    .bel_xy(bslots::IPAD_RXP[1], "IPAD", 0, 3)
-                    .pins_name_only(&["O"]),
-                builder
-                    .bel_xy(bslots::IPAD_RXN[1], "IPAD", 0, 2)
-                    .pins_name_only(&["O"]),
-                builder
-                    .bel_xy(bslots::IPAD_CLKP[0], "IPAD", 0, 5)
-                    .pins_name_only(&["O"]),
-                builder
-                    .bel_xy(bslots::IPAD_CLKN[0], "IPAD", 0, 4)
-                    .pins_name_only(&["O"]),
-                builder
-                    .bel_xy(bslots::OPAD_TXP[0], "OPAD", 0, 1)
-                    .pins_name_only(&["I"]),
-                builder
-                    .bel_xy(bslots::OPAD_TXN[0], "OPAD", 0, 0)
-                    .pins_name_only(&["I"]),
-                builder
-                    .bel_xy(bslots::OPAD_TXP[1], "OPAD", 0, 3)
-                    .pins_name_only(&["I"]),
-                builder
-                    .bel_xy(bslots::OPAD_TXN[1], "OPAD", 0, 2)
-                    .pins_name_only(&["I"]),
+                    )
+                    .sub_xy(rd, "BUFDS", 0, 0)
+                    .pin_rename("IP", "BUFDS_IP")
+                    .pin_rename("IN", "BUFDS_IN")
+                    .pin_rename("O", "BUFDS_O")
+                    .pins_name_only(&["BUFDS_IP", "BUFDS_IN", "BUFDS_O"])
+                    .sub_xy(rd, "IPAD", 0, 5)
+                    .pin_rename("O", "IPAD_BUFDS_IP_O")
+                    .pins_name_only(&["IPAD_BUFDS_IP_O"])
+                    .sub_xy(rd, "IPAD", 0, 4)
+                    .pin_rename("O", "IPAD_BUFDS_IN_O")
+                    .pins_name_only(&["IPAD_BUFDS_IN_O"])
+                    .sub_xy(rd, "IPAD", 0, 1)
+                    .pin_rename("O", "IPAD_RXP0_O")
+                    .pins_name_only(&["IPAD_RXP0_O"])
+                    .sub_xy(rd, "IPAD", 0, 0)
+                    .pin_rename("O", "IPAD_RXN0_O")
+                    .pins_name_only(&["IPAD_RXN0_O"])
+                    .sub_xy(rd, "IPAD", 0, 3)
+                    .pin_rename("O", "IPAD_RXP1_O")
+                    .pins_name_only(&["IPAD_RXP1_O"])
+                    .sub_xy(rd, "IPAD", 0, 2)
+                    .pin_rename("O", "IPAD_RXN1_O")
+                    .pins_name_only(&["IPAD_RXN1_O"])
+                    .sub_xy(rd, "OPAD", 0, 1)
+                    .pin_rename("I", "OPAD_TXP0_I")
+                    .pins_name_only(&["OPAD_TXP0_I"])
+                    .sub_xy(rd, "OPAD", 0, 0)
+                    .pin_rename("I", "OPAD_TXN0_I")
+                    .pins_name_only(&["OPAD_TXN0_I"])
+                    .sub_xy(rd, "OPAD", 0, 3)
+                    .pin_rename("I", "OPAD_TXP1_I")
+                    .pins_name_only(&["OPAD_TXP1_I"])
+                    .sub_xy(rd, "OPAD", 0, 2)
+                    .pin_rename("I", "OPAD_TXN1_I")
+                    .pins_name_only(&["OPAD_TXN1_I"]),
             ];
 
-            let mut xn = builder.xtile_id(tcid, tkn, xy).num_cells(20);
+            for i in 0..4 {
+                let mut bel = builder
+                    .bel_xy(bslots::CRC32[i], "CRC32", 0, [0, 1, 3, 2][i])
+                    .manual();
+                if i.is_multiple_of(2) {
+                    bel = bel
+                        .sub_xy(rd, "CRC64", 0, i / 2)
+                        .pin_rename("CRCCLK", "CRC64_CRCCLK")
+                        .pin_rename("CRCRESET", "CRC64_CRCRESET")
+                        .pin_rename("CRCDATAVALID", "CRC64_CRCDATAVALID");
+                    for j in 0..3 {
+                        bel = bel.pin_rename(
+                            format!("CRCDATAWIDTH{j}"),
+                            format!("CRC64_CRCDATAWIDTH{j}"),
+                        );
+                    }
+                    for j in 0..32 {
+                        bel = bel.pin_rename(format!("CRCOUT{j}"), format!("CRC64_CRCOUT{j}"));
+                    }
+                    for j in 0..64 {
+                        bel = bel.pin_rename(format!("CRCIN{j}"), format!("CRC64_CRCIN{j}"));
+                    }
+                }
+                bels.push(bel);
+            }
+
+            let mut xn = builder.xtile_id(tcid, tkn, xy).num_cells(20).bels(bels);
             for i in 0..10 {
                 xn = xn.ref_int(xy.delta(int_dx, -10 + i as i32), i).ref_single(
                     xy.delta(int_dx + 1, -10 + i as i32),
@@ -1961,10 +2006,48 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .ref_int(xy.delta(int_dx, 1 + i as i32), i + 10)
                     .ref_single(xy.delta(int_dx + 1, 1 + i as i32), i + 10, intf_gt);
             }
-            for bel in bels {
-                xn = xn.bel(bel);
+            let mut xt = xn.extract();
+            for i in [0, 2] {
+                for j in 0..32 {
+                    let pin = xt.bels[i]
+                        .0
+                        .pins
+                        .remove(&format!("CRC64_CRCIN{j}"))
+                        .unwrap();
+                    assert_eq!(pin, xt.bels[i + 1].0.pins[&format!("CRCIN{j}")]);
+                }
+                for j in 0..32 {
+                    let pin = xt.bels[i]
+                        .0
+                        .pins
+                        .remove(&format!("CRC64_CRCIN{jj}", jj = j + 32))
+                        .unwrap();
+                    assert_eq!(pin, xt.bels[i].0.pins[&format!("CRCIN{j}")]);
+                }
+                for j in 0..32 {
+                    let pin = xt.bels[i]
+                        .0
+                        .pins
+                        .remove(&format!("CRC64_CRCOUT{j}"))
+                        .unwrap();
+                    assert_eq!(pin, xt.bels[i].0.pins[&format!("CRCOUT{j}")]);
+                }
+                for name in [
+                    "CRCCLK",
+                    "CRCRESET",
+                    "CRCDATAVALID",
+                    "CRCDATAWIDTH0",
+                    "CRCDATAWIDTH1",
+                    "CRCDATAWIDTH2",
+                ] {
+                    let pin = xt.bels[i].0.pins.remove(&format!("CRC64_{name}")).unwrap();
+                    assert_eq!(pin, xt.bels[i].0.pins[name]);
+                }
             }
-            xn.extract();
+            for (bslot, (bel, naming)) in bslots::CRC32.into_iter().zip(xt.bels) {
+                builder.insert_tcls_bel(tcid, bslot, BelInfo::Legacy(bel));
+                builder.insert_bel_naming(tkn, bslot, naming);
+            }
         }
     }
 

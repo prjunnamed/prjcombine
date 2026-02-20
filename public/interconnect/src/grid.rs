@@ -525,6 +525,18 @@ impl<'a> ExpandedGrid<'a> {
         Some(cell)
     }
 
+    pub fn bel_delta(
+        &self,
+        cell: CellCoord,
+        dx: i32,
+        dy: i32,
+        slot: BelSlotId,
+    ) -> Option<BelCoord> {
+        let cell = self.cell_delta(cell, dx, dy)?;
+        let bcrd = cell.bel(slot);
+        if self.has_bel(bcrd) { Some(bcrd) } else { None }
+    }
+
     pub fn has_bel(&self, bel: BelCoord) -> bool {
         let tslot = self.db.bel_slots[bel.slot].tile_slot;
         if let Some(tile) = self[bel.cell].tiles.get(tslot) {

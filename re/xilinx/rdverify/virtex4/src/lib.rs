@@ -7,13 +7,15 @@ use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelVerifier, RawWireCoord, Verifier};
-use prjcombine_virtex4::defs::{
-    bcls, bslots, tslots,
-    virtex4::{tcls, wires},
+use prjcombine_virtex4::{
+    defs::{
+        bcls, bslots, tslots,
+        virtex4::{tcls, wires},
+    },
+    expanded::ExpandedDevice,
 };
 
-fn verify_slice(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
-    let edev = endev.edev;
+fn verify_slice(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let idx = bslots::SLICE.index_of(bcrd.slot).unwrap();
     let is_slicem = matches!(idx, 0 | 2);
     let mut bel = vrf
@@ -104,7 +106,7 @@ fn verify_slice(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord)
     bel.commit();
 }
 
-fn verify_bram(vrf: &mut Verifier, bcrd: BelCoord) {
+fn verify_bram(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let mut bel = vrf
         .verify_bel(bcrd)
         .kind("RAMB16")
@@ -115,10 +117,7 @@ fn verify_bram(vrf: &mut Verifier, bcrd: BelCoord) {
     for (ipin, opin) in [("CASCADEINA", "CASCADEOUTA"), ("CASCADEINB", "CASCADEOUTB")] {
         bel.claim_net(&[bel.wire(opin)]);
         bel.claim_net(&[bel.wire(ipin)]);
-        if let Some(cell) = bel.vrf.grid.cell_delta(bcrd.cell, 0, -4)
-            && let obel = cell.bel(bslots::BRAM)
-            && bel.vrf.grid.has_bel(obel)
-        {
+        if let Some(obel) = edev.bel_carry_prev(bcrd) {
             bel.verify_net(&[bel.wire_far(ipin), bel.bel_wire(obel, opin)]);
             bel.claim_pip(bel.wire(ipin), bel.wire_far(ipin));
         }
@@ -192,19 +191,15 @@ fn verify_bram(vrf: &mut Verifier, bcrd: BelCoord) {
     bel.commit();
 }
 
-fn verify_dsp(vrf: &mut Verifier, bcrd: BelCoord) {
+fn verify_dsp(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let mut bel = vrf.verify_bel(bcrd).kind("DSP48");
     for (name_in, name_out, num) in [("BCIN", "BCOUT", 18), ("PCIN", "PCOUT", 48)] {
         for i in 0..num {
             let ipin = &format!("{name_in}{i}");
             let opin = &format!("{name_out}{i}");
-            bel = bel.extra_in(ipin).extra_out(opin);
-            bel.claim_net(&[bel.wire(opin)]);
+            bel = bel.extra_in(ipin).extra_out_claim(opin);
             if bcrd.slot == bslots::DSP[0] {
-                if let Some(cell) = bel.vrf.grid.cell_delta(bcrd.cell, 0, -4)
-                    && let obel = cell.bel(bslots::DSP[1])
-                    && bel.vrf.grid.has_bel(obel)
-                {
+                if let Some(obel) = edev.bel_carry_prev(bcrd) {
                     bel.claim_net(&[bel.wire(ipin), bel.bel_wire_far(obel, opin)]);
                     bel.claim_pip(bel.bel_wire_far(obel, opin), bel.bel_wire(obel, opin));
                 } else {
@@ -399,14 +394,14 @@ fn verify_dpm(vrf: &mut Verifier, bcrd: BelCoord) {
     bel.commit();
 }
 
-fn verify_sysmon(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let mut bel = vrf
         .verify_bel(bcrd)
         .kind("MONITOR")
         .ipad("VP", 1)
         .ipad("VN", 2);
     for i in 0..8 {
-        let Some((iop, _)) = endev.edev.get_sysmon_vaux(bcrd.cell, i) else {
+        let Some((iop, _)) = edev.get_sysmon_vaux(bcrd.cell, i) else {
             continue;
         };
         for (j, n) in [(1, "VP"), (0, "VN")] {
@@ -425,7 +420,7 @@ fn verify_sysmon(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord
     bel.commit();
 }
 
-fn verify_ilogic(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let idx = bslots::ILOGIC.index_of(bcrd.slot).unwrap();
     let mut bel = vrf
         .verify_bel(bcrd)
@@ -452,10 +447,10 @@ fn verify_ilogic(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord
     }
     if idx == 1 {
         let is_bufio = matches!(bcrd.row.to_idx() % 16, 7 | 8);
-        let row_dcmiob = endev.edev.row_dcmiob.unwrap();
-        let row_iobdcm = endev.edev.row_iobdcm.unwrap();
+        let row_dcmiob = edev.row_dcmiob.unwrap();
+        let row_iobdcm = edev.row_iobdcm.unwrap();
         let row_iobdcm_m16: RowId = row_iobdcm - 16;
-        let is_giob = bcrd.col == endev.edev.col_cfg
+        let is_giob = bcrd.col == edev.col_cfg
             && (row_dcmiob.range(row_dcmiob + 16).contains(bcrd.row)
                 || row_iobdcm_m16.range(row_iobdcm).contains(bcrd.row));
         if is_giob || is_bufio {
@@ -482,9 +477,9 @@ fn verify_ologic(vrf: &mut Verifier, bcrd: BelCoord) {
     bel.commit();
 }
 
-fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+fn verify_iob(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let idx = bslots::IOB.index_of(bcrd.slot).unwrap();
-    let kind = if bcrd.col == endev.edev.col_cfg || matches!(bcrd.row.to_idx() % 16, 7 | 8) {
+    let kind = if bcrd.col == edev.col_cfg || matches!(bcrd.row.to_idx() % 16, 7 | 8) {
         "LOWCAPIOB"
     } else if bcrd.slot == bslots::IOB[1] {
         "IOBM"
@@ -599,7 +594,7 @@ fn verify_gt11clk(vrf: &mut Verifier, bcrd: BelCoord) {
     bel.commit();
 }
 
-fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     match bcrd.slot {
         bslots::INT
         | bslots::INTF_INT
@@ -612,52 +607,44 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         | bslots::HCLK_IO_INT
         | bslots::MISC_CFG
         | bslots::GLOBAL => (),
-        _ if bslots::SLICE.contains(bcrd.slot) => {
-            verify_slice(endev, vrf, bcrd);
-        }
-        _ if bslots::DSP.contains(bcrd.slot) => verify_dsp(vrf, bcrd),
+        _ if bslots::SLICE.contains(bcrd.slot) => verify_slice(edev, vrf, bcrd),
+        _ if bslots::DSP.contains(bcrd.slot) => verify_dsp(edev, vrf, bcrd),
         bslots::DSP_C => (),
-        bslots::BRAM => {
-            verify_bram(vrf, bcrd);
-        }
+        bslots::BRAM => verify_bram(edev, vrf, bcrd),
         bslots::PPC => verify_ppc(vrf, bcrd),
         bslots::EMAC => verify_emac(vrf, bcrd),
 
-        _ if bslots::BUFGCTRL.contains(bcrd.slot)
-            || bslots::BSCAN.contains(bcrd.slot)
-            || bslots::ICAP.contains(bcrd.slot) =>
-        {
+        _ if bslots::BUFGCTRL.contains(bcrd.slot) || bslots::BSCAN.contains(bcrd.slot) => {
             vrf.verify_bel(bcrd).commit()
         }
+        _ if bslots::ICAP.contains(bcrd.slot) => vrf.verify_bel(bcrd).kind("ICAP").commit(),
         _ if bslots::PMV_CFG.contains(bcrd.slot) => vrf.verify_bel(bcrd).kind("PMV").commit(),
         bslots::STARTUP
-        | bslots::FRAME_ECC
         | bslots::DCIRESET
         | bslots::CAPTURE
         | bslots::USR_ACCESS
         | bslots::GLOBALSIG => vrf.verify_bel(bcrd).commit(),
+        bslots::FRAME_ECC => vrf.verify_bel(bcrd).kind("FRAME_ECC").commit(),
         bslots::DCI => vrf.verify_bel(bcrd).kind("DCI").commit(),
         bslots::LVDS => (),
-        bslots::JTAGPPC => {
-            vrf.verify_bel(bcrd).extra_in_claim("TDOTSPPC").commit();
-        }
+        bslots::JTAGPPC => vrf.verify_bel(bcrd).extra_in_claim("TDOTSPPC").commit(),
 
         _ if bslots::BUFR.contains(bcrd.slot) => vrf.verify_bel(bcrd).commit(),
         _ if bslots::BUFIO.contains(bcrd.slot) => verify_bufio(vrf, bcrd),
         bslots::IDELAYCTRL => vrf.verify_bel(bcrd).commit(),
 
-        _ if bslots::ILOGIC.contains(bcrd.slot) => verify_ilogic(endev, vrf, bcrd),
+        _ if bslots::ILOGIC.contains(bcrd.slot) => verify_ilogic(edev, vrf, bcrd),
         _ if bslots::OLOGIC.contains(bcrd.slot) => verify_ologic(vrf, bcrd),
-        _ if bslots::IOB.contains(bcrd.slot) => verify_iob(endev, vrf, bcrd),
+        _ if bslots::IOB.contains(bcrd.slot) => verify_iob(edev, vrf, bcrd),
 
         _ if bslots::DCM.contains(bcrd.slot) => verify_dcm(vrf, bcrd),
         _ if bslots::PMCD.contains(bcrd.slot) => verify_pmcd(vrf, bcrd),
         bslots::DPM => verify_dpm(vrf, bcrd),
         bslots::CCM => (),
-        bslots::SYSMON => verify_sysmon(endev, vrf, bcrd),
+        bslots::SYSMON => verify_sysmon(edev, vrf, bcrd),
         _ if bslots::GT11.contains(bcrd.slot) => verify_gt11(vrf, bcrd),
         bslots::GT11CLK => verify_gt11clk(vrf, bcrd),
-        _ => println!("MEOW {}", bcrd.to_string(endev.edev.db)),
+        _ => println!("MEOW {}", bcrd.to_string(edev.db)),
     }
 }
 
@@ -1068,7 +1055,7 @@ pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
     for (tcrd, tile) in endev.ngrid.egrid.tiles() {
         let tcls = &endev.ngrid.egrid.db[tile.class];
         for slot in tcls.bels.ids() {
-            verify_bel(endev, &mut vrf, tcrd.bel(slot));
+            verify_bel(endev.edev, &mut vrf, tcrd.bel(slot));
         }
     }
     verify_extra(endev, &mut vrf);

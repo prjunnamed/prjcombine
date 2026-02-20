@@ -843,14 +843,6 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.pin(&pin).test_enum_legacy(pininv, &[pin, pin_b]);
     }
 
-    pub fn test_inv_suffix(self, pin: impl Into<String>, suffix: impl AsRef<str>) {
-        let pin = pin.into();
-        let pininv = format!("{pin}INV");
-        let pin_b = format!("{pin}_B");
-        self.pin(&pin)
-            .test_enum_suffix_legacy(pininv, suffix, &[pin, pin_b]);
-    }
-
     pub fn test_multi_attr_bin_legacy(self, attr: impl Into<String>, width: usize) {
         let attr = attr.into();
         let prop = FuzzBelMultiAttr::new(self.bel, self.sub, attr.clone(), MultiValue::Bin, width);
@@ -861,18 +853,6 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let attr = attr.into();
         let prop =
             FuzzBelMultiAttr::new(self.bel, self.sub, attr.clone(), MultiValue::Dec(0), width);
-        self.test_manual_legacy(attr, "").prop(prop).commit();
-    }
-
-    pub fn test_multi_attr_dec_delta(self, attr: impl Into<String>, width: usize, delta: i32) {
-        let attr = attr.into();
-        let prop = FuzzBelMultiAttr::new(
-            self.bel,
-            self.sub,
-            attr.clone(),
-            MultiValue::Dec(delta),
-            width,
-        );
         self.test_manual_legacy(attr, "").prop(prop).commit();
     }
 
@@ -1373,6 +1353,14 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
                 .attr(rattr, val)
                 .commit();
         }
+    }
+
+    pub fn test_bel_attr_subset_auto(self, attr: BelAttributeId, vals: &[EnumValueId]) {
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.test_bel].kind else {
+            unreachable!()
+        };
+        let rattr = self.backend.edev.db[bcid].attributes.key(attr);
+        self.test_bel_attr_subset_rename(rattr, attr, vals)
     }
 
     pub fn test_bel_input_inv_enum(

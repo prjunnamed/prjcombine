@@ -7,6 +7,6 @@ TODO: describe this madness
 
 ## Tables
 
-{{misc virtex5 pll-filter}}
+{{table virtex5 PLL_MULT}}
 
 {{devdata virtex5 pll-in-dly-set}}

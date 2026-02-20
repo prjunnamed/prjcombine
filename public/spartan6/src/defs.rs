@@ -12,10 +12,10 @@ target_defs! {
     enum SLICE_MUX_BCY0 { BX, O5 }
     enum SLICE_MUX_CCY0 { CX, O5 }
     enum SLICE_MUX_DCY0 { DX, O5 }
-    enum SLICE_MUX_AFF { AX, O6, O5, XOR, CY, F7 }
-    enum SLICE_MUX_BFF { BX, O6, O5, XOR, CY, F8 }
-    enum SLICE_MUX_CFF { CX, O6, O5, XOR, CY, F7 }
-    enum SLICE_MUX_DFF { DX, O6, O5, XOR, CY, MC31 }
+    enum SLICE_MUX_FFA { AX, O6, O5, XOR, CY, F7 }
+    enum SLICE_MUX_FFB { BX, O6, O5, XOR, CY, F8 }
+    enum SLICE_MUX_FFC { CX, O6, O5, XOR, CY, F7 }
+    enum SLICE_MUX_FFD { DX, O6, O5, XOR, CY, MC31 }
     enum SLICE_MUX_AOUT { NONE, A5Q, O6, O5, XOR, CY, F7 }
     enum SLICE_MUX_BOUT { NONE, B5Q, O6, O5, XOR, CY, F8 }
     enum SLICE_MUX_COUT { NONE, C5Q, O6, O5, XOR, CY, F7 }
@@ -57,18 +57,18 @@ target_defs! {
         attribute MUX_DCY0: SLICE_MUX_DCY0;
 
         // restricted to [ABCD]X, O6 on SLICEX
-        attribute MUX_AFF: SLICE_MUX_AFF;
-        attribute MUX_BFF: SLICE_MUX_BFF;
-        attribute MUX_CFF: SLICE_MUX_CFF;
-        attribute MUX_DFF: SLICE_MUX_DFF;
+        attribute MUX_FFA: SLICE_MUX_FFA;
+        attribute MUX_FFB: SLICE_MUX_FFB;
+        attribute MUX_FFC: SLICE_MUX_FFC;
+        attribute MUX_FFD: SLICE_MUX_FFD;
 
         attribute FF_LATCH: bool;
         attribute FF_SR_ENABLE: bool;
         attribute FF_SR_SYNC: bool;
         attribute FF_CE_ENABLE: bool;
 
-        attribute AFFSRINIT, BFFSRINIT, CFFSRINIT, DFFSRINIT: bitvec[1];
-        attribute A5FFSRINIT, B5FFSRINIT, C5FFSRINIT, D5FFSRINIT: bitvec[1];
+        attribute FFA_SRINIT, FFB_SRINIT, FFC_SRINIT, FFD_SRINIT: bitvec[1];
+        attribute FFA5_SRINIT, FFB5_SRINIT, FFC5_SRINIT, FFD5_SRINIT: bitvec[1];
 
         // restricted to [ABCD]5Q, O5 on SLICEX
         attribute MUX_AOUT: SLICE_MUX_AOUT;
@@ -728,13 +728,9 @@ target_defs! {
         field PLL_LOCK_SAT_HIGH: bitvec[10];
         field PLL_UNLOCK_CNT: bitvec[10];
 
-        row _1, _2, _3, _4, _5, _6, _7, _8, _9;
-        row _10, _11, _12, _13, _14, _15, _16, _17, _18, _19;
-        row _20, _21, _22, _23, _24, _25, _26, _27, _28, _29;
-        row _30, _31, _32, _33, _34, _35, _36, _37, _38, _39;
-        row _40, _41, _42, _43, _44, _45, _46, _47, _48, _49;
-        row _50, _51, _52, _53, _54, _55, _56, _57, _58, _59;
-        row _60, _61, _62, _63, _64;
+        for i in 1..=64 {
+            row "_{i}";
+        }
     }
 
     bel_class CMT_VREG {

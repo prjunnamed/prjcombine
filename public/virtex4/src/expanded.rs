@@ -1,10 +1,11 @@
 use crate::bond::{PsPad, SharedCfgPad};
 use crate::chip::{Chip, ChipKind, DisabledPart, GtKind, Interposer, IoKind, RegId, XadcIoLoc};
-use crate::defs;
 use crate::defs::tslots;
+use crate::defs::{self, bslots};
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use bimap::BiHashMap;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_interconnect::grid::BelCoord;
 use prjcombine_interconnect::{
     dir::{DirH, DirPartMap},
     grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord, TileIobId},
@@ -1138,6 +1139,36 @@ impl ExpandedDevice<'_> {
                 CellCoord::new(die, self.col_cfg, chip.row_reg_bot(chip.reg_cfg - 1))
                     .tile(tslots::CFG)
             }
+        }
+    }
+
+    pub fn bel_carry_prev(&self, bcrd: BelCoord) -> Option<BelCoord> {
+        if let Some(idx) = bslots::SLICE.index_of(bcrd.slot) {
+            if self.kind == ChipKind::Virtex4 {
+                if idx < 2 {
+                    self.bel_delta(bcrd.cell, 0, -1, bslots::SLICE[idx + 2])
+                } else {
+                    Some(bcrd.bel(bslots::SLICE[idx - 2]))
+                }
+            } else {
+                self.bel_delta(bcrd.cell, 0, -1, bcrd.slot)
+            }
+        } else if bcrd.slot == bslots::BRAM {
+            if self.kind == ChipKind::Virtex4 {
+                self.bel_delta(bcrd.cell, 0, -4, bslots::BRAM)
+            } else {
+                self.bel_delta(bcrd.cell, 0, -5, bslots::BRAM)
+            }
+        } else if bcrd.slot == bslots::DSP[0] {
+            if self.kind == ChipKind::Virtex4 {
+                self.bel_delta(bcrd.cell, 0, -4, bslots::DSP[1])
+            } else {
+                self.bel_delta(bcrd.cell, 0, -5, bslots::DSP[1])
+            }
+        } else if bcrd.slot == bslots::DSP[1] {
+            Some(bcrd.bel(bslots::DSP[0]))
+        } else {
+            panic!("not a carry-chain bel: {}", bcrd.to_string(self.db))
         }
     }
 }

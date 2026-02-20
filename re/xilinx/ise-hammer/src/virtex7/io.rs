@@ -36,7 +36,7 @@ use crate::{
         },
     },
     virtex4::io::IsBonded,
-    virtex5::io::{DiffOut, HclkIoi, VrefInternalLegacy},
+    virtex5::io::{DiffOutLegacy, HclkIoi, VrefInternalLegacy},
 };
 
 const HP_IOSTDS: &[Iostd] = &[
@@ -1232,7 +1232,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .attr("OPROGRAMMING", "")
                                 .raw(Key::Package, &package.name)
                                 .prop(IsBonded(bel))
-                                .prop(DiffOut("STD", std.name))
+                                .prop(DiffOutLegacy("STD", std.name))
                                 .bel_attr(bel_other, "IUSED", "")
                                 .bel_attr(bel_other, "OPROGRAMMING", "")
                                 .bel_attr(bel_other, "OSTANDARD", "")
@@ -1760,7 +1760,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .attr("OPROGRAMMING", "")
                                 .raw(Key::Package, &package.name)
                                 .prop(IsBonded(bel))
-                                .prop(DiffOut("STD0", std.name))
+                                .prop(DiffOutLegacy("STD0", std.name))
                                 .bel_attr(bel_other, "IUSED", "")
                                 .bel_attr(bel_other, "OPROGRAMMING", "")
                                 .bel_attr(bel_other, "OSTANDARD", "")
@@ -1857,7 +1857,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     .attr("OPROGRAMMING", "")
                                     .raw(Key::Package, &package.name)
                                     .prop(IsBonded(bel))
-                                    .prop(DiffOut("STD1", std.name))
+                                    .prop(DiffOutLegacy("STD1", std.name))
                                     .bel_attr(bel_other, "IUSED", "")
                                     .bel_attr(bel_other, "OPROGRAMMING", "")
                                     .bel_attr(bel_other, "OSTANDARD", "")

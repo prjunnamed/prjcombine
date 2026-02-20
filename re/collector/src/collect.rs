@@ -394,6 +394,41 @@ impl Collector<'_, '_> {
         self.peek_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, bit, true))
     }
 
+    pub fn peek_diff_attr_bool_bi(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        val: bool,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, 0, val))
+    }
+
+    pub fn peek_diff_attr_special_bit_bi(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        spec: SpecialId,
+        bit: usize,
+        val: bool,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::BelAttrSpecialBit(
+            tcid, bslot, attr, spec, bit, val,
+        ))
+    }
+
+    pub fn peek_diff_attr_special_val(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        spec: SpecialId,
+        val: EnumValueId,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::BelAttrSpecialValue(tcid, bslot, attr, spec, val))
+    }
+
     pub fn peek_diff_attr_val(
         &self,
         tcid: TileClassId,
@@ -402,6 +437,16 @@ impl Collector<'_, '_> {
         val: EnumValueId,
     ) -> &Diff {
         self.peek_diff_raw(&DiffKey::BelAttrValue(tcid, bslot, attr, val))
+    }
+
+    pub fn peek_diff_attr_u32(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        val: u32,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::BelAttrU32(tcid, bslot, attr, val))
     }
 
     pub fn peek_diff_bel_special(

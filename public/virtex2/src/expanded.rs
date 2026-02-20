@@ -437,11 +437,7 @@ impl ExpandedDevice<'_> {
         } else if matches!(bcrd.slot, bslots::MULT | bslots::DSP) {
             let mut bcrd = bcrd;
             loop {
-                if let Some(cell) = self.cell_delta(bcrd.cell, 0, -4) {
-                    bcrd.cell = cell;
-                } else {
-                    return None;
-                }
+                bcrd.cell = self.cell_delta(bcrd.cell, 0, -4)?;
                 if self.has_bel(bcrd) {
                     return Some(bcrd);
                 }

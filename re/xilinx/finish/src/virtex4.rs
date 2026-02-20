@@ -285,6 +285,7 @@ pub fn finish(geom: GeomDb, mut bitdb: CollectorData) -> Database {
             speeds,
             combos,
             disabled: tpart.disabled,
+            data: bitdb.device_data.remove(name).unwrap_or_default(),
         };
         parts.push(part);
     }

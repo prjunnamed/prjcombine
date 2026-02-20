@@ -795,7 +795,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
 
         let bel = builder
-            .bel_xy(defs::bslots::PMVBRAM_NC, "PMVBRAM", 0, 0)
+            .bel_xy(defs::bslots::PMVBRAM, "PMVBRAM", 0, 0)
             .pins_name_only(&[
                 "O", "ODIV2", "ODIV4", "SELECT1", "SELECT2", "SELECT3", "SELECT4",
             ]);
@@ -2427,9 +2427,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .raw_tile(1),
             builder
                 .bel_xy(defs::bslots::ICAP[0], "ICAP", 0, 0)
+                .pin_rename("CSIB", "CSB")
                 .raw_tile(1),
             builder
                 .bel_xy(defs::bslots::ICAP[1], "ICAP", 0, 1)
+                .pin_rename("CSIB", "CSB")
                 .raw_tile(1),
             builder
                 .bel_xy(defs::bslots::STARTUP, "STARTUP", 0, 0)
