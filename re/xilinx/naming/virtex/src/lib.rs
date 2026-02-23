@@ -1,5 +1,5 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, DieIdExt, EdgeIoCoord, RowId};
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex::{
     chip::{Chip, ChipKind, DisabledPart},
@@ -87,7 +87,7 @@ impl Namer<'_> {
             let ntile = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(die, col, row).tile(defs::tslots::MAIN))
+                .get_mut(&die.cell(col, row).tile(defs::tslots::MAIN))
                 .unwrap();
             ntile.add_bel(defs::bslots::IO[3], format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
@@ -106,7 +106,7 @@ impl Namer<'_> {
             let ntile = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(die, col, row).tile(defs::tslots::MAIN))
+                .get_mut(&die.cell(col, row).tile(defs::tslots::MAIN))
                 .unwrap();
             ntile.add_bel(defs::bslots::IO[0], format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
@@ -128,7 +128,7 @@ impl Namer<'_> {
             let ntile = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(die, col, row).tile(defs::tslots::MAIN))
+                .get_mut(&die.cell(col, row).tile(defs::tslots::MAIN))
                 .unwrap();
             ntile.add_bel(defs::bslots::IO[0], format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
@@ -147,7 +147,7 @@ impl Namer<'_> {
             let ntile = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(die, col, row).tile(defs::tslots::MAIN))
+                .get_mut(&die.cell(col, row).tile(defs::tslots::MAIN))
                 .unwrap();
             ntile.add_bel(defs::bslots::IO[3], format!("PAD{ctr_pad}"));
             ctr_pad += 1;

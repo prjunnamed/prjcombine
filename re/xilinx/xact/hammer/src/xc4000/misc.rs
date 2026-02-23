@@ -1,8 +1,7 @@
-use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{CellCoord, DieId};
+use prjcombine_interconnect::dir::DirHV;
 use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::xc4000::{bslots, enums, tslots, xc4000::bcls, xc4000::tcls};
+use prjcombine_xc2000::xc4000::{bslots, enums, xc4000::bcls, xc4000::tcls};
 
 use crate::{
     backend::{Key, XactBackend},
@@ -12,7 +11,6 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let chip = backend.edev.chip;
     let test_cfg4000_off_on = |bctx: &mut FuzzCtxBel, opt: &str, attr| {
         bctx.build()
             .raw(Key::GlobalMutex(opt.into()), "OFF")
@@ -198,7 +196,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         let mut bctx = ctx.bel(bslots::BSCAN);
         bctx.mode("BSCAN")
             .extra_fixed_bel_attr_bits(
-                CellCoord::new(DieId::from_idx(0), chip.col_e(), chip.row_n()).tile(tslots::MAIN),
+                backend.edev.chip.corner(DirHV::NE),
                 bslots::TDO,
                 bcls::TDO::BSCAN_ENABLE,
             )
@@ -249,8 +247,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             ] {
                 bctx.build()
                     .extra_fixed_bel_attr_val(
-                        CellCoord::new(DieId::from_idx(0), chip.col_e(), chip.row_s())
-                            .tile(tslots::MAIN),
+                        backend.edev.chip.corner(DirHV::SE),
                         bslots::MISC_SE,
                         attr,
                         val,

@@ -844,6 +844,7 @@ impl<'a> Verifier<'a> {
         }
         while let Some(&nslot) = self.wire_slot_aliases.get(&iw.slot) {
             iw.slot = nslot;
+            iw = self.grid.resolve_wire(iw).unwrap();
         }
         if let Some(mut cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
             while let Some(&new_cnw) = self.node_merge.get(&cnw) {

@@ -1937,7 +1937,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             bels.push(bel_pc);
             let mut bel_mmcm = builder
-                .bel_xy(defs::bslots::MMCM[0], "MMCME2_ADV", 0, 0)
+                .bel_xy(defs::bslots::PLL[0], "MMCME2_ADV", 0, 0)
                 .raw_tile(0)
                 .pins_name_only(&[
                     "CLKIN1",
@@ -2016,7 +2016,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             bels.push(bel_mmcm);
             let mut bel_pll = builder
-                .bel_xy(defs::bslots::PLL, "PLLE2_ADV", 0, 0)
+                .bel_xy(defs::bslots::PLL[1], "PLLE2_ADV", 0, 0)
                 .raw_tile(3)
                 .pins_name_only(&[
                     "CLKIN1", "CLKIN2", "CLKFBIN", "CLKFBOUT", "CLKOUT0", "CLKOUT1", "CLKOUT2",

@@ -1,12 +1,12 @@
 use prjcombine_ecp::{
     bels,
-    chip::{ChipKind, MachXo2Kind, PllLoc, SpecialIoKey, SpecialLocKey},
+    chip::{Chip, ChipKind, MachXo2Kind, PllLoc, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::LegacyBel,
     dir::{DirH, DirHV, DirV},
-    grid::{CellCoord, DieId},
+    grid::DieIdExt,
 };
 use prjcombine_re_lattice_naming::WireName;
 
@@ -537,7 +537,7 @@ impl ChipContext<'_> {
                     DirV::N => 'U',
                 };
                 let row = self.chip.row_edge(v);
-                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                let cell = Chip::DIE.cell(col, row);
                 for (bel, name) in [(bels::TESTIN, "TESTIN"), (bels::TESTOUT, "TESTOUT")] {
                     let bcrd = cell.bel(bel);
                     self.name_bel(bcrd, [format!("{lu}{lr}{name}")]);

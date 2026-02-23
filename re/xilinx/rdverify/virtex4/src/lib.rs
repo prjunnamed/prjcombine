@@ -433,7 +433,7 @@ fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         .extra_in_claim("SHIFTIN2")
         .extra_out_claim("SHIFTOUT1")
         .extra_out_claim("SHIFTOUT2")
-        .skip_out(bcls::ILOGIC_V4::CLKPAD);
+        .skip_out(bcls::ILOGIC::CLKPAD);
     let obel = bcrd.bel(bslots::IOB[idx]);
     bel.claim_pip(bel.wire("D"), bel.bel_wire(obel, "I"));
     let obel = bcrd.bel(bslots::OLOGIC[idx]);
@@ -625,7 +625,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         | bslots::USR_ACCESS
         | bslots::GLOBALSIG => vrf.verify_bel(bcrd).commit(),
         bslots::FRAME_ECC => vrf.verify_bel(bcrd).kind("FRAME_ECC").commit(),
-        bslots::DCI => vrf.verify_bel(bcrd).kind("DCI").commit(),
+        bslots::DCI => vrf.verify_bel(bcrd).commit(),
         bslots::LVDS => (),
         bslots::JTAGPPC => vrf.verify_bel(bcrd).extra_in_claim("TDOTSPPC").commit(),
 
@@ -848,7 +848,7 @@ pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
         }
     }
 
-    if endev.edev.col_lgt.is_none() {
+    if endev.edev.col_gt_w.is_none() {
         for (wt, wf) in [
             (wires::MGT_DCM[0].cell(2), wires::MGT_ROW[0].cell(2)),
             (wires::MGT_DCM[1].cell(2), wires::MGT_ROW[1].cell(2)),

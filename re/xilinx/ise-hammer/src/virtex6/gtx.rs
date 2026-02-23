@@ -1,19 +1,24 @@
 use core::ops::Range;
 
+use prjcombine_interconnect::db::WireSlotIdExt;
 use prjcombine_re_collector::{
     diff::Diff,
     legacy::{xlat_bit_legacy, xlat_enum_legacy},
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs::{self, virtex6::tcls};
+use prjcombine_virtex4::defs::{
+    bcls, bslots,
+    virtex6::{tcls, wires},
+};
 
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{pip::PinFar, relation::Delta},
+        int::BaseIntPip,
+        props::{mutex::WireMutexExclusive, pip::PinFar, relation::Delta},
     },
 };
 
@@ -347,20 +352,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         return;
     };
     for i in 0..4 {
-        let mut bctx = ctx.bel(defs::bslots::GTX[i]);
-        let bel_other = defs::bslots::GTX[i ^ 1];
+        let mut bctx = ctx.bel(bslots::GTX[i]);
+        let bel_other = bslots::GTX[i ^ 1];
         let mode = "GTXE1";
         bctx.build()
             .bel_unused(bel_other)
-            .extra_tile_attr_legacy(
+            .extra_tile_attr_bits(
                 Delta::new(0, 0, tcls::HCLK),
-                "HCLK",
+                bslots::HCLK_DRP,
                 if i < 2 {
-                    "DRP_MASK_BELOW"
+                    bcls::HCLK_DRP_V6::DRP_MASK_S
                 } else {
-                    "DRP_MASK_ABOVE"
+                    bcls::HCLK_DRP_V6::DRP_MASK_N
                 },
-                "GTX",
             )
             .test_manual_legacy("GTX_CFG_PWRUP", "1")
             .mode(mode)
@@ -388,9 +392,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
 
-        let bel_hclk_gtx = defs::bslots::HCLK_GTX;
         for (val, orx, otx, pin) in [
-            ("PERFCLK", "PERFCLKRX", "PERFCLKTX", "PERFCLK"),
+            // ("PERFCLK", "PERFCLKRX", "PERFCLKTX", "PERFCLK"),
             (
                 "MGTREFCLK0",
                 "MGTREFCLKRX0",
@@ -429,20 +432,32 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             ),
         ] {
             bctx.build()
-                .tile_mutex("PERFCLK", "USE")
                 .mutex("RXPLLREFSEL", val)
-                .pip((bel_hclk_gtx, "PERFCLK"), (bel_hclk_gtx, "PERF0"))
                 .test_manual_legacy("RXPLLREFSEL_STATIC", val)
                 .pip(orx, pin)
                 .commit();
             bctx.build()
-                .tile_mutex("PERFCLK", "USE")
                 .mutex("TXPLLREFSEL", val)
-                .pip((bel_hclk_gtx, "PERFCLK"), (bel_hclk_gtx, "PERF0"))
                 .test_manual_legacy("TXPLLREFSEL_STATIC", val)
                 .pip(otx, pin)
                 .commit();
         }
+        let wt = wires::IMUX_GTX_PERFCLK.cell(20);
+        let wf = wires::PERF_ROW[0].cell(20);
+        bctx.build()
+            .prop(WireMutexExclusive::new(wt))
+            .prop(BaseIntPip::new(wt, wf))
+            .mutex("RXPLLREFSEL", "PERFCLK")
+            .test_manual_legacy("RXPLLREFSEL_STATIC", "PERFCLK")
+            .pip("PERFCLKRX", (PinFar, "PERFCLKRX"))
+            .commit();
+        bctx.build()
+            .prop(WireMutexExclusive::new(wt))
+            .prop(BaseIntPip::new(wt, wf))
+            .mutex("TXPLLREFSEL", "PERFCLK")
+            .test_manual_legacy("TXPLLREFSEL_STATIC", "PERFCLK")
+            .pip("PERFCLKTX", (PinFar, "PERFCLKTX"))
+            .commit();
         bctx.mode(mode)
             .mutex("RXPLLREFSEL", "CAS_CLK")
             .mutex("TXPLLREFSEL", "CAS_CLK")
@@ -473,7 +488,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
     for i in 0..2 {
-        let mut bctx = ctx.bel(defs::bslots::BUFDS[i]);
+        let mut bctx = ctx.bel(bslots::BUFDS[i]);
         let mode = "IBUFDS_GTXE1";
         bctx.mode(mode)
             .test_enum_legacy("CLKCM_CFG", &["FALSE", "TRUE"]);
@@ -493,14 +508,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
     }
-    let mut bctx = ctx.bel(defs::bslots::HCLK_GTX);
-    for i in 0..4 {
-        bctx.build()
-            .tile_mutex("PERFCLK", format!("PERF{i}"))
-            .test_manual_legacy("MUX.PERFCLK", format!("PERF{i}"))
-            .pip("PERFCLK", format!("PERF{i}"))
-            .commit();
-    }
+    let mut bctx = ctx.bel(bslots::HCLK_GTX);
     for i in 0..2 {
         for j in 0..2 {
             bctx.build()
@@ -654,13 +662,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_enum_default_legacy(
         tile,
         bel,
-        "MUX.PERFCLK",
-        &["PERF0", "PERF1", "PERF2", "PERF3"],
-        "NONE",
-    );
-    ctx.collect_enum_default_legacy(
-        tile,
-        bel,
         "MUX.SOUTHREFCLKOUT0",
         &["SOUTHREFCLKIN0", "MGTREFCLKIN0", "MGTREFCLKIN1"],
         "NONE",
@@ -686,8 +687,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         &["NORTHREFCLKIN1", "MGTREFCLKOUT0", "MGTREFCLKOUT1"],
         "NONE",
     );
-    let tile = "HCLK";
-    let bel = "HCLK";
-    ctx.collect_bit_legacy(tile, bel, "DRP_MASK_BELOW", "GTX");
-    ctx.collect_bit_legacy(tile, bel, "DRP_MASK_ABOVE", "GTX");
+    let tcid = tcls::HCLK;
+    let bslot = bslots::HCLK_DRP;
+    ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_S);
+    ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_N);
 }

@@ -101,7 +101,7 @@ fn make_raw_grid(edev: &ExpandedDevice) -> BelMultiGrid {
 fn make_ipad_grid(edev: &ExpandedDevice) -> BelMultiGrid {
     let pchip = edev.chips[edev.interposer.unwrap().primary];
     let mut is_7k70t = false;
-    if let Some(rgt) = edev.col_rgt {
+    if let Some(rgt) = edev.col_gt_e {
         let gtcol = pchip.get_col_gt(rgt).unwrap();
         if rgt == pchip.columns.last_id().unwrap() - 6
             && gtcol.regs.values().any(|&y| y == Some(GtKind::Gtx))
@@ -894,8 +894,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 }
                 ntile.add_bel(bslots::PHASER_REF, format!("PHASER_REF_X{cx}Y{cy}"));
                 ntile.add_bel(bslots::PHY_CONTROL, format!("PHY_CONTROL_X{cx}Y{cy}"));
-                ntile.add_bel(bslots::MMCM[0], format!("MMCME2_ADV_X{cx}Y{cy}"));
-                ntile.add_bel(bslots::PLL, format!("PLLE2_ADV_X{cx}Y{cy}"));
+                ntile.add_bel(bslots::PLL[0], format!("MMCME2_ADV_X{cx}Y{cy}"));
+                ntile.add_bel(bslots::PLL[1], format!("PLLE2_ADV_X{cx}Y{cy}"));
                 for i in 0..2 {
                     ntile.add_bel(
                         bslots::BUFMRCE[i],

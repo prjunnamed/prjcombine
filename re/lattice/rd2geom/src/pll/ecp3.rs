@@ -1,12 +1,11 @@
 use prjcombine_ecp::{
     bels,
-    chip::{ChipKind, PllLoc, PllPad, SpecialIoKey, SpecialLocKey},
+    chip::{Chip, ChipKind, PllLoc, PllPad, SpecialIoKey, SpecialLocKey},
 };
-use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::LegacyBel,
     dir::{Dir, DirH, DirV},
-    grid::{CellCoord, DieId},
+    grid::DieIdExt,
 };
 
 use crate::ChipContext;
@@ -131,15 +130,15 @@ impl ChipContext<'_> {
 
     pub(super) fn process_dll_ecp3(&mut self) {
         for edge in [DirH::W, DirH::E] {
-            let bcrd_dll = CellCoord::new(
-                DieId::from_idx(0),
-                match edge {
-                    DirH::W => self.chip.col_w() + 1,
-                    DirH::E => self.chip.col_e() - 1,
-                },
-                self.chip.row_clk,
-            )
-            .bel(bels::DLL0);
+            let bcrd_dll = Chip::DIE
+                .cell(
+                    match edge {
+                        DirH::W => self.chip.col_w() + 1,
+                        DirH::E => self.chip.col_e() - 1,
+                    },
+                    self.chip.row_clk,
+                )
+                .bel(bels::DLL0);
             let bcrd_dlldel = bcrd_dll.bel(bels::DLLDEL0);
             let cell = match edge {
                 DirH::W => bcrd_dll.cell.delta(13, 0),
@@ -313,15 +312,15 @@ impl ChipContext<'_> {
 
     pub(super) fn process_clkdiv_ecp3(&mut self) {
         for edge in [DirH::W, DirH::E] {
-            let bcrd = CellCoord::new(
-                DieId::from_idx(0),
-                match edge {
-                    DirH::W => self.chip.col_w() + 1,
-                    DirH::E => self.chip.col_e() - 1,
-                },
-                self.chip.row_clk,
-            )
-            .bel(bels::CLKDIV0);
+            let bcrd = Chip::DIE
+                .cell(
+                    match edge {
+                        DirH::W => self.chip.col_w() + 1,
+                        DirH::E => self.chip.col_e() - 1,
+                    },
+                    self.chip.row_clk,
+                )
+                .bel(bels::CLKDIV0);
             let cell = match edge {
                 DirH::W => bcrd.cell.delta(13, 0),
                 DirH::E => bcrd.cell.delta(-13, 0),

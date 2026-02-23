@@ -4,10 +4,10 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{CellSlotId, WireSlotId},
     dir::Dir,
-    grid::{CellCoord, ColId, DieId, RowId, WireCoord},
+    grid::{CellCoord, ColId, DieIdExt, RowId, WireCoord},
 };
 use prjcombine_siliconblue::{
-    chip::{ChipKind, SpecialIoKey, SpecialTileKey},
+    chip::{Chip, ChipKind, SpecialIoKey, SpecialTileKey},
     defs,
     expanded::ExpandedDevice,
 };
@@ -161,11 +161,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
         }
     }
 
-    let mut cell = CellCoord::new(
-        DieId::from_idx(0),
-        ColId::from_idx(x as usize),
-        RowId::from_idx(y as usize),
-    );
+    let mut cell = Chip::DIE.cell(ColId::from_idx(x as usize), RowId::from_idx(y as usize));
     let wire: WireSlotId;
     match name {
         "wire_io_cluster/io_0/gbout" | "gbout_0" => return GenericNet::Gbout(cell, 0),

@@ -1,8 +1,5 @@
 use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_interconnect::{
-    db::BelSlotId,
-    grid::{CellCoord, DieId, TileCoord},
-};
+use prjcombine_interconnect::{db::BelSlotId, dir::DirHV, grid::TileCoord};
 use prjcombine_re_collector::diff::{DiffKey, xlat_bit};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -10,7 +7,7 @@ use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::TileBit;
 use prjcombine_xc2000::{
     chip::ChipKind,
-    xc4000::{bslots, enums, tslots, xc4000::bcls, xc4000::tcls},
+    xc4000::{bslots, enums, xc4000::bcls, xc4000::tcls},
 };
 
 use crate::{
@@ -359,8 +356,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(bslots::BSCAN);
         bctx.build()
             .extra_fixed_bel_attr_bits(
-                CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_n())
-                    .tile(tslots::MAIN),
+                edev.chip.corner(DirHV::NE),
                 bslots::TDO,
                 bcls::TDO::BSCAN_ENABLE,
             )
@@ -384,8 +380,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     {
         let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NE);
         let mut bctx = ctx.bel(bslots::OSC);
-        let cnr_se = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_s())
-            .tile(tslots::MAIN);
+        let cnr_se = edev.chip.corner(DirHV::SE);
         for (attr, spec, pin, opin) in [
             (
                 bcls::MISC_SE::OSC_MUX_OUT0,
@@ -479,8 +474,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             (enums::RDBK_MUX_CLK::CCLK, "CCLK"),
             (enums::RDBK_MUX_CLK::RDBK, "RDBK"),
         ] {
-            let tcrd = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_n())
-                .tile(tslots::MAIN);
+            let tcrd = edev.chip.corner(DirHV::NE);
             bctx.mode("READCLK")
                 .pin("I")
                 .extra_fixed_bel_attr_val(tcrd, bslots::MISC_NE, bcls::MISC_NE::READCLK, val)
@@ -505,12 +499,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
     if edev.chip.kind == ChipKind::SpartanXl {
         let mut ctx = FuzzCtx::new_null(session, backend);
-        let cnr_sw = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_s())
-            .tile(tslots::MAIN);
-        let cnr_se = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_s())
-            .tile(tslots::MAIN);
-        let cnr_ne = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_n())
-            .tile(tslots::MAIN);
+        let cnr_sw = edev.chip.corner(DirHV::SW);
+        let cnr_se = edev.chip.corner(DirHV::SE);
+        let cnr_ne = edev.chip.corner(DirHV::NE);
         ctx.build()
             .prop(ExtraTileSingle::new(cnr_sw, bslots::MISC_SW))
             .prop(ExtraTileSingle::new(cnr_se, bslots::MISC_SE))

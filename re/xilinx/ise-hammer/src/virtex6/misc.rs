@@ -1,13 +1,13 @@
 use prjcombine_re_collector::{
-    diff::OcdMode,
-    legacy::{xlat_bit_legacy, xlat_bitvec_legacy, xlat_enum_legacy_ocd},
+    diff::{OcdMode, xlat_bit_wide, xlat_bit_wide_bi},
+    legacy::{xlat_bit_legacy, xlat_enum_legacy_ocd},
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs::{self, virtex6::tcls};
+use prjcombine_virtex4::defs::{self, bcls, bslots, enums, virtex6::tcls};
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
@@ -17,81 +17,121 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::relation::Delta,
     },
+    virtex4::specials,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, tcls::CFG);
-    for attr in ["CCLKPIN", "DONEPIN", "PROGPIN", "INITPIN"] {
-        for val in ["PULLUP", "PULLNONE"] {
-            ctx.test_manual_legacy("MISC", attr, val)
-                .global(attr, val)
-                .commit();
-        }
-    }
-    for attr in [
-        "HSWAPENPIN",
-        "M0PIN",
-        "M1PIN",
-        "M2PIN",
-        "CSPIN",
-        "DINPIN",
-        "BUSYPIN",
-        "RDWRPIN",
-        "TCKPIN",
-        "TDIPIN",
-        "TDOPIN",
-        "TMSPIN",
+
+    let mut bctx = ctx.bel(bslots::MISC_CFG);
+    for (attr, opt) in [
+        (bcls::MISC_CFG::CCLK_PULL, "CCLKPIN"),
+        (bcls::MISC_CFG::DONE_PULL, "DONEPIN"),
+        (bcls::MISC_CFG::PROG_PULL, "PROGPIN"),
+        (bcls::MISC_CFG::INIT_PULL, "INITPIN"),
     ] {
-        for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
-            ctx.test_manual_legacy("MISC", attr, val)
-                .global(attr, val)
+        for (val, vname) in [
+            (enums::IOB_PULL::PULLUP, "PULLUP"),
+            (enums::IOB_PULL::NONE, "PULLNONE"),
+        ] {
+            bctx.build()
+                .test_bel_attr_val(attr, val)
+                .global(opt, vname)
                 .commit();
         }
     }
+    for (attr, opt) in [
+        (bcls::MISC_CFG::HSWAPEN_PULL, "HSWAPENPIN"),
+        (bcls::MISC_CFG::M0_PULL, "M0PIN"),
+        (bcls::MISC_CFG::M1_PULL, "M1PIN"),
+        (bcls::MISC_CFG::M2_PULL, "M2PIN"),
+        (bcls::MISC_CFG::CS_PULL, "CSPIN"),
+        (bcls::MISC_CFG::DIN_PULL, "DINPIN"),
+        (bcls::MISC_CFG::BUSY_PULL, "BUSYPIN"),
+        (bcls::MISC_CFG::RDWR_PULL, "RDWRPIN"),
+        (bcls::MISC_CFG::TCK_PULL, "TCKPIN"),
+        (bcls::MISC_CFG::TDI_PULL, "TDIPIN"),
+        (bcls::MISC_CFG::TDO_PULL, "TDOPIN"),
+        (bcls::MISC_CFG::TMS_PULL, "TMSPIN"),
+    ] {
+        for (val, vname) in [
+            (enums::IOB_PULL::PULLUP, "PULLUP"),
+            (enums::IOB_PULL::PULLDOWN, "PULLDOWN"),
+            (enums::IOB_PULL::NONE, "PULLNONE"),
+        ] {
+            bctx.build()
+                .test_bel_attr_val(attr, val)
+                .global(opt, vname)
+                .commit();
+        }
+    }
+    bctx.build()
+        .test_bel_attr_bits(bcls::MISC_CFG::USERCODE)
+        .multi_global("USERID", MultiValue::HexPrefix, 32);
 
     for i in 0..4 {
         let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
-        bctx.test_manual_legacy("ENABLE", "1")
+        bctx.build()
+            .test_bel_attr_bits(bcls::BSCAN::ENABLE)
             .mode("BSCAN")
             .commit();
         bctx.mode("BSCAN")
             .global_mutex_here("DISABLE_JTAG")
-            .test_enum_legacy("DISABLE_JTAG", &["FALSE", "TRUE"]);
+            .test_bel(bslots::MISC_CFG)
+            .test_bel_attr_bool_rename(
+                "DISABLE_JTAG",
+                bcls::MISC_CFG::DISABLE_JTAG_TR,
+                "FALSE",
+                "TRUE",
+            );
     }
-    ctx.test_manual_legacy("BSCAN_COMMON", "USERID", "")
-        .multi_global("USERID", MultiValue::HexPrefix, 32);
 
     {
         let mut bctx = ctx.bel(defs::bslots::ICAP[1]);
-        bctx.test_manual_legacy("ENABLE", "1").mode("ICAP").commit();
+        bctx.build()
+            .test_bel_attr_bits(bcls::ICAP_V6::ENABLE_TR)
+            .mode("ICAP")
+            .commit();
         bctx.mode("ICAP")
             .global_mutex_here("ICAP")
-            .test_enum_legacy("ICAP_WIDTH", &["X8", "X16", "X32"]);
-        bctx.mode("ICAP")
-            .global_mutex_here("ICAP")
-            .test_enum_legacy("ICAP_AUTO_SWITCH", &["DISABLE", "ENABLE"]);
+            .test_bel(bslots::MISC_CFG)
+            .test_bel_attr_auto(bcls::MISC_CFG::ICAP_WIDTH);
+        for val in ["DISABLE", "ENABLE"] {
+            bctx.mode("ICAP")
+                .null_bits()
+                .global_mutex_here("ICAP")
+                .test_bel_special(specials::ICAP_AUTO_SWITCH)
+                .attr("ICAP_AUTO_SWITCH", val)
+                .commit();
+        }
 
         let mut bctx = ctx.bel(defs::bslots::ICAP[0]);
         bctx.build()
             .bel_mode(defs::bslots::ICAP[1], "ICAP")
-            .test_manual_legacy("ENABLE", "1")
+            .test_bel_attr_bits(bcls::ICAP_V6::ENABLE_TR)
             .mode("ICAP")
             .commit();
         bctx.mode("ICAP")
             .bel_mode(defs::bslots::ICAP[1], "ICAP")
             .global_mutex_here("ICAP")
-            .test_enum_legacy("ICAP_WIDTH", &["X8", "X16", "X32"]);
-        bctx.mode("ICAP")
-            .bel_mode(defs::bslots::ICAP[1], "ICAP")
-            .global_mutex_here("ICAP")
-            .test_enum_legacy("ICAP_AUTO_SWITCH", &["DISABLE", "ENABLE"]);
+            .test_bel(bslots::MISC_CFG)
+            .test_bel_attr_auto(bcls::MISC_CFG::ICAP_WIDTH);
+        for val in ["DISABLE", "ENABLE"] {
+            bctx.mode("ICAP")
+                .null_bits()
+                .bel_mode(defs::bslots::ICAP[1], "ICAP")
+                .global_mutex_here("ICAP")
+                .test_bel_special(specials::ICAP_AUTO_SWITCH)
+                .attr("ICAP_AUTO_SWITCH", val)
+                .commit();
+        }
     }
 
     for i in 0..2 {
         let mut bctx = ctx.bel(defs::bslots::PMV_CFG[i]);
         bctx.build()
             .null_bits()
-            .test_manual_legacy("PRESENT", "1")
+            .test_bel_special(specials::PRESENT)
             .mode("PMV")
             .commit();
     }
@@ -100,7 +140,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::STARTUP);
         bctx.build()
             .null_bits()
-            .test_manual_legacy("PRESENT", "1")
+            .test_bel_special(specials::PRESENT)
             .mode("STARTUP")
             .commit();
         for val in ["CCLK", "USERCLK", "JTAGCLK"] {
@@ -114,32 +154,37 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
         bctx.mode("STARTUP")
             .no_pin("GSR")
-            .test_manual_legacy("PIN.GTS", "1")
+            .test_bel_attr_bits(bcls::STARTUP::USER_GTS_GSR_ENABLE_TR)
             .pin("GTS")
             .commit();
         bctx.mode("STARTUP")
             .no_pin("GTS")
-            .test_manual_legacy("PIN.GSR", "1")
+            .test_bel_attr_bits(bcls::STARTUP::USER_GTS_GSR_ENABLE_TR)
             .pin("GSR")
             .commit();
         bctx.mode("STARTUP")
-            .test_manual_legacy("PIN.USRCCLKO", "1")
+            .test_bel_attr_bits(bcls::STARTUP::USRCCLK_ENABLE_TR)
             .pin("USRCCLKO")
             .commit();
         bctx.mode("STARTUP")
             .global("ENCRYPT", "YES")
-            .test_manual_legacy("PIN.KEYCLEARB", "1")
+            .test_bel_attr_bits(bcls::STARTUP::KEY_CLEAR_ENABLE_TR)
             .pin("KEYCLEARB")
             .commit();
-        for attr in ["GSR_SYNC", "GTS_SYNC"] {
-            for val in ["YES", "NO"] {
-                bctx.test_manual_legacy(attr, val)
-                    .global(attr, val)
-                    .commit();
-            }
+        for attr in [bcls::STARTUP::GSR_SYNC, bcls::STARTUP::GTS_SYNC] {
+            bctx.build().test_global_attr_bool_rename(
+                backend.edev.db[bcls::STARTUP].attributes.key(attr),
+                attr,
+                "NO",
+                "YES",
+            );
         }
-        bctx.mode("STARTUP")
-            .test_enum_legacy("PROG_USR", &["FALSE", "TRUE"]);
+        bctx.mode("STARTUP").test_bel_attr_bool_rename(
+            "PROG_USR",
+            bcls::STARTUP::PROG_USR_TR,
+            "FALSE",
+            "TRUE",
+        );
     }
 
     {
@@ -159,7 +204,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
     {
         let mut bctx = ctx.bel(defs::bslots::DCIRESET);
-        bctx.test_manual_legacy("ENABLE", "1")
+        bctx.build()
+            .test_bel_attr_bits(bcls::DCIRESET::ENABLE_TR)
             .mode("DCIRESET")
             .commit();
     }
@@ -168,7 +214,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::CAPTURE);
         bctx.build()
             .null_bits()
-            .test_manual_legacy("PRESENT", "1")
+            .test_bel_special(specials::PRESENT)
             .mode("CAPTURE")
             .commit();
         bctx.mode("CAPTURE")
@@ -181,7 +227,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::USR_ACCESS);
         bctx.build()
             .null_bits()
-            .test_manual_legacy("PRESENT", "1")
+            .test_bel_special(specials::PRESENT)
             .mode("USR_ACCESS")
             .commit();
     }
@@ -190,21 +236,23 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::EFUSE_USR);
         bctx.build()
             .null_bits()
-            .test_manual_legacy("PRESENT", "1")
+            .test_bel_special(specials::PRESENT)
             .mode("EFUSE_USR")
             .commit();
     }
 
     {
         let mut bctx = ctx.bel(defs::bslots::DNA_PORT);
-        bctx.test_manual_legacy("ENABLE", "1")
+        bctx.build()
+            .test_bel_attr_bits(bcls::DNA_PORT::ENABLE_TR)
             .mode("DNA_PORT")
             .commit();
     }
 
     {
         let mut bctx = ctx.bel(defs::bslots::CFG_IO_ACCESS);
-        bctx.test_manual_legacy("ENABLE", "1")
+        bctx.build()
+            .test_bel_attr_bits(bcls::CFG_IO_ACCESS_V6::ENABLE_TR)
             .mode("CFG_IO_ACCESS")
             .commit();
     }
@@ -213,33 +261,37 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(defs::bslots::SYSMON);
         bctx.build()
             .null_bits()
-            .extra_tile_attr_legacy(
+            .extra_tile_attr_bits(
                 Delta::new(0, 20, tcls::HCLK),
-                "HCLK",
-                "DRP_MASK_SYSMON",
-                "1",
+                bslots::HCLK_DRP,
+                bcls::HCLK_DRP_V6::DRP_MASK_SYSMON,
             )
-            .test_manual_legacy("ENABLE", "1")
+            .test_bel_special(specials::PRESENT)
             .mode("SYSMON")
             .commit();
-        bctx.mode("SYSMON").test_inv_legacy("DCLK");
-        bctx.mode("SYSMON").test_inv_legacy("CONVSTCLK");
+        bctx.mode("SYSMON")
+            .test_bel_input_inv_auto(bcls::SYSMON_V5::DCLK);
+        bctx.mode("SYSMON")
+            .test_bel_input_inv_auto(bcls::SYSMON_V5::CONVSTCLK);
         for i in 0x40..0x58 {
+            let base = (i - 0x40) * 0x10;
             bctx.mode("SYSMON")
-                .test_multi_attr_hex_legacy(format!("INIT_{i:02X}"), 16);
+                .test_bel_attr_bits_base(bcls::SYSMON_V5::INIT, base)
+                .multi_attr(format!("INIT_{i:02X}"), MultiValue::Hex(0), 16);
         }
         for attr in [
-            "SYSMON_TEST_A",
-            "SYSMON_TEST_B",
-            "SYSMON_TEST_C",
-            "SYSMON_TEST_D",
-            "SYSMON_TEST_E",
+            bcls::SYSMON_V5::SYSMON_TEST_A,
+            bcls::SYSMON_V5::SYSMON_TEST_B,
+            bcls::SYSMON_V5::SYSMON_TEST_C,
+            bcls::SYSMON_V5::SYSMON_TEST_D,
+            bcls::SYSMON_V5::SYSMON_TEST_E,
         ] {
-            bctx.mode("SYSMON").test_multi_attr_hex_legacy(attr, 16);
+            bctx.mode("SYSMON")
+                .test_bel_attr_multi(attr, MultiValue::Hex(0));
         }
         bctx.build()
             .attr("SYSMON_TEST_E", "")
-            .test_manual_legacy("JTAG_SYSMON", "DISABLE")
+            .test_bel_special(specials::JTAG_SYSMON_DISABLE)
             .global("JTAG_SYSMON", "DISABLE")
             .commit();
     }
@@ -515,94 +567,125 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let tile = "CFG";
-    let bel = "MISC";
-    for attr in ["CCLKPIN", "DONEPIN", "PROGPIN", "INITPIN"] {
-        ctx.collect_enum_legacy(tile, bel, attr, &["PULLUP", "PULLNONE"]);
-    }
-    for attr in [
-        "HSWAPENPIN",
-        "M0PIN",
-        "M1PIN",
-        "M2PIN",
-        "CSPIN",
-        "DINPIN",
-        "BUSYPIN",
-        "RDWRPIN",
-        "TCKPIN",
-        "TDIPIN",
-        "TDOPIN",
-        "TMSPIN",
-    ] {
-        ctx.collect_enum_legacy(tile, bel, attr, &["PULLUP", "PULLDOWN", "PULLNONE"]);
-    }
-
-    for bel in ["BSCAN[0]", "BSCAN[1]", "BSCAN[2]", "BSCAN[3]"] {
-        ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-        let item = ctx.extract_bit_wide_bi_legacy(tile, bel, "DISABLE_JTAG", "FALSE", "TRUE");
-        ctx.insert_legacy(tile, "BSCAN_COMMON", "DISABLE_JTAG", item);
-    }
-    let bel = "BSCAN_COMMON";
-    let item = xlat_bitvec_legacy(ctx.get_diffs_legacy(tile, bel, "USERID", ""));
-    ctx.insert_legacy(tile, bel, "USERID", item);
-
-    for bel in [
-        "ICAP[0]",
-        "ICAP[1]",
-        "DCIRESET",
-        "DNA_PORT",
-        "CFG_IO_ACCESS",
-    ] {
-        ctx.collect_bit_wide_legacy(tile, bel, "ENABLE", "1");
-    }
-    for bel in ["ICAP[0]", "ICAP[1]"] {
-        // ???
-        ctx.get_diff_legacy(tile, bel, "ICAP_AUTO_SWITCH", "DISABLE")
-            .assert_empty();
-        ctx.get_diff_legacy(tile, bel, "ICAP_AUTO_SWITCH", "ENABLE")
-            .assert_empty();
-    }
-
-    let bel = "STARTUP";
-    ctx.collect_bit_bi_legacy(tile, bel, "GSR_SYNC", "NO", "YES");
-    ctx.collect_bit_bi_legacy(tile, bel, "GTS_SYNC", "NO", "YES");
-    let item0 = ctx.extract_bit_wide_legacy(tile, bel, "PIN.GSR", "1");
-    let item1 = ctx.extract_bit_wide_legacy(tile, bel, "PIN.GTS", "1");
-    assert_eq!(item0, item1);
-    ctx.insert_legacy(tile, bel, "GTS_GSR_ENABLE", item0);
-    ctx.collect_bit_wide_bi_legacy(tile, bel, "PROG_USR", "FALSE", "TRUE");
-    let item = ctx.extract_bit_wide_legacy(tile, bel, "PIN.USRCCLKO", "1");
-    ctx.insert_legacy(tile, bel, "USRCCLK_ENABLE", item);
-    let item = ctx.extract_bit_wide_legacy(tile, bel, "PIN.KEYCLEARB", "1");
-    ctx.insert_legacy(tile, bel, "KEY_CLEAR_ENABLE", item);
-
-    let item0 = ctx.extract_enum_legacy(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
-    let item1 = ctx.extract_enum_legacy(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
-    assert_eq!(item0, item1);
-    ctx.insert_legacy(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
+    let tcid = tcls::CFG;
 
     {
-        let bel = "SYSMON";
-        ctx.collect_inv_legacy(tile, bel, "CONVSTCLK");
-        ctx.collect_inv_legacy(tile, bel, "DCLK");
-        for i in 0x40..0x58 {
-            ctx.collect_bitvec_legacy(tile, bel, &format!("INIT_{i:02X}"), "");
+        let bslot = bslots::MISC_CFG;
+        for attr in [
+            bcls::MISC_CFG::CCLK_PULL,
+            bcls::MISC_CFG::DONE_PULL,
+            bcls::MISC_CFG::PROG_PULL,
+            bcls::MISC_CFG::INIT_PULL,
+        ] {
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                attr,
+                &[enums::IOB_PULL::NONE, enums::IOB_PULL::PULLUP],
+            );
         }
-        ctx.collect_bitvec_legacy(tile, bel, "SYSMON_TEST_A", "");
-        ctx.collect_bitvec_legacy(tile, bel, "SYSMON_TEST_B", "");
-        ctx.collect_bitvec_legacy(tile, bel, "SYSMON_TEST_C", "");
-        ctx.collect_bitvec_legacy(tile, bel, "SYSMON_TEST_D", "");
-        ctx.collect_bitvec_legacy(tile, bel, "SYSMON_TEST_E", "");
+        for attr in [
+            bcls::MISC_CFG::HSWAPEN_PULL,
+            bcls::MISC_CFG::M0_PULL,
+            bcls::MISC_CFG::M1_PULL,
+            bcls::MISC_CFG::M2_PULL,
+            bcls::MISC_CFG::CS_PULL,
+            bcls::MISC_CFG::DIN_PULL,
+            bcls::MISC_CFG::BUSY_PULL,
+            bcls::MISC_CFG::RDWR_PULL,
+            bcls::MISC_CFG::TCK_PULL,
+            bcls::MISC_CFG::TDI_PULL,
+            bcls::MISC_CFG::TDO_PULL,
+            bcls::MISC_CFG::TMS_PULL,
+        ] {
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                attr,
+                &[
+                    enums::IOB_PULL::NONE,
+                    enums::IOB_PULL::PULLUP,
+                    enums::IOB_PULL::PULLDOWN,
+                ],
+            );
+        }
+        ctx.collect_bel_attr(tcid, bslot, bcls::MISC_CFG::USERCODE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::MISC_CFG::ICAP_WIDTH);
+        let bits = xlat_bit_wide_bi(
+            ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::MISC_CFG::DISABLE_JTAG_TR, false),
+            ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::MISC_CFG::DISABLE_JTAG_TR, true),
+        );
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::MISC_CFG::DISABLE_JTAG_TR, bits);
+    }
 
-        let mut diff = ctx.get_diff_legacy(tile, bel, "JTAG_SYSMON", "DISABLE");
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "SYSMON_TEST_E"), 7, 0);
+    for bslot in bslots::BSCAN {
+        ctx.collect_bel_attr(tcid, bslot, bcls::BSCAN::ENABLE);
+    }
+
+    for bslot in bslots::ICAP {
+        let bits = xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, bcls::ICAP_V6::ENABLE_TR));
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::ICAP_V6::ENABLE_TR, bits);
+    }
+    {
+        let bslot = bslots::DNA_PORT;
+        let bits = xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, bcls::DNA_PORT::ENABLE_TR));
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DNA_PORT::ENABLE_TR, bits);
+    }
+    {
+        let bslot = bslots::CFG_IO_ACCESS;
+        let bits =
+            xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, bcls::CFG_IO_ACCESS_V6::ENABLE_TR));
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::CFG_IO_ACCESS_V6::ENABLE_TR, bits);
+    }
+    {
+        let bslot = bslots::DCIRESET;
+        let bits = xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, bcls::DCIRESET::ENABLE_TR));
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCIRESET::ENABLE_TR, bits);
+    }
+
+    {
+        let bslot = bslots::STARTUP;
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::STARTUP::GSR_SYNC);
+        ctx.collect_bel_attr_bi(tcid, bslot, bcls::STARTUP::GTS_SYNC);
+        for attr in [
+            bcls::STARTUP::USER_GTS_GSR_ENABLE_TR,
+            bcls::STARTUP::USRCCLK_ENABLE_TR,
+            bcls::STARTUP::KEY_CLEAR_ENABLE_TR,
+        ] {
+            let bits = xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, attr));
+            ctx.insert_bel_attr_bitvec(tcid, bslot, attr, bits);
+        }
+        let bits = xlat_bit_wide_bi(
+            ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::STARTUP::PROG_USR_TR, false),
+            ctx.get_diff_attr_bool_bi(tcid, bslot, bcls::STARTUP::PROG_USR_TR, true),
+        );
+        ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::STARTUP::PROG_USR_TR, bits);
+    }
+
+    {
+        let bslot = bslots::SYSMON;
+        ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::SYSMON_V5::CONVSTCLK);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::SYSMON_V5::DCLK);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::INIT);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_A);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_B);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_C);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_D);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_E);
+
+        let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::JTAG_SYSMON_DISABLE);
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_E),
+            7,
+            0,
+        );
         diff.assert_empty();
     }
 
     {
-        let tile = "HCLK";
-        let bel = "HCLK";
-        ctx.collect_bit_legacy(tile, bel, "DRP_MASK_SYSMON", "1");
+        let tcid = tcls::HCLK;
+        let bslot = bslots::HCLK_DRP;
+        ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_SYSMON);
     }
 
     let tile = "REG.COR";

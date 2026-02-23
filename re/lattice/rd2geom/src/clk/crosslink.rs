@@ -2,13 +2,12 @@ use std::collections::{BTreeMap, btree_map};
 
 use prjcombine_ecp::{
     bels,
-    chip::{IoGroupKind, PllLoc, SpecialIoKey, SpecialLocKey},
+    chip::{Chip, IoGroupKind, PllLoc, SpecialIoKey, SpecialLocKey},
 };
-use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelPin, LegacyBel, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
-    grid::{CellCoord, DieId},
+    grid::DieIdExt,
 };
 use prjcombine_re_lattice_naming::WireName;
 
@@ -38,7 +37,7 @@ impl ChipContext<'_> {
                         continue;
                     }
                     for row in self.chip.rows.ids() {
-                        let cell = CellCoord::new(DieId::from_idx(0), col_tgt, row);
+                        let cell = Chip::DIE.cell(col_tgt, row);
                         let pclk = self.naming.interconnect[&cell.wire(pclk)];
                         let cur_vptx = self.claim_single_in(pclk);
                         if vptx.is_none() {
@@ -73,11 +72,7 @@ impl ChipContext<'_> {
 
     pub(super) fn process_clk_edge_crosslink(&mut self) {
         for edge in [DirV::S, DirV::N] {
-            let cell_tile = CellCoord::new(
-                DieId::from_idx(0),
-                self.chip.col_clk,
-                self.chip.row_edge(edge),
-            );
+            let cell_tile = Chip::DIE.cell(self.chip.col_clk, self.chip.row_edge(edge));
             let cell = cell_tile.delta(-1, 0);
             let bt = match edge {
                 DirV::S => 'B',

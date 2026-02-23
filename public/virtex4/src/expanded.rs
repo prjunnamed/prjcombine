@@ -5,14 +5,14 @@ use crate::defs::{self, bslots};
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use bimap::BiHashMap;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
-use prjcombine_interconnect::grid::BelCoord;
+use prjcombine_interconnect::grid::{BelCoord, DieIdExt};
 use prjcombine_interconnect::{
     dir::{DirH, DirPartMap},
     grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord, TileIobId},
 };
 use prjcombine_types::bsdata::BitRectId;
 use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom, Reg};
-use std::collections::{BTreeSet, HashSet};
+use std::collections::BTreeSet;
 
 #[derive(Clone, Debug)]
 pub struct DieFrameGeom {
@@ -35,13 +35,13 @@ pub struct ExpandedDevice<'a> {
     pub frames: EntityVec<DieId, DieFrameGeom>,
     pub col_cfg: ColId,
     pub col_clk: ColId,
-    pub col_lio: Option<ColId>,
-    pub col_rio: Option<ColId>,
-    pub col_lcio: Option<ColId>,
-    pub col_rcio: Option<ColId>,
-    pub col_lgt: Option<ColId>,
-    pub col_rgt: Option<ColId>,
-    pub col_mgt: Option<(ColId, ColId)>,
+    pub col_io_w: Option<ColId>,
+    pub col_io_e: Option<ColId>,
+    pub col_io_iw: Option<ColId>,
+    pub col_io_ie: Option<ColId>,
+    pub col_gt_w: Option<ColId>,
+    pub col_gt_e: Option<ColId>,
+    pub col_gt_m: Option<(ColId, ColId)>,
     pub row_dcmiob: Option<RowId>,
     pub row_iobdcm: Option<RowId>,
     pub io: Vec<IoCoord>,
@@ -111,29 +111,6 @@ pub struct ExpandedGtz {
 }
 
 impl ExpandedDevice<'_> {
-    pub fn adjust_vivado(&mut self) {
-        if self.kind == ChipKind::Virtex7 {
-            let lvb6 = self.db.wires.get("LVB.6").unwrap().0;
-            let mut cursed_wires = HashSet::new();
-            for i in 1..self.chips.len() {
-                let die_s = DieId::from_idx(i - 1);
-                let die_n = DieId::from_idx(i);
-                for col in self.cols(die_s) {
-                    let row_s = self.rows(die_s).last().unwrap() - 49;
-                    let row_n = self.rows(die_n).first().unwrap() + 1;
-                    let cell_s = CellCoord::new(die_s, col, row_s);
-                    let cell_n = CellCoord::new(die_n, col, row_n);
-                    if self[cell_s].tiles.contains_id(tslots::INT)
-                        && self[cell_n].tiles.contains_id(tslots::INT)
-                    {
-                        cursed_wires.insert(cell_s.wire(lvb6));
-                    }
-                }
-            }
-            self.egrid.blackhole_wires.extend(cursed_wires);
-        }
-    }
-
     pub fn col_side(&self, col: ColId) -> DirH {
         assert_eq!(self.kind, ChipKind::Virtex7);
         if col.to_idx().is_multiple_of(2) {
@@ -228,7 +205,7 @@ impl ExpandedDevice<'_> {
                             )
                         }
                     }
-                } else if Some(io.cell.col) == self.col_lio {
+                } else if Some(io.cell.col) == self.col_io_w {
                     (
                         match chip.regs {
                             4 => [7, 5][reg.to_idx() / 2],
@@ -319,7 +296,7 @@ impl ExpandedDevice<'_> {
                     } else {
                         11 + rr * 4
                     }) as u32
-                        + if self.col_rio == Some(io.cell.col) {
+                        + if self.col_io_e == Some(io.cell.col) {
                             1
                         } else {
                             0
@@ -380,13 +357,13 @@ impl ExpandedDevice<'_> {
                 }
             }
             ChipKind::Virtex6 => {
-                let bank = (if Some(io.cell.col) == self.col_lio {
+                let bank = (if Some(io.cell.col) == self.col_io_w {
                     15
-                } else if Some(io.cell.col) == self.col_lcio {
+                } else if Some(io.cell.col) == self.col_io_iw {
                     25
-                } else if Some(io.cell.col) == self.col_rcio {
+                } else if Some(io.cell.col) == self.col_io_ie {
                     35
-                } else if Some(io.cell.col) == self.col_rio {
+                } else if Some(io.cell.col) == self.col_io_e {
                     45
                 } else {
                     unreachable!()
@@ -437,7 +414,7 @@ impl ExpandedDevice<'_> {
                 }
             }
             ChipKind::Virtex7 => {
-                let x = if Some(io.cell.col) == self.col_lio {
+                let x = if Some(io.cell.col) == self.col_io_w {
                     0
                 } else {
                     20
@@ -501,7 +478,7 @@ impl ExpandedDevice<'_> {
         let kind = gtcol.regs[reg].unwrap();
         let bank = match self.kind {
             ChipKind::Virtex4 => {
-                let lr = if Some(col) == self.col_lgt { 'L' } else { 'R' };
+                let lr = if Some(col) == self.col_gt_w { 'L' } else { 'R' };
                 let banks: &[u32] = match (lr, chip.regs) {
                     ('L', 4) => &[105, 102],
                     ('L', 6) => &[105, 103, 102],
@@ -571,7 +548,7 @@ impl ExpandedDevice<'_> {
                     IoCoord {
                         cell: CellCoord {
                             die,
-                            col: self.col_lio.unwrap(),
+                            col: self.col_io_w.unwrap(),
                             row: row + dy,
                         },
                         iob: TileIobId::from_idx(1),
@@ -579,7 +556,7 @@ impl ExpandedDevice<'_> {
                     IoCoord {
                         cell: CellCoord {
                             die,
-                            col: self.col_lio.unwrap(),
+                            col: self.col_io_w.unwrap(),
                             row: row + dy,
                         },
                         iob: TileIobId::from_idx(0),
@@ -592,7 +569,7 @@ impl ExpandedDevice<'_> {
                     IoCoord {
                         cell: CellCoord {
                             die,
-                            col: self.col_lio.unwrap(),
+                            col: self.col_io_w.unwrap(),
                             row: row - 10 + dy,
                         },
                         iob: TileIobId::from_idx(1),
@@ -600,7 +577,7 @@ impl ExpandedDevice<'_> {
                     IoCoord {
                         cell: CellCoord {
                             die,
-                            col: self.col_lio.unwrap(),
+                            col: self.col_io_w.unwrap(),
                             row: row - 10 + dy,
                         },
                         iob: TileIobId::from_idx(0),
@@ -608,8 +585,8 @@ impl ExpandedDevice<'_> {
                 ))
             }
             ChipKind::Virtex6 => {
-                let cl = self.col_lio.unwrap_or_else(|| self.col_lcio.unwrap());
-                let cr = self.col_rcio.unwrap();
+                let cl = self.col_io_w.unwrap_or_else(|| self.col_io_iw.unwrap());
+                let cr = self.col_io_ie.unwrap();
                 let (col_io, dy) = [
                     (cr, 34),
                     (cr, 32),
@@ -651,7 +628,7 @@ impl ExpandedDevice<'_> {
                 let chip = self.chips[die];
                 let vaux = match chip.get_xadc_io_loc() {
                     XadcIoLoc::W => {
-                        let col_lio = self.col_lio.unwrap();
+                        let col_lio = self.col_io_w.unwrap();
                         [
                             Some((col_lio, 47)),
                             Some((col_lio, 43)),
@@ -672,7 +649,7 @@ impl ExpandedDevice<'_> {
                         ]
                     }
                     XadcIoLoc::E => {
-                        let col_rio = self.col_rio.unwrap();
+                        let col_rio = self.col_io_e.unwrap();
                         [
                             Some((col_rio, 47)),
                             Some((col_rio, 43)),
@@ -693,8 +670,8 @@ impl ExpandedDevice<'_> {
                         ]
                     }
                     XadcIoLoc::Both => {
-                        let col_lio = self.col_lio.unwrap();
-                        let col_rio = self.col_rio.unwrap();
+                        let col_lio = self.col_io_w.unwrap();
+                        let col_rio = self.col_io_e.unwrap();
                         [
                             Some((col_lio, 47)),
                             Some((col_lio, 43)),
@@ -993,7 +970,6 @@ impl ExpandedDevice<'_> {
         } else if (self.kind == ChipKind::Virtex4
             && tile.class == defs::virtex4::tcls::HCLK_MGT_BUF)
             || (self.kind == ChipKind::Virtex5 && tile.class == defs::virtex5::tcls::HCLK_MGT_BUF)
-            || (self.kind == ChipKind::Virtex6 && tile.class == defs::virtex6::tcls::HCLK_MGT_BUF)
             || (self.kind == ChipKind::Virtex4 && tile.class == defs::virtex4::tcls::HCLK_TERM)
             || matches!(tcrd.slot, tslots::HCLK | tslots::HCLK_BEL)
         {
@@ -1133,12 +1109,11 @@ impl ExpandedDevice<'_> {
         let chip = self.chips[die];
         match self.kind {
             ChipKind::Virtex4 | ChipKind::Virtex5 | ChipKind::Virtex6 => {
-                CellCoord::new(die, self.col_cfg, chip.row_bufg()).tile(tslots::CFG)
+                die.cell(self.col_cfg, chip.row_bufg()).tile(tslots::CFG)
             }
-            ChipKind::Virtex7 => {
-                CellCoord::new(die, self.col_cfg, chip.row_reg_bot(chip.reg_cfg - 1))
-                    .tile(tslots::CFG)
-            }
+            ChipKind::Virtex7 => die
+                .cell(self.col_cfg, chip.row_reg_bot(chip.reg_cfg - 1))
+                .tile(tslots::CFG),
         }
     }
 

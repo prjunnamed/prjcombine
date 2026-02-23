@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, collections::HashSet};
 
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieIdExt, EdgeIoCoord, RowId};
 use prjcombine_re_xilinx_naming::{
     db::NamingDb,
     grid::{BelGrid, ExpandedGridNaming},
@@ -33,7 +33,6 @@ impl<'a> ExpandedNamedDevice<'a> {
 struct Namer<'a> {
     edev: &'a ExpandedDevice<'a>,
     chip: &'a Chip,
-    die: DieId,
     ngrid: ExpandedGridNaming<'a>,
     xlut: EntityVec<ColId, usize>,
     sxlut: EntityPartVec<ColId, usize>,
@@ -93,7 +92,7 @@ impl Namer<'_> {
 
     fn fill_rlut(&mut self) {
         let n = self.chip.rows.len();
-        for row in self.edev.rows(self.die) {
+        for row in self.edev.rows(Chip::DIE) {
             self.rlut.push(n - row.to_idx() - 1);
         }
     }
@@ -1220,7 +1219,7 @@ impl Namer<'_> {
             let ntile = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(self.die, col, row).tile(defs::tslots::BEL))
+                .get_mut(&Chip::DIE.cell(col, row).tile(defs::tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1282,7 +1281,7 @@ impl Namer<'_> {
             let ntile = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(self.die, col, row).tile(defs::tslots::BEL))
+                .get_mut(&Chip::DIE.cell(col, row).tile(defs::tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1348,7 +1347,7 @@ impl Namer<'_> {
             let ntile = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(self.die, col, row).tile(defs::tslots::BEL))
+                .get_mut(&Chip::DIE.cell(col, row).tile(defs::tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1427,7 +1426,7 @@ impl Namer<'_> {
             let ntile = self
                 .ngrid
                 .tiles
-                .get_mut(&CellCoord::new(self.die, col, row).tile(defs::tslots::BEL))
+                .get_mut(&Chip::DIE.cell(col, row).tile(defs::tslots::BEL))
                 .unwrap();
             for &i in iobs {
                 let slot = if self.chip.kind == ChipKind::FpgaCore {
@@ -1462,7 +1461,6 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     let mut namer = Namer {
         edev,
         chip,
-        die: DieId::from_idx(0),
         ngrid,
         xlut: EntityVec::new(),
         sxlut: EntityPartVec::new(),

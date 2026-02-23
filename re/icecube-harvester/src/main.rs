@@ -21,7 +21,7 @@ use prjcombine_interconnect::{
         TileClass, TileClassId, TileWireCoord,
     },
     dir::{Dir, DirH, DirPartMap, DirV},
-    grid::{BelCoord, CellCoord, ColId, DieId, RowId, WireCoord},
+    grid::{BelCoord, CellCoord, ColId, DieId, DieIdExt, RowId, WireCoord},
 };
 use prjcombine_re_collector::diff::DiffKey;
 use prjcombine_re_harvester::Harvester;
@@ -797,7 +797,8 @@ impl PartContext<'_> {
             (2, 0, SpecialIoKey::CfgSck),
             (2, 1, SpecialIoKey::CfgCsB),
         ] {
-            let ioi = CellCoord::new(DieId::from_idx(0), col_base + dx, self.chip.row_s())
+            let ioi = Chip::DIE
+                .cell(col_base + dx, self.chip.row_s())
                 .bel(defs::bslots::IOI[idx]);
             special.io.insert(key, ioi);
         }
@@ -811,12 +812,9 @@ impl PartContext<'_> {
                 (2, 0, SpecialIoKey::JtagTck),
                 (2, 1, SpecialIoKey::JtagTdo),
             ] {
-                let ioi = CellCoord::new(
-                    DieId::from_idx(0),
-                    self.chip.col_e(),
-                    self.chip.row_s() + dy,
-                )
-                .bel(defs::bslots::IOI[idx]);
+                let ioi = Chip::DIE
+                    .cell(self.chip.col_e(), self.chip.row_s() + dy)
+                    .bel(defs::bslots::IOI[idx]);
                 special.io.insert(key, ioi);
             }
         }
@@ -833,12 +831,9 @@ impl PartContext<'_> {
                     (-4, 0, SpecialIoKey::CfgSdo(6)),
                     (-4, 1, SpecialIoKey::CfgSdo(7)),
                 ] {
-                    let ioi = CellCoord::new(
-                        DieId::from_idx(0),
-                        self.chip.col_e() + dx,
-                        self.chip.row_s(),
-                    )
-                    .bel(defs::bslots::IOI[idx]);
+                    let ioi = Chip::DIE
+                        .cell(self.chip.col_e() + dx, self.chip.row_s())
+                        .bel(defs::bslots::IOI[idx]);
                     special.io.insert(key, ioi);
                 }
             } else {
@@ -850,12 +845,9 @@ impl PartContext<'_> {
                     (-6, 1, SpecialIoKey::CfgSdo(3)),
                     (-5, 0, SpecialIoKey::CfgSdo(2)),
                 ] {
-                    let ioi = CellCoord::new(
-                        DieId::from_idx(0),
-                        self.chip.col_e() + dx,
-                        self.chip.row_s(),
-                    )
-                    .bel(defs::bslots::IOI[idx]);
+                    let ioi = Chip::DIE
+                        .cell(self.chip.col_e() + dx, self.chip.row_s())
+                        .bel(defs::bslots::IOI[idx]);
                     special.io.insert(key, ioi);
                 }
             }
@@ -874,7 +866,8 @@ impl PartContext<'_> {
                 (3, 0, SpecialIoKey::CfgSdi(6)),
                 (3, 1, SpecialIoKey::CfgSdi(7)),
             ] {
-                let ioi = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), row_base + dy)
+                let ioi = Chip::DIE
+                    .cell(self.chip.col_e(), row_base + dy)
                     .bel(defs::bslots::IOI[idx]);
                 special.io.insert(key, ioi);
             }
@@ -888,8 +881,7 @@ impl PartContext<'_> {
         for (&(dev, pkg), pkg_info) in &mut self.pkgs {
             for info in &pkg_info.bel_info["SB_IO"] {
                 let (col, row, ref wn) = info.in_wires[&InstPin::Simple("D_OUT_0".into())];
-                let cell = CellCoord::new(
-                    DieId::from_idx(0),
+                let cell = Chip::DIE.cell(
                     ColId::from_idx(col.try_into().unwrap()),
                     RowId::from_idx(row.try_into().unwrap()),
                 );
@@ -927,8 +919,7 @@ impl PartContext<'_> {
                 for info in &pkg_info.bel_info["SB_IO_DS"] {
                     for pin in ["PACKAGE_PIN", "PACKAGE_PIN_B"] {
                         let (loc, ref pin) = info.pads[pin];
-                        let cell = CellCoord::new(
-                            DieId::from_idx(0),
+                        let cell = Chip::DIE.cell(
                             ColId::from_idx(loc.x.try_into().unwrap()),
                             RowId::from_idx(loc.y.try_into().unwrap()),
                         );
@@ -950,8 +941,7 @@ impl PartContext<'_> {
             if let Some(infos) = pkg_info.bel_info.get("SB_IO_OD") {
                 for info in infos {
                     let (col, row, ref wn) = info.in_wires[&InstPin::Simple("DOUT0".into())];
-                    let cell = CellCoord::new(
-                        DieId::from_idx(0),
+                    let cell = Chip::DIE.cell(
                         ColId::from_idx(col.try_into().unwrap()),
                         RowId::from_idx(row.try_into().unwrap()),
                     );
@@ -990,11 +980,8 @@ impl PartContext<'_> {
             if matches!(dev, "iCE65L04" | "iCE65P04") && pkg == "CB132" {
                 // AAAAAAAAAAAAAAAAAAAaaaaaaaaaaaa
                 for (row, idx, pin) in [(11, 0, "G1"), (10, 1, "H1")] {
-                    let cell = CellCoord::new(
-                        DieId::from_idx(0),
-                        self.chip.col_w(),
-                        RowId::from_idx(row.try_into().unwrap()),
-                    );
+                    let cell =
+                        Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(row.try_into().unwrap()));
                     let ioi = cell.bel(defs::bslots::IOI[idx]);
                     let iob = cell.bel(defs::bslots::IOB[idx]);
                     self.chip.ioi_iob.insert(ioi, iob);
@@ -1319,21 +1306,21 @@ impl PartContext<'_> {
                 let xy = (info.loc.x, info.loc.y, info.loc.bel);
                 let ioi = pkg_info.xlat_ioi[&xy];
                 let r0 = info.dedio["REP0"];
-                let ior0 = CellCoord::new(
-                    DieId::from_idx(0),
-                    ColId::from_idx(r0.x as usize),
-                    RowId::from_idx(r0.y as usize),
-                )
-                .bel(bels::IOI[r0.bel as usize])
-                .pad(defs::bcls::IOI::PAD);
+                let ior0 = Chip::DIE
+                    .cell(
+                        ColId::from_idx(r0.x as usize),
+                        RowId::from_idx(r0.y as usize),
+                    )
+                    .bel(bels::IOI[r0.bel as usize])
+                    .pad(defs::bcls::IOI::PAD);
                 let r1 = info.dedio["REP1"];
-                let ior1 = CellCoord::new(
-                    DieId::from_idx(0),
-                    ColId::from_idx(r1.x as usize),
-                    RowId::from_idx(r1.y as usize),
-                )
-                .bel(bels::IOI[r1.bel as usize])
-                .pad(defs::bcls::IOI::PAD);
+                let ior1 = Chip::DIE
+                    .cell(
+                        ColId::from_idx(r1.x as usize),
+                        RowId::from_idx(r1.y as usize),
+                    )
+                    .bel(bels::IOI[r1.bel as usize])
+                    .pad(defs::bcls::IOI::PAD);
                 x3.insert(ioi, (ior0, ior1));
             }
             for pads in pkg_info.bond.pins.values_mut() {
@@ -1381,7 +1368,7 @@ impl PartContext<'_> {
             }
         }
         if self.chip.kind == ChipKind::Ice40P03 {
-            let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(3));
+            let cell = Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(3));
             let ioi = cell.bel(defs::bslots::IOI[0]);
             let iob = cell.bel(defs::bslots::IOB[0]);
             self.chip.ioi_iob.insert(ioi, iob);
@@ -1459,11 +1446,9 @@ impl PartContext<'_> {
                 SpecialTileKey::LatchIo(edge),
                 SpecialTile {
                     io: Default::default(),
-                    cells: EntityVec::from_iter([CellCoord::new(
-                        DieId::from_idx(0),
-                        ColId::from_idx(x as usize),
-                        RowId::from_idx(y as usize),
-                    )]),
+                    cells: EntityVec::from_iter([
+                        Chip::DIE.cell(ColId::from_idx(x as usize), RowId::from_idx(y as usize))
+                    ]),
                 },
             );
         }
@@ -1473,11 +1458,9 @@ impl PartContext<'_> {
                     SpecialTileKey::LatchIo(edge.into()),
                     SpecialTile {
                         io: Default::default(),
-                        cells: EntityVec::from_iter([CellCoord::new(
-                            DieId::from_idx(0),
-                            self.chip.col_edge(edge),
-                            RowId::from_idx(12),
-                        )]),
+                        cells: EntityVec::from_iter([
+                            Chip::DIE.cell(self.chip.col_edge(edge), RowId::from_idx(12))
+                        ]),
                     },
                 );
             }
@@ -1569,11 +1552,7 @@ impl PartContext<'_> {
         let mut cells = [None; 8];
         for site in sb_gb {
             let (x, y) = site.fabout_wires[&InstPin::Simple("USER_SIGNAL_TO_GLOBAL_BUFFER".into())];
-            let cell = CellCoord::new(
-                DieId::from_idx(0),
-                ColId::from_idx(x as usize),
-                RowId::from_idx(y as usize),
-            );
+            let cell = Chip::DIE.cell(ColId::from_idx(x as usize), RowId::from_idx(y as usize));
             let index = site.global_nets[&InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())] as usize;
             assert_eq!(cells[index], None);
             cells[index] = Some(cell);
@@ -1669,7 +1648,7 @@ impl PartContext<'_> {
                 defs::tcls::MAC16
             };
             let bel_pins = &self.bel_pins[&("SB_MAC16", site.loc)];
-            let cells: [_; 5] = CellCoord::new(DieId::from_idx(0), col, row).cells_n_const();
+            let cells: [_; 5] = Chip::DIE.cell(col, row).cells_n_const();
             let mut builder = MiscTileBuilder::new(&self.intdb, tcid, &cells);
             builder.add_bel(defs::bslots::MAC16, bel_pins);
             let (tcls, _special) = builder.finish();
@@ -1691,34 +1670,27 @@ impl PartContext<'_> {
                     "SB_SPI" => {
                         let edge = if site.loc.x == 0 { DirH::W } else { DirH::E };
                         if self.chip.kind == ChipKind::Ice40R04 {
-                            cells = CellCoord::new(
-                                DieId::from_idx(0),
-                                self.chip.col_edge(edge),
-                                RowId::from_idx(1),
-                            )
-                            .cells_n(10);
+                            cells = Chip::DIE
+                                .cell(self.chip.col_edge(edge), RowId::from_idx(1))
+                                .cells_n(10);
                             let cols = match edge {
                                 DirH::W => [1, 2, 3, 4, 9],
                                 DirH::E => [15, 16, 17, 18, 20],
                             };
                             for c in cols {
-                                cells.push(CellCoord::new(
-                                    DieId::from_idx(0),
-                                    ColId::from_idx(c),
-                                    self.chip.row_s(),
-                                ));
+                                cells.push(Chip::DIE.cell(ColId::from_idx(c), self.chip.row_s()));
                             }
                         } else {
-                            cells = CellCoord::new(
-                                DieId::from_idx(0),
-                                self.chip.col_edge(edge),
-                                match self.chip.kind {
-                                    ChipKind::Ice40T04 => RowId::from_idx(1),
-                                    ChipKind::Ice40T05 => RowId::from_idx(19),
-                                    _ => unreachable!(),
-                                },
-                            )
-                            .cells_n(4);
+                            cells = Chip::DIE
+                                .cell(
+                                    self.chip.col_edge(edge),
+                                    match self.chip.kind {
+                                        ChipKind::Ice40T04 => RowId::from_idx(1),
+                                        ChipKind::Ice40T05 => RowId::from_idx(19),
+                                        _ => unreachable!(),
+                                    },
+                                )
+                                .cells_n(4);
                         }
                         (
                             SpecialTileKey::Spi(edge),
@@ -1736,34 +1708,27 @@ impl PartContext<'_> {
                     "SB_I2C" => {
                         let edge = if site.loc.x == 0 { DirH::W } else { DirH::E };
                         if self.chip.kind == ChipKind::Ice40R04 {
-                            cells = CellCoord::new(
-                                DieId::from_idx(0),
-                                self.chip.col_edge(edge),
-                                RowId::from_idx(11),
-                            )
-                            .cells_n(10);
+                            cells = Chip::DIE
+                                .cell(self.chip.col_edge(edge), RowId::from_idx(11))
+                                .cells_n(10);
                             let cols = match edge {
                                 DirH::W => [2, 3],
                                 DirH::E => [10, 11],
                             };
                             for c in cols {
-                                cells.push(CellCoord::new(
-                                    DieId::from_idx(0),
-                                    ColId::from_idx(c),
-                                    self.chip.row_n(),
-                                ));
+                                cells.push(Chip::DIE.cell(ColId::from_idx(c), self.chip.row_n()));
                             }
                         } else {
-                            cells = CellCoord::new(
-                                DieId::from_idx(0),
-                                self.chip.col_edge(edge),
-                                match self.chip.kind {
-                                    ChipKind::Ice40T04 => RowId::from_idx(19),
-                                    ChipKind::Ice40T05 => RowId::from_idx(29),
-                                    _ => unreachable!(),
-                                },
-                            )
-                            .cells_n(2);
+                            cells = Chip::DIE
+                                .cell(
+                                    self.chip.col_edge(edge),
+                                    match self.chip.kind {
+                                        ChipKind::Ice40T04 => RowId::from_idx(19),
+                                        ChipKind::Ice40T05 => RowId::from_idx(29),
+                                        _ => unreachable!(),
+                                    },
+                                )
+                                .cells_n(2);
                         }
                         (
                             SpecialTileKey::I2c(edge),
@@ -1775,11 +1740,8 @@ impl PartContext<'_> {
                     "SB_I2C_FIFO" => {
                         let edge = if site.loc.x == 0 { DirH::W } else { DirH::E };
                         for r in [1, 2, 3, 12] {
-                            cells.push(CellCoord::new(
-                                DieId::from_idx(0),
-                                self.chip.col_edge(edge),
-                                RowId::from_idx(r),
-                            ));
+                            cells
+                                .push(Chip::DIE.cell(self.chip.col_edge(edge), RowId::from_idx(r)));
                         }
                         (
                             SpecialTileKey::I2cFifo(edge),
@@ -1790,31 +1752,15 @@ impl PartContext<'_> {
                     }
                     "SB_LSOSC" => {
                         cells = vec![
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                self.chip.col_e() - 1,
-                                self.chip.row_n(),
-                            ),
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                self.chip.col_e(),
-                                self.chip.row_n() - 1,
-                            ),
+                            Chip::DIE.cell(self.chip.col_e() - 1, self.chip.row_n()),
+                            Chip::DIE.cell(self.chip.col_e(), self.chip.row_n() - 1),
                         ];
                         (SpecialTileKey::LsOsc, bels::LSOSC, &[][..])
                     }
                     "SB_HSOSC" => {
                         cells = vec![
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                self.chip.col_w() + 1,
-                                self.chip.row_n(),
-                            ),
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                self.chip.col_w(),
-                                self.chip.row_n() - 1,
-                            ),
+                            Chip::DIE.cell(self.chip.col_w() + 1, self.chip.row_n()),
+                            Chip::DIE.cell(self.chip.col_w(), self.chip.row_n() - 1),
                         ];
                         (SpecialTileKey::HsOsc, bels::HSOSC, &[][..])
                     }
@@ -1846,40 +1792,40 @@ impl PartContext<'_> {
         let tcid = key.tile_class(self.chip.kind);
         let cells = match self.chip.kind {
             ChipKind::Ice40T04 => vec![
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(18)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(19)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(20)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(17)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(18)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(19)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(20)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(16)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(3)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(18)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(19)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(20)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(17)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(18)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(19)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(20)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(16)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(3)),
             ],
             ChipKind::Ice40T01 => vec![
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(1)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(2)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(3)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(12)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(13)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(14)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(1)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(2)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(3)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(12)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(13)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(14)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(1)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(2)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(3)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(12)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(13)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(14)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(1)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(2)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(3)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(12)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(13)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(14)),
             ],
             ChipKind::Ice40T05 => vec![
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(28)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(29)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(30)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(27)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(28)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(29)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(30)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(16)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(9)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(28)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(29)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(30)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(27)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(28)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(29)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(30)),
+                Chip::DIE.cell(self.chip.col_w(), RowId::from_idx(16)),
+                Chip::DIE.cell(self.chip.col_e(), RowId::from_idx(9)),
             ],
             _ => vec![],
         };
@@ -2106,24 +2052,17 @@ impl PartContext<'_> {
                     ChipKind::Ice40T01 => (self.chip.col_w() + 1, 9, 1),
                     _ => unreachable!(),
                 };
-                let mut cells =
-                    CellCoord::new(DieId::from_idx(0), col_first, self.chip.row_edge(edge))
-                        .cells_e(num);
+                let mut cells = Chip::DIE
+                    .cell(col_first, self.chip.row_edge(edge))
+                    .cells_e(num);
                 cells.extend(
-                    CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_s() + 1)
+                    Chip::DIE
+                        .cell(self.chip.col_w(), self.chip.row_s() + 1)
                         .cells_n(num_side),
                 );
                 cells.extend([
-                    CellCoord::new(
-                        DieId::from_idx(0),
-                        self.chip.col_w(),
-                        self.chip.row_edge(edge),
-                    ),
-                    CellCoord::new(
-                        DieId::from_idx(0),
-                        self.chip.col_e(),
-                        self.chip.row_edge(edge),
-                    ),
+                    Chip::DIE.cell(self.chip.col_w(), self.chip.row_edge(edge)),
+                    Chip::DIE.cell(self.chip.col_e(), self.chip.row_edge(edge)),
                 ]);
                 let mut builder = MiscTileBuilder::new(&self.intdb, tcid, &cells);
                 builder.insert_io(SpecialIoKey::PllA, ioi);
@@ -2147,12 +2086,12 @@ impl PartContext<'_> {
             }
         }
         if matches!(self.chip.kind, ChipKind::Ice40T04 | ChipKind::Ice40T05) {
-            let mut cells =
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w() + 1, self.chip.row_s())
-                    .cells_e(18);
+            let mut cells = Chip::DIE
+                .cell(self.chip.col_w() + 1, self.chip.row_s())
+                .cells_e(18);
             cells.extend([
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_s()),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_s()),
+                Chip::DIE.cell(self.chip.col_w(), self.chip.row_s()),
+                Chip::DIE.cell(self.chip.col_e(), self.chip.row_s()),
             ]);
 
             let special = SpecialTile {

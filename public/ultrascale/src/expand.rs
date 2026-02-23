@@ -5,7 +5,7 @@ use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::builder::GridBuilder;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId, TileIobId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, DieIdExt, RowId, TileIobId};
 use std::collections::BTreeSet;
 
 use crate::chip::{
@@ -105,7 +105,7 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_ps(&mut self) {
         if let Some(ps) = self.chip.ps {
-            let cell = CellCoord::new(self.die, ps.col, RowId::from_idx(0));
+            let cell = self.die.cell(ps.col, RowId::from_idx(0));
             let height = ps.height();
             let width = ps.col.to_idx();
             if height != self.chip.regs * 60 {
@@ -113,7 +113,7 @@ impl DieExpander<'_, '_, '_> {
                 for dx in 0..width {
                     let col = ColId::from_idx(dx);
                     self.egrid.fill_conn_term_id(
-                        CellCoord::new(self.die, col, row_t),
+                        self.die.cell(col, row_t),
                         [ccls::TERM_S0, ccls::TERM_S1][col.to_idx() % 2],
                     );
                 }
@@ -496,14 +496,11 @@ impl DieExpander<'_, '_, '_> {
                 {
                     *has_pcie_cfg = true;
                 }
-                self.fill_hard_single(
-                    CellCoord::new(self.die, hc.col, self.chip.row_reg_bot(reg)),
-                    kind,
-                );
+                self.fill_hard_single(self.die.cell(hc.col, self.chip.row_reg_bot(reg)), kind);
             }
             if is_cfg && self.chip.has_hbm {
                 self.egrid.add_tile_id(
-                    CellCoord::new(self.die, hc.col, RowId::from_idx(0)),
+                    self.die.cell(hc.col, RowId::from_idx(0)),
                     tcls::HBM_ABUS_SWITCH,
                     &[],
                 );
@@ -518,7 +515,7 @@ impl DieExpander<'_, '_, '_> {
                     continue;
                 }
                 let kind = ioc.regs[reg];
-                let cell = CellCoord::new(self.die, ioc.col, self.chip.row_reg_rclk(reg));
+                let cell = self.die.cell(ioc.col, self.chip.row_reg_rclk(reg));
                 match kind {
                     IoRowKind::None => (),
                     IoRowKind::Hpio | IoRowKind::Hrio => {
@@ -627,7 +624,7 @@ impl DieExpander<'_, '_, '_> {
                 if self.disabled.contains(&DisabledPart::Region(self.die, reg)) {
                     continue;
                 }
-                let cell = CellCoord::new(self.die, col, self.chip.row_reg_bot(reg));
+                let cell = self.die.cell(col, self.chip.row_reg_bot(reg));
                 self.egrid.add_tile_n_id(cell, tcls::FE, 60);
             }
         }
@@ -643,7 +640,7 @@ impl DieExpander<'_, '_, '_> {
                 _ => continue,
             };
             for reg in self.chip.regs() {
-                let cell = CellCoord::new(self.die, col, self.chip.row_reg_bot(reg));
+                let cell = self.die.cell(col, self.chip.row_reg_bot(reg));
                 let tcid = if tcid == tcls::DFE_D && reg.to_idx() == 2 {
                     tcls::DFE_F
                 } else {
@@ -672,7 +669,7 @@ impl DieExpander<'_, '_, '_> {
             }
             for reg in self.chip.regs() {
                 let row = self.chip.row_reg_bot(reg);
-                let cell = CellCoord::new(self.die, col, row);
+                let cell = self.die.cell(col, row);
                 let mut tcells = vec![];
                 tcells.extend(cell.cells_n_const::<60>());
                 tcells.extend(cell.delta(1, 0).cells_n_const::<60>());
@@ -925,7 +922,7 @@ pub fn expand_grid<'a>(
                 iocol.regs[chip.reg_cfg()],
                 IoRowKind::Hpio | IoRowKind::Hrio
             ) {
-                let cell = CellCoord::new(die, iocol.col, chip.row_reg_rclk(chip.reg_cfg()));
+                let cell = die.cell(iocol.col, chip.row_reg_rclk(chip.reg_cfg()));
                 for idx in 0..52 {
                     if let Some(cfg) = if !chip.is_alt_cfg {
                         match idx {
@@ -1055,7 +1052,7 @@ pub fn expand_grid<'a>(
                 }
             }
         } else if let Some(hcol) = chip.cols_hard.iter().find(|hcol| hcol.col == col_cfg_io) {
-            let cell = CellCoord::new(die, hcol.col, chip.row_reg_bot(chip.reg_cfg()));
+            let cell = die.cell(hcol.col, chip.row_reg_bot(chip.reg_cfg()));
             for idx in 0..84 {
                 if let Some(cfg) = match idx {
                     14 => Some(SharedCfgPad::Data(31)),
@@ -1116,7 +1113,7 @@ pub fn expand_grid<'a>(
                 }
             }
         } else {
-            let cell = CellCoord::new(die, col_cfg_io, chip.row_reg_bot(chip.reg_cfg()));
+            let cell = die.cell(col_cfg_io, chip.row_reg_bot(chip.reg_cfg()));
             for idx in 0..42 {
                 if let Some(cfg) = match idx {
                     0 => Some(SharedCfgPad::Data(31)),

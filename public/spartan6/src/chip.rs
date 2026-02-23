@@ -6,11 +6,11 @@ use prjcombine_entity::{
 };
 use prjcombine_interconnect::{
     dir::{Dir, DirH, DirHV, DirV},
-    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
+    grid::{BelCoord, ColId, DieId, DieIdExt, EdgeIoCoord, RowId, TileCoord, TileIobId},
 };
 use std::collections::BTreeMap;
 
-use crate::defs::{self, bslots};
+use crate::defs::{bslots, tslots};
 
 pub struct RegTag;
 impl EntityTag for RegTag {
@@ -226,6 +226,9 @@ pub enum PllKind {
 }
 
 impl Chip {
+    // always single chip
+    pub const DIE: DieId = DieId::from_idx_const(0);
+
     pub fn col_w(&self) -> ColId {
         ColId::from_idx(0)
     }
@@ -305,6 +308,19 @@ impl Chip {
         self.rows.len() % 32 == 16
     }
 
+    pub fn corner(&self, side: DirHV) -> TileCoord {
+        Self::DIE
+            .cell(
+                self.col_edge(side.h),
+                if side == DirHV::NE {
+                    self.row_n_inner()
+                } else {
+                    self.row_edge(side.v)
+                },
+            )
+            .tile(tslots::BEL)
+    }
+
     pub fn get_dcms(&self) -> Vec<(RowId, DcmKind)> {
         match self.rows.len() {
             64 | 80 => vec![
@@ -354,7 +370,7 @@ impl Chip {
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
-        let iob = defs::bslots::IOB.index_of(bel.slot).unwrap();
+        let iob = bslots::IOB.index_of(bel.slot).unwrap();
         if bel.col == self.col_w() {
             EdgeIoCoord::W(bel.row, TileIobId::from_idx(iob))
         } else if bel.col == self.col_e() {
@@ -373,30 +389,35 @@ impl Chip {
     }
 
     pub fn get_io_loc(&self, io: EdgeIoCoord) -> BelCoord {
-        let die = DieId::from_idx(0);
         match io {
             EdgeIoCoord::N(col, iob) => {
                 if iob.to_idx() < 2 {
-                    CellCoord::new(die, col, self.row_n_inner())
-                        .bel(defs::bslots::IOB[iob.to_idx()])
+                    Self::DIE
+                        .cell(col, self.row_n_inner())
+                        .bel(bslots::IOB[iob.to_idx()])
                 } else {
-                    CellCoord::new(die, col, self.row_n()).bel(defs::bslots::IOB[iob.to_idx() - 2])
+                    Self::DIE
+                        .cell(col, self.row_n())
+                        .bel(bslots::IOB[iob.to_idx() - 2])
                 }
             }
-            EdgeIoCoord::E(row, iob) => {
-                CellCoord::new(die, self.col_e(), row).bel(defs::bslots::IOB[iob.to_idx()])
-            }
+            EdgeIoCoord::E(row, iob) => Self::DIE
+                .cell(self.col_e(), row)
+                .bel(bslots::IOB[iob.to_idx()]),
             EdgeIoCoord::S(col, iob) => {
                 if iob.to_idx() < 2 {
-                    CellCoord::new(die, col, self.row_s_inner())
-                        .bel(defs::bslots::IOB[iob.to_idx()])
+                    Self::DIE
+                        .cell(col, self.row_s_inner())
+                        .bel(bslots::IOB[iob.to_idx()])
                 } else {
-                    CellCoord::new(die, col, self.row_s()).bel(defs::bslots::IOB[iob.to_idx() - 2])
+                    Self::DIE
+                        .cell(col, self.row_s())
+                        .bel(bslots::IOB[iob.to_idx() - 2])
                 }
             }
-            EdgeIoCoord::W(row, iob) => {
-                CellCoord::new(die, self.col_w(), row).bel(defs::bslots::IOB[iob.to_idx()])
-            }
+            EdgeIoCoord::W(row, iob) => Self::DIE
+                .cell(self.col_w(), row)
+                .bel(bslots::IOB[iob.to_idx()]),
         }
     }
 
@@ -479,23 +500,24 @@ impl Chip {
     }
 
     pub fn bel_pcilogicse(&self, edge: DirH) -> BelCoord {
-        CellCoord::new(DieId::from_idx(0), self.col_edge(edge), self.row_clk())
-            .bel(defs::bslots::PCILOGICSE)
+        Self::DIE
+            .cell(self.col_edge(edge), self.row_clk())
+            .bel(bslots::PCILOGICSE)
     }
 
     pub fn bel_gtp(&self, side: DirHV) -> Option<BelCoord> {
         match (self.gts, side) {
             (Gts::Single(col) | Gts::Double(col, _) | Gts::Quad(col, _), DirHV::NW) => {
-                Some(CellCoord::new(DieId::from_idx(0), col, self.row_n()).bel(defs::bslots::GTP))
+                Some(Self::DIE.cell(col, self.row_n()).bel(bslots::GTP))
             }
             (Gts::Double(_, col) | Gts::Quad(_, col), DirHV::NE) => {
-                Some(CellCoord::new(DieId::from_idx(0), col, self.row_n()).bel(defs::bslots::GTP))
+                Some(Self::DIE.cell(col, self.row_n()).bel(bslots::GTP))
             }
             (Gts::Quad(col, _), DirHV::SW) => {
-                Some(CellCoord::new(DieId::from_idx(0), col, self.row_s()).bel(defs::bslots::GTP))
+                Some(Self::DIE.cell(col, self.row_s()).bel(bslots::GTP))
             }
             (Gts::Quad(_, col), DirHV::SE) => {
-                Some(CellCoord::new(DieId::from_idx(0), col, self.row_s()).bel(defs::bslots::GTP))
+                Some(Self::DIE.cell(col, self.row_s()).bel(bslots::GTP))
             }
             _ => None,
         }
@@ -503,21 +525,30 @@ impl Chip {
 
     pub fn bel_pcie(&self) -> Option<BelCoord> {
         match self.gts {
-            Gts::Single(col) | Gts::Double(col, _) | Gts::Quad(col, _) => Some(
-                CellCoord::new(DieId::from_idx(0), col - 2, self.row_n() - 31)
-                    .bel(defs::bslots::PCIE),
-            ),
+            Gts::Single(col) | Gts::Double(col, _) | Gts::Quad(col, _) => {
+                Some(Self::DIE.cell(col - 2, self.row_n() - 31).bel(bslots::PCIE))
+            }
             Gts::None => None,
         }
     }
 
     pub fn bel_bufpll(&self, edge: Dir) -> BelCoord {
         match edge {
-            Dir::H(edge) => CellCoord::new(DieId::from_idx(0), self.col_edge(edge), self.row_clk())
+            Dir::H(edge) => Self::DIE
+                .cell(self.col_edge(edge), self.row_clk())
                 .bel(bslots::BUFPLL),
-            Dir::V(edge) => CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_edge(edge))
+            Dir::V(edge) => Self::DIE
+                .cell(self.col_clk, self.row_edge(edge))
                 .bel(bslots::BUFPLL),
         }
+    }
+
+    pub fn tile_global(&self) -> TileCoord {
+        self.corner(DirHV::SW).tile(tslots::GLOBAL)
+    }
+
+    pub fn bel_global(&self) -> BelCoord {
+        self.tile_global().bel(bslots::GLOBAL)
     }
 }
 

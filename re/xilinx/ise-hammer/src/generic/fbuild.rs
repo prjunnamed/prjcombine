@@ -17,7 +17,7 @@ use crate::{
     generic::{
         props::extra::{
             ExtraKeyBelAttrBits, ExtraKeyBelAttrValue, ExtraKeyBelSpecial, ExtraKeyBelSpecialRow,
-            ExtraKeyLegacy, ExtraKeyLegacyAttr, ExtraKeyRouting,
+            ExtraKeyLegacy, ExtraKeyLegacyAttr, ExtraKeyRouting, ExtraKeyRoutingSpecial,
         },
         utils::get_input_name,
     },
@@ -197,10 +197,6 @@ pub trait FuzzBuilderBase<'b>: Sized {
         }
     }
 
-    fn extra_tile_legacy<R: TileRelation + 'b>(self, relation: R, bel: impl Into<String>) -> Self {
-        self.prop(ExtraTile::new(relation, ExtraKeyLegacy::new(bel.into())))
-    }
-
     fn extra_tile_attr_legacy<R: TileRelation + 'b>(
         self,
         relation: R,
@@ -350,6 +346,18 @@ pub trait FuzzBuilderBase<'b>: Sized {
         src: PolTileWireCoord,
     ) -> Self {
         self.prop(ExtraTile::new(relation, ExtraKeyRouting::new(dst, src)))
+    }
+
+    fn extra_tile_routing_special<R: TileRelation + 'b>(
+        self,
+        relation: R,
+        wire: TileWireCoord,
+        spec: SpecialId,
+    ) -> Self {
+        self.prop(ExtraTile::new(
+            relation,
+            ExtraKeyRoutingSpecial::new(wire, spec),
+        ))
     }
 
     fn extra_fixed_bel_attr_val(

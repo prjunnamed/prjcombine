@@ -33,6 +33,20 @@ pub type DieId = EntityIdU8<DieTag>;
 pub type ColId = EntityIdU16<ColTag>;
 pub type RowId = EntityIdU16<RowTag>;
 
+pub trait DieIdExt {
+    fn cell(self, col: ColId, row: RowId) -> CellCoord;
+}
+
+impl DieIdExt for DieId {
+    fn cell(self, col: ColId, row: RowId) -> CellCoord {
+        CellCoord {
+            die: self,
+            col,
+            row,
+        }
+    }
+}
+
 pub struct IobTag;
 impl EntityTag for IobTag {
     const PREFIX: &'static str = "IOB";
@@ -95,10 +109,6 @@ pub struct CellCoord {
 }
 
 impl CellCoord {
-    pub fn new(die: DieId, col: ColId, row: RowId) -> Self {
-        Self { die, col, row }
-    }
-
     pub fn with_cr(self, col: ColId, row: RowId) -> CellCoord {
         CellCoord { col, row, ..self }
     }
@@ -424,7 +434,7 @@ impl<'a> ExpandedGrid<'a> {
         die: DieId,
         col: ColId,
     ) -> impl DoubleEndedIterator<Item = CellCoord> + ExactSizeIterator + 'static {
-        self.rows(die).map(move |row| CellCoord::new(die, col, row))
+        self.rows(die).map(move |row| die.cell(col, row))
     }
 
     pub fn row(
@@ -432,14 +442,14 @@ impl<'a> ExpandedGrid<'a> {
         die: DieId,
         row: RowId,
     ) -> impl DoubleEndedIterator<Item = CellCoord> + ExactSizeIterator + 'static {
-        self.cols(die).map(move |col| CellCoord::new(die, col, row))
+        self.cols(die).map(move |col| die.cell(col, row))
     }
 
     pub fn die_cells(&self, die: DieId) -> impl DoubleEndedIterator<Item = CellCoord> + 'static {
         let num_rows = self.rows(die).len();
-        self.cols(die).into_iter().flat_map(move |col| {
-            EntityRange::new(0, num_rows).map(move |row| CellCoord::new(die, col, row))
-        })
+        self.cols(die)
+            .into_iter()
+            .flat_map(move |col| EntityRange::new(0, num_rows).map(move |row| die.cell(col, row)))
     }
 
     pub fn tile_wire(&self, tcrd: TileCoord, wire: TileWireCoord) -> WireCoord {
@@ -457,7 +467,7 @@ impl<'a> ExpandedGrid<'a> {
         self.die().into_iter().flat_map(move |die| {
             self.cols(die).into_iter().flat_map(move |col| {
                 self.rows(die).map(move |row| {
-                    let crd = CellCoord::new(die, col, row);
+                    let crd = die.cell(col, row);
                     let cell = &self[crd];
                     (crd, cell)
                 })

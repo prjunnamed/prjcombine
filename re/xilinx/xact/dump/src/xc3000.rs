@@ -4,7 +4,7 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, IntDb, ProgInv, SwitchBoxItem, TileWireCoord, WireKind, WireSlotId},
     dir::Dir,
-    grid::{CellCoord, DieId, EdgeIoCoord},
+    grid::{DieId, DieIdExt, EdgeIoCoord},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, TileNaming};
@@ -292,7 +292,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
         for (net, wire) in queue {
@@ -337,7 +337,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
         for (net, wire) in queue {
@@ -363,21 +363,13 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
                 // LLV
                 let col = rwt.cell.col;
                 let row = chip.row_mid();
-                queue.push((
-                    net_t,
-                    net_f,
-                    CellCoord::new(die, col, row).tile(defs::tslots::LLV),
-                ))
+                queue.push((net_t, net_f, die.cell(col, row).tile(defs::tslots::LLV)))
             } else {
                 assert_eq!(rwt.cell.row, rwf.cell.row);
                 // LLH
                 let col = chip.col_mid();
                 let row = rwt.cell.row;
-                queue.push((
-                    net_t,
-                    net_f,
-                    CellCoord::new(die, col, row).tile(defs::tslots::LLH),
-                ))
+                queue.push((net_t, net_f, die.cell(col, row).tile(defs::tslots::LLH)))
             }
         }
     }
@@ -435,7 +427,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
     }
@@ -488,7 +480,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
     }
@@ -560,10 +552,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     for (box_id, boxx) in &extractor.die.boxes {
         let col = xlut.binary_search(&usize::from(boxx.bx)).unwrap_err();
         let row = ylut.binary_search(&usize::from(boxx.by)).unwrap_err();
-        extractor.own_box(
-            box_id,
-            CellCoord::new(die, col, row).tile(defs::tslots::MAIN),
-        );
+        extractor.own_box(box_id, die.cell(col, row).tile(defs::tslots::MAIN));
     }
 
     // find IMUX.IOCLK
@@ -583,7 +572,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
         let row = ylut.binary_search(&pip.1).unwrap_err();
         assert!(col == chip.col_w() || col == chip.col_e());
         assert!(row == chip.row_s() || row == chip.row_n());
-        queue.push((net, CellCoord::new(die, col, row).wire(nw)));
+        queue.push((net, die.cell(col, row).wire(nw)));
     }
     for (net, wire) in queue {
         extractor.net_int(net, wire);
@@ -605,7 +594,7 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
             (Dir::E, 1) | (Dir::N, 0) => (chip.col_e(), chip.row_n()),
             _ => unreachable!(),
         };
-        let tcrd = CellCoord::new(die, col, row).tile(defs::tslots::MAIN);
+        let tcrd = die.cell(col, row).tile(defs::tslots::MAIN);
         for &net_f in net_info.pips_bwd.keys() {
             queue.push((net, net_f, tcrd));
         }

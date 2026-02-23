@@ -1,12 +1,12 @@
 use prjcombine_ecp::{
     bels,
-    chip::{IoGroupKind, IoKind, PllLoc, SpecialIoKey, SpecialLocKey},
+    chip::{Chip, IoGroupKind, IoKind, PllLoc, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::LegacyBel,
     dir::{Dir, DirH, DirHV, DirV},
-    grid::{BelCoord, CellCoord, DieId, EdgeIoCoord},
+    grid::{BelCoord, CellCoord, DieIdExt, EdgeIoCoord},
 };
 
 use crate::ChipContext;
@@ -24,7 +24,7 @@ impl ChipContext<'_> {
                 7 | 0 => (self.chip.col_w(), self.chip.row_n(), "L"),
                 _ => unreachable!(),
             };
-            let cell = CellCoord::new(DieId::from_idx(0), col, row);
+            let cell = Chip::DIE.cell(col, row);
             for (bel, name, pin_out, pin_in) in [
                 (bels::BCINRD, "BCINRD", "INRDENO", "INRDENI"),
                 (bels::BCLVDSO, "BCLVDSO", "LVDSENO", "LVDSENI"),
@@ -67,7 +67,7 @@ impl ChipContext<'_> {
         }
         if !self.chip.special_loc.contains_key(&SpecialLocKey::Bc(4)) {
             self.dummy_sites.insert("BREFTEST4".into());
-            let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_s());
+            let cell = Chip::DIE.cell(self.chip.col_e(), self.chip.row_s());
             for pin in ["PVT_SRC_IN", "PVT_SNK_IN", "PVT_SRC_OUT", "PVT_SNK_OUT"] {
                 for i in 0..6 {
                     let wire = self.rc_corner_wire(cell, &format!("J{pin}{i}_BREFTEST4"));
@@ -78,8 +78,8 @@ impl ChipContext<'_> {
     }
 
     pub(super) fn process_eclk_ecp5(&mut self) {
-        let cell_w = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_clk);
-        let cell_e = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_clk);
+        let cell_w = Chip::DIE.cell(self.chip.col_w(), self.chip.row_clk);
+        let cell_e = Chip::DIE.cell(self.chip.col_e(), self.chip.row_clk);
         for (bank, edge, bank_idx, cell_tile) in [
             (6, DirH::W, 0, cell_w),
             (7, DirH::W, 1, cell_w),
@@ -323,9 +323,9 @@ impl ChipContext<'_> {
     }
 
     pub(super) fn process_dlldel_ecp5(&mut self) {
-        let cell_n = CellCoord::new(DieId::from_idx(0), self.chip.col_clk, self.chip.row_n());
-        let cell_w = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_clk);
-        let cell_e = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_clk);
+        let cell_n = Chip::DIE.cell(self.chip.col_clk, self.chip.row_n());
+        let cell_w = Chip::DIE.cell(self.chip.col_w(), self.chip.row_clk);
+        let cell_e = Chip::DIE.cell(self.chip.col_e(), self.chip.row_clk);
         for (name, edge, idx) in [
             ("00", Dir::N, 0),
             ("01", Dir::N, 1),
@@ -686,7 +686,7 @@ impl ChipContext<'_> {
         }
         if self.skip_serdes && self.chip.rows.len() == 49 {
             // what. have you been drinking.
-            let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_clk - 1, self.chip.row_n());
+            let cell = Chip::DIE.cell(self.chip.col_clk - 1, self.chip.row_n());
             for wn in [
                 "JCFLAGA_SIOLOGIC",
                 "JRXDATA1A_SIOLOGIC",
@@ -781,8 +781,8 @@ impl ChipContext<'_> {
     }
 
     pub(super) fn process_clkdiv_ecp5(&mut self) {
-        let cell_w = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_clk);
-        let cell_e = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_clk);
+        let cell_w = Chip::DIE.cell(self.chip.col_w(), self.chip.row_clk);
+        let cell_e = Chip::DIE.cell(self.chip.col_e(), self.chip.row_clk);
         for (lr, cell) in [('L', cell_w), ('R', cell_e)] {
             for i in 0..2 {
                 let bcrd = cell.bel(bels::CLKDIV[i]);
@@ -820,7 +820,7 @@ impl ChipContext<'_> {
                 .filter(|&col| self.chip.columns[col].io_s == IoGroupKind::Serdes),
         );
 
-        let cell_tile = CellCoord::new(DieId::from_idx(0), self.chip.col_clk, self.chip.row_s());
+        let cell_tile = Chip::DIE.cell(self.chip.col_clk, self.chip.row_s());
         let cell = cell_tile.delta(-1, 0);
         for i in 0..2 {
             let bcrd = cell_tile.bel(bels::PCSCLKDIV[i]);

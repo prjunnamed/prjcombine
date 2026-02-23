@@ -1,7 +1,6 @@
-use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{CellCoord, DieId};
+use prjcombine_interconnect::dir::DirHV;
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::xc5200::{bcls, bslots, enums, tcls, tslots};
+use prjcombine_xc2000::xc5200::{bcls, bslots, enums, tcls};
 
 use crate::{
     backend::{Key, XactBackend},
@@ -197,12 +196,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         }
     }
     let mut bctx = ctx.bel(bslots::OSC_NE);
-    let cnr_se = CellCoord::new(
-        DieId::from_idx(0),
-        backend.edev.chip.col_e(),
-        backend.edev.chip.row_s(),
-    )
-    .tile(tslots::MAIN);
+    let cnr_se = backend.edev.chip.corner(DirHV::SE);
     for (val, vname) in &backend.edev.db.enum_classes[enums::OSC1_DIV].values {
         bctx.mode("OSC")
             .null_bits()

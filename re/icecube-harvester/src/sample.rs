@@ -7,13 +7,13 @@ use prjcombine_interconnect::{
         WireSlotId,
     },
     dir::{Dir, DirH, DirV},
-    grid::{CellCoord, ColId, DieId, RowId, WireCoord},
+    grid::{ColId, DieIdExt, RowId, WireCoord},
 };
 use prjcombine_re_collector::diff::DiffKey;
 use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
     bitstream::Bitstream,
-    chip::{ChipKind, SpecialIoKey, SpecialTileKey},
+    chip::{Chip, ChipKind, SpecialIoKey, SpecialTileKey},
     defs::{self, bslots as bels, tslots},
     expanded::{BitOwner, ExpandedDevice},
 };
@@ -475,8 +475,7 @@ pub fn make_sample(
             match &inst.kind[..] {
                 "SB_LUT4" => {
                     let tcid = edev.chip.kind.tile_class_plb();
-                    let crd = CellCoord::new(
-                        DieId::from_idx(0),
+                    let crd = Chip::DIE.cell(
                         pkg_info.xlat_col[loc.loc.x as usize],
                         pkg_info.xlat_row[loc.loc.y as usize],
                     );
@@ -1089,8 +1088,7 @@ pub fn make_sample(
                 }
                 kind if kind.starts_with("SB_RAM") => {
                     let bcls = edev.db.bel_classes.get("BRAM").unwrap().1;
-                    let crd = CellCoord::new(
-                        DieId::from_idx(0),
+                    let crd = Chip::DIE.cell(
                         pkg_info.xlat_col[loc.loc.x as usize],
                         pkg_info.xlat_row[loc.loc.y as usize],
                     );
@@ -1617,7 +1615,7 @@ pub fn make_sample(
                 "SB_MAC16" => {
                     let col = pkg_info.xlat_col[loc.loc.x as usize];
                     let row = pkg_info.xlat_row[loc.loc.y as usize];
-                    let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                    let cell = Chip::DIE.cell(col, row);
                     let tiles = Vec::from_iter((0..5).map(|i| BitOwner::Main(col, row + i)));
                     let tcid = edev[cell.tile(defs::tslots::BEL)].class;
                     let tcid_plb = edev.chip.kind.tile_class_plb();

@@ -55,7 +55,7 @@ pub fn add_fuzzers<'a>(
     let mut ctx = FuzzCtx::new(session, backend, tcls::CMT);
 
     if devdata_only {
-        let mut bctx = ctx.bel(bslots::PLL);
+        let mut bctx = ctx.bel(bslots::PLL[0]);
         bctx.build()
             .global_xy("PLLADV_*_USE_CALC", "NO")
             .related_tile_mutex_exclusive(HclkCmt, "ENABLE")
@@ -552,7 +552,7 @@ pub fn add_fuzzers<'a>(
                         src.wire,
                         wires::OMUX_PLL_SKEWCLKIN1 | wires::OMUX_PLL_SKEWCLKIN2
                     ) {
-                        builder = builder.bel_unused(bslots::PLL);
+                        builder = builder.bel_unused(bslots::PLL[0]);
                     }
                     builder
                         .test_routing(dst, src)
@@ -563,7 +563,7 @@ pub fn add_fuzzers<'a>(
         }
     }
     if !skip_pll {
-        let mut bctx = ctx.bel(bslots::PLL);
+        let mut bctx = ctx.bel(bslots::PLL[0]);
         let mode = "PLL_ADV";
         bctx.build()
             .global_xy("PLLADV_*_USE_CALC", "NO")
@@ -900,7 +900,7 @@ pub fn add_fuzzers<'a>(
         for &src in mux.src.keys() {
             bctx.build()
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .bel_mode(bslots::PLL, "PLL_ADV")
+                .bel_mode(bslots::PLL[0], "PLL_ADV")
                 .prop(WireMutexExclusive::new(dst))
                 .prop(WireMutexShared::new(src.tw))
                 .test_routing(dst, src)
@@ -913,7 +913,7 @@ pub fn add_fuzzers<'a>(
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, devdata_only: bool) {
     let tcid = tcls::CMT;
     if devdata_only {
-        let bslot = bslots::PLL;
+        let bslot = bslots::PLL[0];
         let mut enable = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
         let dly_val = extract_bitvec_val_part(
             ctx.bel_attr_bitvec(tcid, bslot, PLL::PLL_IN_DLY_SET),
@@ -1466,7 +1466,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
         }
     }
     if !skip_pll {
-        let bslot = bslots::PLL;
+        let bslot = bslots::PLL[0];
         fn pll_drp_bit(reg: usize, bit: usize) -> TileBit {
             let tile = 3 + (reg >> 3);
             let frame = match bit & 3 {

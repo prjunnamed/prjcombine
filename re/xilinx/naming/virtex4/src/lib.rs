@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     dir::DirPartMap,
-    grid::{CellCoord, DieId},
+    grid::{CellCoord, DieId, DieIdExt},
 };
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{
@@ -71,7 +71,7 @@ impl ExpandedNamedDevice<'_> {
                         if kind != CfgRowKind::Sysmon {
                             continue;
                         }
-                        let cell = CellCoord::new(die, col, row);
+                        let cell = die.cell(col, row);
                         res.push(SysMon {
                             cell,
                             bank: idx,
@@ -90,7 +90,7 @@ impl ExpandedNamedDevice<'_> {
                         idx += 1;
                     }
                 }
-                ChipKind::Virtex5 => {
+                ChipKind::Virtex5 | ChipKind::Virtex6 => {
                     let tcrd = self.edev.tile_cfg(die);
                     res.push(SysMon {
                         cell: tcrd.cell,
@@ -108,25 +108,11 @@ impl ExpandedNamedDevice<'_> {
                             .collect(),
                     });
                 }
-                ChipKind::Virtex6 => {
-                    let col = self.edev.col_cfg;
-                    let row = chip.row_reg_bot(chip.reg_cfg);
-                    let cell = CellCoord::new(die, col, row);
-                    res.push(SysMon {
-                        cell,
-                        bank: 0,
-                        pad_vp: self.ngrid.get_bel_name(cell.bel(bslots::IPAD_VP)).unwrap(),
-                        pad_vn: self.ngrid.get_bel_name(cell.bel(bslots::IPAD_VN)).unwrap(),
-                        vaux: (0..16)
-                            .map(|idx| self.edev.get_sysmon_vaux(cell, idx))
-                            .collect(),
-                    });
-                }
                 ChipKind::Virtex7 => {
                     if chip.regs > 1 {
                         let col = self.edev.col_cfg;
                         let row = chip.row_reg_hclk(chip.reg_cfg);
-                        let cell = CellCoord::new(die, col, row);
+                        let cell = die.cell(col, row);
                         res.push(SysMon {
                             cell,
                             bank: 0,
@@ -426,7 +412,7 @@ impl ExpandedNamedDevice<'_> {
         let chip = self.edev.chips[die];
         let col = chip.col_ps();
         let row = chip.row_reg_bot(RegId::from_idx(chip.regs - 1));
-        let cell = CellCoord::new(die, col, row);
+        let cell = die.cell(col, row);
         self.ngrid.get_bel_name(cell.bel(slot)).unwrap()
     }
 }

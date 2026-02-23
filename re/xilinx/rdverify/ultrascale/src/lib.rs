@@ -1,7 +1,7 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::db::BelInfo;
 use prjcombine_interconnect::dir::DirH;
-use prjcombine_interconnect::grid::{CellCoord, DieId, RowId, TileIobId};
+use prjcombine_interconnect::grid::{CellCoord, DieId, DieIdExt, RowId, TileIobId};
 use prjcombine_re_xilinx_naming_ultrascale::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{LegacyBelContext, RawWireCoord, SitePinDir, Verifier, verify};
@@ -374,7 +374,7 @@ fn verify_laguna(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBe
         let odie = bel.die - 1;
         let orow =
             RowId::from_idx(endev.edev.rows(odie).len() - Chip::ROWS_PER_REG + bel.row.to_idx());
-        obel = vrf.find_bel(CellCoord::new(odie, bel.col, orow).bel(bel.slot));
+        obel = vrf.find_bel(odie.cell(bel.col, orow).bel(bel.slot));
         assert!(obel.is_some());
     }
     for i in 0..6 {
@@ -421,7 +421,7 @@ fn verify_laguna_extra(
         let odie = bel.die - 1;
         let orow =
             RowId::from_idx(endev.edev.rows(odie).len() - Chip::ROWS_PER_REG + bel.row.to_idx());
-        obel = vrf.find_bel(CellCoord::new(odie, bel.col, orow).bel(bel.slot));
+        obel = vrf.find_bel(odie.cell(bel.col, orow).bel(bel.slot));
         assert!(obel.is_some());
     }
 
@@ -1009,12 +1009,8 @@ fn verify_bufce_row(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Legac
                 let odie = bel.die - 1;
                 let ogrid = endev.edev.chips[odie];
                 vrf.find_bel(
-                    CellCoord::new(
-                        odie,
-                        bel.col,
-                        ogrid.row_reg_rclk(ogrid.regs().last().unwrap()),
-                    )
-                    .bel(bel.slot),
+                    odie.cell(bel.col, ogrid.row_reg_rclk(ogrid.regs().last().unwrap()))
+                        .bel(bel.slot),
                 )
             });
         if let Some(obel) = obel_s {

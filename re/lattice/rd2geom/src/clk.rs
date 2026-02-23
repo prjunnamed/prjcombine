@@ -1,13 +1,10 @@
 use prjcombine_ecp::{
     bels,
-    chip::{ChipKind, RowKind},
+    chip::{Chip, ChipKind, RowKind},
     tslots,
 };
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::{
-    db::CellSlotId,
-    grid::{CellCoord, DieId},
-};
+use prjcombine_interconnect::{db::CellSlotId, grid::DieIdExt};
 
 use crate::ChipContext;
 
@@ -58,7 +55,7 @@ impl ChipContext<'_> {
                 if col != self.chip.col_w() && !cd.sdclk_break {
                     continue;
                 }
-                let mut cell = CellCoord::new(DieId::from_idx(0), col, row);
+                let mut cell = Chip::DIE.cell(col, row);
                 if !self.edev.has_bel(cell.bel(bels::INT)) {
                     cell.row += 9;
                 }

@@ -4,7 +4,7 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, TileClassId, TileWireCoord, WireSlotIdExt},
     dir::{DirH, DirV},
-    grid::{CellCoord, DieId, TileCoord},
+    grid::{DieId, DieIdExt, TileCoord},
 };
 use prjcombine_re_collector::diff::{
     Diff, DiffKey, OcdMode, SpecialId, xlat_bit, xlat_bit_wide, xlat_enum_raw,
@@ -88,9 +88,9 @@ impl TileRelation for Rclk {
             unreachable!()
         };
         let col = if tcrd.col <= edev.col_clk {
-            edev.col_lio.unwrap()
+            edev.col_io_w.unwrap()
         } else {
-            edev.col_rio.unwrap()
+            edev.col_io_e.unwrap()
         };
         Some(tcrd.with_col(col).tile(tslots::HCLK_BEL))
     }
@@ -289,16 +289,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let mut builder = bctx.build().mutex("IxMUX", mux.dst);
 
                     if let Some(idx) = wires::IMUX_BUFG_I.index_of(src.wire) {
-                        let clk_iob = CellCoord::new(
-                            DieId::from_idx(0),
-                            edev.col_clk,
-                            if src.cell.to_idx() == 0 {
-                                edev.row_dcmiob.unwrap()
-                            } else {
-                                edev.row_iobdcm.unwrap() - 16
-                            },
-                        )
-                        .tile(tslots::CLK);
+                        let clk_iob = DieId::from_idx(0)
+                            .cell(
+                                edev.col_clk,
+                                if src.cell.to_idx() == 0 {
+                                    edev.row_dcmiob.unwrap()
+                                } else {
+                                    edev.row_iobdcm.unwrap() - 16
+                                },
+                            )
+                            .tile(tslots::CLK);
 
                         builder = builder.global_mutex("CLK_IOB_MUXBUS", "USE").related_pip(
                             FixedRelation(clk_iob),
@@ -357,7 +357,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pip("GCLK", "O")
                 .commit();
         }
-        if edev.col_lgt.is_some() {
+        if edev.col_gt_w.is_some() {
             let mut bctx = ctx.bel(bslots::SPEC_INT);
             for (c, which, h, v) in [
                 (0, "SW", DirH::W, DirV::S),
@@ -677,7 +677,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     let num_ccms = backend.edev.tile_index[tcls::CCM].len();
-    let has_gt = edev.col_lgt.is_some();
+    let has_gt = edev.col_gt_w.is_some();
     for tcid in [tcls::HCLK_DCM, tcls::HCLK_IO_DCM_N, tcls::HCLK_IO_DCM_S] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
@@ -1304,7 +1304,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff = diff.combine(&!&common);
             ctx.insert_progbuf(tcid, wt, wf, xlat_bit(diff));
         }
-        if edev.col_lgt.is_some() {
+        if edev.col_gt_w.is_some() {
             let (_, _, common_mgt) = Diff::split(
                 ctx.peek_diff_routing(
                     tcid,
@@ -1357,7 +1357,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .chain(wires::GIOB_DCM)
             .chain(wires::MGT_DCM)
         {
-            if tcid == tcls::CCM && wires::MGT_DCM.contains(w) && !edev.col_lgt.is_some() {
+            if tcid == tcls::CCM && wires::MGT_DCM.contains(w) && !edev.col_gt_w.is_some() {
                 continue;
             }
             let w = w.cell(0);
@@ -1366,7 +1366,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
 
-    if edev.col_lgt.is_some() && !edev.chips[DieId::from_idx(0)].cols_vbrk.is_empty() {
+    if edev.col_gt_w.is_some() && !edev.chips[DieId::from_idx(0)].cols_vbrk.is_empty() {
         let tcid = tcls::HCLK_MGT_BUF;
         for i in 0..2 {
             let wire = wires::MGT_ROW[i].cell(0);

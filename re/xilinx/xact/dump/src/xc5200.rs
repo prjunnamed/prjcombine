@@ -4,7 +4,7 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, IntDb, Mux, SwitchBoxItem, TileWireCoord},
     dir::Dir,
-    grid::{CellCoord, DieId, EdgeIoCoord},
+    grid::{CellCoord, DieId, DieIdExt, EdgeIoCoord},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, TileNaming};
@@ -373,7 +373,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             for (i, net) in nets.into_iter().enumerate() {
                 let i = 7 - i;
                 let wire = wires::LONG_V[i];
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
         for (net, wire) in queue {
@@ -402,7 +402,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), 8);
             for (i, net) in nets.into_iter().enumerate() {
                 let wire = wires::LONG_H[i];
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
         for (net, wire) in queue {
@@ -452,7 +452,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
     }
@@ -515,7 +515,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
     }
@@ -608,12 +608,12 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     for i in 0..8 {
         let wire = wires::SINGLE_IO_W_N[i];
         let rw = edev
-            .resolve_wire(CellCoord::new(die, chip.col_w(), chip.row_s()).wire(wire))
+            .resolve_wire(die.cell(chip.col_w(), chip.row_s()).wire(wire))
             .unwrap();
         let net = extractor.int_nets[&rw];
         let nbto = extractor
             .net_by_cell_override
-            .entry(CellCoord::new(die, chip.col_w(), chip.row_s()))
+            .entry(die.cell(chip.col_w(), chip.row_s()))
             .or_default();
         nbto.insert(net, wire);
     }

@@ -13,7 +13,7 @@ use prjcombine_ecp::{
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     dir::{DirH, DirHV, DirV},
-    grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
+    grid::{ColId, DieIdExt, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_re_lattice_naming::ChipNaming;
 use prjcombine_re_lattice_rawdump::Part;
@@ -802,8 +802,7 @@ fn parse_io_special(
             | ChipKind::Ecp5
             | ChipKind::Crosslink => PllLoc::new(hv, idx),
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Ecp3 | ChipKind::Ecp3A => {
-                let cell = CellCoord::new(
-                    DieId::from_idx(0),
+                let cell = Chip::DIE.cell(
                     if matches!(chip.kind, ChipKind::Ecp3 | ChipKind::Ecp3A) {
                         match hv.h {
                             DirH::W => chip.col_w() + 1,

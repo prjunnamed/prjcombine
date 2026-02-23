@@ -3,7 +3,7 @@ use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::{Dir, DirH, DirPartMap};
 use prjcombine_interconnect::grid::builder::GridBuilder;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, Rect, RowId, TileIobId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, DieIdExt, Rect, RowId, TileIobId};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
@@ -52,8 +52,7 @@ impl DieExpander<'_, '_, '_> {
     }
 
     fn fill_holes(&mut self) {
-        let cell = CellCoord::new(
-            self.die,
+        let cell = self.die.cell(
             self.col_cfg - 6,
             self.chip.row_reg_bot(self.chip.reg_cfg - 1),
         );
@@ -67,17 +66,17 @@ impl DieExpander<'_, '_, '_> {
         if self.chip.has_ps {
             let col_l = self.egrid.cols(self.die).first().unwrap();
             let row_t = self.egrid.rows(self.die).last().unwrap();
-            let cell = CellCoord::new(self.die, col_l, row_t - 99);
+            let cell = self.die.cell(col_l, row_t - 99);
             self.int_holes.push(cell.rect(18, 100));
             self.site_holes.push(cell.rect(19, 100));
         }
         for pcie2 in &self.chip.holes_pcie2 {
-            let cell = CellCoord::new(self.die, pcie2.col, pcie2.row);
+            let cell = self.die.cell(pcie2.col, pcie2.row);
             self.site_holes.push(cell.rect(4, 25));
             self.int_holes.push(cell.delta(1, 0).rect(2, 25));
         }
         for &(col, row) in &self.chip.holes_pcie3 {
-            let cell = CellCoord::new(self.die, col, row);
+            let cell = self.die.cell(col, row);
             self.int_holes.push(cell.delta(1, 0).rect(4, 50));
             self.site_holes.push(cell.rect(6, 50));
         }
@@ -85,7 +84,7 @@ impl DieExpander<'_, '_, '_> {
             let is_l = gtcol.col < self.col_clk;
             for (reg, &kind) in &gtcol.regs {
                 let br = self.chip.row_reg_bot(reg);
-                let cell = CellCoord::new(self.die, gtcol.col, br);
+                let cell = self.die.cell(gtcol.col, br);
                 if kind.is_some() {
                     if gtcol.is_middle {
                         if is_l {
@@ -132,11 +131,9 @@ impl DieExpander<'_, '_, '_> {
     }
 
     fn fill_cfg(&mut self) {
-        let cell = CellCoord::new(
-            self.die,
-            self.col_cfg,
-            self.chip.row_reg_bot(self.chip.reg_cfg - 1),
-        );
+        let cell = self
+            .die
+            .cell(self.col_cfg, self.chip.row_reg_bot(self.chip.reg_cfg - 1));
         if self.chip.regs != 1 {
             for dx in 0..6 {
                 if cell.row.to_idx() != 0 {
@@ -162,7 +159,7 @@ impl DieExpander<'_, '_, '_> {
         if self.chip.has_ps {
             let col_l = self.egrid.cols(self.die).first().unwrap();
             let row_t = self.egrid.rows(self.die).last().unwrap();
-            let cell = CellCoord::new(self.die, col_l + 18, row_t - 99);
+            let cell = self.die.cell(col_l + 18, row_t - 99);
             if self.chip.regs != 2 {
                 for dx in 0..18 {
                     self.egrid
@@ -181,7 +178,7 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_pcie2(&mut self) {
         for pcie2 in &self.chip.holes_pcie2 {
-            let cell = CellCoord::new(self.die, pcie2.col, pcie2.row);
+            let cell = self.die.cell(pcie2.col, pcie2.row);
             for dx in 1..3 {
                 if cell.row.to_idx() != 0 {
                     self.egrid
@@ -210,7 +207,7 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_pcie3(&mut self) {
         for &(bc, br) in &self.chip.holes_pcie3 {
-            let cell = CellCoord::new(self.die, bc, br);
+            let cell = self.die.cell(bc, br);
             for dx in 1..5 {
                 self.egrid
                     .fill_conn_term_id(cell.delta(dx, -1), ccls::TERM_N);
@@ -232,7 +229,7 @@ impl DieExpander<'_, '_, '_> {
             let is_l = gtcol.col < self.col_clk;
             for (reg, &kind) in &gtcol.regs {
                 let br = self.chip.row_reg_bot(reg);
-                let cell = CellCoord::new(self.die, gtcol.col, self.chip.row_reg_bot(reg));
+                let cell = self.die.cell(gtcol.col, self.chip.row_reg_bot(reg));
                 if let Some(kind) = kind {
                     if gtcol.is_middle {
                         assert_eq!(kind, GtKind::Gtp);
@@ -453,8 +450,8 @@ impl DieExpander<'_, '_, '_> {
     fn fill_bram_dsp(&mut self) {
         let col = self.chip.columns.first_id().unwrap();
         if self.chip.columns[col] == ColumnKind::Bram {
-            let cell_s = CellCoord::new(self.die, col, self.chip.rows().first().unwrap());
-            let cell_n = CellCoord::new(self.die, col, self.chip.rows().last().unwrap() - 4);
+            let cell_s = self.die.cell(col, self.chip.rows().first().unwrap());
+            let cell_n = self.die.cell(col, self.chip.rows().last().unwrap() - 4);
             self.site_holes
                 .extend([cell_s.rect(1, 5), cell_n.rect(1, 5)]);
         }
@@ -564,7 +561,7 @@ impl DieExpander<'_, '_, '_> {
             }
             for reg in self.chip.regs() {
                 let row = self.chip.row_reg_hclk(reg);
-                let cell = CellCoord::new(self.die, col, row);
+                let cell = self.die.cell(col, row);
                 if self.is_site_hole(cell) {
                     continue;
                 }
@@ -580,7 +577,7 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_clk(&mut self) {
         for reg in self.chip.regs() {
-            let cell = CellCoord::new(self.die, self.col_clk, self.chip.row_reg_hclk(reg));
+            let cell = self.die.cell(self.col_clk, self.chip.row_reg_hclk(reg));
             if self.chip.has_slr && reg.to_idx() == 0 {
                 self.egrid
                     .add_tile_n_id(cell.delta(0, -21), tcls::CLK_BALI_REBUF, 16);
@@ -600,7 +597,7 @@ impl DieExpander<'_, '_, '_> {
             }
         }
 
-        let cell_bufg = CellCoord::new(self.die, self.col_clk, self.chip.row_bufg());
+        let cell_bufg = self.die.cell(self.col_clk, self.chip.row_bufg());
         self.egrid
             .add_tile_n_id(cell_bufg.delta(0, -4), tcls::CLK_BUFG, 4);
         if self.chip.reg_clk.to_idx() != self.chip.regs {
@@ -1002,15 +999,11 @@ pub fn expand_grid<'a>(
             for col in chip.columns.ids() {
                 for i in 0..6 {
                     let row = RowId::from_idx(i);
-                    egrid
-                        .blackhole_wires
-                        .insert(CellCoord::new(die, col, row).wire(lvb6));
+                    egrid.blackhole_wires.insert(die.cell(col, row).wire(lvb6));
                 }
                 for i in 0..6 {
                     let row = RowId::from_idx(chip.regs * 50 - 6 + i);
-                    egrid
-                        .blackhole_wires
-                        .insert(CellCoord::new(die, col, row).wire(lvb6));
+                    egrid.blackhole_wires.insert(die.cell(col, row).wire(lvb6));
                 }
             }
         }
@@ -1024,8 +1017,8 @@ pub fn expand_grid<'a>(
             for dy in 0..49 {
                 let row_s = egrid.rows(die_s).last().unwrap() - 49 + dy;
                 let row_n = egrid.rows(die_n).first().unwrap() + 1 + dy;
-                let cell_s = CellCoord::new(die_s, col, row_s);
-                let cell_n = CellCoord::new(die_n, col, row_n);
+                let cell_s = die_s.cell(col, row_s);
+                let cell_n = die_n.cell(col, row_n);
                 if egrid[cell_s].tiles.contains_id(defs::tslots::INT)
                     && egrid[cell_n].tiles.contains_id(defs::tslots::INT)
                 {
@@ -1185,13 +1178,13 @@ pub fn expand_grid<'a>(
         frames,
         col_cfg,
         col_clk,
-        col_lio,
-        col_rio,
-        col_lcio: None,
-        col_rcio: None,
-        col_lgt,
-        col_rgt,
-        col_mgt,
+        col_io_w: col_lio,
+        col_io_e: col_rio,
+        col_io_iw: None,
+        col_io_ie: None,
+        col_gt_w: col_lgt,
+        col_gt_e: col_rgt,
+        col_gt_m: col_mgt,
         row_dcmiob: None,
         row_iobdcm: None,
         io,

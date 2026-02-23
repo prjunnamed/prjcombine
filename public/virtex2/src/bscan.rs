@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{CellCoord, DieId, EdgeIoCoord, TileIobId};
+use prjcombine_interconnect::grid::{DieId, DieIdExt, EdgeIoCoord, TileIobId};
 use prjcombine_types::bscan::{BScanBuilder, BScanPad};
 
 use crate::{
@@ -99,7 +99,7 @@ impl Chip {
             let die = DieId::from_idx(0);
             for col in self.columns.ids().rev() {
                 let row = self.row_n();
-                if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
+                if let Some((data, tidx)) = self.get_iob_tile_data(die.cell(col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.cell == tidx {
                             let crd = EdgeIoCoord::N(col, iob.iob_id);
@@ -118,7 +118,7 @@ impl Chip {
             cfg.insert(CfgPad::ProgB, builder.get_i());
             for row in self.rows.ids().rev() {
                 let col = self.col_w();
-                if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
+                if let Some((data, tidx)) = self.get_iob_tile_data(die.cell(col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.cell == tidx {
                             let crd = EdgeIoCoord::W(row, iob.iob_id);
@@ -138,7 +138,7 @@ impl Chip {
             }
             for col in self.columns.ids() {
                 let row = self.row_s();
-                if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
+                if let Some((data, tidx)) = self.get_iob_tile_data(die.cell(col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.cell == tidx {
                             let crd = EdgeIoCoord::S(col, iob.iob_id);
@@ -163,7 +163,7 @@ impl Chip {
             }
             for row in self.rows.ids() {
                 let col = self.col_e();
-                if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
+                if let Some((data, tidx)) = self.get_iob_tile_data(die.cell(col, row)) {
                     for &iob in data.iobs.iter().rev() {
                         if iob.cell == tidx {
                             let crd = EdgeIoCoord::E(row, iob.iob_id);

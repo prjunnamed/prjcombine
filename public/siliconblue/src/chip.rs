@@ -6,7 +6,7 @@ use prjcombine_entity::{EntityId, EntityRange, EntityVec};
 use prjcombine_interconnect::{
     db::{CellSlotId, IntDb, TileClassId},
     dir::{Dir, DirH, DirV},
-    grid::{BelCoord, CellCoord, ColId, DieId, RowId, TileCoord},
+    grid::{BelCoord, CellCoord, ColId, DieId, DieIdExt, RowId, TileCoord},
 };
 use prjcombine_types::bimap::BiMap;
 
@@ -452,6 +452,9 @@ pub struct Chip {
 }
 
 impl Chip {
+    // single-die devices only
+    pub const DIE: DieId = DieId::from_idx_const(0);
+
     pub fn col_w(&self) -> ColId {
         ColId::from_idx(0)
     }
@@ -495,7 +498,9 @@ impl Chip {
     }
 
     pub fn globals(&self) -> TileCoord {
-        CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_s()).tile(defs::tslots::GLOBALS)
+        Self::DIE
+            .cell(self.col_w(), self.row_s())
+            .tile(defs::tslots::GLOBALS)
     }
 
     pub fn get_io_bank(&self, io: BelCoord) -> BelCoord {
@@ -566,19 +571,16 @@ impl Chip {
         let spec = &self.special_tiles[&key];
         match key {
             SpecialTileKey::Globals => self.globals(),
-            SpecialTileKey::GbRoot => {
-                CellCoord::new(DieId::from_idx(0), self.col_mid(), self.row_mid)
-                    .tile(defs::tslots::GB_ROOT)
-            }
+            SpecialTileKey::GbRoot => Self::DIE
+                .cell(self.col_mid(), self.row_mid)
+                .tile(defs::tslots::GB_ROOT),
             SpecialTileKey::Misc => self.globals().tile(defs::tslots::BEL),
-            SpecialTileKey::Warmboot => {
-                CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_s())
-                    .tile(defs::tslots::BEL)
-            }
-            SpecialTileKey::Pll(edge) | SpecialTileKey::PllStub(edge) => {
-                CellCoord::new(DieId::from_idx(0), self.col_mid() - 1, self.row_edge(edge))
-                    .tile(defs::tslots::BEL)
-            }
+            SpecialTileKey::Warmboot => Self::DIE
+                .cell(self.col_e(), self.row_s())
+                .tile(defs::tslots::BEL),
+            SpecialTileKey::Pll(edge) | SpecialTileKey::PllStub(edge) => Self::DIE
+                .cell(self.col_mid() - 1, self.row_edge(edge))
+                .tile(defs::tslots::BEL),
             SpecialTileKey::LatchIo(_)
             | SpecialTileKey::Spi(_)
             | SpecialTileKey::I2c(_)
@@ -604,7 +606,7 @@ impl Chip {
     }
 
     pub fn bel_pll(&self, edge: DirV) -> BelCoord {
-        let cell = CellCoord::new(DieId::from_idx(0), self.col_mid() - 1, self.row_edge(edge));
+        let cell = Self::DIE.cell(self.col_mid() - 1, self.row_edge(edge));
         cell.bel(if self.kind.is_ice65() {
             defs::bslots::PLL65
         } else {

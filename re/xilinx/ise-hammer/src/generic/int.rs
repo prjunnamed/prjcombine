@@ -18,8 +18,12 @@ use prjcombine_virtex2::defs::{
     tslots as tslots_v2,
     virtex2::wires as wires_v2,
 };
-use prjcombine_virtex4::defs::virtex4::{bslots as bslots_v4, tcls as tcls_v4, wires as wires_v4};
 use prjcombine_virtex4::defs::virtex5::{tcls as tcls_v5, wires as wires_v5};
+use prjcombine_virtex4::defs::virtex6::{tcls as tcls_v6, wires as wires_v6};
+use prjcombine_virtex4::defs::{
+    virtex4::{bslots as bslots_v4, tcls as tcls_v4, wires as wires_v4},
+    virtex6::wires,
+};
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -276,7 +280,6 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntSrcFilter {
         let wire_name = intdb.wires.key(self.wire.wire);
         let tile = &backend.edev[tcrd];
         let ntile = &backend.ngrid.tiles[&tcrd];
-        #[allow(clippy::single_match)]
         match backend.edev {
             ExpandedDevice::Virtex2(edev) => {
                 if (edev.chip.kind.is_virtex2()
@@ -334,6 +337,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntSrcFilter {
                     )
                 {
                     // ISE bug.
+                    return None;
+                }
+            }
+            ExpandedDevice::Virtex4(edev)
+                if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex6 =>
+            {
+                let wire = edev.resolve_tile_wire(tcrd, self.wire)?;
+                if wires::VOCLK_S.contains(wire.slot) || wires::VOCLK_N.contains(wire.slot) {
+                    // would have resolved into VOCLK if it was a valid source
                     return None;
                 }
             }
@@ -687,7 +699,7 @@ fn resolve_intf_delay<'a>(
 }
 
 #[derive(Clone, Debug)]
-struct FuzzIntfDelay {
+pub struct FuzzIntfDelay {
     delay: ProgDelay,
     state: bool,
 }
@@ -895,6 +907,13 @@ fn skip_permabuf(
                 return true;
             }
         }
+        ExpandedDevice::Virtex4(edev)
+            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex6 =>
+        {
+            if wires_v6::GCLK.contains(dst.wire) {
+                return true;
+            }
+        }
         _ => (),
     }
     false
@@ -960,6 +979,40 @@ fn skip_mux(
                 || wires_v5::OMUX_PLL_SKEWCLKIN2 == dst.wire
                 || wires_v5::OUT_CMT.contains(dst.wire)
                 || wires_v5::MGT_BUF.contains(dst.wire)
+            {
+                return true;
+            }
+        }
+        ExpandedDevice::Virtex4(edev)
+            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex6 =>
+        {
+            if matches!(bslot, bslots_v4::HCLK) {
+                return true;
+            }
+            if wires_v6::IMUX_IOI_OCLK.contains(dst.wire)
+                || wires_v6::IMUX_IOI_OCLKDIV.contains(dst.wire)
+                || wires_v6::IMUX_IOI_ICLK.contains(dst.wire)
+                || wires_v6::RCLK_ROW.contains(dst.wire)
+                || wires_v6::IMUX_BUFR.contains(dst.wire)
+                || wires_v6::HCLK_IO.contains(dst.wire)
+                || wires_v6::RCLK_IO.contains(dst.wire)
+                || wires_v6::IOCLK.contains(dst.wire)
+                || wires_v6::VIOCLK_S_BUF.contains(dst.wire)
+                || wires_v6::VIOCLK_N_BUF.contains(dst.wire)
+            {
+                return true;
+            }
+            if matches!(tcid, tcls_v6::CMT_BUFG_S | tcls_v6::CMT_BUFG_N) {
+                return true;
+            }
+            if tcid == tcls_v6::CMT
+                && !wires_v6::IMUX_MMCM_CLKIN1_HCLK.contains(dst.wire)
+                && !wires_v6::IMUX_MMCM_CLKIN2_HCLK.contains(dst.wire)
+                && !wires_v6::IMUX_MMCM_CLKFB_HCLK.contains(dst.wire)
+                && !wires_v6::IMUX_MMCM_CLKIN1.contains(dst.wire)
+                && !wires_v6::IMUX_MMCM_CLKIN2.contains(dst.wire)
+                && !wires_v6::IMUX_MMCM_CLKFB.contains(dst.wire)
+                && !wires_v6::OMUX_MMCM_MMCM.contains(dst.wire)
             {
                 return true;
             }
@@ -1035,6 +1088,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         }
                         build_pip_fuzzer(backend, &mut ctx, buf.dst, buf.src.tw, false);
                     }
+                    SwitchBoxItem::Pass(pass) => {
+                        if skip_mux(backend.edev, tcid, bslot, pass.dst) {
+                            continue;
+                        }
+                        build_pip_fuzzer(backend, &mut ctx, pass.dst, pass.src, false);
+                    }
                     SwitchBoxItem::PermaBuf(buf) => {
                         if skip_permabuf(backend.edev, tcid, bslot, buf.dst, buf.src.tw) {
                             continue;
@@ -1043,6 +1102,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     }
                     SwitchBoxItem::ProgInv(_) => (),
                     SwitchBoxItem::ProgDelay(delay) => {
+                        if skip_mux(backend.edev, tcid, bslot, delay.dst) {
+                            continue;
+                        }
                         for val in 0..2 {
                             ctx.build()
                                 .prop(IntMutex::new("INTF".into()))
@@ -1092,6 +1154,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if let ExpandedDevice::Virtex4(edev) = ctx.edev
                 && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5
                 && tcid == tcls_v5::IO
+            {
+                is_empty_ok = true;
+            }
+            if let ExpandedDevice::Virtex4(edev) = ctx.edev
+                && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex6
+                && matches!(tcid, tcls_v6::IO | tcls_v6::CMT)
             {
                 is_empty_ok = true;
             }
@@ -1180,9 +1248,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                         ctx.collect_progbuf(tcid, buf.dst, buf.src);
                     }
+                    SwitchBoxItem::Pass(pass) => {
+                        if skip_mux(ctx.edev, tcid, bslot, pass.dst) {
+                            continue;
+                        }
+                        ctx.collect_pass(tcid, pass.dst, pass.src);
+                    }
                     SwitchBoxItem::PermaBuf(_) => (),
                     SwitchBoxItem::ProgInv(_) => (),
                     SwitchBoxItem::ProgDelay(delay) => {
+                        if skip_mux(ctx.edev, tcid, bslot, delay.dst) {
+                            continue;
+                        }
                         ctx.collect_delay(tcid, delay.dst, delay.steps.len());
                     }
                     SwitchBoxItem::PairMux(_) => (),

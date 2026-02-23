@@ -1,6 +1,7 @@
+use prjcombine_re_collector::diff::xlat_bit;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs::{self, virtex6::tcls};
+use prjcombine_virtex4::defs::{bcls, bslots, virtex6::tcls};
 
 use crate::{
     backend::IseBackend,
@@ -9,6 +10,7 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::relation::Delta,
     },
+    virtex4::specials,
 };
 
 const PCIE_BOOL_ATTRS: &[&str] = &[
@@ -260,12 +262,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::PCIE) else {
         return;
     };
-    let mut bctx = ctx.bel(defs::bslots::PCIE);
+    let mut bctx = ctx.bel(bslots::PCIE);
     let mode = "PCIE_2_0";
 
     bctx.build()
-        .extra_tile_attr_legacy(Delta::new(3, 20, tcls::HCLK), "HCLK", "DRP_MASK_PCIE", "1")
-        .test_manual_legacy("PRESENT", "1")
+        .null_bits()
+        .extra_tile_bel_special(
+            Delta::new(3, 20, tcls::HCLK),
+            bslots::HCLK_DRP,
+            specials::DRP_MASK_PCIE,
+        )
+        .test_bel_special(specials::PRESENT)
         .mode(mode)
         .commit();
     for &attr in PCIE_BOOL_ATTRS {
@@ -301,8 +308,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
     }
 
-    ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-        .assert_empty();
     for &attr in PCIE_BOOL_ATTRS {
         ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
     }
@@ -312,8 +317,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for &(attr, _) in PCIE_DEC_ATTRS {
         ctx.collect_bitvec_legacy(tile, bel, attr, "");
     }
-    let tile = "HCLK";
-    let bel = "HCLK";
-    let item = ctx.extract_bit_legacy(tile, bel, "DRP_MASK_PCIE", "1");
-    ctx.insert_legacy(tile, bel, "DRP_MASK_BELOW", item);
+    let tcid = tcls::HCLK;
+    let bslot = bslots::HCLK_DRP;
+    let bit = xlat_bit(ctx.get_diff_bel_special(tcid, bslot, specials::DRP_MASK_PCIE));
+    ctx.insert_bel_attr_bool(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_S, bit);
 }

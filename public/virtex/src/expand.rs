@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::{DirH, DirV};
 use prjcombine_interconnect::grid::builder::GridBuilder;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId, WireCoord};
+use prjcombine_interconnect::grid::{ColId, DieId, DieIdExt, WireCoord};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -132,7 +132,7 @@ impl Expander<'_, '_> {
                 continue;
             }
 
-            let cell = CellCoord::new(self.die, col, self.chip.row_s());
+            let cell = self.die.cell(col, self.chip.row_s());
             self.egrid
                 .add_tile_id(cell, defs::tcls::BRAM_S, &[cell, cell.delta(-1, 0)]);
 
@@ -176,7 +176,7 @@ impl Expander<'_, '_> {
                 prev_cell = cell;
             }
 
-            let cell = CellCoord::new(self.die, col, self.chip.row_n());
+            let cell = self.die.cell(col, self.chip.row_n());
             self.egrid
                 .add_tile_id(cell, defs::tcls::BRAM_N, &[cell, cell.delta(-1, 0)]);
             self.egrid
@@ -194,7 +194,7 @@ impl Expander<'_, '_> {
     fn fill_clkbt(&mut self) {
         for edge in [DirV::S, DirV::N] {
             let row = self.chip.row_edge(edge);
-            let cell = CellCoord::new(self.die, self.chip.col_clk(), row);
+            let cell = self.die.cell(self.chip.col_clk(), row);
             // CLKB/CLKT and DLLs
             if self.chip.kind == ChipKind::Virtex {
                 let cell_dll_w = cell.with_col(self.chip.col_w() + 1);
@@ -292,7 +292,7 @@ impl Expander<'_, '_> {
     fn fill_clk(&mut self) {
         for cell in self.egrid.die_cells(self.die) {
             self.egrid[cell].region_root[defs::rslots::GLOBAL] =
-                CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0));
+                self.die.cell(self.chip.col_clk(), self.chip.row_clk());
         }
         for &(col_m, col_l, col_r) in &self.chip.cols_clkv {
             let is_bram = col_m == self.chip.col_w() + 1 || col_m == self.chip.col_e() - 1;
@@ -305,26 +305,26 @@ impl Expander<'_, '_> {
                     } else if col > col_m {
                         cell.with_col(col_m + 1)
                     } else {
-                        CellCoord::new(self.die, col_m, self.chip.row_clk())
+                        self.die.cell(col_m, self.chip.row_clk())
                     };
                     self.egrid[cell].region_root[defs::rslots::LEAF] = cell_clk;
                 }
             }
             if is_bram {
-                let cell = CellCoord::new(self.die, col_m, self.chip.row_s());
+                let cell = self.die.cell(col_m, self.chip.row_s());
                 self.egrid.add_tile_id(
                     cell,
                     defs::tcls::CLKV_BRAM_S,
                     &[cell, cell.delta(-1, 0), cell.delta(0, 1)],
                 );
-                let cell = CellCoord::new(self.die, col_m, self.chip.row_n());
+                let cell = self.die.cell(col_m, self.chip.row_n());
                 self.egrid.add_tile_id(
                     cell,
                     defs::tcls::CLKV_BRAM_N,
                     &[cell, cell.delta(-1, 0), cell.delta(0, -4)],
                 );
                 self.egrid.add_tile_single_id(
-                    CellCoord::new(self.die, col_m, self.chip.row_clk()),
+                    self.die.cell(col_m, self.chip.row_clk()),
                     defs::tcls::BRAM_CLKH,
                 );
             } else {
@@ -341,13 +341,13 @@ impl Expander<'_, '_> {
                 }
                 if col_m == self.chip.col_clk() {
                     self.egrid.add_tile_id(
-                        CellCoord::new(self.die, col_m, self.chip.row_clk()),
+                        self.die.cell(col_m, self.chip.row_clk()),
                         defs::tcls::CLKC,
                         &[],
                     );
                 } else {
                     self.egrid.add_tile_id(
-                        CellCoord::new(self.die, col_m, self.chip.row_clk()),
+                        self.die.cell(col_m, self.chip.row_clk()),
                         defs::tcls::GCLKC,
                         &[],
                     );

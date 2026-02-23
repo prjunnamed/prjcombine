@@ -1,9 +1,8 @@
-use prjcombine_ecp::chip::{PllLoc, SpecialIoKey, SpecialLocKey};
-use prjcombine_entity::EntityId;
+use prjcombine_ecp::chip::{Chip, PllLoc, SpecialIoKey, SpecialLocKey};
 use prjcombine_interconnect::{
     db::{BelPin, LegacyBel, TileWireCoord},
     dir::{Dir, DirHV},
-    grid::{CellCoord, DieId},
+    grid::DieIdExt,
 };
 
 use crate::ChipContext;
@@ -12,13 +11,9 @@ impl ChipContext<'_> {
     pub(super) fn process_clk_machxo(&mut self) {
         let bcrd = self.chip.bel_clk_root();
         let cell = if self.chip.rows.len() == 21 {
-            CellCoord::new(
-                DieId::from_idx(0),
-                self.chip.col_clk - 1,
-                self.chip.row_clk - 1,
-            )
+            Chip::DIE.cell(self.chip.col_clk - 1, self.chip.row_clk - 1)
         } else {
-            CellCoord::new(DieId::from_idx(0), self.chip.col_clk - 1, self.chip.row_clk)
+            Chip::DIE.cell(self.chip.col_clk - 1, self.chip.row_clk)
         };
         self.name_bel_null(bcrd);
         let mut bel = LegacyBel::default();

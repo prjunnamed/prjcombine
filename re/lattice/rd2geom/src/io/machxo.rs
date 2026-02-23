@@ -1,9 +1,11 @@
-use prjcombine_ecp::{bels, chip::IoGroupKind};
-use prjcombine_entity::EntityId;
+use prjcombine_ecp::{
+    bels,
+    chip::{Chip, IoGroupKind},
+};
 use prjcombine_interconnect::{
     db::LegacyBel,
     dir::Dir,
-    grid::{BelCoord, CellCoord, DieId},
+    grid::{BelCoord, CellCoord, DieIdExt},
 };
 
 use crate::{ChipContext, chip::ChipExt};
@@ -120,7 +122,7 @@ impl ChipContext<'_> {
                 IoGroupKind::Quad | IoGroupKind::QuadReverse => 4,
                 _ => unreachable!(),
             };
-            let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), row);
+            let cell = Chip::DIE.cell(self.chip.col_w(), row);
             for i in 0..num_io {
                 self.process_single_io_machxo(cell.bel(bels::IO[i]));
             }
@@ -133,7 +135,7 @@ impl ChipContext<'_> {
                 IoGroupKind::Quad | IoGroupKind::QuadReverse => 4,
                 _ => unreachable!(),
             };
-            let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), row);
+            let cell = Chip::DIE.cell(self.chip.col_e(), row);
             for i in 0..num_io {
                 self.process_single_io_machxo(cell.bel(bels::IO[i]));
             }
@@ -148,7 +150,7 @@ impl ChipContext<'_> {
                 IoGroupKind::Hex | IoGroupKind::HexReverse => 6,
                 _ => unreachable!(),
             };
-            let cell = CellCoord::new(DieId::from_idx(0), col, self.chip.row_s());
+            let cell = Chip::DIE.cell(col, self.chip.row_s());
             for i in 0..num_io {
                 self.process_single_io_machxo(cell.bel(bels::IO[i]));
             }
@@ -158,7 +160,7 @@ impl ChipContext<'_> {
                 IoGroupKind::Hex | IoGroupKind::HexReverse => 6,
                 _ => unreachable!(),
             };
-            let cell = CellCoord::new(DieId::from_idx(0), col, self.chip.row_n());
+            let cell = Chip::DIE.cell(col, self.chip.row_n());
             for i in 0..num_io {
                 self.process_single_io_machxo(cell.bel(bels::IO[i]));
             }

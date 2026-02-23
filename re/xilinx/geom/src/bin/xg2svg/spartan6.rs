@@ -1,5 +1,5 @@
 use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_interconnect::grid::{CellCoord, DieId};
+use prjcombine_interconnect::grid::{DieId, DieIdExt};
 use prjcombine_spartan6::chip::{ColumnIoKind, ColumnKind, Gts};
 use prjcombine_spartan6::expanded::ExpandedDevice;
 
@@ -80,7 +80,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     "clexl"
                 };
                 for row in edev.chip.rows.ids() {
-                    if edev.in_site_hole(CellCoord::new(die, col, row)) {
+                    if edev.in_site_hole(die.cell(col, row)) {
                         continue;
                     }
                     drawer.bel_rect(col_x[col].0, col_x[col].1, row_y[row].0, row_y[row].1, kind);
@@ -153,7 +153,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     "dsp"
                 };
                 for row in edev.chip.rows.ids().into_iter().step_by(4) {
-                    if edev.in_site_hole(CellCoord::new(die, col, row)) {
+                    if edev.in_site_hole(die.cell(col, row)) {
                         continue;
                     }
                     drawer.bel_rect(

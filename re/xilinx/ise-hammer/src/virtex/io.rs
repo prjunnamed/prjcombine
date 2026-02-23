@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelSlotId, TileClassId},
-    grid::{CellCoord, DieId, TileCoord},
+    grid::{DieId, DieIdExt, TileCoord},
 };
 use prjcombine_re_collector::{
     diff::Diff,
@@ -515,7 +515,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         edev.chip.row_n()
                     };
                     let bel_clk = if i == 1 { "IOFB[1]" } else { "IOFB[0]" };
-                    let clkbt = CellCoord::new(DieId::from_idx(0), edev.chip.col_clk(), row)
+                    let clkbt = DieId::from_idx(0)
+                        .cell(edev.chip.col_clk(), row)
                         .tile(defs::tslots::CLK_SN);
                     for &iostd in IOSTDS_CMOS_VE {
                         bctx.mode("DLLIOB")

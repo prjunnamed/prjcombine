@@ -355,14 +355,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_multi_attr_bin_legacy(attr, width);
         }
     }
-    for (bel, bel_name) in [(defs::bslots::MMCM[0], "MMCM"), (defs::bslots::PLL, "PLL")] {
+    for (bel, bel_name) in [
+        (defs::bslots::PLL[0], "MMCM"),
+        (defs::bslots::PLL[1], "PLL"),
+    ] {
         let mut bctx = ctx.bel(bel);
-        let use_calc = if bel == defs::bslots::MMCM[0] {
+        let use_calc = if bel == defs::bslots::PLL[0] {
             "MMCMADV_*_USE_CALC"
         } else {
             "PLLADV_*_USE_CALC"
         };
-        let mode = if bel == defs::bslots::MMCM[0] {
+        let mode = if bel == defs::bslots::PLL[0] {
             "MMCME2_ADV"
         } else {
             "PLLE2_ADV"
@@ -373,7 +376,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .mode(mode)
             .commit();
         for pin in ["CLKINSEL", "PSEN", "PSINCDEC", "PWRDWN", "RST"] {
-            if matches!(pin, "PSEN" | "PSINCDEC") && bel == defs::bslots::PLL {
+            if matches!(pin, "PSEN" | "PSINCDEC") && bel == defs::bslots::PLL[1] {
                 continue;
             }
             bctx.mode(mode).mutex("MODE", "INV").test_inv_legacy(pin);
@@ -415,7 +418,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_xy(use_calc, "NO")
                 .test_enum_legacy(attr, &["FALSE", "TRUE"]);
         }
-        if bel == defs::bslots::MMCM[0] {
+        if bel == defs::bslots::PLL[0] {
             for attr in [
                 "SEL_SLIPD",
                 "CLKBURST_ENABLE",
@@ -541,7 +544,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_xy(use_calc, "NO")
                 .test_multi_attr_bin_legacy(attr, width);
         }
-        if bel == defs::bslots::MMCM[0] {
+        if bel == defs::bslots::PLL[0] {
             for (attr, width) in [
                 ("SS_STEPS", 3),
                 ("SS_STEPS_INIT", 3),
@@ -605,7 +608,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_xy(use_calc, "NO")
                 .test_multi_attr_dec_legacy(attr, width);
         }
-        if bel == defs::bslots::MMCM[0] {
+        if bel == defs::bslots::PLL[0] {
             bctx.mode(mode)
                 .mutex("MODE", "TEST")
                 .global_xy(use_calc, "NO")
@@ -625,7 +628,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
 
         for mult in 1..=64 {
-            if bel == defs::bslots::MMCM[0] {
+            if bel == defs::bslots::PLL[0] {
                 for bandwidth in ["LOW", "HIGH"] {
                     bctx.mode(mode)
                         .mutex("MODE", "CALC")
@@ -791,7 +794,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
 
-        if bel == defs::bslots::MMCM[0] {
+        if bel == defs::bslots::PLL[0] {
             for i in 0..4 {
                 for pin in ["CLKOUT0", "CLKOUT1", "CLKOUT2", "CLKOUT3", "CLKFBOUT"] {
                     bctx.build()
@@ -940,7 +943,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     (defs::bslots::CMT_D, format!("FREQ_BB{i}")),
                 )
                 .pip(
-                    (defs::bslots::MMCM[0], format!("FREQ_BB{i}_IN")),
+                    (defs::bslots::PLL[0], format!("FREQ_BB{i}_IN")),
                     (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                 )
                 .test_manual_legacy(format!("BUF.FREQ_BB{i}.U"), "1")
@@ -1021,7 +1024,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                 )
                 .pip(
-                    (defs::bslots::MMCM[0], format!("FREQ_BB{i}_IN")),
+                    (defs::bslots::PLL[0], format!("FREQ_BB{i}_IN")),
                     (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                 )
                 .test_manual_legacy(format!("BUF.FREQ_BB{i}.D"), "1")
@@ -1037,7 +1040,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("FREQ_BB", "TEST")
                 .test_manual_legacy(format!("ENABLE.FREQ_BB{i}"), "1")
                 .pip(
-                    (defs::bslots::MMCM[0], format!("FREQ_BB{i}_IN")),
+                    (defs::bslots::PLL[0], format!("FREQ_BB{i}_IN")),
                     (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                 )
                 .commit();
@@ -1047,11 +1050,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .tile_mutex("FREQ_BB", "DRIVE_MMCM")
                     .mutex(format!("MUX.FREQ_BB{i}"), format!("MMCM_CLKOUT{j}"))
                     .pip(
-                        (defs::bslots::MMCM[0], format!("FREQ_BB_OUT{j}")),
-                        (defs::bslots::MMCM[0], format!("CLKOUT{j}")),
+                        (defs::bslots::PLL[0], format!("FREQ_BB_OUT{j}")),
+                        (defs::bslots::PLL[0], format!("CLKOUT{j}")),
                     )
                     .pip(
-                        (defs::bslots::MMCM[0], format!("FREQ_BB{i}_IN")),
+                        (defs::bslots::PLL[0], format!("FREQ_BB{i}_IN")),
                         (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                     )
                     .test_manual_legacy(format!("MUX.FREQ_BB{i}"), format!("MMCM_CLKOUT{j}"))
@@ -1107,11 +1110,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .tile_mutex("FREQ_BB", "DRIVE_PLL")
                     .mutex(format!("MUX.FREQ_BB{i}"), format!("PLL_CLKOUT{j}"))
                     .pip(
-                        (defs::bslots::PLL, format!("FREQ_BB_OUT{j}")),
-                        (defs::bslots::PLL, format!("CLKOUT{j}")),
+                        (defs::bslots::PLL[1], format!("FREQ_BB_OUT{j}")),
+                        (defs::bslots::PLL[1], format!("CLKOUT{j}")),
                     )
                     .pip(
-                        (defs::bslots::MMCM[0], format!("FREQ_BB{i}_IN")),
+                        (defs::bslots::PLL[0], format!("FREQ_BB{i}_IN")),
                         (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                     )
                     .test_manual_legacy(format!("MUX.FREQ_BB{i}"), format!("PLL_CLKOUT{j}"))
@@ -1136,8 +1139,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .force_bel_name("CMT_TOP")
                 .mutex(format!("MUX.{pin}"), "PLL")
                 .pip(
-                    (defs::bslots::PLL, format!("FREQ_BB_OUT{i}")),
-                    (defs::bslots::PLL, format!("CLKOUT{i}")),
+                    (defs::bslots::PLL[1], format!("FREQ_BB_OUT{i}")),
+                    (defs::bslots::PLL[1], format!("CLKOUT{i}")),
                 )
                 .test_manual_legacy(format!("MUX.{pin}"), format!("PLL_CLKOUT{i}"))
                 .pip(pin, format!("PLL_FREQ_BB{i}"))
@@ -1622,11 +1625,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
-    for bel in ["MMCM[0]", "PLL"] {
+    for bel in ["PLL[0]", "PLL[1]"] {
         let tile = "CMT";
 
         fn drp_bit(which: &'static str, reg: usize, bit: usize) -> TileBit {
-            if which == "MMCM[0]" {
+            if which == "PLL[0]" {
                 let tile = 15 - (reg >> 3);
                 let frame = 29 - (bit & 1);
                 let bit = 63 - ((bit >> 1) | (reg & 7) << 3);
@@ -1638,7 +1641,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 TileBit::new(tile, frame, bit)
             }
         }
-        for reg in 0..(if bel == "MMCM[0]" { 0x80 } else { 0x68 }) {
+        for reg in 0..(if bel == "PLL[0]" { 0x80 } else { 0x68 }) {
             ctx.insert_legacy(
                 tile,
                 bel,
@@ -1653,7 +1656,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for pin in ["CLKINSEL", "PWRDWN", "RST"] {
             ctx.collect_inv_legacy(tile, bel, pin);
         }
-        if bel == "MMCM[0]" {
+        if bel == "PLL[0]" {
             for pin in ["PSEN", "PSINCDEC"] {
                 ctx.collect_inv_legacy(tile, bel, pin);
             }
@@ -1692,7 +1695,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ] {
             ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
         }
-        if bel == "MMCM[0]" {
+        if bel == "PLL[0]" {
             for attr in [
                 "SS_EN",
                 "CLKBURST_ENABLE",
@@ -1794,7 +1797,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ] {
             ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
-        if bel == "MMCM[0]" {
+        if bel == "PLL[0]" {
             for attr in [
                 "SS_STEPS",
                 "SS_STEPS_INIT",
@@ -1855,7 +1858,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             (0x13, "CLKOUT6"),
             (0x15, "CLKFBOUT"),
         ] {
-            if name == "CLKOUT6" && bel == "PLL" {
+            if name == "CLKOUT6" && bel == "PLL[1]" {
                 continue;
             }
             ctx.insert_legacy(
@@ -1865,7 +1868,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 TileItem::from_bit_inv(drp_bit(bel, addr, 7), false),
             );
         }
-        if bel == "MMCM[0]" {
+        if bel == "PLL[0]" {
             for (reg, bit, attr) in [
                 (0x07, 10, "CLKOUT0_FRAC_WF_FALL"),
                 (0x09, 10, "CLKOUT0_FRAC_WF_RISE"),
@@ -1896,7 +1899,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
 
-        if bel == "MMCM[0]" {
+        if bel == "PLL[0]" {
             ctx.insert_legacy(
                 tile,
                 bel,
@@ -1917,11 +1920,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.item_legacy(
                 tile,
                 bel,
-                if bel == "MMCM[0]" {
-                    "MMCM_EN"
-                } else {
-                    "PLL_EN"
-                },
+                if bel == "PLL[0]" { "MMCM_EN" } else { "PLL_EN" },
             ),
             true,
             false,
@@ -1944,7 +1943,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT4_LT"), 0x3f, 0);
         enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT5_HT"), 1, 0);
         enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT5_LT"), 0x3f, 0);
-        if bel == "MMCM[0]" {
+        if bel == "PLL[0]" {
             enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "INTERP_EN"), 0x10, 0);
             enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "SS_STEPS_INIT"), 4, 0);
             enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "SS_STEPS"), 7, 0);
@@ -1953,12 +1952,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         enable.assert_empty();
 
-        let modes = if bel == "MMCM[0]" {
+        let modes = if bel == "PLL[0]" {
             &["LOW", "HIGH", "SS"][..]
         } else {
             &["LOW", "HIGH"][..]
         };
-        let bel_kind = if bel == "MMCM[0]" { "MMCM" } else { "PLL" };
+        let bel_kind = if bel == "PLL[0]" { "MMCM" } else { "PLL" };
         for mode in modes {
             for mult in 1..=64 {
                 let mut diff = ctx.get_diff_legacy(tile, bel, "TABLES", format!("{mult}.{mode}"));
@@ -1996,7 +1995,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 diff.discard_bits_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_EDGE"));
                 diff.discard_bits_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_LT"));
                 diff.discard_bits_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_HT"));
-                if bel == "MMCM[0]" {
+                if bel == "PLL[0]" {
                     diff.discard_bits_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_PM_RISE"));
                     diff.discard_bits_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_PM_FALL"));
                     diff.discard_bits_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_FRAC_WF_RISE"));
@@ -2063,7 +2062,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 OcdMode::Mux,
             );
         }
-        if bel == "MMCM[0]" {
+        if bel == "PLL[0]" {
             for i in 0..4 {
                 ctx.collect_enum_default_legacy_ocd(
                     tile,
@@ -2086,7 +2085,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut item_r = item;
         item_l.bits[0].rect = BitRectId::from_idx(0);
         item_r.bits[0].rect = BitRectId::from_idx(1);
-        if bel == "PLL" {
+        if bel == "PLL[1]" {
             ctx.insert_legacy("HCLK", "HCLK", "DRP_MASK_ABOVE_L", item_l);
             ctx.insert_legacy("HCLK", "HCLK", "DRP_MASK_ABOVE_R", item_r);
         } else {
@@ -2391,7 +2390,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let (_, _, diff) = Diff::split(diff_a, diff_b);
             ctx.insert_legacy(
                 tile,
-                "MMCM[0]",
+                "PLL[0]",
                 format!("ENABLE.PERF{i}"),
                 xlat_bit_legacy(diff),
             );
@@ -2439,7 +2438,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let mut diff =
                     ctx.get_diff_legacy(tile, bel, format!("MUX.PERF{i}"), format!("MMCM_PERF{j}"));
                 diff.apply_bit_diff_legacy(
-                    ctx.item_legacy(tile, "MMCM[0]", &format!("ENABLE.PERF{j}")),
+                    ctx.item_legacy(tile, "PLL[0]", &format!("ENABLE.PERF{j}")),
                     true,
                     false,
                 );

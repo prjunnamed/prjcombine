@@ -1,11 +1,15 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use prjcombine_ecp::{bels, chip::RowKind, cslots, tslots};
+use prjcombine_ecp::{
+    bels,
+    chip::{Chip, RowKind},
+    cslots, tslots,
+};
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::{BelInfo, ConnectorWire, Mux, SwitchBox, SwitchBoxItem, TileWireCoord},
     dir::DirH,
-    grid::{CellCoord, DieId},
+    grid::{DieId, DieIdExt},
 };
 
 use crate::{ChipContext, chip::ChipExt};
@@ -261,7 +265,7 @@ impl ChipContext<'_> {
             (self.chip.col_e(), self.chip.row_s() + 1, cslots::IO_W),
             (self.chip.col_e() - 2, self.chip.row_s(), cslots::IO_E),
         ] {
-            let cell = CellCoord::new(DieId::from_idx(0), col, row);
+            let cell = Chip::DIE.cell(col, row);
             let conn = &self.edev[cell].conns[slot];
             let ccls = &self.intdb[conn.class];
             let target = conn.target.unwrap();
@@ -276,7 +280,7 @@ impl ChipContext<'_> {
         }
         for (col, cd) in &self.chip.columns {
             if col == self.chip.col_clk || cd.pclk_drive {
-                let cell_e = CellCoord::new(DieId::from_idx(0), col, self.chip.row_s());
+                let cell_e = Chip::DIE.cell(col, self.chip.row_s());
                 let cell_w = cell_e.delta(-1, 0);
                 for (cell_to, cell_from, w) in
                     [(cell_w, cell_e, "IO_T_W"), (cell_e, cell_w, "IO_T_E")]

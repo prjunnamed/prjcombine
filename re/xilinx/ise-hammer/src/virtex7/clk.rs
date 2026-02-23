@@ -56,8 +56,8 @@ impl TileRelation for CmtDir {
             unreachable!()
         };
         let scol = match self.0 {
-            DirH::W => edev.col_lio.unwrap() + 1,
-            DirH::E => edev.col_rio.unwrap() - 1,
+            DirH::W => edev.col_io_w.unwrap() + 1,
+            DirH::E => edev.col_io_e.unwrap() - 1,
         };
         let ntcrd = tcrd.with_col(scol).tile(tslots::BEL);
         if edev.get_tile(ntcrd)?.class == tcls::CMT {

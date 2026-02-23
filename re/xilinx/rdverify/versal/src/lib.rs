@@ -1,5 +1,5 @@
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::CellCoord;
+use prjcombine_interconnect::grid::DieIdExt;
 use prjcombine_re_xilinx_naming_versal::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{LegacyBelContext, SitePinDir, Verifier, verify};
@@ -67,8 +67,7 @@ fn verify_laguna(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBe
         if let Some(conns) = edev.sll.get(&(bel.die, bel.col, bel.row)) {
             if !conns.cursed[bump] {
                 if let Some((odie, ocol, orow, obump)) = conns.conns[bump] {
-                    let obel =
-                        vrf.get_legacy_bel(CellCoord::new(odie, ocol, orow).bel(bslots::LAGUNA));
+                    let obel = vrf.get_legacy_bel(odie.cell(ocol, orow).bel(bslots::LAGUNA));
                     if (bel.die, bel.col, bel.row, bump) < (odie, ocol, orow, obump) {
                         vrf.claim_net(&[
                             bel.wire(&format!("UBUMP{i}")),

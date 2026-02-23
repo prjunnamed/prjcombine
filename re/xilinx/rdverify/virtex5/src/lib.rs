@@ -1,7 +1,7 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::WireSlotIdExt,
-    grid::{BelCoord, CellCoord, DieId, RowId},
+    grid::{BelCoord, DieId, DieIdExt, RowId},
 };
 use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
@@ -163,7 +163,7 @@ fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let mut bel = vrf
         .verify_bel(bcrd)
         .kind("ILOGIC")
-        .skip_out(bcls::ILOGIC_V4::CLKPAD)
+        .skip_out(bcls::ILOGIC::CLKPAD)
         .extra_in_claim("TFB")
         .extra_in_claim("OFB")
         .extra_in_claim("D")
@@ -409,7 +409,8 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         bslots::BRAM => verify_bram(edev, vrf, bcrd),
         bslots::PMVBRAM => vrf.verify_bel(bcrd).kind("PMVBRAM").commit(),
         bslots::EMAC => vrf.verify_bel(bcrd).kind("TEMAC").commit(),
-        bslots::PCIE | bslots::PPC => vrf.verify_bel(bcrd).commit(),
+        bslots::PCIE => vrf.verify_bel(bcrd).kind("PCIE").commit(),
+        bslots::PPC => vrf.verify_bel(bcrd).commit(),
 
         _ if bslots::BUFGCTRL.contains(bcrd.slot) => vrf.verify_bel(bcrd).commit(),
         _ if bslots::BSCAN.contains(bcrd.slot) || bslots::PMV_CFG.contains(bcrd.slot) => {
@@ -424,7 +425,7 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         | bslots::KEY_CLEAR
         | bslots::JTAGPPC => vrf.verify_bel(bcrd).commit(),
         bslots::FRAME_ECC => vrf.verify_bel(bcrd).kind("FRAME_ECC").commit(),
-        bslots::DCI => vrf.verify_bel(bcrd).kind("DCI").commit(),
+        bslots::DCI => vrf.verify_bel(bcrd).commit(),
         bslots::GLOBALSIG => vrf.verify_bel(bcrd).commit(),
         bslots::SYSMON => verify_sysmon(edev, vrf, bcrd),
 
@@ -434,7 +435,7 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         _ if bslots::IOB.contains(bcrd.slot) => verify_iob(vrf, bcrd),
 
         _ if bslots::DCM.contains(bcrd.slot) => vrf.verify_bel(bcrd).kind("DCM_ADV").commit(),
-        bslots::PLL => verify_pll(vrf, bcrd),
+        _ if bslots::PLL.contains(bcrd.slot) => verify_pll(vrf, bcrd),
 
         bslots::GTX_DUAL | bslots::GTP_DUAL => verify_gt(vrf, bcrd),
         _ if bslots::CRC32.contains(bcrd.slot) => verify_crc32(vrf, bcrd),
@@ -460,13 +461,13 @@ pub fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL1");
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL2");
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL3");
-    if endev.edev.col_rgt.is_none() {
-        let nnode = &endev.ngrid.tiles[&CellCoord::new(
-            DieId::from_idx(0),
-            endev.edev.chips.first().unwrap().columns.last_id().unwrap(),
-            RowId::from_idx(0),
-        )
-        .tile(defs::tslots::INT)];
+    if endev.edev.col_gt_e.is_none() {
+        let nnode = &endev.ngrid.tiles[&DieId::from_idx(0)
+            .cell(
+                endev.edev.chips.first().unwrap().columns.last_id().unwrap(),
+                RowId::from_idx(0),
+            )
+            .tile(defs::tslots::INT)];
         let crd = vrf.xlat_tile(&nnode.names[RawTileId::from_idx(0)]).unwrap();
         vrf.claim_net(&[(RawWireCoord {
             crd,

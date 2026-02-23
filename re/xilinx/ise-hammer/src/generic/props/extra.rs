@@ -162,6 +162,24 @@ impl KeyMaker for ExtraKeyRouting {
 }
 
 #[derive(Clone, Debug)]
+pub struct ExtraKeyRoutingSpecial {
+    pub wire: TileWireCoord,
+    pub spec: SpecialId,
+}
+
+impl ExtraKeyRoutingSpecial {
+    pub fn new(wire: TileWireCoord, spec: SpecialId) -> Self {
+        Self { wire, spec }
+    }
+}
+
+impl KeyMaker for ExtraKeyRoutingSpecial {
+    fn make_key(&self, _backend: &IseBackend, _main_key: &DiffKey, tcid: TileClassId) -> DiffKey {
+        DiffKey::RoutingSpecial(tcid, self.wire, self.spec)
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct ExtraKeyLegacyAttr {
     pub bel: String,
     pub attr: String,

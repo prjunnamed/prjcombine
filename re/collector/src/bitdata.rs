@@ -41,8 +41,12 @@ impl CollectorData {
     pub fn insert_into(mut self, intdb: &mut IntDb, missing_ok: bool) {
         let copydb = intdb.clone();
         for ((tcid, bslot, aid), attr) in self.bel_attrs {
-            let BelInfo::Bel(ref mut bel) = intdb.tile_classes[tcid].bels[bslot] else {
-                unreachable!()
+            let Some(BelInfo::Bel(bel)) = intdb.tile_classes[tcid].bels.get_mut(bslot) else {
+                panic!(
+                    "no bel {tile} {bel}",
+                    tile = intdb.tile_classes.key(tcid),
+                    bel = intdb.bel_slots.key(bslot)
+                )
             };
             if bel.attributes.contains_id(aid) {
                 assert_eq!(bel.attributes[aid], attr);

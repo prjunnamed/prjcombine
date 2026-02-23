@@ -4,10 +4,14 @@ use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_interconnect::{
     db::{BelInfo, IntDb, PinDir, SwitchBoxItem},
     dir::{Dir, DirPartMap},
-    grid::{CellCoord, ColId, DieId, RowId, WireCoord},
+    grid::{ColId, DieIdExt, RowId, WireCoord},
 };
 use prjcombine_re_toolchain::Toolchain;
-use prjcombine_siliconblue::{chip::ChipKind, defs, expanded::ExpandedDevice};
+use prjcombine_siliconblue::{
+    chip::{Chip, ChipKind},
+    defs,
+    expanded::ExpandedDevice,
+};
 use prjcombine_types::{bitrect::BitRect as _, bits, bitvec::BitVec};
 
 use crate::{
@@ -683,12 +687,9 @@ pub fn find_bel_pins(
     let mut result = BelPins::default();
     if edev.chip.kind.has_iob_we() {
         for (k, &v) in &site.fabout_wires {
-            let iw = CellCoord::new(
-                DieId::from_idx(0),
-                ColId::from_idx(v.0 as usize),
-                RowId::from_idx(v.1 as usize),
-            )
-            .wire(defs::wires::IMUX_IO_EXTRA);
+            let iw = Chip::DIE
+                .cell(ColId::from_idx(v.0 as usize), RowId::from_idx(v.1 as usize))
+                .wire(defs::wires::IMUX_IO_EXTRA);
             if let InstPin::Simple(pin) = k
                 && pin == "LATCHINPUTVALUE"
             {
@@ -704,9 +705,9 @@ pub fn find_bel_pins(
                 edev.chip.row_n()
             };
             for (pin, col) in [("LOCK", edev.chip.col_w()), ("SDO", edev.chip.col_e())] {
-                let iws = Vec::from_iter((0..8).map(|idx| {
-                    CellCoord::new(DieId::from_idx(0), col, row).wire(defs::wires::OUT_LC[idx])
-                }));
+                let iws = Vec::from_iter(
+                    (0..8).map(|idx| Chip::DIE.cell(col, row).wire(defs::wires::OUT_LC[idx])),
+                );
                 result
                     .wire_names
                     .insert(site.out_wires[&InstPin::Simple(pin.into())].clone(), iws[0]);
@@ -997,7 +998,7 @@ pub fn find_bel_pins(
         let p01_db = p01_db.unwrap();
         for col in edev.chip.columns() {
             for row in edev.chip.rows() {
-                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                let cell = Chip::DIE.cell(col, row);
                 let tcid = if row == edev.chip.row_s() {
                     if col == edev.chip.col_w() || col == edev.chip.col_e() {
                         continue;

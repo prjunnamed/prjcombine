@@ -1,18 +1,27 @@
-use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_collector::{
-    diff::{Diff, OcdMode},
-    legacy::{xlat_bit_legacy, xlat_enum_legacy_ocd},
+use prjcombine_interconnect::{
+    db::{BelInfo, SwitchBoxItem, WireSlotIdExt},
+    grid::TileCoord,
 };
+use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bit, xlat_enum_raw};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::defs::{self, bcls, bslots, virtex6::tcls};
+use prjcombine_types::bsdata::TileBit;
+use prjcombine_virtex4::defs::{
+    self, bcls, bslots,
+    virtex6::{tcls, wires},
+};
 
 use crate::{
     backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::{Delta, TileRelation},
+        int::{BaseIntPip, FuzzIntPip, FuzzIntfDelay},
+        props::{
+            mutex::{WireMutexExclusive, WireMutexShared},
+            pip::PinFar,
+            relation::{Delta, Related, TileRelation},
+        },
     },
     virtex4::specials,
 };
@@ -32,57 +41,64 @@ impl TileRelation for Cmt {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     {
         let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK);
-        let mut bctx = ctx.bel(bslots::HCLK);
-        for i in 0..8 {
-            for ud in ['U', 'D'] {
-                for j in 0..12 {
-                    bctx.build()
+        for co in 0..2 {
+            for o in 0..8 {
+                let dst = wires::LCLK[o].cell(co);
+                for i in 0..12 {
+                    let src = wires::HCLK_ROW[i].cell(1);
+                    ctx.build()
                         .global_mutex("HCLK", "USE")
-                        .row_mutex("BUFH_TEST", format!("USED_HCLK{j}"))
-                        .related_pip(
+                        .row_mutex("BUFH_TEST", format!("USED_HCLK{i}"))
+                        .prop(Related::new(
                             Cmt,
-                            (bslots::CMT, "BUFH_TEST_L_PRE"),
-                            (bslots::CMT, format!("HCLK{j}_L_I")),
-                        )
-                        .related_pip(
+                            BaseIntPip::new(
+                                wires::BUFH_TEST_W_IN.cell(20),
+                                wires::HCLK_CMT_W[i].cell(20),
+                            ),
+                        ))
+                        .prop(Related::new(
                             Cmt,
-                            (bslots::CMT, "BUFH_TEST_R_PRE"),
-                            (bslots::CMT, format!("HCLK{j}_R_I")),
-                        )
-                        .mutex(format!("MUX.LCLK{i}_{ud}"), format!("HCLK{j}"))
-                        .mutex(format!("HCLK{j}"), format!("MUX.LCLK{i}_{ud}"))
-                        .test_manual_legacy(format!("MUX.LCLK{i}_{ud}"), format!("HCLK{j}"))
-                        .pip(format!("LCLK{i}_{ud}"), format!("HCLK{j}"))
+                            BaseIntPip::new(
+                                wires::BUFH_TEST_E_IN.cell(20),
+                                wires::HCLK_CMT_E[i].cell(20),
+                            ),
+                        ))
+                        .prop(WireMutexExclusive::new(dst))
+                        .tile_mutex(format!("HCLK{i}"), dst)
+                        .test_routing(dst, src.pos())
+                        .prop(FuzzIntPip::new(dst, src))
                         .commit();
                 }
-                for j in 0..6 {
-                    bctx.build()
+                for i in 0..6 {
+                    let src = wires::RCLK_ROW[i].cell(1);
+                    ctx.build()
                         .global_mutex("RCLK", "USE")
-                        .row_mutex("BUFH_TEST", format!("USED_RCLK{j}"))
-                        .related_pip(
+                        .row_mutex("BUFH_TEST", format!("USED_RCLK{i}"))
+                        .prop(Related::new(
                             Cmt,
-                            (bslots::CMT, "BUFH_TEST_L_PRE"),
-                            (bslots::CMT, format!("RCLK{j}_L_I")),
-                        )
-                        .related_pip(
+                            BaseIntPip::new(
+                                wires::BUFH_TEST_W_IN.cell(20),
+                                wires::RCLK_CMT_W[i].cell(20),
+                            ),
+                        ))
+                        .prop(Related::new(
                             Cmt,
-                            (bslots::CMT, "BUFH_TEST_R_PRE"),
-                            (bslots::CMT, format!("RCLK{j}_R_I")),
-                        )
-                        .mutex(format!("MUX.LCLK{i}_{ud}"), format!("RCLK{j}"))
-                        .mutex(format!("RCLK{j}"), format!("MUX.LCLK{i}_{ud}"))
-                        .test_manual_legacy(format!("MUX.LCLK{i}_{ud}"), format!("RCLK{j}"))
-                        .pip(format!("LCLK{i}_{ud}"), format!("RCLK{j}"))
+                            BaseIntPip::new(
+                                wires::BUFH_TEST_E_IN.cell(20),
+                                wires::RCLK_CMT_E[i].cell(20),
+                            ),
+                        ))
+                        .prop(WireMutexExclusive::new(dst))
+                        .tile_mutex(format!("RCLK{i}"), dst)
+                        .test_routing(dst, src.pos())
+                        .prop(FuzzIntPip::new(dst, src))
                         .commit();
                 }
             }
         }
     }
 
-    for (tcid, gio, base, dy) in [
-        (tcls::CMT_BUFG_S, bslots::GIO_S, 0, 2),
-        (tcls::CMT_BUFG_N, bslots::GIO_N, 16, 0),
-    ] {
+    for (tcid, base, dy, c) in [(tcls::CMT_BUFG_S, 0, 2, 1), (tcls::CMT_BUFG_N, 16, 0, 0)] {
         let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..16 {
             let mut bctx = ctx.bel(bslots::BUFGCTRL[base + i]);
@@ -92,86 +108,99 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_bel_special(specials::PRESENT)
                 .mode(mode)
                 .commit();
-            for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
-                bctx.mode(mode).test_inv_legacy(pin);
+            for pin in [
+                bcls::BUFGCTRL::CE0,
+                bcls::BUFGCTRL::CE1,
+                bcls::BUFGCTRL::S0,
+                bcls::BUFGCTRL::S1,
+                bcls::BUFGCTRL::IGNORE0,
+                bcls::BUFGCTRL::IGNORE1,
+            ] {
+                bctx.mode(mode).test_bel_input_inv_auto(pin);
             }
             bctx.mode(mode)
-                .test_enum_legacy("PRESELECT_I0", &["FALSE", "TRUE"]);
+                .test_bel_attr_bool_auto(bcls::BUFGCTRL::PRESELECT_I0, "FALSE", "TRUE");
             bctx.mode(mode)
-                .test_enum_legacy("PRESELECT_I1", &["FALSE", "TRUE"]);
+                .test_bel_attr_bool_auto(bcls::BUFGCTRL::PRESELECT_I1, "FALSE", "TRUE");
             bctx.mode(mode)
-                .test_enum_legacy("CREATE_EDGE", &["FALSE", "TRUE"]);
-            bctx.mode(mode).test_enum_legacy("INIT_OUT", &["0", "1"]);
-            bctx.build()
-                .test_manual_legacy("ENABLE.FB", "1")
-                .pip("FB", "O")
+                .test_bel_attr_bool_auto(bcls::BUFGCTRL::CREATE_EDGE, "FALSE", "TRUE");
+            bctx.mode(mode)
+                .test_bel_attr_bool_auto(bcls::BUFGCTRL::INIT_OUT, "0", "1");
+            // test buffers not fuzzed: ISE bug causes pips to be reversed? ugh.
+        }
+        for i in 0..16 {
+            let dst = wires::OUT_BUFG_GFB[i].cell(c);
+            let src = wires::OUT_BUFG[i].cell(c);
+            ctx.build()
+                .prop(WireMutexExclusive::new(dst))
+                .prop(WireMutexShared::new(src))
+                .test_routing(dst, src.pos())
+                .prop(FuzzIntPip::new(dst, src))
                 .commit();
-            bctx.build()
+            let dst = wires::GCLK[base + i].cell(0);
+            ctx.build()
                 .null_bits()
-                .extra_tile_legacy(Delta::new(0, dy - 20, tcls::CMT), "CMT")
-                .extra_tile_legacy(Delta::new(0, dy + 20, tcls::CMT), "CMT")
+                .extra_tile_routing(
+                    Delta::new(0, dy - 20, tcls::CMT),
+                    wires::GCLK_CMT[base + i].cell(20),
+                    wires::GCLK[base + i].cell(20).pos(),
+                )
+                .extra_tile_routing(
+                    Delta::new(0, dy + 20, tcls::CMT),
+                    wires::GCLK_CMT[base + i].cell(20),
+                    wires::GCLK[base + i].cell(20).pos(),
+                )
                 .global_mutex("GCLK", "TEST")
-                .test_manual_legacy(format!("ENABLE.GCLK{}", base + i), "1")
-                .pip("GCLK", "O")
+                .prop(WireMutexExclusive::new(dst))
+                .prop(WireMutexShared::new(src))
+                .test_routing(dst, src.pos())
+                .prop(FuzzIntPip::new(dst, src))
                 .commit();
-            // ISE bug causes pips to be reversed?
-            bctx.build()
-                .mutex("MUX.I0", "FB_TEST")
-                .test_manual_legacy("TEST_I0", "1")
-                .pip("I0", "I0_FB_TEST")
-                .commit();
-            bctx.build()
-                .mutex("MUX.I1", "FB_TEST")
-                .test_manual_legacy("TEST_I1", "1")
-                .pip("I1", "I1_FB_TEST")
-                .commit();
-            for j in 0..2 {
-                for k in 0..8 {
-                    bctx.build()
-                        .mutex(format!("MUX.I{j}"), format!("GIO{k}"))
-                        .test_manual_legacy(format!("MUX.I{j}"), format!("GIO{k}"))
-                        .pip(format!("I{j}"), (gio, format!("GIO{k}_BUFG")))
-                        .commit();
-                }
-                bctx.build()
-                    .mutex(format!("MUX.I{j}"), "CASCI")
-                    .test_manual_legacy(format!("MUX.I{j}"), "CASCI")
-                    .pip(format!("I{j}"), format!("I{j}_CASCI"))
-                    .commit();
-                bctx.build()
-                    .mutex(format!("MUX.I{j}"), "CKINT")
-                    .test_manual_legacy(format!("MUX.I{j}"), "CKINT")
-                    .pip(format!("I{j}"), format!("I{j}_CKINT"))
-                    .commit();
-                let obel_prev = bslots::BUFGCTRL[base + (i + 15) % 16];
-                bctx.build()
-                    .mutex(format!("MUX.I{j}"), "FB_PREV")
-                    .test_manual_legacy(format!("MUX.I{j}"), "FB_PREV")
-                    .pip(format!("I{j}"), (obel_prev, "FB"))
-                    .commit();
-                let obel_next = bslots::BUFGCTRL[base + (i + 1) % 16];
-                bctx.build()
-                    .mutex(format!("MUX.I{j}"), "FB_NEXT")
-                    .test_manual_legacy(format!("MUX.I{j}"), "FB_NEXT")
-                    .pip(format!("I{j}"), (obel_next, "FB"))
+        }
+        for i in 0..32 {
+            let dst = wires::IMUX_BUFG_O[i].cell(c);
+            let mux = &backend.edev.db_index[tcid].muxes[&dst];
+            for &src in mux.src.keys() {
+                ctx.build()
+                    .prop(WireMutexExclusive::new(dst))
+                    .prop(WireMutexShared::new(src.tw))
+                    .test_routing(dst, src)
+                    .prop(FuzzIntPip::new(dst, src.tw))
                     .commit();
             }
         }
-        let mut bctx = ctx.bel(gio);
+        let mut bctx = ctx.bel(bslots::SPEC_INT);
         let gio_base = base / 4;
         for i in gio_base..(gio_base + 4) {
+            let dst = wires::GIOB[i].cell(0);
+            let src = backend.edev.db_index[tcid].pips_bwd[&dst]
+                .iter()
+                .next()
+                .copied()
+                .unwrap();
             bctx.build()
                 .null_bits()
+                .extra_tile_routing(
+                    Delta::new(0, dy - 20, tcls::CMT),
+                    wires::GIOB_CMT[i].cell(20),
+                    wires::GIOB[i].cell(20).pos(),
+                )
+                .extra_tile_routing(
+                    Delta::new(0, dy + 20, tcls::CMT),
+                    wires::GIOB_CMT[i].cell(20),
+                    wires::GIOB[i].cell(20).pos(),
+                )
                 .global_mutex("GIO", "TEST")
-                .extra_tile_legacy(Delta::new(0, dy - 20, tcls::CMT), "CMT")
-                .extra_tile_legacy(Delta::new(0, dy + 20, tcls::CMT), "CMT")
-                .test_manual_legacy(format!("ENABLE.GIO{i}"), "1")
+                .prop(WireMutexExclusive::new(dst))
+                .prop(WireMutexShared::new(src.tw))
+                .test_routing(dst, src)
                 .pip(format!("GIO{i}_CMT"), format!("GIO{i}"))
                 .commit();
         }
     }
     {
-        let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK_IO);
+        let tcid = tcls::HCLK_IO;
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..4 {
             let mut bctx = ctx.bel(bslots::BUFIO[i]);
             bctx.build()
@@ -179,219 +208,175 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_bel_special(specials::PRESENT)
                 .mode("BUFIODQS")
                 .commit();
-            bctx.mode("BUFIODQS")
-                .test_enum_legacy("DQSMASK_ENABLE", &["FALSE", "TRUE"]);
+            bctx.mode("BUFIODQS").test_bel_attr_bool_auto(
+                bcls::BUFIO::DQSMASK_ENABLE,
+                "FALSE",
+                "TRUE",
+            );
             bctx.build()
-                .mutex("MUX.I", "PERF")
-                .test_manual_legacy("MUX.I", format!("PERF{}", i ^ 1))
-                .pip(
-                    (bslots::HCLK_IO, format!("IOCLK_IN{i}")),
-                    (bslots::HCLK_IO, format!("PERF{}_BUF", i ^ 1)),
-                )
-                .commit();
-            bctx.build()
-                .mutex("MUX.I", "CCIO")
-                .test_manual_legacy("MUX.I", "CCIO")
-                .pip(
-                    (bslots::HCLK_IO, format!("IOCLK_IN{i}")),
-                    (bslots::HCLK_IO, format!("IOCLK_PAD{i}")),
-                )
-                .commit();
-            bctx.test_manual_legacy("ENABLE", "1")
-                .pip((bslots::HCLK_IO, format!("IOCLK{i}_PRE")), "O")
+                .test_bel_attr_bits(bcls::BUFIO::ENABLE)
+                .pip((PinFar, "O"), "O")
                 .commit();
         }
         for i in 0..2 {
             let mut bctx = ctx.bel(bslots::BUFR[i]);
-            let bel_other = bslots::BUFR[i ^ 1];
             bctx.build()
                 .global_mutex("RCLK", "BUFR")
-                .test_manual_legacy("ENABLE", "1")
+                .test_bel_attr_bits(bcls::BUFR::ENABLE)
                 .mode("BUFR")
                 .commit();
             bctx.mode("BUFR")
                 .global_mutex("RCLK", "BUFR")
-                .test_enum_legacy(
-                    "BUFR_DIVIDE",
-                    &["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"],
-                );
-            for j in 0..10 {
-                bctx.build()
-                    .row_mutex("MGT", "USE")
-                    .mutex("MUX.I", format!("MGT{j}"))
-                    .bel_mutex(bel_other, "MUX.I", format!("MGT{j}"))
-                    .pip((bel_other, "I"), (bslots::HCLK_IO, format!("MGT{j}")))
-                    .test_manual_legacy("MUX.I", format!("MGT{j}"))
-                    .pip("I", (bslots::HCLK_IO, format!("MGT{j}")))
-                    .commit();
-            }
-            for j in 0..4 {
-                bctx.build()
-                    .mutex("MUX.I", format!("BUFIO{j}_I"))
-                    .test_manual_legacy("MUX.I", format!("BUFIO{j}_I"))
-                    .pip("I", (bslots::HCLK_IO, format!("IOCLK_IN{j}_BUFR")))
-                    .commit();
-            }
-            for j in 0..2 {
-                bctx.build()
-                    .mutex("MUX.I", format!("CKINT{j}"))
-                    .test_manual_legacy("MUX.I", format!("CKINT{j}"))
-                    .pip("I", (bslots::HCLK_IO, format!("BUFR_CKINT{j}")))
-                    .commit();
-            }
-        }
-        for i in 0..2 {
-            let mut bctx = ctx.bel(bslots::BUFO[i]);
-            bctx.build()
-                .null_bits()
-                .test_bel_special(specials::PRESENT)
-                .mode("BUFO")
-                .commit();
-            for (val, pin) in [
-                (format!("VOCLK{i}"), "I_PRE"),
-                (format!("VOCLK{i}_S"), "VI_S"),
-                (format!("VOCLK{i}_N"), "VI_N"),
-            ] {
-                bctx.build()
-                    .mutex("MUX.I", pin)
-                    .has_related(Delta::new(0, 40, tcls::HCLK_IO))
-                    .has_related(Delta::new(0, -40, tcls::HCLK_IO))
-                    .test_manual_legacy("MUX.I", val)
-                    .pip("I", pin)
-                    .commit();
-            }
+                .test_bel_attr_rename("BUFR_DIVIDE", bcls::BUFR::DIVIDE);
         }
         {
             let mut bctx = ctx.bel(bslots::IDELAYCTRL);
-            for i in 0..12 {
-                bctx.build()
-                    .mutex("MUX.REFCLK", format!("HCLK{i}"))
-                    .test_manual_legacy("MUX.REFCLK", format!("HCLK{i}"))
-                    .pip("REFCLK", (bslots::HCLK_IO, format!("HCLK{i}_O")))
-                    .commit();
-            }
             bctx.build()
                 .null_bits()
                 .test_bel_special(specials::PRESENT)
                 .mode("IDELAYCTRL")
                 .commit();
             bctx.mode("IDELAYCTRL")
-                .test_enum_legacy("RESET_STYLE", &["V4", "V5"]);
-            bctx.mode("IDELAYCTRL")
-                .test_enum_legacy("HIGH_PERFORMANCE_MODE", &["FALSE", "TRUE"]);
+                .test_bel_attr_auto(bcls::IDELAYCTRL::RESET_STYLE);
+            bctx.mode("IDELAYCTRL").test_bel_attr_bool_auto(
+                bcls::IDELAYCTRL::HIGH_PERFORMANCE_MODE,
+                "FALSE",
+                "TRUE",
+            );
             bctx.mode("IDELAYCTRL")
                 .tile_mutex("IDELAYCTRL", "TEST")
-                .test_manual_legacy("MODE", "DEFAULT")
+                .test_bel_special(specials::IDELAYCTRL_IODELAY_DEFAULT_ONLY)
                 .attr("IDELAYCTRL_EN", "DEFAULT")
                 .attr("BIAS_MODE", "2")
                 .commit();
             bctx.mode("IDELAYCTRL")
                 .tile_mutex("IDELAYCTRL", "TEST")
-                .test_manual_legacy("MODE", "FULL_0")
+                .test_bel_special(specials::IDELAYCTRL_IODELAY_FULL)
                 .attr("IDELAYCTRL_EN", "ENABLE")
                 .attr("BIAS_MODE", "0")
                 .commit();
             bctx.mode("IDELAYCTRL")
                 .tile_mutex("IDELAYCTRL", "TEST")
-                .test_manual_legacy("MODE", "FULL_1")
                 .attr("IDELAYCTRL_EN", "ENABLE")
-                .attr("BIAS_MODE", "1")
+                .test_bel_attr_bits(bcls::IDELAYCTRL::BIAS_MODE)
+                .attr_diff("BIAS_MODE", "0", "1")
                 .commit();
         }
         {
-            let mut bctx = ctx.bel(bslots::HCLK_IO);
-            for i in 0..12 {
-                bctx.build()
-                    .global_mutex("HCLK", "USE")
-                    .row_mutex("BUFH_TEST", format!("USED_HCLK{i}"))
-                    .related_pip(
-                        Cmt,
-                        (bslots::CMT, "BUFH_TEST_L_PRE"),
-                        (bslots::CMT, format!("HCLK{i}_L_I")),
-                    )
-                    .related_pip(
-                        Cmt,
-                        (bslots::CMT, "BUFH_TEST_R_PRE"),
-                        (bslots::CMT, format!("HCLK{i}_R_I")),
-                    )
-                    .test_manual_legacy(format!("BUF.HCLK{i}"), "1")
-                    .pip(format!("HCLK{i}_O"), format!("HCLK{i}_I"))
-                    .commit();
-            }
-            for i in 0..6 {
-                bctx.build()
-                    .global_mutex("RCLK", "USE")
-                    .row_mutex("BUFH_TEST", format!("USED_RCLK{i}"))
-                    .related_pip(
-                        Cmt,
-                        (bslots::CMT, "BUFH_TEST_L_PRE"),
-                        (bslots::CMT, format!("RCLK{i}_L_I")),
-                    )
-                    .related_pip(
-                        Cmt,
-                        (bslots::CMT, "BUFH_TEST_R_PRE"),
-                        (bslots::CMT, format!("RCLK{i}_R_I")),
-                    )
-                    .test_manual_legacy(format!("BUF.RCLK{i}"), "1")
-                    .pip(format!("RCLK{i}_O"), format!("RCLK{i}_I"))
-                    .commit();
-                for pin in [
-                    "VRCLK0", "VRCLK1", "VRCLK0_S", "VRCLK1_S", "VRCLK0_N", "VRCLK1_N",
-                ] {
-                    bctx.build()
-                        .global_mutex("RCLK", "USE")
-                        .row_mutex_here("RCLK_DRIVE")
-                        .mutex(format!("MUX.RCLK{i}"), pin)
-                        .row_mutex("BUFH_TEST", format!("USED_RCLK{i}"))
-                        .related_pip(
-                            Cmt,
-                            (bslots::CMT, "BUFH_TEST_L_PRE"),
-                            (bslots::CMT, format!("RCLK{i}_L_I")),
-                        )
-                        .related_pip(
-                            Cmt,
-                            (bslots::CMT, "BUFH_TEST_R_PRE"),
-                            (bslots::CMT, format!("RCLK{i}_R_I")),
-                        )
-                        .test_manual_legacy(format!("MUX.RCLK{i}"), pin)
-                        .pip(format!("RCLK{i}_I"), pin)
+            let BelInfo::SwitchBox(ref sb) = backend.edev.db[tcid].bels[bslots::HCLK_IO_INT] else {
+                unreachable!()
+            };
+            for item in &sb.items {
+                let SwitchBoxItem::ProgDelay(delay) = item else {
+                    continue;
+                };
+                for val in 0..2 {
+                    ctx.build()
+                        .test_raw(DiffKey::ProgDelay(tcid, delay.dst, val))
+                        .prop(WireMutexExclusive::new(delay.dst))
+                        .prop(WireMutexExclusive::new(delay.src.tw))
+                        .prop(FuzzIntfDelay::new(delay.clone(), val != 0))
                         .commit();
                 }
             }
-            for i in 0..4 {
-                bctx.test_manual_legacy(format!("BUF.PERF{i}"), "1")
-                    .pip(format!("PERF{i}_BUF"), format!("PERF{i}"))
-                    .commit();
-            }
-            for (i, pre) in [
-                "IOCLK0_PRE",
-                "IOCLK1_PRE",
-                "IOCLK2_PRE",
-                "IOCLK3_PRE",
-                "IOCLK0_PRE_S",
-                "IOCLK3_PRE_S",
-                "IOCLK0_PRE_N",
-                "IOCLK3_PRE_N",
-            ]
-            .into_iter()
-            .enumerate()
-            {
-                bctx.build()
-                    .mutex(format!("DELAY.IOCLK{i}"), "0")
-                    .test_manual_legacy(format!("DELAY.IOCLK{i}"), "0")
-                    .pip(format!("IOCLK{i}"), pre)
-                    .commit();
-                bctx.build()
-                    .mutex(format!("DELAY.IOCLK{i}"), "1")
-                    .test_manual_legacy(format!("DELAY.IOCLK{i}"), "1")
-                    .pip(format!("IOCLK{i}"), format!("IOCLK{i}_DLY"))
-                    .pip(format!("IOCLK{i}_DLY"), pre)
-                    .commit();
-            }
             for i in 0..2 {
-                bctx.test_manual_legacy(format!("BUF.VOCLK{i}"), "1")
-                    .pip((bslots::BUFO[i], "I_PRE"), (bslots::BUFO[i], "I_PRE2"))
+                let dst = wires::IMUX_BUFR[i].cell(4);
+                let odst = wires::IMUX_BUFR[i ^ 1].cell(4);
+                let mux = &backend.edev.db_index[tcid].muxes[&dst];
+                for &src in mux.src.keys() {
+                    if wires::MGT_ROW.contains(src.wire) {
+                        ctx.build()
+                            .row_mutex("MGT", "USE")
+                            .prop(WireMutexExclusive::new(dst))
+                            .prop(WireMutexExclusive::new(odst))
+                            .prop(BaseIntPip::new(odst, src.tw))
+                            .test_routing(dst, src)
+                            .prop(FuzzIntPip::new(dst, src.tw))
+                            .commit();
+                    } else {
+                        ctx.build()
+                            .prop(WireMutexExclusive::new(dst))
+                            .test_routing(dst, src)
+                            .prop(FuzzIntPip::new(dst, src.tw))
+                            .commit();
+                    }
+                }
+            }
+            for i in 0..12 {
+                ctx.build()
+                    .global_mutex("HCLK", "USE")
+                    .row_mutex("BUFH_TEST", format!("USED_HCLK{i}"))
+                    .prop(Related::new(
+                        Cmt,
+                        BaseIntPip::new(
+                            wires::BUFH_TEST_W_IN.cell(20),
+                            wires::HCLK_CMT_W[i].cell(20),
+                        ),
+                    ))
+                    .prop(Related::new(
+                        Cmt,
+                        BaseIntPip::new(
+                            wires::BUFH_TEST_E_IN.cell(20),
+                            wires::HCLK_CMT_E[i].cell(20),
+                        ),
+                    ))
+                    .test_routing(wires::HCLK_IO[i].cell(4), wires::HCLK_ROW[i].cell(4).pos())
+                    .prop(FuzzIntPip::new(
+                        wires::HCLK_IO[i].cell(4),
+                        wires::HCLK_ROW[i].cell(4),
+                    ))
                     .commit();
+            }
+            for i in 0..6 {
+                ctx.build()
+                    .global_mutex("RCLK", "USE")
+                    .row_mutex("BUFH_TEST", format!("USED_RCLK{i}"))
+                    .prop(Related::new(
+                        Cmt,
+                        BaseIntPip::new(
+                            wires::BUFH_TEST_W_IN.cell(20),
+                            wires::RCLK_CMT_W[i].cell(20),
+                        ),
+                    ))
+                    .prop(Related::new(
+                        Cmt,
+                        BaseIntPip::new(
+                            wires::BUFH_TEST_E_IN.cell(20),
+                            wires::RCLK_CMT_E[i].cell(20),
+                        ),
+                    ))
+                    .test_routing(wires::RCLK_IO[i].cell(4), wires::RCLK_ROW[i].cell(4).pos())
+                    .prop(FuzzIntPip::new(
+                        wires::RCLK_IO[i].cell(4),
+                        wires::RCLK_ROW[i].cell(4),
+                    ))
+                    .commit();
+
+                let dst = wires::RCLK_ROW[i].cell(4);
+                let mux = &backend.edev.db_index[tcid].muxes[&dst];
+                for &src in mux.src.keys() {
+                    ctx.build()
+                        .global_mutex("RCLK", "USE")
+                        .prop(WireMutexExclusive::new(dst))
+                        .row_mutex("BUFH_TEST", format!("USED_RCLK{i}"))
+                        .prop(Related::new(
+                            Cmt,
+                            BaseIntPip::new(
+                                wires::BUFH_TEST_W_IN.cell(20),
+                                wires::RCLK_CMT_W[i].cell(20),
+                            ),
+                        ))
+                        .prop(Related::new(
+                            Cmt,
+                            BaseIntPip::new(
+                                wires::BUFH_TEST_E_IN.cell(20),
+                                wires::RCLK_CMT_E[i].cell(20),
+                            ),
+                        ))
+                        .test_routing(dst, src)
+                        .prop(FuzzIntPip::new(dst, src.tw))
+                        .commit();
+                }
             }
         }
     }
@@ -415,95 +400,94 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     {
-        let tile = "HCLK";
-        let bel = "HCLK";
+        let tcid = tcls::HCLK;
+        let tdst0 = wires::LCLK[0].cell(0);
+        let tdst1 = wires::LCLK[0].cell(1);
+        let mut bits_hclk = vec![];
+        let mut bits_rclk = vec![];
         for i in 0..12 {
+            let src = wires::HCLK_ROW[i].cell(1).pos();
             let (_, _, diff) = Diff::split(
-                ctx.peek_diff_legacy(tile, bel, "MUX.LCLK0_D", format!("HCLK{i}"))
-                    .clone(),
-                ctx.peek_diff_legacy(tile, bel, "MUX.LCLK0_U", format!("HCLK{i}"))
-                    .clone(),
+                ctx.peek_diff_routing(tcid, tdst0, src).clone(),
+                ctx.peek_diff_routing(tcid, tdst1, src).clone(),
             );
-            ctx.insert_legacy(tile, bel, format!("ENABLE.HCLK{i}"), xlat_bit_legacy(diff));
+            let bit = xlat_bit(diff);
+            bits_hclk.push(bit);
+            ctx.insert_progbuf(tcid, wires::HCLK_BUF[i].cell(1), src, bit);
         }
         for i in 0..6 {
+            let src = wires::RCLK_ROW[i].cell(1).pos();
             let (_, _, diff) = Diff::split(
-                ctx.peek_diff_legacy(tile, bel, "MUX.LCLK0_D", format!("RCLK{i}"))
-                    .clone(),
-                ctx.peek_diff_legacy(tile, bel, "MUX.LCLK0_U", format!("RCLK{i}"))
-                    .clone(),
+                ctx.peek_diff_routing(tcid, tdst0, src).clone(),
+                ctx.peek_diff_routing(tcid, tdst1, src).clone(),
             );
-            ctx.insert_legacy(tile, bel, format!("ENABLE.RCLK{i}"), xlat_bit_legacy(diff));
+            let bit = xlat_bit(diff);
+            bits_rclk.push(bit);
+            ctx.insert_progbuf(tcid, wires::RCLK_BUF[i].cell(1), src, bit);
         }
-        for i in 0..8 {
-            for ud in ['U', 'D'] {
-                let mux = &format!("MUX.LCLK{i}_{ud}");
-                let mut diffs = vec![("NONE".to_string(), Diff::default())];
+        for c in 0..2 {
+            for o in 0..8 {
+                let mut diffs = vec![(None, Diff::default())];
+                let dst = wires::LCLK[o].cell(c);
                 for i in 0..12 {
-                    let val = format!("HCLK{i}");
-                    let mut diff = ctx.get_diff_legacy(tile, bel, mux, &val);
-                    diff.apply_bit_diff_legacy(
-                        ctx.item_legacy(tile, bel, &format!("ENABLE.HCLK{i}")),
-                        true,
-                        false,
-                    );
-                    diffs.push((val, diff));
+                    let mut diff =
+                        ctx.get_diff_routing(tcid, dst, wires::HCLK_ROW[i].cell(1).pos());
+                    diff.apply_bit_diff(bits_hclk[i], true, false);
+                    diffs.push((Some(wires::HCLK_BUF[i].cell(1).pos()), diff));
                 }
                 for i in 0..6 {
-                    let val = format!("RCLK{i}");
-                    let mut diff = ctx.get_diff_legacy(tile, bel, mux, &val);
-                    diff.apply_bit_diff_legacy(
-                        ctx.item_legacy(tile, bel, &format!("ENABLE.RCLK{i}")),
-                        true,
-                        false,
-                    );
-                    diffs.push((val, diff));
+                    let mut diff =
+                        ctx.get_diff_routing(tcid, dst, wires::RCLK_ROW[i].cell(1).pos());
+                    diff.apply_bit_diff(bits_rclk[i], true, false);
+                    diffs.push((Some(wires::RCLK_BUF[i].cell(1).pos()), diff));
                 }
-                ctx.insert_legacy(tile, bel, mux, xlat_enum_legacy_ocd(diffs, OcdMode::Mux));
+                ctx.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::Mux));
             }
         }
     }
-    for (tile, base) in [("CMT_BUFG_S", 0), ("CMT_BUFG_N", 16)] {
+    for (tcid, base, c) in [(tcls::CMT_BUFG_S, 0, 1), (tcls::CMT_BUFG_N, 16, 0)] {
         for i in 0..16 {
-            let bel = &format!("BUFGCTRL[{}]", base + i);
-            for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
-                ctx.collect_inv_legacy(tile, bel, pin);
+            let bslot = bslots::BUFGCTRL[base + i];
+            for pin in [
+                bcls::BUFGCTRL::CE0,
+                bcls::BUFGCTRL::CE1,
+                bcls::BUFGCTRL::S0,
+                bcls::BUFGCTRL::S1,
+                bcls::BUFGCTRL::IGNORE0,
+                bcls::BUFGCTRL::IGNORE1,
+            ] {
+                ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
             }
-            for attr in ["PRESELECT_I0", "PRESELECT_I1", "CREATE_EDGE"] {
-                ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
+            for attr in [
+                bcls::BUFGCTRL::PRESELECT_I0,
+                bcls::BUFGCTRL::PRESELECT_I1,
+                bcls::BUFGCTRL::CREATE_EDGE,
+                bcls::BUFGCTRL::INIT_OUT,
+            ] {
+                ctx.collect_bel_attr_bi(tcid, bslot, attr);
             }
-            ctx.collect_bit_bi_legacy(tile, bel, "INIT_OUT", "0", "1");
-
+        }
+        for i in 0..16 {
+            let dst = wires::OUT_BUFG_GFB[i].cell(c);
+            let src = wires::OUT_BUFG[i].cell(c);
+            ctx.collect_progbuf(tcid, dst, src.pos());
+        }
+        for i in 0..32 {
+            let dst = wires::IMUX_BUFG_O[i].cell(c);
             // sigh. fucking. ise.
-            let mut item =
-                xlat_bit_legacy(ctx.peek_diff_legacy(tile, bel, "MUX.I0", "CASCI").clone());
-            assert_eq!(item.bits.len(), 1);
-            item.bits[0].bit += 1;
-            ctx.insert_legacy(tile, bel, "TEST_I1", item);
-            let mut item =
-                xlat_bit_legacy(ctx.peek_diff_legacy(tile, bel, "MUX.I1", "CASCI").clone());
-            assert_eq!(item.bits.len(), 1);
-            item.bits[0].bit += 1;
-            ctx.insert_legacy(tile, bel, "TEST_I0", item);
-
-            for attr in ["MUX.I0", "MUX.I1"] {
-                ctx.collect_enum_default_legacy_ocd(
-                    tile,
-                    bel,
-                    attr,
-                    &[
-                        "CASCI", "GIO0", "GIO1", "GIO2", "GIO3", "GIO4", "GIO5", "GIO6", "GIO7",
-                        "FB_PREV", "FB_NEXT", "CKINT",
-                    ],
-                    "NONE",
-                    OcdMode::Mux,
-                );
-            }
-            ctx.collect_bit_legacy(tile, bel, "ENABLE.FB", "1");
-            ctx.get_diff_legacy(tile, bel, "TEST_I0", "1")
-                .assert_empty();
-            ctx.get_diff_legacy(tile, bel, "TEST_I1", "1")
-                .assert_empty();
+            let odst = wires::IMUX_BUFG_O[i ^ 1].cell(c);
+            let tdst = ctx.edev.db_index[tcid].pips_fwd[&odst]
+                .iter()
+                .copied()
+                .next()
+                .unwrap();
+            let mut item = xlat_bit(
+                ctx.peek_diff_routing(tcid, dst, wires::IMUX_BUFG_I[i].cell(c).pos())
+                    .clone(),
+            );
+            item.bit.bit += 1;
+            ctx.insert_progbuf(tcid, tdst.tw, odst.pos(), item);
+            ctx.collect_mux(tcid, dst);
         }
     }
     {
@@ -513,123 +497,97 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bel_attr_bi(tcid, bslot, bcls::PMVIOB::HSLEW4_IN);
         ctx.collect_bel_attr_bi(tcid, bslot, bcls::PMVIOB::PSLEW4_IN);
     }
-    for i in 0..4 {
-        let tile = "HCLK_IO";
-        let bel = &format!("BUFIO[{i}]");
-        ctx.collect_bit_bi_legacy(tile, bel, "DQSMASK_ENABLE", "FALSE", "TRUE");
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "MUX.I",
-            &["CCIO".to_string(), format!("PERF{}", i ^ 1)],
-        );
-        ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-    }
-    for i in 0..2 {
-        let tile = "HCLK_IO";
-        let bel = &format!("BUFR[{i}]");
-        ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "BUFR_DIVIDE",
-            &["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"],
-        );
-        ctx.collect_enum_default_legacy(
-            tile,
-            bel,
-            "MUX.I",
-            &[
-                "BUFIO0_I", "BUFIO1_I", "BUFIO2_I", "BUFIO3_I", "MGT0", "MGT1", "MGT2", "MGT3",
-                "MGT4", "MGT5", "MGT6", "MGT7", "MGT8", "MGT9", "CKINT0", "CKINT1",
-            ],
-            "NONE",
-        );
-    }
-    for i in 0..2 {
-        let tile = "HCLK_IO";
-        let bel = &format!("BUFO[{i}]");
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "MUX.I",
-            &[
-                format!("VOCLK{i}"),
-                format!("VOCLK{i}_S"),
-                format!("VOCLK{i}_N"),
-            ],
-        )
-    }
     {
-        let tile = "HCLK_IO";
-        let bel = "IDELAYCTRL";
-        let vals: [_; 12] = core::array::from_fn(|i| format!("HCLK{i}"));
-        ctx.collect_enum_legacy(tile, bel, "MUX.REFCLK", &vals);
-        ctx.collect_bit_bi_legacy(tile, bel, "HIGH_PERFORMANCE_MODE", "FALSE", "TRUE");
-        ctx.collect_enum_default_legacy(
-            tile,
-            bel,
-            "MODE",
-            &["DEFAULT", "FULL_0", "FULL_1"],
-            "NONE",
-        );
-        ctx.collect_enum_legacy(tile, bel, "RESET_STYLE", &["V4", "V5"]);
-    }
-    {
-        let tile = "HCLK_IO";
-        let bel = "HCLK_IO";
-        for i in 0..12 {
-            ctx.collect_bit_legacy(tile, bel, &format!("BUF.HCLK{i}"), "1");
-        }
-        for i in 0..6 {
-            ctx.collect_bit_legacy(tile, bel, &format!("BUF.RCLK{i}"), "1");
-            ctx.collect_enum_default_legacy_ocd(
-                tile,
-                bel,
-                &format!("MUX.RCLK{i}"),
-                &[
-                    "VRCLK0", "VRCLK1", "VRCLK0_S", "VRCLK1_S", "VRCLK0_N", "VRCLK1_N",
-                ],
-                "NONE",
-                OcdMode::Mux,
-            );
-        }
+        let tcid = tcls::HCLK_IO;
         for i in 0..4 {
-            ctx.collect_bit_legacy(tile, bel, &format!("BUF.PERF{i}"), "1");
+            let bslot = bslots::BUFIO[i];
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::BUFIO::DQSMASK_ENABLE);
+            ctx.collect_bel_attr(tcid, bslot, bcls::BUFIO::ENABLE);
         }
         for i in 0..2 {
-            ctx.collect_bit_legacy(tile, bel, &format!("BUF.VOCLK{i}"), "1");
+            let bslot = bslots::BUFR[i];
+            ctx.collect_bel_attr(tcid, bslot, bcls::BUFR::ENABLE);
+            ctx.collect_bel_attr(tcid, bslot, bcls::BUFR::DIVIDE);
+        }
+        {
+            let bslot = bslots::IDELAYCTRL;
+            ctx.collect_bel_attr_bi(tcid, bslot, bcls::IDELAYCTRL::HIGH_PERFORMANCE_MODE);
+            ctx.collect_bel_attr(tcid, bslot, bcls::IDELAYCTRL::RESET_STYLE);
+            ctx.collect_bel_attr(tcid, bslot, bcls::IDELAYCTRL::BIAS_MODE);
+            let vctl_sel = vec![TileBit::new(0, 38, 27).pos(), TileBit::new(0, 38, 28).pos()];
+            let diff_full =
+                ctx.get_diff_bel_special(tcid, bslot, specials::IDELAYCTRL_IODELAY_FULL);
+            let mut diff_default =
+                ctx.get_diff_bel_special(tcid, bslot, specials::IDELAYCTRL_IODELAY_DEFAULT_ONLY);
+            diff_default.apply_bitvec_diff_int(&vctl_sel, 2, 0);
+            ctx.insert_bel_attr_bool(
+                tcid,
+                bslot,
+                bcls::IDELAYCTRL::DLL_ENABLE,
+                xlat_bit(diff_full.combine(&!&diff_default)),
+            );
+            ctx.insert_bel_attr_bool(
+                tcid,
+                bslot,
+                bcls::IDELAYCTRL::DELAY_ENABLE,
+                xlat_bit(diff_default),
+            );
+            ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::IDELAYCTRL::VCTL_SEL, vctl_sel);
         }
         for i in 0..4 {
-            ctx.collect_bit_bi_legacy(tile, bel, &format!("DELAY.IOCLK{i}"), "0", "1");
+            ctx.collect_delay(tcid, wires::IOCLK[i].cell(4), 2);
         }
         for i in 4..8 {
-            let diff_buf = ctx.get_diff_legacy(tile, bel, format!("DELAY.IOCLK{i}"), "0");
-            let diff_delay = ctx
-                .get_diff_legacy(tile, bel, format!("DELAY.IOCLK{i}"), "1")
-                .combine(&!&diff_buf);
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("BUF.IOCLK{i}"),
-                xlat_bit_legacy(diff_buf),
+            let dst = wires::IOCLK[i].cell(4);
+            let diff0 = ctx.get_diff_raw(&DiffKey::ProgDelay(tcid, dst, 0));
+            let diff1 = ctx.get_diff_raw(&DiffKey::ProgDelay(tcid, dst, 1));
+            let (diff0, diff1, common) = Diff::split(diff0, diff1);
+            ctx.insert_delay(
+                tcid,
+                dst,
+                xlat_enum_raw(vec![(0, diff0), (1, diff1)], OcdMode::ValueOrder),
             );
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("DELAY.IOCLK{i}"),
-                xlat_bit_legacy(diff_delay),
+            let (dst, src) = if i < 6 {
+                (wires::VIOCLK_S_BUF[i - 4], wires::VIOCLK_S[i - 4])
+            } else {
+                (wires::VIOCLK_N_BUF[i - 6], wires::VIOCLK_N[i - 6])
+            };
+            ctx.insert_progbuf(tcid, dst.cell(4), src.cell(4).pos(), xlat_bit(common));
+        }
+        for i in 0..2 {
+            ctx.collect_mux(tcid, wires::IMUX_BUFR[i].cell(4));
+        }
+        for i in 0..12 {
+            ctx.collect_progbuf(
+                tcid,
+                wires::HCLK_IO[i].cell(4),
+                wires::HCLK_ROW[i].cell(4).pos(),
             );
+        }
+        for i in 0..6 {
+            ctx.collect_progbuf(
+                tcid,
+                wires::RCLK_IO[i].cell(4),
+                wires::RCLK_ROW[i].cell(4).pos(),
+            );
+            ctx.collect_mux(tcid, wires::RCLK_ROW[i].cell(4));
         }
     }
     {
-        let tile = "CMT";
-        let bel = "CMT";
+        let tcid = tcls::CMT;
         for i in 0..32 {
-            ctx.collect_bit_legacy(tile, bel, &format!("ENABLE.GCLK{i}"), "1");
+            ctx.collect_progbuf(
+                tcid,
+                wires::GCLK_CMT[i].cell(20),
+                wires::GCLK[i].cell(20).pos(),
+            );
         }
         for i in 0..8 {
-            ctx.collect_bit_legacy(tile, bel, &format!("ENABLE.GIO{i}"), "1");
+            ctx.collect_progbuf(
+                tcid,
+                wires::GIOB_CMT[i].cell(20),
+                wires::GIOB[i].cell(20).pos(),
+            );
         }
     }
 }

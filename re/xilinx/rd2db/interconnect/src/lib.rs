@@ -338,6 +338,23 @@ impl XTileInfo<'_, '_> {
         self
     }
 
+    pub fn raw_tile_xlat(mut self, xy: Coord, slots: &[Option<usize>]) -> Self {
+        self.raw_tiles.push(XTileRawTile {
+            xy,
+            tile_map: Some(
+                slots
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(i, x)| {
+                        x.map(|x| (CellSlotId::from_idx(i), CellSlotId::from_idx(x)))
+                    })
+                    .collect(),
+            ),
+            extract_muxes: false,
+        });
+        self
+    }
+
     pub fn ref_int(mut self, xy: Coord, slot: usize) -> Self {
         self.refs.push(XTileRef {
             xy,
@@ -1257,8 +1274,11 @@ impl XTileExtractor<'_, '_, '_> {
 
     fn get_alt_by_name(&self, rti: usize, name: rawdump::WireId) -> Option<TileWireCoord> {
         let rt = &self.xtile.raw_tiles[rti];
-        if let Some(&TileWireCoord { cell: t, wire: w }) =
-            self.xtile.builder.alt_names.get(&self.rd.wires[name])
+        let tile = &self.rd.tiles[&rt.xy];
+        if let Some(TileWireCoord { cell: t, wire: w }) = self
+            .xtile
+            .builder
+            .get_wire_by_alt_name(tile.kind, &self.rd.wires[name])
         {
             if let Some(ref tm) = rt.tile_map {
                 if let Some(&xt) = tm.get(t) {
@@ -1649,6 +1669,7 @@ pub struct IntBuilder<'a> {
     injected_int_types: Vec<rawdump::TileKindId>,
     stub_outs: HashSet<String>,
     alt_names: HashMap<String, TileWireCoord>,
+    alt_names_tile: HashMap<rawdump::TileKindId, HashMap<String, TileWireCoord>>,
     extra_names: HashMap<String, TileWireCoord>,
     extra_names_tile: HashMap<rawdump::TileKindId, HashMap<String, TileWireCoord>>,
     test_mux_pass: HashSet<WireSlotId>,
@@ -1683,6 +1704,7 @@ impl<'a> IntBuilder<'a> {
             injected_int_types: vec![],
             stub_outs: Default::default(),
             alt_names: Default::default(),
+            alt_names_tile: Default::default(),
             extra_names: Default::default(),
             extra_names_tile: Default::default(),
             test_mux_pass: Default::default(),
@@ -2006,10 +2028,32 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
+    pub fn alt_name_tile_sub(
+        &mut self,
+        tile: impl AsRef<str>,
+        name: impl Into<String>,
+        sub: usize,
+        wire: WireSlotId,
+    ) {
+        if let Some((tki, _)) = self.rd.tile_kinds.get(tile.as_ref()) {
+            self.alt_names_tile
+                .entry(tki)
+                .or_default()
+                .insert(name.into(), TileWireCoord::new_idx(sub, wire));
+        }
+    }
+
     pub fn get_wire_by_name(&self, tki: TileKindId, name: &str) -> Option<TileWireCoord> {
         self.extra_names
             .get(name)
             .or_else(|| self.extra_names_tile.get(&tki).and_then(|m| m.get(name)))
+            .copied()
+    }
+
+    pub fn get_wire_by_alt_name(&self, tki: TileKindId, name: &str) -> Option<TileWireCoord> {
+        self.alt_names
+            .get(name)
+            .or_else(|| self.alt_names_tile.get(&tki).and_then(|m| m.get(name)))
             .copied()
     }
 

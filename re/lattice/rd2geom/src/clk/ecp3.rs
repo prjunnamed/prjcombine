@@ -2,13 +2,13 @@ use std::collections::{BTreeMap, btree_map};
 
 use prjcombine_ecp::{
     bels,
-    chip::{ChipKind, IoGroupKind, RowKind, SpecialIoKey, SpecialLocKey},
+    chip::{Chip, ChipKind, IoGroupKind, RowKind, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelPin, LegacyBel, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
-    grid::{CellCoord, ColId, DieId},
+    grid::{ColId, DieId, DieIdExt},
 };
 use prjcombine_re_lattice_naming::WireName;
 
@@ -34,7 +34,7 @@ impl ChipContext<'_> {
         );
         for &row in &root_rows {
             for &col in &root_cols {
-                let mut cell = CellCoord::new(DieId::from_idx(0), col, row);
+                let mut cell = Chip::DIE.cell(col, row);
                 if !self.edev.has_bel(cell.bel(bels::INT)) {
                     cell.row += 9;
                 }
@@ -575,7 +575,7 @@ impl ChipContext<'_> {
                 let col = self.chip.col_edge(hv.h);
                 let row = self.chip.row_edge(hv.v);
                 let wire = self.naming.interconnect
-                    [&CellCoord::new(DieId::from_idx(0), col, row).wire(self.intdb.get_wire(w))];
+                    [&Chip::DIE.cell(col, row).wire(self.intdb.get_wire(w))];
                 let wire = self.find_single_in(wire);
                 self.add_bel_wire(bcrd, format!("{name}_{hv}"), wire);
                 let (row_s, row_n) = match hv.v {
@@ -583,9 +583,8 @@ impl ChipContext<'_> {
                     DirV::N => (self.chip.row_clk, self.chip.row_n() + 1),
                 };
                 for row in row_s.range(row_n) {
-                    let wire_int =
-                        self.naming.interconnect[&CellCoord::new(DieId::from_idx(0), col, row)
-                            .wire(self.intdb.get_wire(w))];
+                    let wire_int = self.naming.interconnect
+                        [&Chip::DIE.cell(col, row).wire(self.intdb.get_wire(w))];
                     self.claim_pip(wire_int, wire);
                 }
                 for ll in ["LL", "UL", "LR", "UR"] {

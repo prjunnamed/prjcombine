@@ -1,6 +1,6 @@
-use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_interconnect::grid::{CellCoord, DieId, RowId};
-use prjcombine_virtex2::chip::{ChipKind, ColumnIoKind, ColumnKind, DcmPairKind, RowIoKind};
+use prjcombine_entity::EntityVec;
+use prjcombine_interconnect::grid::{DieIdExt, RowId};
+use prjcombine_virtex2::chip::{Chip, ChipKind, ColumnIoKind, ColumnKind, DcmPairKind, RowIoKind};
 use prjcombine_virtex2::expanded::ExpandedDevice;
 
 use crate::drawer::Drawer;
@@ -97,7 +97,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             if rd == RowIoKind::None {
                 continue;
             }
-            if edev.is_in_hole(CellCoord::new(DieId::from_idx(0), col, row)) {
+            if edev.is_in_hole(Chip::DIE.cell(col, row)) {
                 continue;
             }
             drawer.bel_rect(
@@ -119,9 +119,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             (edev.chip.row_s() + 1, edev.chip.row_n())
         };
         for row in row_b.range(row_t).into_iter().step_by(4) {
-            if edev.chip.kind != ChipKind::Spartan3E
-                && edev.is_in_hole(CellCoord::new(DieId::from_idx(0), col, row))
-            {
+            if edev.chip.kind != ChipKind::Spartan3E && edev.is_in_hole(Chip::DIE.cell(col, row)) {
                 continue;
             }
             let width = if edev.chip.kind == ChipKind::Spartan3ADsp {
@@ -161,7 +159,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             {
                 continue;
             }
-            if edev.is_in_hole(CellCoord::new(DieId::from_idx(0), col, edev.chip.row_s())) {
+            if edev.is_in_hole(Chip::DIE.cell(col, edev.chip.row_s())) {
                 continue;
             }
             drawer.bel_rect(

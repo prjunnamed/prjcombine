@@ -1,11 +1,16 @@
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{CellCoord, DieId, TileCoord};
+use prjcombine_interconnect::{
+    db::WireSlotIdExt,
+    grid::{DieId, DieIdExt, TileCoord},
+};
 use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, FeatureId, OcdMode},
+    diff::{
+        Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
+        xlat_bit_wide,
+    },
     legacy::{
-        extract_bitvec_val_legacy, extract_bitvec_val_part_legacy, xlat_bit_bi_legacy,
-        xlat_bit_legacy, xlat_bit_wide_legacy, xlat_bitvec_legacy, xlat_enum_legacy,
-        xlat_enum_legacy_ocd,
+        extract_bitvec_val_part_legacy, xlat_bit_bi_legacy, xlat_bit_legacy, xlat_bit_wide_legacy,
+        xlat_bitvec_legacy, xlat_enum_legacy, xlat_enum_legacy_ocd,
     },
 };
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
@@ -16,18 +21,25 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs::{self, virtex6::tcls};
+use prjcombine_virtex4::defs::{
+    self, bcls, bslots, enums,
+    virtex6::{tcls, wires},
+};
 
 use crate::{
     backend::{IseBackend, Key},
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
+        int::{BaseIntPip, FuzzIntPip},
         iostd::{DciKind, DiffKind, Iostd},
-        props::DynProp,
+        props::{
+            DynProp,
+            mutex::{WireMutexExclusive, WireMutexShared},
+        },
     },
-    virtex4::io::IsBonded,
-    virtex5::io::{DiffOutLegacy, HclkIoi, VrefInternalLegacy},
+    virtex4::{io::IsBonded, specials},
+    virtex5::io::{DiffOutLegacy, HclkIoi, VrefInternal},
 };
 
 const IOSTDS: &[Iostd] = &[
@@ -151,7 +163,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
         for vref in vrefs {
             let site = backend
                 .ngrid
-                .get_bel_name(vref.cell.bel(defs::bslots::IOB[0]))
+                .get_bel_name(vref.cell.bel(bslots::IOB[0]))
                 .unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             fuzzer.info.features.push(FuzzerFeature {
@@ -177,9 +189,9 @@ fn get_vr(backend: &IseBackend, tcrd: TileCoord) -> TileCoord {
     let reg = chip.row_to_reg(tcrd.row);
     let row = if reg == chip.reg_cfg {
         chip.row_reg_bot(reg) + 6
-    } else if reg == chip.reg_cfg - 1 && Some(tcrd.col) == edev.col_lcio {
+    } else if reg == chip.reg_cfg - 1 && Some(tcrd.col) == edev.col_io_iw {
         chip.row_reg_bot(reg) + 4
-    } else if reg == chip.reg_cfg - 1 && Some(tcrd.col) == edev.col_rcio {
+    } else if reg == chip.reg_cfg - 1 && Some(tcrd.col) == edev.col_io_ie {
         chip.row_reg_bot(reg) + 0
     } else {
         chip.row_reg_bot(reg) + 14
@@ -207,7 +219,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         let chip = edev.chips[tcrd.die];
 
         // Avoid bank 25, which is our (arbitrary) anchor.
-        if tcrd.col == edev.col_lcio.unwrap() && chip.row_to_reg(tcrd.row) == chip.reg_cfg {
+        if tcrd.col == edev.col_io_iw.unwrap() && chip.row_to_reg(tcrd.row) == chip.reg_cfg {
             return None;
         }
 
@@ -217,7 +229,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
             return None;
         }
         // Ensure nothing is placed in VR.
-        for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
+        for bel in [bslots::IOB[0], bslots::IOB[1]] {
             let site = backend.ngrid.get_bel_name(vr_tile.cell.bel(bel)).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
         }
@@ -262,18 +274,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Anchor global DCI by putting something in bottom IOB of bank 25.
         let iob_center = tcrd
             .cell
-            .with_cr(edev.col_lcio.unwrap(), chip.row_bufg())
-            .bel(defs::bslots::IOB[0]);
+            .with_cr(edev.col_io_iw.unwrap(), chip.row_bufg())
+            .bel(bslots::IOB[0]);
         let site = backend.ngrid.get_bel_name(iob_center).unwrap();
         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
         fuzzer = fuzzer.base(Key::SiteAttr(site, "OUSED".into()), "0");
         fuzzer = fuzzer.base(Key::SiteAttr(site, "OSTANDARD".into()), "LVDCI_25");
         // Ensure anchor VR IOBs are free.
-        for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
+        for bel in [bslots::IOB[0], bslots::IOB[1]] {
             let iob_center_vr = tcrd
                 .cell
-                .with_cr(edev.col_lcio.unwrap(), chip.row_bufg() + 6)
+                .with_cr(edev.col_io_iw.unwrap(), chip.row_bufg() + 6)
                 .bel(bel);
             let site = backend.ngrid.get_bel_name(iob_center_vr).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
@@ -281,7 +293,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Make note of anchor VCCO.
         let hclk_ioi_center = tcrd
             .cell
-            .with_cr(edev.col_lcio.unwrap(), chip.row_bufg() + 20)
+            .with_cr(edev.col_io_iw.unwrap(), chip.row_bufg() + 20)
             .tile(defs::tslots::HCLK_BEL);
         fuzzer = fuzzer.base(Key::TileMutex(hclk_ioi_center, "VCCO".to_string()), "2500");
 
@@ -301,8 +313,8 @@ pub fn add_fuzzers<'a>(
     let mut ctx = FuzzCtx::new(session, backend, tcls::IO);
     if devdata_only {
         for i in 0..2 {
-            let mut bctx = ctx.bel(defs::bslots::IODELAY[i]);
-            let bel_other = defs::bslots::IODELAY[i ^ 1];
+            let mut bctx = ctx.bel(bslots::IODELAY[i]);
+            let bel_other = bslots::IODELAY[i ^ 1];
             bctx.build()
                 .related_tile_mutex(HclkIoi, "IDELAYCTRL", "USE")
                 .bel_mode(bel_other, "IODELAYE1")
@@ -328,8 +340,37 @@ pub fn add_fuzzers<'a>(
             bdata.pins.len()
         })
         .unwrap();
+
+    for c in 0..2 {
+        for w in [
+            wires::IMUX_IOI_ICLK,
+            wires::IMUX_IOI_OCLK,
+            wires::IMUX_IOI_OCLKDIV,
+        ] {
+            let dst_a = w[0].cell(c);
+            let dst_b = w[1].cell(c);
+            let mux = &backend.edev.db_index.tile_classes[tcls::IO].muxes[&dst_a];
+            for &src in mux.src.keys() {
+                ctx.build()
+                    .prop(WireMutexExclusive::new(dst_a))
+                    .prop(WireMutexExclusive::new(dst_b))
+                    .prop(WireMutexShared::new(src.tw))
+                    .prop(BaseIntPip::new(dst_b, src.tw))
+                    .test_routing(dst_a, src)
+                    .prop(FuzzIntPip::new(dst_a, src.tw))
+                    .commit();
+                ctx.build()
+                    .prop(WireMutexExclusive::new(dst_b))
+                    .prop(WireMutexShared::new(src.tw))
+                    .test_routing(dst_b, src)
+                    .prop(FuzzIntPip::new(dst_b, src.tw))
+                    .commit();
+            }
+        }
+    }
+
     for i in 0..2 {
-        let mut bctx = ctx.bel(defs::bslots::ILOGIC[i]);
+        let mut bctx = ctx.bel(bslots::ILOGIC[i]);
 
         bctx.test_manual_legacy("PRESENT", "ILOGIC")
             .mode("ILOGICE1")
@@ -535,25 +576,9 @@ pub fn add_fuzzers<'a>(
             );
         bctx.mode("ILOGICE1")
             .test_enum_legacy("IFFTYPE", &["#FF", "#LATCH", "DDR"]);
-
-        for (src, num) in [("HCLK", 12), ("RCLK", 6), ("IOCLK", 8)] {
-            for j in 0..num {
-                bctx.build()
-                    .mutex("MUX.CLK", format!("{src}{j}"))
-                    .pip("CLKB", (defs::bslots::IOI, format!("{src}{j}")))
-                    .test_manual_legacy("MUX.CLK", format!("{src}{j}"))
-                    .pip("CLK", (defs::bslots::IOI, format!("{src}{j}")))
-                    .commit();
-                bctx.build()
-                    .mutex("MUX.CLK", format!("{src}{j}"))
-                    .test_manual_legacy("MUX.CLKB", format!("{src}{j}"))
-                    .pip("CLKB", (defs::bslots::IOI, format!("{src}{j}")))
-                    .commit();
-            }
-        }
     }
     for i in 0..2 {
-        let mut bctx = ctx.bel(defs::bslots::OLOGIC[i]);
+        let mut bctx = ctx.bel(bslots::OLOGIC[i]);
 
         bctx.test_manual_legacy("PRESENT", "OLOGIC")
             .mode("OLOGICE1")
@@ -692,48 +717,10 @@ pub fn add_fuzzers<'a>(
             .test_multi_attr_bin_legacy("INIT_PIPE_DATA0", 12);
         bctx.mode("OSERDESE1")
             .test_multi_attr_bin_legacy("INIT_PIPE_DATA1", 12);
-
-        for (src, num) in [("HCLK", 12), ("RCLK", 6)] {
-            for j in 0..num {
-                bctx.build()
-                    .mutex("MUX.CLKDIV", format!("{src}{j}"))
-                    .pip("CLKDIVB", (defs::bslots::IOI, format!("{src}{j}")))
-                    .test_manual_legacy("MUX.CLKDIV", format!("{src}{j}"))
-                    .pip("CLKDIV", (defs::bslots::IOI, format!("{src}{j}")))
-                    .commit();
-                bctx.build()
-                    .mutex("MUX.CLKDIV", format!("{src}{j}"))
-                    .test_manual_legacy("MUX.CLKDIVB", format!("{src}{j}"))
-                    .pip("CLKDIVB", (defs::bslots::IOI, format!("{src}{j}")))
-                    .commit();
-            }
-        }
-        for (src, num) in [("HCLK", 12), ("RCLK", 6), ("IOCLK", 8)] {
-            for j in 0..num {
-                bctx.build()
-                    .mutex("MUX.CLK", format!("{src}{j}"))
-                    .pip("CLKM", (defs::bslots::IOI, format!("{src}{j}")))
-                    .test_manual_legacy("MUX.CLK", format!("{src}{j}"))
-                    .pip("CLK_MUX", (defs::bslots::IOI, format!("{src}{j}")))
-                    .commit();
-                bctx.build()
-                    .mutex("MUX.CLK", format!("{src}{j}"))
-                    .test_manual_legacy("MUX.CLKB", format!("{src}{j}"))
-                    .pip("CLKM", (defs::bslots::IOI, format!("{src}{j}")))
-                    .commit();
-            }
-        }
-        for j in 0..2 {
-            bctx.build()
-                .mutex("MUX.CLKPERF", format!("OCLK{j}"))
-                .test_manual_legacy("MUX.CLKPERF", format!("OCLK{j}"))
-                .pip("CLKPERF", (defs::bslots::IOI, format!("OCLK{j}")))
-                .commit();
-        }
     }
     for i in 0..2 {
-        let mut bctx = ctx.bel(defs::bslots::IODELAY[i]);
-        let bel_other = defs::bslots::IODELAY[i ^ 1];
+        let mut bctx = ctx.bel(bslots::IODELAY[i]);
+        let bel_other = bslots::IODELAY[i ^ 1];
 
         bctx.build()
             .related_tile_mutex(HclkIoi, "IDELAYCTRL", "USE")
@@ -893,12 +880,12 @@ pub fn add_fuzzers<'a>(
             .commit();
     }
     for i in 0..2 {
-        let bel = defs::bslots::IOB[i];
+        let bel = bslots::IOB[i];
         let mut bctx = ctx.bel(bel);
-        let bel_ologic = defs::bslots::OLOGIC[i];
-        let bel_other_ologic = defs::bslots::OLOGIC[i ^ 1];
-        let bel_iodelay = defs::bslots::IODELAY[i];
-        let bel_other = defs::bslots::IOB[i ^ 1];
+        let bel_ologic = bslots::OLOGIC[i];
+        let bel_other_ologic = bslots::OLOGIC[i ^ 1];
+        let bel_iodelay = bslots::IODELAY[i];
+        let bel_other = bslots::IOB[i ^ 1];
         bctx.build()
             .global("DCIUPDATEMODE", "ASREQUIRED")
             .raw(Key::Package, &package.name)
@@ -1161,11 +1148,11 @@ pub fn add_fuzzers<'a>(
         }
 
         for (std, vcco, vref) in [
-            ("HSTL_I_12", 1200, 600),
-            ("HSTL_I", 1500, 750),
-            ("HSTL_III", 1500, 900),
-            ("HSTL_III_18", 1800, 1100),
-            ("SSTL2_I", 2500, 1250),
+            ("HSTL_I_12", 1200, enums::INTERNAL_VREF::_600),
+            ("HSTL_I", 1500, enums::INTERNAL_VREF::_750),
+            ("HSTL_III", 1500, enums::INTERNAL_VREF::_900),
+            ("HSTL_III_18", 1800, enums::INTERNAL_VREF::_1100),
+            ("SSTL2_I", 2500, enums::INTERNAL_VREF::_1250),
         ] {
             bctx.mode("IOB")
                 .related_tile_mutex(HclkIoi, "VCCO", vcco.to_string())
@@ -1173,7 +1160,7 @@ pub fn add_fuzzers<'a>(
                 .pin("I")
                 .raw(Key::Package, &package.name)
                 .prop(IsBonded(bel))
-                .prop(VrefInternalLegacy(tcls::HCLK_IO, vref))
+                .prop(VrefInternal(tcls::HCLK_IO, vref))
                 .test_manual_legacy("ISTD", format!("{std}.LP"))
                 .attr("IUSED", "0")
                 .attr("ISTANDARD", std)
@@ -1197,7 +1184,7 @@ pub fn add_fuzzers<'a>(
     {
         let mut ctx = FuzzCtx::new_null(session, backend);
         ctx.build()
-            .extra_tiles_by_bel_legacy(defs::bslots::OLOGIC[0], "OLOGIC_COMMON")
+            .extra_tiles_by_bel_legacy(bslots::OLOGIC[0], "OLOGIC_COMMON")
             .global("ENABLEMISR", "Y")
             .test_manual_legacy("OLOGIC_COMMON", "MISR_RESET", "1")
             .global_diff("MISRRESET", "N", "Y")
@@ -1205,23 +1192,23 @@ pub fn add_fuzzers<'a>(
     }
     {
         let mut ctx = FuzzCtx::new(session, backend, tcls::HCLK_IO);
-        let mut bctx = ctx.bel(defs::bslots::DCI);
+        let mut bctx = ctx.bel(bslots::DCI);
         bctx.build()
             .global_mutex("GLOBAL_DCI", "NOPE")
-            .test_manual_legacy("TEST_ENABLE", "1")
+            .test_bel_attr_bits(bcls::DCI::TEST_ENABLE)
             .mode("DCI")
             .commit();
         bctx.build()
             .global_mutex("GLOBAL_DCI", "NOPE")
-            .test_manual_legacy("DYNAMIC_ENABLE", "1")
+            .test_bel_attr_bits(bcls::DCI::DYNAMIC_ENABLE)
             .mode("DCI")
             .pin_pips("INT_DCI_EN")
             .commit();
     }
     let mut ctx = FuzzCtx::new_null(session, backend);
     ctx.build()
-        .extra_tiles_by_bel_legacy(defs::bslots::DCI, "DCI")
-        .test_manual_legacy("DCI", "QUIET", "1")
+        .extra_tiles_by_bel_attr_bits(bslots::DCI, bcls::DCI::QUIET)
+        .test_global_special(specials::DCI_QUIET)
         .global_diff("DCIUPDATEMODE", "CONTINUOUS", "QUIET")
         .commit();
     {
@@ -1230,27 +1217,34 @@ pub fn add_fuzzers<'a>(
         let mut builder = ctx
             .build()
             .raw(Key::Package, &package.name)
-            .extra_tile_attr_fixed_legacy(edev.tile_cfg(die), "MISC", "DCI_CLK_ENABLE", "1");
+            .extra_fixed_bel_attr_bits(
+                edev.tile_cfg(die),
+                bslots::MISC_CFG,
+                bcls::MISC_CFG::DCI_CLK_ENABLE_TR,
+            );
 
         // Find VR and IO rows.
-        let vr_tile = CellCoord::new(die, edev.col_lcio.unwrap(), chip.row_bufg() + 6)
+        let vr_tile = die
+            .cell(edev.col_io_iw.unwrap(), chip.row_bufg() + 6)
             .tile(defs::tslots::BEL);
-        let io_tile =
-            CellCoord::new(die, edev.col_lcio.unwrap(), chip.row_bufg()).tile(defs::tslots::BEL);
-        let io_bel = io_tile.cell.bel(defs::bslots::IOB[0]);
+        let io_tile = die
+            .cell(edev.col_io_iw.unwrap(), chip.row_bufg())
+            .tile(defs::tslots::BEL);
+        let io_bel = io_tile.cell.bel(bslots::IOB[0]);
         let hclk_row = chip.row_hclk(io_tile.cell.row);
-        let hclk_tcrd =
-            CellCoord::new(die, edev.col_lcio.unwrap(), hclk_row).tile(defs::tslots::HCLK_BEL);
+        let hclk_tcrd = die
+            .cell(edev.col_io_iw.unwrap(), hclk_row)
+            .tile(defs::tslots::HCLK_BEL);
 
         // Ensure nothing is placed in VR.
-        for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
+        for bel in [bslots::IOB[0], bslots::IOB[1]] {
             let site = backend.ngrid.get_bel_name(vr_tile.cell.bel(bel)).unwrap();
             builder = builder.raw(Key::SiteMode(site), None);
         }
         builder = builder.extra_tile_attr_fixed_legacy(vr_tile, "IOB_COMMON", "PRESENT", "VR");
 
         // Set up hclk.
-        builder = builder.extra_tile_attr_fixed_legacy(hclk_tcrd, "DCI", "ENABLE", "1");
+        builder = builder.extra_fixed_bel_attr_bits(hclk_tcrd, bslots::DCI, bcls::DCI::ENABLE);
 
         // Set up the IO and fire.
         let site = backend.ngrid.get_bel_name(io_bel).unwrap();
@@ -1276,27 +1270,30 @@ pub fn add_fuzzers<'a>(
         let chip = edev.chips[die];
         let mut builder = ctx.build().raw(Key::Package, &package.name);
 
-        let io_tile_from =
-            CellCoord::new(die, edev.col_lcio.unwrap(), chip.row_bufg()).tile(defs::tslots::BEL);
-        let io_bel_from = io_tile_from.cell.bel(defs::bslots::IOB[0]);
+        let io_tile_from = die
+            .cell(edev.col_io_iw.unwrap(), chip.row_bufg())
+            .tile(defs::tslots::BEL);
+        let io_bel_from = io_tile_from.cell.bel(bslots::IOB[0]);
         let io_row_to = match bank_to {
             24 => edev.chips[die].row_bufg() - 40,
             26 => edev.chips[die].row_bufg() + 40,
             _ => unreachable!(),
         };
-        let io_tile_to =
-            CellCoord::new(die, edev.col_lcio.unwrap(), io_row_to).tile(defs::tslots::BEL);
-        let io_bel_to = io_tile_to.cell.bel(defs::bslots::IOB[0]);
+        let io_tile_to = die
+            .cell(edev.col_io_iw.unwrap(), io_row_to)
+            .tile(defs::tslots::BEL);
+        let io_bel_to = io_tile_to.cell.bel(bslots::IOB[0]);
         let hclk_row_to = chip.row_hclk(io_row_to);
-        let hclk_tile_to =
-            CellCoord::new(die, edev.col_lcio.unwrap(), hclk_row_to).tile(defs::tslots::HCLK_BEL);
+        let hclk_tile_to = die
+            .cell(edev.col_io_iw.unwrap(), hclk_row_to)
+            .tile(defs::tslots::HCLK_BEL);
 
         // Ensure nothing else in the bank.
         let bot = chip.row_reg_bot(chip.row_to_reg(io_tile_from.cell.row));
         for i in 0..chip.rows_per_reg() {
             let row = bot + i;
-            for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
-                if row == io_tile_from.cell.row && bel == defs::bslots::IOB[0] {
+            for bel in [bslots::IOB[0], bslots::IOB[1]] {
+                if row == io_tile_from.cell.row && bel == bslots::IOB[0] {
                     continue;
                 }
                 if let Some(site) = backend
@@ -1323,8 +1320,8 @@ pub fn add_fuzzers<'a>(
         let bot = chip.row_reg_bot(chip.row_to_reg(io_tile_to.cell.row));
         for i in 0..chip.rows_per_reg() {
             let row = bot + i;
-            for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
-                if row == io_tile_to.cell.row && bel == defs::bslots::IOB[0] {
+            for bel in [bslots::IOB[0], bslots::IOB[1]] {
+                if row == io_tile_to.cell.row && bel == bslots::IOB[0] {
                     continue;
                 }
                 if let Some(site) = backend
@@ -1354,15 +1351,14 @@ pub fn add_fuzzers<'a>(
             )
             .raw_diff(Key::DciCascade(bank_to), None, 25)
             .extra_tile_attr_fixed_legacy(io_tile_to, "IOB[0]", "OSTD", "LVDCI_25")
-            .extra_tile_attr_fixed_legacy(
+            .extra_fixed_bel_attr_bits(
                 hclk_tile_to,
-                "DCI",
+                bslots::DCI,
                 if bank_to == 24 {
-                    "CASCADE_FROM_ABOVE"
+                    bcls::DCI::CASCADE_FROM_ABOVE
                 } else {
-                    "CASCADE_FROM_BELOW"
+                    bcls::DCI::CASCADE_FROM_BELOW
                 },
-                "1",
             )
             .test_manual_legacy("NULL", format!("CASCADE_DCI.{bank_to}"), "1")
             .commit();
@@ -1370,6 +1366,7 @@ pub fn add_fuzzers<'a>(
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
+    let tcid = tcls::IO;
     let tile = "IO";
     if devdata_only {
         for i in 0..2 {
@@ -1390,6 +1387,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
         return;
     }
+
+    for c in 0..2 {
+        for w in [
+            wires::IMUX_IOI_ICLK,
+            wires::IMUX_IOI_OCLK,
+            wires::IMUX_IOI_OCLKDIV,
+        ] {
+            ctx.collect_mux(tcid, w[0].cell(c));
+            ctx.collect_mux(tcid, w[1].cell(c));
+        }
+    }
+
     for i in 0..2 {
         let bel = &format!("ILOGIC[{i}]");
 
@@ -1613,19 +1622,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             "READBACK_I",
             TileItem::from_bit_inv([TileBit::new(0, 26, 61), TileBit::new(1, 27, 2)][i], false),
         );
-
-        let mut vals = vec![];
-        for j in 0..12 {
-            vals.push(format!("HCLK{j}"));
-        }
-        for j in 0..6 {
-            vals.push(format!("RCLK{j}"));
-        }
-        for j in 0..8 {
-            vals.push(format!("IOCLK{j}"));
-        }
-        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLK", &vals, "NONE", OcdMode::Mux);
-        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLKB", &vals, "NONE", OcdMode::Mux);
     }
     for i in 0..2 {
         let bel = &format!("OLOGIC[{i}]");
@@ -1851,22 +1847,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         present_oserdes.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "OMUX"), "D1", "NONE");
         present_oserdes.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "TMUX"), "T1", "NONE");
         present_oserdes.assert_empty();
-
-        let mut vals = vec![];
-        for j in 0..12 {
-            vals.push(format!("HCLK{j}"));
-        }
-        for j in 0..6 {
-            vals.push(format!("RCLK{j}"));
-        }
-        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLKDIV", &vals, "NONE", OcdMode::Mux);
-        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLKDIVB", &vals, "NONE", OcdMode::Mux);
-        for j in 0..8 {
-            vals.push(format!("IOCLK{j}"));
-        }
-        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLK", &vals, "NONE", OcdMode::Mux);
-        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLKB", &vals, "NONE", OcdMode::Mux);
-        ctx.collect_enum_legacy(tile, bel, "MUX.CLKPERF", &["OCLK0", "OCLK1"]);
     }
     let mut diff = ctx.get_diff_legacy(tile, "OLOGIC_COMMON", "MISR_RESET", "1");
     let diff1 = diff.split_bits_by(|bit| bit.rect.to_idx() > 0);
@@ -2515,148 +2495,123 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
     }
 
+    let tcid = tcls::HCLK_IO;
     let tile = "HCLK_IO";
-    let lvdsbias = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 42, 30),
-            TileBit::new(0, 42, 28),
-            TileBit::new(0, 42, 27),
-            TileBit::new(0, 42, 26),
-            TileBit::new(0, 42, 25),
-            TileBit::new(0, 42, 24),
-            TileBit::new(0, 42, 23),
-            TileBit::new(0, 42, 22),
-            TileBit::new(0, 42, 21),
-            TileBit::new(0, 42, 20),
-            TileBit::new(0, 42, 19),
-            TileBit::new(0, 42, 18),
-            TileBit::new(0, 42, 17),
-            TileBit::new(0, 42, 16),
-            TileBit::new(0, 42, 15),
-            TileBit::new(0, 42, 14),
-            TileBit::new(0, 41, 28),
-        ],
-        false,
-    );
-    let bel = "DCI";
-    let dci_en = ctx.get_diff_legacy(tile, bel, "ENABLE", "1");
+    let lvdsbias = vec![
+        TileBit::new(0, 42, 30).pos(),
+        TileBit::new(0, 42, 28).pos(),
+        TileBit::new(0, 42, 27).pos(),
+        TileBit::new(0, 42, 26).pos(),
+        TileBit::new(0, 42, 25).pos(),
+        TileBit::new(0, 42, 24).pos(),
+        TileBit::new(0, 42, 23).pos(),
+        TileBit::new(0, 42, 22).pos(),
+        TileBit::new(0, 42, 21).pos(),
+        TileBit::new(0, 42, 20).pos(),
+        TileBit::new(0, 42, 19).pos(),
+        TileBit::new(0, 42, 18).pos(),
+        TileBit::new(0, 42, 17).pos(),
+        TileBit::new(0, 42, 16).pos(),
+        TileBit::new(0, 42, 15).pos(),
+        TileBit::new(0, 42, 14).pos(),
+        TileBit::new(0, 41, 28).pos(),
+    ];
+    let bslot = bslots::DCI;
+    let dci_en = ctx.get_diff_attr_bool(tcid, bslot, bcls::DCI::ENABLE);
     let test_en = ctx
-        .get_diff_legacy(tile, bel, "TEST_ENABLE", "1")
+        .get_diff_attr_bool(tcid, bslot, bcls::DCI::TEST_ENABLE)
         .combine(&!&dci_en);
     let dyn_en = ctx
-        .get_diff_legacy(tile, bel, "DYNAMIC_ENABLE", "1")
+        .get_diff_attr_bool(tcid, bslot, bcls::DCI::DYNAMIC_ENABLE)
         .combine(&!&dci_en);
-    ctx.insert_legacy(tile, bel, "TEST_ENABLE", xlat_bit_wide_legacy(test_en));
-    ctx.insert_legacy(tile, bel, "DYNAMIC_ENABLE", xlat_bit_legacy(dyn_en));
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI::TEST_ENABLE, xlat_bit_wide(test_en));
+    ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCI::DYNAMIC_ENABLE, xlat_bit(dyn_en));
     let casc_from_above = ctx
-        .get_diff_legacy(tile, bel, "CASCADE_FROM_ABOVE", "1")
+        .get_diff_attr_bool(tcid, bslot, bcls::DCI::CASCADE_FROM_ABOVE)
         .combine(&!&dci_en);
-    ctx.insert_legacy(
-        tile,
-        bel,
-        "CASCADE_FROM_ABOVE",
-        xlat_bit_wide_legacy(casc_from_above),
+    ctx.insert_bel_attr_bool(
+        tcid,
+        bslot,
+        bcls::DCI::CASCADE_FROM_ABOVE,
+        xlat_bit(casc_from_above),
     );
     let casc_from_below = ctx
-        .get_diff_legacy(tile, bel, "CASCADE_FROM_BELOW", "1")
+        .get_diff_attr_bool(tcid, bslot, bcls::DCI::CASCADE_FROM_BELOW)
         .combine(&!&dci_en);
-    ctx.insert_legacy(
-        tile,
-        bel,
-        "CASCADE_FROM_BELOW",
-        xlat_bit_wide_legacy(casc_from_below),
+    ctx.insert_bel_attr_bool(
+        tcid,
+        bslot,
+        bcls::DCI::CASCADE_FROM_BELOW,
+        xlat_bit(casc_from_below),
     );
 
-    let dci_en = xlat_bit_legacy(dci_en);
-    let nref_output = TileItem::from_bitvec_inv(
-        vec![TileBit::new(0, 40, 16), TileBit::new(0, 40, 17)],
-        false,
-    );
-    let pref_output = TileItem::from_bitvec_inv(
-        vec![TileBit::new(0, 41, 14), TileBit::new(0, 41, 15)],
-        false,
-    );
-    let nref_output_half = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 40, 18),
-            TileBit::new(0, 40, 19),
-            TileBit::new(0, 40, 20),
+    let dci_en = xlat_bit(dci_en);
+    let nref_output = vec![TileBit::new(0, 40, 16).pos(), TileBit::new(0, 40, 17).pos()];
+    let pref_output = vec![TileBit::new(0, 41, 14).pos(), TileBit::new(0, 41, 15).pos()];
+    let nref_output_half = vec![
+        TileBit::new(0, 40, 18).pos(),
+        TileBit::new(0, 40, 19).pos(),
+        TileBit::new(0, 40, 20).pos(),
+    ];
+    let pref_output_half = vec![
+        TileBit::new(0, 41, 16).pos(),
+        TileBit::new(0, 41, 17).pos(),
+        TileBit::new(0, 41, 18).pos(),
+    ];
+    let pref_term_vcc = vec![TileBit::new(0, 40, 14).pos(), TileBit::new(0, 40, 15).pos()];
+    let pmask_term_vcc = vec![
+        TileBit::new(0, 43, 14).pos(),
+        TileBit::new(0, 43, 27).pos(),
+        TileBit::new(0, 43, 28).pos(),
+        TileBit::new(0, 43, 29).pos(),
+        TileBit::new(0, 43, 30).pos(),
+        TileBit::new(0, 43, 31).pos(),
+    ];
+    let nref_term_split = vec![
+        TileBit::new(0, 40, 23).pos(),
+        TileBit::new(0, 40, 24).pos(),
+        TileBit::new(0, 40, 25).pos(),
+    ];
+    let pref_term_split = vec![
+        TileBit::new(0, 41, 19).pos(),
+        TileBit::new(0, 41, 20).pos(),
+        TileBit::new(0, 41, 21).pos(),
+    ];
+    let pmask_term_split = vec![
+        TileBit::new(0, 43, 21).pos(),
+        TileBit::new(0, 43, 22).pos(),
+        TileBit::new(0, 43, 23).pos(),
+        TileBit::new(0, 43, 24).pos(),
+        TileBit::new(0, 43, 25).pos(),
+        TileBit::new(0, 43, 26).pos(),
+    ];
+    let nmask_term_split = vec![
+        TileBit::new(0, 43, 15).pos(),
+        TileBit::new(0, 43, 16).pos(),
+        TileBit::new(0, 43, 17).pos(),
+        TileBit::new(0, 43, 18).pos(),
+        TileBit::new(0, 43, 19).pos(),
+        TileBit::new(0, 43, 20).pos(),
+    ];
+    ctx.collect_bel_attr_subset_default_ocd(
+        tcid,
+        bslots::BANK,
+        bcls::BANK::INTERNAL_VREF,
+        &[
+            enums::INTERNAL_VREF::_600,
+            enums::INTERNAL_VREF::_750,
+            enums::INTERNAL_VREF::_900,
+            enums::INTERNAL_VREF::_1100,
+            enums::INTERNAL_VREF::_1250,
         ],
-        false,
-    );
-    let pref_output_half = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 41, 16),
-            TileBit::new(0, 41, 17),
-            TileBit::new(0, 41, 18),
-        ],
-        false,
-    );
-    let pref_term_vcc = TileItem::from_bitvec_inv(
-        vec![TileBit::new(0, 40, 14), TileBit::new(0, 40, 15)],
-        false,
-    );
-    let pmask_term_vcc = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 43, 14),
-            TileBit::new(0, 43, 27),
-            TileBit::new(0, 43, 28),
-            TileBit::new(0, 43, 29),
-            TileBit::new(0, 43, 30),
-            TileBit::new(0, 43, 31),
-        ],
-        false,
-    );
-    let nref_term_split = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 40, 23),
-            TileBit::new(0, 40, 24),
-            TileBit::new(0, 40, 25),
-        ],
-        false,
-    );
-    let pref_term_split = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 41, 19),
-            TileBit::new(0, 41, 20),
-            TileBit::new(0, 41, 21),
-        ],
-        false,
-    );
-    let pmask_term_split = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 43, 21),
-            TileBit::new(0, 43, 22),
-            TileBit::new(0, 43, 23),
-            TileBit::new(0, 43, 24),
-            TileBit::new(0, 43, 25),
-            TileBit::new(0, 43, 26),
-        ],
-        false,
-    );
-    let nmask_term_split = TileItem::from_bitvec_inv(
-        vec![
-            TileBit::new(0, 43, 15),
-            TileBit::new(0, 43, 16),
-            TileBit::new(0, 43, 17),
-            TileBit::new(0, 43, 18),
-            TileBit::new(0, 43, 19),
-            TileBit::new(0, 43, 20),
-        ],
-        false,
-    );
-    ctx.collect_enum_default_legacy(
-        tile,
-        "INTERNAL_VREF",
-        "VREF",
-        &["600", "750", "900", "1100", "1250"],
-        "OFF",
+        enums::INTERNAL_VREF::OFF,
+        OcdMode::ValueOrder,
     );
     for std in IOSTDS {
         if std.diff == DiffKind::True {
             let bel = "LVDS";
             let diff = ctx.get_diff_legacy(tile, bel, "STD", std.name);
-            let val = extract_bitvec_val_legacy(&lvdsbias, &bits![0; 17], diff);
+            let val = extract_bitvec_val(&lvdsbias, &bits![0; 17], diff);
             ctx.insert_misc_data_legacy(format!("IOSTD:LVDSBIAS:{}", std.name), val);
         }
         if std.dci != DciKind::None {
@@ -2665,54 +2620,46 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let mut diff = ctx.get_diff_legacy(tile, bel, "STD", std.name);
             match std.dci {
                 DciKind::Output => {
-                    let val = extract_bitvec_val_part_legacy(&nref_output, &bits![0; 2], &mut diff);
+                    let val = extract_bitvec_val_part(&nref_output, &bits![0; 2], &mut diff);
                     ctx.insert_misc_data_legacy(format!("IOSTD:DCI:NREF_OUTPUT:{stdname}"), val);
-                    let val = extract_bitvec_val_part_legacy(&pref_output, &bits![0; 2], &mut diff);
+                    let val = extract_bitvec_val_part(&pref_output, &bits![0; 2], &mut diff);
                     ctx.insert_misc_data_legacy(format!("IOSTD:DCI:PREF_OUTPUT:{stdname}"), val);
                 }
                 DciKind::OutputHalf => {
-                    let val =
-                        extract_bitvec_val_part_legacy(&nref_output_half, &bits![0; 3], &mut diff);
+                    let val = extract_bitvec_val_part(&nref_output_half, &bits![0; 3], &mut diff);
                     ctx.insert_misc_data_legacy(
                         format!("IOSTD:DCI:NREF_OUTPUT_HALF:{stdname}"),
                         val,
                     );
-                    let val =
-                        extract_bitvec_val_part_legacy(&pref_output_half, &bits![0; 3], &mut diff);
+                    let val = extract_bitvec_val_part(&pref_output_half, &bits![0; 3], &mut diff);
                     ctx.insert_misc_data_legacy(
                         format!("IOSTD:DCI:PREF_OUTPUT_HALF:{stdname}"),
                         val,
                     );
                 }
                 DciKind::InputVcc | DciKind::BiVcc => {
-                    let val =
-                        extract_bitvec_val_part_legacy(&pref_term_vcc, &bits![0; 2], &mut diff);
+                    let val = extract_bitvec_val_part(&pref_term_vcc, &bits![0; 2], &mut diff);
                     ctx.insert_misc_data_legacy(format!("IOSTD:DCI:PREF_TERM_VCC:{stdname}"), val);
-                    let val =
-                        extract_bitvec_val_part_legacy(&pmask_term_vcc, &bits![0; 6], &mut diff);
+                    let val = extract_bitvec_val_part(&pmask_term_vcc, &bits![0; 6], &mut diff);
                     ctx.insert_misc_data_legacy(format!("IOSTD:DCI:PMASK_TERM_VCC:{stdname}"), val);
                 }
                 DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
-                    let val =
-                        extract_bitvec_val_part_legacy(&nref_term_split, &bits![0; 3], &mut diff);
+                    let val = extract_bitvec_val_part(&nref_term_split, &bits![0; 3], &mut diff);
                     ctx.insert_misc_data_legacy(
                         format!("IOSTD:DCI:NREF_TERM_SPLIT:{stdname}"),
                         val,
                     );
-                    let val =
-                        extract_bitvec_val_part_legacy(&pref_term_split, &bits![0; 3], &mut diff);
+                    let val = extract_bitvec_val_part(&pref_term_split, &bits![0; 3], &mut diff);
                     ctx.insert_misc_data_legacy(
                         format!("IOSTD:DCI:PREF_TERM_SPLIT:{stdname}"),
                         val,
                     );
-                    let val =
-                        extract_bitvec_val_part_legacy(&pmask_term_split, &bits![0; 6], &mut diff);
+                    let val = extract_bitvec_val_part(&pmask_term_split, &bits![0; 6], &mut diff);
                     ctx.insert_misc_data_legacy(
                         format!("IOSTD:DCI:PMASK_TERM_SPLIT:{stdname}"),
                         val,
                     );
-                    let val =
-                        extract_bitvec_val_part_legacy(&nmask_term_split, &bits![0; 6], &mut diff);
+                    let val = extract_bitvec_val_part(&nmask_term_split, &bits![0; 6], &mut diff);
                     ctx.insert_misc_data_legacy(
                         format!("IOSTD:DCI:NMASK_TERM_SPLIT:{stdname}"),
                         val,
@@ -2720,27 +2667,36 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 }
                 _ => {}
             }
-            diff.apply_bit_diff_legacy(&dci_en, true, false);
+            diff.apply_bit_diff(dci_en, true, false);
             diff.assert_empty();
         }
     }
-    let bel = "LVDS";
-    ctx.insert_legacy(tile, bel, "LVDSBIAS", lvdsbias);
+    ctx.insert_bel_attr_bitvec(tcid, bslots::BANK, bcls::BANK::V6_LVDSBIAS, lvdsbias);
     ctx.insert_misc_data_legacy("IOSTD:LVDSBIAS:OFF", bits![0; 17]);
-    let bel = "DCI";
-    ctx.insert_legacy(tile, bel, "ENABLE", dci_en);
-    ctx.insert_legacy(tile, bel, "PREF_OUTPUT", pref_output);
-    ctx.insert_legacy(tile, bel, "NREF_OUTPUT", nref_output);
-    ctx.insert_legacy(tile, bel, "PREF_OUTPUT_HALF", pref_output_half);
-    ctx.insert_legacy(tile, bel, "NREF_OUTPUT_HALF", nref_output_half);
-    ctx.insert_legacy(tile, bel, "PREF_TERM_VCC", pref_term_vcc);
-    ctx.insert_legacy(tile, bel, "PREF_TERM_SPLIT", pref_term_split);
-    ctx.insert_legacy(tile, bel, "NREF_TERM_SPLIT", nref_term_split);
+    let bslot = bslots::DCI;
+    ctx.insert_bel_attr_bool(tcid, bslot, bcls::DCI::ENABLE, dci_en);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI::PREF_OUTPUT, pref_output);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI::NREF_OUTPUT, nref_output);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI::PREF_OUTPUT_HALF, pref_output_half);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI::NREF_OUTPUT_HALF, nref_output_half);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI::PREF_TERM_VCC, pref_term_vcc);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI::PREF_TERM_SPLIT, pref_term_split);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI::NREF_TERM_SPLIT, nref_term_split);
 
-    ctx.insert_legacy(tile, bel, "PMASK_TERM_VCC", pmask_term_vcc);
-    ctx.insert_legacy(tile, bel, "PMASK_TERM_SPLIT", pmask_term_split);
-    ctx.insert_legacy(tile, bel, "NMASK_TERM_SPLIT", nmask_term_split);
-    ctx.collect_bit_legacy(tile, bel, "QUIET", "1");
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::DCI::V6_PMASK_TERM_VCC, pmask_term_vcc);
+    ctx.insert_bel_attr_bitvec(
+        tcid,
+        bslot,
+        bcls::DCI::V6_PMASK_TERM_SPLIT,
+        pmask_term_split,
+    );
+    ctx.insert_bel_attr_bitvec(
+        tcid,
+        bslot,
+        bcls::DCI::V6_NMASK_TERM_SPLIT,
+        nmask_term_split,
+    );
+    ctx.collect_bel_attr(tcid, bslot, bcls::DCI::QUIET);
 
     ctx.insert_misc_data_legacy("IOSTD:DCI:PREF_OUTPUT:OFF", bits![0; 2]);
     ctx.insert_misc_data_legacy("IOSTD:DCI:NREF_OUTPUT:OFF", bits![0; 2]);
@@ -2752,7 +2708,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     ctx.insert_misc_data_legacy("IOSTD:DCI:NREF_TERM_SPLIT:OFF", bits![0; 3]);
     ctx.insert_misc_data_legacy("IOSTD:DCI:PMASK_TERM_SPLIT:OFF", bits![0; 6]);
     ctx.insert_misc_data_legacy("IOSTD:DCI:NMASK_TERM_SPLIT:OFF", bits![0; 6]);
-    let tile = "CFG";
-    let bel = "MISC";
-    ctx.collect_bit_wide_legacy(tile, bel, "DCI_CLK_ENABLE", "1");
+
+    let tcid = tcls::CFG;
+    let bslot = bslots::MISC_CFG;
+    let bits =
+        xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, bcls::MISC_CFG::DCI_CLK_ENABLE_TR));
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::MISC_CFG::DCI_CLK_ENABLE_TR, bits);
 }

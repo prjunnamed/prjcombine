@@ -3,8 +3,8 @@ use std::collections::HashSet;
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelAttributeEnum, BelSlotId, TableRowId, WireSlotIdExt},
-    dir::DirV,
-    grid::{CellCoord, DieId, TileCoord},
+    dir::{DirHV, DirV},
+    grid::TileCoord,
 };
 use prjcombine_re_collector::diff::{
     Diff, DiffKey, OcdMode, SpecialId, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
@@ -1372,18 +1372,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("O")
             .commit();
 
-        let cnr_sw = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_s())
-            .tile(defs::tslots::BEL);
-        let cnr_nw = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_n())
-            .tile(defs::tslots::BEL);
-        let cnr_se = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_s())
-            .tile(defs::tslots::BEL);
-        let cnr_ne = CellCoord::new(
-            DieId::from_idx(0),
-            edev.chip.col_e(),
-            edev.chip.row_n_inner(),
-        )
-        .tile(defs::tslots::BEL);
+        let cnr_sw = edev.chip.corner(DirHV::SW);
+        let cnr_nw = edev.chip.corner(DirHV::NW);
+        let cnr_se = edev.chip.corner(DirHV::SE);
+        let cnr_ne = edev.chip.corner(DirHV::NE);
 
         bctx.build()
             .global("GLUTMASK", "YES")

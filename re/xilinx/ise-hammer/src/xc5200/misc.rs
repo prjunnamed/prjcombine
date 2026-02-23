@@ -1,10 +1,9 @@
-use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{CellCoord, DieId};
+use prjcombine_interconnect::dir::DirHV;
 use prjcombine_re_collector::diff::xlat_enum_attr;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bits;
-use prjcombine_xc2000::xc5200::{bcls, bslots, enums, tcls, tslots};
+use prjcombine_xc2000::xc5200::{bcls, bslots, enums, tcls};
 
 use crate::{
     backend::IseBackend,
@@ -263,8 +262,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_bel_special(specials::ENABLE)
             .mode("OSC")
             .commit();
-        let cnr_se = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_s())
-            .tile(tslots::MAIN);
+        let cnr_se = edev.chip.corner(DirHV::SE);
         for (val, rval) in [
             (enums::OSC1_DIV::D2, "4"),
             (enums::OSC1_DIV::D4, "16"),

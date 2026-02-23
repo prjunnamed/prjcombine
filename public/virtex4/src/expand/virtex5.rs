@@ -2,7 +2,7 @@ use assert_matches::assert_matches;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::{IntDb, TileClassId};
 use prjcombine_interconnect::grid::builder::GridBuilder;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, Rect, RowId, TileIobId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, DieIdExt, Rect, RowId, TileIobId};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
@@ -53,18 +53,18 @@ impl Expander<'_, '_> {
 
     fn fill_holes(&mut self) {
         for &(bc, br) in &self.chip.holes_ppc {
-            let cell = CellCoord::new(self.die, bc, br);
+            let cell = self.die.cell(bc, br);
             self.int_holes.push(cell.delta(1, 0).rect(12, 40));
             self.site_holes.push(cell.rect(14, 40));
         }
         if let Some(ref hard) = self.chip.col_hard {
             let col = hard.col;
             for &row in &hard.rows_emac {
-                let cell = CellCoord::new(self.die, col, row);
+                let cell = self.die.cell(col, row);
                 self.site_holes.push(cell.rect(1, 10));
             }
             for &row in &hard.rows_pcie {
-                let cell = CellCoord::new(self.die, col, row);
+                let cell = self.die.cell(col, row);
                 self.site_holes.push(cell.rect(1, 40));
             }
         }
@@ -95,7 +95,7 @@ impl Expander<'_, '_> {
 
     fn fill_ppc(&mut self) {
         for &(bc, br) in &self.chip.holes_ppc {
-            let cell = CellCoord::new(self.die, bc, br);
+            let cell = self.die.cell(bc, br);
             for dy in 0..40 {
                 self.egrid.fill_conn_pair_id(
                     cell.delta(0, dy),
@@ -225,7 +225,7 @@ impl Expander<'_, '_> {
     fn fill_hard(&mut self) {
         if let Some(ref hard) = self.chip.col_hard {
             for &row in &hard.rows_emac {
-                let cell = CellCoord::new(self.die, hard.col, row);
+                let cell = self.die.cell(hard.col, row);
                 let tcells = cell.cells_n_const::<10>();
                 for cell in tcells {
                     self.egrid.add_tile_single_id(cell, tcls::INTF_DELAY);
@@ -233,7 +233,7 @@ impl Expander<'_, '_> {
                 self.egrid.add_tile_id(cell, tcls::EMAC, &tcells);
             }
             for &row in &hard.rows_pcie {
-                let cell = CellCoord::new(self.die, hard.col, row);
+                let cell = self.die.cell(hard.col, row);
                 let tcells = cell.cells_n_const::<40>();
                 for cell in tcells {
                     self.egrid.add_tile_single_id(cell, tcls::INTF_DELAY);
@@ -271,7 +271,7 @@ impl Expander<'_, '_> {
 
     fn fill_cfg(&mut self) {
         let row = self.chip.row_reg_bot(self.chip.reg_cfg);
-        let cell = CellCoord::new(self.die, self.col_cfg, row);
+        let cell = self.die.cell(self.col_cfg, row);
         self.site_holes.push(cell.delta(0, -10).rect(1, 20));
         self.egrid.add_tile_sn_id(cell, tcls::CFG, 10, 20);
         self.egrid.add_tile_id(cell, tcls::GLOBAL, &[]);
@@ -288,7 +288,7 @@ impl Expander<'_, '_> {
 
     fn fill_cmt(&mut self) {
         for row in self.chip.get_cmt_rows() {
-            let cell = CellCoord::new(self.die, self.col_cfg, row);
+            let cell = self.die.cell(self.col_cfg, row);
             self.site_holes.push(cell.rect(1, 10));
             self.egrid.add_tile_n_id(cell, tcls::CMT, 10);
 
@@ -445,14 +445,14 @@ impl Expander<'_, '_> {
             // connection from west GT to spine
             let mut prev = None;
             for (col, &kind) in &self.chip.columns {
-                let cell = CellCoord::new(self.die, col, row);
+                let cell = self.die.cell(col, row);
                 match kind {
                     ColumnKind::Io => {
                         if let Some((prev, cc)) = prev {
                             self.egrid
-                                .fill_conn_pair_id(prev, cell, ccls::MGT_ROW_NEXT, cc);
+                                .fill_conn_pair_id(prev, cell, ccls::HCLK_ROW_NEXT, cc);
                         }
-                        prev = Some((cell, ccls::MGT_ROW_PREV_PASS));
+                        prev = Some((cell, ccls::HCLK_ROW_PREV_PASS));
                     }
                     ColumnKind::Cfg => {
                         let cell = if row < self.chip.row_bufg() {
@@ -462,20 +462,20 @@ impl Expander<'_, '_> {
                         };
                         if let Some((prev, cc)) = prev {
                             self.egrid
-                                .fill_conn_pair_id(prev, cell, ccls::MGT_ROW_NEXT, cc);
+                                .fill_conn_pair_id(prev, cell, ccls::HCLK_ROW_NEXT, cc);
                         }
                         break;
                     }
                     ColumnKind::Gt => {
-                        prev = Some((cell, ccls::MGT_ROW_PREV));
+                        prev = Some((cell, ccls::HCLK_ROW_PREV));
                     }
                     _ => {
                         if self.chip.cols_mgt_buf.contains(&col) {
                             if let Some((prev, cc)) = prev {
                                 self.egrid
-                                    .fill_conn_pair_id(prev, cell, ccls::MGT_ROW_NEXT, cc);
+                                    .fill_conn_pair_id(prev, cell, ccls::HCLK_ROW_NEXT, cc);
                             }
-                            prev = Some((cell, ccls::MGT_ROW_PREV));
+                            prev = Some((cell, ccls::HCLK_ROW_PREV));
                         }
                     }
                 }
@@ -484,14 +484,14 @@ impl Expander<'_, '_> {
             // connection from east GT to spine
             let mut prev = None;
             for (col, &kind) in self.chip.columns.iter().rev() {
-                let cell = CellCoord::new(self.die, col, row);
+                let cell = self.die.cell(col, row);
                 match kind {
                     ColumnKind::Io => {
                         if let Some((prev, cc)) = prev {
                             self.egrid
-                                .fill_conn_pair_id(prev, cell, ccls::MGT_ROW_NEXT, cc);
+                                .fill_conn_pair_id(prev, cell, ccls::HCLK_ROW_NEXT, cc);
                         }
-                        prev = Some((cell, ccls::MGT_ROW_PREV_PASS));
+                        prev = Some((cell, ccls::HCLK_ROW_PREV_PASS));
                     }
                     ColumnKind::Cfg => {
                         let cell = if row < self.chip.row_bufg() {
@@ -501,20 +501,20 @@ impl Expander<'_, '_> {
                         };
                         if let Some((prev, cc)) = prev {
                             self.egrid
-                                .fill_conn_pair_id(prev, cell, ccls::MGT_ROW_NEXT, cc);
+                                .fill_conn_pair_id(prev, cell, ccls::HCLK_ROW_NEXT, cc);
                         }
                         break;
                     }
                     ColumnKind::Gt => {
-                        prev = Some((cell, ccls::MGT_ROW_PREV));
+                        prev = Some((cell, ccls::HCLK_ROW_PREV));
                     }
                     _ => {
                         if self.chip.cols_mgt_buf.contains(&col) {
                             if let Some((prev, cc)) = prev {
                                 self.egrid
-                                    .fill_conn_pair_id(prev, cell, ccls::MGT_ROW_NEXT, cc);
+                                    .fill_conn_pair_id(prev, cell, ccls::HCLK_ROW_NEXT, cc);
                             }
-                            prev = Some((cell, ccls::MGT_ROW_PREV));
+                            prev = Some((cell, ccls::HCLK_ROW_PREV));
                         }
                     }
                 }
@@ -831,13 +831,13 @@ pub fn expand_grid<'a>(
         frames: [frames].into_iter().collect(),
         col_cfg,
         col_clk: col_cfg,
-        col_lio: Some(cols_io[0]),
-        col_rio: cols_io.get(1).copied(),
-        col_lcio: None,
-        col_rcio: None,
-        col_lgt,
-        col_rgt,
-        col_mgt: None,
+        col_io_w: Some(cols_io[0]),
+        col_io_e: cols_io.get(1).copied(),
+        col_io_iw: None,
+        col_io_ie: None,
+        col_gt_w: col_lgt,
+        col_gt_e: col_rgt,
+        col_gt_m: None,
         row_dcmiob: None,
         row_iobdcm: None,
         io,

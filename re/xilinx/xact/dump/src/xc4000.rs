@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, BelInput, IntDb, TileWireCoord, WireKind},
-    grid::{CellCoord, DieId, EdgeIoCoord},
+    grid::{CellCoord, DieId, DieIdExt, EdgeIoCoord},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, TileNaming};
@@ -454,7 +454,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
         for (net, wire) in queue {
@@ -532,7 +532,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
         for (net, wire) in queue {
@@ -564,7 +564,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                     (net_s, wires::SINGLE_V[i]),
                     (net_w, wires::SINGLE_H_E[i]),
                 ] {
-                    extractor.net_int(net, CellCoord::new(die, col, row).wire(wire));
+                    extractor.net_int(net, die.cell(col, row).wire(wire));
                 }
             }
             for (idx, wire) in [
@@ -578,7 +578,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 (4 * num_sd - 1, wires::DOUBLE_H2[1]),
             ] {
                 let net = extractor.box_net(tile.boxes[0], idx);
-                extractor.net_int(net, CellCoord::new(die, col, row).wire(wire));
+                extractor.net_int(net, die.cell(col, row).wire(wire));
             }
         }
     }
@@ -623,7 +623,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
         {
@@ -659,7 +659,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
     }
@@ -701,7 +701,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
         {
@@ -737,7 +737,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
     }
@@ -772,7 +772,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         ] {
             for (w_anchor, w_dbuf) in [(w_h0, wires::DBUF_IO_H[0]), (w_h1, wires::DBUF_IO_H[1])] {
                 let rw_anchor = edev
-                    .resolve_wire(CellCoord::new(die, col, row).wire(w_anchor))
+                    .resolve_wire(die.cell(col, row).wire(w_anchor))
                     .unwrap();
                 let net = extractor.int_nets[&rw_anchor];
                 let mut nets = vec![];
@@ -790,7 +790,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 }
                 assert_eq!(nets.len(), 1);
                 let net = nets[0];
-                extractor.net_int(net, CellCoord::new(die, col, row).wire(w_dbuf));
+                extractor.net_int(net, die.cell(col, row).wire(w_dbuf));
             }
         }
     }
@@ -820,7 +820,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         ] {
             for (w_anchor, w_dbuf) in [(w_v0, wires::DBUF_IO_V[0]), (w_v1, wires::DBUF_IO_V[1])] {
                 let rw_anchor = edev
-                    .resolve_wire(CellCoord::new(die, col, row).wire(w_anchor))
+                    .resolve_wire(die.cell(col, row).wire(w_anchor))
                     .unwrap();
                 let net = extractor.int_nets[&rw_anchor];
                 let mut nets = vec![];
@@ -838,7 +838,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                 }
                 assert_eq!(nets.len(), 1);
                 let net = nets[0];
-                extractor.net_int(net, CellCoord::new(die, col, row).wire(w_dbuf));
+                extractor.net_int(net, die.cell(col, row).wire(w_dbuf));
             }
         }
     }
@@ -1074,12 +1074,12 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         }
         let wire = wires::DOUBLE_IO_W1[i];
         let rw = edev
-            .resolve_wire(CellCoord::new(die, chip.col_w(), chip.row_s()).wire(wire))
+            .resolve_wire(die.cell(chip.col_w(), chip.row_s()).wire(wire))
             .unwrap();
         let net = extractor.int_nets[&rw];
         let nbto = extractor
             .net_by_cell_override
-            .entry(CellCoord::new(die, chip.col_w(), chip.row_s()))
+            .entry(die.cell(chip.col_w(), chip.row_s()))
             .or_default();
         nbto.insert(net, wire);
     }

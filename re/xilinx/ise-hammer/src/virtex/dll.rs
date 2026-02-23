@@ -1,10 +1,9 @@
 use std::collections::BTreeMap;
 
-use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, BelSlotId},
-    dir::DirH,
-    grid::{CellCoord, DieId, TileCoord},
+    dir::{DirH, DirHV},
+    grid::TileCoord,
 };
 use prjcombine_re_collector::legacy::{xlat_bit_bi_legacy, xlat_bit_legacy, xlat_enum_legacy};
 use prjcombine_re_fpga_hammer::FuzzerProp;
@@ -139,10 +138,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             continue;
         };
         let mut bctx = ctx.bel(defs::bslots::DLL);
-        let cnr_tl = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_n())
-            .tile(defs::tslots::MAIN);
+        let cnr_nw = edev.chip.corner(DirHV::NW);
         bctx.build()
-            .extra_tile_attr_fixed_legacy(cnr_tl, "MISC", "DLL_ENABLE", "1")
+            .extra_tile_attr_fixed_legacy(cnr_nw, "MISC", "DLL_ENABLE", "1")
             .global_mutex_here("DLL")
             .test_manual_legacy("PRESENT", "1")
             .mode("DLL")

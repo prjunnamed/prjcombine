@@ -41,9 +41,9 @@ impl TileRelation for Rclk {
             unreachable!()
         };
         let col = if tcrd.col <= edev.col_clk {
-            edev.col_lio.unwrap()
+            edev.col_io_w.unwrap()
         } else {
-            edev.col_rio.unwrap()
+            edev.col_io_e.unwrap()
         };
         Some(tcrd.with_col(col).tile(defs::tslots::HCLK_BEL))
     }
@@ -215,7 +215,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_bel_attr_bool_auto(bcls::BUFGCTRL::INIT_OUT, "0", "1");
         }
         for (ct, co, cf) in [(0, 0, 0), (0, 5, 20), (10, 0, 10), (10, 5, 21)] {
-            if co == 0 && edev.col_lgt.is_none() {
+            if co == 0 && edev.col_gt_w.is_none() {
                 continue;
             }
             for i in 0..5 {
@@ -281,7 +281,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let mut builder = bctx.build().prop(WireMutexExclusive::new(dst));
                 if let Some(idx) = wires::MGT_BUF.index_of(src.wire) {
                     if idx < 5
-                        && edev.col_lgt.is_none()
+                        && edev.col_gt_w.is_none()
                         && !matches!(tcid, tcls::CLK_IOB_S | tcls::CLK_IOB_N)
                     {
                         continue;
@@ -471,7 +471,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         for (ct, co, cf) in [(0, 0, 0), (0, 5, 20), (10, 0, 10), (10, 5, 21)] {
-            if co == 0 && edev.col_lgt.is_none() {
+            if co == 0 && edev.col_gt_w.is_none() {
                 continue;
             }
             for i in 0..5 {
@@ -546,7 +546,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         for i in 0..10 {
-            if i < 5 && edev.col_lgt.is_none() && !matches!(tcid, tcls::CLK_IOB_S | tcls::CLK_IOB_N)
+            if i < 5
+                && edev.col_gt_w.is_none()
+                && !matches!(tcid, tcls::CLK_IOB_S | tcls::CLK_IOB_N)
             {
                 continue;
             }
@@ -577,7 +579,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         wires::MGT_ROW_I[idx - 5].cell(10)
                     };
                     if idx < 5
-                        && edev.col_lgt.is_none()
+                        && edev.col_gt_w.is_none()
                         && !matches!(tcid, tcls::CLK_IOB_S | tcls::CLK_IOB_N)
                     {
                         continue;

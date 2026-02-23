@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::{IntDb, TileClassId},
     dir::{DirH, DirHV, DirV},
-    grid::{CellCoord, ColId, DieId, RowId, builder::GridBuilder},
+    grid::{ColId, DieId, DieIdExt, RowId, builder::GridBuilder},
 };
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
@@ -405,15 +405,15 @@ impl Chip {
                     }
                 }
                 {
-                    let cell = CellCoord::new(die, self.col_mid(), self.row_s());
+                    let cell = die.cell(self.col_mid(), self.row_s());
                     egrid.add_tile_id(cell, xc3000::tcls::LLH_S, &[cell.delta(-1, 0), cell]);
-                    let cell = CellCoord::new(die, self.col_mid(), self.row_n());
+                    let cell = die.cell(self.col_mid(), self.row_n());
                     egrid.add_tile_id(cell, xc3000::tcls::LLH_N, &[cell.delta(-1, 0), cell]);
                 }
                 if self.is_small {
-                    let cell = CellCoord::new(die, self.col_w(), self.row_mid());
+                    let cell = die.cell(self.col_w(), self.row_mid());
                     egrid.add_tile_id(cell, xc3000::tcls::LLVS_W, &[cell.delta(0, -1), cell]);
-                    let cell = CellCoord::new(die, self.col_e(), self.row_mid());
+                    let cell = die.cell(self.col_e(), self.row_mid());
                     egrid.add_tile_id(cell, xc3000::tcls::LLVS_E, &[cell.delta(0, -1), cell]);
                 } else {
                     for cell in egrid.row(die, self.row_mid()) {
@@ -427,7 +427,7 @@ impl Chip {
                         egrid.add_tile_id(cell, tcid, &[cell.delta(0, -1), cell]);
                     }
                 }
-                let cell = CellCoord::new(die, self.col_e(), self.row_mid());
+                let cell = die.cell(self.col_e(), self.row_mid());
                 egrid.add_tile_id(cell, xc3000::tcls::MISC_E, &[]);
                 for cell in egrid.die_cells(die) {
                     egrid[cell].region_root[xc3000::rslots::GLOBAL] =
@@ -640,7 +640,7 @@ impl Chip {
                     if self.kind == ChipKind::Xc4000Xv {
                         for row in [self.row_q(DirV::S), self.row_q(DirV::N)] {
                             for col in [self.col_q(DirH::W), self.col_q(DirH::E)] {
-                                let cell = CellCoord::new(die, col, row);
+                                let cell = die.cell(col, row);
                                 egrid.add_tile_id(
                                     cell,
                                     xc4000::xc4000::tcls::CLKQ,
@@ -650,11 +650,11 @@ impl Chip {
                         }
                     } else {
                         egrid.add_tile_single_id(
-                            CellCoord::new(die, self.col_mid(), self.row_q(DirV::S)),
+                            die.cell(self.col_mid(), self.row_q(DirV::S)),
                             xc4000::xc4000::tcls::CLKQC,
                         );
                         egrid.add_tile_single_id(
-                            CellCoord::new(die, self.col_mid(), self.row_q(DirV::N)),
+                            die.cell(self.col_mid(), self.row_q(DirV::N)),
                             xc4000::xc4000::tcls::CLKQC,
                         );
                     }
@@ -815,19 +815,19 @@ impl Chip {
                 }
 
                 egrid.fill_conn_term_id(
-                    CellCoord::new(die, self.col_w(), self.row_s()),
+                    die.cell(self.col_w(), self.row_s()),
                     xc4000::xc4000::ccls::CNR_SW,
                 );
                 egrid.fill_conn_term_id(
-                    CellCoord::new(die, self.col_e(), self.row_s()),
+                    die.cell(self.col_e(), self.row_s()),
                     xc4000::xc4000::ccls::CNR_SE,
                 );
                 egrid.fill_conn_term_id(
-                    CellCoord::new(die, self.col_w(), self.row_n()),
+                    die.cell(self.col_w(), self.row_n()),
                     xc4000::xc4000::ccls::CNR_NW,
                 );
                 egrid.fill_conn_term_id(
-                    CellCoord::new(die, self.col_e(), self.row_n()),
+                    die.cell(self.col_e(), self.row_n()),
                     xc4000::xc4000::ccls::CNR_NE,
                 );
 
@@ -983,22 +983,10 @@ impl Chip {
                         });
                 }
 
-                egrid.fill_conn_term_id(
-                    CellCoord::new(die, self.col_w(), self.row_s()),
-                    xc5200::ccls::CNR_SW,
-                );
-                egrid.fill_conn_term_id(
-                    CellCoord::new(die, self.col_e(), self.row_s()),
-                    xc5200::ccls::CNR_SE,
-                );
-                egrid.fill_conn_term_id(
-                    CellCoord::new(die, self.col_w(), self.row_n()),
-                    xc5200::ccls::CNR_NW,
-                );
-                egrid.fill_conn_term_id(
-                    CellCoord::new(die, self.col_e(), self.row_n()),
-                    xc5200::ccls::CNR_NE,
-                );
+                egrid.fill_conn_term_id(die.cell(self.col_w(), self.row_s()), xc5200::ccls::CNR_SW);
+                egrid.fill_conn_term_id(die.cell(self.col_e(), self.row_s()), xc5200::ccls::CNR_SE);
+                egrid.fill_conn_term_id(die.cell(self.col_w(), self.row_n()), xc5200::ccls::CNR_NW);
+                egrid.fill_conn_term_id(die.cell(self.col_e(), self.row_n()), xc5200::ccls::CNR_NE);
 
                 for row in egrid.rows(die) {
                     if row == self.row_mid() {

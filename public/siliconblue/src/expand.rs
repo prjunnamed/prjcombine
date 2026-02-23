@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::IntDb,
     dir::Dir,
-    grid::{CellCoord, builder::GridBuilder},
+    grid::{DieIdExt, builder::GridBuilder},
 };
 
 use crate::{
@@ -77,7 +77,7 @@ impl Chip {
 
         for &row in &self.rows_mac16 {
             for col in [self.col_w(), self.col_e()] {
-                let cell = CellCoord::new(die, col, row);
+                let cell = die.cell(col, row);
                 let kind =
                     if self.kind == ChipKind::Ice40T05 && col == self.col_w() && row.to_idx() == 15
                     {
@@ -118,8 +118,7 @@ impl Chip {
         }
 
         for cell in egrid.die_cells(die) {
-            egrid[cell].region_root[regions::GLOBAL] =
-                CellCoord::new(die, self.col_w(), self.row_s());
+            egrid[cell].region_root[regions::GLOBAL] = die.cell(self.col_w(), self.row_s());
             egrid[cell].region_root[regions::COLBUF] = cell.with_row(self.row_mid);
         }
 
@@ -155,10 +154,10 @@ impl Chip {
             }
         }
 
-        let cnr_ws = CellCoord::new(die, self.col_w(), self.row_s());
-        let cnr_wn = CellCoord::new(die, self.col_w(), self.row_n());
-        let cnr_es = CellCoord::new(die, self.col_e(), self.row_s());
-        let cnr_en = CellCoord::new(die, self.col_e(), self.row_n());
+        let cnr_ws = die.cell(self.col_w(), self.row_s());
+        let cnr_wn = die.cell(self.col_w(), self.row_n());
+        let cnr_es = die.cell(self.col_e(), self.row_s());
+        let cnr_en = die.cell(self.col_e(), self.row_n());
         if self.kind.has_ioi_we() {
             for i in 0..4 {
                 for j in 0..4 {

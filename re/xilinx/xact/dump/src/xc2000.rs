@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, IntDb, SwitchBoxItem, TileWireCoord, WireKind},
-    grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId},
+    grid::{ColId, DieId, DieIdExt, EdgeIoCoord, RowId},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, TileNaming};
@@ -219,7 +219,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         };
         assert_eq!(nets.len(), wires.len());
         for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-            extractor.net_int(net, CellCoord::new(die, col, row).wire(wire));
+            extractor.net_int(net, die.cell(col, row).wire(wire));
         }
     }
     // long horizontals
@@ -249,7 +249,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         };
         assert_eq!(nets.len(), wires.len());
         for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-            extractor.net_int(net, CellCoord::new(die, col, row).wire(wire));
+            extractor.net_int(net, die.cell(col, row).wire(wire));
         }
     }
 
@@ -299,7 +299,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
     }
@@ -350,7 +350,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                queue.push((net, CellCoord::new(die, col, row).wire(wire)));
+                queue.push((net, die.cell(col, row).wire(wire)));
             }
         }
     }
@@ -363,10 +363,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     for (box_id, boxx) in &extractor.die.boxes {
         let col = xlut.binary_search(&usize::from(boxx.bx)).unwrap_err();
         let row = ylut.binary_search(&usize::from(boxx.by)).unwrap_err();
-        extractor.own_box(
-            box_id,
-            CellCoord::new(die, col, row).tile(defs::tslots::MAIN),
-        );
+        extractor.own_box(box_id, die.cell(col, row).tile(defs::tslots::MAIN));
     }
 
     for (wire, name, &kind) in &intdb.wires {

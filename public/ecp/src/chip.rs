@@ -4,7 +4,7 @@ use bincode::{Decode, Encode};
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     dir::{Dir, DirH, DirHV, DirV},
-    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
+    grid::{BelCoord, CellCoord, ColId, DieId, DieIdExt, EdgeIoCoord, RowId, TileIobId},
 };
 
 use crate::bels;
@@ -450,6 +450,9 @@ impl Display for SpecialLocKey {
 }
 
 impl Chip {
+    // always single die
+    pub const DIE: DieId = DieId::from_idx_const(0);
+
     pub fn col_w(&self) -> ColId {
         self.columns.first_id().unwrap()
     }
@@ -490,7 +493,7 @@ impl Chip {
                 _ => unreachable!(),
             };
             let slot = bels::IO[iob.to_idx() - 4];
-            CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
+            Self::DIE.cell(col, row).bel(slot)
         } else {
             let (col, row, iob) = match io {
                 EdgeIoCoord::N(col, iob) => (col, self.row_n(), iob),
@@ -499,7 +502,7 @@ impl Chip {
                 EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
             };
             let slot = bels::IO[iob.to_idx()];
-            CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
+            Self::DIE.cell(col, row).bel(slot)
         }
     }
 
@@ -643,11 +646,15 @@ impl Chip {
     pub fn bel_cibtest_sel(&self) -> BelCoord {
         assert_eq!(self.kind, ChipKind::MachXo);
         assert!(self.special_loc.contains_key(&SpecialLocKey::Ebr(0)));
-        CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_n() - 1).bel(bels::CIBTEST_SEL)
+        Self::DIE
+            .cell(self.col_w(), self.row_n() - 1)
+            .bel(bels::CIBTEST_SEL)
     }
 
     pub fn bel_clk_root(&self) -> BelCoord {
-        CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_clk).bel(bels::CLK_ROOT)
+        Self::DIE
+            .cell(self.col_clk, self.row_clk)
+            .bel(bels::CLK_ROOT)
     }
 
     pub fn bel_dqsdll(&self, io: CellCoord) -> BelCoord {
@@ -676,12 +683,12 @@ impl Chip {
     pub fn bel_dqsdll_ecp(&self, edge: DirV) -> BelCoord {
         assert!(matches!(self.kind, ChipKind::Ecp | ChipKind::Xp));
         match edge {
-            DirV::S => {
-                CellCoord::new(DieId::from_idx(0), self.col_clk - 2, self.row_s()).bel(bels::DQSDLL)
-            }
-            DirV::N => {
-                CellCoord::new(DieId::from_idx(0), self.col_clk + 1, self.row_n()).bel(bels::DQSDLL)
-            }
+            DirV::S => Self::DIE
+                .cell(self.col_clk - 2, self.row_s())
+                .bel(bels::DQSDLL),
+            DirV::N => Self::DIE
+                .cell(self.col_clk + 1, self.row_n())
+                .bel(bels::DQSDLL),
         }
     }
 
@@ -690,17 +697,18 @@ impl Chip {
             ChipKind::Ecp2 | ChipKind::Ecp2M => self.special_loc
                 [&SpecialLocKey::Pll(PllLoc::new_hv(edge, DirV::S, 0))]
                 .bel(bels::DQSDLL),
-            ChipKind::Xp2 => CellCoord::new(DieId::from_idx(0), self.col_edge(edge), self.row_clk)
+            ChipKind::Xp2 => Self::DIE
+                .cell(self.col_edge(edge), self.row_clk)
                 .bel(bels::DQSDLL),
-            ChipKind::Ecp3 | ChipKind::Ecp3A => CellCoord::new(
-                DieId::from_idx(0),
-                match edge {
-                    DirH::W => self.col_w() + 1,
-                    DirH::E => self.col_e() - 1,
-                },
-                self.row_clk,
-            )
-            .bel(bels::DQSDLL),
+            ChipKind::Ecp3 | ChipKind::Ecp3A => Self::DIE
+                .cell(
+                    match edge {
+                        DirH::W => self.col_w() + 1,
+                        DirH::E => self.col_e() - 1,
+                    },
+                    self.row_clk,
+                )
+                .bel(bels::DQSDLL),
             _ => unreachable!(),
         }
     }
@@ -711,18 +719,18 @@ impl Chip {
             ChipKind::Ecp2 | ChipKind::Ecp2M | ChipKind::Xp2
         ));
         match edge {
-            Dir::W => {
-                CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk).bel(bels::ECLK_ROOT)
-            }
-            Dir::E => {
-                CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk).bel(bels::ECLK_ROOT)
-            }
-            Dir::S => {
-                CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_s()).bel(bels::ECLK_ROOT)
-            }
-            Dir::N => {
-                CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_n()).bel(bels::ECLK_ROOT)
-            }
+            Dir::W => Self::DIE
+                .cell(self.col_w(), self.row_clk)
+                .bel(bels::ECLK_ROOT),
+            Dir::E => Self::DIE
+                .cell(self.col_e(), self.row_clk)
+                .bel(bels::ECLK_ROOT),
+            Dir::S => Self::DIE
+                .cell(self.col_clk, self.row_s())
+                .bel(bels::ECLK_ROOT),
+            Dir::N => Self::DIE
+                .cell(self.col_clk, self.row_n())
+                .bel(bels::ECLK_ROOT),
         }
     }
 
@@ -739,20 +747,25 @@ impl Chip {
     pub fn bel_eclksync(&self, edge: Dir, idx: usize) -> BelCoord {
         match self.kind {
             ChipKind::Ecp3 | ChipKind::Ecp3A => match edge {
-                Dir::W => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
+                Dir::W => Self::DIE
+                    .cell(self.col_w(), self.row_clk)
                     .bel(bels::ECLKSYNC[idx]),
-                Dir::E => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
+                Dir::E => Self::DIE
+                    .cell(self.col_e(), self.row_clk)
                     .bel(bels::ECLKSYNC[idx]),
                 Dir::S => unreachable!(),
-                Dir::N => CellCoord::new(DieId::from_idx(0), self.col_clk - 1, self.row_n())
+                Dir::N => Self::DIE
+                    .cell(self.col_clk - 1, self.row_n())
                     .bel(bels::ECLKSYNC[idx]),
             },
             ChipKind::MachXo2(_) => match edge {
                 Dir::W => unreachable!(),
                 Dir::E => unreachable!(),
-                Dir::S => CellCoord::new(DieId::from_idx(0), self.col_clk - 1, self.row_s())
+                Dir::S => Self::DIE
+                    .cell(self.col_clk - 1, self.row_s())
                     .bel(bels::ECLKSYNC[idx]),
-                Dir::N => CellCoord::new(DieId::from_idx(0), self.col_clk - 1, self.row_n())
+                Dir::N => Self::DIE
+                    .cell(self.col_clk - 1, self.row_n())
                     .bel(bels::ECLKSYNC[idx]),
             },
             _ => unreachable!(),
@@ -762,22 +775,28 @@ impl Chip {
     pub fn bel_eclksync_bank(&self, bank: u32, idx: usize) -> BelCoord {
         match self.kind {
             ChipKind::Ecp4 => match bank {
-                0..4 => CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_n())
+                0..4 => Self::DIE
+                    .cell(self.col_clk, self.row_n())
                     .bel(bels::ECLKSYNC[(bank as usize) * 4 + idx]),
-                4..6 => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
+                4..6 => Self::DIE
+                    .cell(self.col_e(), self.row_clk)
                     .bel(bels::ECLKSYNC[(5 - bank as usize) * 4 + idx]),
-                6..8 => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
+                6..8 => Self::DIE
+                    .cell(self.col_w(), self.row_clk)
                     .bel(bels::ECLKSYNC[(bank as usize - 6) * 4 + idx]),
                 _ => unreachable!(),
             },
             ChipKind::Ecp5 => match bank {
-                2..4 => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
+                2..4 => Self::DIE
+                    .cell(self.col_e(), self.row_clk)
                     .bel(bels::ECLKSYNC[(3 - bank as usize) * 2 + idx]),
-                6..8 => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
+                6..8 => Self::DIE
+                    .cell(self.col_w(), self.row_clk)
                     .bel(bels::ECLKSYNC[(bank as usize - 6) * 2 + idx]),
                 _ => unreachable!(),
             },
-            ChipKind::Crosslink => CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_s())
+            ChipKind::Crosslink => Self::DIE
+                .cell(self.col_clk, self.row_s())
                 .bel(bels::ECLKSYNC[(2 - bank as usize) * 2 + idx]),
             _ => unreachable!(),
         }
@@ -786,11 +805,14 @@ impl Chip {
     pub fn bel_clock_dlldel(&self, edge: Dir, idx: usize) -> BelCoord {
         assert_eq!(self.kind, ChipKind::Ecp4);
         match edge {
-            Dir::N => CellCoord::new(DieId::from_idx(0), self.col_clk, self.row_n())
+            Dir::N => Self::DIE
+                .cell(self.col_clk, self.row_n())
                 .bel(bels::DLLDEL[idx]),
-            Dir::W => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_clk)
+            Dir::W => Self::DIE
+                .cell(self.col_w(), self.row_clk)
                 .bel(bels::DLLDEL[idx]),
-            Dir::E => CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_clk)
+            Dir::E => Self::DIE
+                .cell(self.col_e(), self.row_clk)
                 .bel(bels::DLLDEL[idx]),
             _ => unreachable!(),
         }
@@ -800,22 +822,22 @@ impl Chip {
         match self.kind {
             ChipKind::Scm => {
                 assert_eq!(edge, DirV::N);
-                CellCoord::new(DieId::from_idx(0), col, self.row_n() - 12).bel(bels::SERDES)
+                Self::DIE.cell(col, self.row_n() - 12).bel(bels::SERDES)
             }
             ChipKind::Ecp2M => {
                 let row = match edge {
                     DirV::S => self.row_s() + 7,
                     DirV::N => self.row_n() - 7,
                 };
-                CellCoord::new(DieId::from_idx(0), col, row).bel(bels::SERDES)
+                Self::DIE.cell(col, row).bel(bels::SERDES)
             }
             ChipKind::Ecp3 | ChipKind::Ecp3A => {
                 assert_eq!(edge, DirV::S);
-                CellCoord::new(DieId::from_idx(0), col, self.row_s() + 9).bel(bels::SERDES)
+                Self::DIE.cell(col, self.row_s() + 9).bel(bels::SERDES)
             }
             ChipKind::Ecp5 => {
                 assert_eq!(edge, DirV::S);
-                CellCoord::new(DieId::from_idx(0), col, self.row_s()).bel(bels::SERDES)
+                Self::DIE.cell(col, self.row_s()).bel(bels::SERDES)
             }
             _ => unreachable!(),
         }
@@ -823,7 +845,7 @@ impl Chip {
 
     pub fn bel_mipi(&self, col: ColId) -> BelCoord {
         assert_eq!(self.kind, ChipKind::Crosslink);
-        CellCoord::new(DieId::from_idx(0), col, self.row_n()).bel(bels::MIPI)
+        Self::DIE.cell(col, self.row_n()).bel(bels::MIPI)
     }
 
     pub fn btile_term_width(&self, _col: ColId) -> usize {

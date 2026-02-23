@@ -10,13 +10,13 @@ use crate::{
 };
 
 const PCIE_INVPINS: &[BelInputId] = &[
-    bcls::PCIE::CRMCORECLK,
-    bcls::PCIE::CRMCORECLKDLO,
-    bcls::PCIE::CRMCORECLKRXO,
-    bcls::PCIE::CRMCORECLKTXO,
-    bcls::PCIE::CRMUSERCLK,
-    bcls::PCIE::CRMUSERCLKRXO,
-    bcls::PCIE::CRMUSERCLKTXO,
+    bcls::PCIE_V5::CRMCORECLK,
+    bcls::PCIE_V5::CRMCORECLKDLO,
+    bcls::PCIE_V5::CRMCORECLKRXO,
+    bcls::PCIE_V5::CRMCORECLKTXO,
+    bcls::PCIE_V5::CRMUSERCLK,
+    bcls::PCIE_V5::CRMUSERCLKRXO,
+    bcls::PCIE_V5::CRMUSERCLKTXO,
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
@@ -35,14 +35,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for &pin in PCIE_INVPINS {
         bctx.mode(mode).test_bel_input_inv_auto(pin);
     }
-    for (aid, _, attr) in &backend.edev.db[bcls::PCIE].attributes {
+    for (aid, _, attr) in &backend.edev.db[bcls::PCIE_V5].attributes {
         match attr.typ {
             BelAttributeType::Bool => {
                 bctx.mode(mode)
                     .test_bel_attr_bool_auto(aid, "FALSE", "TRUE");
             }
             BelAttributeType::BitVec(_width) => match aid {
-                bcls::PCIE::TXTSNFTS | bcls::PCIE::TXTSNFTSCOMCLK => {
+                bcls::PCIE_V5::TXTSNFTS | bcls::PCIE_V5::TXTSNFTSCOMCLK => {
                     bctx.mode(mode).test_bel_attr_multi(aid, MultiValue::Dec(0));
                 }
                 _ => {
@@ -71,7 +71,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for &pin in PCIE_INVPINS {
         ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
     }
-    for (aid, _, attr) in &ctx.edev.db[bcls::PCIE].attributes {
+    for (aid, _, attr) in &ctx.edev.db[bcls::PCIE_V5].attributes {
         match attr.typ {
             BelAttributeType::Bool => {
                 ctx.collect_bel_attr_bi(tcid, bslot, aid);

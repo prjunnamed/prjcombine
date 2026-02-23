@@ -1,12 +1,12 @@
 use prjcombine_ecp::{
     bels,
-    chip::{RowKind, SpecialIoKey, SpecialLocKey},
+    chip::{Chip, RowKind, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{CellSlotId, LegacyBel},
     dir::{Dir, DirHV, DirV},
-    grid::{BelCoord, CellCoord, DieId, EdgeIoCoord},
+    grid::{BelCoord, CellCoord, DieIdExt, EdgeIoCoord},
 };
 
 use crate::ChipContext;
@@ -31,7 +31,7 @@ impl ChipContext<'_> {
                 7 => (self.chip.col_w(), self.chip.row_n(), "L", true),
                 _ => unreachable!(),
             };
-            let cell = CellCoord::new(DieId::from_idx(0), col, row);
+            let cell = Chip::DIE.cell(col, row);
             for (bel, name, pin_out, pin_in) in [
                 (bels::BCPG, "BCPG", "PGENO", "PGENI"),
                 (bels::BCINRD, "BCINRD", "INRDENO", "INRDENI"),
@@ -95,9 +95,9 @@ impl ChipContext<'_> {
     }
 
     pub(super) fn process_eclk_ecp4(&mut self) {
-        let cell_n = CellCoord::new(DieId::from_idx(0), self.chip.col_clk, self.chip.row_n());
-        let cell_w = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_clk);
-        let cell_e = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_clk);
+        let cell_n = Chip::DIE.cell(self.chip.col_clk, self.chip.row_n());
+        let cell_w = Chip::DIE.cell(self.chip.col_w(), self.chip.row_clk);
+        let cell_e = Chip::DIE.cell(self.chip.col_e(), self.chip.row_clk);
         for (edge, bank_idx) in [
             (Dir::N, 0),
             (Dir::N, 1),
@@ -425,8 +425,8 @@ impl ChipContext<'_> {
                 [2, 4].as_slice(),
             ),
         ] {
-            let bcrd = CellCoord::new(DieId::from_idx(0), col, row).bel(bels::DDRDLL);
-            let cell = CellCoord::new(DieId::from_idx(0), ncol, row);
+            let bcrd = Chip::DIE.cell(col, row).bel(bels::DDRDLL);
+            let cell = Chip::DIE.cell(ncol, row);
             self.name_bel(bcrd, [name]);
             let mut bel = LegacyBel::default();
             for pin in [
@@ -483,9 +483,9 @@ impl ChipContext<'_> {
     }
 
     pub(super) fn process_dlldel_ecp4(&mut self) {
-        let cell_n = CellCoord::new(DieId::from_idx(0), self.chip.col_clk, self.chip.row_n());
-        let cell_w = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_clk);
-        let cell_e = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_clk);
+        let cell_n = Chip::DIE.cell(self.chip.col_clk, self.chip.row_n());
+        let cell_w = Chip::DIE.cell(self.chip.col_w(), self.chip.row_clk);
+        let cell_e = Chip::DIE.cell(self.chip.col_e(), self.chip.row_clk);
         for (name, edge, idx) in [
             ("00", Dir::N, 0),
             ("01", Dir::N, 1),
@@ -952,9 +952,9 @@ impl ChipContext<'_> {
     }
 
     pub(super) fn process_clkdiv_ecp4(&mut self) {
-        let cell_n = CellCoord::new(DieId::from_idx(0), self.chip.col_clk, self.chip.row_n());
-        let cell_w = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_clk);
-        let cell_e = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_clk);
+        let cell_n = Chip::DIE.cell(self.chip.col_clk, self.chip.row_n());
+        let cell_w = Chip::DIE.cell(self.chip.col_w(), self.chip.row_clk);
+        let cell_e = Chip::DIE.cell(self.chip.col_e(), self.chip.row_clk);
         for (lrt, cell_tile, cell) in [
             ('T', cell_n, cell_n.delta(-1, 0)),
             ('L', cell_w, cell_w),
@@ -1010,9 +1010,9 @@ impl ChipContext<'_> {
         } else {
             unreachable!()
         };
-        let cell_pcs = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_s());
+        let cell_pcs = Chip::DIE.cell(self.chip.col_w(), self.chip.row_s());
 
-        let cell_tile = CellCoord::new(DieId::from_idx(0), self.chip.col_clk, self.chip.row_s());
+        let cell_tile = Chip::DIE.cell(self.chip.col_clk, self.chip.row_s());
         let cell = cell_tile.delta(-1, 0);
         for i in 0..4 {
             let bcrd = cell_tile.bel(bels::PCSCLKDIV[i]);

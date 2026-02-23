@@ -1,7 +1,6 @@
-use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelKind, TileWireCoord},
-    grid::{CellCoord, DieId},
+    dir::DirHV,
 };
 use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_enum_attr, xlat_enum_raw};
 use prjcombine_re_hammer::Session;
@@ -17,7 +16,6 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let grid = backend.edev.chip;
     for (tcid, _, tcls) in &backend.edev.db.tile_classes {
         if tcls.slot != tslots::MAIN {
             continue;
@@ -87,8 +85,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             bctx.test_attr_global(bcls::MISC_SE::RESETTIME);
 
             let mut bctx = ctx.bel(bslots::OSC);
-            let tcrd =
-                CellCoord::new(DieId::from_idx(0), grid.col_e(), grid.row_s()).tile(tslots::MAIN);
+            let tcrd = backend.edev.chip.corner(DirHV::SE);
             let wt = TileWireCoord::new_idx(0, wires::IMUX_BUFG);
             let wf = TileWireCoord::new_idx(0, wires::OUT_OSC);
             let crd = backend.ngrid.int_pip(tcrd, wt, wf);

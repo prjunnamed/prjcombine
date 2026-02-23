@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::builder::GridBuilder;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, Rect, RowId, TileIobId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, DieIdExt, Rect, RowId, TileIobId};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
@@ -56,7 +56,7 @@ impl Expander<'_, '_> {
 
     fn fill_holes(&mut self) {
         for &(bc, br) in &self.chip.holes_ppc {
-            let cell = CellCoord::new(self.die, bc, br);
+            let cell = self.die.cell(bc, br);
             self.int_holes.push(cell.delta(1, 1).rect(7, 22));
             self.site_holes.push(cell.rect(9, 24));
         }
@@ -106,7 +106,7 @@ impl Expander<'_, '_> {
         let row_cfg = self.chip.row_bufg();
         // CFG_CENTER
         {
-            let cell = CellCoord::new(self.die, col, row_cfg);
+            let cell = self.die.cell(col, row_cfg);
             self.site_holes.push(cell.delta(0, -8).rect(1, 16));
             let mut tcells = cell.delta(0, -8).cells_n(16);
             for &cell in &tcells {
@@ -120,7 +120,7 @@ impl Expander<'_, '_> {
         let mut row_dcmiob = RowId::from_idx(0);
         let mut row_iobdcm = RowId::from_idx(self.chip.rows().len());
         for &(row, kind) in &self.chip.rows_cfg {
-            let cell = CellCoord::new(self.die, col, row);
+            let cell = self.die.cell(col, row);
             match kind {
                 CfgRowKind::Sysmon => {
                     self.site_holes.push(cell.rect(1, 8));
@@ -274,22 +274,22 @@ impl Expander<'_, '_> {
 
         {
             let row = self.row_dcmiob.unwrap();
-            let cell = CellCoord::new(self.die, col, row);
+            let cell = self.die.cell(col, row);
             self.egrid.add_tile_n_id(cell, tcls::CLK_IOB_S, 16);
         }
         {
             let row: RowId = self.row_iobdcm.unwrap() - 16;
-            let cell = CellCoord::new(self.die, col, row);
+            let cell = self.die.cell(col, row);
             self.egrid.add_tile_n_id(cell, tcls::CLK_IOB_N, 16);
         }
         {
             let row = self.chip.rows().first().unwrap();
-            let cell = CellCoord::new(self.die, col, row);
+            let cell = self.die.cell(col, row);
             self.egrid.add_tile_single_id(cell, tcls::CLK_TERM);
         }
         {
             let row = self.chip.rows().last().unwrap();
-            let cell = CellCoord::new(self.die, col, row);
+            let cell = self.die.cell(col, row);
             self.egrid.add_tile_single_id(cell, tcls::CLK_TERM);
         }
 
@@ -319,7 +319,7 @@ impl Expander<'_, '_> {
 
     fn fill_ppc(&mut self) {
         for &(bc, br) in &self.chip.holes_ppc {
-            let cell = CellCoord::new(self.die, bc, br);
+            let cell = self.die.cell(bc, br);
             for dy in 1..23 {
                 self.egrid.fill_conn_pair_id(
                     cell.delta(0, dy),
@@ -485,7 +485,7 @@ impl Expander<'_, '_> {
                     continue;
                 }
                 let row = self.chip.row_reg_bot(reg);
-                let cell = CellCoord::new(self.die, col, row);
+                let cell = self.die.cell(col, row);
                 let tcells = cell.cells_n_const::<32>();
                 for cell in tcells {
                     self.egrid.add_tile_single_id(cell, tcls::INTF);
@@ -793,11 +793,9 @@ pub fn expand_grid<'a>(
         cfg_io.insert(
             SharedCfgPad::Data(i as u8),
             IoCoord {
-                cell: CellCoord::new(
-                    DieId::from_idx(0),
-                    col_cfg,
-                    chip.row_reg_bot(chip.reg_cfg) - 16 + i / 2,
-                ),
+                cell: expander
+                    .die
+                    .cell(col_cfg, chip.row_reg_bot(chip.reg_cfg) - 16 + i / 2),
                 iob: TileIobId::from_idx(i & 1),
             },
         );
@@ -806,11 +804,9 @@ pub fn expand_grid<'a>(
         cfg_io.insert(
             SharedCfgPad::Data(i as u8 + 16),
             IoCoord {
-                cell: CellCoord::new(
-                    DieId::from_idx(0),
-                    col_cfg,
-                    chip.row_reg_bot(chip.reg_cfg) + 8 + i / 2,
-                ),
+                cell: expander
+                    .die
+                    .cell(col_cfg, chip.row_reg_bot(chip.reg_cfg) + 8 + i / 2),
                 iob: TileIobId::from_idx(i & 1),
             },
         );
@@ -829,13 +825,13 @@ pub fn expand_grid<'a>(
         frames: [frames].into_iter().collect(),
         col_cfg,
         col_clk: col_cfg,
-        col_lio: Some(cols_io[0]),
-        col_rio: Some(cols_io[1]),
-        col_lcio: None,
-        col_rcio: None,
-        col_lgt,
-        col_rgt,
-        col_mgt: None,
+        col_io_w: Some(cols_io[0]),
+        col_io_e: Some(cols_io[1]),
+        col_io_iw: None,
+        col_io_ie: None,
+        col_gt_w: col_lgt,
+        col_gt_e: col_rgt,
+        col_gt_m: None,
         row_dcmiob,
         row_iobdcm,
         io,

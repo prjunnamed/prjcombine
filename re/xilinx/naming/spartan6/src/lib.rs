@@ -1,5 +1,8 @@
 use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId};
+use prjcombine_interconnect::{
+    dir::DirHV,
+    grid::{CellCoord, ColId, EdgeIoCoord, RowId},
+};
 use prjcombine_re_xilinx_naming::{
     db::NamingDb,
     grid::{BelGrid, ExpandedGridNaming},
@@ -61,22 +64,11 @@ impl<'a> ExpandedNamedDevice<'a> {
         if self.edev.disabled.contains(&DisabledPart::Gtp) {
             vec![]
         } else {
-            match self.chip.gts {
-                Gts::None => vec![],
-                Gts::Single(cl) => {
-                    vec![self.get_gt(CellCoord::new(DieId::from_idx(0), cl, self.chip.row_n()))]
-                }
-                Gts::Double(cl, cr) => vec![
-                    self.get_gt(CellCoord::new(DieId::from_idx(0), cl, self.chip.row_n())),
-                    self.get_gt(CellCoord::new(DieId::from_idx(0), cr, self.chip.row_n())),
-                ],
-                Gts::Quad(cl, cr) => vec![
-                    self.get_gt(CellCoord::new(DieId::from_idx(0), cl, self.chip.row_n())),
-                    self.get_gt(CellCoord::new(DieId::from_idx(0), cr, self.chip.row_n())),
-                    self.get_gt(CellCoord::new(DieId::from_idx(0), cl, self.chip.row_s())),
-                    self.get_gt(CellCoord::new(DieId::from_idx(0), cr, self.chip.row_s())),
-                ],
-            }
+            DirHV::DIRS
+                .into_iter()
+                .filter_map(|side| self.chip.bel_gtp(side))
+                .map(|bcrd| self.get_gt(bcrd.cell))
+                .collect()
         }
     }
 }

@@ -4,7 +4,7 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::BelAttributeId,
     dir::DirHV,
-    grid::{CellCoord, DieId, TileCoord},
+    grid::{DieId, TileCoord},
 };
 use prjcombine_re_collector::diff::{
     Diff, DiffKey, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_bi,
@@ -20,7 +20,7 @@ use prjcombine_types::{
     bsdata::{BitRectId, RectBitId, RectFrameId, TileBit},
 };
 use prjcombine_virtex2::{
-    chip::{ChipKind, IoDiffKind},
+    chip::{Chip, ChipKind, IoDiffKind},
     defs::{
         self, bcls, bslots, devdata, enums, spartan3::tcls as tcls_s3, tables::IOB_DATA, tslots,
         virtex2::tcls as tcls_v2,
@@ -156,8 +156,7 @@ pub fn add_fuzzers<'a>(
         BitRect::RegPresent(DieId::from_idx(0), Reg::FakeFreezeDciNops),
     ]);
 
-    let global = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_s())
-        .tile(tslots::GLOBAL);
+    let global = edev.chip.tile_global();
 
     if devdata_only {
         let mut ctx = FuzzCtx::new(session, backend, cnr_sw);
@@ -1050,40 +1049,32 @@ pub fn add_fuzzers<'a>(
                 let mut btiles = EntityVec::from_iter([btile]);
                 match bank {
                     0 => {
-                        let row = edev.chip.row_n();
-                        for col in edev.chip.columns.ids() {
-                            if col != edev.chip.col_w() && col != edev.chip.col_e() {
-                                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                        for cell in edev.row(Chip::DIE, edev.chip.row_n()) {
+                            if cell.col != edev.chip.col_w() && cell.col != edev.chip.col_e() {
                                 btiles.push(edev.btile_main(cell));
                                 btiles.push(edev.btile_term_v(cell));
                             }
                         }
                     }
                     1 => {
-                        let col = edev.chip.col_e();
-                        for row in edev.chip.rows.ids() {
-                            if row != edev.chip.row_s() && row != edev.chip.row_n() {
-                                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                        for cell in edev.column(Chip::DIE, edev.chip.col_e()) {
+                            if cell.row != edev.chip.row_s() && cell.row != edev.chip.row_n() {
                                 btiles.push(edev.btile_main(cell));
                                 btiles.push(edev.btile_term_h(cell));
                             }
                         }
                     }
                     2 => {
-                        let row = edev.chip.row_s();
-                        for col in edev.chip.columns.ids() {
-                            if col != edev.chip.col_w() && col != edev.chip.col_e() {
-                                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                        for cell in edev.row(Chip::DIE, edev.chip.row_s()) {
+                            if cell.col != edev.chip.col_w() && cell.col != edev.chip.col_e() {
                                 btiles.push(edev.btile_main(cell));
                                 btiles.push(edev.btile_term_v(cell));
                             }
                         }
                     }
                     3 => {
-                        let col = edev.chip.col_w();
-                        for row in edev.chip.rows.ids() {
-                            if row != edev.chip.row_s() && row != edev.chip.row_n() {
-                                let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                        for cell in edev.column(Chip::DIE, edev.chip.col_w()) {
+                            if cell.row != edev.chip.row_s() && cell.row != edev.chip.row_n() {
                                 btiles.push(edev.btile_main(cell));
                                 btiles.push(edev.btile_term_h(cell));
                             }

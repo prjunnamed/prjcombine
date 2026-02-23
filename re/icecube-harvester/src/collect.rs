@@ -4,7 +4,7 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem},
     dir::{Dir, DirV},
-    grid::{BelCoord, CellCoord, DieId},
+    grid::{BelCoord, DieIdExt},
 };
 use prjcombine_re_collector::{
     bitdata::CollectorData,
@@ -13,7 +13,7 @@ use prjcombine_re_collector::{
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
-    chip::{ChipKind, SpecialTileKey},
+    chip::{Chip, ChipKind, SpecialTileKey},
     defs,
     expanded::{BitOwner, ExpandedDevice},
 };
@@ -36,7 +36,6 @@ pub fn collect_iob(
     }
 
     if edev.chip.kind == ChipKind::Ice40P01 {
-        let die = DieId::from_idx(0);
         for (col, row, idx) in [
             (edev.chip.col_w(), edev.chip.row_s() + 2, 0),
             (edev.chip.col_w(), edev.chip.row_s() + 2, 1),
@@ -47,7 +46,7 @@ pub fn collect_iob(
             (edev.chip.col_w() + 1, edev.chip.row_n(), 0),
             (edev.chip.col_w() + 1, edev.chip.row_n(), 1),
         ] {
-            let anchor = CellCoord::new(die, col, row).bel(defs::bslots::IOB[idx]);
+            let anchor = Chip::DIE.cell(col, row).bel(defs::bslots::IOB[idx]);
             for attrval in [Key::IbufEnable, Key::PullupDisable] {
                 let key = match attrval {
                     Key::IbufEnable => {
@@ -142,7 +141,7 @@ pub fn collect_iob(
                         ),
                     };
                     if harvester.known_tiled[&key] == bits {
-                        let new_iob = CellCoord::new(DieId::from_idx(0), col, row).bel(slot);
+                        let new_iob = Chip::DIE.cell(col, row).bel(slot);
                         if let Some(cur_iob) = iob_loc {
                             assert_eq!(cur_iob, new_iob);
                         } else {

@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::builder::GridBuilder;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, Rect, RowId, TileIobId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, DieIdExt, Rect, RowId, TileIobId};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
@@ -27,10 +27,12 @@ struct Expander<'a, 'b> {
     frame_info: Vec<FrameInfo>,
     frames: DieFrameGeom,
     col_cfg: ColId,
-    col_lio: Option<ColId>,
-    col_rio: Option<ColId>,
-    col_lcio: Option<ColId>,
-    col_rcio: Option<ColId>,
+    col_io_w: Option<ColId>,
+    col_io_e: Option<ColId>,
+    col_io_iw: Option<ColId>,
+    col_io_ie: Option<ColId>,
+    col_gt_w: Option<ColId>,
+    col_gt_e: Option<ColId>,
     io: Vec<IoCoord>,
     gt: Vec<CellCoord>,
 }
@@ -55,22 +57,23 @@ impl Expander<'_, '_> {
     }
 
     fn fill_holes(&mut self) {
-        let cfg_rect = CellCoord::new(
-            self.die,
-            self.col_cfg - 6,
-            self.chip.row_reg_bot(self.chip.reg_cfg - 1),
-        )
-        .rect(6, 80);
+        let cfg_rect = self
+            .die
+            .cell(
+                self.col_cfg - 6,
+                self.chip.row_reg_bot(self.chip.reg_cfg - 1),
+            )
+            .rect(6, 80);
         self.site_holes.push(cfg_rect);
         self.int_holes.push(cfg_rect);
         if let Some(ref hard) = self.chip.col_hard {
             for &row in &hard.rows_pcie {
-                let cell = CellCoord::new(self.die, hard.col, row);
+                let cell = self.die.cell(hard.col, row);
                 self.site_holes.push(cell.delta(-3, 0).rect(4, 20));
                 self.int_holes.push(cell.delta(-1, 0).rect(2, 20));
             }
             for &row in &hard.rows_emac {
-                let cell = CellCoord::new(self.die, hard.col, row);
+                let cell = self.die.cell(hard.col, row);
                 self.site_holes.push(cell.rect(1, 10));
             }
         }
@@ -100,11 +103,9 @@ impl Expander<'_, '_> {
     }
 
     fn fill_cfg(&mut self) {
-        let cell = CellCoord::new(
-            self.die,
-            self.col_cfg,
-            self.chip.row_reg_bot(self.chip.reg_cfg),
-        );
+        let cell = self
+            .die
+            .cell(self.col_cfg, self.chip.row_reg_bot(self.chip.reg_cfg));
         for dx in 0..6 {
             if cell.row.to_idx() != 40 {
                 self.egrid
@@ -116,6 +117,7 @@ impl Expander<'_, '_> {
             }
         }
         self.egrid.add_tile_sn_id(cell, tcls::CFG, 40, 80);
+        self.egrid.add_tile_id(cell, tcls::GLOBAL, &[]);
     }
 
     fn fill_terms(&mut self) {
@@ -204,7 +206,7 @@ impl Expander<'_, '_> {
     fn fill_hard(&mut self) {
         if let Some(ref hard) = self.chip.col_hard {
             for &row in &hard.rows_emac {
-                let cell = CellCoord::new(self.die, hard.col, row);
+                let cell = self.die.cell(hard.col, row);
                 self.hard_skip.insert(row);
                 self.hard_skip.insert(row + 5);
                 let tcells = cell.cells_n_const::<10>();
@@ -218,7 +220,7 @@ impl Expander<'_, '_> {
             }
 
             for &row in &hard.rows_pcie {
-                let cell = CellCoord::new(self.die, hard.col, row);
+                let cell = self.die.cell(hard.col, row);
                 if row.to_idx() != 0 {
                     self.egrid
                         .fill_conn_term_id(cell.delta(-1, -1), ccls::TERM_N);
@@ -270,10 +272,11 @@ impl Expander<'_, '_> {
     }
 
     fn fill_io(&mut self) {
-        for col in [self.col_lio, self.col_lcio, self.col_rcio, self.col_rio]
+        for col in [self.col_io_w, self.col_io_iw, self.col_io_ie, self.col_io_e]
             .into_iter()
             .flatten()
         {
+            let mut prev_hclk = None;
             for cell in self.egrid.column(self.die, col) {
                 if cell.row.to_idx().is_multiple_of(2) {
                     self.egrid.add_tile_n_id(cell, tcls::IO, 2);
@@ -290,17 +293,39 @@ impl Expander<'_, '_> {
                 }
 
                 if cell.row.to_idx() % 40 == 20 {
-                    self.egrid.add_tile_sn_id(cell, tcls::HCLK_IO, 1, 2);
+                    self.egrid.add_tile_sn_id(cell, tcls::HCLK_IO, 4, 8);
+                    if let Some(prev) = prev_hclk {
+                        self.egrid
+                            .fill_conn_pair_id(prev, cell, ccls::IO_N, ccls::IO_S);
+                    }
+                    prev_hclk = Some(cell);
                 }
             }
         }
     }
 
     fn fill_cmt(&mut self) {
+        let mut prev = None;
         for reg in self.chip.regs() {
             let row_hclk = self.chip.row_reg_hclk(reg);
-            let cell_hclk = CellCoord::new(self.die, self.col_cfg, row_hclk);
-            self.egrid.add_tile_sn_id(cell_hclk, tcls::CMT, 20, 40);
+            let cell_hclk = self.die.cell(self.col_cfg, row_hclk);
+            let mut tcells = cell_hclk.delta(0, -20).cells_n(40);
+            let cell_io_iw = cell_hclk.with_col(self.col_io_iw.unwrap());
+            let cell_io_ie = cell_hclk.with_col(self.col_io_ie.unwrap());
+            tcells.extend(cell_io_iw.delta(0, -4).cells_n(8));
+            tcells.extend(cell_io_ie.delta(0, -4).cells_n(8));
+            self.egrid.add_tile_id(cell_hclk, tcls::CMT, &tcells);
+
+            if let Some(prev) = prev {
+                if reg < self.chip.reg_cfg {
+                    self.egrid
+                        .fill_conn_pair_id(prev, cell_hclk, ccls::CLK_NEXT, ccls::CLK_PREV);
+                } else {
+                    self.egrid
+                        .fill_conn_pair_id(prev, cell_hclk, ccls::CLK_PREV, ccls::CLK_NEXT);
+                }
+            }
+            prev = Some(cell_hclk);
 
             let cell = cell_hclk.delta(0, -20);
             if reg < self.chip.reg_cfg - 1 {
@@ -308,16 +333,45 @@ impl Expander<'_, '_> {
             } else if reg == self.chip.reg_cfg - 1 {
                 // CMT_PMVB, empty
             } else if reg == self.chip.reg_cfg {
-                self.egrid.add_tile_n_id(cell, tcls::CMT_BUFG_N, 3);
+                self.egrid.add_tile_id(
+                    cell,
+                    tcls::CMT_BUFG_N,
+                    &[
+                        cell,
+                        cell.delta(0, 1),
+                        cell.delta(0, 2),
+                        cell_io_iw.delta(0, -19),
+                        cell_io_iw.delta(0, -17),
+                        cell_io_ie.delta(0, -19),
+                        cell_io_ie.delta(0, -17),
+                    ],
+                );
+                self.egrid
+                    .fill_conn_pair_id(cell_hclk, cell, ccls::CLK_NEXT, ccls::CLK_PREV);
             } else {
-                self.egrid.add_tile_id(cell, tcls::GCLK_BUF, &[]);
+                // GCLK_BUF
             }
 
             let cell = cell_hclk.delta(0, 18);
             if reg < self.chip.reg_cfg - 1 {
-                self.egrid.add_tile_id(cell, tcls::GCLK_BUF, &[]);
+                // GCLK_BUF
             } else if reg == self.chip.reg_cfg - 1 {
-                self.egrid.add_tile_sn_id(cell, tcls::CMT_BUFG_S, 1, 3);
+                self.egrid.add_tile_id(
+                    cell,
+                    tcls::CMT_BUFG_S,
+                    &[
+                        cell.delta(0, -1),
+                        cell,
+                        cell.delta(0, 1),
+                        cell_io_iw.delta(0, 17),
+                        cell_io_iw.delta(0, 19),
+                        cell_io_ie.delta(0, 17),
+                        cell_io_ie.delta(0, 19),
+                    ],
+                );
+                self.egrid
+                    .fill_conn_pair_id(cell_hclk, cell, ccls::CLK_NEXT, ccls::CLK_PREV);
+                prev = None;
             } else {
                 self.egrid.add_tile_n_id(cell, tcls::PMVIOB, 2);
             }
@@ -331,7 +385,7 @@ impl Expander<'_, '_> {
                     continue;
                 }
                 let row_hclk = self.chip.row_reg_hclk(reg);
-                let cell = CellCoord::new(self.die, gtc.col, row_hclk);
+                let cell = self.die.cell(gtc.col, row_hclk);
                 let kind = gtc.regs[reg].unwrap();
                 match kind {
                     GtKind::Gtx => {
@@ -362,6 +416,9 @@ impl Expander<'_, '_> {
             };
             self.egrid[cell].region_root[rslots::HROW] = cell.with_cr(col_hrow, row_hclk);
             self.egrid[cell].region_root[rslots::LEAF] = cell.with_row(crow);
+            self.egrid[cell].region_root[rslots::LEAF_IO] = cell.with_row(row_hclk);
+            self.egrid[cell].region_root[rslots::GLOBAL] =
+                cell.with_cr(self.col_cfg, self.chip.row_bufg());
 
             if cell.row.to_idx() % 40 == 20 {
                 let skip_b = self.is_int_hole(cell.delta(0, -1));
@@ -370,14 +427,42 @@ impl Expander<'_, '_> {
                     continue;
                 }
                 self.egrid.add_tile_sn_id(cell, tcls::HCLK, 1, 2);
-                if cell.col == self.chip.cols_qbuf.unwrap().0
-                    || cell.col == self.chip.cols_qbuf.unwrap().1
-                {
-                    self.egrid.add_tile_id(cell, tcls::HCLK_QBUF, &[]);
-                }
-                if self.chip.cols_mgt_buf.contains(&cell.col) {
-                    self.egrid.add_tile_id(cell, tcls::HCLK_MGT_BUF, &[]);
-                }
+            }
+        }
+    }
+
+    fn fill_hclk_row(&mut self) {
+        for reg in self.chip.regs() {
+            let row = self.chip.row_reg_hclk(reg);
+            // west side
+            let mut prev = self.die.cell(self.col_io_iw.unwrap(), row);
+            let mut cc = ccls::HCLK_ROW_NEXT;
+            if let Some(col) = self.col_io_w {
+                let cell = prev.with_col(col);
+                self.egrid
+                    .fill_conn_pair_id(prev, cell, ccls::HCLK_ROW_PREV, cc);
+                prev = cell;
+                cc = ccls::HCLK_ROW_NEXT_PASS;
+            }
+            if let Some(col) = self.col_gt_w {
+                let cell = prev.with_col(col);
+                self.egrid
+                    .fill_conn_pair_id(prev, cell, ccls::HCLK_ROW_PREV, cc);
+            }
+            // east side
+            let mut prev = self.die.cell(self.col_io_ie.unwrap(), row);
+            let mut cc = ccls::HCLK_ROW_NEXT;
+            if let Some(col) = self.col_io_e {
+                let cell = prev.with_col(col);
+                self.egrid
+                    .fill_conn_pair_id(prev, cell, ccls::HCLK_ROW_PREV, cc);
+                prev = cell;
+                cc = ccls::HCLK_ROW_NEXT_PASS;
+            }
+            if let Some(col) = self.col_gt_e {
+                let cell = prev.with_col(col);
+                self.egrid
+                    .fill_conn_pair_id(prev, cell, ccls::HCLK_ROW_PREV, cc);
             }
         }
     }
@@ -499,7 +584,7 @@ pub fn expand_grid<'a>(
             }
         })
         .collect();
-    let (col_lio, col_lcio) = match *cols_lio {
+    let (col_io_w, col_io_iw) = match *cols_lio {
         [lc] => (None, Some(lc)),
         [l, lc] => (Some(l), Some(lc)),
         _ => unreachable!(),
@@ -515,17 +600,17 @@ pub fn expand_grid<'a>(
             }
         })
         .collect();
-    let (col_rio, col_rcio) = match *cols_rio {
+    let (col_io_e, col_io_ie) = match *cols_rio {
         [rc] => (None, Some(rc)),
         [rc, r] => (Some(r), Some(rc)),
         _ => unreachable!(),
     };
-    let col_lgt = chip
+    let col_gt_w = chip
         .cols_gt
         .iter()
         .find(|gtc| gtc.col < col_cfg)
         .map(|x| x.col);
-    let col_rgt = chip
+    let col_gt_e = chip
         .cols_gt
         .iter()
         .find(|gtc| gtc.col > col_cfg)
@@ -550,10 +635,12 @@ pub fn expand_grid<'a>(
             spine_frame: EntityVec::new(),
         },
         col_cfg,
-        col_lio,
-        col_rio,
-        col_lcio,
-        col_rcio,
+        col_io_w,
+        col_io_e,
+        col_io_iw,
+        col_io_ie,
+        col_gt_w,
+        col_gt_e,
         io: vec![],
         gt: vec![],
     };
@@ -570,6 +657,7 @@ pub fn expand_grid<'a>(
     expander.fill_cmt();
     expander.fill_gt();
     expander.fill_hclk();
+    expander.fill_hclk_row();
     expander.fill_frame_info();
 
     let frames = expander.frames;
@@ -590,8 +678,8 @@ pub fn expand_grid<'a>(
         has_gtz_top: false,
     };
 
-    let lcio = col_lcio.unwrap();
-    let rcio = col_rcio.unwrap();
+    let lcio = col_io_iw.unwrap();
+    let rcio = col_io_ie.unwrap();
     let cfg_io = [
         (lcio, 6, 0, SharedCfgPad::CsoB),
         (lcio, 6, 1, SharedCfgPad::Rs(0)),
@@ -672,13 +760,13 @@ pub fn expand_grid<'a>(
         frames: [frames].into_iter().collect(),
         col_cfg,
         col_clk: col_cfg,
-        col_lio,
-        col_rio,
-        col_lcio,
-        col_rcio,
-        col_lgt,
-        col_rgt,
-        col_mgt: None,
+        col_io_w,
+        col_io_e,
+        col_io_iw,
+        col_io_ie,
+        col_gt_w,
+        col_gt_e,
+        col_gt_m: None,
         row_dcmiob: None,
         row_iobdcm: None,
         io,

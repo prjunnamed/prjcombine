@@ -1,5 +1,4 @@
-use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{CellCoord, DieId};
+use prjcombine_interconnect::grid::DieIdExt;
 use prjcombine_re_xilinx_rawdump::{Part, TkSiteSlot};
 use prjcombine_xc2000::{
     chip::{Chip, ChipKind, SharedCfgPad},
@@ -31,12 +30,12 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
                 io_lookup.insert(
                     v.clone(),
                     chip.get_io_crd(
-                        CellCoord::new(
-                            DieId::from_idx(0),
-                            int.lookup_column(crd.x.into()),
-                            int.lookup_row(crd.y.into()),
-                        )
-                        .bel(bslots::IO[idx as usize - 1]),
+                        Chip::DIE
+                            .cell(
+                                int.lookup_column(crd.x.into()),
+                                int.lookup_row(crd.y.into()),
+                            )
+                            .bel(bslots::IO[idx as usize - 1]),
                     ),
                 );
             }

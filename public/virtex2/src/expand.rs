@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::DirHV;
 use prjcombine_interconnect::grid::builder::GridBuilder;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, Rect};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, DieIdExt, Rect};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -369,8 +369,8 @@ impl Expander<'_, '_> {
                 });
                 for d in 1..4 {
                     self.egrid.fill_conn_pair_id(
-                        CellCoord::new(self.die, col + d, b - 1),
-                        CellCoord::new(self.die, col + d, t + 1),
+                        self.die.cell(col + d, b - 1),
+                        self.die.cell(col + d, t + 1),
                         ccls_s3::TERM_BRAM_N,
                         ccls_s3::TERM_BRAM_S,
                     );
@@ -542,7 +542,7 @@ impl Expander<'_, '_> {
                         _ => unreachable!(),
                     };
                     for row in [self.chip.row_s(), self.chip.row_n()] {
-                        let cell = CellCoord::new(self.die, col, row);
+                        let cell = self.die.cell(col, row);
                         self.egrid.add_tile_single_id(cell, kind);
                         if let Some(dcm) = dcm {
                             self.egrid.add_tile_single_id(cell, dcm);
@@ -550,24 +550,16 @@ impl Expander<'_, '_> {
                     }
                 }
                 if self.chip.kind.is_virtex2() {
-                    self.egrid.add_tile_single_id(
-                        CellCoord::new(self.die, col, row_b),
-                        tcls_v2::DCMCONN_S,
-                    );
-                    self.egrid.add_tile_single_id(
-                        CellCoord::new(self.die, col, row_t),
-                        tcls_v2::DCMCONN_N,
-                    );
+                    self.egrid
+                        .add_tile_single_id(self.die.cell(col, row_b), tcls_v2::DCMCONN_S);
+                    self.egrid
+                        .add_tile_single_id(self.die.cell(col, row_t), tcls_v2::DCMCONN_N);
                 } else {
                     if col == self.chip.col_w() + 3 || col == self.chip.col_e() - 3 {
-                        self.egrid.add_tile_single_id(
-                            CellCoord::new(self.die, col, row_b),
-                            tcls_s3::DCMCONN_S,
-                        );
-                        self.egrid.add_tile_single_id(
-                            CellCoord::new(self.die, col, row_t),
-                            tcls_s3::DCMCONN_N,
-                        );
+                        self.egrid
+                            .add_tile_single_id(self.die.cell(col, row_b), tcls_s3::DCMCONN_S);
+                        self.egrid
+                            .add_tile_single_id(self.die.cell(col, row_t), tcls_s3::DCMCONN_N);
                     }
                 }
             }
@@ -576,7 +568,7 @@ impl Expander<'_, '_> {
 
     fn fill_ppc(&mut self) {
         for &(bc, br) in &self.chip.holes_ppc {
-            let cell = CellCoord::new(self.die, bc, br);
+            let cell = self.die.cell(bc, br);
             self.holes.push(cell.rect(10, 16));
 
             let mut tcells = vec![];
@@ -626,8 +618,8 @@ impl Expander<'_, '_> {
 
     fn fill_gt(&mut self) {
         for col in self.chip.cols_gt.keys().copied() {
-            let cell_s = CellCoord::new(self.die, col, self.chip.row_s());
-            let cell_n = CellCoord::new(self.die, col, self.chip.row_n());
+            let cell_s = self.die.cell(col, self.chip.row_s());
+            let cell_n = self.die.cell(col, self.chip.row_n());
             if self.chip.kind == ChipKind::Virtex2PX {
                 self.holes.push(cell_s.rect(1, 9));
                 self.holes.push(cell_n.delta(0, -8).rect(1, 9));
@@ -808,8 +800,8 @@ impl Expander<'_, '_> {
         if self.chip.kind == ChipKind::Spartan3E && !self.chip.has_ll {
             for col in [self.chip.col_w(), self.chip.col_e()] {
                 self.egrid.fill_conn_pair_id(
-                    CellCoord::new(self.die, col, self.chip.row_mid() - 1),
-                    CellCoord::new(self.die, col, self.chip.row_mid()),
+                    self.die.cell(col, self.chip.row_mid() - 1),
+                    self.die.cell(col, self.chip.row_mid()),
                     ccls_s3::CLK_WE_S3E_N,
                     ccls_s3::CLK_WE_S3E_S,
                 );
@@ -838,8 +830,8 @@ impl Expander<'_, '_> {
                 if cd.kind == ColumnKind::Dsp {
                     for row in [self.chip.row_s(), self.chip.row_n()] {
                         self.egrid.fill_conn_pair_id(
-                            CellCoord::new(self.die, col, row),
-                            CellCoord::new(self.die, col + 1, row),
+                            self.die.cell(col, row),
+                            self.die.cell(col + 1, row),
                             ccls_s3::DSPHOLE_E,
                             ccls_s3::DSPHOLE_W,
                         );
@@ -849,8 +841,8 @@ impl Expander<'_, '_> {
             for col in [self.chip.col_w() + 3, self.chip.col_e() - 6] {
                 for row in [self.chip.row_mid() - 1, self.chip.row_mid()] {
                     self.egrid.fill_conn_pair_id(
-                        CellCoord::new(self.die, col, row),
-                        CellCoord::new(self.die, col + 4, row),
+                        self.die.cell(col, row),
+                        self.die.cell(col + 4, row),
                         ccls_s3::DSPHOLE_E,
                         ccls_s3::DSPHOLE_W,
                     );
@@ -864,8 +856,8 @@ impl Expander<'_, '_> {
                     self.chip.row_mid() + 3,
                 ] {
                     self.egrid.fill_conn_pair_id(
-                        CellCoord::new(self.die, col - 1, row),
-                        CellCoord::new(self.die, col + 4, row),
+                        self.die.cell(col - 1, row),
+                        self.die.cell(col + 4, row),
                         ccls_s3::HDCM_E,
                         ccls_s3::HDCM_W,
                     );
@@ -946,10 +938,10 @@ impl Expander<'_, '_> {
             let slot_s = cslots::S;
             for (col, cd) in &self.chip.columns {
                 if matches!(cd.kind, ColumnKind::BramCont(_)) {
-                    self.egrid[CellCoord::new(self.die, col, self.chip.row_s())]
+                    self.egrid[self.die.cell(col, self.chip.row_s())]
                         .conns
                         .remove(slot_n);
-                    self.egrid[CellCoord::new(self.die, col, self.chip.row_n())]
+                    self.egrid[self.die.cell(col, self.chip.row_n())]
                         .conns
                         .remove(slot_s);
                 }
@@ -968,20 +960,20 @@ impl Expander<'_, '_> {
             self.egrid[cell].region_root[rslots::DCM_CLKPAD] = cell_root;
         }
         {
-            let cell = CellCoord::new(self.die, self.chip.col_clk, self.chip.row_s());
+            let cell = self.die.cell(self.chip.col_clk, self.chip.row_s());
             self.egrid.add_tile_we_id(cell, tcls_v2::CLK_S, 1, 2);
         }
         {
-            let cell = CellCoord::new(self.die, self.chip.col_clk, self.chip.row_n());
+            let cell = self.die.cell(self.chip.col_clk, self.chip.row_n());
             self.egrid.add_tile_we_id(cell, tcls_v2::CLK_N, 1, 2);
         }
 
         {
-            let cell = CellCoord::new(self.die, self.chip.col_w(), self.chip.row_pci.unwrap());
+            let cell = self.die.cell(self.chip.col_w(), self.chip.row_pci.unwrap());
             self.egrid.add_tile_sn_id(cell, tcls_v2::PCI_W, 2, 4);
         }
         {
-            let cell = CellCoord::new(self.die, self.chip.col_e(), self.chip.row_pci.unwrap());
+            let cell = self.die.cell(self.chip.col_e(), self.chip.row_pci.unwrap());
             self.egrid.add_tile_sn_id(cell, tcls_v2::PCI_E, 2, 4);
         }
     }
@@ -1013,11 +1005,11 @@ impl Expander<'_, '_> {
             (1, 2)
         };
         {
-            let cell = CellCoord::new(self.die, self.chip.col_clk, self.chip.row_s());
+            let cell = self.die.cell(self.chip.col_clk, self.chip.row_s());
             self.egrid.add_tile_we_id(cell, tcid_s, w, n);
         }
         {
-            let cell = CellCoord::new(self.die, self.chip.col_clk, self.chip.row_n());
+            let cell = self.die.cell(self.chip.col_clk, self.chip.row_n());
             self.egrid.add_tile_we_id(cell, tcid_n, w, n);
         }
     }
@@ -1029,11 +1021,11 @@ impl Expander<'_, '_> {
             (tcls_s3::CLK_W_S3A, tcls_s3::CLK_E_S3A)
         };
         {
-            let cell = CellCoord::new(self.die, self.chip.col_w(), self.chip.row_mid());
+            let cell = self.die.cell(self.chip.col_w(), self.chip.row_mid());
             self.egrid.add_tile_sn_id(cell, tcid_w, 4, 8);
         }
         {
-            let cell = CellCoord::new(self.die, self.chip.col_e(), self.chip.row_mid());
+            let cell = self.die.cell(self.chip.col_e(), self.chip.row_mid());
             self.egrid.add_tile_sn_id(cell, tcid_e, 4, 8);
         }
     }
@@ -1041,7 +1033,7 @@ impl Expander<'_, '_> {
     fn fill_hclk(&mut self) {
         for cell in self.egrid.die_cells(self.die) {
             self.egrid[cell].region_root[rslots::GLOBAL] =
-                CellCoord::new(self.die, self.chip.col_clk, self.chip.row_mid());
+                self.die.cell(self.chip.col_clk, self.chip.row_mid());
         }
         for col in self.egrid.cols(self.die) {
             let col_q = if col < self.chip.col_clk {
@@ -1073,16 +1065,14 @@ impl Expander<'_, '_> {
                     } else {
                         row_m - 1
                     };
-                    let cell = CellCoord::new(self.die, col, row);
+                    let cell = self.die.cell(col, row);
                     self.egrid[cell].region_root[rslots::LEAF] = cell.with_row(row_root);
-                    self.egrid[cell].region_root[rslots::HCLK] =
-                        CellCoord::new(self.die, col_q, row_q);
+                    self.egrid[cell].region_root[rslots::HCLK] = self.die.cell(col_q, row_q);
                 }
                 for row in row_m.range(row_t) {
-                    let cell = CellCoord::new(self.die, col, row);
+                    let cell = self.die.cell(col, row);
                     self.egrid[cell].region_root[rslots::LEAF] = cell.with_row(row_m);
-                    self.egrid[cell].region_root[rslots::HCLK] =
-                        CellCoord::new(self.die, col_q, row_q);
+                    self.egrid[cell].region_root[rslots::HCLK] = self.die.cell(col_q, row_q);
                 }
                 let kind = if matches!(self.chip.columns[col].kind, ColumnKind::BramCont(_))
                     && self.chip.kind.is_spartan3a()
@@ -1093,7 +1083,7 @@ impl Expander<'_, '_> {
                 } else {
                     tcls_v2::HCLK
                 };
-                let cell = CellCoord::new(self.die, col, row_m);
+                let cell = self.die.cell(col, row_m);
                 self.egrid
                     .add_tile_id(cell, kind, &[cell.delta(0, -1), cell]);
             }
@@ -1110,12 +1100,8 @@ impl Expander<'_, '_> {
                 } else {
                     tcls_v2::HROW
                 };
-                self.egrid.add_tile_we_id(
-                    CellCoord::new(self.die, self.chip.col_clk, row_m),
-                    kind,
-                    1,
-                    2,
-                );
+                self.egrid
+                    .add_tile_we_id(self.die.cell(self.chip.col_clk, row_m), kind, 1, 2);
             }
         }
     }
@@ -1123,7 +1109,7 @@ impl Expander<'_, '_> {
     fn fill_clkc(&mut self) {
         if !self.chip.kind.is_virtex2() && self.chip.cols_clkv.is_none() {
             self.egrid.add_tile_we_id(
-                CellCoord::new(self.die, self.chip.col_clk, self.chip.row_mid()),
+                self.die.cell(self.chip.col_clk, self.chip.row_mid()),
                 tcls_s3::CLKC_50A,
                 1,
                 2,
@@ -1135,26 +1121,26 @@ impl Expander<'_, '_> {
         if let Some((col_cl, col_cr)) = self.chip.cols_clkv {
             if matches!(self.chip.kind, ChipKind::Spartan3 | ChipKind::FpgaCore) {
                 self.egrid.add_tile_sn_id(
-                    CellCoord::new(self.die, col_cl, self.chip.row_mid()),
+                    self.die.cell(col_cl, self.chip.row_mid()),
                     tcls_s3::CLKQC_S3,
                     1,
                     2,
                 );
                 self.egrid.add_tile_sn_id(
-                    CellCoord::new(self.die, col_cr, self.chip.row_mid()),
+                    self.die.cell(col_cr, self.chip.row_mid()),
                     tcls_s3::CLKQC_S3,
                     1,
                     2,
                 );
             } else {
                 self.egrid.add_tile_sn_id(
-                    CellCoord::new(self.die, col_cl, self.chip.row_mid()),
+                    self.die.cell(col_cl, self.chip.row_mid()),
                     tcls_s3::CLKQC_S3E,
                     1,
                     2,
                 );
                 self.egrid.add_tile_sn_id(
-                    CellCoord::new(self.die, col_cr, self.chip.row_mid()),
+                    self.die.cell(col_cr, self.chip.row_mid()),
                     tcls_s3::CLKQC_S3E,
                     1,
                     2,
@@ -1171,11 +1157,8 @@ impl Expander<'_, '_> {
             ChipKind::Spartan3E => tcls_s3::GLOBAL_S3E,
             ChipKind::Spartan3A | ChipKind::Spartan3ADsp => tcls_s3::GLOBAL_S3A,
         };
-        self.egrid.add_tile_id(
-            CellCoord::new(self.die, self.chip.col_w(), self.chip.row_s()),
-            tcid,
-            &[],
-        );
+        self.egrid
+            .add_tile_id(self.chip.tile_global().cell, tcid, &[]);
     }
 
     fn fill_frame_info(&mut self) {

@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::{Dir, DirH, DirHV, DirMap};
 use prjcombine_interconnect::grid::builder::GridBuilder;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, Rect};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, DieIdExt, Rect};
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -190,7 +190,7 @@ impl Expander<'_, '_> {
             }
             for mcb in &self.chip.mcbs {
                 let row = mcb.row_mcb;
-                let cell = CellCoord::new(self.die, col, row);
+                let cell = self.die.cell(col, row);
                 let mut tcells = cell.cells_n(12);
                 for urow in mcb.row_mui {
                     tcells.extend(cell.with_row(urow).cells_n_const::<2>());
@@ -209,7 +209,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_spine(&mut self) {
-        let cell_clkc = CellCoord::new(self.die, self.chip.col_clk, self.chip.row_clk());
+        let cell_clkc = self.die.cell(self.chip.col_clk, self.chip.row_clk());
         {
             let cell = cell_clkc;
             self.site_holes.push(cell.rect(1, 1));
@@ -229,7 +229,7 @@ impl Expander<'_, '_> {
         }
 
         {
-            let cell = CellCoord::new(self.die, self.chip.col_clk, self.chip.row_s());
+            let cell = self.die.cell(self.chip.col_clk, self.chip.row_s());
             self.egrid.add_tile_id(
                 cell,
                 defs::tcls::CLK_S,
@@ -238,7 +238,7 @@ impl Expander<'_, '_> {
         }
 
         {
-            let cell = CellCoord::new(self.die, self.chip.col_clk, self.chip.row_n());
+            let cell = self.die.cell(self.chip.col_clk, self.chip.row_n());
             self.egrid.add_tile_id(
                 cell,
                 defs::tcls::CLK_N,
@@ -253,12 +253,12 @@ impl Expander<'_, '_> {
         }
 
         {
-            let cell = CellCoord::new(self.die, self.chip.col_w(), self.chip.row_clk());
+            let cell = self.die.cell(self.chip.col_w(), self.chip.row_clk());
             self.egrid.add_tile_sn_id(cell, defs::tcls::CLK_W, 2, 6);
         }
 
         {
-            let cell = CellCoord::new(self.die, self.chip.col_e(), self.chip.row_clk());
+            let cell = self.die.cell(self.chip.col_e(), self.chip.row_clk());
             self.egrid.add_tile_sn_id(cell, defs::tcls::CLK_E, 2, 6);
         }
 
@@ -303,7 +303,7 @@ impl Expander<'_, '_> {
 
     fn fill_cmts(&mut self) {
         for (br, kind) in self.chip.get_dcms() {
-            let cell = CellCoord::new(self.die, self.chip.col_clk, br);
+            let cell = self.die.cell(self.chip.col_clk, br);
             let buf_kind = match kind {
                 DcmKind::Bot => defs::tcls::DCM_BUFPLL_BUF_S,
                 DcmKind::BotMid => defs::tcls::DCM_BUFPLL_BUF_S_MID,
@@ -325,7 +325,7 @@ impl Expander<'_, '_> {
         }
 
         for (br, kind) in self.chip.get_plls() {
-            let cell = CellCoord::new(self.die, self.chip.col_clk, br);
+            let cell = self.die.cell(self.chip.col_clk, br);
             let out = match kind {
                 PllKind::BotOut0 => defs::tcls::PLL_BUFPLL_OUT0_S,
                 PllKind::BotOut1 => defs::tcls::PLL_BUFPLL_OUT1_S,
@@ -699,11 +699,8 @@ impl Expander<'_, '_> {
     }
 
     fn fill_global(&mut self) {
-        self.egrid.add_tile_id(
-            CellCoord::new(self.die, self.chip.col_w(), self.chip.row_s()),
-            defs::tcls::GLOBAL,
-            &[],
-        );
+        self.egrid
+            .add_tile_id(self.chip.tile_global().cell, defs::tcls::GLOBAL, &[]);
     }
 
     fn fill_frame_info(&mut self) {

@@ -22763,6 +22763,7 @@ intdb {
 		_7,
 		_8,
 		_10,
+		_14,
 	}
 
 	enum IO_SERDES_MODE {
@@ -22778,6 +22779,9 @@ intdb {
 	enum ILOGIC_INTERFACE_TYPE {
 		MEMORY,
 		NETWORKING,
+		OVERSAMPLE,
+		MEMORY_DDR3_V6,
+		MEMORY_DDR3_V7,
 	}
 
 	enum ILOGIC_DDR_CLK_EDGE {
@@ -22803,7 +22807,7 @@ intdb {
 		_2,
 	}
 
-	enum IODELAY_DELAY_SRC {
+	enum IODELAY_V5_DELAY_SRC {
 		NONE,
 		I,
 		IO,
@@ -22811,7 +22815,7 @@ intdb {
 		DATAIN,
 	}
 
-	enum IODELAY_IDELAY_TYPE {
+	enum IODELAY_V5_IDELAY_TYPE {
 		FIXED,
 		VARIABLE,
 		DEFAULT,
@@ -23855,7 +23859,7 @@ intdb {
 		attribute SCAN_IN_SETVAL_P: bitvec[1];
 	}
 
-	bel_class ILOGIC_V4 {
+	bel_class ILOGIC {
 		input CLK;
 		input CLKB;
 		input CLKDIV;
@@ -23867,6 +23871,10 @@ intdb {
 		input DLYCE;
 		input DLYINC;
 		input DLYRST;
+		input DYNCLKSEL;
+		input DYNCLKDIVSEL;
+		input DYNOCLKSEL;
+		input DYNCLKDIVPSEL;
 		output O;
 		output Q1;
 		output Q2;
@@ -23874,6 +23882,8 @@ intdb {
 		output Q4;
 		output Q5;
 		output Q6;
+		output Q7;
+		output Q8;
 		output CLKPAD;
 		attribute CLK_INV: bitvec[3];
 		attribute OCLK1_INV: bool;
@@ -23924,19 +23934,33 @@ intdb {
 		input INC;
 		input RST;
 		attribute ENABLE: bitvec[4];
-		attribute DELAY_SRC: IODELAY_DELAY_SRC;
+		attribute DELAY_SRC: IODELAY_V5_DELAY_SRC;
 		attribute DELAYCHAIN_OSC: bool;
 		attribute HIGH_PERFORMANCE_MODE: bool;
 		attribute LEGIDELAY: bool;
-		attribute IDELAY_TYPE: IODELAY_IDELAY_TYPE;
+		attribute IDELAY_TYPE: IODELAY_V5_IDELAY_TYPE;
 		attribute IDELAY_VALUE_CUR: bitvec[6];
 		attribute IDELAY_VALUE_INIT: bitvec[6];
 		attribute ODELAY_VALUE: bitvec[6];
 	}
 
-	bel_class OLOGIC_V4 {
+	bel_class IODELAY_V6 {
+		input C;
+		input CINVCTRL;
+		input CE;
+		input DATAIN;
+		input INC;
+		input RST;
+		input CNTVALUEIN[5];
+		output CNTVALUEOUT[5];
+	}
+
+	bel_class OLOGIC {
 		input CLK;
+		input CLKB;
 		input CLKDIV;
+		input CLKDIVB;
+		input CLKPERF;
 		input SR;
 		input REV;
 		input OCE;
@@ -23951,7 +23975,12 @@ intdb {
 		input T2;
 		input T3;
 		input T4;
+		input ODV;
+		input WC;
 		output TQ;
+		output TFB;
+		output IOCLKGLITCH;
+		output OCBEXTEND;
 		attribute CLK1_INV: bool;
 		attribute CLK2_INV: bool;
 		attribute FFO_INIT: bitvec[4];
@@ -23985,7 +24014,13 @@ intdb {
 		attribute MISR_CLK_SELECT: OLOGIC_MISR_CLK_SELECT;
 	}
 
-	bel_class IOB_V4 {
+	bel_class IOB {
+		input PD_INT_EN;
+		input PU_INT_EN;
+		input KEEPER_INT_EN;
+		input DIFF_TERM_INT_EN;
+		input IBUFDISABLE;
+		input DCITERMDISABLE;
 		pad PAD: inout
 		attribute PULL: IOB_PULL;
 		attribute VREF_SYSMON: bool;
@@ -24017,6 +24052,12 @@ intdb {
 		attribute DRP_MASK: bool;
 	}
 
+	bel_class HCLK_DRP_V6 {
+		attribute DRP_MASK_S: bool;
+		attribute DRP_MASK_N: bool;
+		attribute DRP_MASK_SYSMON: bool;
+	}
+
 	bel_class BUFGCTRL {
 		input I0;
 		input I1;
@@ -24031,6 +24072,14 @@ intdb {
 		attribute INIT_OUT: bitvec[1];
 		attribute PRESELECT_I0: bool;
 		attribute PRESELECT_I1: bool;
+	}
+
+	bel_class BUFHCE {
+		input I;
+		input CE;
+		output O;
+		attribute ENABLE: bool;
+		attribute INIT_OUT: bitvec[1];
 	}
 
 	bel_class BUFIO {
@@ -24064,14 +24113,15 @@ intdb {
 		attribute VCTL_SEL: bitvec[2];
 		attribute RESET_STYLE: IDELAYCTRL_RESET_STYLE;
 		attribute HIGH_PERFORMANCE_MODE: bool;
-		attribute BIAS_MODE: bitvec[0];
+		attribute BIAS_MODE: bitvec[1];
 	}
 
-	bel_class DCI_V4 {
+	bel_class DCI {
 		input TSTCLK;
 		input TSTRST;
 		input TSTHLP;
 		input TSTHLN;
+		input INT_DCI_EN;
 		output DCISCLK;
 		output DCIADDRESS[3];
 		output DCIDATA;
@@ -24082,14 +24132,25 @@ intdb {
 		attribute QUIET: bool;
 		attribute V4_LVDIV2: bitvec[2];
 		attribute V5_LVDIV2: bitvec[3];
-		attribute PMASK_TERM_VCC: bitvec[5];
-		attribute PMASK_TERM_SPLIT: bitvec[5];
-		attribute NMASK_TERM_SPLIT: bitvec[5];
+		attribute V4_PMASK_TERM_VCC: bitvec[5];
+		attribute V4_PMASK_TERM_SPLIT: bitvec[5];
+		attribute V4_NMASK_TERM_SPLIT: bitvec[5];
+		attribute V6_PMASK_TERM_VCC: bitvec[6];
+		attribute V6_PMASK_TERM_SPLIT: bitvec[6];
+		attribute V6_NMASK_TERM_SPLIT: bitvec[6];
 		attribute NREF: bitvec[2];
 		attribute PREF: bitvec[4];
 		attribute TEST_ENABLE: bitvec[2];
 		attribute CASCADE_FROM_ABOVE: bool;
 		attribute CASCADE_FROM_BELOW: bool;
+		attribute DYNAMIC_ENABLE: bool;
+		attribute NREF_OUTPUT: bitvec[2];
+		attribute NREF_OUTPUT_HALF: bitvec[3];
+		attribute NREF_TERM_SPLIT: bitvec[3];
+		attribute PREF_OUTPUT: bitvec[2];
+		attribute PREF_OUTPUT_HALF: bitvec[3];
+		attribute PREF_TERM_VCC: bitvec[2];
+		attribute PREF_TERM_SPLIT: bitvec[3];
 	}
 
 	bel_class LVDS_V4 {
@@ -24097,7 +24158,8 @@ intdb {
 	}
 
 	bel_class BANK {
-		attribute V5_LVDSVIAS: bitvec[12];
+		attribute V5_LVDSBIAS: bitvec[12];
+		attribute V6_LVDSBIAS: bitvec[17];
 		attribute INTERNAL_VREF: INTERNAL_VREF;
 	}
 
@@ -24616,6 +24678,48 @@ intdb {
 		attribute PLL_VLFHIGH_DIS: bool;
 	}
 
+	bel_class PLL_V6 {
+		input CLKIN1;
+		input CLKIN2;
+		input CLKINSEL;
+		input CLKFBIN;
+		input CLKIN_CASC;
+		input CLKFB_CASC;
+		input RST;
+		input PWRDWN;
+		input DCLK;
+		input DEN;
+		input DWE;
+		input DADDR[7];
+		input DI[16];
+		input PSCLK;
+		input PSEN;
+		input PSINCDEC;
+		input TESTIN[32];
+		output CLKOUT0;
+		output CLKOUT0B;
+		output CLKOUT1;
+		output CLKOUT1B;
+		output CLKOUT2;
+		output CLKOUT2B;
+		output CLKOUT3;
+		output CLKOUT3B;
+		output CLKOUT4;
+		output CLKOUT5;
+		output CLKOUT6;
+		output CLKFBOUT;
+		output CLKFBOUTB;
+		output TMUXOUT;
+		output LOCKED;
+		output DRDY;
+		output DO[16];
+		output PSDONE;
+		output CLKINSTOPPED;
+		output CLKFBSTOPPED;
+		output TESTOUT[64];
+		attribute DRP: bitvec[16][128];
+	}
+
 	bel_class SYSMON_V4 {
 		input CONVST;
 		input RST;
@@ -24958,7 +25062,9 @@ intdb {
 		attribute USERCODE: bitvec[32];
 		attribute ICAP_WIDTH: ICAP_WIDTH;
 		attribute DCI_CLK_ENABLE: bitvec[2];
+		attribute DCI_CLK_ENABLE_TR: bitvec[6];
 		attribute PROBESEL: PROBESEL;
+		attribute DISABLE_JTAG_TR: bitvec[3];
 		attribute HSWAPEN_PULL: IOB_PULL;
 		attribute PROG_PULL: IOB_PULL;
 		attribute POWERDOWN_PULL: IOB_PULL;
@@ -26148,7 +26254,145 @@ intdb {
 		attribute EMAC1_USECLKEN: bool;
 	}
 
-	bel_class PCIE {
+	bel_class EMAC_V6 {
+		input RESET;
+		input DCREMACCLK;
+		input DCREMACENABLE;
+		input DCREMACREAD;
+		input DCREMACWRITE;
+		input DCREMACABUS[10];
+		input DCREMACDBUS[32];
+		input HOSTCLK;
+		input HOSTREQ;
+		input HOSTOPCODE[2];
+		input HOSTMIIMSEL;
+		input HOSTADDR[10];
+		input HOSTWRDATA[32];
+		input CLIENTEMACDCMLOCKED;
+		input CLIENTEMACPAUSEREQ;
+		input CLIENTEMACPAUSEVAL[16];
+		input CLIENTEMACRXCLIENTCLKIN;
+		input CLIENTEMACTXCLIENTCLKIN;
+		input CLIENTEMACTXD[16];
+		input CLIENTEMACTXDVLD;
+		input CLIENTEMACTXDVLDMSW;
+		input CLIENTEMACTXFIRSTBYTE;
+		input CLIENTEMACTXIFGDELAY[8];
+		input CLIENTEMACTXUNDERRUN;
+		input EMACTIBUS[5];
+		input PHYEMACCOL;
+		input PHYEMACCRS;
+		input PHYEMACGTXCLK;
+		input PHYEMACMCLKIN;
+		input PHYEMACMDIN;
+		input PHYEMACMIITXCLK;
+		input PHYEMACPHYAD[5];
+		input PHYEMACRXBUFSTATUS[2];
+		input PHYEMACRXCHARISCOMMA;
+		input PHYEMACRXCHARISK;
+		input PHYEMACRXCLK;
+		input PHYEMACRXCLKCORCNT[3];
+		input PHYEMACRXD[8];
+		input PHYEMACRXDISPERR;
+		input PHYEMACRXDV;
+		input PHYEMACRXER;
+		input PHYEMACRXNOTINTABLE;
+		input PHYEMACRXRUNDISP;
+		input PHYEMACSIGNALDET;
+		input PHYEMACTXBUFERR;
+		input PHYEMACTXGMIIMIICLKIN;
+		input TESTSELI;
+		input TSTSEEMACI;
+		input TSTSIEMACI[7];
+		output EMACDCRACK;
+		output EMACDCRDBUS[32];
+		output DCRHOSTDONEIR;
+		output HOSTMIIMRDY;
+		output HOSTRDDATA[32];
+		output EMACCLIENTANINTERRUPT;
+		output EMACCLIENTRXBADFRAME;
+		output EMACCLIENTRXCLIENTCLKOUT;
+		output EMACCLIENTRXD[16];
+		output EMACCLIENTRXDVLD;
+		output EMACCLIENTRXDVLDMSW;
+		output EMACCLIENTRXDVREG6;
+		output EMACCLIENTRXFRAMEDROP;
+		output EMACCLIENTRXGOODFRAME;
+		output EMACCLIENTRXSTATS[7];
+		output EMACCLIENTRXSTATSBYTEVLD;
+		output EMACCLIENTRXSTATSVLD;
+		output EMACCLIENTTXACK;
+		output EMACCLIENTTXCLIENTCLKOUT;
+		output EMACCLIENTTXCOLLISION;
+		output EMACCLIENTTXRETRANSMIT;
+		output EMACCLIENTTXSTATS;
+		output EMACCLIENTTXSTATSBYTEVLD;
+		output EMACCLIENTTXSTATSVLD;
+		output EMACTOBUS[5];
+		output EMACPHYENCOMMAALIGN;
+		output EMACPHYLOOPBACKMSB;
+		output EMACPHYMCLKOUT;
+		output EMACPHYMDOUT;
+		output EMACPHYMDTRI;
+		output EMACPHYMGTRXRESET;
+		output EMACPHYMGTTXRESET;
+		output EMACPHYPOWERDOWN;
+		output EMACPHYSYNCACQSTATUS;
+		output EMACPHYTXCHARDISPMODE;
+		output EMACPHYTXCHARDISPVAL;
+		output EMACPHYTXCHARISK;
+		output EMACPHYTXCLK;
+		output EMACPHYTXD[8];
+		output EMACPHYTXEN;
+		output EMACPHYTXER;
+		output EMACPHYTXGMIIMIICLKOUT;
+		output EMACSPEEDIS10100;
+		output TSTSOEMACO[7];
+		attribute EMAC_1000BASEX_ENABLE: bool;
+		attribute EMAC_ADDRFILTER_ENABLE: bool;
+		attribute EMAC_BYTEPHY: bool;
+		attribute EMAC_CONFIGVEC_79: bool;
+		attribute EMAC_CTRLLENCHECK_DISABLE: bool;
+		attribute EMAC_DCRBASEADDR: bitvec[8];
+		attribute EMAC_FUNCTION: bitvec[3];
+		attribute EMAC_GTLOOPBACK: bool;
+		attribute EMAC_HOST_ENABLE: bool;
+		attribute EMAC_LINKTIMERVAL: bitvec[9];
+		attribute EMAC_LTCHECK_DISABLE: bool;
+		attribute EMAC_MDIO_ENABLE: bool;
+		attribute EMAC_PAUSEADDR: bitvec[48];
+		attribute EMAC_PHYINITAUTONEG_ENABLE: bool;
+		attribute EMAC_PHYISOLATE: bool;
+		attribute EMAC_PHYLOOPBACKMSB: bool;
+		attribute EMAC_PHYPOWERDOWN: bool;
+		attribute EMAC_PHYRESET: bool;
+		attribute EMAC_RGMII_ENABLE: bool;
+		attribute EMAC_RX16BITCLIENT_ENABLE: bool;
+		attribute EMAC_RXFLOWCTRL_ENABLE: bool;
+		attribute EMAC_RXHALFDUPLEX: bool;
+		attribute EMAC_RXINBANDFCS_ENABLE: bool;
+		attribute EMAC_RXJUMBOFRAME_ENABLE: bool;
+		attribute EMAC_RXRESET: bool;
+		attribute EMAC_RXVLAN_ENABLE: bool;
+		attribute EMAC_RX_ENABLE: bool;
+		attribute EMAC_SGMII_ENABLE: bool;
+		attribute EMAC_SPEED_LSB: bool;
+		attribute EMAC_SPEED_MSB: bool;
+		attribute EMAC_TX16BITCLIENT_ENABLE: bool;
+		attribute EMAC_TXFLOWCTRL_ENABLE: bool;
+		attribute EMAC_TXHALFDUPLEX: bool;
+		attribute EMAC_TXIFGADJUST_ENABLE: bool;
+		attribute EMAC_TXINBANDFCS_ENABLE: bool;
+		attribute EMAC_TXJUMBOFRAME_ENABLE: bool;
+		attribute EMAC_TXRESET: bool;
+		attribute EMAC_TXVLAN_ENABLE: bool;
+		attribute EMAC_TX_ENABLE: bool;
+		attribute EMAC_UNICASTADDR: bitvec[48];
+		attribute EMAC_UNIDIRECTION_ENABLE: bool;
+		attribute EMAC_USECLKEN: bool;
+	}
+
+	bel_class PCIE_V5 {
 		input CRMCORECLK;
 		input CRMCORECLKDLO;
 		input CRMCORECLKRXO;
@@ -33043,25 +33287,23 @@ intdb {
 		bel_slot DSP[1]: DSP_V4;
 		bel_slot DSP_C: DSP_C;
 		bel_slot TIEOFF_DSP: legacy;
-		bel_slot ILOGIC[0]: ILOGIC_V4;
-		bel_slot ILOGIC[1]: ILOGIC_V4;
-		bel_slot OLOGIC[0]: OLOGIC_V4;
-		bel_slot OLOGIC[1]: OLOGIC_V4;
+		bel_slot ILOGIC[0]: ILOGIC;
+		bel_slot ILOGIC[1]: ILOGIC;
+		bel_slot OLOGIC[0]: OLOGIC;
+		bel_slot OLOGIC[1]: OLOGIC;
 		bel_slot IODELAY[0]: IODELAY_V5;
 		bel_slot IODELAY[1]: IODELAY_V5;
 		bel_slot IDELAY[0]: legacy;
 		bel_slot IDELAY[1]: legacy;
 		bel_slot ODELAY[0]: legacy;
 		bel_slot ODELAY[1]: legacy;
-		bel_slot IOB[0]: IOB_V4;
-		bel_slot IOB[1]: IOB_V4;
+		bel_slot IOB[0]: IOB;
+		bel_slot IOB[1]: IOB;
 		bel_slot IOI: legacy;
 		bel_slot DCM[0]: DCM_V4;
 		bel_slot DCM[1]: DCM_V4;
-		bel_slot PLL: PLL_V5;
-		bel_slot MMCM[0]: legacy;
-		bel_slot MMCM[1]: legacy;
-		bel_slot CMT: legacy;
+		bel_slot PLL[0]: PLL_V5;
+		bel_slot PLL[1]: PLL_V5;
 		bel_slot CMT_A: legacy;
 		bel_slot CMT_B: legacy;
 		bel_slot CMT_C: legacy;
@@ -33157,6 +33399,7 @@ intdb {
 		bel_slot GT11CLK: GT11CLK;
 		bel_slot GTP_DUAL: GTP_DUAL;
 		bel_slot GTX_DUAL: GTX_DUAL;
+		bel_slot HCLK_GTX: legacy;
 		bel_slot GTX[0]: legacy;
 		bel_slot GTX[1]: legacy;
 		bel_slot GTX[2]: legacy;
@@ -33226,11 +33469,6 @@ intdb {
 		bel_slot BUFGCTRL[29]: BUFGCTRL;
 		bel_slot BUFGCTRL[30]: BUFGCTRL;
 		bel_slot BUFGCTRL[31]: BUFGCTRL;
-		bel_slot GIO_S: legacy;
-		bel_slot GIO_N: legacy;
-		bel_slot GCLK_BUF: legacy;
-		bel_slot HCLK_GTX: legacy;
-		bel_slot HCLK_GTH: legacy;
 		bel_slot CLK_REBUF: legacy;
 		bel_slot GCLK_TEST_BUF_REBUF_S[0]: legacy;
 		bel_slot GCLK_TEST_BUF_REBUF_S[1]: legacy;
@@ -51408,7 +51646,6 @@ intdb {
 
 	tile_slot CLK {
 		bel_slot CLK_INT: routing;
-		bel_slot HCLK_MGT_BUF: legacy;
 		bel_slot INT_LCLK_W: legacy;
 		bel_slot INT_LCLK_E: legacy;
 
@@ -54745,7 +54982,6 @@ intdb {
 
 	tile_slot HROW {
 		bel_slot HROW_INT: routing;
-		bel_slot HCLK_QBUF: legacy;
 
 		tile_class CLK_HROW {
 			cell W;
@@ -55375,6 +55611,7 @@ intdb {
 		bel_slot HCLK_W: legacy;
 		bel_slot HCLK_E: legacy;
 		bel_slot GLOBALSIG: GLOBALSIG;
+		bel_slot HCLK_DRP: HCLK_DRP_V6;
 
 		tile_class HCLK {
 			cell CELL;
@@ -55411,10 +55648,8 @@ intdb {
 		bel_slot BUFIO[1]: BUFIO;
 		bel_slot BUFIO[2]: BUFIO;
 		bel_slot BUFIO[3]: BUFIO;
-		bel_slot BUFO[0]: legacy;
-		bel_slot BUFO[1]: legacy;
 		bel_slot IDELAYCTRL: IDELAYCTRL;
-		bel_slot DCI: DCI_V4;
+		bel_slot DCI: DCI;
 		bel_slot BANK: BANK;
 		bel_slot LVDS: LVDS_V4;
 		bel_slot BRKH_GTX: legacy;
@@ -55561,9 +55796,9 @@ intdb {
 				attribute ENABLE @MAIN[0][14];
 				attribute QUIET @MAIN[5][12];
 				attribute V4_LVDIV2 @[MAIN[27][14], MAIN[27][13]];
-				attribute PMASK_TERM_VCC @[MAIN[2][12], MAIN[4][15], MAIN[4][14], MAIN[4][13], MAIN[4][12]];
-				attribute PMASK_TERM_SPLIT @[MAIN[11][15], MAIN[10][15], MAIN[11][14], MAIN[10][14], MAIN[10][13]];
-				attribute NMASK_TERM_SPLIT @[MAIN[10][12], MAIN[12][15], MAIN[12][14], MAIN[12][13], MAIN[12][12]];
+				attribute V4_PMASK_TERM_VCC @[MAIN[2][12], MAIN[4][15], MAIN[4][14], MAIN[4][13], MAIN[4][12]];
+				attribute V4_PMASK_TERM_SPLIT @[MAIN[11][15], MAIN[10][15], MAIN[11][14], MAIN[10][14], MAIN[10][13]];
+				attribute V4_NMASK_TERM_SPLIT @[MAIN[10][12], MAIN[12][15], MAIN[12][14], MAIN[12][13], MAIN[12][12]];
 				attribute NREF @[MAIN[27][12], MAIN[27][15]];
 				attribute PREF @[MAIN[1][12], MAIN[1][13], MAIN[1][14], MAIN[1][15]];
 				attribute TEST_ENABLE @[MAIN[5][13], MAIN[0][15]];
@@ -55845,9 +56080,9 @@ intdb {
 				attribute ENABLE @MAIN[0][14];
 				attribute QUIET @MAIN[5][12];
 				attribute V4_LVDIV2 @[MAIN[27][14], MAIN[27][13]];
-				attribute PMASK_TERM_VCC @[MAIN[2][12], MAIN[4][15], MAIN[4][14], MAIN[4][13], MAIN[4][12]];
-				attribute PMASK_TERM_SPLIT @[MAIN[11][15], MAIN[10][15], MAIN[11][14], MAIN[10][14], MAIN[10][13]];
-				attribute NMASK_TERM_SPLIT @[MAIN[10][12], MAIN[12][15], MAIN[12][14], MAIN[12][13], MAIN[12][12]];
+				attribute V4_PMASK_TERM_VCC @[MAIN[2][12], MAIN[4][15], MAIN[4][14], MAIN[4][13], MAIN[4][12]];
+				attribute V4_PMASK_TERM_SPLIT @[MAIN[11][15], MAIN[10][15], MAIN[11][14], MAIN[10][14], MAIN[10][13]];
+				attribute V4_NMASK_TERM_SPLIT @[MAIN[10][12], MAIN[12][15], MAIN[12][14], MAIN[12][13], MAIN[12][12]];
 				attribute NREF @[MAIN[27][12], MAIN[27][15]];
 				attribute PREF @[MAIN[1][12], MAIN[1][13], MAIN[1][14], MAIN[1][15]];
 				attribute TEST_ENABLE @[MAIN[5][13], MAIN[0][15]];
@@ -55967,9 +56202,9 @@ intdb {
 				attribute ENABLE @MAIN[0][14];
 				attribute QUIET @MAIN[5][12];
 				attribute V4_LVDIV2 @[MAIN[27][14], MAIN[27][13]];
-				attribute PMASK_TERM_VCC @[MAIN[2][12], MAIN[4][15], MAIN[4][14], MAIN[4][13], MAIN[4][12]];
-				attribute PMASK_TERM_SPLIT @[MAIN[11][15], MAIN[10][15], MAIN[11][14], MAIN[10][14], MAIN[10][13]];
-				attribute NMASK_TERM_SPLIT @[MAIN[10][12], MAIN[12][15], MAIN[12][14], MAIN[12][13], MAIN[12][12]];
+				attribute V4_PMASK_TERM_VCC @[MAIN[2][12], MAIN[4][15], MAIN[4][14], MAIN[4][13], MAIN[4][12]];
+				attribute V4_PMASK_TERM_SPLIT @[MAIN[11][15], MAIN[10][15], MAIN[11][14], MAIN[10][14], MAIN[10][13]];
+				attribute V4_NMASK_TERM_SPLIT @[MAIN[10][12], MAIN[12][15], MAIN[12][14], MAIN[12][13], MAIN[12][12]];
 				attribute NREF @[MAIN[27][12], MAIN[27][15]];
 				attribute PREF @[MAIN[1][12], MAIN[1][13], MAIN[1][14], MAIN[1][15]];
 				attribute TEST_ENABLE @[MAIN[5][13], MAIN[0][15]];
@@ -56119,9 +56354,9 @@ intdb {
 				attribute ENABLE @MAIN[0][14];
 				attribute QUIET @MAIN[5][12];
 				attribute V4_LVDIV2 @[MAIN[27][14], MAIN[27][13]];
-				attribute PMASK_TERM_VCC @[MAIN[2][12], MAIN[4][15], MAIN[4][14], MAIN[4][13], MAIN[4][12]];
-				attribute PMASK_TERM_SPLIT @[MAIN[11][15], MAIN[10][15], MAIN[11][14], MAIN[10][14], MAIN[10][13]];
-				attribute NMASK_TERM_SPLIT @[MAIN[10][12], MAIN[12][15], MAIN[12][14], MAIN[12][13], MAIN[12][12]];
+				attribute V4_PMASK_TERM_VCC @[MAIN[2][12], MAIN[4][15], MAIN[4][14], MAIN[4][13], MAIN[4][12]];
+				attribute V4_PMASK_TERM_SPLIT @[MAIN[11][15], MAIN[10][15], MAIN[11][14], MAIN[10][14], MAIN[10][13]];
+				attribute V4_NMASK_TERM_SPLIT @[MAIN[10][12], MAIN[12][15], MAIN[12][14], MAIN[12][13], MAIN[12][12]];
 				attribute NREF @[MAIN[27][12], MAIN[27][15]];
 				attribute PREF @[MAIN[1][12], MAIN[1][13], MAIN[1][14], MAIN[1][15]];
 				attribute TEST_ENABLE @[MAIN[5][13], MAIN[0][15]];
@@ -56270,9 +56505,9 @@ intdb {
 				attribute ENABLE @MAIN[0][14];
 				attribute QUIET @MAIN[5][12];
 				attribute V4_LVDIV2 @[MAIN[27][14], MAIN[27][13]];
-				attribute PMASK_TERM_VCC @[MAIN[2][12], MAIN[4][15], MAIN[4][14], MAIN[4][13], MAIN[4][12]];
-				attribute PMASK_TERM_SPLIT @[MAIN[11][15], MAIN[10][15], MAIN[11][14], MAIN[10][14], MAIN[10][13]];
-				attribute NMASK_TERM_SPLIT @[MAIN[10][12], MAIN[12][15], MAIN[12][14], MAIN[12][13], MAIN[12][12]];
+				attribute V4_PMASK_TERM_VCC @[MAIN[2][12], MAIN[4][15], MAIN[4][14], MAIN[4][13], MAIN[4][12]];
+				attribute V4_PMASK_TERM_SPLIT @[MAIN[11][15], MAIN[10][15], MAIN[11][14], MAIN[10][14], MAIN[10][13]];
+				attribute V4_NMASK_TERM_SPLIT @[MAIN[10][12], MAIN[12][15], MAIN[12][14], MAIN[12][13], MAIN[12][12]];
 				attribute NREF @[MAIN[27][12], MAIN[27][15]];
 				attribute PREF @[MAIN[1][12], MAIN[1][13], MAIN[1][14], MAIN[1][15]];
 				attribute TEST_ENABLE @[MAIN[5][13], MAIN[0][15]];
@@ -58538,12 +58773,12 @@ intdb {
 		}
 	}
 
-	connector_slot MGT_ROW_PREV {
-		opposite MGT_ROW_NEXT;
+	connector_slot HCLK_ROW_PREV {
+		opposite HCLK_ROW_NEXT;
 	}
 
-	connector_slot MGT_ROW_NEXT {
-		opposite MGT_ROW_PREV;
+	connector_slot HCLK_ROW_NEXT {
+		opposite HCLK_ROW_PREV;
 	}
 
 	table IOB_DATA {
@@ -59303,6 +59538,7 @@ intdb {
 	}
 
 	device_data IODELAY_V5_IDELAY_DEFAULT: bitvec[6];
+	device_data IODELAY_V6_IDELAY_DEFAULT: bitvec[5];
 	device_data PLL_IN_DLY_SET: bitvec[9];
 	device_data PPC440_CLOCK_DELAY: bitvec[5];
 }

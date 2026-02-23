@@ -72,7 +72,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
     namer.fill_rxlut();
 
-    let mgt = if edev.col_lgt.is_some() { "_MGT" } else { "" };
+    let mgt = if edev.col_gt_w.is_some() { "_MGT" } else { "" };
     for (tcrd, tile) in edev.tiles() {
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
@@ -257,7 +257,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let by = cmt_grid.ylut[row];
                 ntile.add_bel(bslots::DCM[0], format!("DCM_ADV_X{bx}Y{y}", y = by * 2));
                 ntile.add_bel(bslots::DCM[1], format!("DCM_ADV_X{bx}Y{y}", y = by * 2 + 1));
-                ntile.add_bel(bslots::PLL, format!("PLL_ADV_X{bx}Y{by}"));
+                ntile.add_bel(bslots::PLL[0], format!("PLL_ADV_X{bx}Y{by}"));
             }
             tcls::EMAC => {
                 let ntile = namer
@@ -364,7 +364,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let ntile = namer
                     .ngrid
                     .name_tile(tcrd, kind, [format!("CFG_CENTER_X{rx}Y{ry}")]);
-                let ipx = if edev.col_lgt.is_some() { 1 } else { 0 };
+                let ipx = if edev.col_gt_w.is_some() { 1 } else { 0 };
                 let ipy = if !chip.cols_gt.is_empty() {
                     chip.reg_cfg.to_idx() * 6
                 } else {
@@ -602,7 +602,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
         match conn.class {
             ccls::TERM_W => {
-                let name = if edev.col_lgt.is_some() {
+                let name = if edev.col_gt_w.is_some() {
                     format!("GTX_L_TERM_INT_X{x}Y{y}")
                 } else {
                     format!("L_TERM_INT_X{x}Y{y}")
@@ -635,7 +635,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_conn_pair(ccrd, "PPC_E", name_l, name_r);
             }
             ccls::INT_BUFS_W => {
-                let mon = if edev.col_lgt.is_some() { "_MON" } else { "" };
+                let mon = if edev.col_gt_w.is_some() { "_MON" } else { "" };
                 let name_l = format!("INT_BUFS_L_X{x}Y{y}", x = x - 1);
                 let name_r = format!("INT_BUFS_R{mon}_X{x}Y{y}");
                 namer
@@ -643,7 +643,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_conn_pair(ccrd, "INT_BUFS_W", name_r, name_l);
             }
             ccls::INT_BUFS_E => {
-                let mon = if edev.col_lgt.is_some() { "_MON" } else { "" };
+                let mon = if edev.col_gt_w.is_some() { "_MON" } else { "" };
                 let name_l = format!("INT_BUFS_L_X{x}Y{y}");
                 let name_r = format!("INT_BUFS_R{mon}_X{x}Y{y}", x = x + 1);
                 namer

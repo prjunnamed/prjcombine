@@ -1,5 +1,5 @@
 use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId};
+use prjcombine_interconnect::grid::{ColId, DieId, DieIdExt};
 use prjcombine_virtex4::chip::{CfgRowKind, ChipKind, ColumnKind, GtKind, RegId};
 use prjcombine_virtex4::expanded::ExpandedDevice;
 
@@ -109,7 +109,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         "clblm"
                     };
                     for row in grid.rows() {
-                        if edev.in_site_hole(CellCoord::new(die, col, row)) {
+                        if edev.in_site_hole(die.cell(col, row)) {
                             continue;
                         }
                         drawer.bel_rect(
@@ -128,7 +128,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         "dsp"
                     };
                     for row in grid.rows().into_iter().step_by(bram_rows) {
-                        if edev.in_site_hole(CellCoord::new(die, col, row)) {
+                        if edev.in_site_hole(die.cell(col, row)) {
                             continue;
                         }
                         drawer.bel_rect(
@@ -209,7 +209,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 ColumnKind::Cmt => {
                     for reg in grid.regs() {
                         let row = grid.row_reg_bot(reg);
-                        if edev.in_site_hole(CellCoord::new(die, col, row)) {
+                        if edev.in_site_hole(die.cell(col, row)) {
                             continue;
                         }
                         let (fl, fr, cl, cr) = if col.to_idx() % 2 == 1 {
@@ -254,7 +254,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 }
                 ColumnKind::Io | ColumnKind::Cfg => {
                     for row in grid.rows() {
-                        if edev.in_site_hole(CellCoord::new(die, col, row)) {
+                        if edev.in_site_hole(die.cell(col, row)) {
                             continue;
                         }
                         let h = match edev.kind {

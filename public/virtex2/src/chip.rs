@@ -3,11 +3,11 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::db::CellSlotId;
 use prjcombine_interconnect::dir::{Dir, DirH, DirHV, DirV};
 use prjcombine_interconnect::grid::{
-    BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileCoord, TileIobId,
+    BelCoord, CellCoord, ColId, DieId, DieIdExt, EdgeIoCoord, RowId, TileCoord, TileIobId,
 };
 use std::collections::BTreeMap;
 
-use crate::defs;
+use crate::defs::{self, bslots, tslots};
 use crate::iob::{
     IobKind, IobTileData, get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w,
 };
@@ -257,6 +257,9 @@ pub struct IoInfo {
 }
 
 impl Chip {
+    // always single chip
+    pub const DIE: DieId = DieId::from_idx_const(0);
+
     pub fn col_edge(&self, dir: DirH) -> ColId {
         match dir {
             DirH::W => self.col_w(),
@@ -296,12 +299,9 @@ impl Chip {
     }
 
     pub fn corner(&self, dir: DirHV) -> TileCoord {
-        CellCoord::new(
-            DieId::from_idx(0),
-            self.col_edge(dir.h),
-            self.row_edge(dir.v),
-        )
-        .tile(defs::tslots::BEL)
+        Self::DIE
+            .cell(self.col_edge(dir.h), self.row_edge(dir.v))
+            .tile(tslots::BEL)
     }
 
     pub fn row_mid(&self) -> RowId {
@@ -325,7 +325,6 @@ impl Chip {
     }
 
     pub fn get_dcm_pairs(&self) -> Vec<DcmPair> {
-        let die = DieId::from_idx(0);
         let mut res = vec![];
         if let Some(dcms) = self.dcms {
             if dcms == Dcms::Two {
@@ -333,28 +332,28 @@ impl Chip {
                     res.extend([
                         DcmPair {
                             kind: DcmPairKind::SingleS,
-                            cell: CellCoord::new(die, self.col_clk, self.row_s() + 1),
+                            cell: Self::DIE.cell(self.col_clk, self.row_s() + 1),
                         },
                         DcmPair {
                             kind: DcmPairKind::SingleN,
-                            cell: CellCoord::new(die, self.col_clk, self.row_n() - 1),
+                            cell: Self::DIE.cell(self.col_clk, self.row_n() - 1),
                         },
                     ]);
                 } else {
                     res.extend([DcmPair {
                         kind: DcmPairKind::N,
-                        cell: CellCoord::new(die, self.col_clk, self.row_n() - 1),
+                        cell: Self::DIE.cell(self.col_clk, self.row_n() - 1),
                     }]);
                 }
             } else {
                 res.extend([
                     DcmPair {
                         kind: DcmPairKind::S,
-                        cell: CellCoord::new(die, self.col_clk, self.row_s() + 1),
+                        cell: Self::DIE.cell(self.col_clk, self.row_s() + 1),
                     },
                     DcmPair {
                         kind: DcmPairKind::N,
-                        cell: CellCoord::new(die, self.col_clk, self.row_n() - 1),
+                        cell: Self::DIE.cell(self.col_clk, self.row_n() - 1),
                     },
                 ]);
             }
@@ -363,22 +362,22 @@ impl Chip {
                     res.extend([
                         DcmPair {
                             kind: DcmPairKind::W,
-                            cell: CellCoord::new(die, self.col_w() + 9, self.row_mid()),
+                            cell: Self::DIE.cell(self.col_w() + 9, self.row_mid()),
                         },
                         DcmPair {
                             kind: DcmPairKind::E,
-                            cell: CellCoord::new(die, self.col_e() - 9, self.row_mid()),
+                            cell: Self::DIE.cell(self.col_e() - 9, self.row_mid()),
                         },
                     ]);
                 } else {
                     res.extend([
                         DcmPair {
                             kind: DcmPairKind::Bram,
-                            cell: CellCoord::new(die, self.col_w() + 3, self.row_mid()),
+                            cell: Self::DIE.cell(self.col_w() + 3, self.row_mid()),
                         },
                         DcmPair {
                             kind: DcmPairKind::Bram,
-                            cell: CellCoord::new(die, self.col_e() - 6, self.row_mid()),
+                            cell: Self::DIE.cell(self.col_e() - 6, self.row_mid()),
                         },
                     ]);
                 }
@@ -519,10 +518,9 @@ impl Chip {
 
     pub fn get_bonded_ios(&self) -> Vec<EdgeIoCoord> {
         let mut res = vec![];
-        let die = DieId::from_idx(0);
         for col in self.columns.ids() {
             let row = self.row_n();
-            if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
+            if let Some((data, tidx)) = self.get_iob_tile_data(Self::DIE.cell(col, row)) {
                 for &iob in &data.iobs {
                     if iob.cell == tidx {
                         res.push(EdgeIoCoord::N(
@@ -535,7 +533,7 @@ impl Chip {
         }
         for row in self.rows.ids().rev() {
             let col = self.col_e();
-            if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
+            if let Some((data, tidx)) = self.get_iob_tile_data(Self::DIE.cell(col, row)) {
                 for &iob in &data.iobs {
                     if iob.cell == tidx {
                         res.push(EdgeIoCoord::E(
@@ -548,7 +546,7 @@ impl Chip {
         }
         for col in self.columns.ids().rev() {
             let row = self.row_s();
-            if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
+            if let Some((data, tidx)) = self.get_iob_tile_data(Self::DIE.cell(col, row)) {
                 for &iob in &data.iobs {
                     if iob.cell == tidx {
                         res.push(EdgeIoCoord::S(
@@ -561,7 +559,7 @@ impl Chip {
         }
         for row in self.rows.ids() {
             let col = self.col_w();
-            if let Some((data, tidx)) = self.get_iob_tile_data(CellCoord::new(die, col, row)) {
+            if let Some((data, tidx)) = self.get_iob_tile_data(Self::DIE.cell(col, row)) {
                 for &iob in &data.iobs {
                     if iob.cell == tidx {
                         res.push(EdgeIoCoord::W(
@@ -591,7 +589,7 @@ impl Chip {
         } else {
             defs::bslots::IOI[iob.to_idx()]
         };
-        CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
+        Self::DIE.cell(col, row).bel(slot)
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
@@ -875,6 +873,14 @@ impl Chip {
         } else {
             unreachable!()
         }
+    }
+
+    pub fn tile_global(&self) -> TileCoord {
+        self.corner(DirHV::SW).tile(tslots::GLOBAL)
+    }
+
+    pub fn bel_global(&self) -> BelCoord {
+        self.tile_global().bel(bslots::GLOBAL)
     }
 }
 

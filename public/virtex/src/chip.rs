@@ -2,12 +2,12 @@ use bincode::{Decode, Encode};
 use itertools::Itertools;
 use prjcombine_entity::{EntityId, EntityRange};
 use prjcombine_interconnect::{
-    dir::{DirH, DirV},
-    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
+    dir::{DirH, DirHV, DirV},
+    grid::{BelCoord, ColId, DieId, DieIdExt, EdgeIoCoord, RowId, TileCoord, TileIobId},
 };
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::defs;
+use crate::defs::{self, tslots};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ChipKind {
@@ -75,6 +75,9 @@ impl std::fmt::Display for DisabledPart {
 }
 
 impl Chip {
+    // always single chip
+    pub const DIE: DieId = DieId::from_idx_const(0);
+
     pub fn row_mid(&self) -> RowId {
         RowId::from_idx(self.rows / 2)
     }
@@ -97,6 +100,13 @@ impl Chip {
 
     pub fn col_e(&self) -> ColId {
         ColId::from_idx(self.columns - 1)
+    }
+
+    pub fn col_edge(&self, dir: DirH) -> ColId {
+        match dir {
+            DirH::W => self.col_w(),
+            DirH::E => self.col_e(),
+        }
     }
 
     pub fn row_s(&self) -> RowId {
@@ -124,6 +134,12 @@ impl Chip {
 
     pub fn rows(&self) -> EntityRange<RowId> {
         EntityRange::new(0, self.rows)
+    }
+
+    pub fn corner(&self, side: DirHV) -> TileCoord {
+        Self::DIE
+            .cell(self.col_edge(side.h), self.row_edge(side.v))
+            .tile(tslots::MAIN)
     }
 
     pub fn get_io_bank(&self, io: EdgeIoCoord) -> u32 {
@@ -167,7 +183,7 @@ impl Chip {
             EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
         };
         let slot = defs::bslots::IO[iob.to_idx()];
-        CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
+        Self::DIE.cell(col, row).bel(slot)
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
@@ -228,16 +244,10 @@ impl Chip {
         res
     }
 
-    pub fn bel_pci(&self, dir: DirH) -> BelCoord {
-        CellCoord::new(
-            DieId::from_idx(0),
-            match dir {
-                DirH::W => self.col_w(),
-                DirH::E => self.col_e(),
-            },
-            self.row_clk(),
-        )
-        .bel(defs::bslots::PCILOGIC)
+    pub fn bel_pci(&self, side: DirH) -> BelCoord {
+        Self::DIE
+            .cell(self.col_edge(side), self.row_clk())
+            .bel(defs::bslots::PCILOGIC)
     }
 }
 

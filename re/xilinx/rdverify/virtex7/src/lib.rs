@@ -2,7 +2,7 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{DirH, DirV},
-    grid::{BelCoord, CellCoord, ColId, DieId, RowId},
+    grid::{BelCoord, ColId, DieId, DieIdExt, RowId},
 };
 use prjcombine_re_xilinx_naming_virtex4::{ExpandedNamedDevice, ExpandedNamedGtz};
 use prjcombine_re_xilinx_rawdump::{Part, Source};
@@ -422,9 +422,9 @@ fn verify_hclk_w(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord
             .bel(bslots::CLK_HROW_V7),
     );
     let col_io = if bel.col <= endev.edev.col_clk {
-        endev.edev.col_lio
+        endev.edev.col_io_w
     } else {
-        endev.edev.col_rio
+        endev.edev.col_io_e
     };
     let iocol = col_io.and_then(|col| grid.get_col_io(col));
     let has_rclk = iocol
@@ -562,7 +562,7 @@ fn verify_clk_rebuf(vrf: &mut Verifier, bcrd: BelCoord) {
             if bel.die.to_idx() != 0 {
                 let odie = bel.die - 1;
                 let srow = vrf.grid.rows(odie).last().unwrap() - 19;
-                vrf.find_bel(CellCoord::new(odie, bel.col, srow).bel(bslots::CLK_REBUF))
+                vrf.find_bel(odie.cell(bel.col, srow).bel(bslots::CLK_REBUF))
             } else {
                 None
             }
@@ -668,9 +668,9 @@ fn verify_clk_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoo
         ('R', bslots::GCLK_TEST_BUF_HROW_BUFH_E, bslots::BUFHCE_E),
     ] {
         let col_io = if lr == 'L' {
-            endev.edev.col_lio
+            endev.edev.col_io_w
         } else {
-            endev.edev.col_rio
+            endev.edev.col_io_e
         };
         let iocol = col_io.and_then(|col| grid.get_col_io(col));
         let obel = vrf.find_bel_sibling(bel, gclk_test_buf);
@@ -721,7 +721,7 @@ fn verify_clk_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoo
         }
 
         let mut has_gtp_mid = false;
-        if let Some((cl, cr)) = endev.edev.col_mgt {
+        if let Some((cl, cr)) = endev.edev.col_gt_m {
             let gtcol = grid.get_col_gt(if lr == 'L' { cl } else { cr }).unwrap();
             if gtcol.regs[reg].is_some() {
                 has_gtp_mid = true;
@@ -752,9 +752,9 @@ fn verify_clk_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoo
             if !has_io {
                 let mut has_gt = false;
                 if let Some(gc) = if lr == 'L' {
-                    endev.edev.col_lgt
+                    endev.edev.col_gt_w
                 } else {
-                    endev.edev.col_rgt
+                    endev.edev.col_gt_e
                 } {
                     let gtcol = grid.get_col_gt(gc).unwrap();
                     if gtcol.regs[reg].is_some() {
@@ -1952,9 +1952,9 @@ fn verify_hclk_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoo
 
     let mut has_gt = false;
     if let Some(gc) = if lr == 'L' {
-        endev.edev.col_lgt
+        endev.edev.col_gt_w
     } else {
-        endev.edev.col_rgt
+        endev.edev.col_gt_e
     } {
         let gtcol = grid.get_col_gt(gc).unwrap();
         if gtcol.regs[grid.row_to_reg(bel.row)].is_some() {
@@ -2022,7 +2022,7 @@ fn verify_hclk_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoo
         vrf.claim_pip(bel.wire(&format!("MRCLK{i}")), obel.wire("O"));
     }
 
-    let obel_mmcm = vrf.find_bel_sibling(bel, bslots::MMCM[0]);
+    let obel_mmcm = vrf.find_bel_sibling(bel, bslots::PLL[0]);
     for i in 0..14 {
         vrf.verify_net(&[
             bel.wire(&format!("MMCM_OUT{i}")),
@@ -2035,7 +2035,7 @@ fn verify_hclk_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoo
             obel_mmcm.wire(&format!("PERF{i}")),
         ]);
     }
-    let obel_pll = vrf.find_bel_sibling(bel, bslots::PLL);
+    let obel_pll = vrf.find_bel_sibling(bel, bslots::PLL[1]);
     for i in 0..8 {
         vrf.verify_net(&[
             bel.wire(&format!("PLL_OUT{i}")),
@@ -2051,7 +2051,7 @@ fn verify_cmt_a(vrf: &mut Verifier, bcrd: BelCoord) {
         if bel.die.to_idx() != 0 {
             let odie = bel.die - 1;
             let srow = vrf.grid.rows(odie).last().unwrap() - 24;
-            vrf.find_bel(CellCoord::new(odie, bel.col, srow).bel(bslots::CMT_D))
+            vrf.find_bel(odie.cell(bel.col, srow).bel(bslots::CMT_D))
         } else {
             None
         }
@@ -2156,7 +2156,7 @@ fn verify_cmt_a(vrf: &mut Verifier, bcrd: BelCoord) {
 fn verify_cmt_b(vrf: &mut Verifier, bcrd: BelCoord) {
     let bel = &mut vrf.get_legacy_bel(bcrd);
     let obel_hclk = vrf.find_bel_sibling(bel, bslots::HCLK_CMT);
-    let obel_mmcm = vrf.find_bel_sibling(bel, bslots::MMCM[0]);
+    let obel_mmcm = vrf.find_bel_sibling(bel, bslots::PLL[0]);
     for i in 0..4 {
         vrf.verify_net(&[
             bel.wire(&format!("FREQ_BB{i}")),
@@ -2264,7 +2264,7 @@ fn verify_cmt_b(vrf: &mut Verifier, bcrd: BelCoord) {
 fn verify_cmt_c(vrf: &mut Verifier, bcrd: BelCoord) {
     let bel = &mut vrf.get_legacy_bel(bcrd);
     let obel_hclk = vrf.find_bel_sibling(bel, bslots::HCLK_CMT);
-    let obel_pll = vrf.find_bel_sibling(bel, bslots::PLL);
+    let obel_pll = vrf.find_bel_sibling(bel, bslots::PLL[1]);
     for i in 0..4 {
         vrf.verify_net(&[
             bel.wire(&format!("FREQ_BB{i}")),
@@ -2382,7 +2382,7 @@ fn verify_cmt_d(vrf: &mut Verifier, bcrd: BelCoord) {
         if bel.die.to_idx() != vrf.grid.die.len() - 1 {
             let odie = bel.die + 1;
             let srow = vrf.grid.rows(odie).first().unwrap() + 25;
-            vrf.find_bel(CellCoord::new(odie, bel.col, srow).bel(bslots::CMT_A))
+            vrf.find_bel(odie.cell(bel.col, srow).bel(bslots::CMT_A))
         } else {
             None
         }
@@ -2869,7 +2869,7 @@ fn verify_gtp_common(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelC
     let mut dummies = vec![];
     let mut is_mid_l = false;
     let mut is_mid_r = false;
-    if let Some((cl, cr)) = endev.edev.col_mgt {
+    if let Some((cl, cr)) = endev.edev.col_gt_m {
         if cl == bel.col {
             dummies.extend(["GTEASTREFCLK0", "GTEASTREFCLK1"]);
             is_mid_l = true;
@@ -2922,7 +2922,7 @@ fn verify_gtp_common(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelC
         vrf.claim_pip(bel.wire("GTWESTREFCLK1"), bel.wire("WESTCLK1"));
         let obel = vrf.get_legacy_bel(
             bel.cell
-                .with_col(endev.edev.col_mgt.unwrap().1)
+                .with_col(endev.edev.col_gt_m.unwrap().1)
                 .bel(bslots::GTP_COMMON),
         );
         vrf.verify_net(&[bel.wire("WESTCLK0"), obel.wire("WESTCLK0")]);
@@ -2940,7 +2940,7 @@ fn verify_gtp_common(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelC
         vrf.claim_pip(bel.wire("GTEASTREFCLK1"), bel.wire("EASTCLK1"));
         let obel = vrf.get_legacy_bel(
             bel.cell
-                .with_col(endev.edev.col_mgt.unwrap().0)
+                .with_col(endev.edev.col_gt_m.unwrap().0)
                 .bel(bslots::GTP_COMMON),
         );
         vrf.verify_net(&[bel.wire("EASTCLK0"), obel.wire("EASTCLK0")]);
@@ -2975,9 +2975,9 @@ fn verify_gtp_common(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelC
             vrf.claim_pip(bel.wire(bpin), obel.wire("MGTCLKOUT"));
         }
         let scol_io = if is_mid_l {
-            endev.edev.col_lio
+            endev.edev.col_io_w
         } else {
-            endev.edev.col_rio
+            endev.edev.col_io_e
         }
         .unwrap();
         let scol = ColId::from_idx(scol_io.to_idx() ^ 1);
@@ -3267,8 +3267,8 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         _ if slot_name.starts_with("PHASER_OUT") => verify_phaser_out(vrf, bcrd),
         bslots::PHASER_REF => verify_phaser_ref(vrf, bcrd),
         bslots::PHY_CONTROL => verify_phy_control(vrf, bcrd),
-        _ if bslots::MMCM.contains(bcrd.slot) => verify_mmcm(vrf, bcrd),
-        bslots::PLL => verify_pll(vrf, bcrd),
+        _ if bcrd.slot == bslots::PLL[0] => verify_mmcm(vrf, bcrd),
+        _ if bcrd.slot == bslots::PLL[1] => verify_pll(vrf, bcrd),
         _ if slot_name.starts_with("BUFMRCE") => verify_bufmrce(vrf, bcrd),
         bslots::HCLK_CMT => verify_hclk_cmt(endev, vrf, bcrd),
         bslots::CMT_A => verify_cmt_a(vrf, bcrd),
@@ -3454,8 +3454,7 @@ fn verify_gtz(
         let sdie = endev.edev.chips.last_id().unwrap();
         (sdie, vrf.grid.rows(sdie).last().unwrap() - 19)
     };
-    let obel_rebuf =
-        vrf.get_legacy_bel(CellCoord::new(sdie, endev.edev.col_clk, srow).bel(bslots::CLK_REBUF));
+    let obel_rebuf = vrf.get_legacy_bel(sdie.cell(endev.edev.col_clk, srow).bel(bslots::CLK_REBUF));
     for i in 0..32 {
         let wire = format!("GTZ_CLK_GCLK{i}");
         let wire = RawWireCoord {
@@ -3512,7 +3511,7 @@ fn verify_gtz(
                     let wire_i = RawWireCoord { crd, wire: &wire_i };
                     vrf.claim_pip(wire_i, wire_r);
                     vrf.claim_pip(wire_r, wire_i);
-                    let rw = CellCoord::new(egt.die, gcol, egt.rows[row]).wire(sll_wire);
+                    let rw = egt.die.cell(gcol, egt.rows[row]).wire(sll_wire);
                     if !vrf.pin_int_wire(wire_i, rw) {
                         println!("FAIL TO PIN GTZ {col} {row}");
                     }

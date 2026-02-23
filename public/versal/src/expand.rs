@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityBitVec, EntityId, EntityRange, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::builder::GridBuilder;
-use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId};
+use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, DieIdExt, RowId};
 use std::collections::{BTreeSet, HashMap};
 
 use crate::chip::{
@@ -106,13 +106,12 @@ impl Expander<'_> {
 
             if di.ps_height != chip.regs * Chip::ROWS_PER_REG {
                 for dx in 0..ps_width {
-                    let cell =
-                        CellCoord::new(die, ColId::from_idx(dx), RowId::from_idx(di.ps_height));
+                    let cell = die.cell(ColId::from_idx(dx), RowId::from_idx(di.ps_height));
                     self.egrid.fill_conn_term_id(cell, ccls::TERM_S);
                 }
             }
             for dy in 0..di.ps_height {
-                let cell = CellCoord::new(die, di.col_cfrm, RowId::from_idx(dy));
+                let cell = die.cell(di.col_cfrm, RowId::from_idx(dy));
                 self.egrid.fill_conn_term_id(cell, ccls::TERM_W);
                 self.egrid.fill_conn_term_id(cell, ccls::TERM_LW);
             }
@@ -519,7 +518,7 @@ impl Expander<'_> {
                         HardRowKind::DfeCfcS => (tcls::DFE_CFC_S, false),
                         HardRowKind::DfeCfcN => (tcls::DFE_CFC_N, false),
                     };
-                    let cell = CellCoord::new(die, hc.col, chip.row_reg_bot(reg));
+                    let cell = die.cell(hc.col, chip.row_reg_bot(reg));
                     let mut tcells = vec![];
                     let height = if is_high {
                         Chip::ROWS_PER_REG * 2
@@ -550,7 +549,7 @@ impl Expander<'_> {
                     if self.disabled.contains(&DisabledPart::Region(die, reg)) {
                         continue;
                     }
-                    let cell = CellCoord::new(die, col, chip.row_reg_bot(reg));
+                    let cell = die.cell(col, chip.row_reg_bot(reg));
                     let mut tcells = vec![];
                     tcells.extend(cell.cells_n(Chip::ROWS_PER_REG));
                     tcells.extend(cell.delta(1, 0).cells_n(Chip::ROWS_PER_REG));
@@ -582,7 +581,7 @@ impl Expander<'_> {
             let col = self.egrid.cols(die).first().unwrap();
             let ps_height = chip.get_ps_height();
             for reg in chip.regs() {
-                let cell = CellCoord::new(die, col, chip.row_reg_bot(reg));
+                let cell = die.cell(col, chip.row_reg_bot(reg));
                 if cell.row.to_idx() < ps_height {
                     continue;
                 }
@@ -601,7 +600,7 @@ impl Expander<'_> {
             match chip.right {
                 RightKind::Gt(ref regs) => {
                     for (reg, &kind) in regs {
-                        let cell = CellCoord::new(die, col, chip.row_reg_bot(reg));
+                        let cell = die.cell(col, chip.row_reg_bot(reg));
                         match kind {
                             GtRowKind::None => (),
                             GtRowKind::Gty => {
@@ -646,7 +645,7 @@ impl Expander<'_> {
                 _ => continue,
             }
             for reg in chip.regs() {
-                let cell = CellCoord::new(die, col, chip.row_reg_bot(reg));
+                let cell = die.cell(col, chip.row_reg_bot(reg));
                 self.egrid
                     .add_tile_n_id(cell, tcls::SYSMON_SAT_GT_E, Chip::ROWS_PER_REG);
                 self.egrid

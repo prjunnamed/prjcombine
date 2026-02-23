@@ -11,7 +11,7 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{Dir, DirH, DirHV, DirV},
-    grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
+    grid::{CellCoord, ColId, DieIdExt, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_re_lattice_naming::{ChipNaming, WireName};
 use prjcombine_re_lattice_rawdump::{Grid, NodeId};
@@ -47,10 +47,9 @@ impl ChipExt for Chip {
         } else {
             r
         };
-        let die = DieId::from_idx(0);
         let col = self.xlat_col(c);
         let row = self.xlat_row(r);
-        CellCoord::new(die, col, row)
+        Chip::DIE.cell(col, row)
     }
 
     fn xlat_rc_wire(&self, wire: WireName) -> CellCoord {
@@ -566,11 +565,7 @@ impl ChipBuilder<'_> {
     }
 
     fn fill_config_loc_scm(&mut self) {
-        let cell = CellCoord::new(
-            DieId::from_idx(0),
-            self.chip.col_clk - 12,
-            self.chip.row_n() - 12,
-        );
+        let cell = Chip::DIE.cell(self.chip.col_clk - 12, self.chip.row_n() - 12);
         self.chip.special_loc.insert(SpecialLocKey::Config, cell);
     }
 
@@ -586,7 +581,7 @@ impl ChipBuilder<'_> {
     fn fill_config_loc_xp2(&mut self) {
         self.chip.special_loc.insert(
             SpecialLocKey::Osc,
-            CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_n() - 1),
+            Chip::DIE.cell(self.chip.col_e(), self.chip.row_n() - 1),
         );
         let row = self
             .chip
@@ -597,7 +592,7 @@ impl ChipBuilder<'_> {
             .unwrap();
         self.chip.special_loc.insert(
             SpecialLocKey::Config,
-            CellCoord::new(DieId::from_idx(0), self.chip.col_e(), row),
+            Chip::DIE.cell(self.chip.col_e(), row),
         );
     }
 
@@ -617,7 +612,7 @@ impl ChipBuilder<'_> {
                     let row = self
                         .chip
                         .xlat_row(tile.name.strip_prefix("PR").unwrap().parse().unwrap());
-                    let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), row);
+                    let cell = Chip::DIE.cell(self.chip.col_e(), row);
                     self.chip
                         .special_loc
                         .insert(SpecialLocKey::ConfigBits, cell);
@@ -626,7 +621,7 @@ impl ChipBuilder<'_> {
                     let row = self
                         .chip
                         .xlat_row(tile.name.strip_prefix("PL").unwrap().parse().unwrap());
-                    let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_w(), row);
+                    let cell = Chip::DIE.cell(self.chip.col_w(), row);
                     self.chip
                         .special_loc
                         .insert(SpecialLocKey::ConfigBits, cell);
@@ -672,7 +667,7 @@ impl ChipBuilder<'_> {
                 DirV::S => self.chip.row_s(),
                 DirV::N => self.chip.row_n() - 12,
             };
-            let cell = CellCoord::new(DieId::from_idx(0), col, row);
+            let cell = Chip::DIE.cell(col, row);
             self.chip
                 .special_loc
                 .insert(SpecialLocKey::Pll(PllLoc::new(hv, 0)), cell);
@@ -694,7 +689,7 @@ impl ChipBuilder<'_> {
                 };
                 self.chip.special_loc.insert(
                     SpecialLocKey::Pll(PllLoc::new_hv(edge, sn, 0)),
-                    CellCoord::new(DieId::from_idx(0), self.chip.col_edge(edge), row),
+                    Chip::DIE.cell(self.chip.col_edge(edge), row),
                 );
             }
         }
@@ -1508,7 +1503,7 @@ impl ChipBuilder<'_> {
                 DirH::W => self.chip.col_w() + 1,
                 DirH::E => self.chip.col_e() - 1,
             };
-            let cell = CellCoord::new(DieId::from_idx(0), col, row);
+            let cell = Chip::DIE.cell(col, row);
             self.chip
                 .special_loc
                 .insert(SpecialLocKey::DdrDll(hv), cell);
@@ -1725,10 +1720,9 @@ impl ChipBuilder<'_> {
             ]
         };
         for (bank, col, row) in bcs {
-            self.chip.special_loc.insert(
-                SpecialLocKey::Bc(bank),
-                xlat[&CellCoord::new(DieId::from_idx(0), col, row)],
-            );
+            self.chip
+                .special_loc
+                .insert(SpecialLocKey::Bc(bank), xlat[&Chip::DIE.cell(col, row)]);
         }
     }
 
@@ -2365,23 +2359,23 @@ impl ChipBuilder<'_> {
             .unwrap();
         self.chip.special_loc.insert(
             SpecialLocKey::Bc(5),
-            CellCoord::new(DieId::from_idx(0), col_clk_w, self.chip.row_s()),
+            Chip::DIE.cell(col_clk_w, self.chip.row_s()),
         );
         self.chip.special_loc.insert(
             SpecialLocKey::Bc(4),
-            CellCoord::new(DieId::from_idx(0), col_clk_e, self.chip.row_s()),
+            Chip::DIE.cell(col_clk_e, self.chip.row_s()),
         );
         self.chip.special_loc.insert(
             SpecialLocKey::Bc(7),
-            CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_clk),
+            Chip::DIE.cell(self.chip.col_w(), self.chip.row_clk),
         );
         self.chip.special_loc.insert(
             SpecialLocKey::Bc(2),
-            CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_clk),
+            Chip::DIE.cell(self.chip.col_e(), self.chip.row_clk),
         );
         self.chip.special_loc.insert(
             SpecialLocKey::Bc(1),
-            CellCoord::new(DieId::from_idx(0), self.chip.col_clk, self.chip.row_n()),
+            Chip::DIE.cell(self.chip.col_clk, self.chip.row_n()),
         );
     }
 
@@ -2443,18 +2437,18 @@ impl ChipBuilder<'_> {
         for edge in [DirH::W, DirH::E] {
             self.chip.special_loc.insert(
                 SpecialLocKey::Pll(PllLoc::new_hv(edge, DirV::S, 0)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_edge(edge), ebr_rows[0]),
+                Chip::DIE.cell(self.chip.col_edge(edge), ebr_rows[0]),
             );
             if ebr_rows.len() == 2 {
                 self.chip.special_loc.insert(
                     SpecialLocKey::Pll(PllLoc::new_hv(edge, DirV::N, 0)),
-                    CellCoord::new(DieId::from_idx(0), self.chip.col_edge(edge), ebr_rows[1]),
+                    Chip::DIE.cell(self.chip.col_edge(edge), ebr_rows[1]),
                 );
             }
             if !dsp_rows.is_empty() {
                 self.chip.special_loc.insert(
                     SpecialLocKey::Pll(PllLoc::new_hv(edge, DirV::N, 1)),
-                    CellCoord::new(DieId::from_idx(0), self.chip.col_edge(edge), dsp_rows[0]),
+                    Chip::DIE.cell(self.chip.col_edge(edge), dsp_rows[0]),
                 );
             }
         }
@@ -2478,32 +2472,24 @@ impl ChipBuilder<'_> {
         for edge in [DirH::W, DirH::E] {
             self.chip.special_loc.insert(
                 SpecialLocKey::Pll(PllLoc::new_hv(edge, DirV::S, 0)),
-                CellCoord::new(DieId::from_idx(0), self.chip.col_edge(edge), bot_rows[0]),
+                Chip::DIE.cell(self.chip.col_edge(edge), bot_rows[0]),
             );
             if bot_rows.len() > 1 {
                 self.chip.special_loc.insert(
                     SpecialLocKey::Pll(PllLoc::new_hv(edge, DirV::S, 1)),
-                    CellCoord::new(
-                        DieId::from_idx(0),
-                        self.chip.col_edge(edge),
-                        *bot_rows.last().unwrap(),
-                    ),
+                    Chip::DIE.cell(self.chip.col_edge(edge), *bot_rows.last().unwrap()),
                 );
             }
             if top_rows.len() > 1 {
                 self.chip.special_loc.insert(
                     SpecialLocKey::Pll(PllLoc::new_hv(edge, DirV::N, 1)),
-                    CellCoord::new(DieId::from_idx(0), self.chip.col_edge(edge), top_rows[0]),
+                    Chip::DIE.cell(self.chip.col_edge(edge), top_rows[0]),
                 );
             }
             if !top_rows.is_empty() {
                 self.chip.special_loc.insert(
                     SpecialLocKey::Pll(PllLoc::new_hv(edge, DirV::N, 0)),
-                    CellCoord::new(
-                        DieId::from_idx(0),
-                        self.chip.col_edge(edge),
-                        *top_rows.last().unwrap(),
-                    ),
+                    Chip::DIE.cell(self.chip.col_edge(edge), *top_rows.last().unwrap()),
                 );
             }
         }
@@ -2642,10 +2628,9 @@ impl ChipBuilder<'_> {
             130 => (SpecialLocKey::SerdesTriple, 13),
             _ => unreachable!(),
         };
-        self.chip.special_loc.insert(
-            loc,
-            CellCoord::new(DieId::from_idx(0), ColId::from_idx(col), self.chip.row_s()),
-        );
+        self.chip
+            .special_loc
+            .insert(loc, Chip::DIE.cell(ColId::from_idx(col), self.chip.row_s()));
     }
 
     fn fill_serdes_ecp5(&mut self) {
@@ -3116,11 +3101,7 @@ impl ChipBuilder<'_> {
         for hv in DirHV::DIRS {
             self.chip.special_loc.insert(
                 SpecialLocKey::Pll(PllLoc::new(hv, 0)),
-                CellCoord::new(
-                    DieId::from_idx(0),
-                    self.chip.col_edge(hv.h),
-                    self.chip.row_edge(hv.v),
-                ),
+                Chip::DIE.cell(self.chip.col_edge(hv.h), self.chip.row_edge(hv.v)),
             );
         }
     }
@@ -3245,10 +3226,9 @@ impl ChipBuilder<'_> {
             (5, SpecialLocKey::PclkIn(Dir::S, 0)),
             (33, SpecialLocKey::PclkIn(Dir::S, 1)),
         ] {
-            self.chip.special_loc.insert(
-                key,
-                CellCoord::new(DieId::from_idx(0), ColId::from_idx(col), self.chip.row_s()),
-            );
+            self.chip
+                .special_loc
+                .insert(key, Chip::DIE.cell(ColId::from_idx(col), self.chip.row_s()));
         }
     }
 

@@ -2,13 +2,12 @@ use std::collections::BTreeMap;
 
 use prjcombine_ecp::{
     bels,
-    chip::{ChipKind, RowKind, SpecialIoKey, SpecialLocKey},
+    chip::{Chip, ChipKind, RowKind, SpecialIoKey, SpecialLocKey},
 };
-use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelPin, LegacyBel, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
-    grid::{CellCoord, DieId},
+    grid::DieIdExt,
 };
 
 use crate::ChipContext;
@@ -22,7 +21,8 @@ impl ChipContext<'_> {
             if matches!(rd.kind, RowKind::Io | RowKind::Ebr | RowKind::Dsp) {
                 prev_row.insert(row, prev);
                 prev = row;
-                let bcrd = CellCoord::new(DieId::from_idx(0), self.chip.col_clk, row)
+                let bcrd = Chip::DIE
+                    .cell(self.chip.col_clk, row)
                     .bel(bels::HSDCLK_ROOT);
                 self.name_bel_null(bcrd);
                 for h in [DirH::W, DirH::E] {
@@ -44,7 +44,7 @@ impl ChipContext<'_> {
 
         let bcrd = self.chip.bel_clk_root();
         let tcrd = self.edev.bel_tile(bcrd);
-        let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_clk - 1, self.chip.row_clk);
+        let cell = Chip::DIE.cell(self.chip.col_clk - 1, self.chip.row_clk);
         self.name_bel_null(bcrd);
 
         let mut bel = LegacyBel::default();

@@ -5,7 +5,9 @@ use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::{
     db::{ConnectorClassId, IntDb, IntDbIndex, TileClassId},
-    grid::{Cell, CellCoord, ColId, Connector, DieId, ExpandedDie, ExpandedGrid, RowId, Tile},
+    grid::{
+        Cell, CellCoord, ColId, Connector, DieId, DieIdExt, ExpandedDie, ExpandedGrid, RowId, Tile,
+    },
 };
 
 pub struct GridBuilder<'db> {
@@ -93,7 +95,7 @@ impl<'db> GridBuilder<'db> {
                         .db
                         .region_slots
                         .ids()
-                        .map(|_| CellCoord::new(die, ColId::from_idx(c), RowId::from_idx(r)))
+                        .map(|_| die.cell(ColId::from_idx(c), RowId::from_idx(r)))
                         .collect(),
                 }
             })

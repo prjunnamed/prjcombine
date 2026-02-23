@@ -432,25 +432,42 @@ target_defs! {
     // TODO: DSP_V6
 
     enum IO_DATA_RATE { SDR, DDR }
-    enum IO_DATA_WIDTH { NONE, _2, _3, _4, _5, _6, _7, _8, _10 }
+    // 14 is virtex7 only
+    enum IO_DATA_WIDTH { NONE, _2, _3, _4, _5, _6, _7, _8, _10, _14 }
     enum IO_SERDES_MODE { MASTER, SLAVE }
     enum ILOGIC_MUX_TSBYPASS { GND, T }
-    enum ILOGIC_INTERFACE_TYPE { MEMORY, NETWORKING }
+    enum ILOGIC_INTERFACE_TYPE {
+        MEMORY,
+        NETWORKING,
+        // virtex6 and up only
+        OVERSAMPLE,
+        MEMORY_DDR3_V6,
+        // virtex7 only
+        MEMORY_DDR3_V7,
+    }
     enum ILOGIC_DDR_CLK_EDGE { SAME_EDGE_PIPELINED, SAME_EDGE, OPPOSITE_EDGE }
     enum ILOGIC_IDELAYMUX { NONE, D, OFB }
     enum ILOGIC_IOBDELAY_TYPE { DEFAULT, FIXED, VARIABLE }
     enum ILOGIC_NUM_CE { _1, _2 }
-    bel_class ILOGIC_V4 {
-        // CLKB is virtex5 only
+    bel_class ILOGIC {
+        // CLKB is virtex5 and up only
         input CLK, CLKB, CLKDIV;
         input SR, REV;
         input CE1, CE2;
         input BITSLIP;
-        // these three not present on virtex5 (moved into the IODELAY bel)
+        // these three not present on virtex5 and up (moved into the IODELAY bel)
         input DLYCE, DLYINC, DLYRST;
         output O;
-        output Q1, Q2, Q3, Q4, Q5, Q6;
+        // Q7 and Q8 are vitex7 only
+        output Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8;
         output CLKPAD;
+
+        // virtex6 and up only
+        input DYNCLKSEL, DYNCLKDIVSEL;
+        // virtex6 only
+        input DYNOCLKSEL;
+        // virtex7 only
+        input DYNCLKDIVPSEL;
 
         // ???
         attribute CLK_INV: bitvec[3];
@@ -497,7 +514,7 @@ target_defs! {
         attribute BITSLIP_SYNC: bool;
         attribute DDR_CLK_EDGE: ILOGIC_DDR_CLK_EDGE;
 
-        // these four not present on virtex5 (moved into the IODELAY bel)
+        // these four not present on virtex5 and up (moved into the IODELAY bel)
         attribute IDELAYMUX: ILOGIC_IDELAYMUX;
         attribute IOBDELAY_TYPE: ILOGIC_IOBDELAY_TYPE;
         attribute IOBDELAY_VALUE_CUR: bitvec[6];
@@ -506,8 +523,8 @@ target_defs! {
         attribute READBACK_I: bitvec[1];
     }
 
-    enum IODELAY_DELAY_SRC { NONE, I, IO, O, DATAIN }
-    enum IODELAY_IDELAY_TYPE { FIXED, VARIABLE, DEFAULT }
+    enum IODELAY_V5_DELAY_SRC { NONE, I, IO, O, DATAIN }
+    enum IODELAY_V5_IDELAY_TYPE { FIXED, VARIABLE, DEFAULT }
     bel_class IODELAY_V5 {
         // C is tied to ILOGIC.CLKDIV
         input CE, DATAIN, INC, RST;
@@ -515,16 +532,25 @@ target_defs! {
         // ??? why? and why inverted?
         // good start, isn't it
         attribute ENABLE: bitvec[4];
-        attribute DELAY_SRC: IODELAY_DELAY_SRC;
+        attribute DELAY_SRC: IODELAY_V5_DELAY_SRC;
         attribute DELAYCHAIN_OSC: bool;
         attribute HIGH_PERFORMANCE_MODE: bool;
         attribute LEGIDELAY: bool;
-        attribute IDELAY_TYPE: IODELAY_IDELAY_TYPE;
+        attribute IDELAY_TYPE: IODELAY_V5_IDELAY_TYPE;
         attribute IDELAY_VALUE_CUR: bitvec[6];
         attribute IDELAY_VALUE_INIT: bitvec[6];
         attribute ODELAY_VALUE: bitvec[6];
     }
     device_data IODELAY_V5_IDELAY_DEFAULT: bitvec[6];
+
+    bel_class IODELAY_V6 {
+        // C is still tied to ILOGIC.CLKDIV, but now with separate inversion, so...
+        input C, CINVCTRL;
+        input CE, DATAIN, INC, RST;
+        input CNTVALUEIN[5];
+        output CNTVALUEOUT[5];
+    }
+    device_data IODELAY_V6_IDELAY_DEFAULT: bitvec[5];
 
     // 2 no longer supported on virtex5
     enum OLOGIC_TRISTATE_WIDTH { _1, _2, _4 }
@@ -533,13 +559,22 @@ target_defs! {
     enum OLOGIC_V5_MUX_O { NONE, D1, SERDES_SDR, SERDES_DDR, LATCH, FF, DDR }
     enum OLOGIC_V5_MUX_T { NONE, T1, SERDES_SDR, SERDES_DDR, LATCH, FF, DDR }
     enum OLOGIC_MISR_CLK_SELECT { NONE, CLK1, CLK2 }
-    bel_class OLOGIC_V4 {
-        input CLK, CLKDIV;
+    bel_class OLOGIC {
+        // CLKB, CLKDIVB are virtex6 and up only
+        // CLKPERF is virtex6 only
+        input CLK, CLKB, CLKDIV, CLKDIVB, CLKPERF;
         input SR, REV;
         input OCE, TCE;
         input D1, D2, D3, D4, D5, D6;
         input T1, T2, T3, T4;
         output TQ;
+
+        // virtex6 and up
+        output TFB;
+        output IOCLKGLITCH;
+        // virtex6 only
+        input ODV, WC;
+        output OCBEXTEND;
 
         attribute CLK1_INV: bool;
         attribute CLK2_INV: bool;
@@ -587,7 +622,14 @@ target_defs! {
     enum IOB_IBUF_MODE { NONE, VREF, DIFF, CMOS }
     enum IOB_DCI_MODE { NONE, OUTPUT, OUTPUT_HALF, TERM_VCC, TERM_SPLIT }
 
-    bel_class IOB_V4 {
+    bel_class IOB {
+        // virtex6 and up only
+        input PD_INT_EN, PU_INT_EN, KEEPER_INT_EN;
+        input DIFF_TERM_INT_EN;
+        // virtex7 only
+        input IBUFDISABLE;
+        input DCITERMDISABLE;
+
         pad PAD: inout;
 
         attribute PULL: IOB_PULL;
@@ -729,6 +771,12 @@ target_defs! {
         attribute DRP_MASK: bool;
     }
 
+    bel_class HCLK_DRP_V6 {
+        attribute DRP_MASK_S: bool;
+        attribute DRP_MASK_N: bool;
+        attribute DRP_MASK_SYSMON: bool;
+    }
+
     bel_class BUFGCTRL {
         input I0, I1;
         input S0, S1;
@@ -739,6 +787,15 @@ target_defs! {
         attribute CREATE_EDGE: bool;
         attribute INIT_OUT: bitvec[1];
         attribute PRESELECT_I0, PRESELECT_I1: bool;
+    }
+
+    bel_class BUFHCE {
+        input I;
+        input CE;
+        output O;
+
+        attribute ENABLE: bool;
+        attribute INIT_OUT: bitvec[1];
     }
 
     bel_class BUFIO {
@@ -793,32 +850,52 @@ target_defs! {
         // virtex6 and up only
         attribute HIGH_PERFORMANCE_MODE: bool;
         // for calibrated delay only; the BIAS_MODE setting of "2" is stored the same as "0" here.
-        attribute BIAS_MODE: bitvec[0];
+        attribute BIAS_MODE: bitvec[1];
     }
 
     // used for virtex4 and virtex5
-    bel_class DCI_V4 {
+    bel_class DCI {
         input TSTCLK, TSTRST;
         input TSTHLP, TSTHLN;
+        // ??? the following outputs (except DCIDONE) exist on virtex6 and up, but are not connected to anything?
         output DCISCLK;
         output DCIADDRESS[3];
         output DCIDATA;
         output DCIIOUPDATE;
         output DCIREFIOUPDATE;
         output DCIDONE;
+        // virtex6 and up only
+        input INT_DCI_EN;
 
         attribute ENABLE: bool;
         attribute QUIET: bool;
+
         attribute V4_LVDIV2: bitvec[2];
         attribute V5_LVDIV2: bitvec[3];
-        attribute PMASK_TERM_VCC: bitvec[5];
-        attribute PMASK_TERM_SPLIT: bitvec[5];
-        attribute NMASK_TERM_SPLIT: bitvec[5];
+        attribute V4_PMASK_TERM_VCC: bitvec[5];
+        attribute V4_PMASK_TERM_SPLIT: bitvec[5];
+        attribute V4_NMASK_TERM_SPLIT: bitvec[5];
+        attribute V6_PMASK_TERM_VCC: bitvec[6];
+        attribute V6_PMASK_TERM_SPLIT: bitvec[6];
+        attribute V6_NMASK_TERM_SPLIT: bitvec[6];
+
+        // not present on virtex6 and up (replaced by other attrs?)
         attribute NREF: bitvec[2];
         attribute PREF: bitvec[4];
+
         attribute TEST_ENABLE: bitvec[2];
         attribute CASCADE_FROM_ABOVE: bool;
         attribute CASCADE_FROM_BELOW: bool;
+
+        // virtex6 and up only from now on
+        attribute DYNAMIC_ENABLE: bool;
+        attribute NREF_OUTPUT: bitvec[2];
+        attribute NREF_OUTPUT_HALF: bitvec[3];
+        attribute NREF_TERM_SPLIT: bitvec[3];
+        attribute PREF_OUTPUT: bitvec[2];
+        attribute PREF_OUTPUT_HALF: bitvec[3];
+        attribute PREF_TERM_VCC: bitvec[2];
+        attribute PREF_TERM_SPLIT: bitvec[3];
     }
 
     bel_class LVDS_V4 {
@@ -841,7 +918,8 @@ target_defs! {
     }
     bel_class BANK {
         // virtex5 and up; virtex4 has this on a separate bel
-        attribute V5_LVDSVIAS: bitvec[12];
+        attribute V5_LVDSBIAS: bitvec[12];
+        attribute V6_LVDSBIAS: bitvec[17];
         // virtex5 and up
         attribute INTERNAL_VREF: INTERNAL_VREF;
     }
@@ -1381,6 +1459,44 @@ target_defs! {
         }
     }
 
+    bel_class PLL_V6 {
+        input CLKIN1, CLKIN2;
+        input CLKINSEL;
+        input CLKFBIN;
+        input CLKIN_CASC, CLKFB_CASC;
+
+        output
+            CLKOUT0, CLKOUT0B, CLKOUT1, CLKOUT1B,
+            CLKOUT2, CLKOUT2B, CLKOUT3, CLKOUT3B,
+            CLKOUT4, CLKOUT5, CLKOUT6, CLKFBOUT, CLKFBOUTB, TMUXOUT;
+
+        input RST;
+        input PWRDWN;
+        output LOCKED;
+
+        input DCLK;
+        input DEN;
+        input DWE;
+        input DADDR[7];
+        input DI[16];
+        output DRDY;
+        output DO[16];
+
+        input PSCLK;
+        output PSDONE;
+        input PSEN;
+        input PSINCDEC;
+
+        output CLKINSTOPPED, CLKFBSTOPPED;
+        input TESTIN[32];
+        output TESTOUT[64];
+
+        // 0x00..0x80
+        attribute DRP: bitvec[16][128];
+
+        // TODO: attributes
+    }
+
     enum SYSMON_MONITOR_MODE { MONITOR, ADC, TEST }
     bel_class SYSMON_V4 {
         input CONVST;
@@ -1717,7 +1833,10 @@ target_defs! {
         attribute USERCODE: bitvec[32];
         attribute ICAP_WIDTH: ICAP_WIDTH;
         attribute DCI_CLK_ENABLE: bitvec[2];
+        attribute DCI_CLK_ENABLE_TR: bitvec[6];
         attribute PROBESEL: PROBESEL;
+        // virtex6 and up only
+        attribute DISABLE_JTAG_TR: bitvec[3];
 
         attribute HSWAPEN_PULL: IOB_PULL;
         attribute PROG_PULL: IOB_PULL;
@@ -2767,7 +2886,160 @@ target_defs! {
         output TSTSOEMACO[7];
     }
 
-    bel_class PCIE {
+    bel_class EMAC_V6 {
+        input RESET;
+
+        input DCREMACCLK;
+        input DCREMACENABLE;
+        input DCREMACREAD;
+        input DCREMACWRITE;
+        input DCREMACABUS[10];
+        input DCREMACDBUS[32];
+        output EMACDCRACK;
+        output EMACDCRDBUS[32];
+
+        output DCRHOSTDONEIR;
+
+        input HOSTCLK;
+        input HOSTREQ;
+        input HOSTOPCODE[2];
+        input HOSTMIIMSEL;
+        output HOSTMIIMRDY;
+        input HOSTADDR[10];
+        input HOSTWRDATA[32];
+        output HOSTRDDATA[32];
+
+        input CLIENTEMACDCMLOCKED;
+        input CLIENTEMACPAUSEREQ;
+        input CLIENTEMACPAUSEVAL[16];
+        input CLIENTEMACRXCLIENTCLKIN;
+        input CLIENTEMACTXCLIENTCLKIN;
+        input CLIENTEMACTXD[16];
+        input CLIENTEMACTXDVLD;
+        input CLIENTEMACTXDVLDMSW;
+        input CLIENTEMACTXFIRSTBYTE;
+        input CLIENTEMACTXIFGDELAY[8];
+        input CLIENTEMACTXUNDERRUN;
+
+        output EMACCLIENTANINTERRUPT;
+        output EMACCLIENTRXBADFRAME;
+        output EMACCLIENTRXCLIENTCLKOUT;
+        output EMACCLIENTRXD[16];
+        output EMACCLIENTRXDVLD;
+        output EMACCLIENTRXDVLDMSW;
+        output EMACCLIENTRXDVREG6;
+        output EMACCLIENTRXFRAMEDROP;
+        output EMACCLIENTRXGOODFRAME;
+        output EMACCLIENTRXSTATS[7];
+        output EMACCLIENTRXSTATSBYTEVLD;
+        output EMACCLIENTRXSTATSVLD;
+        output EMACCLIENTTXACK;
+        output EMACCLIENTTXCLIENTCLKOUT;
+        output EMACCLIENTTXCOLLISION;
+        output EMACCLIENTTXRETRANSMIT;
+        output EMACCLIENTTXSTATS;
+        output EMACCLIENTTXSTATSBYTEVLD;
+        output EMACCLIENTTXSTATSVLD;
+
+        input EMACTIBUS[5];
+        output EMACTOBUS[5];
+
+        input PHYEMACCOL;
+        input PHYEMACCRS;
+        input PHYEMACGTXCLK;
+        input PHYEMACMCLKIN;
+        input PHYEMACMDIN;
+        input PHYEMACMIITXCLK;
+        input PHYEMACPHYAD[5];
+        // PHYEMACRXBUFERR gone
+        input PHYEMACRXBUFSTATUS[2];
+        input PHYEMACRXCHARISCOMMA;
+        input PHYEMACRXCHARISK;
+        // PHYEMACRXCHECKINGCRC gone
+        input PHYEMACRXCLK;
+        input PHYEMACRXCLKCORCNT[3];
+        // PHYEMACRXCOMMADET gone
+        input PHYEMACRXD[8];
+        input PHYEMACRXDISPERR;
+        input PHYEMACRXDV;
+        input PHYEMACRXER;
+        // PHYEMACRXLOSSOFSYNC gone
+        input PHYEMACRXNOTINTABLE;
+        input PHYEMACRXRUNDISP;
+        input PHYEMACSIGNALDET;
+        input PHYEMACTXBUFERR;
+        input PHYEMACTXGMIIMIICLKIN;
+
+        output EMACPHYENCOMMAALIGN;
+        output EMACPHYLOOPBACKMSB;
+        output EMACPHYMCLKOUT;
+        output EMACPHYMDOUT;
+        output EMACPHYMDTRI;
+        output EMACPHYMGTRXRESET;
+        output EMACPHYMGTTXRESET;
+        output EMACPHYPOWERDOWN;
+        output EMACPHYSYNCACQSTATUS;
+        output EMACPHYTXCHARDISPMODE;
+        output EMACPHYTXCHARDISPVAL;
+        output EMACPHYTXCHARISK;
+        output EMACPHYTXCLK;
+        output EMACPHYTXD[8];
+        output EMACPHYTXEN;
+        output EMACPHYTXER;
+        output EMACPHYTXGMIIMIICLKOUT;
+        output EMACSPEEDIS10100;
+
+        input TESTSELI;
+        input TSTSEEMACI;
+        input TSTSIEMACI[7];
+        output TSTSOEMACO[7];
+
+        attribute EMAC_1000BASEX_ENABLE: bool;
+        attribute EMAC_ADDRFILTER_ENABLE: bool;
+        attribute EMAC_BYTEPHY: bool;
+        attribute EMAC_CONFIGVEC_79: bool;
+        // new
+        attribute EMAC_CTRLLENCHECK_DISABLE: bool;
+        attribute EMAC_DCRBASEADDR: bitvec[8];
+        attribute EMAC_FUNCTION: bitvec[3];
+        attribute EMAC_GTLOOPBACK: bool;
+        attribute EMAC_HOST_ENABLE: bool;
+        attribute EMAC_LINKTIMERVAL: bitvec[9];
+        attribute EMAC_LTCHECK_DISABLE: bool;
+        attribute EMAC_MDIO_ENABLE: bool;
+        attribute EMAC_PAUSEADDR: bitvec[48];
+        attribute EMAC_PHYINITAUTONEG_ENABLE: bool;
+        attribute EMAC_PHYISOLATE: bool;
+        attribute EMAC_PHYLOOPBACKMSB: bool;
+        attribute EMAC_PHYPOWERDOWN: bool;
+        attribute EMAC_PHYRESET: bool;
+        attribute EMAC_RGMII_ENABLE: bool;
+        attribute EMAC_RX16BITCLIENT_ENABLE: bool;
+        attribute EMAC_RXFLOWCTRL_ENABLE: bool;
+        attribute EMAC_RXHALFDUPLEX: bool;
+        attribute EMAC_RXINBANDFCS_ENABLE: bool;
+        attribute EMAC_RXJUMBOFRAME_ENABLE: bool;
+        attribute EMAC_RXRESET: bool;
+        attribute EMAC_RXVLAN_ENABLE: bool;
+        attribute EMAC_RX_ENABLE: bool;
+        attribute EMAC_SGMII_ENABLE: bool;
+        attribute EMAC_SPEED_LSB: bool;
+        attribute EMAC_SPEED_MSB: bool;
+        attribute EMAC_TX16BITCLIENT_ENABLE: bool;
+        attribute EMAC_TXFLOWCTRL_ENABLE: bool;
+        attribute EMAC_TXHALFDUPLEX: bool;
+        attribute EMAC_TXIFGADJUST_ENABLE: bool;
+        attribute EMAC_TXINBANDFCS_ENABLE: bool;
+        attribute EMAC_TXJUMBOFRAME_ENABLE: bool;
+        attribute EMAC_TXRESET: bool;
+        attribute EMAC_TXVLAN_ENABLE: bool;
+        attribute EMAC_TX_ENABLE: bool;
+        attribute EMAC_UNICASTADDR: bitvec[48];
+        attribute EMAC_UNIDIRECTION_ENABLE: bool;
+        attribute EMAC_USECLKEN: bool;
+    }
+
+    bel_class PCIE_V5 {
         input CRMCORECLK;
         input CRMCORECLKDLO;
         input CRMCORECLKRXO;
@@ -4736,7 +5008,7 @@ target_defs! {
 
         wire HCLK_ROW[10]: regional HROW;
         wire RCLK_ROW[4]: regional HROW;
-        wire MGT_ROW_I[5]: branch MGT_ROW_PREV;
+        wire MGT_ROW_I[5]: branch HCLK_ROW_PREV;
         wire MGT_ROW_O[5]: mux;
 
         wire OUT_BUFG[32]: bel;
@@ -4784,10 +5056,11 @@ target_defs! {
 
     if variant virtex6 {
         region_slot GLOBAL;
-        region_slot GIOB;
         region_slot HROW;
         region_slot LEAF;
+        region_slot LEAF_IO;
 
+        wire PULLUP: pullup;
         wire TIE_0: tie 0;
         wire TIE_1: tie 1;
 
@@ -4941,7 +5214,97 @@ target_defs! {
         wire OUT_BEL[24]: bel;
         wire OUT_TEST[24]: test;
 
-        wire TEST[4]: test;
+        wire IMUX_SPEC[4]: test;
+
+        wire HCLK_ROW[12]: regional HROW;
+        wire RCLK_ROW[6]: regional HROW;
+        wire MGT_ROW[10]: regional HROW;
+        wire HCLK_BUF[12]: mux;
+        wire RCLK_BUF[6]: mux;
+        wire PERF_ROW[4]: branch HCLK_ROW_NEXT;
+        wire PERF_ROW_OUTER[4]: mux;
+
+        wire PERF_BUF[4]: mux;
+        wire HCLK_IO[12]: regional LEAF_IO;
+        wire RCLK_IO[6]: regional LEAF_IO;
+        wire IMUX_IDELAYCTRL_REFCLK: mux;
+        wire IMUX_BUFIO[4]: mux;
+        wire IMUX_BUFR[2]: mux;
+        wire VRCLK[2]: bel;
+        wire VRCLK_S[2]: branch IO_N;
+        wire VRCLK_N[2]: branch IO_S;
+        wire SIOCLK[2]: bel;
+        wire VIOCLK[2]: bel;
+        wire VIOCLK_S[2]: branch IO_N;
+        wire VIOCLK_N[2]: branch IO_S;
+        wire VIOCLK_S_BUF[2]: mux;
+        wire VIOCLK_N_BUF[2]: mux;
+        wire IOCLK[8]: regional LEAF_IO;
+        wire VOCLK[2]: mux;
+        wire VOCLK_S[2]: branch IO_N;
+        wire VOCLK_N[2]: branch IO_S;
+        wire OCLK[2]: regional LEAF_IO;
+
+        wire OUT_CLKPAD: bel;
+        wire IMUX_IOI_ICLK[2]: mux;
+        wire IMUX_IOI_OCLK[2]: mux;
+        wire IMUX_IOI_OCLKDIV[2]: mux;
+        wire IMUX_IOI_OCLKPERF: mux;
+
+        wire IMUX_GTX_PERFCLK: mux;
+
+        wire GCLK[32]: regional GLOBAL;
+        wire GIOB[8]: regional GLOBAL;
+        wire OUT_BUFG[16]: bel;
+        wire OUT_BUFG_GFB[16]: mux;
+        wire IMUX_BUFG_O[32]: mux;
+        wire IMUX_BUFG_I[32]: branch CLK_PREV;
+
+        // buffered for BUFH inputs
+        wire GCLK_CMT[32]: mux;
+        wire BUFH_INT_W[2]: mux;
+        wire BUFH_INT_E[2]: mux;
+        wire GCLK_TEST[32]: mux;
+        wire GCLK_TEST_IN[32]: mux;
+        wire BUFH_TEST_W: mux;
+        wire BUFH_TEST_E: mux;
+        wire BUFH_TEST_W_IN: mux;
+        wire BUFH_TEST_E_IN: mux;
+        wire IMUX_BUFHCE_W[12]: mux;
+        wire IMUX_BUFHCE_E[12]: mux;
+        // buffered for CMT ins
+        wire CCIO_CMT_W[4]: mux;
+        wire CCIO_CMT_E[4]: mux;
+        wire MGT_CMT_W[10]: mux;
+        wire MGT_CMT_E[10]: mux;
+        wire HCLK_CMT_W[12]: mux;
+        wire HCLK_CMT_E[12]: mux;
+        wire RCLK_CMT_W[12]: mux;
+        wire RCLK_CMT_E[12]: mux;
+        wire GIOB_CMT[8]: mux;
+
+        wire IMUX_MMCM_CLKIN1_HCLK_W[2]: mux;
+        wire IMUX_MMCM_CLKIN2_HCLK_W[2]: mux;
+        wire IMUX_MMCM_CLKFB_HCLK_W[2]: mux;
+        wire IMUX_MMCM_CLKIN1_HCLK_E[2]: mux;
+        wire IMUX_MMCM_CLKIN2_HCLK_E[2]: mux;
+        wire IMUX_MMCM_CLKFB_HCLK_E[2]: mux;
+        wire IMUX_MMCM_CLKIN1_HCLK[2]: mux;
+        wire IMUX_MMCM_CLKIN2_HCLK[2]: mux;
+        wire IMUX_MMCM_CLKFB_HCLK[2]: mux;
+        wire IMUX_MMCM_CLKIN1_IO[2]: mux;
+        wire IMUX_MMCM_CLKIN2_IO[2]: mux;
+        wire IMUX_MMCM_CLKFB_IO[2]: mux;
+        wire IMUX_MMCM_CLKIN1_MGT[2]: mux;
+        wire IMUX_MMCM_CLKIN2_MGT[2]: mux;
+        wire IMUX_MMCM_CLKIN1[2]: mux;
+        wire IMUX_MMCM_CLKIN2[2]: mux;
+        wire IMUX_MMCM_CLKFB[2]: mux;
+        wire OUT_MMCM_S[14]: bel;
+        wire OUT_MMCM_N[14]: bel;
+        wire OMUX_MMCM_MMCM[2]: bel;
+        wire OMUX_MMCM_PERF_S[4]: bel;
+        wire OMUX_MMCM_PERF_N[4]: bel;
     }
 
     if variant virtex7 {
@@ -5279,12 +5642,19 @@ target_defs! {
         }
 
         if variant [virtex4, virtex5] {
-            bel_slot ILOGIC[2]: ILOGIC_V4;
-            bel_slot OLOGIC[2]: OLOGIC_V4;
+            bel_slot ILOGIC[2]: ILOGIC;
+            bel_slot OLOGIC[2]: OLOGIC;
             bel_slot IODELAY[2]: IODELAY_V5;
             bel_slot IDELAY[2]: legacy;
             bel_slot ODELAY[2]: legacy;
-            bel_slot IOB[2]: IOB_V4;
+            bel_slot IOB[2]: IOB;
+        } else if variant virtex6 {
+            bel_slot ILOGIC[2]: ILOGIC;
+            bel_slot OLOGIC[2]: OLOGIC;
+            bel_slot IODELAY[2]: IODELAY_V6;
+            bel_slot IDELAY[2]: legacy;
+            bel_slot ODELAY[2]: legacy;
+            bel_slot IOB[2]: IOB;
         } else {
             bel_slot ILOGIC[2]: legacy;
             bel_slot OLOGIC[2]: legacy;
@@ -5328,13 +5698,13 @@ target_defs! {
         } else {
             bel_slot DCM[2]: DCM_V5;
         }
-        if variant [virtex4, virtex5, virtex6] {
-            bel_slot PLL: PLL_V5;
-        } else{
-            bel_slot PLL: legacy;
+        if variant [virtex4, virtex5] {
+            bel_slot PLL[2]: PLL_V5;
+        } else if variant virtex6 {
+            bel_slot PLL[2]: PLL_V6;
+        } else {
+            bel_slot PLL[2]: legacy;
         }
-        bel_slot MMCM[2]: legacy;
-        bel_slot CMT: legacy;
         bel_slot CMT_A: legacy;
         bel_slot CMT_B: legacy;
         bel_slot CMT_C: legacy;
@@ -5361,6 +5731,8 @@ target_defs! {
         if variant virtex6 {
             tile_class CMT {
                 cell CELL[40];
+                cell IO_W[8];
+                cell IO_E[8];
                 bitrect MAIN[40]: CMT;
                 bitrect HCLK: HCLK_CMT;
             }
@@ -5383,8 +5755,13 @@ target_defs! {
             }
         }
 
-        bel_slot BUFHCE_W[12]: legacy;
-        bel_slot BUFHCE_E[12]: legacy;
+        if variant virtex6 {
+            bel_slot BUFHCE_W[12]: BUFHCE;
+            bel_slot BUFHCE_E[12]: BUFHCE;
+        } else {
+            bel_slot BUFHCE_W[12]: legacy;
+            bel_slot BUFHCE_E[12]: legacy;
+        }
         bel_slot CLK_HROW_V7: legacy;
         bel_slot GCLK_TEST_BUF_HROW_GCLK[32]: legacy;
         bel_slot GCLK_TEST_BUF_HROW_BUFH_W: legacy;
@@ -5451,7 +5828,7 @@ target_defs! {
         if variant [virtex4, virtex5] {
             bel_slot EMAC: EMAC_V4;
         } else {
-            bel_slot EMAC: legacy;
+            bel_slot EMAC: EMAC_V6;
         }
         if variant [virtex5, virtex6] {
             tile_class EMAC {
@@ -5461,7 +5838,9 @@ target_defs! {
         }
 
         if variant virtex5 {
-            bel_slot PCIE: PCIE;
+            bel_slot PCIE: PCIE_V5;
+        } else if variant virtex6 {
+            bel_slot PCIE: legacy;
         } else {
             bel_slot PCIE: legacy;
         }
@@ -5522,6 +5901,7 @@ target_defs! {
             }
         }
 
+        bel_slot HCLK_GTX: legacy;
         bel_slot GTX[4]: legacy;
         if variant virtex6 {
             tile_class GTX {
@@ -5595,13 +5975,11 @@ target_defs! {
         bel_slot OPAD_TXP[4]: legacy;
         bel_slot OPAD_TXN[4]: legacy;
 
-        if variant [virtex4, virtex5] {
+        if variant [virtex4, virtex5, virtex6] {
             bel_slot BUFGCTRL[32]: BUFGCTRL;
         } else {
             bel_slot BUFGCTRL[32]: legacy;
         }
-        bel_slot GIO_S: legacy;
-        bel_slot GIO_N: legacy;
         if variant virtex4 {
             tile_class CLK_BUFG {
                 cell CELL[16];
@@ -5621,6 +5999,8 @@ target_defs! {
         if variant virtex6 {
             tile_class CMT_BUFG_S, CMT_BUFG_N {
                 cell CELL[3];
+                cell IO_W[2];
+                cell IO_E[2];
                 bitrect MAIN[2]: CMT;
             }
         }
@@ -5630,15 +6010,6 @@ target_defs! {
                 bitrect MAIN[4]: CLK;
             }
         }
-
-        bel_slot GCLK_BUF: legacy;
-        if variant virtex6 {
-            tile_class GCLK_BUF {
-            }
-        }
-
-        bel_slot HCLK_GTX: legacy;
-        bel_slot HCLK_GTH: legacy;
 
         bel_slot CLK_REBUF: legacy;
         bel_slot GCLK_TEST_BUF_REBUF_S[16]: legacy;
@@ -5727,7 +6098,7 @@ target_defs! {
         bel_slot MISC_CFG: MISC_CFG;
         if variant virtex4 {
             bel_slot SYSMON: SYSMON_V4;
-        } else if variant virtex5 {
+        } else if variant [virtex5, virtex6] {
             bel_slot SYSMON: SYSMON_V5;
         } else {
             bel_slot SYSMON: legacy;
@@ -5799,12 +6170,9 @@ target_defs! {
             }
         }
 
-        bel_slot HCLK_MGT_BUF: legacy;
-        if variant [virtex4, virtex5, virtex6] {
+        if variant [virtex4, virtex5] {
             tile_class HCLK_MGT_BUF {
-                if variant [virtex4, virtex5] {
-                    cell CELL;
-                }
+                cell CELL;
                 bitrect MAIN: HCLK;
             }
         }
@@ -5828,12 +6196,6 @@ target_defs! {
             }
         }
 
-        bel_slot HCLK_QBUF: legacy;
-        if variant virtex6 {
-            tile_class HCLK_QBUF {
-            }
-        }
-
         if variant virtex4 {
             tile_class CLK_TERM {
                 cell CELL;
@@ -5848,7 +6210,7 @@ target_defs! {
     }
 
     tile_slot HCLK {
-        if variant [virtex4, virtex5] {
+        if variant [virtex4, virtex5, virtex6] {
             bel_slot HCLK: routing;
         } else {
             bel_slot HCLK: legacy;
@@ -5856,6 +6218,12 @@ target_defs! {
         bel_slot HCLK_W: legacy;
         bel_slot HCLK_E: legacy;
         bel_slot GLOBALSIG: GLOBALSIG;
+        if variant [virtex4, virtex5, virtex6] {
+            bel_slot HCLK_DRP: HCLK_DRP_V6;
+        } else {
+            // TODO: v7 variant
+            bel_slot HCLK_DRP: legacy;
+        }
 
         if variant [virtex4, virtex5] {
             tile_class HCLK {
@@ -5901,16 +6269,14 @@ target_defs! {
         bel_slot HCLK_IO_INT: routing;
         bel_slot HCLK_IO: legacy;
         bel_slot HCLK_CMT_DRP: HCLK_CMT_DRP;
-        if variant [virtex4, virtex5] {
+        if variant [virtex4, virtex5, virtex6] {
             bel_slot BUFR[4]: BUFR;
             bel_slot BUFIO[4]: BUFIO;
-            bel_slot BUFO[2]: legacy;
             bel_slot IDELAYCTRL: IDELAYCTRL;
-            bel_slot DCI: DCI_V4;
+            bel_slot DCI: DCI;
         } else {
             bel_slot BUFR[4]: legacy;
             bel_slot BUFIO[4]: legacy;
-            bel_slot BUFO[2]: legacy;
             bel_slot IDELAYCTRL: legacy;
             bel_slot DCI: legacy;
         }
@@ -5949,7 +6315,7 @@ target_defs! {
         }
         if variant virtex6 {
             tile_class HCLK_IO {
-                cell CELL[2];
+                cell CELL[8];
                 bitrect MAIN: HCLK_IO;
             }
         }
@@ -6004,6 +6370,21 @@ target_defs! {
                 bel GLOBAL;
             }
         }
+        if variant virtex6 {
+            tile_class GLOBAL {
+                bitrect COR0: REG32;
+                bitrect COR1: REG32;
+                bitrect CTL0: REG32;
+                bitrect CTL1: REG32;
+                bitrect TIMER: REG32;
+                bitrect WBSTAR: REG32;
+                bitrect TESTMODE: REG32;
+                bitrect TRIM: REG32;
+                bitrect UNK1C: REG32;
+                bel GLOBAL;
+            }
+        }
+
     }
 
     connector_slot W {
@@ -6605,10 +6986,13 @@ target_defs! {
 
     connector_slot IO_S {
         opposite IO_N;
-        if variant [virtex4, virtex5] {
+        if variant [virtex4, virtex5, virtex6] {
             connector_class IO_S {
                 if variant virtex4 {
                     pass IOCLK_N = IOCLK;
+                } else if variant virtex6 {
+                    pass VIOCLK_N = VIOCLK;
+                    pass VOCLK_N = VOCLK;
                 }
                 pass VRCLK_N = VRCLK;
             }
@@ -6616,10 +7000,13 @@ target_defs! {
     }
     connector_slot IO_N {
         opposite IO_S;
-        if variant [virtex4, virtex5] {
+        if variant [virtex4, virtex5, virtex6] {
             connector_class IO_N {
                 if variant virtex4 {
                     pass IOCLK_S = IOCLK;
+                } else if variant virtex6 {
+                    pass VIOCLK_S = VIOCLK;
+                    pass VOCLK_S = VOCLK;
                 }
                 pass VRCLK_S = VRCLK;
             }
@@ -6628,7 +7015,7 @@ target_defs! {
 
     connector_slot CLK_PREV {
         opposite CLK_NEXT;
-        if variant [virtex4, virtex5] {
+        if variant [virtex4, virtex5, virtex6] {
             connector_class CLK_PREV {
                 pass IMUX_BUFG_I = IMUX_BUFG_O;
             }
@@ -6636,7 +7023,7 @@ target_defs! {
     }
     connector_slot CLK_NEXT {
         opposite CLK_PREV;
-        if variant [virtex4, virtex5] {
+        if variant [virtex4, virtex5, virtex6] {
             connector_class CLK_NEXT {
             }
         }
@@ -6677,22 +7064,33 @@ target_defs! {
         }
     }
 
-    connector_slot MGT_ROW_PREV {
-        opposite MGT_ROW_NEXT;
+    connector_slot HCLK_ROW_PREV {
+        opposite HCLK_ROW_NEXT;
         if variant virtex5 {
-            connector_class MGT_ROW_PREV {
+            connector_class HCLK_ROW_PREV {
                 pass MGT_ROW_I = MGT_ROW_O;
             }
-            connector_class MGT_ROW_PREV_PASS {
+            connector_class HCLK_ROW_PREV_PASS {
                 pass MGT_ROW_I = MGT_ROW_I;
             }
         }
+        if variant virtex6 {
+            connector_class HCLK_ROW_PREV;
+        }
     }
 
-    connector_slot MGT_ROW_NEXT {
-        opposite MGT_ROW_PREV;
+    connector_slot HCLK_ROW_NEXT {
+        opposite HCLK_ROW_PREV;
         if variant virtex5 {
-            connector_class MGT_ROW_NEXT;
+            connector_class HCLK_ROW_NEXT;
+        }
+        if variant virtex6 {
+            connector_class HCLK_ROW_NEXT {
+                pass PERF_ROW = PERF_ROW_OUTER;
+            }
+            connector_class HCLK_ROW_NEXT_PASS {
+                pass PERF_ROW = PERF_ROW;
+            }
         }
     }
 }

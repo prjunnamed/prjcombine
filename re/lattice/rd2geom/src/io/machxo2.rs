@@ -1,12 +1,14 @@
 use prjcombine_ecp::{
     bels,
-    chip::{ChipKind, IoGroupKind, MachXo2Kind, PllLoc, RowKind, SpecialIoKey, SpecialLocKey},
+    chip::{
+        Chip, ChipKind, IoGroupKind, MachXo2Kind, PllLoc, RowKind, SpecialIoKey, SpecialLocKey,
+    },
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelPin, LegacyBel, TileWireCoord},
     dir::{Dir, DirHV, DirV},
-    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
+    grid::{BelCoord, CellCoord, ColId, DieIdExt, EdgeIoCoord, RowId, TileIobId},
 };
 
 use crate::ChipContext;
@@ -24,7 +26,7 @@ impl ChipContext<'_> {
             5 if has_bank4 => (self.chip.col_w(), self.chip.row_n()),
             _ => unreachable!(),
         };
-        CellCoord::new(DieId::from_idx(0), col, row)
+        Chip::DIE.cell(col, row)
     }
 
     pub(super) fn process_bc_machxo2(&mut self) {
@@ -263,7 +265,7 @@ impl ChipContext<'_> {
             return;
         }
         let has_dqs = self.chip.kind == ChipKind::MachXo2(MachXo2Kind::MachXo2);
-        let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_clk);
+        let cell = Chip::DIE.cell(self.chip.col_e(), self.chip.row_clk);
         for i in 0..2 {
             let bcrd = cell.bel(bels::DQS[i]);
             if has_dqs {
@@ -543,14 +545,13 @@ impl ChipContext<'_> {
             for pin in ["DQSW90", "DQSR90", "DDRCLKPOL"] {
                 let wire = self.rc_io_wire(cell, &format!("{pin}{abcd}_{iol}"));
                 self.add_bel_wire(bcrd, pin, wire);
-                let bel_dqs =
-                    CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_clk).bel(
-                        if cell.row < self.chip.row_clk {
-                            bels::DQS1
-                        } else {
-                            bels::DQS0
-                        },
-                    );
+                let bel_dqs = Chip::DIE.cell(self.chip.col_e(), self.chip.row_clk).bel(
+                    if cell.row < self.chip.row_clk {
+                        bels::DQS1
+                    } else {
+                        bels::DQS0
+                    },
+                );
                 let wire_dqs = self.naming.bel_wire(bel_dqs, &format!("{pin}_OUT"));
                 self.claim_pip(wire, wire_dqs);
             }
@@ -670,7 +671,7 @@ impl ChipContext<'_> {
         // fake loc, fake bel.
         let bcrd = self.chip.special_loc[&SpecialLocKey::Config].bel(bels::IO0);
         self.name_bel(bcrd, ["ICC_R20", "ICCREG_R21", "ICC1_R14"]);
-        let cell_icc1 = CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(16));
+        let cell_icc1 = Chip::DIE.cell(ColId::from_idx(0), RowId::from_idx(16));
         for (pin, row, iob) in [
             ("PFRMCLK", 14, 0),
             ("PFRMISO", 13, 1),
@@ -712,9 +713,8 @@ impl ChipContext<'_> {
             let wire_int = cell_io.wire(self.intdb.get_wire(&format!("IMUX_A{iob}")));
             self.claim_pip_int_in(wire, wire_int);
         }
-        let cell_icc = CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(10));
-        let cell_iccreg =
-            CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(9));
+        let cell_icc = Chip::DIE.cell(ColId::from_idx(0), RowId::from_idx(10));
+        let cell_iccreg = Chip::DIE.cell(ColId::from_idx(0), RowId::from_idx(9));
         for (pin_icc, pin_iccreg, row, iob) in [
             ("TXVIO0", "TXV0", 3, 2),
             ("TXVIO1", "TXV1", 3, 3),

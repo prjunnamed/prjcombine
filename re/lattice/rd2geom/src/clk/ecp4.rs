@@ -2,13 +2,12 @@ use std::collections::{BTreeMap, btree_map};
 
 use prjcombine_ecp::{
     bels,
-    chip::{IoGroupKind, RowKind, SpecialLocKey},
+    chip::{Chip, IoGroupKind, RowKind, SpecialLocKey},
 };
-use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelPin, LegacyBel, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirMap, DirV},
-    grid::{CellCoord, DieId},
+    grid::DieIdExt,
 };
 use prjcombine_re_lattice_naming::WireName;
 
@@ -42,7 +41,7 @@ impl ChipContext<'_> {
                 while row_n != (self.chip.row_n() + 1) && !self.chip.rows[row_n].pclk_break {
                     row_n += 1;
                 }
-                for cell_src in self.edev.row(DieId::from_idx(0), row_src) {
+                for cell_src in self.edev.row(Chip::DIE, row_src) {
                     for (sn, range) in [('S', row_s.range(row_mid)), ('N', row_mid.range(row_n))] {
                         let mut vptx = None;
                         for row in range {
@@ -101,7 +100,7 @@ impl ChipContext<'_> {
             (Dir::S, self.chip.col_clk, self.chip.row_s()),
             (Dir::N, self.chip.col_clk, self.chip.row_n()),
         ] {
-            let cell_tile = CellCoord::new(DieId::from_idx(0), col, row);
+            let cell_tile = Chip::DIE.cell(col, row);
             let cell = match edge {
                 Dir::H(_) => cell_tile,
                 Dir::V(_) => cell_tile.delta(-1, 0),
@@ -220,8 +219,7 @@ impl ChipContext<'_> {
                     clkdiv_ins.insert((i, "CDIVX"), wire);
                 }
                 if edge == Dir::E && 2 < num_quads {
-                    let cell_pcs =
-                        CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_s());
+                    let cell_pcs = Chip::DIE.cell(self.chip.col_w(), self.chip.row_s());
                     for ch in 0..4 {
                         for (pin, pin_asb) in [("TXCLK", "FOPCLKA"), ("RXCLK", "FOPCLKB")] {
                             let wire = self.rc_wire(cell, &format!("JPCS{pin}{ch}"));

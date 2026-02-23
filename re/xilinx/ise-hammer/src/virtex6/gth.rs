@@ -1,7 +1,7 @@
 use prjcombine_re_collector::legacy::{xlat_bitvec_legacy, xlat_enum_legacy};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs::{self, virtex6::tcls};
+use prjcombine_virtex4::defs::{bcls, bslots, virtex6::tcls};
 
 use crate::{
     backend::IseBackend,
@@ -10,6 +10,7 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::{pip::PinFar, relation::Delta},
     },
+    virtex4::specials,
 };
 
 const GTH_INVPINS: &[&str] = &[
@@ -357,10 +358,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTH) else {
         return;
     };
-    let mut bctx = ctx.bel(defs::bslots::GTH_QUAD);
+    let mut bctx = ctx.bel(bslots::GTH_QUAD);
     let mode = "GTHE1_QUAD";
     bctx.build()
-        .extra_tile_attr_legacy(Delta::new(0, 0, tcls::HCLK), "HCLK", "DRP_MASK_BOTH", "GTH")
+        .extra_tile_bel_special(
+            Delta::new(0, 0, tcls::HCLK),
+            bslots::HCLK_DRP,
+            specials::DRP_MASK_GTH,
+        )
         .test_manual_legacy("ENABLE", "1")
         .mode(mode)
         .commit();
@@ -386,10 +391,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
 
-    let mut bctx = ctx.bel(defs::bslots::BUFDS[0]);
+    let mut bctx = ctx.bel(bslots::BUFDS[0]);
     bctx.build()
         .null_bits()
-        .test_manual_legacy("ENABLE", "1")
+        .test_bel_special(specials::PRESENT)
         .mode("IBUFDS_GTHE1")
         .commit();
 }
@@ -460,10 +465,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         &["GREFCLK", "REFCLK_IN", "REFCLK_SOUTH", "REFCLK_NORTH"],
     );
 
-    let tile = "HCLK";
-    let bel = "HCLK";
-    let mut diff = ctx.get_diff_legacy(tile, bel, "DRP_MASK_BOTH", "GTH");
-    diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "DRP_MASK_BELOW"), true, false);
-    diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "DRP_MASK_ABOVE"), true, false);
+    let tcid = tcls::HCLK;
+    let bslot = bslots::HCLK_DRP;
+    let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::DRP_MASK_GTH);
+    diff.apply_bit_diff(
+        ctx.bel_attr_bit(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_S),
+        true,
+        false,
+    );
+    diff.apply_bit_diff(
+        ctx.bel_attr_bit(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_N),
+        true,
+        false,
+    );
     diff.assert_empty();
 }

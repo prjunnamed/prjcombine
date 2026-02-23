@@ -1,5 +1,5 @@
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{CellCoord, DieId, TileCoord, TileIobId};
+use prjcombine_interconnect::grid::{CellCoord, DieId, DieIdExt, TileCoord, TileIobId};
 use prjcombine_re_collector::{
     diff::{Diff, DiffKey, FeatureId, OcdMode},
     legacy::{
@@ -265,7 +265,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         } else {
             RegId::from_idx(0)
         };
-        if tcrd.col == edev.col_rio.unwrap() && chip.row_to_reg(tcrd.row) == anchor_reg {
+        if tcrd.col == edev.col_io_e.unwrap() && chip.row_to_reg(tcrd.row) == anchor_reg {
             return None;
         }
 
@@ -318,7 +318,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Anchor global DCI by putting something in arbitrary bank.
         let iob_anchor = tcrd
             .cell
-            .with_cr(edev.col_rio.unwrap(), chip.row_reg_bot(anchor_reg) + 1)
+            .with_cr(edev.col_io_e.unwrap(), chip.row_reg_bot(anchor_reg) + 1)
             .bel(defs::bslots::IOB[0]);
         let site = backend.ngrid.get_bel_name(iob_anchor).unwrap();
         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
@@ -332,7 +332,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         ] {
             let iob_anchor_vr = tcrd
                 .cell
-                .with_cr(edev.col_rio.unwrap(), row)
+                .with_cr(edev.col_io_e.unwrap(), row)
                 .bel(defs::bslots::IOB[0]);
             let site = backend.ngrid.get_bel_name(iob_anchor_vr).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
@@ -340,7 +340,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Make note of anchor VCCO.
         let hclk_ioi_anchor = tcrd
             .cell
-            .with_cr(edev.col_rio.unwrap(), chip.row_reg_hclk(anchor_reg))
+            .with_cr(edev.col_io_e.unwrap(), chip.row_reg_hclk(anchor_reg))
             .tile(defs::tslots::HCLK_BEL);
         fuzzer = fuzzer.base(Key::TileMutex(hclk_ioi_anchor, "VCCO".to_string()), "1800");
 
@@ -2078,20 +2078,23 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 RegId::from_idx(0)
             };
             let io_row = chip.row_reg_hclk(anchor_reg) - 24;
-            let io_tile =
-                CellCoord::new(die, edev.col_rio.unwrap(), io_row).tile(defs::tslots::BEL);
+            let io_tile = die
+                .cell(edev.col_io_e.unwrap(), io_row)
+                .tile(defs::tslots::BEL);
             let io_bel = io_tile.cell.bel(defs::bslots::IOB[0]);
             let hclk_row = chip.row_hclk(io_tile.cell.row);
-            let hclk_tile =
-                CellCoord::new(die, edev.col_rio.unwrap(), hclk_row).tile(defs::tslots::HCLK_BEL);
+            let hclk_tile = die
+                .cell(edev.col_io_e.unwrap(), hclk_row)
+                .tile(defs::tslots::HCLK_BEL);
 
             // Ensure nothing is placed in VR.
             for row in [
                 chip.row_reg_hclk(anchor_reg) - 25,
                 chip.row_reg_hclk(anchor_reg) + 24,
             ] {
-                let vr_tile =
-                    CellCoord::new(die, edev.col_rio.unwrap(), row).tile(defs::tslots::BEL);
+                let vr_tile = die
+                    .cell(edev.col_io_e.unwrap(), row)
+                    .tile(defs::tslots::BEL);
                 let vr_bel = vr_tile.cell.bel(defs::bslots::IOB[0]);
                 let site = backend.ngrid.get_bel_name(vr_bel).unwrap();
                 builder = builder
@@ -2139,14 +2142,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             } else {
                 (RegId::from_idx(bank_from), RegId::from_idx(bank_to))
             };
-            let col = edev.col_rio.unwrap();
+            let col = edev.col_io_e.unwrap();
             let hclk_row_from = chip.row_reg_hclk(anchor_reg_from);
             let hclk_row_to = chip.row_reg_hclk(anchor_reg_to);
-            let hclk_tile_to = CellCoord::new(die, col, hclk_row_to).tile(defs::tslots::HCLK_BEL);
+            let hclk_tile_to = die.cell(col, hclk_row_to).tile(defs::tslots::HCLK_BEL);
             let io_row_from = hclk_row_from - 24;
-            let io_bel_from = CellCoord::new(die, col, io_row_from).bel(defs::bslots::IOB[0]);
+            let io_bel_from = die.cell(col, io_row_from).bel(defs::bslots::IOB[0]);
             let io_row_to = hclk_row_to - 24;
-            let io_tile_to = CellCoord::new(die, col, io_row_to).tile(defs::tslots::BEL);
+            let io_tile_to = die.cell(col, io_row_to).tile(defs::tslots::BEL);
             let io_bel_to = io_tile_to.cell.bel(defs::bslots::IOB[0]);
             let actual_bank_from = edev
                 .get_io_info(IoCoord {
@@ -2176,10 +2179,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     if row == io_row_from && bel == defs::bslots::IOB[0] {
                         continue;
                     }
-                    if let Some(site) = backend
-                        .ngrid
-                        .get_bel_name(CellCoord::new(die, col, row).bel(bel))
-                    {
+                    if let Some(site) = backend.ngrid.get_bel_name(die.cell(col, row).bel(bel)) {
                         builder = builder.raw(Key::SiteMode(site), None);
                     }
                 }
@@ -2203,10 +2203,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     if row == io_row_to && bel == defs::bslots::IOB[0] {
                         continue;
                     }
-                    if let Some(site) = backend
-                        .ngrid
-                        .get_bel_name(CellCoord::new(die, col, row).bel(bel))
-                    {
+                    if let Some(site) = backend.ngrid.get_bel_name(die.cell(col, row).bel(bel)) {
                         builder = builder.raw(Key::SiteMode(site), None);
                     }
                 }

@@ -2,13 +2,13 @@ use std::collections::{BTreeMap, btree_map};
 
 use prjcombine_ecp::{
     bels,
-    chip::{PllLoc, RowKind, SpecialIoKey, SpecialLocKey},
+    chip::{Chip, PllLoc, RowKind, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelPin, LegacyBel, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
-    grid::{CellCoord, ColId, DieId},
+    grid::{ColId, DieId, DieIdExt},
 };
 use prjcombine_re_lattice_naming::WireName;
 
@@ -21,8 +21,9 @@ impl ChipContext<'_> {
             if !matches!(rd.kind, RowKind::Io | RowKind::Ebr) {
                 continue;
             }
-            let bcrd =
-                CellCoord::new(DieId::from_idx(0), self.chip.col_clk, row).bel(bels::HSDCLK_ROOT);
+            let bcrd = Chip::DIE
+                .cell(self.chip.col_clk, row)
+                .bel(bels::HSDCLK_ROOT);
             self.name_bel_null(bcrd);
             for i in 0..8 {
                 for h in [DirH::W, DirH::E] {
@@ -291,16 +292,8 @@ impl ChipContext<'_> {
             (Dir::N, 1),
         ] {
             let cell = match edge {
-                Dir::H(edge) => CellCoord::new(
-                    DieId::from_idx(0),
-                    self.chip.col_edge(edge),
-                    self.chip.row_clk,
-                ),
-                Dir::V(edge) => CellCoord::new(
-                    DieId::from_idx(0),
-                    self.chip.col_clk - 1,
-                    self.chip.row_edge(edge),
-                ),
+                Dir::H(edge) => Chip::DIE.cell(self.chip.col_edge(edge), self.chip.row_clk),
+                Dir::V(edge) => Chip::DIE.cell(self.chip.col_clk - 1, self.chip.row_edge(edge)),
             };
             let bcrd = cell.bel(bels::DLLDEL[idx]);
             let lrbt = match edge {

@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, btree_map};
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::{TileClassId, TileSlotId},
-    grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, TileCoord},
+    grid::{ColId, DieId, DieIdExt, ExpandedGrid, RowId, TileCoord},
 };
 use prjcombine_re_hammer::{Backend, BatchValue, Fuzzer, FuzzerGen, FuzzerId};
 use prjcombine_types::{
@@ -128,7 +128,8 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerGen<'b, B> {
                 return None;
             }
         } else {
-            let tcrd = CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0))
+            let tcrd = DieId::from_idx(0)
+                .cell(ColId::from_idx(0), RowId::from_idx(0))
                 .tile(TileSlotId::from_idx(0));
             self.try_generate(backend, kv, tcrd)?
         };
@@ -185,7 +186,8 @@ impl<'b, B: FpgaBackend> FuzzerGen<'b, B> for FpgaFuzzerChainGen<'b, B> {
                 return None;
             }
         } else {
-            let tcrd = CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(0))
+            let tcrd = DieId::from_idx(0)
+                .cell(ColId::from_idx(0), RowId::from_idx(0))
                 .tile(TileSlotId::from_idx(0));
             self.orig.try_generate(backend, kv, tcrd)?
         };

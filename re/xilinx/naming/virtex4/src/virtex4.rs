@@ -170,10 +170,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let ntile = namer.ngrid.name_tile(tcrd, "SYSMON", [name]);
                 let sx = sysmon_grid.xlut[col];
                 let sy = sysmon_grid.ylut[row];
-                let ipx = if edev.col_lgt.is_some() { 1 } else { 0 };
+                let ipx = if edev.col_gt_w.is_some() { 1 } else { 0 };
                 let ipy0 = if row.to_idx() == 0 {
                     0
-                } else if edev.col_lgt.is_some() {
+                } else if edev.col_gt_w.is_some() {
                     chip.regs * 3
                 } else {
                     2
@@ -277,7 +277,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(bslots::EMAC, format!("EMAC_X{px}Y{py}"));
             }
             tcls::MGT => {
-                let lr = if Some(col) == edev.col_lgt { 'L' } else { 'R' };
+                let lr = if Some(col) == edev.col_gt_w { 'L' } else { 'R' };
                 let name0 = format!("MGT_B{lr}_X{x}Y{y}", y = y + 8);
                 let name1 = format!("MGT_A{lr}_X{x}Y{y}", y = y + 24);
                 let name_clk = format!("BRKH_MGT11CLK_{lr}_X{x}Y{y}", y = y + 15);
@@ -362,7 +362,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, kind, [name, name_io0, name_io1, name_io2]);
                 let iox = io_grid.xlut[col];
                 let reg = chip.row_to_reg(row).to_idx();
-                let brx = if Some(col) == edev.col_lio { 0 } else { 1 };
+                let brx = if Some(col) == edev.col_io_w { 0 } else { 1 };
                 ntile.add_bel(bslots::BUFR[0], format!("BUFR_X{brx}Y{y}", y = reg * 2 + 1));
                 ntile.add_bel(bslots::BUFR[1], format!("BUFR_X{brx}Y{y}", y = reg * 2));
                 ntile.add_bel(
@@ -490,13 +490,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
         match conn.class {
             ccls::TERM_W => {
-                if edev.col_lgt.is_none() {
+                if edev.col_gt_w.is_none() {
                     let name = format!("L_TERM_INT_X{x}Y{y}");
                     namer.ngrid.name_conn_tile(ccrd, "TERM_W", name);
                 }
             }
             ccls::TERM_E => {
-                if edev.col_rgt.is_none() {
+                if edev.col_gt_e.is_none() {
                     let name = format!("R_TERM_INT_X{x}Y{y}");
                     namer.ngrid.name_conn_tile(ccrd, "TERM_E", name);
                 }

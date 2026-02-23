@@ -1,12 +1,8 @@
-use prjcombine_entity::EntityId;
-use prjcombine_interconnect::{
-    db::BelAttributeEnum,
-    grid::{CellCoord, DieId},
-};
+use prjcombine_interconnect::db::BelAttributeEnum;
 use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_bitvec_sparse_u32};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_spartan6::defs::{bcls, bslots, enums, tcls, tslots};
+use prjcombine_spartan6::defs::{bcls, bslots, enums, tcls};
 use prjcombine_types::{bits, bsdata::TileBit};
 
 use crate::{
@@ -20,8 +16,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Spartan6(edev) = backend.edev else {
         unreachable!()
     };
-    let global = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_s())
-        .tile(tslots::GLOBAL);
+    let global = edev.chip.tile_global();
     for (tcid, n) in [
         (tcls::CNR_SW, "BL"),
         (tcls::CNR_NW, "TL"),

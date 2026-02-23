@@ -1366,7 +1366,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             bels.push(
                 builder
-                    .bel_xy(bslots::PLL, "PLL_ADV", 0, 0)
+                    .bel_xy(bslots::PLL[0], "PLL_ADV", 0, 0)
                     .extra_wire("CLKIN_ALT", &["CMT_PLL_CLK_DCM_MUX"])
                     .extra_wire("CLKFB_ALT", &["CMT_PLL_CLK_FB_FROM_DCM"])
                     .extra_int_out("TEST_CLKIN", &["CMT_PLL_CLKIN1_TEST"]),
