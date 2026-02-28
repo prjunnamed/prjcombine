@@ -154,7 +154,42 @@
                         <h1 id="gtx-transceivers"><a class="header" href="#gtx-transceivers">GTX transceivers</a></h1>
 <p>TODO: document</p>
 <h2 id="tile-gtx_common"><a class="header" href="#tile-gtx_common">Tile GTX_COMMON</a></h2>
-<p>Cells: 6</p>
+<p>Cells: 10</p>
+<h3 id="switchbox-spec_int"><a class="header" href="#switchbox-spec_int">Switchbox SPEC_INT</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTX_COMMON switchbox SPEC_INT permanent buffers</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CELL[3].HROW_O[4]</td><td>CHANNEL[0].OUT_GT_RXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[5]</td><td>CHANNEL[1].OUT_GT_RXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[6]</td><td>CHANNEL[0].OUT_GT_TXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[7]</td><td>CHANNEL[1].OUT_GT_TXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[8]</td><td>CELL[3].OUT_GT_MGTCLKOUT[0]</td></tr>
+
+<tr><td>CELL[3].HROW_O[9]</td><td>CELL[3].OUT_GT_MGTCLKOUT[1]</td></tr>
+
+<tr><td>CELL[3].HROW_O[10]</td><td>CHANNEL[2].OUT_GT_RXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[11]</td><td>CHANNEL[3].OUT_GT_RXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[12]</td><td>CHANNEL[2].OUT_GT_TXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[13]</td><td>CHANNEL[3].OUT_GT_TXOUTCLK</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
 <h3 id="bel-gtx_common"><a class="header" href="#bel-gtx_common">Bel GTX_COMMON</a></h3>
 <div class="table-wrapper">
 <table>
@@ -424,6 +459,8 @@
 
 <tr><td>CLKTESTSIG</td><td>input</td><td>CELL[4].IMUX_CLK[1]</td></tr>
 
+<tr><td>MGTCLKOUT</td><td>output</td><td>CELL[3].OUT_GT_MGTCLKOUT[0]</td></tr>
+
 </tbody>
 
 </table>
@@ -442,6 +479,8 @@
 <tr><td>CEB</td><td>input</td><td>CELL[3].IMUX_IMUX_DELAY[29]</td></tr>
 
 <tr><td>CLKTESTSIG</td><td>input</td><td>CELL[3].IMUX_CLK[0]</td></tr>
+
+<tr><td>MGTCLKOUT</td><td>output</td><td>CELL[3].OUT_GT_MGTCLKOUT[1]</td></tr>
 
 </tbody>
 
@@ -691,6 +730,10 @@
 <tr><td>CELL[3].OUT_BEL[21]</td><td>GTX_COMMON.QPLLDMONITOR3</td></tr>
 
 <tr><td>CELL[3].OUT_BEL[23]</td><td>GTX_COMMON.QPLLDMONITOR1</td></tr>
+
+<tr><td>CELL[3].OUT_GT_MGTCLKOUT[0]</td><td>BUFDS[0].MGTCLKOUT</td></tr>
+
+<tr><td>CELL[3].OUT_GT_MGTCLKOUT[1]</td><td>BUFDS[1].MGTCLKOUT</td></tr>
 
 <tr><td>CELL[4].IMUX_CLK[0]</td><td>GTX_COMMON.PMASCANCLK0</td></tr>
 
@@ -35264,6 +35307,8 @@ non-inverted
 
 <tr><td>RXOSOVRDEN</td><td>input</td><td>CELL[8].IMUX_IMUX_DELAY[13]</td></tr>
 
+<tr><td>RXOUTCLK</td><td>output</td><td>CELL[0].OUT_GT_RXOUTCLK</td></tr>
+
 <tr><td>RXOUTCLKFABRIC</td><td>output</td><td>CELL[9].OUT_BEL[17]</td></tr>
 
 <tr><td>RXOUTCLKPCS</td><td>output</td><td>CELL[9].OUT_BEL[21]</td></tr>
@@ -35746,6 +35791,8 @@ non-inverted
 
 <tr><td>TXMARGIN2</td><td>input</td><td>CELL[4].IMUX_IMUX_DELAY[35]</td></tr>
 
+<tr><td>TXOUTCLK</td><td>output</td><td>CELL[0].OUT_GT_TXOUTCLK</td></tr>
+
 <tr><td>TXOUTCLKFABRIC</td><td>output</td><td>CELL[3].OUT_BEL[23]</td></tr>
 
 <tr><td>TXOUTCLKPCS</td><td>output</td><td>CELL[4].OUT_BEL[17]</td></tr>
@@ -36060,6 +36107,10 @@ non-inverted
 <tr><td>CELL[0].OUT_BEL[19]</td><td>GTX_CHANNEL.SCANOUT0</td></tr>
 
 <tr><td>CELL[0].OUT_BEL[20]</td><td>GTX_CHANNEL.DRPRDY</td></tr>
+
+<tr><td>CELL[0].OUT_GT_RXOUTCLK</td><td>GTX_CHANNEL.RXOUTCLK</td></tr>
+
+<tr><td>CELL[0].OUT_GT_TXOUTCLK</td><td>GTX_CHANNEL.TXOUTCLK</td></tr>
 
 <tr><td>CELL[1].IMUX_CLK[0]</td><td>GTX_CHANNEL.PMASCANCLK1</td></tr>
 

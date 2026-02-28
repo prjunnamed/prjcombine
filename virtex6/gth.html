@@ -1265,6 +1265,14 @@
 
 <tr><td>RXUSERCLKIN3</td><td>input</td><td>CELL[21].IMUX_CLK[0]</td></tr>
 
+<tr><td>RXUSERCLKOUT0</td><td>output</td><td>CELL[20].MGT_ROW[0]</td></tr>
+
+<tr><td>RXUSERCLKOUT1</td><td>output</td><td>CELL[20].MGT_ROW[1]</td></tr>
+
+<tr><td>RXUSERCLKOUT2</td><td>output</td><td>CELL[20].MGT_ROW[6]</td></tr>
+
+<tr><td>RXUSERCLKOUT3</td><td>output</td><td>CELL[20].MGT_ROW[7]</td></tr>
+
 <tr><td>RXVALID00</td><td>output</td><td>CELL[4].OUT_BEL[11]</td></tr>
 
 <tr><td>RXVALID01</td><td>output</td><td>CELL[5].OUT_BEL[11]</td></tr>
@@ -1453,7 +1461,11 @@
 
 <tr><td>TSTNOISESRC</td><td>input</td><td>CELL[17].IMUX_IMUX_DELAY[4]</td></tr>
 
+<tr><td>TSTPATH</td><td>output</td><td>CELL[20].MGT_ROW[4]</td></tr>
+
 <tr><td>TSTREFCLKFAB</td><td>output</td><td>CELL[11].OUT_BEL[12]</td></tr>
+
+<tr><td>TSTREFCLKOUT</td><td>output</td><td>CELL[20].MGT_ROW[5]</td></tr>
 
 <tr><td>TXBUFRESET0</td><td>input</td><td>CELL[6].IMUX_IMUX_DELAY[15]</td></tr>
 
@@ -2207,6 +2219,14 @@
 
 <tr><td>TXUSERCLKIN3</td><td>input</td><td>CELL[27].IMUX_CLK[0]</td></tr>
 
+<tr><td>TXUSERCLKOUT0</td><td>output</td><td>CELL[20].MGT_ROW[2]</td></tr>
+
+<tr><td>TXUSERCLKOUT1</td><td>output</td><td>CELL[20].MGT_ROW[3]</td></tr>
+
+<tr><td>TXUSERCLKOUT2</td><td>output</td><td>CELL[20].MGT_ROW[8]</td></tr>
+
+<tr><td>TXUSERCLKOUT3</td><td>output</td><td>CELL[20].MGT_ROW[9]</td></tr>
+
 </tbody>
 
 </table>
@@ -2486,21 +2506,6 @@
 <div class="table-wrapper">
 <table>
 <caption>virtex6 GTH bel OPAD_TXN[3]</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bel-hclk_gth"><a class="header" href="#bel-hclk_gth">Bel HCLK_GTH</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>virtex6 GTH bel HCLK_GTH</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
 
@@ -3681,6 +3686,26 @@
 <tr><td>CELL[20].OUT_BEL[22]</td><td>GTH_QUAD.MGMTPCSRDDATA15</td></tr>
 
 <tr><td>CELL[20].OUT_BEL[23]</td><td>GTH_QUAD.RXDATA36</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[0]</td><td>GTH_QUAD.RXUSERCLKOUT0</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[1]</td><td>GTH_QUAD.RXUSERCLKOUT1</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[2]</td><td>GTH_QUAD.TXUSERCLKOUT0</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[3]</td><td>GTH_QUAD.TXUSERCLKOUT1</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[4]</td><td>GTH_QUAD.TSTPATH</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[5]</td><td>GTH_QUAD.TSTREFCLKOUT</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[6]</td><td>GTH_QUAD.RXUSERCLKOUT2</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[7]</td><td>GTH_QUAD.RXUSERCLKOUT3</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[8]</td><td>GTH_QUAD.TXUSERCLKOUT2</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[9]</td><td>GTH_QUAD.TXUSERCLKOUT3</td></tr>
 
 <tr><td>CELL[21].IMUX_CLK[0]</td><td>GTH_QUAD.RXUSERCLKIN3</td></tr>
 

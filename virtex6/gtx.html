@@ -155,6 +155,50 @@
 <p>TODO: document</p>
 <h2 id="tile-gtx"><a class="header" href="#tile-gtx">Tile GTX</a></h2>
 <p>Cells: 40</p>
+<h3 id="switchbox-spec_int"><a class="header" href="#switchbox-spec_int">Switchbox SPEC_INT</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>virtex6 GTX switchbox SPEC_INT muxes IMUX_GTX_PERFCLK</caption>
+<thead>
+<tr><th colspan="3">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex6-GTX-SPEC_INT-mux-CELL[20].IMUX_GTX_PERFCLK-2"><a href="#virtex6-GTX-bit-MAIN[14][29][22]">MAIN[14][29][22]</a></td><td id="virtex6-GTX-SPEC_INT-mux-CELL[20].IMUX_GTX_PERFCLK-1"><a href="#virtex6-GTX-bit-MAIN[14][28][22]">MAIN[14][28][22]</a></td><td id="virtex6-GTX-SPEC_INT-mux-CELL[20].IMUX_GTX_PERFCLK-0"><a href="#virtex6-GTX-bit-MAIN[14][28][23]">MAIN[14][28][23]</a></td><td>CELL[20].IMUX_GTX_PERFCLK</td></tr>
+
+<tr><th colspan="3"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>0</td><td>1</td><td>CELL[20].PERF_ROW[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>CELL[20].PERF_ROW[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>CELL[20].PERF_ROW[2]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>CELL[20].PERF_ROW[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bel-hclk_gtx"><a class="header" href="#bel-hclk_gtx">Bel HCLK_GTX</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>virtex6 GTX bel HCLK_GTX</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
 <h3 id="bel-gtx0"><a class="header" href="#bel-gtx0">Bel GTX[0]</a></h3>
 <div class="table-wrapper">
 <table>
@@ -428,6 +472,10 @@
 <tr><td>MGTREFCLKFAB0</td><td>output</td><td>CELL[4].OUT_BEL[0]</td></tr>
 
 <tr><td>MGTREFCLKFAB1</td><td>output</td><td>CELL[4].OUT_BEL[12]</td></tr>
+
+<tr><td>PERFCLKRX</td><td>input</td><td>CELL[20].IMUX_GTX_PERFCLK</td></tr>
+
+<tr><td>PERFCLKTX</td><td>input</td><td>CELL[20].IMUX_GTX_PERFCLK</td></tr>
 
 <tr><td>PHYSTATUS</td><td>output</td><td>CELL[4].OUT_BEL[8]</td></tr>
 
@@ -708,6 +756,8 @@
 <tr><td>RXRATE1</td><td>input</td><td>CELL[6].IMUX_IMUX_DELAY[41]</td></tr>
 
 <tr><td>RXRATEDONE</td><td>output</td><td>CELL[6].OUT_BEL[20]</td></tr>
+
+<tr><td>RXRECCLK</td><td>output</td><td>CELL[20].MGT_ROW[0]</td></tr>
 
 <tr><td>RXRECCLKPCS</td><td>output</td><td>CELL[5].OUT_BEL[5]</td></tr>
 
@@ -1030,6 +1080,8 @@
 <tr><td>TXMARGIN1</td><td>input</td><td>CELL[4].IMUX_IMUX_DELAY[26]</td></tr>
 
 <tr><td>TXMARGIN2</td><td>input</td><td>CELL[5].IMUX_IMUX_DELAY[15]</td></tr>
+
+<tr><td>TXOUTCLK</td><td>output</td><td>CELL[20].MGT_ROW[2]</td></tr>
 
 <tr><td>TXOUTCLKPCS</td><td>output</td><td>CELL[6].OUT_BEL[8]</td></tr>
 
@@ -1396,6 +1448,10 @@
 
 <tr><td>MGTREFCLKFAB1</td><td>output</td><td>CELL[14].OUT_BEL[12]</td></tr>
 
+<tr><td>PERFCLKRX</td><td>input</td><td>CELL[20].IMUX_GTX_PERFCLK</td></tr>
+
+<tr><td>PERFCLKTX</td><td>input</td><td>CELL[20].IMUX_GTX_PERFCLK</td></tr>
+
 <tr><td>PHYSTATUS</td><td>output</td><td>CELL[14].OUT_BEL[8]</td></tr>
 
 <tr><td>PLLRXRESET</td><td>input</td><td>CELL[13].IMUX_CTRL[0]</td></tr>
@@ -1675,6 +1731,8 @@
 <tr><td>RXRATE1</td><td>input</td><td>CELL[16].IMUX_IMUX_DELAY[41]</td></tr>
 
 <tr><td>RXRATEDONE</td><td>output</td><td>CELL[16].OUT_BEL[20]</td></tr>
+
+<tr><td>RXRECCLK</td><td>output</td><td>CELL[20].MGT_ROW[1]</td></tr>
 
 <tr><td>RXRECCLKPCS</td><td>output</td><td>CELL[15].OUT_BEL[5]</td></tr>
 
@@ -1997,6 +2055,8 @@
 <tr><td>TXMARGIN1</td><td>input</td><td>CELL[14].IMUX_IMUX_DELAY[26]</td></tr>
 
 <tr><td>TXMARGIN2</td><td>input</td><td>CELL[15].IMUX_IMUX_DELAY[15]</td></tr>
+
+<tr><td>TXOUTCLK</td><td>output</td><td>CELL[20].MGT_ROW[3]</td></tr>
 
 <tr><td>TXOUTCLKPCS</td><td>output</td><td>CELL[16].OUT_BEL[8]</td></tr>
 
@@ -2363,6 +2423,10 @@
 
 <tr><td>MGTREFCLKFAB1</td><td>output</td><td>CELL[24].OUT_BEL[12]</td></tr>
 
+<tr><td>PERFCLKRX</td><td>input</td><td>CELL[20].IMUX_GTX_PERFCLK</td></tr>
+
+<tr><td>PERFCLKTX</td><td>input</td><td>CELL[20].IMUX_GTX_PERFCLK</td></tr>
+
 <tr><td>PHYSTATUS</td><td>output</td><td>CELL[24].OUT_BEL[8]</td></tr>
 
 <tr><td>PLLRXRESET</td><td>input</td><td>CELL[23].IMUX_CTRL[0]</td></tr>
@@ -2642,6 +2706,8 @@
 <tr><td>RXRATE1</td><td>input</td><td>CELL[26].IMUX_IMUX_DELAY[41]</td></tr>
 
 <tr><td>RXRATEDONE</td><td>output</td><td>CELL[26].OUT_BEL[20]</td></tr>
+
+<tr><td>RXRECCLK</td><td>output</td><td>CELL[20].MGT_ROW[6]</td></tr>
 
 <tr><td>RXRECCLKPCS</td><td>output</td><td>CELL[25].OUT_BEL[5]</td></tr>
 
@@ -2964,6 +3030,8 @@
 <tr><td>TXMARGIN1</td><td>input</td><td>CELL[24].IMUX_IMUX_DELAY[26]</td></tr>
 
 <tr><td>TXMARGIN2</td><td>input</td><td>CELL[25].IMUX_IMUX_DELAY[15]</td></tr>
+
+<tr><td>TXOUTCLK</td><td>output</td><td>CELL[20].MGT_ROW[8]</td></tr>
 
 <tr><td>TXOUTCLKPCS</td><td>output</td><td>CELL[26].OUT_BEL[8]</td></tr>
 
@@ -3330,6 +3398,10 @@
 
 <tr><td>MGTREFCLKFAB1</td><td>output</td><td>CELL[34].OUT_BEL[12]</td></tr>
 
+<tr><td>PERFCLKRX</td><td>input</td><td>CELL[20].IMUX_GTX_PERFCLK</td></tr>
+
+<tr><td>PERFCLKTX</td><td>input</td><td>CELL[20].IMUX_GTX_PERFCLK</td></tr>
+
 <tr><td>PHYSTATUS</td><td>output</td><td>CELL[34].OUT_BEL[8]</td></tr>
 
 <tr><td>PLLRXRESET</td><td>input</td><td>CELL[33].IMUX_CTRL[0]</td></tr>
@@ -3609,6 +3681,8 @@
 <tr><td>RXRATE1</td><td>input</td><td>CELL[36].IMUX_IMUX_DELAY[41]</td></tr>
 
 <tr><td>RXRATEDONE</td><td>output</td><td>CELL[36].OUT_BEL[20]</td></tr>
+
+<tr><td>RXRECCLK</td><td>output</td><td>CELL[20].MGT_ROW[7]</td></tr>
 
 <tr><td>RXRECCLKPCS</td><td>output</td><td>CELL[35].OUT_BEL[5]</td></tr>
 
@@ -3932,6 +4006,8 @@
 
 <tr><td>TXMARGIN2</td><td>input</td><td>CELL[35].IMUX_IMUX_DELAY[15]</td></tr>
 
+<tr><td>TXOUTCLK</td><td>output</td><td>CELL[20].MGT_ROW[9]</td></tr>
+
 <tr><td>TXOUTCLKPCS</td><td>output</td><td>CELL[36].OUT_BEL[8]</td></tr>
 
 <tr><td>TXPDOWNASYNCH</td><td>input</td><td>CELL[38].IMUX_IMUX_DELAY[15]</td></tr>
@@ -4037,6 +4113,8 @@
 
 <tr><td>CLKTESTSIG_INT</td><td>input</td><td>CELL[12].IMUX_IMUX_DELAY[17]</td></tr>
 
+<tr><td>HCLK_OUT</td><td>output</td><td>CELL[20].MGT_ROW[4]</td></tr>
+
 </tbody>
 
 </table>
@@ -4055,6 +4133,8 @@
 <tr><td>CEB</td><td>input</td><td>CELL[19].IMUX_IMUX_DELAY[30]</td></tr>
 
 <tr><td>CLKTESTSIG_INT</td><td>input</td><td>CELL[12].IMUX_IMUX_DELAY[16]</td></tr>
+
+<tr><td>HCLK_OUT</td><td>output</td><td>CELL[20].MGT_ROW[5]</td></tr>
 
 </tbody>
 
@@ -4350,21 +4430,6 @@
 <div class="table-wrapper">
 <table>
 <caption>virtex6 GTX bel OPAD_TXN[3]</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bel-hclk_gtx"><a class="header" href="#bel-hclk_gtx">Bel HCLK_GTX</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>virtex6 GTX bel HCLK_GTX</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
 
@@ -6393,6 +6458,28 @@
 <tr><td>CELL[20].OUT_BEL[22]</td><td>GTX[2].RXDATA19</td></tr>
 
 <tr><td>CELL[20].OUT_BEL[23]</td><td>GTX[2].SCANOUT2</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[0]</td><td>GTX[0].RXRECCLK</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[1]</td><td>GTX[1].RXRECCLK</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[2]</td><td>GTX[0].TXOUTCLK</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[3]</td><td>GTX[1].TXOUTCLK</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[4]</td><td>BUFDS[0].HCLK_OUT</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[5]</td><td>BUFDS[1].HCLK_OUT</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[6]</td><td>GTX[2].RXRECCLK</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[7]</td><td>GTX[3].RXRECCLK</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[8]</td><td>GTX[2].TXOUTCLK</td></tr>
+
+<tr><td>CELL[20].MGT_ROW[9]</td><td>GTX[3].TXOUTCLK</td></tr>
+
+<tr><td>CELL[20].IMUX_GTX_PERFCLK</td><td>GTX[0].PERFCLKRX, GTX[0].PERFCLKTX, GTX[1].PERFCLKRX, GTX[1].PERFCLKTX, GTX[2].PERFCLKRX, GTX[2].PERFCLKTX, GTX[3].PERFCLKRX, GTX[3].PERFCLKTX</td></tr>
 
 <tr><td>CELL[21].IMUX_CTRL[0]</td><td>GTX[2].GTXRXRESET</td></tr>
 
@@ -39825,7 +39912,9 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
+<td id="virtex6-GTX-bit-MAIN[14][28][23]" title="MAIN[14][28][23]">
+<a href="#virtex6-GTX-SPEC_INT-mux-CELL[20].IMUX_GTX_PERFCLK-0">SPEC_INT: mux CELL[20].IMUX_GTX_PERFCLK bit 0</a>
+</td>
 <td>-</td>
 </tr>
 
@@ -39858,8 +39947,12 @@
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex6-GTX-bit-MAIN[14][28][22]" title="MAIN[14][28][22]">
+<a href="#virtex6-GTX-SPEC_INT-mux-CELL[20].IMUX_GTX_PERFCLK-1">SPEC_INT: mux CELL[20].IMUX_GTX_PERFCLK bit 1</a>
+</td>
+<td id="virtex6-GTX-bit-MAIN[14][29][22]" title="MAIN[14][29][22]">
+<a href="#virtex6-GTX-SPEC_INT-mux-CELL[20].IMUX_GTX_PERFCLK-2">SPEC_INT: mux CELL[20].IMUX_GTX_PERFCLK bit 2</a>
+</td>
 </tr>
 
 <tr><td>B21</td>
@@ -131645,7 +131738,6 @@
 <td>-</td>
 <td title="R14.F28.B23">
 <a href="#tile-virtex6-GTX-GTX[1]:DRP22">GTX[1]:DRP22[14]</a>
-<a href="#tile-virtex6-GTX-HCLK_GTX:MUX.PERFCLK">HCLK_GTX:MUX.PERFCLK[0]</a>
 </td>
 <td title="R14.F29.B23">
 <a href="#tile-virtex6-GTX-GTX[1]:DRP22">GTX[1]:DRP22[15]</a>
@@ -131684,11 +131776,9 @@
 <td>-</td>
 <td title="R14.F28.B22">
 <a href="#tile-virtex6-GTX-GTX[1]:DRP22">GTX[1]:DRP22[12]</a>
-<a href="#tile-virtex6-GTX-HCLK_GTX:MUX.PERFCLK">HCLK_GTX:MUX.PERFCLK[1]</a>
 </td>
 <td title="R14.F29.B22">
 <a href="#tile-virtex6-GTX-GTX[1]:DRP22">GTX[1]:DRP22[13]</a>
-<a href="#tile-virtex6-GTX-HCLK_GTX:MUX.PERFCLK">HCLK_GTX:MUX.PERFCLK[2]</a>
 </td>
 </tr>
 
@@ -211091,53 +211181,6 @@ non-inverted
 </tr>
 
 <tr><td>MGTREFCLKOUT1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex6-GTX-HCLK_GTX:MUX.PERFCLK">HCLK_GTX:MUX.PERFCLK</th>
-<th>14.F29.B22</th>
-<th>14.F28.B22</th>
-<th>14.F28.B23</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>PERF0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PERF1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>PERF2</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>PERF3</td>
-<td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>

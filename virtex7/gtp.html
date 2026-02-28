@@ -154,7 +154,42 @@
                         <h1 id="gtp-transceivers"><a class="header" href="#gtp-transceivers">GTP transceivers</a></h1>
 <p>TODO: document</p>
 <h2 id="tile-gtp_common"><a class="header" href="#tile-gtp_common">Tile GTP_COMMON</a></h2>
-<p>Cells: 6</p>
+<p>Cells: 10</p>
+<h3 id="switchbox-spec_int"><a class="header" href="#switchbox-spec_int">Switchbox SPEC_INT</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON switchbox SPEC_INT permanent buffers</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>CELL[3].HROW_O[4]</td><td>CHANNEL[0].OUT_GT_RXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[5]</td><td>CHANNEL[1].OUT_GT_RXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[6]</td><td>CHANNEL[0].OUT_GT_TXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[7]</td><td>CHANNEL[1].OUT_GT_TXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[8]</td><td>CELL[3].OUT_GT_MGTCLKOUT[0]</td></tr>
+
+<tr><td>CELL[3].HROW_O[9]</td><td>CELL[3].OUT_GT_MGTCLKOUT[1]</td></tr>
+
+<tr><td>CELL[3].HROW_O[10]</td><td>CHANNEL[2].OUT_GT_RXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[11]</td><td>CHANNEL[3].OUT_GT_RXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[12]</td><td>CHANNEL[2].OUT_GT_TXOUTCLK</td></tr>
+
+<tr><td>CELL[3].HROW_O[13]</td><td>CHANNEL[3].OUT_GT_TXOUTCLK</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
 <h3 id="bel-gtp_common"><a class="header" href="#bel-gtp_common">Bel GTP_COMMON</a></h3>
 <div class="table-wrapper">
 <table>
@@ -478,6 +513,8 @@
 
 <tr><td>CLKTESTSIG</td><td>input</td><td>CELL[2].IMUX_CLK[0]</td></tr>
 
+<tr><td>MGTCLKOUT</td><td>output</td><td>CELL[3].OUT_GT_MGTCLKOUT[0]</td></tr>
+
 </tbody>
 
 </table>
@@ -496,6 +533,8 @@
 <tr><td>CEB</td><td>input</td><td>CELL[1].IMUX_IMUX_DELAY[0]</td></tr>
 
 <tr><td>CLKTESTSIG</td><td>input</td><td>CELL[2].IMUX_CLK[1]</td></tr>
+
+<tr><td>MGTCLKOUT</td><td>output</td><td>CELL[3].OUT_GT_MGTCLKOUT[1]</td></tr>
 
 </tbody>
 
@@ -745,6 +784,10 @@
 <tr><td>CELL[3].OUT_BEL[20]</td><td>GTP_COMMON.PMARSVDOUT12</td></tr>
 
 <tr><td>CELL[3].OUT_BEL[23]</td><td>GTP_COMMON.PMASCANOUT2</td></tr>
+
+<tr><td>CELL[3].OUT_GT_MGTCLKOUT[0]</td><td>BUFDS[0].MGTCLKOUT</td></tr>
+
+<tr><td>CELL[3].OUT_GT_MGTCLKOUT[1]</td><td>BUFDS[1].MGTCLKOUT</td></tr>
 
 <tr><td>CELL[4].IMUX_CLK[0]</td><td>GTP_COMMON.PLLCLKSPARE</td></tr>
 
@@ -35382,6 +35425,8 @@ non-inverted
 
 <tr><td>RXOSOVRDEN</td><td>input</td><td>CELL[8].IMUX_IMUX_DELAY[13]</td></tr>
 
+<tr><td>RXOUTCLK</td><td>output</td><td>CELL[0].OUT_GT_RXOUTCLK</td></tr>
+
 <tr><td>RXOUTCLKFABRIC</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
 <tr><td>RXOUTCLKPCS</td><td>output</td><td>CELL[1].OUT_BEL[22]</td></tr>
@@ -35762,6 +35807,8 @@ non-inverted
 
 <tr><td>TXMARGIN2</td><td>input</td><td>CELL[4].IMUX_IMUX_DELAY[35]</td></tr>
 
+<tr><td>TXOUTCLK</td><td>output</td><td>CELL[0].OUT_GT_TXOUTCLK</td></tr>
+
 <tr><td>TXOUTCLKFABRIC</td><td>output</td><td>CELL[1].OUT_BEL[15]</td></tr>
 
 <tr><td>TXOUTCLKPCS</td><td>output</td><td>CELL[4].OUT_BEL[17]</td></tr>
@@ -36060,6 +36107,10 @@ non-inverted
 <tr><td>CELL[0].OUT_BEL[22]</td><td>GTP_CHANNEL.RXOUTCLKFABRIC</td></tr>
 
 <tr><td>CELL[0].OUT_BEL[23]</td><td>GTP_CHANNEL.SCANOUT5</td></tr>
+
+<tr><td>CELL[0].OUT_GT_RXOUTCLK</td><td>GTP_CHANNEL.RXOUTCLK</td></tr>
+
+<tr><td>CELL[0].OUT_GT_TXOUTCLK</td><td>GTP_CHANNEL.TXOUTCLK</td></tr>
 
 <tr><td>CELL[1].IMUX_IMUX_DELAY[2]</td><td>GTP_CHANNEL.TXCOMINIT</td></tr>
 
@@ -102435,7 +102486,686 @@ non-inverted
 </div>
 
 <h2 id="tile-gtp_common_mid"><a class="header" href="#tile-gtp_common_mid">Tile GTP_COMMON_MID</a></h2>
-<p>Cells: 6</p>
+<p>Cells: 10</p>
+<h3 id="switchbox-spec_int-1"><a class="header" href="#switchbox-spec_int-1">Switchbox SPEC_INT</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT programmable buffers</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Bit</th></tr>
+
+</thead>
+
+<tbody>
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]-CELL[3].OUT_GT_MGTCLKOUT[0]"><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td><td>CELL[3].OUT_GT_MGTCLKOUT[0]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][29]">HCLK[7][29]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]-CELL[3].OUT_GT_MGTCLKOUT[1]"><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td><td>CELL[3].OUT_GT_MGTCLKOUT[1]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][27]">HCLK[6][27]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_RXOUTCLK_HCLK[0]-CHANNEL[0].OUT_GT_RXOUTCLK"><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td><td>CHANNEL[0].OUT_GT_RXOUTCLK</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][28]">HCLK[6][28]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_RXOUTCLK_HCLK[1]-CHANNEL[1].OUT_GT_RXOUTCLK"><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td><td>CHANNEL[1].OUT_GT_RXOUTCLK</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][27]">HCLK[7][27]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_RXOUTCLK_HCLK[2]-CHANNEL[2].OUT_GT_RXOUTCLK"><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td><td>CHANNEL[2].OUT_GT_RXOUTCLK</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][30]">HCLK[7][30]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_RXOUTCLK_HCLK[3]-CHANNEL[3].OUT_GT_RXOUTCLK"><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td><td>CHANNEL[3].OUT_GT_RXOUTCLK</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][30]">HCLK[6][30]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_TXOUTCLK_HCLK[0]-CHANNEL[0].OUT_GT_TXOUTCLK"><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td><td>CHANNEL[0].OUT_GT_TXOUTCLK</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][29]">HCLK[6][29]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_TXOUTCLK_HCLK[1]-CHANNEL[1].OUT_GT_TXOUTCLK"><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td><td>CHANNEL[1].OUT_GT_TXOUTCLK</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][28]">HCLK[7][28]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_TXOUTCLK_HCLK[2]-CHANNEL[2].OUT_GT_TXOUTCLK"><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td><td>CHANNEL[2].OUT_GT_TXOUTCLK</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][31]">HCLK[7][31]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_TXOUTCLK_HCLK[3]-CHANNEL[3].OUT_GT_TXOUTCLK"><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td><td>CHANNEL[3].OUT_GT_TXOUTCLK</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][31]">HCLK[6][31]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[0]-CELL[3].HROW_I[0]"><td>CELL[3].HROW_I_GTP[0]</td><td>CELL[3].HROW_I[0]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][22]">HCLK[3][22]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[1]-CELL[3].HROW_I[1]"><td>CELL[3].HROW_I_GTP[1]</td><td>CELL[3].HROW_I[1]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][22]">HCLK[2][22]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[2]-CELL[3].HROW_I[2]"><td>CELL[3].HROW_I_GTP[2]</td><td>CELL[3].HROW_I[2]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][23]">HCLK[3][23]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[3]-CELL[3].HROW_I[3]"><td>CELL[3].HROW_I_GTP[3]</td><td>CELL[3].HROW_I[3]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][23]">HCLK[2][23]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[4]-CELL[3].HROW_I[4]"><td>CELL[3].HROW_I_GTP[4]</td><td>CELL[3].HROW_I[4]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][22]">HCLK[1][22]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[5]-CELL[3].HROW_I[5]"><td>CELL[3].HROW_I_GTP[5]</td><td>CELL[3].HROW_I[5]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][22]">HCLK[0][22]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[6]-CELL[3].HROW_I[6]"><td>CELL[3].HROW_I_GTP[6]</td><td>CELL[3].HROW_I[6]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][23]">HCLK[1][23]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[7]-CELL[3].HROW_I[7]"><td>CELL[3].HROW_I_GTP[7]</td><td>CELL[3].HROW_I[7]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][23]">HCLK[0][23]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[8]-CELL[3].HROW_I[8]"><td>CELL[3].HROW_I_GTP[8]</td><td>CELL[3].HROW_I[8]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][22]">HCLK[5][22]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[9]-CELL[3].HROW_I[9]"><td>CELL[3].HROW_I_GTP[9]</td><td>CELL[3].HROW_I[9]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][22]">HCLK[4][22]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[10]-CELL[3].HROW_I[10]"><td>CELL[3].HROW_I_GTP[10]</td><td>CELL[3].HROW_I[10]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][23]">HCLK[5][23]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[11]-CELL[3].HROW_I[11]"><td>CELL[3].HROW_I_GTP[11]</td><td>CELL[3].HROW_I[11]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][23]">HCLK[4][23]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[12]-CELL[3].HROW_I[12]"><td>CELL[3].HROW_I_GTP[12]</td><td>CELL[3].HROW_I[12]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][26]">HCLK[7][26]</a></td></tr>
+
+<tr id="virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[13]-CELL[3].HROW_I[13]"><td>CELL[3].HROW_I_GTP[13]</td><td>CELL[3].HROW_I[13]</td><td><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][26]">HCLK[6][26]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[0]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][14]">HCLK[2][14]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][15]">HCLK[2][15]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][18]">HCLK[3][18]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][19]">HCLK[3][19]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][20]">HCLK[3][20]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][21]">HCLK[3][21]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][16]">HCLK[3][16]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][17]">HCLK[3][17]</a></td><td>CELL[3].HROW_O[0]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[0]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[1]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][14]">HCLK[3][14]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][15]">HCLK[3][15]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][18]">HCLK[2][18]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][19]">HCLK[2][19]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][20]">HCLK[2][20]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][21]">HCLK[2][21]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][16]">HCLK[2][16]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][17]">HCLK[2][17]</a></td><td>CELL[3].HROW_O[1]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[0]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[2]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][24]">HCLK[2][24]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][25]">HCLK[2][25]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][28]">HCLK[3][28]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][29]">HCLK[3][29]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][30]">HCLK[3][30]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][31]">HCLK[3][31]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][26]">HCLK[3][26]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][27]">HCLK[3][27]</a></td><td>CELL[3].HROW_O[2]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[3]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][24]">HCLK[3][24]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[3][25]">HCLK[3][25]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][28]">HCLK[2][28]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][29]">HCLK[2][29]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][30]">HCLK[2][30]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][31]">HCLK[2][31]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][26]">HCLK[2][26]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[2][27]">HCLK[2][27]</a></td><td>CELL[3].HROW_O[3]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[4]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][14]">HCLK[0][14]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][15]">HCLK[0][15]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][18]">HCLK[1][18]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][19]">HCLK[1][19]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][20]">HCLK[1][20]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][21]">HCLK[1][21]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][16]">HCLK[1][16]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][17]">HCLK[1][17]</a></td><td>CELL[3].HROW_O[4]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[4]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[5]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[5]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][14]">HCLK[1][14]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][15]">HCLK[1][15]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][18]">HCLK[0][18]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][19]">HCLK[0][19]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][20]">HCLK[0][20]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][21]">HCLK[0][21]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][16]">HCLK[0][16]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][17]">HCLK[0][17]</a></td><td>CELL[3].HROW_O[5]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[4]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[5]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[6]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][24]">HCLK[0][24]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][25]">HCLK[0][25]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][28]">HCLK[1][28]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][29]">HCLK[1][29]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][30]">HCLK[1][30]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][31]">HCLK[1][31]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][26]">HCLK[1][26]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][27]">HCLK[1][27]</a></td><td>CELL[3].HROW_O[6]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[6]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[7]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[7]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][24]">HCLK[1][24]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][25]">HCLK[1][25]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][28]">HCLK[0][28]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][29]">HCLK[0][29]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][30]">HCLK[0][30]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][31]">HCLK[0][31]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][26]">HCLK[0][26]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][27]">HCLK[0][27]</a></td><td>CELL[3].HROW_O[7]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[6]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[7]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[8]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][14]">HCLK[4][14]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][15]">HCLK[4][15]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][18]">HCLK[5][18]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][19]">HCLK[5][19]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][20]">HCLK[5][20]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][21]">HCLK[5][21]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][16]">HCLK[5][16]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][17]">HCLK[5][17]</a></td><td>CELL[3].HROW_O[8]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[8]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[9]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[9]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][14]">HCLK[5][14]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][15]">HCLK[5][15]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][18]">HCLK[4][18]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][19]">HCLK[4][19]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][20]">HCLK[4][20]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][21]">HCLK[4][21]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][16]">HCLK[4][16]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][17]">HCLK[4][17]</a></td><td>CELL[3].HROW_O[9]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[8]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[9]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[10]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][24]">HCLK[4][24]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][25]">HCLK[4][25]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][28]">HCLK[5][28]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][29]">HCLK[5][29]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][30]">HCLK[5][30]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][31]">HCLK[5][31]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][26]">HCLK[5][26]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][27]">HCLK[5][27]</a></td><td>CELL[3].HROW_O[10]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[10]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[11]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[11]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][24]">HCLK[5][24]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[5][25]">HCLK[5][25]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][28]">HCLK[4][28]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][29]">HCLK[4][29]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][30]">HCLK[4][30]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][31]">HCLK[4][31]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][26]">HCLK[4][26]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[4][27]">HCLK[4][27]</a></td><td>CELL[3].HROW_O[11]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[10]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[11]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[12]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][16]">HCLK[6][16]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][17]">HCLK[6][17]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][22]">HCLK[7][22]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][23]">HCLK[7][23]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][24]">HCLK[7][24]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][25]">HCLK[7][25]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][18]">HCLK[7][18]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][19]">HCLK[7][19]</a></td><td>CELL[3].HROW_O[12]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[12]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[13]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID switchbox SPEC_INT muxes HROW_O[13]</caption>
+<thead>
+<tr><th colspan="8">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-7"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][16]">HCLK[7][16]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-6"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[7][17]">HCLK[7][17]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-5"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][20]">HCLK[6][20]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-4"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][23]">HCLK[6][23]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-3"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][24]">HCLK[6][24]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-2"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][25]">HCLK[6][25]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-1"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][18]">HCLK[6][18]</a></td><td id="virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-0"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[6][19]">HCLK[6][19]</a></td><td>CELL[3].HROW_O[13]</td></tr>
+
+<tr><th colspan="8"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>off</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[0]</td></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>CELL[3].HROW_I_GTP[12]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>CELL[3].HROW_I_GTP[13]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_RXOUTCLK_HCLK[3]</td></tr>
+
+<tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[2]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CELL[3].OUT_GT_TXOUTCLK_HCLK[3]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
 <h3 id="bel-gtp_common-1"><a class="header" href="#bel-gtp_common-1">Bel GTP_COMMON</a></h3>
 <div class="table-wrapper">
 <table>
@@ -102759,6 +103489,8 @@ non-inverted
 
 <tr><td>CLKTESTSIG</td><td>input</td><td>CELL[2].IMUX_CLK[0]</td></tr>
 
+<tr><td>MGTCLKOUT</td><td>output</td><td>CELL[3].OUT_GT_MGTCLKOUT[0]</td></tr>
+
 </tbody>
 
 </table>
@@ -102777,6 +103509,8 @@ non-inverted
 <tr><td>CEB</td><td>input</td><td>CELL[1].IMUX_IMUX_DELAY[0]</td></tr>
 
 <tr><td>CLKTESTSIG</td><td>input</td><td>CELL[2].IMUX_CLK[1]</td></tr>
+
+<tr><td>MGTCLKOUT</td><td>output</td><td>CELL[3].OUT_GT_MGTCLKOUT[1]</td></tr>
 
 </tbody>
 
@@ -102838,6 +103572,39 @@ non-inverted
 </thead>
 
 <tbody>
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-hclk_drp"><a class="header" href="#bels-hclk_drp">Bels HCLK_DRP</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID bel HCLK_DRP pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>HCLK_DRP_GTP_MID</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>virtex7 GTP_COMMON_MID bel HCLK_DRP attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>HCLK_DRP_GTP_MID</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>DRP_MASK_S</td><td id="virtex7-GTP_COMMON_MID-HCLK_DRP_GTP_MID-DRP_MASK_S"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[0][13]">HCLK[0][13]</a></td></tr>
+
+<tr><td>DRP_MASK_N</td><td id="virtex7-GTP_COMMON_MID-HCLK_DRP_GTP_MID-DRP_MASK_N"><a href="#virtex7-GTP_COMMON_MID-bit-HCLK[1][13]">HCLK[1][13]</a></td></tr>
+
 </tbody>
 
 </table>
@@ -103026,6 +103793,10 @@ non-inverted
 <tr><td>CELL[3].OUT_BEL[20]</td><td>GTP_COMMON.PMARSVDOUT12</td></tr>
 
 <tr><td>CELL[3].OUT_BEL[23]</td><td>GTP_COMMON.PMASCANOUT2</td></tr>
+
+<tr><td>CELL[3].OUT_GT_MGTCLKOUT[0]</td><td>BUFDS[0].MGTCLKOUT</td></tr>
+
+<tr><td>CELL[3].OUT_GT_MGTCLKOUT[1]</td><td>BUFDS[1].MGTCLKOUT</td></tr>
 
 <tr><td>CELL[4].IMUX_CLK[0]</td><td>GTP_COMMON.PLLCLKSPARE</td></tr>
 
@@ -115376,14 +116147,30 @@ non-inverted
 
 <tbody>
 <tr><td>B31</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][31]" title="HCLK[0][31]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-2">SPEC_INT: mux CELL[3].HROW_O[7] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][31]" title="HCLK[1][31]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-2">SPEC_INT: mux CELL[3].HROW_O[6] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][31]" title="HCLK[2][31]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-2">SPEC_INT: mux CELL[3].HROW_O[3] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][31]" title="HCLK[3][31]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-2">SPEC_INT: mux CELL[3].HROW_O[2] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][31]" title="HCLK[4][31]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-2">SPEC_INT: mux CELL[3].HROW_O[11] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][31]" title="HCLK[5][31]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-2">SPEC_INT: mux CELL[3].HROW_O[10] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][31]" title="HCLK[6][31]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_TXOUTCLK_HCLK[3]-CHANNEL[3].OUT_GT_TXOUTCLK">SPEC_INT: buffer CELL[3].OUT_GT_TXOUTCLK_HCLK[3] ← CHANNEL[3].OUT_GT_TXOUTCLK</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][31]" title="HCLK[7][31]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_TXOUTCLK_HCLK[2]-CHANNEL[2].OUT_GT_TXOUTCLK">SPEC_INT: buffer CELL[3].OUT_GT_TXOUTCLK_HCLK[2] ← CHANNEL[2].OUT_GT_TXOUTCLK</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115407,14 +116194,30 @@ non-inverted
 </tr>
 
 <tr><td>B30</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][30]" title="HCLK[0][30]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-3">SPEC_INT: mux CELL[3].HROW_O[7] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][30]" title="HCLK[1][30]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-3">SPEC_INT: mux CELL[3].HROW_O[6] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][30]" title="HCLK[2][30]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-3">SPEC_INT: mux CELL[3].HROW_O[3] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][30]" title="HCLK[3][30]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-3">SPEC_INT: mux CELL[3].HROW_O[2] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][30]" title="HCLK[4][30]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-3">SPEC_INT: mux CELL[3].HROW_O[11] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][30]" title="HCLK[5][30]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-3">SPEC_INT: mux CELL[3].HROW_O[10] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][30]" title="HCLK[6][30]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_RXOUTCLK_HCLK[3]-CHANNEL[3].OUT_GT_RXOUTCLK">SPEC_INT: buffer CELL[3].OUT_GT_RXOUTCLK_HCLK[3] ← CHANNEL[3].OUT_GT_RXOUTCLK</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][30]" title="HCLK[7][30]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_RXOUTCLK_HCLK[2]-CHANNEL[2].OUT_GT_RXOUTCLK">SPEC_INT: buffer CELL[3].OUT_GT_RXOUTCLK_HCLK[2] ← CHANNEL[2].OUT_GT_RXOUTCLK</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115438,14 +116241,30 @@ non-inverted
 </tr>
 
 <tr><td>B29</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][29]" title="HCLK[0][29]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-4">SPEC_INT: mux CELL[3].HROW_O[7] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][29]" title="HCLK[1][29]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-4">SPEC_INT: mux CELL[3].HROW_O[6] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][29]" title="HCLK[2][29]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-4">SPEC_INT: mux CELL[3].HROW_O[3] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][29]" title="HCLK[3][29]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-4">SPEC_INT: mux CELL[3].HROW_O[2] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][29]" title="HCLK[4][29]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-4">SPEC_INT: mux CELL[3].HROW_O[11] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][29]" title="HCLK[5][29]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-4">SPEC_INT: mux CELL[3].HROW_O[10] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][29]" title="HCLK[6][29]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_TXOUTCLK_HCLK[0]-CHANNEL[0].OUT_GT_TXOUTCLK">SPEC_INT: buffer CELL[3].OUT_GT_TXOUTCLK_HCLK[0] ← CHANNEL[0].OUT_GT_TXOUTCLK</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][29]" title="HCLK[7][29]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_MGTCLKOUT_HCLK[0]-CELL[3].OUT_GT_MGTCLKOUT[0]">SPEC_INT: buffer CELL[3].OUT_GT_MGTCLKOUT_HCLK[0] ← CELL[3].OUT_GT_MGTCLKOUT[0]</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115469,14 +116288,30 @@ non-inverted
 </tr>
 
 <tr><td>B28</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][28]" title="HCLK[0][28]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-5">SPEC_INT: mux CELL[3].HROW_O[7] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][28]" title="HCLK[1][28]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-5">SPEC_INT: mux CELL[3].HROW_O[6] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][28]" title="HCLK[2][28]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-5">SPEC_INT: mux CELL[3].HROW_O[3] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][28]" title="HCLK[3][28]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-5">SPEC_INT: mux CELL[3].HROW_O[2] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][28]" title="HCLK[4][28]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-5">SPEC_INT: mux CELL[3].HROW_O[11] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][28]" title="HCLK[5][28]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-5">SPEC_INT: mux CELL[3].HROW_O[10] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][28]" title="HCLK[6][28]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_RXOUTCLK_HCLK[0]-CHANNEL[0].OUT_GT_RXOUTCLK">SPEC_INT: buffer CELL[3].OUT_GT_RXOUTCLK_HCLK[0] ← CHANNEL[0].OUT_GT_RXOUTCLK</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][28]" title="HCLK[7][28]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_TXOUTCLK_HCLK[1]-CHANNEL[1].OUT_GT_TXOUTCLK">SPEC_INT: buffer CELL[3].OUT_GT_TXOUTCLK_HCLK[1] ← CHANNEL[1].OUT_GT_TXOUTCLK</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115500,14 +116335,30 @@ non-inverted
 </tr>
 
 <tr><td>B27</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][27]" title="HCLK[0][27]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-0">SPEC_INT: mux CELL[3].HROW_O[7] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][27]" title="HCLK[1][27]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-0">SPEC_INT: mux CELL[3].HROW_O[6] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][27]" title="HCLK[2][27]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-0">SPEC_INT: mux CELL[3].HROW_O[3] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][27]" title="HCLK[3][27]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-0">SPEC_INT: mux CELL[3].HROW_O[2] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][27]" title="HCLK[4][27]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-0">SPEC_INT: mux CELL[3].HROW_O[11] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][27]" title="HCLK[5][27]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-0">SPEC_INT: mux CELL[3].HROW_O[10] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][27]" title="HCLK[6][27]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_MGTCLKOUT_HCLK[1]-CELL[3].OUT_GT_MGTCLKOUT[1]">SPEC_INT: buffer CELL[3].OUT_GT_MGTCLKOUT_HCLK[1] ← CELL[3].OUT_GT_MGTCLKOUT[1]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][27]" title="HCLK[7][27]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].OUT_GT_RXOUTCLK_HCLK[1]-CHANNEL[1].OUT_GT_RXOUTCLK">SPEC_INT: buffer CELL[3].OUT_GT_RXOUTCLK_HCLK[1] ← CHANNEL[1].OUT_GT_RXOUTCLK</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115531,14 +116382,30 @@ non-inverted
 </tr>
 
 <tr><td>B26</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][26]" title="HCLK[0][26]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-1">SPEC_INT: mux CELL[3].HROW_O[7] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][26]" title="HCLK[1][26]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-1">SPEC_INT: mux CELL[3].HROW_O[6] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][26]" title="HCLK[2][26]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-1">SPEC_INT: mux CELL[3].HROW_O[3] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][26]" title="HCLK[3][26]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-1">SPEC_INT: mux CELL[3].HROW_O[2] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][26]" title="HCLK[4][26]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-1">SPEC_INT: mux CELL[3].HROW_O[11] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][26]" title="HCLK[5][26]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-1">SPEC_INT: mux CELL[3].HROW_O[10] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][26]" title="HCLK[6][26]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[13]-CELL[3].HROW_I[13]">SPEC_INT: buffer CELL[3].HROW_I_GTP[13] ← CELL[3].HROW_I[13]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][26]" title="HCLK[7][26]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[12]-CELL[3].HROW_I[12]">SPEC_INT: buffer CELL[3].HROW_I_GTP[12] ← CELL[3].HROW_I[12]</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115562,14 +116429,30 @@ non-inverted
 </tr>
 
 <tr><td>B25</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][25]" title="HCLK[0][25]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-6">SPEC_INT: mux CELL[3].HROW_O[6] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][25]" title="HCLK[1][25]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-6">SPEC_INT: mux CELL[3].HROW_O[7] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][25]" title="HCLK[2][25]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-6">SPEC_INT: mux CELL[3].HROW_O[2] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][25]" title="HCLK[3][25]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-6">SPEC_INT: mux CELL[3].HROW_O[3] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][25]" title="HCLK[4][25]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-6">SPEC_INT: mux CELL[3].HROW_O[10] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][25]" title="HCLK[5][25]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-6">SPEC_INT: mux CELL[3].HROW_O[11] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][25]" title="HCLK[6][25]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-2">SPEC_INT: mux CELL[3].HROW_O[13] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][25]" title="HCLK[7][25]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-2">SPEC_INT: mux CELL[3].HROW_O[12] bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115593,14 +116476,30 @@ non-inverted
 </tr>
 
 <tr><td>B24</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][24]" title="HCLK[0][24]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[6]-7">SPEC_INT: mux CELL[3].HROW_O[6] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][24]" title="HCLK[1][24]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[7]-7">SPEC_INT: mux CELL[3].HROW_O[7] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][24]" title="HCLK[2][24]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[2]-7">SPEC_INT: mux CELL[3].HROW_O[2] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][24]" title="HCLK[3][24]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[3]-7">SPEC_INT: mux CELL[3].HROW_O[3] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][24]" title="HCLK[4][24]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[10]-7">SPEC_INT: mux CELL[3].HROW_O[10] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][24]" title="HCLK[5][24]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[11]-7">SPEC_INT: mux CELL[3].HROW_O[11] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][24]" title="HCLK[6][24]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-3">SPEC_INT: mux CELL[3].HROW_O[13] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][24]" title="HCLK[7][24]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-3">SPEC_INT: mux CELL[3].HROW_O[12] bit 3</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115624,14 +116523,30 @@ non-inverted
 </tr>
 
 <tr><td>B23</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][23]" title="HCLK[0][23]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[7]-CELL[3].HROW_I[7]">SPEC_INT: buffer CELL[3].HROW_I_GTP[7] ← CELL[3].HROW_I[7]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][23]" title="HCLK[1][23]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[6]-CELL[3].HROW_I[6]">SPEC_INT: buffer CELL[3].HROW_I_GTP[6] ← CELL[3].HROW_I[6]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][23]" title="HCLK[2][23]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[3]-CELL[3].HROW_I[3]">SPEC_INT: buffer CELL[3].HROW_I_GTP[3] ← CELL[3].HROW_I[3]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][23]" title="HCLK[3][23]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[2]-CELL[3].HROW_I[2]">SPEC_INT: buffer CELL[3].HROW_I_GTP[2] ← CELL[3].HROW_I[2]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][23]" title="HCLK[4][23]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[11]-CELL[3].HROW_I[11]">SPEC_INT: buffer CELL[3].HROW_I_GTP[11] ← CELL[3].HROW_I[11]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][23]" title="HCLK[5][23]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[10]-CELL[3].HROW_I[10]">SPEC_INT: buffer CELL[3].HROW_I_GTP[10] ← CELL[3].HROW_I[10]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][23]" title="HCLK[6][23]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-4">SPEC_INT: mux CELL[3].HROW_O[13] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][23]" title="HCLK[7][23]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-4">SPEC_INT: mux CELL[3].HROW_O[12] bit 4</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115655,14 +116570,28 @@ non-inverted
 </tr>
 
 <tr><td>B22</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][22]" title="HCLK[0][22]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[5]-CELL[3].HROW_I[5]">SPEC_INT: buffer CELL[3].HROW_I_GTP[5] ← CELL[3].HROW_I[5]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][22]" title="HCLK[1][22]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[4]-CELL[3].HROW_I[4]">SPEC_INT: buffer CELL[3].HROW_I_GTP[4] ← CELL[3].HROW_I[4]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][22]" title="HCLK[2][22]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[1]-CELL[3].HROW_I[1]">SPEC_INT: buffer CELL[3].HROW_I_GTP[1] ← CELL[3].HROW_I[1]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][22]" title="HCLK[3][22]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[0]-CELL[3].HROW_I[0]">SPEC_INT: buffer CELL[3].HROW_I_GTP[0] ← CELL[3].HROW_I[0]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][22]" title="HCLK[4][22]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[9]-CELL[3].HROW_I[9]">SPEC_INT: buffer CELL[3].HROW_I_GTP[9] ← CELL[3].HROW_I[9]</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][22]" title="HCLK[5][22]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-progbuf-CELL[3].HROW_I_GTP[8]-CELL[3].HROW_I[8]">SPEC_INT: buffer CELL[3].HROW_I_GTP[8] ← CELL[3].HROW_I[8]</a>
+</td>
 <td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][22]" title="HCLK[7][22]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-5">SPEC_INT: mux CELL[3].HROW_O[12] bit 5</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115686,12 +116615,24 @@ non-inverted
 </tr>
 
 <tr><td>B21</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][21]" title="HCLK[0][21]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-2">SPEC_INT: mux CELL[3].HROW_O[5] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][21]" title="HCLK[1][21]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-2">SPEC_INT: mux CELL[3].HROW_O[4] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][21]" title="HCLK[2][21]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-2">SPEC_INT: mux CELL[3].HROW_O[1] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][21]" title="HCLK[3][21]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-2">SPEC_INT: mux CELL[3].HROW_O[0] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][21]" title="HCLK[4][21]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-2">SPEC_INT: mux CELL[3].HROW_O[9] bit 2</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][21]" title="HCLK[5][21]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-2">SPEC_INT: mux CELL[3].HROW_O[8] bit 2</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115717,13 +116658,27 @@ non-inverted
 </tr>
 
 <tr><td>B20</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][20]" title="HCLK[0][20]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-3">SPEC_INT: mux CELL[3].HROW_O[5] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][20]" title="HCLK[1][20]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-3">SPEC_INT: mux CELL[3].HROW_O[4] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][20]" title="HCLK[2][20]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-3">SPEC_INT: mux CELL[3].HROW_O[1] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][20]" title="HCLK[3][20]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-3">SPEC_INT: mux CELL[3].HROW_O[0] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][20]" title="HCLK[4][20]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-3">SPEC_INT: mux CELL[3].HROW_O[9] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][20]" title="HCLK[5][20]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-3">SPEC_INT: mux CELL[3].HROW_O[8] bit 3</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][20]" title="HCLK[6][20]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-5">SPEC_INT: mux CELL[3].HROW_O[13] bit 5</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115748,14 +116703,30 @@ non-inverted
 </tr>
 
 <tr><td>B19</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][19]" title="HCLK[0][19]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-4">SPEC_INT: mux CELL[3].HROW_O[5] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][19]" title="HCLK[1][19]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-4">SPEC_INT: mux CELL[3].HROW_O[4] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][19]" title="HCLK[2][19]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-4">SPEC_INT: mux CELL[3].HROW_O[1] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][19]" title="HCLK[3][19]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-4">SPEC_INT: mux CELL[3].HROW_O[0] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][19]" title="HCLK[4][19]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-4">SPEC_INT: mux CELL[3].HROW_O[9] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][19]" title="HCLK[5][19]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-4">SPEC_INT: mux CELL[3].HROW_O[8] bit 4</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][19]" title="HCLK[6][19]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-0">SPEC_INT: mux CELL[3].HROW_O[13] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][19]" title="HCLK[7][19]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-0">SPEC_INT: mux CELL[3].HROW_O[12] bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115779,14 +116750,30 @@ non-inverted
 </tr>
 
 <tr><td>B18</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][18]" title="HCLK[0][18]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-5">SPEC_INT: mux CELL[3].HROW_O[5] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][18]" title="HCLK[1][18]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-5">SPEC_INT: mux CELL[3].HROW_O[4] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][18]" title="HCLK[2][18]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-5">SPEC_INT: mux CELL[3].HROW_O[1] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][18]" title="HCLK[3][18]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-5">SPEC_INT: mux CELL[3].HROW_O[0] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][18]" title="HCLK[4][18]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-5">SPEC_INT: mux CELL[3].HROW_O[9] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][18]" title="HCLK[5][18]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-5">SPEC_INT: mux CELL[3].HROW_O[8] bit 5</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][18]" title="HCLK[6][18]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-1">SPEC_INT: mux CELL[3].HROW_O[13] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][18]" title="HCLK[7][18]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-1">SPEC_INT: mux CELL[3].HROW_O[12] bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115810,14 +116797,30 @@ non-inverted
 </tr>
 
 <tr><td>B17</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][17]" title="HCLK[0][17]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-0">SPEC_INT: mux CELL[3].HROW_O[5] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][17]" title="HCLK[1][17]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-0">SPEC_INT: mux CELL[3].HROW_O[4] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][17]" title="HCLK[2][17]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-0">SPEC_INT: mux CELL[3].HROW_O[1] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][17]" title="HCLK[3][17]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-0">SPEC_INT: mux CELL[3].HROW_O[0] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][17]" title="HCLK[4][17]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-0">SPEC_INT: mux CELL[3].HROW_O[9] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][17]" title="HCLK[5][17]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-0">SPEC_INT: mux CELL[3].HROW_O[8] bit 0</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][17]" title="HCLK[6][17]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-6">SPEC_INT: mux CELL[3].HROW_O[12] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][17]" title="HCLK[7][17]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-6">SPEC_INT: mux CELL[3].HROW_O[13] bit 6</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115841,14 +116844,30 @@ non-inverted
 </tr>
 
 <tr><td>B16</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][16]" title="HCLK[0][16]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-1">SPEC_INT: mux CELL[3].HROW_O[5] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][16]" title="HCLK[1][16]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-1">SPEC_INT: mux CELL[3].HROW_O[4] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][16]" title="HCLK[2][16]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-1">SPEC_INT: mux CELL[3].HROW_O[1] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][16]" title="HCLK[3][16]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-1">SPEC_INT: mux CELL[3].HROW_O[0] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][16]" title="HCLK[4][16]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-1">SPEC_INT: mux CELL[3].HROW_O[9] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][16]" title="HCLK[5][16]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-1">SPEC_INT: mux CELL[3].HROW_O[8] bit 1</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[6][16]" title="HCLK[6][16]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[12]-7">SPEC_INT: mux CELL[3].HROW_O[12] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[7][16]" title="HCLK[7][16]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[13]-7">SPEC_INT: mux CELL[3].HROW_O[13] bit 7</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115872,12 +116891,24 @@ non-inverted
 </tr>
 
 <tr><td>B15</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][15]" title="HCLK[0][15]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-6">SPEC_INT: mux CELL[3].HROW_O[4] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][15]" title="HCLK[1][15]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-6">SPEC_INT: mux CELL[3].HROW_O[5] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][15]" title="HCLK[2][15]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-6">SPEC_INT: mux CELL[3].HROW_O[0] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][15]" title="HCLK[3][15]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-6">SPEC_INT: mux CELL[3].HROW_O[1] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][15]" title="HCLK[4][15]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-6">SPEC_INT: mux CELL[3].HROW_O[8] bit 6</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][15]" title="HCLK[5][15]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-6">SPEC_INT: mux CELL[3].HROW_O[9] bit 6</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115903,12 +116934,24 @@ non-inverted
 </tr>
 
 <tr><td>B14</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][14]" title="HCLK[0][14]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[4]-7">SPEC_INT: mux CELL[3].HROW_O[4] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][14]" title="HCLK[1][14]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[5]-7">SPEC_INT: mux CELL[3].HROW_O[5] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[2][14]" title="HCLK[2][14]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[0]-7">SPEC_INT: mux CELL[3].HROW_O[0] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[3][14]" title="HCLK[3][14]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[1]-7">SPEC_INT: mux CELL[3].HROW_O[1] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[4][14]" title="HCLK[4][14]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[8]-7">SPEC_INT: mux CELL[3].HROW_O[8] bit 7</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[5][14]" title="HCLK[5][14]">
+<a href="#virtex7-GTP_COMMON_MID-SPEC_INT-mux-CELL[3].HROW_O[9]-7">SPEC_INT: mux CELL[3].HROW_O[9] bit 7</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -115934,8 +116977,12 @@ non-inverted
 </tr>
 
 <tr><td>B13</td>
-<td>-</td>
-<td>-</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[0][13]" title="HCLK[0][13]">
+<a href="#virtex7-GTP_COMMON_MID-HCLK_DRP_GTP_MID-DRP_MASK_S">HCLK_DRP_GTP_MID:  DRP_MASK_S</a>
+</td>
+<td id="virtex7-GTP_COMMON_MID-bit-HCLK[1][13]" title="HCLK[1][13]">
+<a href="#virtex7-GTP_COMMON_MID-HCLK_DRP_GTP_MID-DRP_MASK_N">HCLK_DRP_GTP_MID:  DRP_MASK_N</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -122599,659 +123646,6 @@ non-inverted
 
 <div class="table-wrapper">
 <table>
-<caption>virtex7 GTP_COMMON_MID rect R6</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="8">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-<th>F1</th>
-<th>F2</th>
-<th>F3</th>
-<th>F4</th>
-<th>F5</th>
-<th>F6</th>
-<th>F7</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B31</td>
-<td title="R6.F0.B31">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT7">HCLK_GTP_MID:MUX.HOUT7[0]</a>
-</td>
-<td title="R6.F1.B31">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT6">HCLK_GTP_MID:MUX.HOUT6[0]</a>
-</td>
-<td title="R6.F2.B31">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT3">HCLK_GTP_MID:MUX.HOUT3[0]</a>
-</td>
-<td title="R6.F3.B31">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT2">HCLK_GTP_MID:MUX.HOUT2[0]</a>
-</td>
-<td title="R6.F4.B31">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT11">HCLK_GTP_MID:MUX.HOUT11[0]</a>
-</td>
-<td title="R6.F5.B31">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT10">HCLK_GTP_MID:MUX.HOUT10[0]</a>
-</td>
-<td title="R6.F6.B31">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.TXOUTCLK3">HCLK_GTP_MID:ENABLE.TXOUTCLK3</a>
-</td>
-<td title="R6.F7.B31">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.TXOUTCLK2">HCLK_GTP_MID:ENABLE.TXOUTCLK2</a>
-</td>
-</tr>
-
-<tr><td>B30</td>
-<td title="R6.F0.B30">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT7">HCLK_GTP_MID:MUX.HOUT7[1]</a>
-</td>
-<td title="R6.F1.B30">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT6">HCLK_GTP_MID:MUX.HOUT6[1]</a>
-</td>
-<td title="R6.F2.B30">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT3">HCLK_GTP_MID:MUX.HOUT3[1]</a>
-</td>
-<td title="R6.F3.B30">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT2">HCLK_GTP_MID:MUX.HOUT2[1]</a>
-</td>
-<td title="R6.F4.B30">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT11">HCLK_GTP_MID:MUX.HOUT11[1]</a>
-</td>
-<td title="R6.F5.B30">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT10">HCLK_GTP_MID:MUX.HOUT10[1]</a>
-</td>
-<td title="R6.F6.B30">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.RXOUTCLK3">HCLK_GTP_MID:ENABLE.RXOUTCLK3</a>
-</td>
-<td title="R6.F7.B30">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.RXOUTCLK2">HCLK_GTP_MID:ENABLE.RXOUTCLK2</a>
-</td>
-</tr>
-
-<tr><td>B29</td>
-<td title="R6.F0.B29">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT7">HCLK_GTP_MID:MUX.HOUT7[2]</a>
-</td>
-<td title="R6.F1.B29">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT6">HCLK_GTP_MID:MUX.HOUT6[2]</a>
-</td>
-<td title="R6.F2.B29">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT3">HCLK_GTP_MID:MUX.HOUT3[2]</a>
-</td>
-<td title="R6.F3.B29">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT2">HCLK_GTP_MID:MUX.HOUT2[2]</a>
-</td>
-<td title="R6.F4.B29">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT11">HCLK_GTP_MID:MUX.HOUT11[2]</a>
-</td>
-<td title="R6.F5.B29">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT10">HCLK_GTP_MID:MUX.HOUT10[2]</a>
-</td>
-<td title="R6.F6.B29">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.TXOUTCLK0">HCLK_GTP_MID:ENABLE.TXOUTCLK0</a>
-</td>
-<td title="R6.F7.B29">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.MGTCLKOUT0">HCLK_GTP_MID:ENABLE.MGTCLKOUT0</a>
-</td>
-</tr>
-
-<tr><td>B28</td>
-<td title="R6.F0.B28">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT7">HCLK_GTP_MID:MUX.HOUT7[3]</a>
-</td>
-<td title="R6.F1.B28">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT6">HCLK_GTP_MID:MUX.HOUT6[3]</a>
-</td>
-<td title="R6.F2.B28">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT3">HCLK_GTP_MID:MUX.HOUT3[3]</a>
-</td>
-<td title="R6.F3.B28">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT2">HCLK_GTP_MID:MUX.HOUT2[3]</a>
-</td>
-<td title="R6.F4.B28">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT11">HCLK_GTP_MID:MUX.HOUT11[3]</a>
-</td>
-<td title="R6.F5.B28">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT10">HCLK_GTP_MID:MUX.HOUT10[3]</a>
-</td>
-<td title="R6.F6.B28">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.RXOUTCLK0">HCLK_GTP_MID:ENABLE.RXOUTCLK0</a>
-</td>
-<td title="R6.F7.B28">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.TXOUTCLK1">HCLK_GTP_MID:ENABLE.TXOUTCLK1</a>
-</td>
-</tr>
-
-<tr><td>B27</td>
-<td title="R6.F0.B27">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT7">HCLK_GTP_MID:MUX.HOUT7[4]</a>
-</td>
-<td title="R6.F1.B27">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT6">HCLK_GTP_MID:MUX.HOUT6[4]</a>
-</td>
-<td title="R6.F2.B27">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT3">HCLK_GTP_MID:MUX.HOUT3[4]</a>
-</td>
-<td title="R6.F3.B27">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT2">HCLK_GTP_MID:MUX.HOUT2[4]</a>
-</td>
-<td title="R6.F4.B27">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT11">HCLK_GTP_MID:MUX.HOUT11[4]</a>
-</td>
-<td title="R6.F5.B27">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT10">HCLK_GTP_MID:MUX.HOUT10[4]</a>
-</td>
-<td title="R6.F6.B27">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.MGTCLKOUT1">HCLK_GTP_MID:ENABLE.MGTCLKOUT1</a>
-</td>
-<td title="R6.F7.B27">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.RXOUTCLK1">HCLK_GTP_MID:ENABLE.RXOUTCLK1</a>
-</td>
-</tr>
-
-<tr><td>B26</td>
-<td title="R6.F0.B26">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT7">HCLK_GTP_MID:MUX.HOUT7[5]</a>
-</td>
-<td title="R6.F1.B26">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT6">HCLK_GTP_MID:MUX.HOUT6[5]</a>
-</td>
-<td title="R6.F2.B26">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT3">HCLK_GTP_MID:MUX.HOUT3[5]</a>
-</td>
-<td title="R6.F3.B26">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT2">HCLK_GTP_MID:MUX.HOUT2[5]</a>
-</td>
-<td title="R6.F4.B26">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT11">HCLK_GTP_MID:MUX.HOUT11[5]</a>
-</td>
-<td title="R6.F5.B26">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT10">HCLK_GTP_MID:MUX.HOUT10[5]</a>
-</td>
-<td title="R6.F6.B26">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN13">HCLK_GTP_MID:ENABLE.HIN13</a>
-</td>
-<td title="R6.F7.B26">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN12">HCLK_GTP_MID:ENABLE.HIN12</a>
-</td>
-</tr>
-
-<tr><td>B25</td>
-<td title="R6.F0.B25">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT6">HCLK_GTP_MID:MUX.HOUT6[6]</a>
-</td>
-<td title="R6.F1.B25">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT7">HCLK_GTP_MID:MUX.HOUT7[6]</a>
-</td>
-<td title="R6.F2.B25">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT2">HCLK_GTP_MID:MUX.HOUT2[6]</a>
-</td>
-<td title="R6.F3.B25">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT3">HCLK_GTP_MID:MUX.HOUT3[6]</a>
-</td>
-<td title="R6.F4.B25">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT10">HCLK_GTP_MID:MUX.HOUT10[6]</a>
-</td>
-<td title="R6.F5.B25">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT11">HCLK_GTP_MID:MUX.HOUT11[6]</a>
-</td>
-<td title="R6.F6.B25">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT13">HCLK_GTP_MID:MUX.HOUT13[0]</a>
-</td>
-<td title="R6.F7.B25">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT12">HCLK_GTP_MID:MUX.HOUT12[0]</a>
-</td>
-</tr>
-
-<tr><td>B24</td>
-<td title="R6.F0.B24">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT6">HCLK_GTP_MID:MUX.HOUT6[7]</a>
-</td>
-<td title="R6.F1.B24">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT7">HCLK_GTP_MID:MUX.HOUT7[7]</a>
-</td>
-<td title="R6.F2.B24">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT2">HCLK_GTP_MID:MUX.HOUT2[7]</a>
-</td>
-<td title="R6.F3.B24">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT3">HCLK_GTP_MID:MUX.HOUT3[7]</a>
-</td>
-<td title="R6.F4.B24">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT10">HCLK_GTP_MID:MUX.HOUT10[7]</a>
-</td>
-<td title="R6.F5.B24">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT11">HCLK_GTP_MID:MUX.HOUT11[7]</a>
-</td>
-<td title="R6.F6.B24">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT13">HCLK_GTP_MID:MUX.HOUT13[1]</a>
-</td>
-<td title="R6.F7.B24">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT12">HCLK_GTP_MID:MUX.HOUT12[1]</a>
-</td>
-</tr>
-
-<tr><td>B23</td>
-<td title="R6.F0.B23">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN7">HCLK_GTP_MID:ENABLE.HIN7</a>
-</td>
-<td title="R6.F1.B23">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN6">HCLK_GTP_MID:ENABLE.HIN6</a>
-</td>
-<td title="R6.F2.B23">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN3">HCLK_GTP_MID:ENABLE.HIN3</a>
-</td>
-<td title="R6.F3.B23">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN2">HCLK_GTP_MID:ENABLE.HIN2</a>
-</td>
-<td title="R6.F4.B23">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN11">HCLK_GTP_MID:ENABLE.HIN11</a>
-</td>
-<td title="R6.F5.B23">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN10">HCLK_GTP_MID:ENABLE.HIN10</a>
-</td>
-<td title="R6.F6.B23">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT13">HCLK_GTP_MID:MUX.HOUT13[2]</a>
-</td>
-<td title="R6.F7.B23">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT12">HCLK_GTP_MID:MUX.HOUT12[2]</a>
-</td>
-</tr>
-
-<tr><td>B22</td>
-<td title="R6.F0.B22">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN5">HCLK_GTP_MID:ENABLE.HIN5</a>
-</td>
-<td title="R6.F1.B22">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN4">HCLK_GTP_MID:ENABLE.HIN4</a>
-</td>
-<td title="R6.F2.B22">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN1">HCLK_GTP_MID:ENABLE.HIN1</a>
-</td>
-<td title="R6.F3.B22">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN0">HCLK_GTP_MID:ENABLE.HIN0</a>
-</td>
-<td title="R6.F4.B22">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN9">HCLK_GTP_MID:ENABLE.HIN9</a>
-</td>
-<td title="R6.F5.B22">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN8">HCLK_GTP_MID:ENABLE.HIN8</a>
-</td>
-<td>-</td>
-<td title="R6.F7.B22">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT12">HCLK_GTP_MID:MUX.HOUT12[3]</a>
-</td>
-</tr>
-
-<tr><td>B21</td>
-<td title="R6.F0.B21">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT5">HCLK_GTP_MID:MUX.HOUT5[0]</a>
-</td>
-<td title="R6.F1.B21">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT4">HCLK_GTP_MID:MUX.HOUT4[0]</a>
-</td>
-<td title="R6.F2.B21">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT1">HCLK_GTP_MID:MUX.HOUT1[0]</a>
-</td>
-<td title="R6.F3.B21">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT0">HCLK_GTP_MID:MUX.HOUT0[0]</a>
-</td>
-<td title="R6.F4.B21">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT9">HCLK_GTP_MID:MUX.HOUT9[0]</a>
-</td>
-<td title="R6.F5.B21">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT8">HCLK_GTP_MID:MUX.HOUT8[0]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B20</td>
-<td title="R6.F0.B20">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT5">HCLK_GTP_MID:MUX.HOUT5[1]</a>
-</td>
-<td title="R6.F1.B20">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT4">HCLK_GTP_MID:MUX.HOUT4[1]</a>
-</td>
-<td title="R6.F2.B20">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT1">HCLK_GTP_MID:MUX.HOUT1[1]</a>
-</td>
-<td title="R6.F3.B20">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT0">HCLK_GTP_MID:MUX.HOUT0[1]</a>
-</td>
-<td title="R6.F4.B20">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT9">HCLK_GTP_MID:MUX.HOUT9[1]</a>
-</td>
-<td title="R6.F5.B20">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT8">HCLK_GTP_MID:MUX.HOUT8[1]</a>
-</td>
-<td title="R6.F6.B20">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT13">HCLK_GTP_MID:MUX.HOUT13[3]</a>
-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B19</td>
-<td title="R6.F0.B19">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT5">HCLK_GTP_MID:MUX.HOUT5[2]</a>
-</td>
-<td title="R6.F1.B19">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT4">HCLK_GTP_MID:MUX.HOUT4[2]</a>
-</td>
-<td title="R6.F2.B19">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT1">HCLK_GTP_MID:MUX.HOUT1[2]</a>
-</td>
-<td title="R6.F3.B19">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT0">HCLK_GTP_MID:MUX.HOUT0[2]</a>
-</td>
-<td title="R6.F4.B19">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT9">HCLK_GTP_MID:MUX.HOUT9[2]</a>
-</td>
-<td title="R6.F5.B19">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT8">HCLK_GTP_MID:MUX.HOUT8[2]</a>
-</td>
-<td title="R6.F6.B19">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT13">HCLK_GTP_MID:MUX.HOUT13[4]</a>
-</td>
-<td title="R6.F7.B19">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT12">HCLK_GTP_MID:MUX.HOUT12[4]</a>
-</td>
-</tr>
-
-<tr><td>B18</td>
-<td title="R6.F0.B18">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT5">HCLK_GTP_MID:MUX.HOUT5[3]</a>
-</td>
-<td title="R6.F1.B18">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT4">HCLK_GTP_MID:MUX.HOUT4[3]</a>
-</td>
-<td title="R6.F2.B18">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT1">HCLK_GTP_MID:MUX.HOUT1[3]</a>
-</td>
-<td title="R6.F3.B18">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT0">HCLK_GTP_MID:MUX.HOUT0[3]</a>
-</td>
-<td title="R6.F4.B18">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT9">HCLK_GTP_MID:MUX.HOUT9[3]</a>
-</td>
-<td title="R6.F5.B18">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT8">HCLK_GTP_MID:MUX.HOUT8[3]</a>
-</td>
-<td title="R6.F6.B18">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT13">HCLK_GTP_MID:MUX.HOUT13[5]</a>
-</td>
-<td title="R6.F7.B18">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT12">HCLK_GTP_MID:MUX.HOUT12[5]</a>
-</td>
-</tr>
-
-<tr><td>B17</td>
-<td title="R6.F0.B17">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT5">HCLK_GTP_MID:MUX.HOUT5[4]</a>
-</td>
-<td title="R6.F1.B17">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT4">HCLK_GTP_MID:MUX.HOUT4[4]</a>
-</td>
-<td title="R6.F2.B17">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT1">HCLK_GTP_MID:MUX.HOUT1[4]</a>
-</td>
-<td title="R6.F3.B17">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT0">HCLK_GTP_MID:MUX.HOUT0[4]</a>
-</td>
-<td title="R6.F4.B17">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT9">HCLK_GTP_MID:MUX.HOUT9[4]</a>
-</td>
-<td title="R6.F5.B17">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT8">HCLK_GTP_MID:MUX.HOUT8[4]</a>
-</td>
-<td title="R6.F6.B17">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT12">HCLK_GTP_MID:MUX.HOUT12[6]</a>
-</td>
-<td title="R6.F7.B17">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT13">HCLK_GTP_MID:MUX.HOUT13[6]</a>
-</td>
-</tr>
-
-<tr><td>B16</td>
-<td title="R6.F0.B16">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT5">HCLK_GTP_MID:MUX.HOUT5[5]</a>
-</td>
-<td title="R6.F1.B16">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT4">HCLK_GTP_MID:MUX.HOUT4[5]</a>
-</td>
-<td title="R6.F2.B16">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT1">HCLK_GTP_MID:MUX.HOUT1[5]</a>
-</td>
-<td title="R6.F3.B16">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT0">HCLK_GTP_MID:MUX.HOUT0[5]</a>
-</td>
-<td title="R6.F4.B16">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT9">HCLK_GTP_MID:MUX.HOUT9[5]</a>
-</td>
-<td title="R6.F5.B16">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT8">HCLK_GTP_MID:MUX.HOUT8[5]</a>
-</td>
-<td title="R6.F6.B16">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT12">HCLK_GTP_MID:MUX.HOUT12[7]</a>
-</td>
-<td title="R6.F7.B16">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT13">HCLK_GTP_MID:MUX.HOUT13[7]</a>
-</td>
-</tr>
-
-<tr><td>B15</td>
-<td title="R6.F0.B15">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT4">HCLK_GTP_MID:MUX.HOUT4[6]</a>
-</td>
-<td title="R6.F1.B15">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT5">HCLK_GTP_MID:MUX.HOUT5[6]</a>
-</td>
-<td title="R6.F2.B15">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT0">HCLK_GTP_MID:MUX.HOUT0[6]</a>
-</td>
-<td title="R6.F3.B15">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT1">HCLK_GTP_MID:MUX.HOUT1[6]</a>
-</td>
-<td title="R6.F4.B15">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT8">HCLK_GTP_MID:MUX.HOUT8[6]</a>
-</td>
-<td title="R6.F5.B15">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT9">HCLK_GTP_MID:MUX.HOUT9[6]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B14</td>
-<td title="R6.F0.B14">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT4">HCLK_GTP_MID:MUX.HOUT4[7]</a>
-</td>
-<td title="R6.F1.B14">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT5">HCLK_GTP_MID:MUX.HOUT5[7]</a>
-</td>
-<td title="R6.F2.B14">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT0">HCLK_GTP_MID:MUX.HOUT0[7]</a>
-</td>
-<td title="R6.F3.B14">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT1">HCLK_GTP_MID:MUX.HOUT1[7]</a>
-</td>
-<td title="R6.F4.B14">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT8">HCLK_GTP_MID:MUX.HOUT8[7]</a>
-</td>
-<td title="R6.F5.B14">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT9">HCLK_GTP_MID:MUX.HOUT9[7]</a>
-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B13</td>
-<td title="R6.F0.B13">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:DRP_MASK_BELOW">HCLK_GTP_MID:DRP_MASK_BELOW</a>
-</td>
-<td title="R6.F1.B13">
-<a href="#tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:DRP_MASK_ABOVE">HCLK_GTP_MID:DRP_MASK_ABOVE</a>
-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
 <thead>
 <tr><th id="tile-virtex7-GTP_COMMON_MID-BUFDS[0]:CLKCM_CFG">BUFDS[0]:CLKCM_CFG</th>
 <th>2.F0.B44</th>
@@ -123383,110 +123777,6 @@ non-inverted
 
 <tr><th id="tile-virtex7-GTP_COMMON_MID-GTP_COMMON:PLL1_DMON_CFG">GTP_COMMON:PLL1_DMON_CFG</th>
 <th>1.F1.B56</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:DRP_MASK_ABOVE">HCLK_GTP_MID:DRP_MASK_ABOVE</th>
-<th>6.F1.B13</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:DRP_MASK_BELOW">HCLK_GTP_MID:DRP_MASK_BELOW</th>
-<th>6.F0.B13</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN0">HCLK_GTP_MID:ENABLE.HIN0</th>
-<th>6.F3.B22</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN1">HCLK_GTP_MID:ENABLE.HIN1</th>
-<th>6.F2.B22</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN10">HCLK_GTP_MID:ENABLE.HIN10</th>
-<th>6.F5.B23</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN11">HCLK_GTP_MID:ENABLE.HIN11</th>
-<th>6.F4.B23</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN12">HCLK_GTP_MID:ENABLE.HIN12</th>
-<th>6.F7.B26</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN13">HCLK_GTP_MID:ENABLE.HIN13</th>
-<th>6.F6.B26</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN2">HCLK_GTP_MID:ENABLE.HIN2</th>
-<th>6.F3.B23</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN3">HCLK_GTP_MID:ENABLE.HIN3</th>
-<th>6.F2.B23</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN4">HCLK_GTP_MID:ENABLE.HIN4</th>
-<th>6.F1.B22</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN5">HCLK_GTP_MID:ENABLE.HIN5</th>
-<th>6.F0.B22</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN6">HCLK_GTP_MID:ENABLE.HIN6</th>
-<th>6.F1.B23</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN7">HCLK_GTP_MID:ENABLE.HIN7</th>
-<th>6.F0.B23</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN8">HCLK_GTP_MID:ENABLE.HIN8</th>
-<th>6.F5.B22</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.HIN9">HCLK_GTP_MID:ENABLE.HIN9</th>
-<th>6.F4.B22</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.MGTCLKOUT0">HCLK_GTP_MID:ENABLE.MGTCLKOUT0</th>
-<th>6.F7.B29</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.MGTCLKOUT1">HCLK_GTP_MID:ENABLE.MGTCLKOUT1</th>
-<th>6.F6.B27</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.RXOUTCLK0">HCLK_GTP_MID:ENABLE.RXOUTCLK0</th>
-<th>6.F6.B28</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.RXOUTCLK1">HCLK_GTP_MID:ENABLE.RXOUTCLK1</th>
-<th>6.F7.B27</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.RXOUTCLK2">HCLK_GTP_MID:ENABLE.RXOUTCLK2</th>
-<th>6.F7.B30</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.RXOUTCLK3">HCLK_GTP_MID:ENABLE.RXOUTCLK3</th>
-<th>6.F6.B30</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.TXOUTCLK0">HCLK_GTP_MID:ENABLE.TXOUTCLK0</th>
-<th>6.F6.B29</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.TXOUTCLK1">HCLK_GTP_MID:ENABLE.TXOUTCLK1</th>
-<th>6.F7.B28</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.TXOUTCLK2">HCLK_GTP_MID:ENABLE.TXOUTCLK2</th>
-<th>6.F7.B31</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:ENABLE.TXOUTCLK3">HCLK_GTP_MID:ENABLE.TXOUTCLK3</th>
-<th>6.F6.B31</th>
 </tr>
 
 </thead>
@@ -126363,1238 +126653,6 @@ non-inverted
 </table>
 </div>
 
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT0">HCLK_GTP_MID:MUX.HOUT0</th>
-<th>6.F2.B14</th>
-<th>6.F2.B15</th>
-<th>6.F3.B16</th>
-<th>6.F3.B17</th>
-<th>6.F3.B18</th>
-<th>6.F3.B19</th>
-<th>6.F3.B20</th>
-<th>6.F3.B21</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT1">HCLK_GTP_MID:MUX.HOUT1</th>
-<th>6.F3.B14</th>
-<th>6.F3.B15</th>
-<th>6.F2.B16</th>
-<th>6.F2.B17</th>
-<th>6.F2.B18</th>
-<th>6.F2.B19</th>
-<th>6.F2.B20</th>
-<th>6.F2.B21</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT10">HCLK_GTP_MID:MUX.HOUT10</th>
-<th>6.F4.B24</th>
-<th>6.F4.B25</th>
-<th>6.F5.B26</th>
-<th>6.F5.B27</th>
-<th>6.F5.B28</th>
-<th>6.F5.B29</th>
-<th>6.F5.B30</th>
-<th>6.F5.B31</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT11">HCLK_GTP_MID:MUX.HOUT11</th>
-<th>6.F5.B24</th>
-<th>6.F5.B25</th>
-<th>6.F4.B26</th>
-<th>6.F4.B27</th>
-<th>6.F4.B28</th>
-<th>6.F4.B29</th>
-<th>6.F4.B30</th>
-<th>6.F4.B31</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN10</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN11</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT12">HCLK_GTP_MID:MUX.HOUT12</th>
-<th>6.F6.B16</th>
-<th>6.F6.B17</th>
-<th>6.F7.B18</th>
-<th>6.F7.B19</th>
-<th>6.F7.B22</th>
-<th>6.F7.B23</th>
-<th>6.F7.B24</th>
-<th>6.F7.B25</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT13">HCLK_GTP_MID:MUX.HOUT13</th>
-<th>6.F7.B16</th>
-<th>6.F7.B17</th>
-<th>6.F6.B18</th>
-<th>6.F6.B19</th>
-<th>6.F6.B20</th>
-<th>6.F6.B23</th>
-<th>6.F6.B24</th>
-<th>6.F6.B25</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN12</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN13</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT2">HCLK_GTP_MID:MUX.HOUT2</th>
-<th>6.F2.B24</th>
-<th>6.F2.B25</th>
-<th>6.F3.B26</th>
-<th>6.F3.B27</th>
-<th>6.F3.B28</th>
-<th>6.F3.B29</th>
-<th>6.F3.B30</th>
-<th>6.F3.B31</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT3">HCLK_GTP_MID:MUX.HOUT3</th>
-<th>6.F3.B24</th>
-<th>6.F3.B25</th>
-<th>6.F2.B26</th>
-<th>6.F2.B27</th>
-<th>6.F2.B28</th>
-<th>6.F2.B29</th>
-<th>6.F2.B30</th>
-<th>6.F2.B31</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN3</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT4">HCLK_GTP_MID:MUX.HOUT4</th>
-<th>6.F0.B14</th>
-<th>6.F0.B15</th>
-<th>6.F1.B16</th>
-<th>6.F1.B17</th>
-<th>6.F1.B18</th>
-<th>6.F1.B19</th>
-<th>6.F1.B20</th>
-<th>6.F1.B21</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT5">HCLK_GTP_MID:MUX.HOUT5</th>
-<th>6.F1.B14</th>
-<th>6.F1.B15</th>
-<th>6.F0.B16</th>
-<th>6.F0.B17</th>
-<th>6.F0.B18</th>
-<th>6.F0.B19</th>
-<th>6.F0.B20</th>
-<th>6.F0.B21</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN4</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN5</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT6">HCLK_GTP_MID:MUX.HOUT6</th>
-<th>6.F0.B24</th>
-<th>6.F0.B25</th>
-<th>6.F1.B26</th>
-<th>6.F1.B27</th>
-<th>6.F1.B28</th>
-<th>6.F1.B29</th>
-<th>6.F1.B30</th>
-<th>6.F1.B31</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT7">HCLK_GTP_MID:MUX.HOUT7</th>
-<th>6.F1.B24</th>
-<th>6.F1.B25</th>
-<th>6.F0.B26</th>
-<th>6.F0.B27</th>
-<th>6.F0.B28</th>
-<th>6.F0.B29</th>
-<th>6.F0.B30</th>
-<th>6.F0.B31</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN6</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN7</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT8">HCLK_GTP_MID:MUX.HOUT8</th>
-<th>6.F4.B14</th>
-<th>6.F4.B15</th>
-<th>6.F5.B16</th>
-<th>6.F5.B17</th>
-<th>6.F5.B18</th>
-<th>6.F5.B19</th>
-<th>6.F5.B20</th>
-<th>6.F5.B21</th>
-</tr>
-
-<tr><th id="tile-virtex7-GTP_COMMON_MID-HCLK_GTP_MID:MUX.HOUT9">HCLK_GTP_MID:MUX.HOUT9</th>
-<th>6.F5.B14</th>
-<th>6.F5.B15</th>
-<th>6.F4.B16</th>
-<th>6.F4.B17</th>
-<th>6.F4.B18</th>
-<th>6.F4.B19</th>
-<th>6.F4.B20</th>
-<th>6.F4.B21</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>NONE</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>MGTCLKOUT1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>RXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>RXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK2</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>TXOUTCLK3</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN8</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-<tr><td>HIN9</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
 <h2 id="tile-gtp_channel_mid"><a class="header" href="#tile-gtp_channel_mid">Tile GTP_CHANNEL_MID</a></h2>
 <p>Cells: 11</p>
 <h3 id="bel-gtp_channel-1"><a class="header" href="#bel-gtp_channel-1">Bel GTP_CHANNEL</a></h3>
@@ -128209,6 +127267,8 @@ non-inverted
 
 <tr><td>RXOSOVRDEN</td><td>input</td><td>CELL[8].IMUX_IMUX_DELAY[13]</td></tr>
 
+<tr><td>RXOUTCLK</td><td>output</td><td>CELL[0].OUT_GT_RXOUTCLK</td></tr>
+
 <tr><td>RXOUTCLKFABRIC</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
 <tr><td>RXOUTCLKPCS</td><td>output</td><td>CELL[1].OUT_BEL[22]</td></tr>
@@ -128589,6 +127649,8 @@ non-inverted
 
 <tr><td>TXMARGIN2</td><td>input</td><td>CELL[4].IMUX_IMUX_DELAY[35]</td></tr>
 
+<tr><td>TXOUTCLK</td><td>output</td><td>CELL[0].OUT_GT_TXOUTCLK</td></tr>
+
 <tr><td>TXOUTCLKFABRIC</td><td>output</td><td>CELL[1].OUT_BEL[15]</td></tr>
 
 <tr><td>TXOUTCLKPCS</td><td>output</td><td>CELL[4].OUT_BEL[17]</td></tr>
@@ -128887,6 +127949,10 @@ non-inverted
 <tr><td>CELL[0].OUT_BEL[22]</td><td>GTP_CHANNEL.RXOUTCLKFABRIC</td></tr>
 
 <tr><td>CELL[0].OUT_BEL[23]</td><td>GTP_CHANNEL.SCANOUT5</td></tr>
+
+<tr><td>CELL[0].OUT_GT_RXOUTCLK</td><td>GTP_CHANNEL.RXOUTCLK</td></tr>
+
+<tr><td>CELL[0].OUT_GT_TXOUTCLK</td><td>GTP_CHANNEL.TXOUTCLK</td></tr>
 
 <tr><td>CELL[1].IMUX_IMUX_DELAY[2]</td><td>GTP_CHANNEL.TXCOMINIT</td></tr>
 
