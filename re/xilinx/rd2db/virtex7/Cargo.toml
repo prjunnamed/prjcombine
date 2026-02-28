@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 prjcombine-entity.workspace = true
+prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-virtex4.workspace = true
 prjcombine-re-xilinx-rawdump.workspace = true

@@ -363,7 +363,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     bctx.build()
         .extra_tile_bel_special(
             Delta::new(0, 0, tcls::HCLK),
-            bslots::HCLK_DRP,
+            bslots::HCLK_DRP[0],
             specials::DRP_MASK_GTH,
         )
         .test_manual_legacy("ENABLE", "1")
@@ -466,15 +466,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     );
 
     let tcid = tcls::HCLK;
-    let bslot = bslots::HCLK_DRP;
+    let bslot = bslots::HCLK_DRP[0];
     let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::DRP_MASK_GTH);
     diff.apply_bit_diff(
-        ctx.bel_attr_bit(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_S),
+        ctx.bel_attr_bit(tcid, bslot, bcls::HCLK_DRP::DRP_MASK_S),
         true,
         false,
     );
     diff.apply_bit_diff(
-        ctx.bel_attr_bit(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_N),
+        ctx.bel_attr_bit(tcid, bslot, bcls::HCLK_DRP::DRP_MASK_N),
         true,
         false,
     );

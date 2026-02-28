@@ -18,12 +18,10 @@ use prjcombine_virtex2::defs::{
     tslots as tslots_v2,
     virtex2::wires as wires_v2,
 };
+use prjcombine_virtex4::defs::virtex4::{bslots as bslots_v4, tcls as tcls_v4, wires as wires_v4};
 use prjcombine_virtex4::defs::virtex5::{tcls as tcls_v5, wires as wires_v5};
 use prjcombine_virtex4::defs::virtex6::{tcls as tcls_v6, wires as wires_v6};
-use prjcombine_virtex4::defs::{
-    virtex4::{bslots as bslots_v4, tcls as tcls_v4, wires as wires_v4},
-    virtex6::wires,
-};
+use prjcombine_virtex4::defs::virtex7::{tcls as tcls_v7, wires as wires_v7};
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -344,7 +342,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntSrcFilter {
                 if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex6 =>
             {
                 let wire = edev.resolve_tile_wire(tcrd, self.wire)?;
-                if wires::VOCLK_S.contains(wire.slot) || wires::VOCLK_N.contains(wire.slot) {
+                if wires_v6::VOCLK_S.contains(wire.slot) || wires_v6::VOCLK_N.contains(wire.slot) {
                     // would have resolved into VOCLK if it was a valid source
                     return None;
                 }
@@ -914,6 +912,13 @@ fn skip_permabuf(
                 return true;
             }
         }
+        ExpandedDevice::Virtex4(edev)
+            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex7 =>
+        {
+            if wires_v7::HROW_O.contains(dst.wire) {
+                return true;
+            }
+        }
         _ => (),
     }
     false
@@ -1002,17 +1007,48 @@ fn skip_mux(
             {
                 return true;
             }
-            if matches!(tcid, tcls_v6::CMT_BUFG_S | tcls_v6::CMT_BUFG_N) {
+            if matches!(tcid, tcls_v6::CLK_BUFG_S | tcls_v6::CLK_BUFG_N) {
                 return true;
             }
             if tcid == tcls_v6::CMT
-                && !wires_v6::IMUX_MMCM_CLKIN1_HCLK.contains(dst.wire)
-                && !wires_v6::IMUX_MMCM_CLKIN2_HCLK.contains(dst.wire)
-                && !wires_v6::IMUX_MMCM_CLKFB_HCLK.contains(dst.wire)
-                && !wires_v6::IMUX_MMCM_CLKIN1.contains(dst.wire)
-                && !wires_v6::IMUX_MMCM_CLKIN2.contains(dst.wire)
-                && !wires_v6::IMUX_MMCM_CLKFB.contains(dst.wire)
-                && !wires_v6::OMUX_MMCM_MMCM.contains(dst.wire)
+                && !wires_v6::IMUX_PLL_CLKIN1_HCLK.contains(dst.wire)
+                && !wires_v6::IMUX_PLL_CLKIN2_HCLK.contains(dst.wire)
+                && !wires_v6::IMUX_PLL_CLKFB_HCLK.contains(dst.wire)
+                && !wires_v6::IMUX_PLL_CLKIN1.contains(dst.wire)
+                && !wires_v6::IMUX_PLL_CLKIN2.contains(dst.wire)
+                && !wires_v6::IMUX_PLL_CLKFB.contains(dst.wire)
+                && !wires_v6::OMUX_PLL_CASC.contains(dst.wire)
+            {
+                return true;
+            }
+        }
+        ExpandedDevice::Virtex4(edev)
+            if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex7 =>
+        {
+            if matches!(bslot, bslots_v4::HCLK) {
+                return true;
+            }
+            if matches!(
+                tcid,
+                tcls_v7::CMT
+                    | tcls_v7::CLK_HROW
+                    | tcls_v7::CLK_BUFG_S
+                    | tcls_v7::CLK_BUFG_N
+                    | tcls_v7::CLK_BUFG_REBUF
+                    | tcls_v7::CLK_BALI_REBUF
+            ) {
+                return true;
+            }
+            if wires_v7::RCLK_IO.contains(dst.wire)
+                || wires_v7::HCLK_IO.contains(dst.wire)
+                || wires_v7::LCLK_IO.contains(dst.wire)
+                || wires_v7::HROW_O.contains(dst.wire)
+                || wires_v7::IMUX_BUFIO.contains(dst.wire)
+                || wires_v7::PERF_IO.contains(dst.wire)
+                || wires_v7::IMUX_IOI_ICLK.contains(dst.wire)
+                || wires_v7::IMUX_IOI_OCLK.contains(dst.wire)
+                || wires_v7::IMUX_IOI_OCLKDIV.contains(dst.wire)
+                || wires_v7::IMUX_IOI_OCLKDIVF.contains(dst.wire)
             {
                 return true;
             }

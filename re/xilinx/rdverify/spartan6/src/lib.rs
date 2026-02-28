@@ -338,9 +338,9 @@ fn verify_ioiclk(vrf: &mut Verifier, bcrd: BelCoord) {
     let mut bel = vrf.verify_bel(bcrd);
     let obel = bcrd.bel(bslots::MISC_IOI);
     bel.vrf
-        .pin_int_wire(bel.wire("CKINT0"), bcrd.wire(wires::IMUX_CLK[idx ^ 1]));
+        .try_pin_int_wire(bel.wire("CKINT0"), bcrd.wire(wires::IMUX_CLK[idx ^ 1]));
     bel.vrf
-        .pin_int_wire(bel.wire("CKINT1"), bcrd.wire(wires::IMUX_GFAN[idx ^ 1]));
+        .try_pin_int_wire(bel.wire("CKINT1"), bcrd.wire(wires::IMUX_GFAN[idx ^ 1]));
     bel.claim_net(&[bel.wire("CLK0INTER")]);
     bel.claim_pip(bel.wire("CLK0INTER"), bel.wire("CKINT0"));
     bel.claim_pip(bel.wire("CLK0INTER"), bel.wire("CKINT1"));
@@ -432,13 +432,15 @@ fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
             .grid
             .resolve_wire(bcrd.wire(wires::IOCLK[i]))
             .unwrap();
-        bel.vrf.pin_int_wire(bel.wire(&format!("IOCLK{i}")), wire);
+        bel.vrf
+            .try_pin_int_wire(bel.wire(&format!("IOCLK{i}")), wire);
         let wire = bel
             .vrf
             .grid
             .resolve_wire(bcrd.wire(wires::IOCE[i]))
             .unwrap();
-        bel.vrf.pin_int_wire(bel.wire(&format!("IOCE{i}")), wire);
+        bel.vrf
+            .try_pin_int_wire(bel.wire(&format!("IOCE{i}")), wire);
     }
     for i in 0..2 {
         let wire = bel
@@ -446,13 +448,15 @@ fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
             .grid
             .resolve_wire(bcrd.wire(wires::PLLCLK[i]))
             .unwrap();
-        bel.vrf.pin_int_wire(bel.wire(&format!("PLLCLK{i}")), wire);
+        bel.vrf
+            .try_pin_int_wire(bel.wire(&format!("PLLCLK{i}")), wire);
         let wire = bel
             .vrf
             .grid
             .resolve_wire(bcrd.wire(wires::PLLCE[i]))
             .unwrap();
-        bel.vrf.pin_int_wire(bel.wire(&format!("PLLCE{i}")), wire);
+        bel.vrf
+            .try_pin_int_wire(bel.wire(&format!("PLLCE{i}")), wire);
     }
     bel.commit();
 }

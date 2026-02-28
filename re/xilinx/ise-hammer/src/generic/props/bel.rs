@@ -223,42 +223,6 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPin {
 }
 
 #[derive(Clone, Debug)]
-pub struct BaseBelPinPips {
-    pub bel: BelSlotId,
-    pub pin: String,
-}
-
-impl BaseBelPinPips {
-    pub fn new(bel: BelSlotId, pin: String) -> Self {
-        Self { bel, pin }
-    }
-}
-
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinPips {
-    fn dyn_clone(&self) -> Box<DynProp<'b>> {
-        Box::new(Clone::clone(self))
-    }
-
-    fn apply<'a>(
-        &self,
-        backend: &IseBackend<'a>,
-        tcrd: TileCoord,
-        mut fuzzer: Fuzzer<IseBackend<'a>>,
-    ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
-        let bel_naming = backend.ngrid.get_bel_naming(tcrd.bel(self.bel));
-        let pin_naming = &bel_naming.pins[&self.pin];
-        for pip in &pin_naming.pips {
-            fuzzer = fuzzer.base(
-                Key::Pip(&ntile.names[pip.tile], &pip.wire_from, &pip.wire_to),
-                true,
-            );
-        }
-        Some((fuzzer, false))
-    }
-}
-
-#[derive(Clone, Debug)]
 pub struct FuzzBelPinPips {
     pub bel: BelSlotId,
     pub pin: String,

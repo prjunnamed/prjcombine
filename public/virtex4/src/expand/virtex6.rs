@@ -335,7 +335,7 @@ impl Expander<'_, '_> {
             } else if reg == self.chip.reg_cfg {
                 self.egrid.add_tile_id(
                     cell,
-                    tcls::CMT_BUFG_N,
+                    tcls::CLK_BUFG_N,
                     &[
                         cell,
                         cell.delta(0, 1),
@@ -358,7 +358,7 @@ impl Expander<'_, '_> {
             } else if reg == self.chip.reg_cfg - 1 {
                 self.egrid.add_tile_id(
                     cell,
-                    tcls::CMT_BUFG_S,
+                    tcls::CLK_BUFG_S,
                     &[
                         cell.delta(0, -1),
                         cell,

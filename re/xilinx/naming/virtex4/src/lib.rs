@@ -116,8 +116,14 @@ impl ExpandedNamedDevice<'_> {
                         res.push(SysMon {
                             cell,
                             bank: 0,
-                            pad_vp: self.ngrid.get_bel_name(cell.bel(bslots::IPAD_VP)).unwrap(),
-                            pad_vn: self.ngrid.get_bel_name(cell.bel(bslots::IPAD_VN)).unwrap(),
+                            pad_vp: self
+                                .ngrid
+                                .get_bel_name_sub(cell.bel(bslots::SYSMON), 1)
+                                .unwrap(),
+                            pad_vn: self
+                                .ngrid
+                                .get_bel_name_sub(cell.bel(bslots::SYSMON), 2)
+                                .unwrap(),
                             vaux: (0..16)
                                 .map(|idx| self.edev.get_sysmon_vaux(cell, idx))
                                 .collect(),
@@ -385,35 +391,39 @@ impl ExpandedNamedDevice<'_> {
     }
 
     pub fn get_ps_pin_name(&self, io: PsPad) -> &str {
-        let slot = match io {
-            PsPad::Mio(i) => bslots::IOPAD_MIO[i as usize],
-            PsPad::Clk => bslots::IOPAD_PSCLK,
-            PsPad::PorB => bslots::IOPAD_PSPORB,
-            PsPad::SrstB => bslots::IOPAD_PSSRSTB,
-            PsPad::DdrDq(i) => bslots::IOPAD_DDRDQ[i as usize],
-            PsPad::DdrDm(i) => bslots::IOPAD_DDRDM[i as usize],
-            PsPad::DdrDqsP(i) => bslots::IOPAD_DDRDQSP[i as usize],
-            PsPad::DdrDqsN(i) => bslots::IOPAD_DDRDQSN[i as usize],
-            PsPad::DdrA(i) => bslots::IOPAD_DDRA[i as usize],
-            PsPad::DdrBa(i) => bslots::IOPAD_DDRBA[i as usize],
-            PsPad::DdrVrP => bslots::IOPAD_DDRVRP,
-            PsPad::DdrVrN => bslots::IOPAD_DDRVRN,
-            PsPad::DdrCkP => bslots::IOPAD_DDRCKP,
-            PsPad::DdrCkN => bslots::IOPAD_DDRCKN,
-            PsPad::DdrCke => bslots::IOPAD_DDRCKE,
-            PsPad::DdrOdt => bslots::IOPAD_DDRODT,
-            PsPad::DdrDrstB => bslots::IOPAD_DDRDRSTB,
-            PsPad::DdrCsB => bslots::IOPAD_DDRCSB,
-            PsPad::DdrRasB => bslots::IOPAD_DDRRASB,
-            PsPad::DdrCasB => bslots::IOPAD_DDRCASB,
-            PsPad::DdrWeB => bslots::IOPAD_DDRWEB,
+        let sub = match io {
+            PsPad::Mio(i) => 73 + i as usize,
+            PsPad::Clk => 26,
+            PsPad::PorB => 128,
+            PsPad::SrstB => 130,
+            PsPad::DdrDq(i) => 32 + i as usize,
+            PsPad::DdrDm(i) => 28 + i as usize,
+            PsPad::DdrDqsP(i) => 68 + i as usize,
+            PsPad::DdrDqsN(i) => 64 + i as usize,
+            PsPad::DdrA(14) => 17,
+            PsPad::DdrA(13) => 18,
+            PsPad::DdrA(i) => 4 + i as usize,
+            PsPad::DdrBa(i) => 19 + i as usize,
+            PsPad::DdrVrP => 3,
+            PsPad::DdrVrN => 2,
+            PsPad::DdrCkP => 25,
+            PsPad::DdrCkN => 24,
+            PsPad::DdrCke => 23,
+            PsPad::DdrOdt => 127,
+            PsPad::DdrDrstB => 72,
+            PsPad::DdrCsB => 27,
+            PsPad::DdrRasB => 129,
+            PsPad::DdrCasB => 22,
+            PsPad::DdrWeB => 1,
         };
         let die = DieId::from_idx(0);
         let chip = self.edev.chips[die];
         let col = chip.col_ps();
         let row = chip.row_reg_bot(RegId::from_idx(chip.regs - 1));
         let cell = die.cell(col, row);
-        self.ngrid.get_bel_name(cell.bel(slot)).unwrap()
+        self.ngrid
+            .get_bel_name_sub(cell.bel(bslots::PS), sub)
+            .unwrap()
     }
 }
 

@@ -359,11 +359,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .bel_unused(bel_other)
             .extra_tile_attr_bits(
                 Delta::new(0, 0, tcls::HCLK),
-                bslots::HCLK_DRP,
+                bslots::HCLK_DRP[0],
                 if i < 2 {
-                    bcls::HCLK_DRP_V6::DRP_MASK_S
+                    bcls::HCLK_DRP::DRP_MASK_S
                 } else {
-                    bcls::HCLK_DRP_V6::DRP_MASK_N
+                    bcls::HCLK_DRP::DRP_MASK_N
                 },
             )
             .test_manual_legacy("GTX_CFG_PWRUP", "1")
@@ -688,7 +688,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "NONE",
     );
     let tcid = tcls::HCLK;
-    let bslot = bslots::HCLK_DRP;
-    ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_S);
-    ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_N);
+    let bslot = bslots::HCLK_DRP[0];
+    ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP::DRP_MASK_S);
+    ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP::DRP_MASK_N);
 }

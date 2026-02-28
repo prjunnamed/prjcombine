@@ -98,7 +98,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    for (tcid, base, dy, c) in [(tcls::CMT_BUFG_S, 0, 2, 1), (tcls::CMT_BUFG_N, 16, 0, 0)] {
+    for (tcid, base, dy, c) in [(tcls::CLK_BUFG_S, 0, 2, 1), (tcls::CLK_BUFG_N, 16, 0, 0)] {
         let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..16 {
             let mut bctx = ctx.bel(bslots::BUFGCTRL[base + i]);
@@ -445,7 +445,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
     }
-    for (tcid, base, c) in [(tcls::CMT_BUFG_S, 0, 1), (tcls::CMT_BUFG_N, 16, 0)] {
+    for (tcid, base, c) in [(tcls::CLK_BUFG_S, 0, 1), (tcls::CLK_BUFG_N, 16, 0)] {
         for i in 0..16 {
             let bslot = bslots::BUFGCTRL[base + i];
             for pin in [

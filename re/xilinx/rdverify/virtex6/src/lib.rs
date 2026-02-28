@@ -637,10 +637,10 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         | bslots::CLK_INT
         | bslots::HROW_INT
         | bslots::HCLK
-        | bslots::HCLK_DRP
         | bslots::MISC_CFG
         | bslots::BANK
         | bslots::GLOBAL => (),
+        _ if bslots::HCLK_DRP.contains(bcrd.slot) => (),
         _ if bslots::SLICE.contains(bcrd.slot) => verify_slice(edev, vrf, bcrd),
         _ if bslots::DSP.contains(bcrd.slot) => verify_dsp(vrf, bcrd),
         bslots::TIEOFF_DSP => verify_tieoff(vrf, bcrd),
@@ -651,10 +651,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         }
         _ if bcrd.slot == bslots::BRAM_H[1] => verify_bram_h1(vrf, bcrd),
         bslots::EMAC => vrf.verify_bel(bcrd).kind("TEMAC_SINGLE").commit(),
-        bslots::PCIE => {
-            let bel = &mut vrf.get_legacy_bel(bcrd);
-            vrf.verify_legacy_bel(bel, "PCIE_2_0", &[], &[]);
-        }
+        bslots::PCIE => vrf.verify_bel(bcrd).kind("PCIE_2_0").commit(),
 
         _ if bslots::BUFIO.contains(bcrd.slot) => vrf.verify_bel(bcrd).kind("BUFIODQS").commit(),
         _ if bslots::BUFR.contains(bcrd.slot) => vrf.verify_bel(bcrd).commit(),
@@ -1001,7 +998,7 @@ pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
         }
     }
 
-    for (tcid, range) in [(tcls::CMT_BUFG_S, 0..4), (tcls::CMT_BUFG_N, 4..8)] {
+    for (tcid, range) in [(tcls::CLK_BUFG_S, 0..4), (tcls::CLK_BUFG_N, 4..8)] {
         for &tcrd in &endev.edev.tile_index[tcid] {
             let bcrd = tcrd.bel(bslots::SPEC_INT);
             for i in range.clone() {

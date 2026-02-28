@@ -92,6 +92,7 @@ pub struct XTileInfo<'a, 'b> {
     pub force_pips: HashSet<(TileWireCoord, PolTileWireCoord)>,
     pub switchbox: Option<BelSlotId>,
     pub force_test_mux_in: bool,
+    pub force_ext_pips: bool,
     pub skip_edges: HashSet<(rawdump::WireId, rawdump::WireId)>,
 }
 
@@ -483,6 +484,11 @@ impl XTileInfo<'_, '_> {
 
     pub fn force_test_mux_in(mut self) -> Self {
         self.force_test_mux_in = true;
+        self
+    }
+
+    pub fn force_ext_pips(mut self) -> Self {
+        self.force_ext_pips = true;
         self
     }
 
@@ -1322,7 +1328,7 @@ impl XTileExtractor<'_, '_, '_> {
                         if self.xtile.force_skip_pips.contains(&(wt, wf)) {
                             continue;
                         }
-                        if i == 0 {
+                        if i == 0 && !self.xtile.force_ext_pips {
                             self.tcls_naming.wires.insert(
                                 wt,
                                 WireNaming {
@@ -2044,9 +2050,10 @@ impl<'a> IntBuilder<'a> {
     }
 
     pub fn get_wire_by_name(&self, tki: TileKindId, name: &str) -> Option<TileWireCoord> {
-        self.extra_names
-            .get(name)
-            .or_else(|| self.extra_names_tile.get(&tki).and_then(|m| m.get(name)))
+        self.extra_names_tile
+            .get(&tki)
+            .and_then(|m| m.get(name))
+            .or_else(|| self.extra_names.get(name))
             .copied()
     }
 
@@ -3987,6 +3994,7 @@ impl<'a> IntBuilder<'a> {
             force_pips: HashSet::new(),
             switchbox: None,
             force_test_mux_in: false,
+            force_ext_pips: false,
             skip_edges: HashSet::new(),
         }
     }

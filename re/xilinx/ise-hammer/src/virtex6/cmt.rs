@@ -443,85 +443,85 @@ pub fn add_fuzzers<'a>(
         (
             DirH::W,
             wires::BUFH_TEST_W_IN,
-            wires::IMUX_MMCM_CLKIN1_HCLK_W[0],
+            wires::IMUX_PLL_CLKIN1_HCLK_W[0],
             true,
         ),
         (
             DirH::W,
-            wires::IMUX_MMCM_CLKIN1_HCLK_W[0],
-            wires::IMUX_MMCM_CLKIN1_HCLK_W[1],
+            wires::IMUX_PLL_CLKIN1_HCLK_W[0],
+            wires::IMUX_PLL_CLKIN1_HCLK_W[1],
             false,
         ),
         (
             DirH::W,
-            wires::IMUX_MMCM_CLKIN1_HCLK_W[1],
-            wires::IMUX_MMCM_CLKIN1_HCLK_W[0],
+            wires::IMUX_PLL_CLKIN1_HCLK_W[1],
+            wires::IMUX_PLL_CLKIN1_HCLK_W[0],
             false,
         ),
         (
             DirH::W,
-            wires::IMUX_MMCM_CLKIN2_HCLK_W[0],
-            wires::IMUX_MMCM_CLKIN2_HCLK_W[1],
+            wires::IMUX_PLL_CLKIN2_HCLK_W[0],
+            wires::IMUX_PLL_CLKIN2_HCLK_W[1],
             false,
         ),
         (
             DirH::W,
-            wires::IMUX_MMCM_CLKIN2_HCLK_W[1],
-            wires::IMUX_MMCM_CLKIN2_HCLK_W[0],
+            wires::IMUX_PLL_CLKIN2_HCLK_W[1],
+            wires::IMUX_PLL_CLKIN2_HCLK_W[0],
             false,
         ),
         (
             DirH::W,
-            wires::IMUX_MMCM_CLKFB_HCLK_W[0],
-            wires::IMUX_MMCM_CLKFB_HCLK_W[1],
+            wires::IMUX_PLL_CLKFB_HCLK_W[0],
+            wires::IMUX_PLL_CLKFB_HCLK_W[1],
             false,
         ),
         (
             DirH::W,
-            wires::IMUX_MMCM_CLKFB_HCLK_W[1],
-            wires::IMUX_MMCM_CLKFB_HCLK_W[0],
+            wires::IMUX_PLL_CLKFB_HCLK_W[1],
+            wires::IMUX_PLL_CLKFB_HCLK_W[0],
             false,
         ),
         (
             DirH::E,
             wires::BUFH_TEST_E_IN,
-            wires::IMUX_MMCM_CLKIN1_HCLK_E[0],
+            wires::IMUX_PLL_CLKIN1_HCLK_E[0],
             true,
         ),
         (
             DirH::E,
-            wires::IMUX_MMCM_CLKIN1_HCLK_E[0],
-            wires::IMUX_MMCM_CLKIN1_HCLK_E[1],
+            wires::IMUX_PLL_CLKIN1_HCLK_E[0],
+            wires::IMUX_PLL_CLKIN1_HCLK_E[1],
             false,
         ),
         (
             DirH::E,
-            wires::IMUX_MMCM_CLKIN1_HCLK_E[1],
-            wires::IMUX_MMCM_CLKIN1_HCLK_E[0],
+            wires::IMUX_PLL_CLKIN1_HCLK_E[1],
+            wires::IMUX_PLL_CLKIN1_HCLK_E[0],
             false,
         ),
         (
             DirH::E,
-            wires::IMUX_MMCM_CLKIN2_HCLK_E[0],
-            wires::IMUX_MMCM_CLKIN2_HCLK_E[1],
+            wires::IMUX_PLL_CLKIN2_HCLK_E[0],
+            wires::IMUX_PLL_CLKIN2_HCLK_E[1],
             false,
         ),
         (
             DirH::E,
-            wires::IMUX_MMCM_CLKIN2_HCLK_E[1],
-            wires::IMUX_MMCM_CLKIN2_HCLK_E[0],
+            wires::IMUX_PLL_CLKIN2_HCLK_E[1],
+            wires::IMUX_PLL_CLKIN2_HCLK_E[0],
             false,
         ),
         (
             DirH::E,
-            wires::IMUX_MMCM_CLKFB_HCLK_E[0],
-            wires::IMUX_MMCM_CLKFB_HCLK_E[1],
+            wires::IMUX_PLL_CLKFB_HCLK_E[0],
+            wires::IMUX_PLL_CLKFB_HCLK_E[1],
             false,
         ),
         (
             DirH::E,
-            wires::IMUX_MMCM_CLKFB_HCLK_E[1],
-            wires::IMUX_MMCM_CLKFB_HCLK_E[0],
+            wires::IMUX_PLL_CLKFB_HCLK_E[1],
+            wires::IMUX_PLL_CLKFB_HCLK_E[0],
             false,
         ),
     ] {
@@ -598,11 +598,11 @@ pub fn add_fuzzers<'a>(
         }
     }
     for wires in [
-        wires::IMUX_MMCM_CLKIN1_IO,
-        wires::IMUX_MMCM_CLKIN2_IO,
-        wires::IMUX_MMCM_CLKFB_IO,
-        wires::IMUX_MMCM_CLKIN1_MGT,
-        wires::IMUX_MMCM_CLKIN2_MGT,
+        wires::IMUX_PLL_CLKIN1_IO,
+        wires::IMUX_PLL_CLKIN2_IO,
+        wires::IMUX_PLL_CLKFB_IO,
+        wires::IMUX_PLL_CLKIN1_MGT,
+        wires::IMUX_PLL_CLKIN2_MGT,
     ] {
         for i in 0..2 {
             let dst = wires[i].cell(20);
@@ -632,7 +632,7 @@ pub fn add_fuzzers<'a>(
         }
     }
     for wf in wires::MGT_CMT_W.into_iter().chain(wires::MGT_CMT_E) {
-        let far_dst = wires::IMUX_MMCM_CLKIN1_MGT[0].cell(20);
+        let far_dst = wires::IMUX_PLL_CLKIN1_MGT[0].cell(20);
         let dst = wf.cell(20);
         let src = backend.edev.db_index[tcid].pips_bwd[&dst]
             .iter()
@@ -687,8 +687,8 @@ pub fn add_fuzzers<'a>(
         }
     }
     for (wf, wm) in [
-        (wires::OUT_MMCM_S, wires::OMUX_MMCM_PERF_S),
-        (wires::OUT_MMCM_N, wires::OMUX_MMCM_PERF_N),
+        (wires::OUT_PLL_S, wires::OMUX_PLL_PERF_S),
+        (wires::OUT_PLL_N, wires::OMUX_PLL_PERF_N),
     ] {
         for i in 0..4 {
             let mid = wm[i].cell(20);
@@ -1009,8 +1009,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         assert_eq!(drp_mask.bits.len(), 1);
         ctx.insert_bel_attr_bool(
             tcls::HCLK,
-            bslots::HCLK_DRP,
-            [bcls::HCLK_DRP_V6::DRP_MASK_S, bcls::HCLK_DRP_V6::DRP_MASK_N][i],
+            bslots::HCLK_DRP[0],
+            [bcls::HCLK_DRP::DRP_MASK_S, bcls::HCLK_DRP::DRP_MASK_N][i],
             xlat_bit(drp_mask),
         );
 
@@ -1136,28 +1136,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     ctx.collect_inv_bi(tcid, wires::BUFH_TEST_E.cell(20));
     ctx.collect_mux(tcid, wires::BUFH_TEST_W_IN.cell(20));
     ctx.collect_mux(tcid, wires::BUFH_TEST_E_IN.cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN1_HCLK_W[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN1_HCLK_W[1].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN2_HCLK_W[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN2_HCLK_W[1].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKFB_HCLK_W[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKFB_HCLK_W[1].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN1_HCLK_E[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN1_HCLK_E[1].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN2_HCLK_E[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN2_HCLK_E[1].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKFB_HCLK_E[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKFB_HCLK_E[1].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN1_IO[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN1_IO[1].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN2_IO[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN2_IO[1].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKFB_IO[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKFB_IO[1].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN1_MGT[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN1_MGT[1].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN2_MGT[0].cell(20));
-    ctx.collect_mux(tcid, wires::IMUX_MMCM_CLKIN2_MGT[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN1_HCLK_W[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN1_HCLK_W[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN2_HCLK_W[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN2_HCLK_W[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKFB_HCLK_W[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKFB_HCLK_W[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN1_HCLK_E[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN1_HCLK_E[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN2_HCLK_E[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN2_HCLK_E[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKFB_HCLK_E[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKFB_HCLK_E[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN1_IO[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN1_IO[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN2_IO[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN2_IO[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKFB_IO[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKFB_IO[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN1_MGT[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN1_MGT[1].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN2_MGT[0].cell(20));
+    ctx.collect_mux(tcid, wires::IMUX_PLL_CLKIN2_MGT[1].cell(20));
 
     for i in 0..32 {
         let dst = wires::GCLK_TEST[i].cell(20);
@@ -1220,7 +1220,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
     }
     for wf in wires::MGT_CMT_W.into_iter().chain(wires::MGT_CMT_E) {
-        let far_dst = wires::IMUX_MMCM_CLKIN1_MGT[0].cell(20);
+        let far_dst = wires::IMUX_PLL_CLKIN1_MGT[0].cell(20);
         let dst = wf.cell(20);
         let src = ctx.edev.db_index[tcid].pips_bwd[&dst]
             .iter()
@@ -1257,8 +1257,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     }
 
     for (wf, wm) in [
-        (wires::OUT_MMCM_S, wires::OMUX_MMCM_PERF_S),
-        (wires::OUT_MMCM_N, wires::OMUX_MMCM_PERF_N),
+        (wires::OUT_PLL_S, wires::OMUX_PLL_PERF_S),
+        (wires::OUT_PLL_N, wires::OMUX_PLL_PERF_N),
     ] {
         for i in 0..4 {
             let mid = wm[i].cell(20);

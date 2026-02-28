@@ -258,7 +258,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for i in 0x40..0x58 {
             let base = (i - 0x40) * 0x10;
             bctx.mode("SYSMON")
-                .test_bel_attr_bits_base(bcls::SYSMON_V5::INIT, base)
+                .test_bel_attr_bits_base(bcls::SYSMON_V5::V5_INIT, base)
                 .multi_attr(format!("INIT_{i:02X}"), MultiValue::Hex(0), 16);
         }
         for attr in [
@@ -521,7 +521,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bslot = bslots::SYSMON;
         ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::SYSMON_V5::CONVSTCLK);
         ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::SYSMON_V5::DCLK);
-        ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::INIT);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::V5_INIT);
         ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_A);
         ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_B);
         ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_C);

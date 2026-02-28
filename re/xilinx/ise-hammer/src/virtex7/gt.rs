@@ -1,9 +1,9 @@
 use std::{collections::BTreeMap, ops::Range};
 
-use prjcombine_interconnect::grid::TileCoord;
+use prjcombine_interconnect::{db::WireSlotIdExt, grid::TileCoord};
 use prjcombine_re_collector::{
-    diff::{Diff, OcdMode},
-    legacy::{xlat_bit_legacy, xlat_enum_legacy},
+    diff::{Diff, OcdMode, xlat_bit},
+    legacy::xlat_enum_legacy,
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -12,19 +12,20 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs::{bslots, tslots, virtex7::tcls};
+use prjcombine_virtex4::defs::{
+    bcls, bslots, tslots,
+    virtex7::{tcls, wires},
+};
 
 use crate::{
-    backend::{IseBackend, Key},
+    backend::IseBackend,
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{
-            DynProp,
-            pip::{PinFar, PipWire},
-            relation::Delta,
-        },
+        int::{BaseIntPip, FuzzIntPip},
+        props::{DynProp, bel::BelMutex, mutex::WireMutexExclusive, pip::PinFar, relation::Delta},
     },
+    virtex4::specials,
 };
 
 const GTP_COMMON_INVPINS: &[&str] = &[
@@ -1470,23 +1471,19 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TouchHout {
             // nope.
             return None;
         } else {
-            let lr = if tcrd.col < edev.col_clk { 'L' } else { 'R' };
             let clk_hrow = tcrd.with_col(edev.col_clk).tile(tslots::BEL);
-            let clk_hrow_bel = clk_hrow.cell.bel(bslots::CLK_HROW_V7);
-            let (ta, wa) = PipWire::BelPinNear(bslots::CLK_HROW_V7, format!("HIN{idx}_{lr}"))
-                .resolve(backend, clk_hrow)?;
-            let (tb, wb) = PipWire::BelPinNear(bslots::CLK_HROW_V7, format!("CASCO{idx}"))
-                .resolve(backend, clk_hrow)?;
-            assert_eq!(ta, tb);
+            let hrow_i = if tcrd.col <= edev.col_clk {
+                wires::HROW_I_HROW_W[idx].cell(1)
+            } else {
+                wires::HROW_I_HROW_E[idx].cell(1)
+            };
+            let imux_bufg = wires::IMUX_BUFG_O[idx].cell(1);
 
-            fuzzer = fuzzer
-                .base(Key::TileMutex(clk_hrow, format!("HIN{idx}_{lr}")), "USE")
-                .base(
-                    Key::BelMutex(clk_hrow_bel, format!("MUX.CASCO{idx}")),
-                    format!("HIN{idx}_{lr}"),
-                )
-                .base(Key::BelMutex(clk_hrow_bel, "CASCO".into()), "CASCO")
-                .base(Key::Pip(ta, wa, wb), true);
+            (fuzzer, _) = BelMutex::new(bslots::SPEC_INT, "CASCO".into(), "CASCO".into())
+                .apply(backend, clk_hrow, fuzzer)?;
+            (fuzzer, _) = WireMutexExclusive::new(imux_bufg).apply(backend, clk_hrow, fuzzer)?;
+            (fuzzer, _) = WireMutexExclusive::new(hrow_i).apply(backend, clk_hrow, fuzzer)?;
+            (fuzzer, _) = BaseIntPip::new(imux_bufg, hrow_i).apply(backend, clk_hrow, fuzzer)?;
         }
 
         Some((fuzzer, false))
@@ -1500,7 +1497,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         };
         let mut bctx = ctx.bel(bslots::GTP_COMMON);
         let mode = "GTPE2_COMMON";
-        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
+            .mode(mode)
+            .commit();
         for &pin in GTP_COMMON_INVPINS {
             bctx.mode(mode).test_inv_legacy(pin);
         }
@@ -1518,7 +1519,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(bslots::GTX_COMMON);
         let mode = "GTXE2_COMMON";
 
-        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
+            .mode(mode)
+            .commit();
         for &pin in GTXH_COMMON_INVPINS {
             bctx.mode(mode).test_inv_legacy(pin);
         }
@@ -1536,7 +1541,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let mut bctx = ctx.bel(bslots::GTH_COMMON);
         let mode = "GTHE2_COMMON";
 
-        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
+            .mode(mode)
+            .commit();
         for &pin in GTXH_COMMON_INVPINS {
             bctx.mode(mode).test_inv_legacy(pin);
         }
@@ -1640,7 +1649,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             };
             let mut bctx = ctx.bel(bslots::BUFDS[i]);
             let mode = "IBUFDS_GTE2";
-            bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
+            bctx.build()
+                .test_bel_special(specials::PRESENT)
+                .mode(mode)
+                .commit();
             bctx.mode(mode).test_inv_legacy("CLKTESTSIG");
             bctx.mode(mode)
                 .test_enum_legacy("CLKCM_CFG", &["FALSE", "TRUE"]);
@@ -1664,59 +1676,57 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTP_COMMON_MID) {
-        let mut bctx = ctx.bel(bslots::GTP_COMMON);
-        for i in 0..14 {
-            let oi = i ^ 1;
-            for j in [i, oi] {
-                bctx.build()
+        for o in 0..14 {
+            let dst = wires::HROW_O[o].cell(3);
+            let odst = wires::HROW_O[o ^ 1].cell(3);
+            for i in [o, o ^ 1] {
+                let src = wires::HROW_I_GTP[i].cell(3);
+                let fsrc = wires::HROW_I[i].cell(3);
+                ctx.build()
                     .tile_mutex("HIN", "USE")
-                    .prop(TouchHout(i))
-                    .prop(TouchHout(oi))
-                    .mutex(format!("MUX.HOUT{i}"), format!("HIN{j}"))
-                    .mutex(format!("MUX.HOUT{oi}"), format!("HIN{j}"))
-                    .pip(format!("HOUT{oi}"), format!("HIN{j}"))
-                    .test_manual_legacy(format!("MUX.HOUT{i}"), format!("HIN{j}"))
-                    .pip(format!("HOUT{i}"), format!("HIN{j}"))
+                    .prop(TouchHout(o))
+                    .prop(TouchHout(o ^ 1))
+                    .prop(WireMutexExclusive::new(dst))
+                    .prop(WireMutexExclusive::new(odst))
+                    .prop(BaseIntPip::new(odst, src))
+                    .test_routing(dst, src.pos())
+                    .prop(FuzzIntPip::new(dst, src))
                     .commit();
-                if i == j {
-                    bctx.build()
+                if o == i {
+                    ctx.build()
                         .tile_mutex("HIN", "TEST")
-                        .prop(TouchHout(i))
-                        .mutex(format!("MUX.HOUT{i}"), format!("HIN{j}"))
-                        .test_manual_legacy(format!("MUX.HOUT{i}"), format!("HIN{j}.EXCL"))
-                        .pip(format!("HOUT{i}"), format!("HIN{j}"))
+                        .prop(TouchHout(o))
+                        .prop(WireMutexExclusive::new(dst))
+                        .test_routing(dst, fsrc.pos())
+                        .prop(FuzzIntPip::new(dst, src))
                         .commit();
                 }
             }
-            for pin in [
-                "RXOUTCLK0",
-                "RXOUTCLK1",
-                "RXOUTCLK2",
-                "RXOUTCLK3",
-                "TXOUTCLK0",
-                "TXOUTCLK1",
-                "TXOUTCLK2",
-                "TXOUTCLK3",
-                "MGTCLKOUT0",
-                "MGTCLKOUT1",
-            ] {
-                bctx.build()
+            for (i, pin) in wires::OUT_GT_MGTCLKOUT_HCLK
+                .into_iter()
+                .chain(wires::OUT_GT_RXOUTCLK_HCLK)
+                .chain(wires::OUT_GT_TXOUTCLK_HCLK)
+                .enumerate()
+            {
+                let src = pin.cell(3);
+                let fsrc = backend.edev.db_index[tcls::GTP_COMMON_MID].only_bwd(src);
+                ctx.build()
                     .tile_mutex("HIN", "USE")
-                    .prop(TouchHout(i))
-                    .prop(TouchHout(oi))
-                    .mutex(format!("MUX.HOUT{i}"), pin)
-                    .mutex(format!("MUX.HOUT{oi}"), pin)
-                    .pip(format!("HOUT{oi}"), format!("{pin}_BUF"))
-                    .test_manual_legacy(format!("MUX.HOUT{i}"), pin)
-                    .pip(format!("HOUT{i}"), format!("{pin}_BUF"))
+                    .prop(TouchHout(o))
+                    .prop(TouchHout(o ^ 1))
+                    .prop(WireMutexExclusive::new(dst))
+                    .prop(WireMutexExclusive::new(odst))
+                    .prop(BaseIntPip::new(odst, src))
+                    .test_routing(dst, src.pos())
+                    .prop(FuzzIntPip::new(dst, src))
                     .commit();
-                if i == 0 {
-                    bctx.build()
+                if o == i {
+                    ctx.build()
                         .tile_mutex("HIN", "TEST")
-                        .prop(TouchHout(i))
-                        .mutex(format!("MUX.HOUT{i}"), pin)
-                        .test_manual_legacy(format!("MUX.HOUT{i}"), format!("{pin}.EXCL"))
-                        .pip(format!("HOUT{i}"), format!("{pin}_BUF"))
+                        .prop(TouchHout(o))
+                        .prop(WireMutexExclusive::new(dst))
+                        .test_routing(dst, fsrc)
+                        .prop(FuzzIntPip::new(dst, src))
                         .commit();
                 }
             }
@@ -1729,7 +1739,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         };
         let mut bctx = ctx.bel(bslots::GTP_CHANNEL);
         let mode = "GTPE2_CHANNEL";
-        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
+            .mode(mode)
+            .commit();
         for &pin in GTP_CHANNEL_INVPINS {
             bctx.mode(mode).test_inv_legacy(pin);
         }
@@ -1756,7 +1770,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTX_CHANNEL) {
         let mut bctx = ctx.bel(bslots::GTX_CHANNEL);
         let mode = "GTXE2_CHANNEL";
-        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
+            .mode(mode)
+            .commit();
         for &pin in GTX_CHANNEL_INVPINS {
             bctx.mode(mode).test_inv_legacy(pin);
         }
@@ -1783,7 +1801,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTH_CHANNEL) {
         let mut bctx = ctx.bel(bslots::GTH_CHANNEL);
         let mode = "GTHE2_CHANNEL";
-        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
+            .mode(mode)
+            .commit();
         for &pin in GTH_CHANNEL_INVPINS {
             bctx.mode(mode).test_inv_legacy(pin);
         }
@@ -1876,8 +1898,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let bel = "GTP_COMMON";
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
         for &pin in GTP_COMMON_INVPINS {
             ctx.collect_inv_legacy(tile, bel, pin);
         }
@@ -1991,8 +2011,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if ctx.has_tcls(tcls::GTX_COMMON) {
         let tile = "GTX_COMMON";
         let bel = "GTX_COMMON";
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
         for &pin in GTXH_COMMON_INVPINS {
             ctx.collect_inv_legacy(tile, bel, pin);
         }
@@ -2009,8 +2027,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if ctx.has_tcls(tcls::GTH_COMMON) {
         let tile = "GTH_COMMON";
         let bel = "GTH_COMMON";
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
         for &pin in GTXH_COMMON_INVPINS {
             ctx.collect_inv_legacy(tile, bel, pin);
         }
@@ -2082,11 +2098,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
     }
-    for (tile, bel_common) in [
-        ("GTP_COMMON", "GTP_COMMON"),
-        ("GTP_COMMON_MID", "GTP_COMMON"),
-        ("GTX_COMMON", "GTX_COMMON"),
-        ("GTH_COMMON", "GTH_COMMON"),
+    for (tcid, tile, bel_common) in [
+        (tcls::GTP_COMMON, "GTP_COMMON", "GTP_COMMON"),
+        (tcls::GTP_COMMON_MID, "GTP_COMMON_MID", "GTP_COMMON"),
+        (tcls::GTX_COMMON, "GTX_COMMON", "GTX_COMMON"),
+        (tcls::GTH_COMMON, "GTH_COMMON", "GTH_COMMON"),
     ] {
         if !ctx.has_tile_legacy(tile) {
             continue;
@@ -2104,7 +2120,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ),
             );
         }
-        for bel in ["BUFDS[0]", "BUFDS[1]"] {
+        for i in 0..2 {
+            let bel = ["BUFDS[0]", "BUFDS[1]"][i];
+            let bslot = bslots::BUFDS[i];
             ctx.collect_inv_legacy(tile, bel, "CLKTESTSIG");
             ctx.collect_bit_bi_legacy(tile, bel, "CLKCM_CFG", "FALSE", "TRUE");
             ctx.collect_bit_bi_legacy(tile, bel, "CLKRCV_TRST", "FALSE", "TRUE");
@@ -2118,88 +2136,52 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "NONE",
                 OcdMode::BitOrderDrpV6,
             );
-            let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
+            let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
             diff.apply_enum_diff_legacy(ctx.item_legacy(tile, bel, "MUX.MGTCLKOUT"), "NONE", "O");
             diff.assert_empty();
         }
     }
     if ctx.has_tcls(tcls::GTP_COMMON_MID) {
-        let tile = "GTP_COMMON_MID";
-        let bel = "GTP_COMMON";
+        let tcid = tcls::GTP_COMMON_MID;
         for i in 0..14 {
+            let dst = wires::HROW_O[i].cell(3);
+            let src = wires::HROW_I_GTP[i].cell(3);
+            let fsrc = wires::HROW_I[i].cell(3);
             let diff = ctx
-                .get_diff_legacy(tile, bel, format!("MUX.HOUT{i}"), format!("HIN{i}.EXCL"))
-                .combine(&!ctx.peek_diff_legacy(
-                    tile,
-                    bel,
-                    format!("MUX.HOUT{i}"),
-                    format!("HIN{i}"),
-                ));
-            ctx.insert_legacy(
-                tile,
-                "HCLK_GTP_MID",
-                format!("ENABLE.HIN{i}"),
-                xlat_bit_legacy(diff),
-            );
+                .get_diff_routing(tcid, dst, fsrc.pos())
+                .combine(&!ctx.peek_diff_routing(tcid, dst, src.pos()));
+            ctx.insert_progbuf(tcid, src, fsrc.pos(), xlat_bit(diff));
         }
-        for pin in [
-            "RXOUTCLK0",
-            "RXOUTCLK1",
-            "RXOUTCLK2",
-            "RXOUTCLK3",
-            "TXOUTCLK0",
-            "TXOUTCLK1",
-            "TXOUTCLK2",
-            "TXOUTCLK3",
-            "MGTCLKOUT0",
-            "MGTCLKOUT1",
-        ] {
+        for (i, pin) in wires::OUT_GT_MGTCLKOUT_HCLK
+            .into_iter()
+            .chain(wires::OUT_GT_RXOUTCLK_HCLK)
+            .chain(wires::OUT_GT_TXOUTCLK_HCLK)
+            .enumerate()
+        {
+            let dst = wires::HROW_O[i].cell(3);
+            let src = pin.cell(3);
+            let fsrc = ctx.edev.db_index[tcls::GTP_COMMON_MID].only_bwd(src);
             let diff = ctx
-                .get_diff_legacy(tile, bel, "MUX.HOUT0", format!("{pin}.EXCL"))
-                .combine(&!ctx.peek_diff_legacy(tile, bel, "MUX.HOUT0", pin));
-            ctx.insert_legacy(
-                tile,
-                "HCLK_GTP_MID",
-                format!("ENABLE.{pin}"),
-                xlat_bit_legacy(diff),
-            );
+                .get_diff_routing(tcid, dst, fsrc.pos())
+                .combine(&!ctx.peek_diff_routing(tcid, dst, src.pos()));
+            ctx.insert_progbuf(tcid, src, fsrc.pos(), xlat_bit(diff));
         }
         for i in 0..14 {
-            let item = ctx.extract_enum_default_legacy_ocd(
-                tile,
-                bel,
-                &format!("MUX.HOUT{i}"),
-                &[
-                    "RXOUTCLK0".to_string(),
-                    "RXOUTCLK1".to_string(),
-                    "RXOUTCLK2".to_string(),
-                    "RXOUTCLK3".to_string(),
-                    "TXOUTCLK0".to_string(),
-                    "TXOUTCLK1".to_string(),
-                    "TXOUTCLK2".to_string(),
-                    "TXOUTCLK3".to_string(),
-                    "MGTCLKOUT0".to_string(),
-                    "MGTCLKOUT1".to_string(),
-                    format!("HIN{i}"),
-                    format!("HIN{ii}", ii = i ^ 1),
-                ],
-                "NONE",
-                OcdMode::Mux,
-            );
-            ctx.insert_legacy(tile, "HCLK_GTP_MID", format!("MUX.HOUT{i}"), item);
+            ctx.collect_mux(tcid, wires::HROW_O[i].cell(3));
         }
+
         // ... seem glued together in fuzzing? screw this. manual time.
-        ctx.insert_legacy(
-            tile,
-            "HCLK_GTP_MID",
-            "DRP_MASK_BELOW",
-            TileItem::from_bit_inv(TileBit::new(6, 0, 13), false),
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslots::HCLK_DRP_GTP_MID,
+            bcls::HCLK_DRP::DRP_MASK_S,
+            TileBit::new(6, 0, 13).pos(),
         );
-        ctx.insert_legacy(
-            tile,
-            "HCLK_GTP_MID",
-            "DRP_MASK_ABOVE",
-            TileItem::from_bit_inv(TileBit::new(6, 1, 13), false),
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslots::HCLK_DRP_GTP_MID,
+            bcls::HCLK_DRP::DRP_MASK_N,
+            TileBit::new(6, 1, 13).pos(),
         );
     }
     for (tile, bel) in [
@@ -2231,8 +2213,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let bel = "GTP_CHANNEL";
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
         for &pin in GTP_CHANNEL_INVPINS {
             ctx.collect_inv_legacy(tile, bel, pin);
         }
@@ -2258,8 +2238,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if ctx.has_tcls(tcls::GTX_CHANNEL) {
         let tile = "GTX_CHANNEL";
         let bel = "GTX_CHANNEL";
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
         for &pin in GTX_CHANNEL_INVPINS {
             ctx.collect_inv_legacy(tile, bel, pin);
         }
@@ -2285,8 +2263,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if ctx.has_tcls(tcls::GTH_CHANNEL) {
         let tile = "GTH_CHANNEL";
         let bel = "GTH_CHANNEL";
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
         for &pin in GTH_CHANNEL_INVPINS {
             ctx.collect_inv_legacy(tile, bel, pin);
         }

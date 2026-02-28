@@ -1,6 +1,6 @@
 use prjcombine_interconnect::db::{BelAttributeType, BelInputId};
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::defs::{bcls, bslots, virtex5::tcls};
+use prjcombine_virtex4::defs::{bcls::PCIE_V5 as PCIE, bslots, virtex5::tcls};
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -10,13 +10,13 @@ use crate::{
 };
 
 const PCIE_INVPINS: &[BelInputId] = &[
-    bcls::PCIE_V5::CRMCORECLK,
-    bcls::PCIE_V5::CRMCORECLKDLO,
-    bcls::PCIE_V5::CRMCORECLKRXO,
-    bcls::PCIE_V5::CRMCORECLKTXO,
-    bcls::PCIE_V5::CRMUSERCLK,
-    bcls::PCIE_V5::CRMUSERCLKRXO,
-    bcls::PCIE_V5::CRMUSERCLKTXO,
+    PCIE::CRMCORECLK,
+    PCIE::CRMCORECLKDLO,
+    PCIE::CRMCORECLKRXO,
+    PCIE::CRMCORECLKTXO,
+    PCIE::CRMUSERCLK,
+    PCIE::CRMUSERCLKRXO,
+    PCIE::CRMUSERCLKTXO,
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
@@ -35,14 +35,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for &pin in PCIE_INVPINS {
         bctx.mode(mode).test_bel_input_inv_auto(pin);
     }
-    for (aid, _, attr) in &backend.edev.db[bcls::PCIE_V5].attributes {
+    for (aid, _, attr) in &backend.edev.db[PCIE].attributes {
         match attr.typ {
             BelAttributeType::Bool => {
                 bctx.mode(mode)
                     .test_bel_attr_bool_auto(aid, "FALSE", "TRUE");
             }
             BelAttributeType::BitVec(_width) => match aid {
-                bcls::PCIE_V5::TXTSNFTS | bcls::PCIE_V5::TXTSNFTSCOMCLK => {
+                PCIE::TXTSNFTS | PCIE::TXTSNFTSCOMCLK => {
                     bctx.mode(mode).test_bel_attr_multi(aid, MultiValue::Dec(0));
                 }
                 _ => {
@@ -71,7 +71,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for &pin in PCIE_INVPINS {
         ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
     }
-    for (aid, _, attr) in &ctx.edev.db[bcls::PCIE_V5].attributes {
+    for (aid, _, attr) in &ctx.edev.db[PCIE].attributes {
         match attr.typ {
             BelAttributeType::Bool => {
                 ctx.collect_bel_attr_bi(tcid, bslot, aid);

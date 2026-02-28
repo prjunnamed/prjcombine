@@ -22,7 +22,7 @@ fn make_int_tie_grid(
     edev: &ExpandedDevice,
     ngrid: &ExpandedGridNaming,
 ) -> (BelMultiGrid, BelMultiGrid) {
-    let mut int_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "INT");
+    let mut int_grid = ngrid.bel_multi_grid(|tcid, _, _| tcid == tcls::INT);
     let mut tie_grid = int_grid.clone();
     if edev.interposer.unwrap().gtz_bot {
         for die in int_grid.ylut.values_mut() {
@@ -225,37 +225,38 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
     let (int_grid, tie_grid) = make_int_tie_grid(edev, &ngrid);
     let raw_grid = make_raw_grid(edev);
-    let clb_grid = ngrid.bel_multi_grid(|_, tcname, _| matches!(tcname, "CLBLL" | "CLBLM"));
-    let bram_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "BRAM");
-    let dsp_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "DSP");
-    let cmt_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "CMT");
-    let fifo_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "CMT_FIFO");
-    let pcie_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "PCIE");
-    let pcie3_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "PCIE3");
-    let bufg_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "CLK_BUFG");
+    let clb_grid = ngrid.bel_multi_grid(|tcid, _, _| matches!(tcid, tcls::CLBLL | tcls::CLBLM));
+    let bram_grid = ngrid.bel_multi_grid(|tcid, _, _| tcid == tcls::BRAM);
+    let dsp_grid = ngrid.bel_multi_grid(|tcid, _, _| tcid == tcls::DSP);
+    let cmt_grid = ngrid.bel_multi_grid(|tcid, _, _| tcid == tcls::CMT);
+    let fifo_grid = ngrid.bel_multi_grid(|tcid, _, _| tcid == tcls::CMT_FIFO);
+    let pcie_grid = ngrid.bel_multi_grid(|tcid, _, _| tcid == tcls::PCIE);
+    let pcie3_grid = ngrid.bel_multi_grid(|tcid, _, _| tcid == tcls::PCIE3);
+    let bufg_grid =
+        ngrid.bel_multi_grid(|tcid, _, _| matches!(tcid, tcls::CLK_BUFG_S | tcls::CLK_BUFG_N));
     let pmvbram_grid =
-        ngrid.bel_multi_grid(|_, tcname, _| matches!(tcname, "PMVBRAM" | "PMVBRAM_NC"));
+        ngrid.bel_multi_grid(|tcid, _, _| matches!(tcid, tcls::PMVBRAM | tcls::PMVBRAM_NC));
     let io_grid = BelMultiGrid {
         ylut: tie_grid.ylut.clone(),
-        ..ngrid.bel_multi_grid(|_, tcname, _| matches!(tcname, "IO_HP_S" | "IO_HR_S"))
+        ..ngrid.bel_multi_grid(|tcid, _, _| matches!(tcid, tcls::IO_HP_S | tcls::IO_HR_S))
     };
-    let dci_grid = ngrid.bel_multi_grid(|_, tcname, _| tcname == "HCLK_IO_HP");
+    let dci_grid = ngrid.bel_multi_grid(|tcid, _, _| tcid == tcls::HCLK_IO_HP);
     let ipad_grid = make_ipad_grid(edev);
     let opad_grid = make_opad_grid(edev);
-    let gt_grid = ngrid.bel_multi_grid(|_, tcname, _| {
+    let gt_grid = ngrid.bel_multi_grid(|tcid, _, _| {
         matches!(
-            tcname,
-            "GTP_CHANNEL" | "GTP_CHANNEL_MID" | "GTX_CHANNEL" | "GTH_CHANNEL"
+            tcid,
+            tcls::GTP_CHANNEL | tcls::GTP_CHANNEL_MID | tcls::GTX_CHANNEL | tcls::GTH_CHANNEL
         )
     });
-    let gtc_grid = ngrid.bel_multi_grid(|_, tcname, _| {
+    let gtc_grid = ngrid.bel_multi_grid(|tcid, _, _| {
         matches!(
-            tcname,
-            "GTP_COMMON" | "GTP_COMMON_MID" | "GTX_COMMON" | "GTH_COMMON"
+            tcid,
+            tcls::GTP_COMMON | tcls::GTP_COMMON_MID | tcls::GTX_COMMON | tcls::GTH_COMMON
         )
     });
     let mut pmviob_grid =
-        ngrid.bel_multi_grid(|_, tcname, _| matches!(tcname, "CFG" | "CLK_PMVIOB"));
+        ngrid.bel_multi_grid(|tcid, _, _| matches!(tcid, tcls::CFG | tcls::CLK_PMVIOB));
     for (die, ylut) in &mut pmviob_grid.ylut {
         let chip = edev.chips[die];
         if chip.reg_cfg == chip.reg_clk {
@@ -539,16 +540,6 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     [
                         format!("HCLK_L{suf}_X{rx}Y{ry}"),
                         format!("HCLK_R{suf}_X{rx}Y{ry}", rx = rx + 1),
-                    ],
-                );
-            }
-            tcls::INT_LCLK => {
-                ngrid.name_tile(
-                    tcrd,
-                    "INT_LCLK",
-                    [
-                        format!("INT_L_X{x}Y{y}"),
-                        format!("INT_R_X{x}Y{y}", x = x + 1),
                     ],
                 );
             }
@@ -909,21 +900,15 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let name = format!(
                     "CLK_BUFG_REBUF_X{x}Y{y}",
                     x = raw_grid.xlut[col] + 2,
-                    y = raw_grid.ylut[die][row],
+                    y = raw_grid.ylut[die][row] - 1,
                 );
                 let ntile = ngrid.name_tile(tcrd, kind, [name]);
+                let mut names = vec![];
                 for i in 0..16 {
-                    ntile.add_bel(
-                        bslots::GCLK_TEST_BUF_REBUF_S[i],
-                        format!("GCLK_TEST_BUF_X0Y{y}", y = ctb_y + i),
-                    );
+                    names.push(format!("GCLK_TEST_BUF_X0Y{y}", y = ctb_y + i));
+                    names.push(format!("GCLK_TEST_BUF_X1Y{y}", y = ctb_y + i));
                 }
-                for i in 0..16 {
-                    ntile.add_bel(
-                        bslots::GCLK_TEST_BUF_REBUF_N[i],
-                        format!("GCLK_TEST_BUF_X1Y{y}", y = ctb_y + i),
-                    );
-                }
+                ntile.add_bel_multi(bslots::SPEC_INT, names);
             }
             tcls::CLK_BALI_REBUF => {
                 let tk = if reg.to_idx() == 0 && has_gtz_d {
@@ -936,7 +921,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let name = format!(
                     "{tk}_X{rx}Y{ry}",
                     rx = raw_grid.xlut[col] + 2,
-                    ry = raw_grid.ylut[die][row + 8],
+                    ry = raw_grid.ylut[die][if row.to_idx() % 50 < 25 {
+                        row - 1
+                    } else {
+                        row + 1
+                    }],
                 );
                 let ntile = ngrid.name_tile(tcrd, kind, [name]);
                 let ctb_y =
@@ -946,31 +935,21 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 } else {
                     0
                 };
+                let mut names = vec![];
                 for i in 0..16 {
                     let y = (i & 3) << 2 | (i & 4) >> 1 | (i & 8) >> 3;
                     if has_gtz_u && reg.to_idx() != 0 {
-                        ntile.add_bel(
-                            bslots::GCLK_TEST_BUF_REBUF_S[i],
-                            format!("BUFG_LB_X1Y{y}", y = bglb_y + y),
-                        );
+                        names.push(format!("BUFG_LB_X1Y{y}", y = bglb_y + y));
                     } else {
-                        ntile.add_bel(
-                            bslots::GCLK_TEST_BUF_REBUF_S[i],
-                            format!("GCLK_TEST_BUF_X1Y{y}", y = ctb_y + y),
-                        );
+                        names.push(format!("GCLK_TEST_BUF_X1Y{y}", y = ctb_y + y));
                     }
                     if has_gtz_d && reg.to_idx() == 0 {
-                        ntile.add_bel(
-                            bslots::GCLK_TEST_BUF_REBUF_N[i],
-                            format!("BUFG_LB_X3Y{y}", y = bglb_y + y),
-                        );
+                        names.push(format!("BUFG_LB_X3Y{y}", y = bglb_y + y));
                     } else {
-                        ntile.add_bel(
-                            bslots::GCLK_TEST_BUF_REBUF_N[i],
-                            format!("GCLK_TEST_BUF_X3Y{y}", y = ctb_y + y),
-                        );
+                        names.push(format!("GCLK_TEST_BUF_X3Y{y}", y = ctb_y + y));
                     }
                 }
+                ntile.add_bel_multi(bslots::SPEC_INT, names);
             }
             tcls::CLK_HROW => {
                 let ctb_y = tie_grid.ylut[die][row] / 50 * 48;
@@ -986,16 +965,18 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     y = raw_grid.ylut[die][row] - 1,
                 );
                 let ntile = ngrid.name_tile(tcrd, naming, [name]);
+                let mut buf_names = vec![];
                 for i in 0..32 {
-                    ntile.add_bel(
-                        bslots::GCLK_TEST_BUF_HROW_GCLK[i],
-                        format!(
-                            "GCLK_TEST_BUF_X{x}Y{y}",
-                            x = i >> 4,
-                            y = ctb_y + 16 + (i & 0xf ^ 0xf)
-                        ),
-                    );
+                    buf_names.push(format!(
+                        "GCLK_TEST_BUF_X{x}Y{y}",
+                        x = i >> 4,
+                        y = ctb_y + 16 + (i & 0xf ^ 0xf)
+                    ));
                 }
+                buf_names.push(format!("GCLK_TEST_BUF_X3Y{y}", y = ctb_y + 17));
+                buf_names.push(format!("GCLK_TEST_BUF_X3Y{y}", y = ctb_y + 16));
+                ntile.add_bel_multi(bslots::SPEC_INT, buf_names);
+
                 for i in 0..12 {
                     ntile.add_bel(
                         bslots::BUFHCE_W[i],
@@ -1008,27 +989,19 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         format!("BUFHCE_X1Y{y}", y = bufh_y + i),
                     );
                 }
-                ntile.add_bel(
-                    bslots::GCLK_TEST_BUF_HROW_BUFH_W,
-                    format!("GCLK_TEST_BUF_X3Y{y}", y = ctb_y + 17),
-                );
-                ntile.add_bel(
-                    bslots::GCLK_TEST_BUF_HROW_BUFH_E,
-                    format!("GCLK_TEST_BUF_X3Y{y}", y = ctb_y + 16),
-                );
             }
-            tcls::CLK_BUFG => {
-                let naming = if reg < chip.reg_clk {
+            tcls::CLK_BUFG_S | tcls::CLK_BUFG_N => {
+                let tkn = if reg < chip.reg_clk {
                     "CLK_BUFG_BOT_R"
                 } else {
                     "CLK_BUFG_TOP_R"
                 };
                 let name = format!(
-                    "{naming}_X{x}Y{y}",
+                    "{tkn}_X{x}Y{y}",
                     x = raw_grid.xlut[col] + 2,
                     y = raw_grid.ylut[die][row]
                 );
-                let ntile = ngrid.name_tile(tcrd, naming, [name]);
+                let ntile = ngrid.name_tile(tcrd, kind, [name]);
                 let bg_y = bufg_grid.ylut[die][row] * 16;
                 for i in 0..16 {
                     ntile.add_bel(
@@ -1201,9 +1174,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let ipx = ipad_grid.xlut[col];
                 let ipy0 = ipad_grid.ylut[die][row];
                 let ipy1 = ipy0 + 1;
-                ntile.add_bel(bslots::IPAD_VP, format!("IPAD_X{ipx}Y{ipy0}",));
-                ntile.add_bel(bslots::IPAD_VN, format!("IPAD_X{ipx}Y{ipy1}",));
-                ntile.add_bel(bslots::SYSMON, format!("XADC_X0Y{di}", di = die.to_idx()));
+                ntile.add_bel_multi(
+                    bslots::SYSMON,
+                    [
+                        format!("XADC_X0Y{di}", di = die.to_idx()),
+                        format!("IPAD_X{ipx}Y{ipy0}"),
+                        format!("IPAD_X{ipx}Y{ipy1}"),
+                    ],
+                );
             }
             tcls::PS => {
                 let rx = raw_grid.xlut[col] - 18;
@@ -1218,86 +1196,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         format!("PSS4_X{rx}Y{ry}", ry = raw_grid.ylut[die][row + 40]),
                     ],
                 );
-                ntile.add_bel(bslots::PS, "PS7_X0Y0".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRWEB, "IOPAD_X1Y1".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRVRN, "IOPAD_X1Y2".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRVRP, "IOPAD_X1Y3".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[0], "IOPAD_X1Y4".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[1], "IOPAD_X1Y5".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[2], "IOPAD_X1Y6".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[3], "IOPAD_X1Y7".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[4], "IOPAD_X1Y8".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[5], "IOPAD_X1Y9".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[6], "IOPAD_X1Y10".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[7], "IOPAD_X1Y11".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[8], "IOPAD_X1Y12".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[9], "IOPAD_X1Y13".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[10], "IOPAD_X1Y14".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[11], "IOPAD_X1Y15".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[12], "IOPAD_X1Y16".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[14], "IOPAD_X1Y17".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRA[13], "IOPAD_X1Y18".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRBA[0], "IOPAD_X1Y19".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRBA[1], "IOPAD_X1Y20".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRBA[2], "IOPAD_X1Y21".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRCASB, "IOPAD_X1Y22".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRCKE, "IOPAD_X1Y23".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRCKN, "IOPAD_X1Y24".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRCKP, "IOPAD_X1Y25".to_string());
-                ntile.add_bel(bslots::IOPAD_PSCLK, "IOPAD_X1Y26".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRCSB, "IOPAD_X1Y27".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDM[0], "IOPAD_X1Y28".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDM[1], "IOPAD_X1Y29".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDM[2], "IOPAD_X1Y30".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDM[3], "IOPAD_X1Y31".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[0], "IOPAD_X1Y32".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[1], "IOPAD_X1Y33".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[2], "IOPAD_X1Y34".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[3], "IOPAD_X1Y35".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[4], "IOPAD_X1Y36".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[5], "IOPAD_X1Y37".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[6], "IOPAD_X1Y38".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[7], "IOPAD_X1Y39".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[8], "IOPAD_X1Y40".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[9], "IOPAD_X1Y41".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[10], "IOPAD_X1Y42".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[11], "IOPAD_X1Y43".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[12], "IOPAD_X1Y44".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[13], "IOPAD_X1Y45".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[14], "IOPAD_X1Y46".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[15], "IOPAD_X1Y47".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[16], "IOPAD_X1Y48".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[17], "IOPAD_X1Y49".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[18], "IOPAD_X1Y50".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[19], "IOPAD_X1Y51".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[20], "IOPAD_X1Y52".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[21], "IOPAD_X1Y53".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[22], "IOPAD_X1Y54".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[23], "IOPAD_X1Y55".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[24], "IOPAD_X1Y56".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[25], "IOPAD_X1Y57".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[26], "IOPAD_X1Y58".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[27], "IOPAD_X1Y59".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[28], "IOPAD_X1Y60".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[29], "IOPAD_X1Y61".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[30], "IOPAD_X1Y62".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQ[31], "IOPAD_X1Y63".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQSN[0], "IOPAD_X1Y64".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQSN[1], "IOPAD_X1Y65".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQSN[2], "IOPAD_X1Y66".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQSN[3], "IOPAD_X1Y67".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQSP[0], "IOPAD_X1Y68".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQSP[1], "IOPAD_X1Y69".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQSP[2], "IOPAD_X1Y70".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDQSP[3], "IOPAD_X1Y71".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRDRSTB, "IOPAD_X1Y72".to_string());
-                for i in 0..54 {
-                    ntile.add_bel(bslots::IOPAD_MIO[i], format!("IOPAD_X1Y{ii}", ii = i + 77));
+                let mut names = vec!["PS7_X0Y0".to_string()];
+                for i in 1..=72 {
+                    names.push(format!("IOPAD_X1Y{i}"));
                 }
-                ntile.add_bel(bslots::IOPAD_DDRODT, "IOPAD_X1Y131".to_string());
-                ntile.add_bel(bslots::IOPAD_PSPORB, "IOPAD_X1Y132".to_string());
-                ntile.add_bel(bslots::IOPAD_DDRRASB, "IOPAD_X1Y133".to_string());
-                ntile.add_bel(bslots::IOPAD_PSSRSTB, "IOPAD_X1Y134".to_string());
+                for i in 77..=134 {
+                    names.push(format!("IOPAD_X1Y{i}"));
+                }
+                ntile.add_bel_multi(bslots::PS, names);
             }
             tcls::GTP_CHANNEL | tcls::GTP_CHANNEL_MID | tcls::GTX_CHANNEL | tcls::GTH_CHANNEL => {
                 let gtcol = chip.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
@@ -1428,6 +1334,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     }],
                 );
             }
+            tcls::GLOBAL => (),
             _ => panic!("how to {kind}"),
         }
     }

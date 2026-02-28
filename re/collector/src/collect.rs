@@ -93,6 +93,15 @@ impl Collector<'_, '_> {
         self.peek_diff_raw(&DiffKey::Routing(tcid, dst, src))
     }
 
+    pub fn peek_diff_routing_special(
+        &self,
+        tcid: TileClassId,
+        dst: TileWireCoord,
+        spec: SpecialId,
+    ) -> &Diff {
+        self.peek_diff_raw(&DiffKey::RoutingSpecial(tcid, dst, spec))
+    }
+
     pub fn get_diff_routing(
         &mut self,
         tcid: TileClassId,

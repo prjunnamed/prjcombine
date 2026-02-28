@@ -178,7 +178,7 @@ fn verify_mult_int(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: Be
             crd,
             wire: &ntcls.wires[&mux.dst].name,
         };
-        vrf.pin_int_wire(rw_dst, edev.resolve_tile_wire(tcrd, mux.dst).unwrap());
+        vrf.try_pin_int_wire(rw_dst, edev.resolve_tile_wire(tcrd, mux.dst).unwrap());
         for src in mux.src.keys() {
             let wire_src = edev.resolve_tile_wire(tcrd, src.tw).unwrap();
             if let Some(&name) = wire_to_name.get(&wire_src) {
@@ -188,7 +188,7 @@ fn verify_mult_int(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bcrd: Be
                     crd,
                     wire: &ntcls.wires[&src.tw].name,
                 };
-                vrf.pin_int_wire(rw_src, wire_src);
+                vrf.try_pin_int_wire(rw_src, wire_src);
                 vrf.claim_pip(rw_dst, rw_src);
             }
         }

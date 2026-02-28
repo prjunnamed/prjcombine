@@ -450,8 +450,8 @@ target_defs! {
     enum ILOGIC_IOBDELAY_TYPE { DEFAULT, FIXED, VARIABLE }
     enum ILOGIC_NUM_CE { _1, _2 }
     bel_class ILOGIC {
-        // CLKB is virtex5 and up only
-        input CLK, CLKB, CLKDIV;
+        // CLKB is virtex5 and up only; CLKDIVP is virtex7 only
+        input CLK, CLKB, CLKDIV, CLKDIVP;
         input SR, REV;
         input CE1, CE2;
         input BITSLIP;
@@ -549,8 +549,34 @@ target_defs! {
         input CE, DATAIN, INC, RST;
         input CNTVALUEIN[5];
         output CNTVALUEOUT[5];
+
+        // TODO: attributes
     }
     device_data IODELAY_V6_IDELAY_DEFAULT: bitvec[5];
+
+    bel_class IDELAY {
+        input C, CINVCTRL;
+        input CE, DATAIN, INC, REGRST;
+        input LD, LDPIPEEN;
+        input IFDLY[3];
+        input CNTVALUEIN[5];
+        output CNTVALUEOUT[5];
+
+        // TODO: attributes
+    }
+
+    bel_class ODELAY {
+        input C, CINVCTRL;
+        input CE, INC, REGRST;
+        input LD, LDPIPEEN;
+        input OFDLY[3];
+        input CNTVALUEIN[5];
+        output CNTVALUEOUT[5];
+        // test-only (routed via INTF test specials)
+        output DATAOUT;
+
+        // TODO: attributes
+    }
 
     // 2 no longer supported on virtex5
     enum OLOGIC_TRISTATE_WIDTH { _1, _2, _4 }
@@ -562,10 +588,12 @@ target_defs! {
     bel_class OLOGIC {
         // CLKB, CLKDIVB are virtex6 and up only
         // CLKPERF is virtex6 only
-        input CLK, CLKB, CLKDIV, CLKDIVB, CLKPERF;
+        // CLKDIVF, CLKDIVFB are virtex7 only
+        input CLK, CLKB, CLKDIV, CLKDIVB, CLKPERF, CLKDIVF, CLKDIVFB;
         input SR, REV;
         input OCE, TCE;
-        input D1, D2, D3, D4, D5, D6;
+        // D7, D8 are virtex7 only
+        input D1, D2, D3, D4, D5, D6, D7, D8;
         input T1, T2, T3, T4;
         output TQ;
 
@@ -629,6 +657,7 @@ target_defs! {
         // virtex7 only
         input IBUFDISABLE;
         input DCITERMDISABLE;
+        input INTERMDISABLE;
 
         pad PAD: inout;
 
@@ -771,7 +800,7 @@ target_defs! {
         attribute DRP_MASK: bool;
     }
 
-    bel_class HCLK_DRP_V6 {
+    bel_class HCLK_DRP {
         attribute DRP_MASK_S: bool;
         attribute DRP_MASK_N: bool;
         attribute DRP_MASK_SYSMON: bool;
@@ -787,8 +816,11 @@ target_defs! {
         attribute CREATE_EDGE: bool;
         attribute INIT_OUT: bitvec[1];
         attribute PRESELECT_I0, PRESELECT_I1: bool;
+        // virtex7 only for whatever reason
+        attribute ENABLE: bool;
     }
 
+    enum BUFHCE_CE_TYPE { SYNC, ASYNC }
     bel_class BUFHCE {
         input I;
         input CE;
@@ -796,6 +828,8 @@ target_defs! {
 
         attribute ENABLE: bool;
         attribute INIT_OUT: bitvec[1];
+        // virtex7 only (always sync on v6)
+        attribute CE_TYPE: BUFHCE_CE_TYPE;
     }
 
     bel_class BUFIO {
@@ -807,7 +841,7 @@ target_defs! {
         attribute ENABLE: bool;
         // virtex6 only
         attribute DQSMASK_ENABLE: bool;
-        // virtex6 and up only
+        // virtex7 only
         attribute DELAY_ENABLE: bool;
     }
 
@@ -916,12 +950,20 @@ target_defs! {
         _1100,
         _1250,
     }
+    enum VCCOSENSE_MODE { ALWAYSACTIVE, FREEZE, OFF }
     bel_class BANK {
         // virtex5 and up; virtex4 has this on a separate bel
         attribute V5_LVDSBIAS: bitvec[12];
         attribute V6_LVDSBIAS: bitvec[17];
+        attribute V7_LVDSBIAS: bitvec[18];
         // virtex5 and up
         attribute INTERNAL_VREF: INTERNAL_VREF;
+        // virtex7 HR banks
+        attribute HR_DRIVERBIAS: bitvec[16];
+        attribute HR_LVDS_COMMON: bitvec[9];
+        attribute HR_LVDS_GROUP: bitvec[16][2];
+        attribute HR_VCCOSENSE_FLAG: bool;
+        attribute HR_VCCOSENSE_MODE: VCCOSENSE_MODE;
     }
 
     enum DCM_CLKDV_MODE { HALF, INT }
@@ -1497,6 +1539,361 @@ target_defs! {
         // TODO: attributes
     }
 
+    enum PHASER_CLKOUT_DIV { NONE, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16 }
+    enum PHASER_CTL_MODE { SOFT, HARD }
+    enum PHASER_IN_FREQ_REF_DIV { NONE, DIV2, DIV4 }
+    enum PHASER_IN_OUTPUT_CLK_SRC { PHASE_REF, MEM_REF, FREQ_REF, DELAYED_REF, DELAYED_PHASE_REF, DELAYED_MEM_REF }
+    enum PHASER_IN_PD_REVERSE { _1, _2, _3, _4, _5, _6, _7, _8 }
+    enum PHASER_IN_STG1_PD_UPDATE { _2, _3, _4, _5, _6, _7, _8, _9 }
+    bel_class PHASER_IN {
+        input FREQREFCLK;
+        input MEMREFCLK;
+        input SYNCIN;
+
+        input PHASEREFCLK;
+        output RCLK;
+        output ICLK, ICLKDIV;
+        output WRENABLE;
+
+        input SYSCLK;
+        input RST;
+        input DIVIDERST;
+        output ISERDESRST;
+        input BURSTPENDING;
+        input EDGEADV;
+        input RANKSEL[2];
+        input ENCALIB[2];
+        input ENSTG1;
+        input ENSTG1ADJUSTB;
+        output PHASELOCKED;
+        input RSTDQSFIND;
+        output DQSFOUND;
+        output DQSOUTOFRANGE;
+        input SELCALORSTG1;
+
+        input FINEENABLE;
+        input FINEINC;
+        output FINEOVERFLOW;
+        input COUNTERLOADEN;
+        input COUNTERLOADVAL[6];
+        input COUNTERREADEN;
+        output COUNTERREADVAL[6];
+
+        input STG1INCDEC;
+        input STG1LOAD;
+        output STG1OVERFLOW;
+        input STG1READ;
+        input STG1REGL[9];
+        output STG1REGR[9];
+
+        input TESTIN[14];
+        output TESTOUT[4];
+
+        input SCANCLK;
+        input SCANMODEB;
+        input SCANENB;
+        input SCANIN;
+        output SCANOUT;
+
+        attribute BURST_MODE: bool;
+        attribute CLKOUT_DIV: PHASER_CLKOUT_DIV;
+        attribute CLKOUT_DIV_ST: bitvec[4];
+        attribute CTL_MODE: PHASER_CTL_MODE;
+        attribute DQS_AUTO_RECAL: bitvec[1];
+        attribute DQS_BIAS_MODE: bool;
+        attribute DQS_FIND_PATTERN: bitvec[3];
+        attribute EN_ISERDES_RST: bool;
+        attribute EN_TEST_RING: bool;
+        attribute FINE_DELAY: bitvec[6];
+        attribute FREQ_REF_DIV: PHASER_IN_FREQ_REF_DIV;
+        attribute HALF_CYCLE_ADJ: bool;
+        attribute ICLK_TO_RCLK_BYPASS: bool;
+        attribute OUTPUT_CLK_SRC: PHASER_IN_OUTPUT_CLK_SRC;
+        attribute PD_REVERSE: PHASER_IN_PD_REVERSE;
+        attribute PHASER_IN_EN: bool;
+        attribute RD_ADDR_INIT: bitvec[2];
+        attribute REG_OPT_1: bitvec[1];
+        attribute REG_OPT_2: bitvec[1];
+        attribute REG_OPT_4: bitvec[1];
+        attribute RST_SEL: bitvec[1];
+        attribute SEL_CLK_OFFSET: bitvec[3];
+        attribute SEL_OUT: bitvec[1];
+        attribute STG1_PD_UPDATE: PHASER_IN_STG1_PD_UPDATE;
+        attribute SYNC_IN_DIV_RST: bool;
+        attribute TEST_BP: bitvec[1];
+        attribute UPDATE_NONACTIVE: bool;
+        attribute WR_CYCLES: bool;
+    }
+
+    enum PHASER_OUT_OUTPUT_CLK_SRC { PHASE_REF, FREQ_REF, DELAYED_REF, DELAYED_PHASE_REF }
+    enum PHASER_OUT_STG1_BYPASS { PHASE_REF, FREQ_REF }
+    bel_class PHASER_OUT {
+        input FREQREFCLK;
+        input MEMREFCLK;
+        input SYNCIN;
+
+        input PHASEREFCLK;
+        output OCLK, OCLKDELAYED, OCLKDIV;
+        output RDENABLE;
+
+        input SYSCLK;
+        input RST;
+        input DIVIDERST;
+        output OSERDESRST;
+        input BURSTPENDING;
+        input EDGEADV;
+        input ENCALIB[2];
+        input SELFINEOCLKDELAY;
+        output CTSBUS[2];
+        output DQSBUS[2];
+        output DTSBUS[2];
+
+        input FINEENABLE;
+        input FINEINC;
+        output FINEOVERFLOW;
+        input COARSEENABLE;
+        input COARSEINC;
+        output COARSEOVERFLOW;
+
+        input COUNTERLOADEN;
+        input COUNTERLOADVAL[9];
+        input COUNTERREADEN;
+        output COUNTERREADVAL[9];
+
+        input TESTIN[16];
+        output TESTOUT[4];
+
+        input SCANCLK;
+        input SCANENB;
+        input SCANMODEB;
+        input SCANIN;
+        output SCANOUT;
+
+        attribute CLKOUT_DIV: PHASER_CLKOUT_DIV;
+        attribute CLKOUT_DIV_ST: bitvec[4];
+        attribute COARSE_BYPASS: bool;
+        attribute COARSE_DELAY: bitvec[6];
+        attribute CTL_MODE: PHASER_CTL_MODE;
+        attribute DATA_CTL_N: bool;
+        attribute DATA_RD_CYCLES: bool;
+        attribute EN_OSERDES_RST: bool;
+        attribute EN_TEST_RING: bool;
+        attribute FINE_DELAY: bitvec[6];
+        attribute OCLKDELAY_INV: bool;
+        attribute OCLK_DELAY: bitvec[6];
+        attribute OUTPUT_CLK_SRC: PHASER_OUT_OUTPUT_CLK_SRC;
+        attribute PHASER_OUT_EN: bool;
+        attribute STG1_BYPASS: PHASER_OUT_STG1_BYPASS;
+        attribute SYNC_IN_DIV_RST: bool;
+        attribute TEST_OPT: bitvec[11];
+    }
+
+    bel_class PHASER_REF {
+        input CLKIN;
+        output CLKOUT;
+        output TMUXOUT;
+        input PWRDWN;
+        input RST;
+        output LOCKED;
+
+        input TESTIN[8];
+        output TESTOUT[8];
+
+        attribute PHASER_REF_EN: bool;
+        attribute SEL_SLIPD: bool;
+        attribute SUP_SEL_AREG: bool;
+
+        attribute AVDD_COMP_SET: bitvec[3];
+        attribute AVDD_VBG_PD: bitvec[3];
+        attribute AVDD_VBG_SEL: bitvec[4];
+        attribute CP: bitvec[4];
+        attribute CP_BIAS_TRIP_SET: bitvec[1];
+        attribute CP_RES: bitvec[2];
+        attribute LF_NEN: bitvec[2];
+        attribute LF_PEN: bitvec[2];
+        attribute MAN_LF: bitvec[3];
+        attribute PFD: bitvec[7];
+        attribute PHASER_REF_MISC: bitvec[3];
+        attribute SEL_LF_HIGH: bitvec[3];
+        attribute TMUX_MUX_SEL: bitvec[2];
+        attribute CONTROL_0: bitvec[16];
+        attribute CONTROL_1: bitvec[16];
+        attribute CONTROL_2: bitvec[16];
+        attribute CONTROL_3: bitvec[16];
+        attribute CONTROL_4: bitvec[16];
+        attribute CONTROL_5: bitvec[16];
+        attribute LOCK_CNT: bitvec[10];
+        attribute LOCK_FB_DLY: bitvec[5];
+        attribute LOCK_REF_DLY: bitvec[5];
+    }
+
+    enum PHY_CONTROL_CLK_RATIO { _1, _2, _4, _8 }
+    bel_class PHY_CONTROL {
+        input MEMREFCLK;
+        input SYNCIN;
+
+        output PHYCTLEMPTY;
+        input PHYCTLMSTREMPTY;
+
+        input PHYCLK;
+        input RESET;
+        input PLLLOCK;
+        input REFDLLLOCK;
+        input READCALIBENABLE;
+        input WRITECALIBENABLE;
+        output AUXOUTPUT[4];
+
+        input PHYCTLWD[32];
+        input PHYCTLWRENABLE;
+        output PHYCTLALMOSTFULL;
+        output PHYCTLFULL;
+        output PHYCTLREADY;
+
+        input SCANENABLEN;
+        input TESTSELECT[3];
+        input TESTINPUT[16];
+        output TESTOUTPUT[16];
+
+        attribute AO_TOGGLE: bitvec[4];
+        attribute AO_WRLVL_EN: bitvec[4];
+        attribute BURST_MODE: bool;
+        attribute CLK_RATIO: PHY_CONTROL_CLK_RATIO;
+        attribute CMD_OFFSET: bitvec[6];
+        attribute CO_DURATION: bitvec[3];
+        attribute DATA_CTL_A_N: bool;
+        attribute DATA_CTL_B_N: bool;
+        attribute DATA_CTL_C_N: bool;
+        attribute DATA_CTL_D_N: bool;
+        attribute DISABLE_SEQ_MATCH: bool;
+        attribute DI_DURATION: bitvec[3];
+        attribute DO_DURATION: bitvec[3];
+        attribute EVENTS_DELAY: bitvec[6];
+        attribute FOUR_WINDOW_CLOCKS: bitvec[6];
+        attribute MULTI_REGION: bool;
+        attribute PHY_COUNT_ENABLE: bool;
+        attribute RD_CMD_OFFSET_0: bitvec[6];
+        attribute RD_CMD_OFFSET_1: bitvec[6];
+        attribute RD_CMD_OFFSET_2: bitvec[6];
+        attribute RD_CMD_OFFSET_3: bitvec[6];
+        attribute RD_DURATION_0: bitvec[6];
+        attribute RD_DURATION_1: bitvec[6];
+        attribute RD_DURATION_2: bitvec[6];
+        attribute RD_DURATION_3: bitvec[6];
+        attribute SPARE: bitvec[1];
+        attribute SYNC_MODE: bool;
+        attribute WR_CMD_OFFSET_0: bitvec[6];
+        attribute WR_CMD_OFFSET_1: bitvec[6];
+        attribute WR_CMD_OFFSET_2: bitvec[6];
+        attribute WR_CMD_OFFSET_3: bitvec[6];
+        attribute WR_DURATION_0: bitvec[6];
+        attribute WR_DURATION_1: bitvec[6];
+        attribute WR_DURATION_2: bitvec[6];
+        attribute WR_DURATION_3: bitvec[6];
+    }
+
+    enum IO_FIFO_WATERMARK { NONE, _1, _2 }
+    enum IN_FIFO_ARRAY_MODE { ARRAY_MODE_4_X_4, ARRAY_MODE_4_X_8 }
+    enum OUT_FIFO_ARRAY_MODE { ARRAY_MODE_4_X_4, ARRAY_MODE_8_X_4 }
+    bel_class IN_FIFO {
+        input RDCLK;
+        input RDEN;
+        input WRCLK;
+        input WREN;
+        input RESET;
+
+        output EMPTY;
+        output FULL;
+        output ALMOSTEMPTY;
+        output ALMOSTFULL;
+
+        input D0[4];
+        input D1[4];
+        input D2[4];
+        input D3[4];
+        input D4[4];
+        input D5[8];
+        input D6[8];
+        input D7[4];
+        input D8[4];
+        input D9[4];
+        output Q0[8];
+        output Q1[8];
+        output Q2[8];
+        output Q3[8];
+        output Q4[8];
+        output Q5[8];
+        output Q6[8];
+        output Q7[8];
+        output Q8[8];
+        output Q9[8];
+
+        input TESTMODEB;
+        input TESTREADDISB;
+        input TESTWRITEDISB;
+
+        input SCANENB;
+        input SCANIN[4];
+        output SCANOUT[4];
+
+        attribute ALMOST_EMPTY_VALUE: IO_FIFO_WATERMARK;
+        attribute ALMOST_FULL_VALUE: IO_FIFO_WATERMARK;
+        attribute ARRAY_MODE: IN_FIFO_ARRAY_MODE;
+        attribute SLOW_RD_CLK: bool;
+        attribute SLOW_WR_CLK: bool;
+        attribute SYNCHRONOUS_MODE: bool;
+        attribute SPARE: bitvec[4];
+    }
+    bel_class OUT_FIFO {
+        input RDCLK;
+        input RDEN;
+        input WRCLK;
+        input WREN;
+        input RESET;
+
+        output EMPTY;
+        output FULL;
+        output ALMOSTEMPTY;
+        output ALMOSTFULL;
+
+        input D0[8];
+        input D1[8];
+        input D2[8];
+        input D3[8];
+        input D4[8];
+        input D5[8];
+        input D6[8];
+        input D7[8];
+        input D8[8];
+        input D9[8];
+        output Q0[4];
+        output Q1[4];
+        output Q2[4];
+        output Q3[4];
+        output Q4[4];
+        output Q5[8];
+        output Q6[8];
+        output Q7[4];
+        output Q8[4];
+        output Q9[4];
+
+        input TESTMODEB;
+        input TESTREADDISB;
+        input TESTWRITEDISB;
+
+        input SCANENB;
+        input SCANIN[4];
+        output SCANOUT[4];
+
+        attribute ALMOST_EMPTY_VALUE: IO_FIFO_WATERMARK;
+        attribute ALMOST_FULL_VALUE: IO_FIFO_WATERMARK;
+        attribute ARRAY_MODE: OUT_FIFO_ARRAY_MODE;
+        attribute OUTPUT_DISABLE: bool;
+        attribute SLOW_RD_CLK: bool;
+        attribute SLOW_WR_CLK: bool;
+        attribute SYNCHRONOUS_MODE: bool;
+        attribute SPARE: bitvec[4];
+    }
+
     enum SYSMON_MONITOR_MODE { MONITOR, ADC, TEST }
     bel_class SYSMON_V4 {
         input CONVST;
@@ -1556,9 +1953,12 @@ target_defs! {
         input CONVST;
         input CONVSTCLK;
         input RESET;
-        output ALM[3];
+        // only 3 bits exist before v7
+        output ALM[8];
         output BUSY;
         output CHANNEL[5];
+        // virtex7 only
+        output MUXADDR[5];
         output EOC;
         output EOS;
         output OT;
@@ -1577,9 +1977,12 @@ target_defs! {
 
         input TESTADCCLK[4];
         input TESTADCIN[20];
+        // virtex7 only
+        input TESTADCIN2[20];
         output TESTADCOUT[20];
         output TESTDB[16];
 
+        // v5/v6 naming
         input TESTSCANCLKA;
         input TESTSCANCLKB;
         input TESTSCANCLKC;
@@ -1596,7 +1999,6 @@ target_defs! {
         input TESTSEC;
         input TESTSED;
         input TESTSEE;
-        input TESTSEL;
         input TESTSIA;
         input TESTSIB;
         input TESTSIC;
@@ -1608,9 +2010,17 @@ target_defs! {
         output TESTSOD;
         output TESTSOE;
 
+        // v7 naming
+        input TESTSCANCLK[5];
+        input TESTSCANMODE[5];
+        input TESTSE[5];
+        input TESTSI[5];
+        output TESTSO[5];
+
         input TESTENJTAG;
         input TESTDRCK;
         input TESTRST;
+        input TESTSEL;
         input TESTSHIFT;
         input TESTUPDATE;
         input TESTCAPTURE;
@@ -1622,7 +2032,9 @@ target_defs! {
         pad AVSS, AVDD: power;
 
         // address 0x40..0x58
-        attribute INIT: bitvec[16][24];
+        attribute V5_INIT: bitvec[16][24];
+        // address 0x40..0x60
+        attribute V7_INIT: bitvec[16][32];
 
         attribute SYSMON_TEST_A: bitvec[16];
         attribute SYSMON_TEST_B: bitvec[16];
@@ -3532,6 +3944,1833 @@ target_defs! {
         attribute XPBASEPTR: bitvec[8];
     }
 
+    bel_class PCIE_V6 {
+        input SYSRSTN;
+        input USERCLK;
+        input USERCLKPREBUF;
+        input CMRSTN;
+        input CMSTICKYRSTN;
+        input DLRSTN;
+        input TLRSTN;
+        output USERRSTN;
+
+        output TRNLNKUPN;
+        output TRNFCPH[8];
+        output TRNFCPD[12];
+        output TRNFCNPH[8];
+        output TRNFCNPD[12];
+        output TRNFCCPLH[8];
+        output TRNFCCPLD[12];
+        input TRNFCSEL[3];
+
+        input TRNTSOFN;
+        input TRNTEOFN;
+        input TRNTD[64];
+        input TRNTREMN;
+        input TRNTSRCRDYN;
+        output TRNTDSTRDYN;
+        input TRNTSRCDSCN;
+        output TRNTBUFAV[6];
+        output TRNTERRDROPN;
+        input TRNTSTRN;
+        output TRNTCFGREQN;
+        input TRNTCFGGNTN;
+        input TRNTERRFWDN;
+        input TRNTECRCGENN;
+        input TRNTDLLPDATA[32];
+        output TRNTDLLPDSTRDYN;
+        input TRNTDLLPSRCRDYN;
+
+        output TRNRSOFN;
+        output TRNREOFN;
+        output TRNRD[64];
+        output TRNRREMN;
+        output TRNRERRFWDN;
+        output TRNRSRCRDYN;
+        input TRNRDSTRDYN;
+        output TRNRSRCDSCN;
+        input TRNRNPOKN;
+        output TRNRBARHITN[7];
+        output TRNRECRCERRN;
+        output TRNRDLLPDATA[32];
+        output TRNRDLLPSRCRDYN;
+
+        output PLINITIALLINKWIDTH[3];
+        output PLLANEREVERSALMODE[2];
+        output PLLINKGEN2CAP;
+        output PLLINKPARTNERGEN2SUPPORTED;
+        output PLLINKUPCFGCAP;
+        output PLSELLNKRATE;
+        output PLSELLNKWIDTH[2];
+        output PLLTSSMSTATE[6];
+        input PLDIRECTEDLINKAUTON;
+        input PLDIRECTEDLINKCHANGE[2];
+        input PLDIRECTEDLINKSPEED;
+        input PLDIRECTEDLINKWIDTH[2];
+        input PLUPSTREAMPREFERDEEMPH;
+        output PLRECEIVEDHOTRST;
+        input PLTRANSMITHOTRST;
+
+        input PL2DIRECTEDLSTATE[5];
+        output PL2LINKUPN;
+        output PL2RECEIVERERRN;
+        output PL2RECOVERYN;
+        output PL2RXELECIDLE;
+        output PL2SUSPENDOK;
+        input PLDBGMODE[3];
+        output PLDBGVEC[12];
+        input PLDOWNSTREAMDEEMPHSOURCE;
+        output PLPHYLNKUPN;
+        input PLRSTN;
+        output PLRXPMSTATE[2];
+        output PLTXPMSTATE[3];
+
+        output CFGDO[32];
+        output CFGRDWRDONEN;
+        input CFGDI[32];
+        input CFGDWADDR[10];
+        input CFGBYTEENN[4];
+        input CFGWRENN;
+        input CFGRDENN;
+        input CFGWRREADONLYN;
+        input CFGWRRW1CASRWN;
+
+        output CFGCOMMANDIOENABLE;
+        output CFGCOMMANDMEMENABLE;
+        output CFGCOMMANDBUSMASTERENABLE;
+        output CFGCOMMANDINTERRUPTDISABLE;
+        output CFGCOMMANDSERREN;
+
+        output CFGDEVSTATUSCORRERRDETECTED;
+        output CFGDEVSTATUSFATALERRDETECTED;
+        output CFGDEVSTATUSNONFATALERRDETECTED;
+        output CFGDEVSTATUSURDETECTED;
+
+        output CFGDEVCONTROLAUXPOWEREN;
+        output CFGDEVCONTROLCORRERRREPORTINGEN;
+        output CFGDEVCONTROLENABLERO;
+        output CFGDEVCONTROLEXTTAGEN;
+        output CFGDEVCONTROLFATALERRREPORTINGEN;
+        output CFGDEVCONTROLMAXPAYLOAD[3];
+        output CFGDEVCONTROLMAXREADREQ[3];
+        output CFGDEVCONTROLNONFATALREPORTINGEN;
+        output CFGDEVCONTROLNOSNOOPEN;
+        output CFGDEVCONTROLPHANTOMEN;
+        output CFGDEVCONTROLURERRREPORTINGEN;
+        output CFGDEVCONTROL2CPLTIMEOUTDIS;
+        output CFGDEVCONTROL2CPLTIMEOUTVAL[4];
+
+        output CFGLINKSTATUSAUTOBANDWIDTHSTATUS;
+        output CFGLINKSTATUSBANDWITHSTATUS;
+        output CFGLINKSTATUSCURRENTSPEED[2];
+        output CFGLINKSTATUSDLLACTIVE;
+        output CFGLINKSTATUSLINKTRAINING;
+        output CFGLINKSTATUSNEGOTIATEDWIDTH[4];
+        output CFGLINKCONTROLASPMCONTROL[2];
+        output CFGLINKCONTROLAUTOBANDWIDTHINTEN;
+        output CFGLINKCONTROLBANDWIDTHINTEN;
+        output CFGLINKCONTROLCLOCKPMEN;
+        output CFGLINKCONTROLCOMMONCLOCK;
+        output CFGLINKCONTROLEXTENDEDSYNC;
+        output CFGLINKCONTROLHWAUTOWIDTHDIS;
+        output CFGLINKCONTROLLINKDISABLE;
+        output CFGLINKCONTROLRCB;
+        output CFGLINKCONTROLRETRAINLINK;
+
+        output CFGPCIELINKSTATE[3];
+        input CFGTRNPENDINGN;
+        input CFGDSN[64];
+
+        output CFGPMCSRPMEEN;
+        output CFGPMCSRPMESTATUS;
+        output CFGPMCSRPOWERSTATE[2];
+        input CFGPMDIRECTASPML1N;
+        output CFGPMRCVASREQL1N;
+        output CFGPMRCVENTERL1N;
+        output CFGPMRCVENTERL23N;
+        output CFGPMRCVREQACKN;
+        input CFGPMSENDPMACKN;
+        input CFGPMSENDPMETON;
+        input CFGPMSENDPMNAKN;
+        input CFGPMTURNOFFOKN;
+        input CFGPMWAKEN;
+
+        input CFGDSBUSNUMBER[8];
+        input CFGDSDEVICENUMBER[5];
+        input CFGDSFUNCTIONNUMBER[3];
+
+        output CFGMSGRECEIVED;
+        output CFGMSGDATA[16];
+        output CFGMSGRECEIVEDASSERTINTA;
+        output CFGMSGRECEIVEDASSERTINTB;
+        output CFGMSGRECEIVEDASSERTINTC;
+        output CFGMSGRECEIVEDASSERTINTD;
+        output CFGMSGRECEIVEDDEASSERTINTA;
+        output CFGMSGRECEIVEDDEASSERTINTB;
+        output CFGMSGRECEIVEDDEASSERTINTC;
+        output CFGMSGRECEIVEDDEASSERTINTD;
+        output CFGMSGRECEIVEDERRCOR;
+        output CFGMSGRECEIVEDERRFATAL;
+        output CFGMSGRECEIVEDERRNONFATAL;
+        output CFGMSGRECEIVEDPMASNAK;
+        output CFGMSGRECEIVEDPMETO;
+        output CFGMSGRECEIVEDPMETOACK;
+        output CFGMSGRECEIVEDPMPME;
+        output CFGMSGRECEIVEDSETSLOTPOWERLIMIT;
+        output CFGMSGRECEIVEDUNLOCK;
+
+        input CFGINTERRUPTN;
+        output CFGINTERRUPTRDYN;
+        input CFGINTERRUPTASSERTN;
+        input CFGINTERRUPTDI[8];
+        output CFGINTERRUPTDO[8];
+        output CFGINTERRUPTMMENABLE[3];
+        output CFGINTERRUPTMSIENABLE;
+        output CFGINTERRUPTMSIXENABLE;
+        output CFGINTERRUPTMSIXFM;
+
+        input CFGERRECRCN;
+        input CFGERRURN;
+        input CFGERRCPLTIMEOUTN;
+        input CFGERRCPLUNEXPECTN;
+        input CFGERRCPLABORTN;
+        input CFGERRPOSTEDN;
+        input CFGERRCORN;
+        input CFGERRTLPCPLHEADER[48];
+        output CFGERRCPLRDYN;
+        input CFGERRLOCKEDN;
+
+        input CFGERRACSN;
+        input CFGERRAERHEADERLOG[128];
+        output CFGERRAERHEADERLOGSETN;
+        output CFGAERECRCCHECKEN;
+        output CFGAERECRCGENEN;
+
+        input CFGPORTNUMBER[8];
+        output CFGSLOTCONTROLELECTROMECHILCTLPULSE;
+        output CFGTRANSACTION;
+        output CFGTRANSACTIONADDR[7];
+        output CFGTRANSACTIONTYPE;
+        output CFGVCTCVCMAP[7];
+
+        input DRPCLK;
+        input DRPDEN;
+        input DRPDWE;
+        input DRPDADDR[9];
+        input DRPDI[16];
+        output DRPDRDY;
+        output DRPDO[16];
+
+        output MIMRXRADDR[13];
+        output MIMRXRCE;
+        input MIMRXRDATA[68];
+        output MIMRXREN;
+        output MIMRXWADDR[13];
+        output MIMRXWDATA[68];
+        output MIMRXWEN;
+        output MIMTXRADDR[13];
+        output MIMTXRCE;
+        input MIMTXRDATA[69];
+        output MIMTXREN;
+        output MIMTXWADDR[13];
+        output MIMTXWDATA[69];
+        output MIMTXWEN;
+
+        input PIPECLK;
+        output PIPETXDEEMPH;
+        output PIPETXMARGIN[3];
+        output PIPETXRATE;
+        output PIPETXRCVRDET;
+        output PIPETXRESET;
+        for ch in 0..8 {
+            input "PIPERX{ch}CHANISALIGNED";
+            input "PIPERX{ch}CHARISK"[2];
+            input "PIPERX{ch}DATA"[16];
+            input "PIPERX{ch}ELECIDLE";
+            input "PIPERX{ch}PHYSTATUS";
+            output "PIPERX{ch}POLARITY";
+            input "PIPERX{ch}STATUS"[3];
+            input "PIPERX{ch}VALID";
+
+            output "PIPETX{ch}CHARISK"[2];
+            output "PIPETX{ch}COMPLIANCE";
+            output "PIPETX{ch}DATA"[16];
+            output "PIPETX{ch}ELECIDLE";
+            output "PIPETX{ch}POWERDOWN"[2];
+        }
+
+        output LNKCLKEN;
+        input FUNCLVLRSTN;
+        output RECEIVEDFUNCLVLRSTN;
+        output LL2BADDLLPERRN;
+        output LL2BADTLPERRN;
+        output LL2PROTOCOLERRN;
+        output LL2REPLAYROERRN;
+        output LL2REPLAYTOERRN;
+        input LL2SENDASREQL1N;
+        input LL2SENDENTERL1N;
+        input LL2SENDENTERL23N;
+        input LL2SUSPENDNOWN;
+        output LL2SUSPENDOKN;
+        output LL2TFCINIT1SEQN;
+        output LL2TFCINIT2SEQN;
+        input LL2TLPRCVN;
+
+        input TL2ASPMSUSPENDCREDITCHECKN;
+        output TL2ASPMSUSPENDCREDITCHECKOKN;
+        output TL2ASPMSUSPENDREQN;
+        output TL2PPMSUSPENDOKN;
+        input TL2PPMSUSPENDREQN;
+
+        input DBGMODE[2];
+        output DBGSCLRA;
+        output DBGSCLRB;
+        output DBGSCLRC;
+        output DBGSCLRD;
+        output DBGSCLRE;
+        output DBGSCLRF;
+        output DBGSCLRG;
+        output DBGSCLRH;
+        output DBGSCLRI;
+        output DBGSCLRJ;
+        output DBGSCLRK;
+        input DBGSUBMODE;
+        output DBGVECA[64];
+        output DBGVECB[64];
+        output DBGVECC[12];
+
+        input PMVDIVIDE[2];
+        input PMVENABLEN;
+        output PMVOUT;
+        input PMVSELECT[3];
+
+        input SCANMODEN;
+        input SCANENABLEN;
+        input SCANIN[8];
+
+        output XILUNCONNOUT[4];
+
+        // addresses 0..0x78
+        attribute DRP: bitvec[16][0x78];
+
+        attribute VSEC_CAP_ON: bool;
+        attribute VSEC_CAP_IS_LINK_VISIBLE: bool;
+        attribute VC0_CPL_INFINITE: bool;
+        attribute VC_CAP_REJECT_SNOOP_TRANSACTIONS: bool;
+        attribute VC_CAP_ON: bool;
+        attribute UR_INV_REQ: bool;
+        attribute UPSTREAM_FACING: bool;
+        attribute UPCONFIG_CAPABLE: bool;
+        attribute TL_TX_CHECKS_DISABLE: bool;
+        attribute TL_TFC_DISABLE: bool;
+        attribute TL_RBYPASS: bool;
+        attribute TEST_MODE_PIN_CHAR: bool;
+        attribute SLOT_CAP_POWER_INDICATOR_PRESENT: bool;
+        attribute SLOT_CAP_POWER_CONTROLLER_PRESENT: bool;
+        attribute SLOT_CAP_NO_CMD_COMPLETED_SUPPORT: bool;
+        attribute SLOT_CAP_MRL_SENSOR_PRESENT: bool;
+        attribute SLOT_CAP_HOTPLUG_SURPRISE: bool;
+        attribute SLOT_CAP_HOTPLUG_CAPABLE: bool;
+        attribute SLOT_CAP_ELEC_INTERLOCK_PRESENT: bool;
+        attribute SLOT_CAP_ATT_INDICATOR_PRESENT: bool;
+        attribute SLOT_CAP_ATT_BUTTON_PRESENT: bool;
+        attribute SELECT_DLL_IF: bool;
+        attribute ROOT_CAP_CRS_SW_VISIBILITY: bool;
+        attribute RECRC_CHK_TRIM: bool;
+        attribute PM_CSR_NOSOFTRST: bool;
+        attribute PM_CSR_B2B3: bool;
+        attribute PM_CSR_BPCCEN: bool;
+        attribute PM_CAP_PME_CLOCK: bool;
+        attribute PM_CAP_ON: bool;
+        attribute PM_CAP_D2SUPPORT: bool;
+        attribute PM_CAP_D1SUPPORT: bool;
+        attribute PM_CAP_DSI: bool;
+        attribute PL_FAST_TRAIN: bool;
+        attribute PCIE_CAP_SLOT_IMPLEMENTED: bool;
+        attribute PCIE_CAP_ON: bool;
+        attribute MSIX_CAP_ON: bool;
+        attribute MSI_CAP_64_BIT_ADDR_CAPABLE: bool;
+        attribute MSI_CAP_PER_VECTOR_MASKING_CAPABLE: bool;
+        attribute MSI_CAP_ON: bool;
+        attribute LL_REPLAY_TIMEOUT_EN: bool;
+        attribute LL_ACK_TIMEOUT_EN: bool;
+        attribute LINK_STATUS_SLOT_CLOCK_CONFIG: bool;
+        attribute LINK_CTRL2_HW_AUTONOMOUS_SPEED_DISABLE: bool;
+        attribute LINK_CTRL2_DEEMPHASIS: bool;
+        attribute LINK_CAP_SURPRISE_DOWN_ERROR_CAPABLE: bool;
+        attribute LINK_CAP_LINK_BANDWIDTH_NOTIFICATION_CAP: bool;
+        attribute LINK_CAP_DLL_LINK_ACTIVE_REPORTING_CAP: bool;
+        attribute LINK_CAP_CLOCK_POWER_MANAGEMENT: bool;
+        attribute IS_SWITCH: bool;
+        attribute EXIT_LOOPBACK_ON_EI: bool;
+        attribute ENTER_RVRY_EI_L0: bool;
+        attribute ENABLE_RX_TD_ECRC_TRIM: bool;
+        attribute DSN_CAP_ON: bool;
+        attribute DISABLE_SCRAMBLING: bool;
+        attribute DISABLE_RX_TC_FILTER: bool;
+        attribute DISABLE_LANE_REVERSAL: bool;
+        attribute DISABLE_ID_CHECK: bool;
+        attribute DISABLE_BAR_FILTERING: bool;
+        attribute DISABLE_ASPM_L1_TIMER: bool;
+        attribute DEV_CONTROL_AUX_POWER_SUPPORTED: bool;
+        attribute DEV_CAP_ROLE_BASED_ERROR: bool;
+        attribute DEV_CAP_FUNCTION_LEVEL_RESET_CAPABLE: bool;
+        attribute DEV_CAP_EXT_TAG_SUPPORTED: bool;
+        attribute DEV_CAP_ENABLE_SLOT_PWR_LIMIT_VALUE: bool;
+        attribute DEV_CAP_ENABLE_SLOT_PWR_LIMIT_SCALE: bool;
+        attribute CPL_TIMEOUT_DISABLE_SUPPORTED: bool;
+        attribute CMD_INTX_IMPLEMENTED: bool;
+        attribute ALLOW_X8_GEN2: bool;
+        attribute AER_CAP_PERMIT_ROOTERR_UPDATE: bool;
+        attribute AER_CAP_ON: bool;
+        attribute AER_CAP_ECRC_GEN_CAPABLE: bool;
+        attribute AER_CAP_ECRC_CHECK_CAPABLE: bool;
+
+        attribute AER_BASE_PTR: bitvec[12];
+        attribute AER_CAP_ID: bitvec[16];
+        attribute AER_CAP_INT_MSG_NUM_MSI: bitvec[5];
+        attribute AER_CAP_INT_MSG_NUM_MSIX: bitvec[5];
+        attribute AER_CAP_NEXTPTR: bitvec[12];
+        attribute AER_CAP_VERSION: bitvec[4];
+        attribute BAR0: bitvec[32];
+        attribute BAR1: bitvec[32];
+        attribute BAR2: bitvec[32];
+        attribute BAR3: bitvec[32];
+        attribute BAR4: bitvec[32];
+        attribute BAR5: bitvec[32];
+        attribute CAPABILITIES_PTR: bitvec[8];
+        attribute CARDBUS_CIS_POINTER: bitvec[32];
+        attribute CLASS_CODE: bitvec[24];
+        attribute CPL_TIMEOUT_RANGES_SUPPORTED: bitvec[4];
+        attribute CRM_MODULE_RSTS: bitvec[7];
+        attribute DEVICE_ID: bitvec[16];
+        attribute DEV_CAP_ENDPOINT_L0S_LATENCY: bitvec[3];
+        attribute DEV_CAP_ENDPOINT_L1_LATENCY: bitvec[3];
+        attribute DEV_CAP_MAX_PAYLOAD_SUPPORTED: bitvec[3];
+        attribute DEV_CAP_PHANTOM_FUNCTIONS_SUPPORT: bitvec[2];
+        attribute DEV_CAP_RSVD_14_12: bitvec[3];
+        attribute DEV_CAP_RSVD_17_16: bitvec[2];
+        attribute DEV_CAP_RSVD_31_29: bitvec[3];
+        attribute DNSTREAM_LINK_NUM: bitvec[8];
+        attribute DSN_BASE_PTR: bitvec[12];
+        attribute DSN_CAP_ID: bitvec[16];
+        attribute DSN_CAP_NEXTPTR: bitvec[12];
+        attribute DSN_CAP_VERSION: bitvec[4];
+        attribute ENABLE_MSG_ROUTE: bitvec[11];
+        attribute EXPANSION_ROM: bitvec[32];
+        attribute EXT_CFG_CAP_PTR: bitvec[6];
+        attribute EXT_CFG_XP_CAP_PTR: bitvec[10];
+        attribute HEADER_TYPE: bitvec[8];
+        attribute INFER_EI: bitvec[5];
+        attribute INTERRUPT_PIN: bitvec[8];
+        attribute LAST_CONFIG_DWORD: bitvec[10];
+        attribute LINK_CAP_ASPM_SUPPORT: bitvec[2];
+        attribute LINK_CAP_L0S_EXIT_LATENCY_COMCLK_GEN1: bitvec[3];
+        attribute LINK_CAP_L0S_EXIT_LATENCY_COMCLK_GEN2: bitvec[3];
+        attribute LINK_CAP_L0S_EXIT_LATENCY_GEN1: bitvec[3];
+        attribute LINK_CAP_L0S_EXIT_LATENCY_GEN2: bitvec[3];
+        attribute LINK_CAP_L1_EXIT_LATENCY_COMCLK_GEN1: bitvec[3];
+        attribute LINK_CAP_L1_EXIT_LATENCY_COMCLK_GEN2: bitvec[3];
+        attribute LINK_CAP_L1_EXIT_LATENCY_GEN1: bitvec[3];
+        attribute LINK_CAP_L1_EXIT_LATENCY_GEN2: bitvec[3];
+        attribute LINK_CAP_MAX_LINK_SPEED: bitvec[4];
+        attribute LINK_CAP_MAX_LINK_WIDTH: bitvec[6];
+        attribute LINK_CAP_RSVD_23_22: bitvec[2];
+        attribute LINK_CONTROL_RCB: bitvec[1];
+        attribute LINK_CTRL2_TARGET_LINK_SPEED: bitvec[4];
+        attribute LL_ACK_TIMEOUT: bitvec[15];
+        attribute LL_ACK_TIMEOUT_FUNC: bitvec[2];
+        attribute LL_REPLAY_TIMEOUT: bitvec[15];
+        attribute LL_REPLAY_TIMEOUT_FUNC: bitvec[2];
+        attribute LTSSM_MAX_LINK_WIDTH: bitvec[6];
+        attribute MSIX_BASE_PTR: bitvec[8];
+        attribute MSIX_CAP_ID: bitvec[8];
+        attribute MSIX_CAP_NEXTPTR: bitvec[8];
+        attribute MSIX_CAP_PBA_BIR: bitvec[3];
+        attribute MSIX_CAP_PBA_OFFSET: bitvec[29];
+        attribute MSIX_CAP_TABLE_BIR: bitvec[3];
+        attribute MSIX_CAP_TABLE_OFFSET: bitvec[29];
+        attribute MSIX_CAP_TABLE_SIZE: bitvec[11];
+        attribute MSI_BASE_PTR: bitvec[8];
+        attribute MSI_CAP_ID: bitvec[8];
+        attribute MSI_CAP_MULTIMSGCAP: bitvec[3];
+        attribute MSI_CAP_MULTIMSG_EXTENSION: bitvec[1];
+        attribute MSI_CAP_NEXTPTR: bitvec[8];
+        attribute PCIE_BASE_PTR: bitvec[8];
+        attribute PCIE_CAP_CAPABILITY_ID: bitvec[8];
+        attribute PCIE_CAP_CAPABILITY_VERSION: bitvec[4];
+        attribute PCIE_CAP_DEVICE_PORT_TYPE: bitvec[4];
+        attribute PCIE_CAP_INT_MSG_NUM: bitvec[5];
+        attribute PCIE_CAP_NEXTPTR: bitvec[8];
+        attribute PCIE_CAP_RSVD_15_14: bitvec[2];
+        attribute PGL0_LANE: bitvec[3];
+        attribute PGL1_LANE: bitvec[3];
+        attribute PGL2_LANE: bitvec[3];
+        attribute PGL3_LANE: bitvec[3];
+        attribute PGL4_LANE: bitvec[3];
+        attribute PGL5_LANE: bitvec[3];
+        attribute PGL6_LANE: bitvec[3];
+        attribute PGL7_LANE: bitvec[3];
+        attribute PL_AUTO_CONFIG: bitvec[3];
+        attribute PM_BASE_PTR: bitvec[8];
+        attribute PM_CAP_AUXCURRENT: bitvec[3];
+        attribute PM_CAP_ID: bitvec[8];
+        attribute PM_CAP_NEXTPTR: bitvec[8];
+        attribute PM_CAP_PMESUPPORT: bitvec[5];
+        attribute PM_CAP_RSVD_04: bitvec[1];
+        attribute PM_CAP_VERSION: bitvec[3];
+        attribute PM_DATA0: bitvec[8];
+        attribute PM_DATA1: bitvec[8];
+        attribute PM_DATA2: bitvec[8];
+        attribute PM_DATA3: bitvec[8];
+        attribute PM_DATA4: bitvec[8];
+        attribute PM_DATA5: bitvec[8];
+        attribute PM_DATA6: bitvec[8];
+        attribute PM_DATA7: bitvec[8];
+        attribute PM_DATA_SCALE0: bitvec[2];
+        attribute PM_DATA_SCALE1: bitvec[2];
+        attribute PM_DATA_SCALE2: bitvec[2];
+        attribute PM_DATA_SCALE3: bitvec[2];
+        attribute PM_DATA_SCALE4: bitvec[2];
+        attribute PM_DATA_SCALE5: bitvec[2];
+        attribute PM_DATA_SCALE6: bitvec[2];
+        attribute PM_DATA_SCALE7: bitvec[2];
+        attribute RECRC_CHK: bitvec[2];
+        attribute REVISION_ID: bitvec[8];
+        attribute SLOT_CAP_PHYSICAL_SLOT_NUM: bitvec[13];
+        attribute SLOT_CAP_SLOT_POWER_LIMIT_SCALE: bitvec[2];
+        attribute SLOT_CAP_SLOT_POWER_LIMIT_VALUE: bitvec[8];
+        attribute SPARE_BIT0: bitvec[1];
+        attribute SPARE_BIT1: bitvec[1];
+        attribute SPARE_BIT2: bitvec[1];
+        attribute SPARE_BIT3: bitvec[1];
+        attribute SPARE_BIT4: bitvec[1];
+        attribute SPARE_BIT5: bitvec[1];
+        attribute SPARE_BIT6: bitvec[1];
+        attribute SPARE_BIT7: bitvec[1];
+        attribute SPARE_BIT8: bitvec[1];
+        attribute SPARE_BYTE0: bitvec[8];
+        attribute SPARE_BYTE1: bitvec[8];
+        attribute SPARE_BYTE2: bitvec[8];
+        attribute SPARE_BYTE3: bitvec[8];
+        attribute SPARE_WORD0: bitvec[32];
+        attribute SPARE_WORD1: bitvec[32];
+        attribute SPARE_WORD2: bitvec[32];
+        attribute SPARE_WORD3: bitvec[32];
+        attribute SUBSYSTEM_ID: bitvec[16];
+        attribute SUBSYSTEM_VENDOR_ID: bitvec[16];
+        attribute TL_RX_RAM_RADDR_LATENCY: bitvec[1];
+        attribute TL_RX_RAM_RDATA_LATENCY: bitvec[2];
+        attribute TL_RX_RAM_WRITE_LATENCY: bitvec[1];
+        attribute TL_TX_RAM_RADDR_LATENCY: bitvec[1];
+        attribute TL_TX_RAM_RDATA_LATENCY: bitvec[2];
+        attribute TL_TX_RAM_WRITE_LATENCY: bitvec[1];
+        attribute USER_CLK_FREQ: bitvec[3];
+        attribute VC0_RX_RAM_LIMIT: bitvec[13];
+        attribute VC_BASE_PTR: bitvec[12];
+        attribute VC_CAP_ID: bitvec[16];
+        attribute VC_CAP_NEXTPTR: bitvec[12];
+        attribute VC_CAP_VERSION: bitvec[4];
+        attribute VENDOR_ID: bitvec[16];
+        attribute VSEC_BASE_PTR: bitvec[12];
+        attribute VSEC_CAP_HDR_ID: bitvec[16];
+        attribute VSEC_CAP_HDR_LENGTH: bitvec[12];
+        attribute VSEC_CAP_HDR_REVISION: bitvec[4];
+        attribute VSEC_CAP_ID: bitvec[16];
+        attribute VSEC_CAP_NEXTPTR: bitvec[12];
+        attribute VSEC_CAP_VERSION: bitvec[4];
+        attribute N_FTS_COMCLK_GEN1: bitvec[8];
+        attribute N_FTS_COMCLK_GEN2: bitvec[8];
+        attribute N_FTS_GEN1: bitvec[8];
+        attribute N_FTS_GEN2: bitvec[8];
+        attribute PCIE_REVISION: bitvec[4];
+        attribute VC0_TOTAL_CREDITS_CD: bitvec[11];
+        attribute VC0_TOTAL_CREDITS_CH: bitvec[7];
+        attribute VC0_TOTAL_CREDITS_NPH: bitvec[7];
+        attribute VC0_TOTAL_CREDITS_PD: bitvec[11];
+        attribute VC0_TOTAL_CREDITS_PH: bitvec[7];
+        attribute VC0_TX_LASTPACKET: bitvec[5];
+    }
+
+    bel_class PCIE_V7 {
+        input SYSRSTN;
+        input USERCLK;
+        input USERCLK2;
+        input USERCLKPREBUF;
+        input USERCLKPREBUFEN;
+        input CMRSTN;
+        input CMSTICKYRSTN;
+        input DLRSTN;
+        input TLRSTN;
+        output USERRSTN;
+
+        output TRNLNKUP;
+        output TRNFCPH[8];
+        output TRNFCPD[12];
+        output TRNFCNPH[8];
+        output TRNFCNPD[12];
+        output TRNFCCPLH[8];
+        output TRNFCCPLD[12];
+        input TRNFCSEL[3];
+
+        input TRNTSOF;
+        input TRNTEOF;
+        input TRNTD[128];
+        input TRNTREM[2];
+        input TRNTSRCRDY;
+        output TRNTDSTRDY[4];
+        input TRNTSRCDSC;
+        output TRNTBUFAV[6];
+        output TRNTERRDROP;
+        input TRNTSTR;
+        output TRNTCFGREQ;
+        input TRNTCFGGNT;
+        input TRNTERRFWD;
+        input TRNTECRCGEN;
+        input TRNTDLLPDATA[32];
+        output TRNTDLLPDSTRDY;
+        input TRNTDLLPSRCRDY;
+
+        output TRNRSOF;
+        output TRNREOF;
+        output TRNRD[128];
+        output TRNRREM[2];
+        output TRNRERRFWD;
+        output TRNRSRCRDY;
+        input TRNRDSTRDY;
+        output TRNRSRCDSC;
+        input TRNRNPOK;
+        output TRNRBARHIT[8];
+        output TRNRECRCERR;
+        input TRNRFCPRET;
+        input TRNRNPREQ;
+        output TRNRDLLPDATA[64];
+        output TRNRDLLPSRCRDY[2];
+
+        output PLINITIALLINKWIDTH[3];
+        output PLLANEREVERSALMODE[2];
+        output PLLINKGEN2CAP;
+        output PLLINKPARTNERGEN2SUPPORTED;
+        output PLLINKUPCFGCAP;
+        output PLSELLNKRATE;
+        output PLSELLNKWIDTH[2];
+        output PLLTSSMSTATE[6];
+        output PLDIRECTEDCHANGEDONE;
+        input PLDIRECTEDLINKAUTON;
+        input PLDIRECTEDLINKCHANGE[2];
+        input PLDIRECTEDLINKSPEED;
+        input PLDIRECTEDLINKWIDTH[2];
+        input PLDIRECTEDLTSSMNEW[6];
+        input PLDIRECTEDLTSSMNEWVLD;
+        input PLDIRECTEDLTSSMSTALL;
+        input PLUPSTREAMPREFERDEEMPH;
+        output PLRECEIVEDHOTRST;
+        input PLTRANSMITHOTRST;
+
+        input PL2DIRECTEDLSTATE[5];
+        output PL2L0REQ;
+        output PL2LINKUP;
+        output PL2RECEIVERERR;
+        output PL2RECOVERY;
+        output PL2RXELECIDLE;
+        output PL2RXPMSTATE[2];
+        output PL2SUSPENDOK;
+        input PLDBGMODE[3];
+        output PLDBGVEC[12];
+        input PLDOWNSTREAMDEEMPHSOURCE;
+        output PLPHYLNKUPN;
+        input PLRSTN;
+        output PLRXPMSTATE[2];
+        output PLTXPMSTATE[3];
+
+        output CFGMGMTDO[32];
+        output CFGMGMTRDWRDONEN;
+        input CFGMGMTDI[32];
+        input CFGMGMTDWADDR[10];
+        input CFGMGMTBYTEENN[4];
+        input CFGMGMTRDENN;
+        input CFGMGMTWRENN;
+        input CFGMGMTWRREADONLYN;
+        input CFGMGMTWRRW1CASRWN;
+
+        output CFGCOMMANDIOENABLE;
+        output CFGCOMMANDMEMENABLE;
+        output CFGCOMMANDBUSMASTERENABLE;
+        output CFGCOMMANDINTERRUPTDISABLE;
+        output CFGCOMMANDSERREN;
+
+        output CFGDEVSTATUSCORRERRDETECTED;
+        output CFGDEVSTATUSFATALERRDETECTED;
+        output CFGDEVSTATUSNONFATALERRDETECTED;
+        output CFGDEVSTATUSURDETECTED;
+
+        output CFGDEVCONTROLAUXPOWEREN;
+        output CFGDEVCONTROLCORRERRREPORTINGEN;
+        output CFGDEVCONTROLENABLERO;
+        output CFGDEVCONTROLEXTTAGEN;
+        output CFGDEVCONTROLFATALERRREPORTINGEN;
+        output CFGDEVCONTROLMAXPAYLOAD[3];
+        output CFGDEVCONTROLMAXREADREQ[3];
+        output CFGDEVCONTROLNONFATALREPORTINGEN;
+        output CFGDEVCONTROLNOSNOOPEN;
+        output CFGDEVCONTROLPHANTOMEN;
+        output CFGDEVCONTROLURERRREPORTINGEN;
+        output CFGDEVCONTROL2ARIFORWARDEN;
+        output CFGDEVCONTROL2ATOMICEGRESSBLOCK;
+        output CFGDEVCONTROL2ATOMICREQUESTEREN;
+        output CFGDEVCONTROL2CPLTIMEOUTDIS;
+        output CFGDEVCONTROL2CPLTIMEOUTVAL[4];
+        output CFGDEVCONTROL2IDOCPLEN;
+        output CFGDEVCONTROL2IDOREQEN;
+        output CFGDEVCONTROL2LTREN;
+        output CFGDEVCONTROL2TLPPREFIXBLOCK;
+
+        output CFGLINKSTATUSAUTOBANDWIDTHSTATUS;
+        output CFGLINKSTATUSBANDWIDTHSTATUS;
+        output CFGLINKSTATUSCURRENTSPEED[2];
+        output CFGLINKSTATUSDLLACTIVE;
+        output CFGLINKSTATUSLINKTRAINING;
+        output CFGLINKSTATUSNEGOTIATEDWIDTH[4];
+        output CFGLINKCONTROLASPMCONTROL[2];
+        output CFGLINKCONTROLAUTOBANDWIDTHINTEN;
+        output CFGLINKCONTROLBANDWIDTHINTEN;
+        output CFGLINKCONTROLCLOCKPMEN;
+        output CFGLINKCONTROLCOMMONCLOCK;
+        output CFGLINKCONTROLEXTENDEDSYNC;
+        output CFGLINKCONTROLHWAUTOWIDTHDIS;
+        output CFGLINKCONTROLLINKDISABLE;
+        output CFGLINKCONTROLRCB;
+        output CFGLINKCONTROLRETRAINLINK;
+
+        output CFGPCIELINKSTATE[3];
+        input CFGPCIECAPINTERRUPTMSGNUM[5];
+        input CFGTRNPENDINGN;
+        input CFGDSN[64];
+
+        output CFGPMCSRPMEEN;
+        output CFGPMCSRPMESTATUS;
+        output CFGPMCSRPOWERSTATE[2];
+        input CFGPMFORCESTATE[2];
+        input CFGPMFORCESTATEENN;
+        input CFGPMHALTASPML0SN;
+        input CFGPMHALTASPML1N;
+        output CFGPMRCVASREQL1N;
+        output CFGPMRCVENTERL1N;
+        output CFGPMRCVENTERL23N;
+        output CFGPMRCVREQACKN;
+        input CFGPMSENDPMETON;
+        input CFGPMTURNOFFOKN;
+        input CFGPMWAKEN;
+
+        input CFGDSBUSNUMBER[8];
+        input CFGDSDEVICENUMBER[5];
+        input CFGDSFUNCTIONNUMBER[3];
+
+        output CFGMSGRECEIVED;
+        output CFGMSGDATA[16];
+        output CFGMSGRECEIVEDASSERTINTA;
+        output CFGMSGRECEIVEDASSERTINTB;
+        output CFGMSGRECEIVEDASSERTINTC;
+        output CFGMSGRECEIVEDASSERTINTD;
+        output CFGMSGRECEIVEDDEASSERTINTA;
+        output CFGMSGRECEIVEDDEASSERTINTB;
+        output CFGMSGRECEIVEDDEASSERTINTC;
+        output CFGMSGRECEIVEDDEASSERTINTD;
+        output CFGMSGRECEIVEDERRCOR;
+        output CFGMSGRECEIVEDERRFATAL;
+        output CFGMSGRECEIVEDERRNONFATAL;
+        output CFGMSGRECEIVEDPMASNAK;
+        output CFGMSGRECEIVEDPMETO;
+        output CFGMSGRECEIVEDPMETOACK;
+        output CFGMSGRECEIVEDPMPME;
+        output CFGMSGRECEIVEDSETSLOTPOWERLIMIT;
+        output CFGMSGRECEIVEDUNLOCK;
+
+        input CFGINTERRUPTN;
+        output CFGINTERRUPTRDYN;
+        input CFGINTERRUPTASSERTN;
+        input CFGINTERRUPTDI[8];
+        output CFGINTERRUPTDO[8];
+        output CFGINTERRUPTMMENABLE[3];
+        output CFGINTERRUPTMSIENABLE;
+        output CFGINTERRUPTMSIXENABLE;
+        output CFGINTERRUPTMSIXFM;
+        input CFGINTERRUPTSTATN;
+
+        input CFGERRACSN;
+        input CFGERRAERHEADERLOG[128];
+        output CFGERRAERHEADERLOGSETN;
+        input CFGERRATOMICEGRESSBLOCKEDN;
+        input CFGERRCORN;
+        input CFGERRCPLABORTN;
+        output CFGERRCPLRDYN;
+        input CFGERRCPLTIMEOUTN;
+        input CFGERRCPLUNEXPECTN;
+        input CFGERRECRCN;
+        input CFGERRINTERNALCORN;
+        input CFGERRINTERNALUNCORN;
+        input CFGERRLOCKEDN;
+        input CFGERRMALFORMEDN;
+        input CFGERRMCBLOCKEDN;
+        input CFGERRNORECOVERYN;
+        input CFGERRPOISONEDN;
+        input CFGERRPOSTEDN;
+        input CFGERRTLPCPLHEADER[48];
+        input CFGERRURN;
+
+        output CFGAERECRCCHECKEN;
+        output CFGAERECRCGENEN;
+        input CFGAERINTERRUPTMSGNUM[5];
+        output CFGAERROOTERRCORRERRRECEIVED;
+        output CFGAERROOTERRCORRERRREPORTINGEN;
+        output CFGAERROOTERRFATALERRRECEIVED;
+        output CFGAERROOTERRFATALERRREPORTINGEN;
+        output CFGAERROOTERRNONFATALERRRECEIVED;
+        output CFGAERROOTERRNONFATALERRREPORTINGEN;
+
+        input CFGVENDID[16];
+        input CFGDEVID[16];
+        input CFGSUBSYSID[16];
+        input CFGSUBSYSVENDID[16];
+        input CFGREVID[8];
+
+        output CFGBRIDGESERREN;
+        input CFGFORCECOMMONCLOCKOFF;
+        input CFGFORCEEXTENDEDSYNCON;
+        input CFGFORCEMPS[3];
+        input CFGPORTNUMBER[8];
+        output CFGROOTCONTROLPMEINTEN;
+        output CFGROOTCONTROLSYSERRCORRERREN;
+        output CFGROOTCONTROLSYSERRFATALERREN;
+        output CFGROOTCONTROLSYSERRNONFATALERREN;
+        output CFGSLOTCONTROLELECTROMECHILCTLPULSE;
+        output CFGVCTCVCMAP[7];
+
+        output CFGTRANSACTION;
+        output CFGTRANSACTIONADDR[7];
+        output CFGTRANSACTIONTYPE;
+
+        input DRPCLK;
+        input DRPEN;
+        input DRPWE;
+        input DRPADDR[9];
+        input DRPDI[16];
+        output DRPRDY;
+        output DRPDO[16];
+
+        output MIMRXRADDR[13];
+        input MIMRXRDATA[68];
+        output MIMRXREN;
+        output MIMRXWADDR[13];
+        output MIMRXWDATA[68];
+        output MIMRXWEN;
+        output MIMTXRADDR[13];
+        input MIMTXRDATA[69];
+        output MIMTXREN;
+        output MIMTXWADDR[13];
+        output MIMTXWDATA[69];
+        output MIMTXWEN;
+
+        input PIPECLK;
+        output PIPETXDEEMPH;
+        output PIPETXMARGIN[3];
+        output PIPETXRATE;
+        output PIPETXRCVRDET;
+        output PIPETXRESET;
+        for ch in 0..8 {
+            input "PIPERX{ch}CHANISALIGNED";
+            input "PIPERX{ch}CHARISK"[2];
+            input "PIPERX{ch}DATA"[16];
+            input "PIPERX{ch}ELECIDLE";
+            input "PIPERX{ch}PHYSTATUS";
+            output "PIPERX{ch}POLARITY";
+            input "PIPERX{ch}STATUS"[3];
+            input "PIPERX{ch}VALID";
+
+            output "PIPETX{ch}CHARISK"[2];
+            output "PIPETX{ch}COMPLIANCE";
+            output "PIPETX{ch}DATA"[16];
+            output "PIPETX{ch}ELECIDLE";
+            output "PIPETX{ch}POWERDOWN"[2];
+        }
+
+        output LNKCLKEN;
+        input FUNCLVLRSTN;
+        output RECEIVEDFUNCLVLRSTN;
+        output LL2BADDLLPERR;
+        output LL2BADTLPERR;
+        output LL2LINKSTATUS[5];
+        output LL2PROTOCOLERR;
+        output LL2RECEIVERERR;
+        output LL2REPLAYROERR;
+        output LL2REPLAYTOERR;
+        input LL2SENDASREQL1;
+        input LL2SENDENTERL1;
+        input LL2SENDENTERL23;
+        input LL2SENDPMACK;
+        input LL2SUSPENDNOW;
+        output LL2SUSPENDOK;
+        output LL2TFCINIT1SEQ;
+        output LL2TFCINIT2SEQ;
+        input LL2TLPRCV;
+        output LL2TXIDLE;
+
+        input TL2ASPMSUSPENDCREDITCHECK;
+        output TL2ASPMSUSPENDCREDITCHECKOK;
+        output TL2ASPMSUSPENDREQ;
+        output TL2ERRFCPE;
+        output TL2ERRHDR[64];
+        output TL2ERRMALFORMED;
+        output TL2ERRRXOVERFLOW;
+        output TL2PPMSUSPENDOK;
+        input TL2PPMSUSPENDREQ;
+
+        input EDTCLK;
+        input EDTCONFIGURATION;
+        input EDTSINGLEBYPASSCHAIN;
+        input EDTUPDATE;
+        input EDTBYPASS;
+        input EDTCHANNELSIN1;
+        input EDTCHANNELSIN2;
+        input EDTCHANNELSIN3;
+        input EDTCHANNELSIN4;
+        input EDTCHANNELSIN5;
+        input EDTCHANNELSIN6;
+        input EDTCHANNELSIN7;
+        input EDTCHANNELSIN8;
+        output EDTCHANNELSOUT1;
+        output EDTCHANNELSOUT2;
+        output EDTCHANNELSOUT3;
+        output EDTCHANNELSOUT4;
+        output EDTCHANNELSOUT5;
+        output EDTCHANNELSOUT6;
+        output EDTCHANNELSOUT7;
+        output EDTCHANNELSOUT8;
+
+        input DBGMODE[2];
+        input DBGSUBMODE;
+        output DBGSCLRA;
+        output DBGSCLRB;
+        output DBGSCLRC;
+        output DBGSCLRD;
+        output DBGSCLRE;
+        output DBGSCLRF;
+        output DBGSCLRG;
+        output DBGSCLRH;
+        output DBGSCLRI;
+        output DBGSCLRJ;
+        output DBGSCLRK;
+        output DBGVECA[64];
+        output DBGVECB[64];
+        output DBGVECC[12];
+
+        input PMVDIVIDE[2];
+        input PMVENABLEN;
+        output PMVOUT;
+        input PMVSELECT[3];
+
+        input SCANMODEN;
+        input SCANENABLEN;
+
+        output XILUNCONNOUT[40];
+
+        // 0x00..0x96
+        attribute DRP: bitvec[16][150];
+
+        attribute AER_CAP_ECRC_CHECK_CAPABLE: bool;
+        attribute AER_CAP_ECRC_GEN_CAPABLE: bool;
+        attribute AER_CAP_MULTIHEADER: bool;
+        attribute AER_CAP_ON: bool;
+        attribute AER_CAP_PERMIT_ROOTERR_UPDATE: bool;
+        attribute ALLOW_X8_GEN2: bool;
+        attribute CMD_INTX_IMPLEMENTED: bool;
+        attribute CPL_TIMEOUT_DISABLE_SUPPORTED: bool;
+        attribute DEV_CAP_ENABLE_SLOT_PWR_LIMIT_SCALE: bool;
+        attribute DEV_CAP_ENABLE_SLOT_PWR_LIMIT_VALUE: bool;
+        attribute DEV_CAP_EXT_TAG_SUPPORTED: bool;
+        attribute DEV_CAP_FUNCTION_LEVEL_RESET_CAPABLE: bool;
+        attribute DEV_CAP_ROLE_BASED_ERROR: bool;
+        attribute DEV_CAP2_ARI_FORWARDING_SUPPORTED: bool;
+        attribute DEV_CAP2_ATOMICOP_ROUTING_SUPPORTED: bool;
+        attribute DEV_CAP2_ATOMICOP32_COMPLETER_SUPPORTED: bool;
+        attribute DEV_CAP2_ATOMICOP64_COMPLETER_SUPPORTED: bool;
+        attribute DEV_CAP2_CAS128_COMPLETER_SUPPORTED: bool;
+        attribute DEV_CAP2_ENDEND_TLP_PREFIX_SUPPORTED: bool;
+        attribute DEV_CAP2_EXTENDED_FMT_FIELD_SUPPORTED: bool;
+        attribute DEV_CAP2_LTR_MECHANISM_SUPPORTED: bool;
+        attribute DEV_CAP2_NO_RO_ENABLED_PRPR_PASSING: bool;
+        attribute DEV_CONTROL_AUX_POWER_SUPPORTED: bool;
+        attribute DEV_CONTROL_EXT_TAG_DEFAULT: bool;
+        attribute DISABLE_ASPM_L1_TIMER: bool;
+        attribute DISABLE_BAR_FILTERING: bool;
+        attribute DISABLE_ERR_MSG: bool;
+        attribute DISABLE_ID_CHECK: bool;
+        attribute DISABLE_LANE_REVERSAL: bool;
+        attribute DISABLE_LOCKED_FILTER: bool;
+        attribute DISABLE_PPM_FILTER: bool;
+        attribute DISABLE_RX_POISONED_RESP: bool;
+        attribute DISABLE_RX_TC_FILTER: bool;
+        attribute DISABLE_SCRAMBLING: bool;
+        attribute DSN_CAP_ON: bool;
+        attribute ENABLE_RX_TD_ECRC_TRIM: bool;
+        attribute ENDEND_TLP_PREFIX_FORWARDING_SUPPORTED: bool;
+        attribute ENTER_RVRY_EI_L0: bool;
+        attribute EXIT_LOOPBACK_ON_EI: bool;
+        attribute INTERRUPT_STAT_AUTO: bool;
+        attribute IS_SWITCH: bool;
+        attribute LINK_CAP_ASPM_OPTIONALITY: bool;
+        attribute LINK_CAP_CLOCK_POWER_MANAGEMENT: bool;
+        attribute LINK_CAP_DLL_LINK_ACTIVE_REPORTING_CAP: bool;
+        attribute LINK_CAP_LINK_BANDWIDTH_NOTIFICATION_CAP: bool;
+        attribute LINK_CAP_SURPRISE_DOWN_ERROR_CAPABLE: bool;
+        attribute LINK_CTRL2_DEEMPHASIS: bool;
+        attribute LINK_CTRL2_HW_AUTONOMOUS_SPEED_DISABLE: bool;
+        attribute LINK_STATUS_SLOT_CLOCK_CONFIG: bool;
+        attribute LL_ACK_TIMEOUT_EN: bool;
+        attribute LL_REPLAY_TIMEOUT_EN: bool;
+        attribute MPS_FORCE: bool;
+        attribute MSI_CAP_ON: bool;
+        attribute MSI_CAP_PER_VECTOR_MASKING_CAPABLE: bool;
+        attribute MSI_CAP_64_BIT_ADDR_CAPABLE: bool;
+        attribute MSIX_CAP_ON: bool;
+        attribute PCIE_CAP_ON: bool;
+        attribute PCIE_CAP_SLOT_IMPLEMENTED: bool;
+        attribute PL_FAST_TRAIN: bool;
+        attribute PM_ASPM_FASTEXIT: bool;
+        attribute PM_ASPML0S_TIMEOUT_EN: bool;
+        attribute PM_CAP_DSI: bool;
+        attribute PM_CAP_D1SUPPORT: bool;
+        attribute PM_CAP_D2SUPPORT: bool;
+        attribute PM_CAP_ON: bool;
+        attribute PM_CAP_PME_CLOCK: bool;
+        attribute PM_CSR_BPCCEN: bool;
+        attribute PM_CSR_B2B3: bool;
+        attribute PM_CSR_NOSOFTRST: bool;
+        attribute PM_MF: bool;
+        attribute RBAR_CAP_ON: bool;
+        attribute RECRC_CHK_TRIM: bool;
+        attribute ROOT_CAP_CRS_SW_VISIBILITY: bool;
+        attribute SELECT_DLL_IF: bool;
+        attribute SLOT_CAP_ATT_BUTTON_PRESENT: bool;
+        attribute SLOT_CAP_ATT_INDICATOR_PRESENT: bool;
+        attribute SLOT_CAP_ELEC_INTERLOCK_PRESENT: bool;
+        attribute SLOT_CAP_HOTPLUG_CAPABLE: bool;
+        attribute SLOT_CAP_HOTPLUG_SURPRISE: bool;
+        attribute SLOT_CAP_MRL_SENSOR_PRESENT: bool;
+        attribute SLOT_CAP_NO_CMD_COMPLETED_SUPPORT: bool;
+        attribute SLOT_CAP_POWER_CONTROLLER_PRESENT: bool;
+        attribute SLOT_CAP_POWER_INDICATOR_PRESENT: bool;
+        attribute SSL_MESSAGE_AUTO: bool;
+        attribute TECRC_EP_INV: bool;
+        attribute TEST_MODE_PIN_CHAR: bool;
+        attribute TL_RBYPASS: bool;
+        attribute TL_TFC_DISABLE: bool;
+        attribute TL_TX_CHECKS_DISABLE: bool;
+        attribute TRN_DW: bool;
+        attribute TRN_NP_FC: bool;
+        attribute UPCONFIG_CAPABLE: bool;
+        attribute UPSTREAM_FACING: bool;
+        attribute UR_ATOMIC: bool;
+        attribute UR_CFG1: bool;
+        attribute UR_INV_REQ: bool;
+        attribute UR_PRS_RESPONSE: bool;
+        attribute USE_RID_PINS: bool;
+        attribute USER_CLK2_DIV2: bool;
+        attribute VC_CAP_ON: bool;
+        attribute VC_CAP_REJECT_SNOOP_TRANSACTIONS: bool;
+        attribute VC0_CPL_INFINITE: bool;
+        attribute VSEC_CAP_IS_LINK_VISIBLE: bool;
+        attribute VSEC_CAP_ON: bool;
+        attribute AER_BASE_PTR: bitvec[12];
+        attribute AER_CAP_ID: bitvec[16];
+        attribute AER_CAP_NEXTPTR: bitvec[12];
+        attribute AER_CAP_OPTIONAL_ERR_SUPPORT: bitvec[24];
+        attribute AER_CAP_VERSION: bitvec[4];
+        attribute BAR0: bitvec[32];
+        attribute BAR1: bitvec[32];
+        attribute BAR2: bitvec[32];
+        attribute BAR3: bitvec[32];
+        attribute BAR4: bitvec[32];
+        attribute BAR5: bitvec[32];
+        attribute CAPABILITIES_PTR: bitvec[8];
+        attribute CARDBUS_CIS_POINTER: bitvec[32];
+        attribute CLASS_CODE: bitvec[24];
+        attribute CPL_TIMEOUT_RANGES_SUPPORTED: bitvec[4];
+        attribute CRM_MODULE_RSTS: bitvec[7];
+        attribute DEV_CAP2_MAX_ENDEND_TLP_PREFIXES: bitvec[2];
+        attribute DEV_CAP2_TPH_COMPLETER_SUPPORTED: bitvec[2];
+        attribute DNSTREAM_LINK_NUM: bitvec[8];
+        attribute DSN_BASE_PTR: bitvec[12];
+        attribute DSN_CAP_ID: bitvec[16];
+        attribute DSN_CAP_NEXTPTR: bitvec[12];
+        attribute DSN_CAP_VERSION: bitvec[4];
+        attribute ENABLE_MSG_ROUTE: bitvec[11];
+        attribute EXPANSION_ROM: bitvec[32];
+        attribute EXT_CFG_CAP_PTR: bitvec[6];
+        attribute EXT_CFG_XP_CAP_PTR: bitvec[10];
+        attribute HEADER_TYPE: bitvec[8];
+        attribute INFER_EI: bitvec[5];
+        attribute INTERRUPT_PIN: bitvec[8];
+        attribute LAST_CONFIG_DWORD: bitvec[10];
+        attribute LINK_CAP_MAX_LINK_SPEED: bitvec[4];
+        attribute LINK_CAP_MAX_LINK_WIDTH: bitvec[6];
+        attribute LINK_CTRL2_TARGET_LINK_SPEED: bitvec[4];
+        attribute LL_ACK_TIMEOUT: bitvec[15];
+        attribute LL_REPLAY_TIMEOUT: bitvec[15];
+        attribute LTSSM_MAX_LINK_WIDTH: bitvec[6];
+        attribute MSIX_BASE_PTR: bitvec[8];
+        attribute MSIX_CAP_ID: bitvec[8];
+        attribute MSIX_CAP_NEXTPTR: bitvec[8];
+        attribute MSIX_CAP_PBA_OFFSET: bitvec[29];
+        attribute MSIX_CAP_TABLE_OFFSET: bitvec[29];
+        attribute MSIX_CAP_TABLE_SIZE: bitvec[11];
+        attribute MSI_BASE_PTR: bitvec[8];
+        attribute MSI_CAP_ID: bitvec[8];
+        attribute MSI_CAP_NEXTPTR: bitvec[8];
+        attribute PCIE_BASE_PTR: bitvec[8];
+        attribute PCIE_CAP_CAPABILITY_ID: bitvec[8];
+        attribute PCIE_CAP_CAPABILITY_VERSION: bitvec[4];
+        attribute PCIE_CAP_DEVICE_PORT_TYPE: bitvec[4];
+        attribute PCIE_CAP_NEXTPTR: bitvec[8];
+        attribute PM_ASPML0S_TIMEOUT: bitvec[15];
+        attribute PM_BASE_PTR: bitvec[8];
+        attribute PM_CAP_ID: bitvec[8];
+        attribute PM_CAP_NEXTPTR: bitvec[8];
+        attribute PM_CAP_PMESUPPORT: bitvec[5];
+        attribute PM_DATA0: bitvec[8];
+        attribute PM_DATA1: bitvec[8];
+        attribute PM_DATA2: bitvec[8];
+        attribute PM_DATA3: bitvec[8];
+        attribute PM_DATA4: bitvec[8];
+        attribute PM_DATA5: bitvec[8];
+        attribute PM_DATA6: bitvec[8];
+        attribute PM_DATA7: bitvec[8];
+        attribute PM_DATA_SCALE0: bitvec[2];
+        attribute PM_DATA_SCALE1: bitvec[2];
+        attribute PM_DATA_SCALE2: bitvec[2];
+        attribute PM_DATA_SCALE3: bitvec[2];
+        attribute PM_DATA_SCALE4: bitvec[2];
+        attribute PM_DATA_SCALE5: bitvec[2];
+        attribute PM_DATA_SCALE6: bitvec[2];
+        attribute PM_DATA_SCALE7: bitvec[2];
+        attribute RBAR_BASE_PTR: bitvec[12];
+        attribute RBAR_CAP_CONTROL_ENCODEDBAR0: bitvec[5];
+        attribute RBAR_CAP_CONTROL_ENCODEDBAR1: bitvec[5];
+        attribute RBAR_CAP_CONTROL_ENCODEDBAR2: bitvec[5];
+        attribute RBAR_CAP_CONTROL_ENCODEDBAR3: bitvec[5];
+        attribute RBAR_CAP_CONTROL_ENCODEDBAR4: bitvec[5];
+        attribute RBAR_CAP_CONTROL_ENCODEDBAR5: bitvec[5];
+        attribute RBAR_CAP_ID: bitvec[16];
+        attribute RBAR_CAP_INDEX0: bitvec[3];
+        attribute RBAR_CAP_INDEX1: bitvec[3];
+        attribute RBAR_CAP_INDEX2: bitvec[3];
+        attribute RBAR_CAP_INDEX3: bitvec[3];
+        attribute RBAR_CAP_INDEX4: bitvec[3];
+        attribute RBAR_CAP_INDEX5: bitvec[3];
+        attribute RBAR_CAP_NEXTPTR: bitvec[12];
+        attribute RBAR_CAP_SUP0: bitvec[32];
+        attribute RBAR_CAP_SUP1: bitvec[32];
+        attribute RBAR_CAP_SUP2: bitvec[32];
+        attribute RBAR_CAP_SUP3: bitvec[32];
+        attribute RBAR_CAP_SUP4: bitvec[32];
+        attribute RBAR_CAP_SUP5: bitvec[32];
+        attribute RBAR_CAP_VERSION: bitvec[4];
+        attribute RBAR_NUM: bitvec[3];
+        attribute RP_AUTO_SPD: bitvec[2];
+        attribute RP_AUTO_SPD_LOOPCNT: bitvec[5];
+        attribute SLOT_CAP_PHYSICAL_SLOT_NUM: bitvec[13];
+        attribute SLOT_CAP_SLOT_POWER_LIMIT_VALUE: bitvec[8];
+        attribute SPARE_BYTE0: bitvec[8];
+        attribute SPARE_BYTE1: bitvec[8];
+        attribute SPARE_BYTE2: bitvec[8];
+        attribute SPARE_BYTE3: bitvec[8];
+        attribute SPARE_WORD0: bitvec[32];
+        attribute SPARE_WORD1: bitvec[32];
+        attribute SPARE_WORD2: bitvec[32];
+        attribute SPARE_WORD3: bitvec[32];
+        attribute VC0_RX_RAM_LIMIT: bitvec[13];
+        attribute VC_BASE_PTR: bitvec[12];
+        attribute VC_CAP_ID: bitvec[16];
+        attribute VC_CAP_NEXTPTR: bitvec[12];
+        attribute VC_CAP_VERSION: bitvec[4];
+        attribute VSEC_BASE_PTR: bitvec[12];
+        attribute VSEC_CAP_HDR_ID: bitvec[16];
+        attribute VSEC_CAP_HDR_LENGTH: bitvec[12];
+        attribute VSEC_CAP_HDR_REVISION: bitvec[4];
+        attribute VSEC_CAP_ID: bitvec[16];
+        attribute VSEC_CAP_NEXTPTR: bitvec[12];
+        attribute VSEC_CAP_VERSION: bitvec[4];
+        attribute CFG_ECRC_ERR_CPLSTAT: bitvec[2];
+        attribute DEV_CAP_ENDPOINT_L0S_LATENCY: bitvec[3];
+        attribute DEV_CAP_ENDPOINT_L1_LATENCY: bitvec[3];
+        attribute DEV_CAP_MAX_PAYLOAD_SUPPORTED: bitvec[3];
+        attribute DEV_CAP_PHANTOM_FUNCTIONS_SUPPORT: bitvec[2];
+        attribute DEV_CAP_RSVD_14_12: bitvec[3];
+        attribute DEV_CAP_RSVD_17_16: bitvec[2];
+        attribute DEV_CAP_RSVD_31_29: bitvec[3];
+        attribute LINK_CAP_ASPM_SUPPORT: bitvec[2];
+        attribute LINK_CAP_L0S_EXIT_LATENCY_COMCLK_GEN1: bitvec[3];
+        attribute LINK_CAP_L0S_EXIT_LATENCY_COMCLK_GEN2: bitvec[3];
+        attribute LINK_CAP_L0S_EXIT_LATENCY_GEN1: bitvec[3];
+        attribute LINK_CAP_L0S_EXIT_LATENCY_GEN2: bitvec[3];
+        attribute LINK_CAP_L1_EXIT_LATENCY_COMCLK_GEN1: bitvec[3];
+        attribute LINK_CAP_L1_EXIT_LATENCY_COMCLK_GEN2: bitvec[3];
+        attribute LINK_CAP_L1_EXIT_LATENCY_GEN1: bitvec[3];
+        attribute LINK_CAP_L1_EXIT_LATENCY_GEN2: bitvec[3];
+        attribute LINK_CAP_RSVD_23: bitvec[1];
+        attribute LINK_CONTROL_RCB: bitvec[1];
+        attribute LL_ACK_TIMEOUT_FUNC: bitvec[2];
+        attribute LL_REPLAY_TIMEOUT_FUNC: bitvec[2];
+        attribute MSI_CAP_MULTIMSG_EXTENSION: bitvec[1];
+        attribute MSI_CAP_MULTIMSGCAP: bitvec[3];
+        attribute MSIX_CAP_PBA_BIR: bitvec[3];
+        attribute MSIX_CAP_TABLE_BIR: bitvec[3];
+        attribute PCIE_CAP_RSVD_15_14: bitvec[2];
+        attribute PL_AUTO_CONFIG: bitvec[3];
+        attribute PM_ASPML0S_TIMEOUT_FUNC: bitvec[2];
+        attribute PM_CAP_AUXCURRENT: bitvec[3];
+        attribute PM_CAP_RSVD_04: bitvec[1];
+        attribute PM_CAP_VERSION: bitvec[3];
+        attribute RECRC_CHK: bitvec[2];
+        attribute SLOT_CAP_SLOT_POWER_LIMIT_SCALE: bitvec[2];
+        attribute SPARE_BIT0: bitvec[1];
+        attribute SPARE_BIT1: bitvec[1];
+        attribute SPARE_BIT2: bitvec[1];
+        attribute SPARE_BIT3: bitvec[1];
+        attribute SPARE_BIT4: bitvec[1];
+        attribute SPARE_BIT5: bitvec[1];
+        attribute SPARE_BIT6: bitvec[1];
+        attribute SPARE_BIT7: bitvec[1];
+        attribute SPARE_BIT8: bitvec[1];
+        attribute TL_RX_RAM_RADDR_LATENCY: bitvec[1];
+        attribute TL_RX_RAM_RDATA_LATENCY: bitvec[2];
+        attribute TL_RX_RAM_WRITE_LATENCY: bitvec[1];
+        attribute TL_TX_RAM_RADDR_LATENCY: bitvec[1];
+        attribute TL_TX_RAM_RDATA_LATENCY: bitvec[2];
+        attribute TL_TX_RAM_WRITE_LATENCY: bitvec[1];
+        attribute USER_CLK_FREQ: bitvec[3];
+        attribute N_FTS_COMCLK_GEN1: bitvec[8];
+        attribute N_FTS_COMCLK_GEN2: bitvec[8];
+        attribute N_FTS_GEN1: bitvec[8];
+        attribute N_FTS_GEN2: bitvec[8];
+        attribute PCIE_REVISION: bitvec[4];
+        attribute VC0_TOTAL_CREDITS_CD: bitvec[11];
+        attribute VC0_TOTAL_CREDITS_CH: bitvec[7];
+        attribute VC0_TOTAL_CREDITS_NPD: bitvec[11];
+        attribute VC0_TOTAL_CREDITS_NPH: bitvec[7];
+        attribute VC0_TOTAL_CREDITS_PD: bitvec[11];
+        attribute VC0_TOTAL_CREDITS_PH: bitvec[7];
+        attribute VC0_TX_LASTPACKET: bitvec[5];
+    }
+
+    bel_class PCIE3 {
+        input CORECLK;
+        input RECCLK;
+        input USERCLK;
+        input RESETN;
+        input CORECLKMICOMPLETIONRAML;
+        input CORECLKMICOMPLETIONRAMU;
+        input CORECLKMIREPLAYRAM;
+        input CORECLKMIREQUESTRAM;
+        input MGMTRESETN;
+        input MGMTSTICKYRESETN;
+
+        input MAXISCQTREADY[22];
+        output MAXISCQTVALID;
+        output MAXISCQTDATA[256];
+        output MAXISCQTKEEP[8];
+        output MAXISCQTLAST;
+        output MAXISCQTUSER[85];
+
+        input MAXISRCTREADY[22];
+        output MAXISRCTVALID;
+        output MAXISRCTDATA[256];
+        output MAXISRCTKEEP[8];
+        output MAXISRCTLAST;
+        output MAXISRCTUSER[75];
+
+        output SAXISCCTREADY[4];
+        input SAXISCCTVALID;
+        input SAXISCCTDATA[256];
+        input SAXISCCTKEEP[8];
+        input SAXISCCTLAST;
+        input SAXISCCTUSER[33];
+
+        output SAXISRQTREADY[4];
+        input SAXISRQTVALID;
+        input SAXISRQTDATA[256];
+        input SAXISRQTKEEP[8];
+        input SAXISRQTLAST;
+        input SAXISRQTUSER[60];
+
+        input CFGMGMTREAD;
+        input CFGMGMTWRITE;
+        input CFGMGMTADDR[19];
+        input CFGMGMTTYPE1CFGREGACCESS;
+        input CFGMGMTBYTEENABLE[4];
+        input CFGMGMTWRITEDATA[32];
+        output CFGMGMTREADDATA[32];
+        output CFGMGMTREADWRITEDONE;
+
+        output CFGEXTREADRECEIVED;
+        output CFGEXTWRITERECEIVED;
+        output CFGEXTFUNCTIONNUMBER[8];
+        output CFGEXTREGISTERNUMBER[10];
+        output CFGEXTWRITEBYTEENABLE[4];
+        output CFGEXTWRITEDATA[32];
+        input CFGEXTREADDATA[32];
+        input CFGEXTREADDATAVALID;
+
+        input CFGCONFIGSPACEENABLE;
+
+        input CFGFCSEL[3];
+        output CFGFCPH[8];
+        output CFGFCPD[12];
+        output CFGFCNPH[8];
+        output CFGFCNPD[12];
+        output CFGFCCPLH[8];
+        output CFGFCCPLD[12];
+
+        input CFGVENDID[16];
+        input CFGDEVID[16];
+        input CFGSUBSYSID[16];
+        input CFGSUBSYSVENDID[16];
+        input CFGREVID[8];
+
+        input CFGDSBUSNUMBER[8];
+        input CFGDSDEVICENUMBER[5];
+        input CFGDSFUNCTIONNUMBER[3];
+        input CFGDSPORTNUMBER[8];
+
+        input CFGDSN[64];
+
+        output CFGCURRENTSPEED[3];
+        output CFGDPASUBSTATECHANGE[2];
+        input CFGERRCORIN;
+        output CFGERRCOROUT;
+        output CFGERRFATALOUT;
+        output CFGERRNONFATALOUT;
+        input CFGERRUNCORIN;
+        input CFGFLRDONE[2];
+        output CFGFLRINPROCESS[2];
+        output CFGFUNCTIONPOWERSTATE[6];
+        output CFGFUNCTIONSTATUS[8];
+        input CFGHOTRESETIN;
+        output CFGHOTRESETOUT;
+        output CFGINPUTUPDATEDONE;
+        input CFGINPUTUPDATEREQUEST;
+        output CFGINTERRUPTAOUTPUT;
+        output CFGINTERRUPTBOUTPUT;
+        output CFGINTERRUPTCOUTPUT;
+        output CFGINTERRUPTDOUTPUT;
+        input CFGINTERRUPTINT[4];
+        input CFGINTERRUPTMSIATTR[3];
+        output CFGINTERRUPTMSIDATA[32];
+        output CFGINTERRUPTMSIENABLE[2];
+        output CFGINTERRUPTMSIFAIL;
+        input CFGINTERRUPTMSIFUNCTIONNUMBER[3];
+        input CFGINTERRUPTMSIINT[32];
+        output CFGINTERRUPTMSIMASKUPDATE;
+        output CFGINTERRUPTMSIMMENABLE[6];
+        input CFGINTERRUPTMSIPENDINGSTATUS[64];
+        input CFGINTERRUPTMSISELECT[4];
+        output CFGINTERRUPTMSISENT;
+        input CFGINTERRUPTMSITPHPRESENT;
+        input CFGINTERRUPTMSITPHSTTAG[9];
+        input CFGINTERRUPTMSITPHTYPE[2];
+        output CFGINTERRUPTMSIVFENABLE[6];
+        input CFGINTERRUPTMSIXADDRESS[64];
+        input CFGINTERRUPTMSIXDATA[32];
+        output CFGINTERRUPTMSIXENABLE[2];
+        output CFGINTERRUPTMSIXFAIL;
+        input CFGINTERRUPTMSIXINT;
+        output CFGINTERRUPTMSIXMASK[2];
+        output CFGINTERRUPTMSIXSENT;
+        output CFGINTERRUPTMSIXVFENABLE[6];
+        output CFGINTERRUPTMSIXVFMASK[6];
+        input CFGINTERRUPTPENDING[2];
+        output CFGINTERRUPTSENT;
+        output CFGLINKPOWERSTATE[2];
+        input CFGLINKTRAININGENABLE;
+        output CFGLOCALERROR;
+        output CFGLTRENABLE;
+        output CFGLTSSMSTATE[6];
+        output CFGMAXPAYLOAD[3];
+        output CFGMAXREADREQ[3];
+        output CFGMCUPDATEDONE;
+        input CFGMCUPDATEREQUEST;
+        output CFGMSGRECEIVED;
+        output CFGMSGRECEIVEDDATA[8];
+        output CFGMSGRECEIVEDTYPE[5];
+        input CFGMSGTRANSMIT;
+        input CFGMSGTRANSMITDATA[32];
+        output CFGMSGTRANSMITDONE;
+        input CFGMSGTRANSMITTYPE[3];
+        output CFGNEGOTIATEDWIDTH[4];
+        output CFGOBFFENABLE[2];
+        input CFGPERFUNCSTATUSCONTROL[3];
+        output CFGPERFUNCSTATUSDATA[16];
+        input CFGPERFUNCTIONNUMBER[3];
+        input CFGPERFUNCTIONOUTPUTREQUEST;
+        output CFGPERFUNCTIONUPDATEDONE;
+        output CFGPHYLINKDOWN;
+        output CFGPHYLINKSTATUS[2];
+        output CFGPLSTATUSCHANGE;
+        input CFGPOWERSTATECHANGEACK;
+        output CFGPOWERSTATECHANGEINTERRUPT;
+        output CFGRCBSTATUS[2];
+        input CFGREQPMTRANSITIONL23READY;
+        output CFGTPHFUNCTIONNUM[3];
+        output CFGTPHREQUESTERENABLE[2];
+        output CFGTPHSTMODE[6];
+        output CFGTPHSTTADDRESS[5];
+        input CFGTPHSTTREADDATA[32];
+        input CFGTPHSTTREADDATAVALID;
+        output CFGTPHSTTREADENABLE;
+        output CFGTPHSTTWRITEBYTEVALID[4];
+        output CFGTPHSTTWRITEDATA[32];
+        output CFGTPHSTTWRITEENABLE;
+        input CFGVFFLRDONE[6];
+        output CFGVFFLRINPROCESS[6];
+        output CFGVFPOWERSTATE[18];
+        output CFGVFSTATUS[12];
+        output CFGVFTPHREQUESTERENABLE[6];
+        output CFGVFTPHSTMODE[18];
+
+        input DRPCLK;
+        input DRPEN;
+        input DRPWE;
+        input DRPADDR[11];
+        input DRPDI[16];
+        output DRPRDY;
+        output DRPDO[16];
+
+        output MICOMPLETIONRAMREADADDRESSAL[10];
+        output MICOMPLETIONRAMREADADDRESSAU[10];
+        output MICOMPLETIONRAMREADADDRESSBL[10];
+        output MICOMPLETIONRAMREADADDRESSBU[10];
+        input MICOMPLETIONRAMREADDATA[144];
+        output MICOMPLETIONRAMREADENABLEL[4];
+        output MICOMPLETIONRAMREADENABLEU[4];
+        output MICOMPLETIONRAMWRITEADDRESSAL[10];
+        output MICOMPLETIONRAMWRITEADDRESSAU[10];
+        output MICOMPLETIONRAMWRITEADDRESSBL[10];
+        output MICOMPLETIONRAMWRITEADDRESSBU[10];
+        output MICOMPLETIONRAMWRITEDATAL[72];
+        output MICOMPLETIONRAMWRITEDATAU[72];
+        output MICOMPLETIONRAMWRITEENABLEL[4];
+        output MICOMPLETIONRAMWRITEENABLEU[4];
+
+        output MIREPLAYRAMADDRESS[9];
+        input MIREPLAYRAMREADDATA[144];
+        output MIREPLAYRAMREADENABLE[2];
+        output MIREPLAYRAMWRITEDATA[144];
+        output MIREPLAYRAMWRITEENABLE[2];
+
+        output MIREQUESTRAMREADADDRESSA[9];
+        output MIREQUESTRAMREADADDRESSB[9];
+        input MIREQUESTRAMREADDATA[144];
+        output MIREQUESTRAMREADENABLE[4];
+        output MIREQUESTRAMWRITEADDRESSA[9];
+        output MIREQUESTRAMWRITEADDRESSB[9];
+        output MIREQUESTRAMWRITEDATA[144];
+        output MIREQUESTRAMWRITEENABLE[4];
+
+        input PCIECQNPREQ;
+        output PCIECQNPREQCOUNT[6];
+        output PCIERQSEQNUM[4];
+        output PCIERQSEQNUMVLD;
+        output PCIERQTAG[6];
+        output PCIERQTAGAV[2];
+        output PCIERQTAGVLD;
+        output PCIETFCNPDAV[2];
+        output PCIETFCNPHAV[2];
+
+        input PIPECLK;
+        input PIPERESETN;
+        input PIPEEQFS[6];
+        input PIPEEQLF[6];
+        output PIPETXDEEMPH;
+        output PIPETXMARGIN[3];
+        output PIPETXRATE[2];
+        output PIPETXRCVRDET;
+        output PIPETXRESET;
+        output PIPETXSWING;
+
+        for ch in 0..8 {
+            input "PIPERX{ch}CHARISK"[2];
+            input "PIPERX{ch}DATA"[32];
+            input "PIPERX{ch}DATAVALID";
+            input "PIPERX{ch}ELECIDLE";
+            output "PIPERX{ch}EQCONTROL"[2];
+            input "PIPERX{ch}EQDONE";
+            input "PIPERX{ch}EQLPADAPTDONE";
+            output "PIPERX{ch}EQLPLFFS"[6];
+            input "PIPERX{ch}EQLPLFFSSEL";
+            input "PIPERX{ch}EQLPNEWTXCOEFFORPRESET"[18];
+            output "PIPERX{ch}EQLPTXPRESET"[4];
+            output "PIPERX{ch}EQPRESET"[3];
+            input "PIPERX{ch}PHYSTATUS";
+            output "PIPERX{ch}POLARITY";
+            input "PIPERX{ch}STARTBLOCK";
+            input "PIPERX{ch}STATUS"[3];
+            input "PIPERX{ch}SYNCHEADER"[2];
+            input "PIPERX{ch}VALID";
+
+            output "PIPETX{ch}CHARISK"[2];
+            output "PIPETX{ch}COMPLIANCE";
+            output "PIPETX{ch}DATA"[32];
+            output "PIPETX{ch}DATAVALID";
+            output "PIPETX{ch}ELECIDLE";
+            input "PIPETX{ch}EQCOEFF"[18];
+            output "PIPETX{ch}EQCONTROL"[2];
+            output "PIPETX{ch}EQDEEMPH"[6];
+            input "PIPETX{ch}EQDONE";
+            output "PIPETX{ch}EQPRESET"[4];
+            output "PIPETX{ch}POWERDOWN"[2];
+            output "PIPETX{ch}STARTBLOCK";
+            output "PIPETX{ch}SYNCHEADER"[2];
+        }
+
+        input PLDISABLESCRAMBLER;
+        output PLEQINPROGRESS;
+        output PLEQPHASE[2];
+        input PLEQRESETEIEOSCOUNT;
+        input PLGEN3PCSDISABLE;
+        output PLGEN3PCSRXSLIDE[8];
+        input PLGEN3PCSRXSYNCDONE[8];
+
+        output DBGDATAOUT[16];
+
+        input SCANENABLEN;
+        input SCANMODEN;
+        input SCANIN[25];
+        output SCANOUT[25];
+
+        output XILUNCONNOUT[30];
+
+        attribute ARI_CAP_ENABLE: bool;
+        attribute AXISTEN_IF_CC_ALIGNMENT_MODE: bool;
+        attribute AXISTEN_IF_CC_PARITY_CHK: bool;
+        attribute AXISTEN_IF_CQ_ALIGNMENT_MODE: bool;
+        attribute AXISTEN_IF_ENABLE_CLIENT_TAG: bool;
+        attribute AXISTEN_IF_ENABLE_RX_MSG_INTFC: bool;
+        attribute AXISTEN_IF_RC_ALIGNMENT_MODE: bool;
+        attribute AXISTEN_IF_RC_STRADDLE: bool;
+        attribute AXISTEN_IF_RQ_ALIGNMENT_MODE: bool;
+        attribute AXISTEN_IF_RQ_PARITY_CHK: bool;
+        attribute CRM_CORE_CLK_FREQ_500: bool;
+        attribute GEN3_PCS_RX_ELECIDLE_INTERNAL: bool;
+        attribute LL_ACK_TIMEOUT_EN: bool;
+        attribute LL_CPL_FC_UPDATE_TIMER_OVERRIDE: bool;
+        attribute LL_FC_UPDATE_TIMER_OVERRIDE: bool;
+        attribute LL_NP_FC_UPDATE_TIMER_OVERRIDE: bool;
+        attribute LL_P_FC_UPDATE_TIMER_OVERRIDE: bool;
+        attribute LL_REPLAY_TIMEOUT_EN: bool;
+        attribute LTR_TX_MESSAGE_ON_FUNC_POWER_STATE_CHANGE: bool;
+        attribute LTR_TX_MESSAGE_ON_LTR_ENABLE: bool;
+        attribute PF0_AER_CAP_ECRC_CHECK_CAPABLE: bool;
+        attribute PF0_AER_CAP_ECRC_GEN_CAPABLE: bool;
+        attribute AXISTEN_IF_ENABLE_MSG_ROUTE: bitvec[18];
+        attribute AXISTEN_IF_WIDTH: bitvec[2];
+        attribute CRM_USER_CLK_FREQ: bitvec[2];
+        attribute DNSTREAM_LINK_NUM: bitvec[8];
+        attribute GEN3_PCS_AUTO_REALIGN: bitvec[2];
+        attribute LL_ACK_TIMEOUT: bitvec[9];
+        attribute LL_CPL_FC_UPDATE_TIMER: bitvec[16];
+        attribute LL_FC_UPDATE_TIMER: bitvec[16];
+        attribute LL_NP_FC_UPDATE_TIMER: bitvec[16];
+        attribute LL_P_FC_UPDATE_TIMER: bitvec[16];
+        attribute LL_REPLAY_TIMEOUT: bitvec[9];
+        attribute LTR_TX_MESSAGE_MINIMUM_INTERVAL: bitvec[10];
+        attribute PF0_AER_CAP_NEXTPTR: bitvec[12];
+        attribute PF0_ARI_CAP_NEXTPTR: bitvec[12];
+        attribute PF0_ARI_CAP_NEXT_FUNC: bitvec[8];
+        attribute PF0_ARI_CAP_VER: bitvec[4];
+        attribute PF0_BAR0_APERTURE_SIZE: bitvec[5];
+        attribute PF0_BAR0_CONTROL: bitvec[3];
+        attribute PF0_BAR1_APERTURE_SIZE: bitvec[5];
+        attribute PF0_BAR1_CONTROL: bitvec[3];
+        attribute PF0_BAR2_APERTURE_SIZE: bitvec[5];
+        attribute PF0_BAR2_CONTROL: bitvec[3];
+        attribute PF0_BAR3_APERTURE_SIZE: bitvec[5];
+        attribute PF0_BAR3_CONTROL: bitvec[3];
+        attribute PF0_BAR4_APERTURE_SIZE: bitvec[5];
+        attribute PF0_BAR4_CONTROL: bitvec[3];
+        attribute PF0_BAR5_APERTURE_SIZE: bitvec[5];
+        attribute PF0_BAR5_CONTROL: bitvec[3];
+        attribute PF0_BIST_REGISTER: bitvec[8];
+        attribute PF0_CAPABILITY_POINTER: bitvec[8];
+        attribute PF0_CLASS_CODE: bitvec[24];
+        attribute PF0_DEVICE_ID: bitvec[16];
+        attribute PF0_DEV_CAP2_OBFF_SUPPORT: bitvec[2];
+        attribute PF0_DEV_CAP_MAX_PAYLOAD_SIZE: bitvec[3];
+        attribute PF0_DPA_CAP_NEXTPTR: bitvec[12];
+        attribute PF0_DPA_CAP_SUB_STATE_CONTROL: bitvec[5];
+        attribute PF0_DPA_CAP_SUB_STATE_POWER_ALLOCATION0: bitvec[8];
+        attribute PF0_DPA_CAP_SUB_STATE_POWER_ALLOCATION1: bitvec[8];
+        attribute PF0_DPA_CAP_SUB_STATE_POWER_ALLOCATION2: bitvec[8];
+        attribute PF0_DPA_CAP_SUB_STATE_POWER_ALLOCATION3: bitvec[8];
+        attribute PF0_DPA_CAP_SUB_STATE_POWER_ALLOCATION4: bitvec[8];
+        attribute PF0_DPA_CAP_SUB_STATE_POWER_ALLOCATION5: bitvec[8];
+        attribute PF0_DPA_CAP_SUB_STATE_POWER_ALLOCATION6: bitvec[8];
+        attribute PF0_DPA_CAP_SUB_STATE_POWER_ALLOCATION7: bitvec[8];
+        attribute PF0_DPA_CAP_VER: bitvec[4];
+        attribute PF0_DSN_CAP_NEXTPTR: bitvec[12];
+        attribute PF0_EXPANSION_ROM_APERTURE_SIZE: bitvec[5];
+        attribute PF0_INTERRUPT_LINE: bitvec[8];
+        attribute PF0_INTERRUPT_PIN: bitvec[3];
+        attribute PF0_LTR_CAP_MAX_NOSNOOP_LAT: bitvec[10];
+        attribute PF0_LTR_CAP_MAX_SNOOP_LAT: bitvec[10];
+        attribute PF0_LTR_CAP_NEXTPTR: bitvec[12];
+        attribute PF0_LTR_CAP_VER: bitvec[4];
+        attribute PF0_MSIX_CAP_NEXTPTR: bitvec[8];
+        attribute PF0_MSIX_CAP_PBA_OFFSET: bitvec[29];
+        attribute PF0_MSIX_CAP_TABLE_OFFSET: bitvec[29];
+        attribute PF0_MSIX_CAP_TABLE_SIZE: bitvec[11];
+        attribute PF0_MSI_CAP_NEXTPTR: bitvec[8];
+        attribute PF0_PB_CAP_NEXTPTR: bitvec[12];
+        attribute PF0_PB_CAP_VER: bitvec[4];
+        attribute PF0_PM_CAP_ID: bitvec[8];
+        attribute PF0_PM_CAP_NEXTPTR: bitvec[8];
+        attribute PF0_PM_CAP_VER_ID: bitvec[3];
+        attribute PF0_RBAR_CAP_INDEX0: bitvec[3];
+        attribute PF0_RBAR_CAP_INDEX1: bitvec[3];
+        attribute PF0_RBAR_CAP_INDEX2: bitvec[3];
+        attribute PF0_RBAR_CAP_NEXTPTR: bitvec[12];
+        attribute PF0_RBAR_CAP_SIZE0: bitvec[20];
+        attribute PF0_RBAR_CAP_SIZE1: bitvec[20];
+        attribute PF0_RBAR_CAP_SIZE2: bitvec[20];
+        attribute PF0_RBAR_CAP_VER: bitvec[4];
+        attribute PF0_RBAR_NUM: bitvec[3];
+        attribute PF0_REVISION_ID: bitvec[8];
+        attribute PF0_SRIOV_BAR0_APERTURE_SIZE: bitvec[5];
+        attribute PF0_SRIOV_BAR0_CONTROL: bitvec[3];
+        attribute PF0_SRIOV_BAR1_APERTURE_SIZE: bitvec[5];
+        attribute PF0_SRIOV_BAR1_CONTROL: bitvec[3];
+        attribute PF0_SRIOV_BAR2_APERTURE_SIZE: bitvec[5];
+        attribute PF0_SRIOV_BAR2_CONTROL: bitvec[3];
+        attribute PF0_SRIOV_BAR3_APERTURE_SIZE: bitvec[5];
+        attribute PF0_SRIOV_BAR3_CONTROL: bitvec[3];
+        attribute PF0_SRIOV_BAR4_APERTURE_SIZE: bitvec[5];
+        attribute PF0_SRIOV_BAR4_CONTROL: bitvec[3];
+        attribute PF0_SRIOV_BAR5_APERTURE_SIZE: bitvec[5];
+        attribute PF0_SRIOV_BAR5_CONTROL: bitvec[3];
+        attribute PF0_SRIOV_CAP_INITIAL_VF: bitvec[16];
+        attribute PF0_SRIOV_CAP_NEXTPTR: bitvec[12];
+        attribute PF0_SRIOV_CAP_TOTAL_VF: bitvec[16];
+        attribute PF0_SRIOV_CAP_VER: bitvec[4];
+        attribute PF0_SRIOV_FIRST_VF_OFFSET: bitvec[16];
+        attribute PF0_SRIOV_FUNC_DEP_LINK: bitvec[16];
+        attribute PF0_SRIOV_SUPPORTED_PAGE_SIZE: bitvec[32];
+        attribute PF0_SRIOV_VF_DEVICE_ID: bitvec[16];
+        attribute PF0_SUBSYSTEM_ID: bitvec[16];
+        attribute PF0_TPHR_CAP_NEXTPTR: bitvec[12];
+        attribute PF0_TPHR_CAP_ST_MODE_SEL: bitvec[3];
+        attribute PF0_TPHR_CAP_ST_TABLE_LOC: bitvec[2];
+        attribute PF0_TPHR_CAP_ST_TABLE_SIZE: bitvec[11];
+        attribute PF0_TPHR_CAP_VER: bitvec[4];
+        attribute PF0_VC_CAP_NEXTPTR: bitvec[12];
+        attribute PF0_VC_CAP_VER: bitvec[4];
+        attribute PF1_AER_CAP_NEXTPTR: bitvec[12];
+        attribute PF1_ARI_CAP_NEXTPTR: bitvec[12];
+        attribute PF1_ARI_CAP_NEXT_FUNC: bitvec[8];
+        attribute PF1_BAR0_APERTURE_SIZE: bitvec[5];
+        attribute PF1_BAR0_CONTROL: bitvec[3];
+        attribute PF1_BAR1_APERTURE_SIZE: bitvec[5];
+        attribute PF1_BAR1_CONTROL: bitvec[3];
+        attribute PF1_BAR2_APERTURE_SIZE: bitvec[5];
+        attribute PF1_BAR2_CONTROL: bitvec[3];
+        attribute PF1_BAR3_APERTURE_SIZE: bitvec[5];
+        attribute PF1_BAR3_CONTROL: bitvec[3];
+        attribute PF1_BAR4_APERTURE_SIZE: bitvec[5];
+        attribute PF1_BAR4_CONTROL: bitvec[3];
+        attribute PF1_BAR5_APERTURE_SIZE: bitvec[5];
+        attribute PF1_BAR5_CONTROL: bitvec[3];
+        attribute PF1_BIST_REGISTER: bitvec[8];
+        attribute PF1_CAPABILITY_POINTER: bitvec[8];
+        attribute PF1_CLASS_CODE: bitvec[24];
+        attribute PF1_DEVICE_ID: bitvec[16];
+        attribute PF1_DEV_CAP_MAX_PAYLOAD_SIZE: bitvec[3];
+        attribute PF1_DPA_CAP_NEXTPTR: bitvec[12];
+        attribute PF1_DPA_CAP_SUB_STATE_CONTROL: bitvec[5];
+        attribute PF1_DPA_CAP_SUB_STATE_POWER_ALLOCATION0: bitvec[8];
+        attribute PF1_DPA_CAP_SUB_STATE_POWER_ALLOCATION1: bitvec[8];
+        attribute PF1_DPA_CAP_SUB_STATE_POWER_ALLOCATION2: bitvec[8];
+        attribute PF1_DPA_CAP_SUB_STATE_POWER_ALLOCATION3: bitvec[8];
+        attribute PF1_DPA_CAP_SUB_STATE_POWER_ALLOCATION4: bitvec[8];
+        attribute PF1_DPA_CAP_SUB_STATE_POWER_ALLOCATION5: bitvec[8];
+        attribute PF1_DPA_CAP_SUB_STATE_POWER_ALLOCATION6: bitvec[8];
+        attribute PF1_DPA_CAP_SUB_STATE_POWER_ALLOCATION7: bitvec[8];
+        attribute PF1_DPA_CAP_VER: bitvec[4];
+        attribute PF1_DSN_CAP_NEXTPTR: bitvec[12];
+        attribute PF1_EXPANSION_ROM_APERTURE_SIZE: bitvec[5];
+        attribute PF1_INTERRUPT_LINE: bitvec[8];
+        attribute PF1_INTERRUPT_PIN: bitvec[3];
+        attribute PF1_MSIX_CAP_NEXTPTR: bitvec[8];
+        attribute PF1_MSIX_CAP_PBA_OFFSET: bitvec[29];
+        attribute PF1_MSIX_CAP_TABLE_OFFSET: bitvec[29];
+        attribute PF1_MSIX_CAP_TABLE_SIZE: bitvec[11];
+        attribute PF1_MSI_CAP_NEXTPTR: bitvec[8];
+        attribute PF1_PB_CAP_NEXTPTR: bitvec[12];
+        attribute PF1_PB_CAP_VER: bitvec[4];
+        attribute PF1_PM_CAP_ID: bitvec[8];
+        attribute PF1_PM_CAP_NEXTPTR: bitvec[8];
+        attribute PF1_PM_CAP_VER_ID: bitvec[3];
+        attribute PF1_RBAR_CAP_INDEX0: bitvec[3];
+        attribute PF1_RBAR_CAP_INDEX1: bitvec[3];
+        attribute PF1_RBAR_CAP_INDEX2: bitvec[3];
+        attribute PF1_RBAR_CAP_NEXTPTR: bitvec[12];
+        attribute PF1_RBAR_CAP_SIZE0: bitvec[20];
+        attribute PF1_RBAR_CAP_SIZE1: bitvec[20];
+        attribute PF1_RBAR_CAP_SIZE2: bitvec[20];
+        attribute PF1_RBAR_CAP_VER: bitvec[4];
+        attribute PF1_RBAR_NUM: bitvec[3];
+        attribute PF1_REVISION_ID: bitvec[8];
+        attribute PF1_SRIOV_BAR0_APERTURE_SIZE: bitvec[5];
+        attribute PF1_SRIOV_BAR0_CONTROL: bitvec[3];
+        attribute PF1_SRIOV_BAR1_APERTURE_SIZE: bitvec[5];
+        attribute PF1_SRIOV_BAR1_CONTROL: bitvec[3];
+        attribute PF1_SRIOV_BAR2_APERTURE_SIZE: bitvec[5];
+        attribute PF1_SRIOV_BAR2_CONTROL: bitvec[3];
+        attribute PF1_SRIOV_BAR3_APERTURE_SIZE: bitvec[5];
+        attribute PF1_SRIOV_BAR3_CONTROL: bitvec[3];
+        attribute PF1_SRIOV_BAR4_APERTURE_SIZE: bitvec[5];
+        attribute PF1_SRIOV_BAR4_CONTROL: bitvec[3];
+        attribute PF1_SRIOV_BAR5_APERTURE_SIZE: bitvec[5];
+        attribute PF1_SRIOV_BAR5_CONTROL: bitvec[3];
+        attribute PF1_SRIOV_CAP_INITIAL_VF: bitvec[16];
+        attribute PF1_SRIOV_CAP_NEXTPTR: bitvec[12];
+        attribute PF1_SRIOV_CAP_TOTAL_VF: bitvec[16];
+        attribute PF1_SRIOV_CAP_VER: bitvec[4];
+        attribute PF1_SRIOV_FIRST_VF_OFFSET: bitvec[16];
+        attribute PF1_SRIOV_FUNC_DEP_LINK: bitvec[16];
+        attribute PF1_SRIOV_SUPPORTED_PAGE_SIZE: bitvec[32];
+        attribute PF1_SRIOV_VF_DEVICE_ID: bitvec[16];
+        attribute PF1_SUBSYSTEM_ID: bitvec[16];
+        attribute PF1_TPHR_CAP_NEXTPTR: bitvec[12];
+        attribute PF1_TPHR_CAP_ST_MODE_SEL: bitvec[3];
+        attribute PF1_TPHR_CAP_ST_TABLE_LOC: bitvec[2];
+        attribute PF1_TPHR_CAP_ST_TABLE_SIZE: bitvec[11];
+        attribute PF1_TPHR_CAP_VER: bitvec[4];
+        attribute PL_EQ_ADAPT_ITER_COUNT: bitvec[5];
+        attribute PL_EQ_ADAPT_REJECT_RETRY_COUNT: bitvec[2];
+        attribute PL_LANE0_EQ_CONTROL: bitvec[16];
+        attribute PL_LANE1_EQ_CONTROL: bitvec[16];
+        attribute PL_LANE2_EQ_CONTROL: bitvec[16];
+        attribute PL_LANE3_EQ_CONTROL: bitvec[16];
+        attribute PL_LANE4_EQ_CONTROL: bitvec[16];
+        attribute PL_LANE5_EQ_CONTROL: bitvec[16];
+        attribute PL_LANE6_EQ_CONTROL: bitvec[16];
+        attribute PL_LANE7_EQ_CONTROL: bitvec[16];
+        attribute PL_LINK_CAP_MAX_LINK_SPEED: bitvec[3];
+        attribute PL_LINK_CAP_MAX_LINK_WIDTH: bitvec[4];
+        attribute PM_ASPML0S_TIMEOUT: bitvec[16];
+        attribute PM_ASPML1_ENTRY_DELAY: bitvec[20];
+        attribute PM_L1_REENTRY_DELAY: bitvec[32];
+        attribute PM_PME_SERVICE_TIMEOUT_DELAY: bitvec[20];
+        attribute PM_PME_TURNOFF_ACK_DELAY: bitvec[16];
+        attribute SPARE_BYTE0: bitvec[8];
+        attribute SPARE_BYTE1: bitvec[8];
+        attribute SPARE_BYTE2: bitvec[8];
+        attribute SPARE_BYTE3: bitvec[8];
+        attribute SPARE_WORD0: bitvec[32];
+        attribute SPARE_WORD1: bitvec[32];
+        attribute SPARE_WORD2: bitvec[32];
+        attribute SPARE_WORD3: bitvec[32];
+        attribute TL_COMPL_TIMEOUT_REG0: bitvec[24];
+        attribute TL_COMPL_TIMEOUT_REG1: bitvec[28];
+        attribute TL_CREDITS_CD: bitvec[12];
+        attribute TL_CREDITS_CH: bitvec[8];
+        attribute TL_CREDITS_NPD: bitvec[12];
+        attribute TL_CREDITS_NPH: bitvec[8];
+        attribute TL_CREDITS_PD: bitvec[12];
+        attribute TL_CREDITS_PH: bitvec[8];
+        attribute VF0_ARI_CAP_NEXTPTR: bitvec[12];
+        attribute VF0_CAPABILITY_POINTER: bitvec[8];
+        attribute VF0_MSIX_CAP_PBA_OFFSET: bitvec[29];
+        attribute VF0_MSIX_CAP_TABLE_OFFSET: bitvec[29];
+        attribute VF0_MSIX_CAP_TABLE_SIZE: bitvec[11];
+        attribute VF0_PM_CAP_ID: bitvec[8];
+        attribute VF0_PM_CAP_NEXTPTR: bitvec[8];
+        attribute VF0_PM_CAP_VER_ID: bitvec[3];
+        attribute VF0_TPHR_CAP_NEXTPTR: bitvec[12];
+        attribute VF0_TPHR_CAP_ST_MODE_SEL: bitvec[3];
+        attribute VF0_TPHR_CAP_ST_TABLE_LOC: bitvec[2];
+        attribute VF0_TPHR_CAP_ST_TABLE_SIZE: bitvec[11];
+        attribute VF0_TPHR_CAP_VER: bitvec[4];
+        attribute VF1_ARI_CAP_NEXTPTR: bitvec[12];
+        attribute VF1_MSIX_CAP_PBA_OFFSET: bitvec[29];
+        attribute VF1_MSIX_CAP_TABLE_OFFSET: bitvec[29];
+        attribute VF1_MSIX_CAP_TABLE_SIZE: bitvec[11];
+        attribute VF1_PM_CAP_ID: bitvec[8];
+        attribute VF1_PM_CAP_NEXTPTR: bitvec[8];
+        attribute VF1_PM_CAP_VER_ID: bitvec[3];
+        attribute VF1_TPHR_CAP_NEXTPTR: bitvec[12];
+        attribute VF1_TPHR_CAP_ST_MODE_SEL: bitvec[3];
+        attribute VF1_TPHR_CAP_ST_TABLE_LOC: bitvec[2];
+        attribute VF1_TPHR_CAP_ST_TABLE_SIZE: bitvec[11];
+        attribute VF1_TPHR_CAP_VER: bitvec[4];
+        attribute VF2_ARI_CAP_NEXTPTR: bitvec[12];
+        attribute VF2_MSIX_CAP_PBA_OFFSET: bitvec[29];
+        attribute VF2_MSIX_CAP_TABLE_OFFSET: bitvec[29];
+        attribute VF2_MSIX_CAP_TABLE_SIZE: bitvec[11];
+        attribute VF2_PM_CAP_ID: bitvec[8];
+        attribute VF2_PM_CAP_NEXTPTR: bitvec[8];
+        attribute VF2_PM_CAP_VER_ID: bitvec[3];
+        attribute VF2_TPHR_CAP_NEXTPTR: bitvec[12];
+        attribute VF2_TPHR_CAP_ST_MODE_SEL: bitvec[3];
+        attribute VF2_TPHR_CAP_ST_TABLE_LOC: bitvec[2];
+        attribute VF2_TPHR_CAP_ST_TABLE_SIZE: bitvec[11];
+        attribute VF2_TPHR_CAP_VER: bitvec[4];
+        attribute VF3_ARI_CAP_NEXTPTR: bitvec[12];
+        attribute VF3_MSIX_CAP_PBA_OFFSET: bitvec[29];
+        attribute VF3_MSIX_CAP_TABLE_OFFSET: bitvec[29];
+        attribute VF3_MSIX_CAP_TABLE_SIZE: bitvec[11];
+        attribute VF3_PM_CAP_ID: bitvec[8];
+        attribute VF3_PM_CAP_NEXTPTR: bitvec[8];
+        attribute VF3_PM_CAP_VER_ID: bitvec[3];
+        attribute VF3_TPHR_CAP_NEXTPTR: bitvec[12];
+        attribute VF3_TPHR_CAP_ST_MODE_SEL: bitvec[3];
+        attribute VF3_TPHR_CAP_ST_TABLE_LOC: bitvec[2];
+        attribute VF3_TPHR_CAP_ST_TABLE_SIZE: bitvec[11];
+        attribute VF3_TPHR_CAP_VER: bitvec[4];
+        attribute VF4_ARI_CAP_NEXTPTR: bitvec[12];
+        attribute VF4_MSIX_CAP_PBA_OFFSET: bitvec[29];
+        attribute VF4_MSIX_CAP_TABLE_OFFSET: bitvec[29];
+        attribute VF4_MSIX_CAP_TABLE_SIZE: bitvec[11];
+        attribute VF4_PM_CAP_ID: bitvec[8];
+        attribute VF4_PM_CAP_NEXTPTR: bitvec[8];
+        attribute VF4_PM_CAP_VER_ID: bitvec[3];
+        attribute VF4_TPHR_CAP_NEXTPTR: bitvec[12];
+        attribute VF4_TPHR_CAP_ST_MODE_SEL: bitvec[3];
+        attribute VF4_TPHR_CAP_ST_TABLE_LOC: bitvec[2];
+        attribute VF4_TPHR_CAP_ST_TABLE_SIZE: bitvec[11];
+        attribute VF4_TPHR_CAP_VER: bitvec[4];
+        attribute VF5_ARI_CAP_NEXTPTR: bitvec[12];
+        attribute VF5_MSIX_CAP_PBA_OFFSET: bitvec[29];
+        attribute VF5_MSIX_CAP_TABLE_OFFSET: bitvec[29];
+        attribute VF5_MSIX_CAP_TABLE_SIZE: bitvec[11];
+        attribute VF5_PM_CAP_ID: bitvec[8];
+        attribute VF5_PM_CAP_NEXTPTR: bitvec[8];
+        attribute VF5_PM_CAP_VER_ID: bitvec[3];
+        attribute VF5_TPHR_CAP_NEXTPTR: bitvec[12];
+        attribute VF5_TPHR_CAP_ST_MODE_SEL: bitvec[3];
+        attribute VF5_TPHR_CAP_ST_TABLE_LOC: bitvec[2];
+        attribute VF5_TPHR_CAP_ST_TABLE_SIZE: bitvec[11];
+        attribute VF5_TPHR_CAP_VER: bitvec[4];
+        attribute LL_ACK_TIMEOUT_FUNC: bitvec[2];
+        attribute LL_REPLAY_TIMEOUT_FUNC: bitvec[2];
+        attribute PF0_DEV_CAP_ENDPOINT_L0S_LATENCY: bitvec[3];
+        attribute PF0_DEV_CAP_ENDPOINT_L1_LATENCY: bitvec[3];
+        attribute PL_N_FTS_COMCLK_GEN1: bitvec[8];
+        attribute PL_N_FTS_COMCLK_GEN2: bitvec[8];
+        attribute PL_N_FTS_COMCLK_GEN3: bitvec[8];
+        attribute PL_N_FTS_GEN1: bitvec[8];
+        attribute PL_N_FTS_GEN2: bitvec[8];
+        attribute PL_N_FTS_GEN3: bitvec[8];
+    }
+
     // Xilinx transceiver quick guide:
     //
     // - virtex2:
@@ -4613,6 +6852,452 @@ target_defs! {
         }
     }
 
+    bel_class PS {
+        output FCLKCLK[4];
+        output FCLKRESETN[4];
+        input FCLKCLKTRIGN[4];
+
+        for i in 0..2 {
+            input "MAXIGP{i}ACLK";
+            output "MAXIGP{i}ARESETN";
+
+            input "MAXIGP{i}ARREADY";
+            output "MAXIGP{i}ARVALID";
+            output "MAXIGP{i}ARADDR"[32];
+            output "MAXIGP{i}ARBURST"[2];
+            output "MAXIGP{i}ARCACHE"[4];
+            output "MAXIGP{i}ARID"[12];
+            output "MAXIGP{i}ARLEN"[4];
+            output "MAXIGP{i}ARLOCK"[2];
+            output "MAXIGP{i}ARPROT"[3];
+            output "MAXIGP{i}ARQOS"[4];
+            output "MAXIGP{i}ARSIZE"[2];
+
+            input "MAXIGP{i}AWREADY";
+            output "MAXIGP{i}AWVALID";
+            output "MAXIGP{i}AWADDR"[32];
+            output "MAXIGP{i}AWBURST"[2];
+            output "MAXIGP{i}AWCACHE"[4];
+            output "MAXIGP{i}AWID"[12];
+            output "MAXIGP{i}AWLEN"[4];
+            output "MAXIGP{i}AWLOCK"[2];
+            output "MAXIGP{i}AWPROT"[3];
+            output "MAXIGP{i}AWQOS"[4];
+            output "MAXIGP{i}AWSIZE"[2];
+
+            output "MAXIGP{i}BREADY";
+            input "MAXIGP{i}BVALID";
+            input "MAXIGP{i}BID"[12];
+            input "MAXIGP{i}BRESP"[2];
+
+            output "MAXIGP{i}RREADY";
+            input "MAXIGP{i}RVALID";
+            input "MAXIGP{i}RDATA"[32];
+            input "MAXIGP{i}RID"[12];
+            input "MAXIGP{i}RLAST";
+            input "MAXIGP{i}RRESP"[2];
+
+            input "MAXIGP{i}WREADY";
+            output "MAXIGP{i}WVALID";
+            output "MAXIGP{i}WDATA"[32];
+            output "MAXIGP{i}WID"[12];
+            output "MAXIGP{i}WLAST";
+            output "MAXIGP{i}WSTRB"[4];
+        }
+
+        for i in 0..2 {
+            input "SAXIGP{i}ACLK";
+            output "SAXIGP{i}ARESETN";
+
+            output "SAXIGP{i}ARREADY";
+            input "SAXIGP{i}ARVALID";
+            input "SAXIGP{i}ARADDR"[32];
+            input "SAXIGP{i}ARBURST"[2];
+            input "SAXIGP{i}ARCACHE"[4];
+            input "SAXIGP{i}ARID"[6];
+            input "SAXIGP{i}ARLEN"[4];
+            input "SAXIGP{i}ARLOCK"[2];
+            input "SAXIGP{i}ARPROT"[3];
+            input "SAXIGP{i}ARQOS"[4];
+            input "SAXIGP{i}ARSIZE"[2];
+
+            output "SAXIGP{i}AWREADY";
+            input "SAXIGP{i}AWVALID";
+            input "SAXIGP{i}AWADDR"[32];
+            input "SAXIGP{i}AWBURST"[2];
+            input "SAXIGP{i}AWCACHE"[4];
+            input "SAXIGP{i}AWID"[6];
+            input "SAXIGP{i}AWLEN"[4];
+            input "SAXIGP{i}AWLOCK"[2];
+            input "SAXIGP{i}AWPROT"[3];
+            input "SAXIGP{i}AWQOS"[4];
+            input "SAXIGP{i}AWSIZE"[2];
+
+            input "SAXIGP{i}BREADY";
+            output "SAXIGP{i}BVALID";
+            output "SAXIGP{i}BID"[6];
+            output "SAXIGP{i}BRESP"[2];
+
+            input "SAXIGP{i}RREADY";
+            output "SAXIGP{i}RVALID";
+            output "SAXIGP{i}RDATA"[32];
+            output "SAXIGP{i}RID"[6];
+            output "SAXIGP{i}RLAST";
+            output "SAXIGP{i}RRESP"[2];
+
+            output "SAXIGP{i}WREADY";
+            input "SAXIGP{i}WVALID";
+            input "SAXIGP{i}WDATA"[32];
+            input "SAXIGP{i}WID"[6];
+            input "SAXIGP{i}WLAST";
+            input "SAXIGP{i}WSTRB"[4];
+        }
+
+        for i in 0..4 {
+            input "SAXIHP{i}ACLK";
+            output "SAXIHP{i}ARESETN";
+            input "SAXIHP{i}RDISSUECAP1EN";
+            input "SAXIHP{i}WRISSUECAP1EN";
+            output "SAXIHP{i}RACOUNT"[3];
+            output "SAXIHP{i}RCOUNT"[8];
+            output "SAXIHP{i}WACOUNT"[6];
+            output "SAXIHP{i}WCOUNT"[8];
+
+            output "SAXIHP{i}ARREADY";
+            input "SAXIHP{i}ARVALID";
+            input "SAXIHP{i}ARADDR"[32];
+            input "SAXIHP{i}ARBURST"[2];
+            input "SAXIHP{i}ARCACHE"[4];
+            input "SAXIHP{i}ARID"[6];
+            input "SAXIHP{i}ARLEN"[4];
+            input "SAXIHP{i}ARLOCK"[2];
+            input "SAXIHP{i}ARPROT"[3];
+            input "SAXIHP{i}ARQOS"[4];
+            input "SAXIHP{i}ARSIZE"[2];
+
+            output "SAXIHP{i}AWREADY";
+            input "SAXIHP{i}AWVALID";
+            input "SAXIHP{i}AWADDR"[32];
+            input "SAXIHP{i}AWBURST"[2];
+            input "SAXIHP{i}AWCACHE"[4];
+            input "SAXIHP{i}AWID"[6];
+            input "SAXIHP{i}AWLEN"[4];
+            input "SAXIHP{i}AWLOCK"[2];
+            input "SAXIHP{i}AWPROT"[3];
+            input "SAXIHP{i}AWQOS"[4];
+            input "SAXIHP{i}AWSIZE"[2];
+
+            input "SAXIHP{i}BREADY";
+            output "SAXIHP{i}BVALID";
+            output "SAXIHP{i}BID"[6];
+            output "SAXIHP{i}BRESP"[2];
+
+            input "SAXIHP{i}RREADY";
+            output "SAXIHP{i}RVALID";
+            output "SAXIHP{i}RDATA"[64];
+            output "SAXIHP{i}RID"[6];
+            output "SAXIHP{i}RLAST";
+            output "SAXIHP{i}RRESP"[2];
+
+            output "SAXIHP{i}WREADY";
+            input "SAXIHP{i}WVALID";
+            input "SAXIHP{i}WSTRB"[8];
+            input "SAXIHP{i}WDATA"[64];
+            input "SAXIHP{i}WID"[6];
+            input "SAXIHP{i}WLAST";
+        }
+
+        input SAXIACPACLK;
+        output SAXIACPARESETN;
+
+        output SAXIACPARREADY;
+        input SAXIACPARVALID;
+        input SAXIACPARADDR[32];
+        input SAXIACPARBURST[2];
+        input SAXIACPARCACHE[4];
+        input SAXIACPARID[3];
+        input SAXIACPARLEN[4];
+        input SAXIACPARLOCK[2];
+        input SAXIACPARPROT[3];
+        input SAXIACPARQOS[4];
+        input SAXIACPARSIZE[2];
+        input SAXIACPARUSER[5];
+
+        output SAXIACPAWREADY;
+        input SAXIACPAWVALID;
+        input SAXIACPAWADDR[32];
+        input SAXIACPAWBURST[2];
+        input SAXIACPAWCACHE[4];
+        input SAXIACPAWID[3];
+        input SAXIACPAWLEN[4];
+        input SAXIACPAWLOCK[2];
+        input SAXIACPAWPROT[3];
+        input SAXIACPAWQOS[4];
+        input SAXIACPAWSIZE[2];
+        input SAXIACPAWUSER[5];
+
+        input SAXIACPBREADY;
+        output SAXIACPBVALID;
+        output SAXIACPBID[3];
+        output SAXIACPBRESP[2];
+
+        input SAXIACPRREADY;
+        output SAXIACPRVALID;
+        output SAXIACPRDATA[64];
+        output SAXIACPRID[3];
+        output SAXIACPRLAST;
+        output SAXIACPRRESP[2];
+
+        output SAXIACPWREADY;
+        input SAXIACPWVALID;
+        input SAXIACPWDATA[64];
+        input SAXIACPWID[3];
+        input SAXIACPWLAST;
+        input SAXIACPWSTRB[8];
+
+        input FPGAIDLEN;
+        input DDRARB[4];
+
+        input IRQF2P[20];
+        output IRQP2F[29];
+
+        input EVENTEVENTI;
+        output EVENTEVENTO;
+        output EVENTSTANDBYWFE[2];
+        output EVENTSTANDBYWFI[2];
+
+        for ch in 0..4 {
+            input "DMA{ch}ACLK";
+            output "DMA{ch}RSTN";
+
+            input "DMA{ch}DAREADY";
+            output "DMA{ch}DAVALID";
+            output "DMA{ch}DATYPE"[2];
+
+            output "DMA{ch}DRREADY";
+            input "DMA{ch}DRVALID";
+            input "DMA{ch}DRTYPE"[2];
+            input "DMA{ch}DRLAST";
+        }
+
+        input FTMDTRACEINCLOCK;
+        input FTMDTRACEINVALID;
+        input FTMDTRACEINDATA[32];
+        input FTMDTRACEINATID[4];
+        input FTMTF2PTRIG[4];
+        output FTMTF2PTRIGACK[4];
+        input FTMTF2PDEBUG[32];
+        output FTMTP2FTRIG[4];
+        input FTMTP2FTRIGACK[4];
+        output FTMTP2FDEBUG[32];
+
+        input EMIOGPIOI[64];
+        output EMIOGPIOO[64];
+        output EMIOGPIOTN[64];
+
+        input EMIOPJTAGTCK;
+        input EMIOPJTAGTMS;
+        input EMIOPJTAGTDI;
+        output EMIOPJTAGTDO;
+        output EMIOPJTAGTDTN;
+
+        input EMIOTRACECLK;
+        output EMIOTRACECTL;
+        output EMIOTRACEDATA[32];
+
+        input EMIOWDTCLKI;
+        output EMIOWDTRSTO;
+
+        for i in 0..2 {
+            input "EMIOTTC{i}CLKI"[3];
+            output "EMIOTTC{i}WAVEO"[3];
+        }
+
+        for i in 0..2 {
+            input "EMIOUART{i}RX";
+            output "EMIOUART{i}TX";
+            input "EMIOUART{i}CTSN";
+            output "EMIOUART{i}RTSN";
+            input "EMIOUART{i}DSRN";
+            output "EMIOUART{i}DTRN";
+            input "EMIOUART{i}DCDN";
+            input "EMIOUART{i}RIN";
+        }
+
+        for i in 0..2 {
+            input "EMIOSPI{i}SCLKI";
+            output "EMIOSPI{i}SCLKO";
+            output "EMIOSPI{i}SCLKTN";
+            input "EMIOSPI{i}SSIN";
+            output "EMIOSPI{i}SSON"[3];
+            output "EMIOSPI{i}SSNTN";
+            input "EMIOSPI{i}MI";
+            output "EMIOSPI{i}MO";
+            output "EMIOSPI{i}MOTN";
+            input "EMIOSPI{i}SI";
+            output "EMIOSPI{i}SO";
+            output "EMIOSPI{i}STN";
+        }
+
+        for i in 0..2 {
+            input "EMIOI2C{i}SCLI";
+            output "EMIOI2C{i}SCLO";
+            output "EMIOI2C{i}SCLTN";
+            input "EMIOI2C{i}SDAI";
+            output "EMIOI2C{i}SDAO";
+            output "EMIOI2C{i}SDATN";
+        }
+
+        for i in 0..2 {
+            input "EMIOCAN{i}PHYRX";
+            output "EMIOCAN{i}PHYTX";
+        }
+
+        for i in 0..2 {
+            output "EMIOSDIO{i}BUSPOW";
+            output "EMIOSDIO{i}BUSVOLT"[3];
+            input "EMIOSDIO{i}CDN";
+            output "EMIOSDIO{i}CLK";
+            input "EMIOSDIO{i}CLKFB";
+            input "EMIOSDIO{i}CMDI";
+            output "EMIOSDIO{i}CMDO";
+            output "EMIOSDIO{i}CMDTN";
+            input "EMIOSDIO{i}DATAI"[4];
+            output "EMIOSDIO{i}DATAO"[4];
+            output "EMIOSDIO{i}DATATN"[4];
+            output "EMIOSDIO{i}LED";
+            input "EMIOSDIO{i}WP";
+        }
+
+        input EMIOSRAMINTIN;
+
+        for i in 0..2 {
+            input "EMIOENET{i}GMIIRXCLK";
+            input "EMIOENET{i}GMIIRXD"[8];
+            input "EMIOENET{i}GMIIRXDV";
+            input "EMIOENET{i}GMIIRXER";
+            input "EMIOENET{i}GMIICOL";
+            input "EMIOENET{i}GMIICRS";
+            input "EMIOENET{i}GMIITXCLK";
+            output "EMIOENET{i}GMIITXD"[8];
+            output "EMIOENET{i}GMIITXEN";
+            output "EMIOENET{i}GMIITXER";
+
+            output "EMIOENET{i}MDIOMDC";
+            input "EMIOENET{i}MDIOI";
+            output "EMIOENET{i}MDIOO";
+            output "EMIOENET{i}MDIOTN";
+
+            output "EMIOENET{i}PTPDELAYREQRX";
+            output "EMIOENET{i}PTPDELAYREQTX";
+            output "EMIOENET{i}PTPPDELAYREQRX";
+            output "EMIOENET{i}PTPPDELAYREQTX";
+            output "EMIOENET{i}PTPPDELAYRESPRX";
+            output "EMIOENET{i}PTPPDELAYRESPTX";
+            output "EMIOENET{i}PTPSYNCFRAMERX";
+            output "EMIOENET{i}PTPSYNCFRAMETX";
+
+            input "EMIOENET{i}EXTINTIN";
+
+            output "EMIOENET{i}SOFRX";
+            output "EMIOENET{i}SOFTX";
+        }
+
+        for i in 0..2 {
+            output "EMIOUSB{i}PORTINDCTL"[2];
+            input "EMIOUSB{i}VBUSPWRFAULT";
+            output "EMIOUSB{i}VBUSPWRSELECT";
+        }
+
+        input TESTA9MBISTDATAIN;
+        input TESTA9MBISTDSHIFT;
+        input TESTA9MBISTENABLEN;
+        input TESTA9MBISTRESET;
+        output TESTA9MBISTRESULT[6];
+        input TESTA9MBISTRUN;
+        input TESTA9MBISTSHIFT;
+        input TESTAMUXENABLEB;
+        input TESTBGAMUXSEL[5];
+        input TESTBGPOWERDOWN;
+        input TESTBSCENN;
+        input TESTDFTRAMBYPN;
+        output TESTDIVCLKOUT[21];
+        input TESTDIVCLKOUTPREOPCGENABLEN;
+        input TESTDIVIDERRESETN;
+        input TESTDIVIDERUPDATETOG;
+        input TESTEDTBYPASS;
+        input TESTEDTCHANNELSIN[7];
+        output TESTEDTCHANNELSOUT[7];
+        input TESTEDTCLOCK;
+        input TESTEDTUPDATE;
+        output TESTMBISTCOMPSTAT;
+        input TESTMBISTMODEN;
+        input TESTMBISTTAPTCK;
+        input TESTMBISTTAPTDI;
+        output TESTMBISTTAPTDO;
+        output TESTMBISTTAPTDOENABLE;
+        input TESTMBISTTAPTMS;
+        input TESTMBISTTAPTRST;
+        output TESTPLLCLKOUT[3];
+        output TESTPLLCONFIGREADY[3];
+        input TESTPLLCONFIGUPDATE[3];
+        input TESTPLLFBTESTN[3];
+        output TESTPLLFEEDBACKDIV[3];
+        output TESTPLLLOCK[3];
+        output TESTPLLNEWCLK[3];
+        input TESTPLLPOWERDOWNN;
+        input TESTPLLREFCLKCPU;
+        input TESTPLLREFCLKDDR;
+        input TESTPLLREFCLKENN[3];
+        input TESTPLLREFCLKIOU;
+        input TESTPLLRESET;
+        input TESTPSSCLOCKDR;
+        input TESTPSSEXTEST;
+        input TESTPSSEXTESTSMPL;
+        input TESTPSSINTEST;
+        input TESTPSSRESETTAPB;
+        input TESTPSSSHIFTDR;
+        input TESTPSSTDI;
+        output TESTPSSTDO;
+        input TESTPSSUPDATEDR;
+        input TESTRESETMUXN;
+        input TESTSCANCLOCKCLOCKGEN;
+        input TESTSCANCLOCKOPCG[24];
+        input TESTSCANCLOCKPAD[5];
+        input TESTSCANENABLEATSPEEDNONSCANFLOPSN;
+        input TESTSCANENABLEN;
+        input TESTSCANMODEATSPEEDN;
+        input TESTSCANMODEATSPEEDOPCGN[24];
+        input TESTSCANMODEN;
+        input TESTSCANRESETN;
+        input TESTSLCRCONFIGCLOCK;
+        input TESTSLCRCONFIGIN;
+        output TESTSLCRCONFIGOUT;
+        input TESTSLCRCONFIGRESETN;
+        input TESTSPAREIN[7];
+        output TESTSPAREOUT[7];
+        input TESTTRIGGEROPCGN;
+
+        input DEBUGSELECT[16];
+        output DEBUGDATA[200];
+
+        pad PSCLK: input;
+        pad PSPORB, PSSRSTB: input;
+        pad MIO[54]: inout;
+
+        pad DDRCKP, DDRCKN: output;
+        pad DDRWEB, DDRCASB, DDRRASB: output;
+        pad DDRCSB, DDRCKE, DDRODT, DDRDRSTB: output;
+        pad DDRA[15]: output;
+        pad DDRBA[3]: output;
+
+        pad DDRDQ[32]: inout;
+        pad DDRDQSP[4], DDRDQSN[4]: inout;
+        pad DDRDM[4]: output;
+
+        pad DDRVRP, DDRVRN: analog;
+    }
+
     if variant virtex4 {
         region_slot GLOBAL;
         region_slot GIOB;
@@ -5283,39 +7968,41 @@ target_defs! {
         wire RCLK_CMT_E[12]: mux;
         wire GIOB_CMT[8]: mux;
 
-        wire IMUX_MMCM_CLKIN1_HCLK_W[2]: mux;
-        wire IMUX_MMCM_CLKIN2_HCLK_W[2]: mux;
-        wire IMUX_MMCM_CLKFB_HCLK_W[2]: mux;
-        wire IMUX_MMCM_CLKIN1_HCLK_E[2]: mux;
-        wire IMUX_MMCM_CLKIN2_HCLK_E[2]: mux;
-        wire IMUX_MMCM_CLKFB_HCLK_E[2]: mux;
-        wire IMUX_MMCM_CLKIN1_HCLK[2]: mux;
-        wire IMUX_MMCM_CLKIN2_HCLK[2]: mux;
-        wire IMUX_MMCM_CLKFB_HCLK[2]: mux;
-        wire IMUX_MMCM_CLKIN1_IO[2]: mux;
-        wire IMUX_MMCM_CLKIN2_IO[2]: mux;
-        wire IMUX_MMCM_CLKFB_IO[2]: mux;
-        wire IMUX_MMCM_CLKIN1_MGT[2]: mux;
-        wire IMUX_MMCM_CLKIN2_MGT[2]: mux;
-        wire IMUX_MMCM_CLKIN1[2]: mux;
-        wire IMUX_MMCM_CLKIN2[2]: mux;
-        wire IMUX_MMCM_CLKFB[2]: mux;
-        wire OUT_MMCM_S[14]: bel;
-        wire OUT_MMCM_N[14]: bel;
-        wire OMUX_MMCM_MMCM[2]: bel;
-        wire OMUX_MMCM_PERF_S[4]: bel;
-        wire OMUX_MMCM_PERF_N[4]: bel;
+        wire IMUX_PLL_CLKIN1_HCLK_W[2]: mux;
+        wire IMUX_PLL_CLKIN2_HCLK_W[2]: mux;
+        wire IMUX_PLL_CLKFB_HCLK_W[2]: mux;
+        wire IMUX_PLL_CLKIN1_HCLK_E[2]: mux;
+        wire IMUX_PLL_CLKIN2_HCLK_E[2]: mux;
+        wire IMUX_PLL_CLKFB_HCLK_E[2]: mux;
+        wire IMUX_PLL_CLKIN1_HCLK[2]: mux;
+        wire IMUX_PLL_CLKIN2_HCLK[2]: mux;
+        wire IMUX_PLL_CLKFB_HCLK[2]: mux;
+        wire IMUX_PLL_CLKIN1_IO[2]: mux;
+        wire IMUX_PLL_CLKIN2_IO[2]: mux;
+        wire IMUX_PLL_CLKFB_IO[2]: mux;
+        wire IMUX_PLL_CLKIN1_MGT[2]: mux;
+        wire IMUX_PLL_CLKIN2_MGT[2]: mux;
+        wire IMUX_PLL_CLKIN1[2]: mux;
+        wire IMUX_PLL_CLKIN2[2]: mux;
+        wire IMUX_PLL_CLKFB[2]: mux;
+        wire OUT_PLL_S[14]: bel;
+        wire OUT_PLL_N[14]: bel;
+        wire OMUX_PLL_CASC[2]: bel;
+        wire OMUX_PLL_PERF_S[4]: bel;
+        wire OMUX_PLL_PERF_N[4]: bel;
     }
 
     if variant virtex7 {
-        region_slot GLOBAL;
+        region_slot GCLK;
         region_slot HROW;
         region_slot LEAF;
+        region_slot LEAF_IO;
+        region_slot IO_BYTE;
 
         wire TIE_0: tie 0;
         wire TIE_1: tie 1;
 
-        wire LCLK[12]: bel;
+        wire LCLK[12]: regional LEAF;
 
         wire SNG_W0_N3: mux;
         wire SNG_W0_S4: mux;
@@ -5484,7 +8171,121 @@ target_defs! {
         wire OUT_BEL[24]: bel;
         wire OUT_TEST[24]: test;
 
-        wire TEST[4]: test;
+        wire IMUX_SPEC[4]: test;
+
+        wire GCLK[32]: regional GCLK;
+        wire GCLK_REBUF_TEST[32]: mux;
+        wire OUT_BUFG[16]: bel;
+        wire OUT_BUFG_GFB[16]: mux;
+        wire IMUX_BUFG_O[32]: mux;
+        wire IMUX_BUFG_I[32]: branch CLK_PREV;
+
+        wire GCLK_HROW[32]: mux;
+        wire HROW_I_HROW_W[14]: mux;
+        wire HROW_I_HROW_E[14]: mux;
+        wire RCLK_HROW_W[4]: mux;
+        wire RCLK_HROW_E[4]: mux;
+        wire CKINT_HROW[4]: mux;
+        wire GCLK_TEST[32]: mux;
+        wire GCLK_TEST_IN[32]: mux;
+        wire BUFH_TEST_W: mux;
+        wire BUFH_TEST_E: mux;
+        wire BUFH_TEST_W_IN: mux;
+        wire BUFH_TEST_E_IN: mux;
+        wire IMUX_BUFHCE_W[12]: mux;
+        wire IMUX_BUFHCE_E[12]: mux;
+
+        wire HCLK_ROW[12]: regional HROW;
+        wire RCLK_ROW[4]: regional HROW;
+        wire HCLK_BUF[12]: mux;
+        wire RCLK_BUF[4]: mux;
+        wire HROW_O[14]: mux;
+        wire HROW_I[14]: branch HCLK_ROW_PREV;
+
+        wire OUT_CLKPAD: bel;
+        wire IMUX_IOI_ICLK[2]: mux;
+        wire IMUX_IOI_ICLKDIVP: mux;
+        wire IMUX_IOI_OCLK[2]: mux;
+        wire IMUX_IOI_OCLKDIV[2]: mux;
+        wire IMUX_IOI_OCLKDIVF[2]: mux;
+
+        wire HCLK_IO[12]: mux;
+        wire LCLK_IO[6]: regional LEAF;
+        wire RCLK_IO[4]: regional LEAF_IO;
+        wire IOCLK[4]: regional LEAF_IO;
+        wire IMUX_IDELAYCTRL_REFCLK: mux;
+        wire IMUX_BUFIO[4]: mux;
+        wire IMUX_BUFR[4]: mux;
+        wire PERF_IO[4]: mux;
+        wire PERF[4]: mux;
+
+        wire FIFO_ORDCLK: mux;
+        wire FIFO_ORDEN: mux;
+        wire FIFO_IWRCLK: mux;
+        wire FIFO_IWREN: mux;
+
+        wire PHASER_ICLK: regional IO_BYTE;
+        wire PHASER_ICLKDIV: regional IO_BYTE;
+        wire PHASER_IWREN: bel;
+        wire PHASER_OCLK: regional IO_BYTE;
+        wire PHASER_OCLK90: bel;
+        wire PHASER_OCLKDIV: regional IO_BYTE;
+        wire PHASER_ORDEN: bel;
+
+        // buffers
+        wire HCLK_CMT[12]: mux;
+        wire RCLK_CMT[4]: mux;
+        wire CCIO_CMT[4]: mux;
+        wire CKINT_CMT[4]: mux;
+        wire HROW_I_CMT[14]: mux;
+        wire PERF_IN_PLL[4]: mux;
+        wire PERF_IN_PHASER[4]: mux;
+        // actual contents
+        wire CMT_FREQ_BB[4]: mux;
+        wire CMT_FREQ_BB_S[4]: multi_branch IO_S;
+        wire CMT_FREQ_BB_N[4]: multi_root;
+        wire CMT_SYNC_BB: mux;
+        wire CMT_SYNC_BB_S: multi_branch IO_S;
+        wire CMT_SYNC_BB_N: multi_root;
+        wire IMUX_BUFMRCE[2]: mux;
+        // ummmm. what are these wires like. actually for.
+        wire LCLK_CMT_S[2]: mux;
+        wire LCLK_CMT_N[2]: mux;
+        wire IMUX_PLL_CLKIN1_HCLK[2]: mux;
+        wire IMUX_PLL_CLKIN2_HCLK[2]: mux;
+        wire IMUX_PLL_CLKFB_HCLK[2]: mux;
+        wire IMUX_PLL_CLKIN1[2]: mux;
+        wire IMUX_PLL_CLKIN2[2]: mux;
+        wire IMUX_PLL_CLKFB[2]: mux;
+        wire OUT_PLL_S[14]: bel;
+        wire OUT_PLL_N[8]: bel;
+        wire OUT_PLL_FREQ_BB_S[4]: mux;
+        wire OUT_PLL_FREQ_BB_N[4]: mux;
+        wire OMUX_PLL_PERF[4]: mux;
+        wire OMUX_PLL_FREQ_BB_S[4]: mux;
+        wire OMUX_PLL_FREQ_BB_N[4]: mux;
+        wire OMUX_HCLK_FREQ_BB[4]: mux;
+        // also used to route PHASER_REF outs to places. huh.
+        wire OMUX_CCIO[4]: mux;
+        wire IMUX_PHASER_REFMUX[3]: mux;
+        wire IMUX_PHASER_IN_PHASEREFCLK[4]: mux;
+        wire IMUX_PHASER_OUT_PHASEREFCLK[4]: mux;
+        wire OUT_PHASER_REF_CLKOUT: bel;
+        wire OUT_PHASER_REF_TMUXOUT: bel;
+        wire OUT_PHASER_IN_RCLK[4]: bel;
+        wire OUT_PHY_PHYCTLEMPTY: bel;
+        wire VMRCLK[2]: bel;
+        wire VMRCLK_S[2]: branch IO_N;
+        wire VMRCLK_N[2]: branch IO_S;
+
+        wire OUT_GT_RXOUTCLK: bel;
+        wire OUT_GT_TXOUTCLK: bel;
+        wire OUT_GT_MGTCLKOUT[2]: bel;
+        // for GTP_MID only
+        wire OUT_GT_MGTCLKOUT_HCLK[2]: mux;
+        wire OUT_GT_RXOUTCLK_HCLK[4]: mux;
+        wire OUT_GT_TXOUTCLK_HCLK[4]: mux;
+        wire HROW_I_GTP[14]: mux;
     }
 
     bitrect REG32 = horizontal (1, rev 32);
@@ -5641,29 +8442,16 @@ target_defs! {
             }
         }
 
+        bel_slot ILOGIC[2]: ILOGIC;
+        bel_slot OLOGIC[2]: OLOGIC;
         if variant [virtex4, virtex5] {
-            bel_slot ILOGIC[2]: ILOGIC;
-            bel_slot OLOGIC[2]: OLOGIC;
             bel_slot IODELAY[2]: IODELAY_V5;
-            bel_slot IDELAY[2]: legacy;
-            bel_slot ODELAY[2]: legacy;
-            bel_slot IOB[2]: IOB;
-        } else if variant virtex6 {
-            bel_slot ILOGIC[2]: ILOGIC;
-            bel_slot OLOGIC[2]: OLOGIC;
-            bel_slot IODELAY[2]: IODELAY_V6;
-            bel_slot IDELAY[2]: legacy;
-            bel_slot ODELAY[2]: legacy;
-            bel_slot IOB[2]: IOB;
         } else {
-            bel_slot ILOGIC[2]: legacy;
-            bel_slot OLOGIC[2]: legacy;
-            bel_slot IODELAY[2]: legacy;
-            bel_slot IDELAY[2]: legacy;
-            bel_slot ODELAY[2]: legacy;
-            bel_slot IOB[2]: legacy;
+            bel_slot IODELAY[2]: IODELAY_V6;
         }
-        bel_slot IOI: legacy;
+        bel_slot IDELAY[2]: IDELAY;
+        bel_slot ODELAY[2]: ODELAY;
+        bel_slot IOB[2]: IOB;
         if variant virtex4 {
             tile_class IO {
                 cell CELL;
@@ -5700,22 +8488,15 @@ target_defs! {
         }
         if variant [virtex4, virtex5] {
             bel_slot PLL[2]: PLL_V5;
-        } else if variant virtex6 {
-            bel_slot PLL[2]: PLL_V6;
         } else {
-            bel_slot PLL[2]: legacy;
+            bel_slot PLL[2]: PLL_V6;
         }
-        bel_slot CMT_A: legacy;
-        bel_slot CMT_B: legacy;
-        bel_slot CMT_C: legacy;
-        bel_slot CMT_D: legacy;
-        bel_slot HCLK_CMT: legacy;
         bel_slot PPR_FRAME: PPR_FRAME;
-        bel_slot PHASER_IN[4]: legacy;
-        bel_slot PHASER_OUT[4]: legacy;
-        bel_slot PHASER_REF: legacy;
-        bel_slot PHY_CONTROL: legacy;
-        bel_slot BUFMRCE[2]: legacy;
+        bel_slot PHASER_IN[4]: PHASER_IN;
+        bel_slot PHASER_OUT[4]: PHASER_OUT;
+        bel_slot PHASER_REF: PHASER_REF;
+        bel_slot PHY_CONTROL: PHY_CONTROL;
+        bel_slot BUFMRCE[2]: BUFHCE;
         if variant virtex4 {
             tile_class DCM {
                 cell CELL[4];
@@ -5740,6 +8521,7 @@ target_defs! {
         if variant virtex7 {
             tile_class CMT {
                 cell CELL[50];
+                cell IO[50];
                 bitrect MAIN[50]: CMT;
                 bitrect HCLK: HCLK_CMT;
             }
@@ -5755,20 +8537,12 @@ target_defs! {
             }
         }
 
-        if variant virtex6 {
-            bel_slot BUFHCE_W[12]: BUFHCE;
-            bel_slot BUFHCE_E[12]: BUFHCE;
-        } else {
-            bel_slot BUFHCE_W[12]: legacy;
-            bel_slot BUFHCE_E[12]: legacy;
-        }
-        bel_slot CLK_HROW_V7: legacy;
-        bel_slot GCLK_TEST_BUF_HROW_GCLK[32]: legacy;
-        bel_slot GCLK_TEST_BUF_HROW_BUFH_W: legacy;
-        bel_slot GCLK_TEST_BUF_HROW_BUFH_E: legacy;
+        bel_slot BUFHCE_W[12]: BUFHCE;
+        bel_slot BUFHCE_E[12]: BUFHCE;
         if variant virtex7 {
             tile_class CLK_HROW {
                 cell CELL[2];
+                cell CELL_E;
                 bitrect MAIN[8]: CLK;
                 bitrect HCLK: HCLK_CLK;
             }
@@ -5837,12 +8611,12 @@ target_defs! {
             }
         }
 
-        if variant virtex5 {
+        if variant [virtex4, virtex5] {
             bel_slot PCIE: PCIE_V5;
         } else if variant virtex6 {
-            bel_slot PCIE: legacy;
+            bel_slot PCIE: PCIE_V6;
         } else {
-            bel_slot PCIE: legacy;
+            bel_slot PCIE: PCIE_V7;
         }
         if variant virtex5 {
             tile_class PCIE {
@@ -5865,7 +8639,7 @@ target_defs! {
             }
         }
 
-        bel_slot PCIE3: legacy;
+        bel_slot PCIE3: PCIE3;
         if variant virtex7 {
             tile_class PCIE3 {
                 cell CELL_W[50];
@@ -5918,6 +8692,7 @@ target_defs! {
             }
         }
 
+        bel_slot HCLK_DRP_GTP_MID: HCLK_DRP;
         bel_slot GTP_COMMON: legacy;
         bel_slot GTX_COMMON: legacy;
         bel_slot GTH_COMMON: legacy;
@@ -5925,19 +8700,23 @@ target_defs! {
         if variant virtex7 {
             tile_class GTP_COMMON {
                 cell CELL[6];
+                cell CHANNEL[4];
                 bitrect MAIN[6]: GT;
             }
             tile_class GTP_COMMON_MID {
                 cell CELL[6];
+                cell CHANNEL[4];
                 bitrect MAIN[6]: INT;
                 bitrect HCLK: HCLK;
             }
             tile_class GTX_COMMON {
                 cell CELL[6];
+                cell CHANNEL[4];
                 bitrect MAIN[6]: GT;
             }
             tile_class GTH_COMMON {
                 cell CELL[6];
+                cell CHANNEL[4];
                 bitrect MAIN[6]: GT;
             }
         }
@@ -5975,11 +8754,7 @@ target_defs! {
         bel_slot OPAD_TXP[4]: legacy;
         bel_slot OPAD_TXN[4]: legacy;
 
-        if variant [virtex4, virtex5, virtex6] {
-            bel_slot BUFGCTRL[32]: BUFGCTRL;
-        } else {
-            bel_slot BUFGCTRL[32]: legacy;
-        }
+        bel_slot BUFGCTRL[32]: BUFGCTRL;
         if variant virtex4 {
             tile_class CLK_BUFG {
                 cell CELL[16];
@@ -5997,7 +8772,7 @@ target_defs! {
             }
         }
         if variant virtex6 {
-            tile_class CMT_BUFG_S, CMT_BUFG_N {
+            tile_class CLK_BUFG_S, CLK_BUFG_N {
                 cell CELL[3];
                 cell IO_W[2];
                 cell IO_E[2];
@@ -6005,50 +8780,24 @@ target_defs! {
             }
         }
         if variant virtex7 {
-            tile_class CLK_BUFG {
+            tile_class CLK_BUFG_S, CLK_BUFG_N {
                 cell CELL[4];
                 bitrect MAIN[4]: CLK;
             }
         }
 
-        bel_slot CLK_REBUF: legacy;
-        bel_slot GCLK_TEST_BUF_REBUF_S[16]: legacy;
-        bel_slot GCLK_TEST_BUF_REBUF_N[16]: legacy;
         if variant virtex7 {
             tile_class CLK_BUFG_REBUF {
-                cell CELL[2];
+                cell S, N;
                 bitrect MAIN[2]: CLK;
             }
             tile_class CLK_BALI_REBUF {
-                cell CELL[16];
+                cell S, N;
                 bitrect MAIN[16]: CLK;
             }
         }
 
-        bel_slot PS: legacy;
-        bel_slot HCLK_PS_S: legacy;
-        bel_slot HCLK_PS_N: legacy;
-        bel_slot IOPAD_DDRWEB: legacy;
-        bel_slot IOPAD_DDRVRN: legacy;
-        bel_slot IOPAD_DDRVRP: legacy;
-        bel_slot IOPAD_DDRA[15]: legacy;
-        bel_slot IOPAD_DDRBA[3]: legacy;
-        bel_slot IOPAD_DDRCASB: legacy;
-        bel_slot IOPAD_DDRCKE: legacy;
-        bel_slot IOPAD_DDRCKN: legacy;
-        bel_slot IOPAD_DDRCKP: legacy;
-        bel_slot IOPAD_PSCLK: legacy;
-        bel_slot IOPAD_DDRCSB: legacy;
-        bel_slot IOPAD_DDRDM[4]: legacy;
-        bel_slot IOPAD_DDRDQ[32]: legacy;
-        bel_slot IOPAD_DDRDQSN[4]: legacy;
-        bel_slot IOPAD_DDRDQSP[4]: legacy;
-        bel_slot IOPAD_DDRDRSTB: legacy;
-        bel_slot IOPAD_MIO[54]: legacy;
-        bel_slot IOPAD_DDRODT: legacy;
-        bel_slot IOPAD_PSPORB: legacy;
-        bel_slot IOPAD_DDRRASB: legacy;
-        bel_slot IOPAD_PSSRSTB: legacy;
+        bel_slot PS: PS;
         if variant virtex7 {
             tile_class PS {
                 cell CELL[100];
@@ -6057,8 +8806,9 @@ target_defs! {
     }
 
     tile_slot CMT_FIFO {
-        bel_slot IN_FIFO: legacy;
-        bel_slot OUT_FIFO: legacy;
+        bel_slot CMT_FIFO_INT: routing;
+        bel_slot IN_FIFO: IN_FIFO;
+        bel_slot OUT_FIFO: OUT_FIFO;
         if variant virtex7 {
             tile_class CMT_FIFO {
                 cell CELL[12];
@@ -6098,13 +8848,9 @@ target_defs! {
         bel_slot MISC_CFG: MISC_CFG;
         if variant virtex4 {
             bel_slot SYSMON: SYSMON_V4;
-        } else if variant [virtex5, virtex6] {
-            bel_slot SYSMON: SYSMON_V5;
         } else {
-            bel_slot SYSMON: legacy;
+            bel_slot SYSMON: SYSMON_V5;
         }
-        bel_slot IPAD_VP: legacy;
-        bel_slot IPAD_VN: legacy;
 
         if variant virtex4 {
             tile_class CFG {
@@ -6176,14 +8922,6 @@ target_defs! {
                 bitrect MAIN: HCLK;
             }
         }
-
-        bel_slot INT_LCLK_W: legacy;
-        bel_slot INT_LCLK_E: legacy;
-        if variant virtex7 {
-            tile_class INT_LCLK {
-                cell W, E;
-            }
-        }
     }
 
     tile_slot HROW {
@@ -6210,20 +8948,9 @@ target_defs! {
     }
 
     tile_slot HCLK {
-        if variant [virtex4, virtex5, virtex6] {
-            bel_slot HCLK: routing;
-        } else {
-            bel_slot HCLK: legacy;
-        }
-        bel_slot HCLK_W: legacy;
-        bel_slot HCLK_E: legacy;
+        bel_slot HCLK: routing;
         bel_slot GLOBALSIG: GLOBALSIG;
-        if variant [virtex4, virtex5, virtex6] {
-            bel_slot HCLK_DRP: HCLK_DRP_V6;
-        } else {
-            // TODO: v7 variant
-            bel_slot HCLK_DRP: legacy;
-        }
+        bel_slot HCLK_DRP[2]: HCLK_DRP;
 
         if variant [virtex4, virtex5] {
             tile_class HCLK {
@@ -6239,6 +8966,7 @@ target_defs! {
         }
         if variant virtex7 {
             tile_class HCLK {
+                cell S, N;
                 bitrect MAIN[2]: HCLK;
             }
         }
@@ -6267,19 +8995,11 @@ target_defs! {
         }
 
         bel_slot HCLK_IO_INT: routing;
-        bel_slot HCLK_IO: legacy;
         bel_slot HCLK_CMT_DRP: HCLK_CMT_DRP;
-        if variant [virtex4, virtex5, virtex6] {
-            bel_slot BUFR[4]: BUFR;
-            bel_slot BUFIO[4]: BUFIO;
-            bel_slot IDELAYCTRL: IDELAYCTRL;
-            bel_slot DCI: DCI;
-        } else {
-            bel_slot BUFR[4]: legacy;
-            bel_slot BUFIO[4]: legacy;
-            bel_slot IDELAYCTRL: legacy;
-            bel_slot DCI: legacy;
-        }
+        bel_slot BUFR[4]: BUFR;
+        bel_slot BUFIO[4]: BUFIO;
+        bel_slot IDELAYCTRL: IDELAYCTRL;
+        bel_slot DCI: DCI;
         bel_slot BANK: BANK;
         bel_slot LVDS: LVDS_V4;
 
@@ -6379,12 +9099,27 @@ target_defs! {
                 bitrect TIMER: REG32;
                 bitrect WBSTAR: REG32;
                 bitrect TESTMODE: REG32;
-                bitrect TRIM: REG32;
-                bitrect UNK1C: REG32;
+                bitrect TRIM0: REG32;
+                bitrect TRIM1: REG32;
                 bel GLOBAL;
             }
         }
-
+        if variant virtex7 {
+            tile_class GLOBAL {
+                bitrect COR0: REG32;
+                bitrect COR1: REG32;
+                bitrect CTL0: REG32;
+                bitrect CTL1: REG32;
+                bitrect TIMER: REG32;
+                bitrect WBSTAR: REG32;
+                bitrect TESTMODE: REG32;
+                bitrect TRIM0: REG32;
+                bitrect TRIM1: REG32;
+                bitrect TRIM2: REG32;
+                bitrect BSPI: REG32;
+                bel GLOBAL;
+            }
+        }
     }
 
     connector_slot W {
@@ -6986,47 +9721,58 @@ target_defs! {
 
     connector_slot IO_S {
         opposite IO_N;
-        if variant [virtex4, virtex5, virtex6] {
-            connector_class IO_S {
-                if variant virtex4 {
-                    pass IOCLK_N = IOCLK;
-                } else if variant virtex6 {
-                    pass VIOCLK_N = VIOCLK;
-                    pass VOCLK_N = VOCLK;
-                }
+        connector_class IO_S {
+            if variant virtex4 {
                 pass VRCLK_N = VRCLK;
+                pass IOCLK_N = IOCLK;
+            } else if variant virtex5 {
+                pass VRCLK_N = VRCLK;
+            } else if variant virtex6 {
+                pass VRCLK_N = VRCLK;
+                pass VIOCLK_N = VIOCLK;
+                pass VOCLK_N = VOCLK;
+            } else if variant virtex7 {
+                pass VMRCLK_N = VMRCLK;
+                pass CMT_FREQ_BB_S = CMT_FREQ_BB_N;
+                pass CMT_SYNC_BB_S = CMT_SYNC_BB_N;
+            }
+        }
+        if variant virtex7 {
+            connector_class IO_S_SLR {
+                pass CMT_FREQ_BB_S = CMT_FREQ_BB_N;
             }
         }
     }
     connector_slot IO_N {
         opposite IO_S;
-        if variant [virtex4, virtex5, virtex6] {
-            connector_class IO_N {
-                if variant virtex4 {
-                    pass IOCLK_S = IOCLK;
-                } else if variant virtex6 {
-                    pass VIOCLK_S = VIOCLK;
-                    pass VOCLK_S = VOCLK;
-                }
+        connector_class IO_N {
+            if variant virtex4 {
                 pass VRCLK_S = VRCLK;
+                pass IOCLK_S = IOCLK;
+            } else if variant virtex5 {
+                pass VRCLK_S = VRCLK;
+            } else if variant virtex6 {
+                pass VRCLK_S = VRCLK;
+                pass VIOCLK_S = VIOCLK;
+                pass VOCLK_S = VOCLK;
+            } else if variant virtex7 {
+                pass VMRCLK_S = VMRCLK;
             }
+        }
+        if variant virtex7 {
+            connector_class IO_N_SLR;
         }
     }
 
     connector_slot CLK_PREV {
         opposite CLK_NEXT;
-        if variant [virtex4, virtex5, virtex6] {
-            connector_class CLK_PREV {
-                pass IMUX_BUFG_I = IMUX_BUFG_O;
-            }
+        connector_class CLK_PREV {
+            pass IMUX_BUFG_I = IMUX_BUFG_O;
         }
     }
     connector_slot CLK_NEXT {
         opposite CLK_PREV;
-        if variant [virtex4, virtex5, virtex6] {
-            connector_class CLK_NEXT {
-            }
-        }
+        connector_class CLK_NEXT;
     }
 
     connector_slot MGT_S {
@@ -7077,6 +9823,11 @@ target_defs! {
         if variant virtex6 {
             connector_class HCLK_ROW_PREV;
         }
+        if variant virtex7 {
+            connector_class HCLK_ROW_PREV {
+                pass HROW_I = HROW_O;
+            }
+        }
     }
 
     connector_slot HCLK_ROW_NEXT {
@@ -7091,6 +9842,9 @@ target_defs! {
             connector_class HCLK_ROW_NEXT_PASS {
                 pass PERF_ROW = PERF_ROW;
             }
+        }
+        if variant virtex7 {
+            connector_class HCLK_ROW_NEXT;
         }
     }
 }

@@ -276,53 +276,6 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct VrefInternalLegacy(pub TileClassId, pub u32);
-
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternalLegacy {
-    fn dyn_clone(&self) -> Box<DynProp<'b>> {
-        Box::new(Clone::clone(self))
-    }
-
-    fn apply(
-        &self,
-        backend: &IseBackend<'b>,
-        tcrd: TileCoord,
-        mut fuzzer: Fuzzer<IseBackend<'b>>,
-    ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
-        let ExpandedDevice::Virtex4(edev) = backend.edev else {
-            unreachable!()
-        };
-        let chip = edev.chips[tcrd.die];
-        let hclk_row = chip.row_hclk(tcrd.row);
-        // Take exclusive mutex on VREF.
-        let hclk_ioi = tcrd.with_row(hclk_row).tile(tslots::HCLK_BEL);
-        if edev[hclk_ioi].class != self.0 {
-            return None;
-        }
-        fuzzer = fuzzer.fuzz(
-            Key::TileMutex(hclk_ioi, "VREF".to_string()),
-            None,
-            "EXCLUSIVE",
-        );
-        let io = edev.get_io_info(IoCoord {
-            cell: tcrd.cell,
-            iob: TileIobId::from_idx(0),
-        });
-        fuzzer = fuzzer.fuzz(Key::InternalVref(io.bank), None, self.1);
-        fuzzer.info.features.push(FuzzerFeature {
-            key: DiffKey::Legacy(FeatureId {
-                tile: edev.db.tile_classes.key(self.0).into(),
-                bel: "INTERNAL_VREF".into(),
-                attr: "VREF".into(),
-                val: self.1.to_string(),
-            }),
-            rects: edev.tile_bits(hclk_ioi),
-        });
-        Some((fuzzer, false))
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
 pub struct VrefInternal(pub TileClassId, pub EnumValueId);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {

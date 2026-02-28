@@ -1,7 +1,13 @@
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{CellCoord, DieId, DieIdExt, TileCoord, TileIobId};
+use prjcombine_interconnect::{
+    db::WireSlotIdExt,
+    grid::{CellCoord, DieId, DieIdExt, TileCoord, TileIobId},
+};
 use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, FeatureId, OcdMode},
+    diff::{
+        Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val, extract_bitvec_val_part,
+        extract_common_diff, xlat_bit, xlat_bit_wide, xlat_enum_attr, xlat_enum_raw,
+    },
     legacy::{
         extract_bitvec_val_legacy, extract_bitvec_val_part_legacy, xlat_bit_bi_legacy,
         xlat_bit_legacy, xlat_bit_wide_legacy, xlat_bitvec_legacy, xlat_enum_legacy,
@@ -18,7 +24,12 @@ use prjcombine_types::{
 };
 use prjcombine_virtex4::{
     chip::RegId,
-    defs::{self, virtex7::tcls},
+    defs::{
+        self,
+        bcls::{BANK, DCI},
+        bslots, enums,
+        virtex7::{tcls, wires},
+    },
     expanded::IoCoord,
 };
 
@@ -27,16 +38,17 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
+        int::{BaseIntPip, FuzzIntPip},
         iostd::{DciKind, DiffKind, Iostd},
         props::{
             DynProp,
             bel::{BaseBelAttr, BaseBelMode, BaseBelPin, BaseBelPinPair},
-            mutex::TileMutex,
+            mutex::{TileMutex, WireMutexExclusive},
             relation::{Delta, Related},
         },
     },
-    virtex4::io::IsBonded,
-    virtex5::io::{DiffOutLegacy, HclkIoi, VrefInternalLegacy},
+    virtex4::{io::IsBonded, specials},
+    virtex5::io::{DiffOutLegacy, HclkIoi, VrefInternal},
 };
 
 const HP_IOSTDS: &[Iostd] = &[
@@ -221,7 +233,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
         for vref in vrefs {
             let site = backend
                 .ngrid
-                .get_bel_name(vref.cell.bel(defs::bslots::IOB[0]))
+                .get_bel_name(vref.cell.bel(bslots::IOB[0]))
                 .unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             if self.0 {
@@ -272,7 +284,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Ensure nothing is placed in VR.
         for row in [chip.row_hclk(tcrd.row) - 25, chip.row_hclk(tcrd.row) + 24] {
             let vr_tile = tcrd.with_row(row).tile(defs::tslots::BEL);
-            let vr_bel = vr_tile.cell.bel(defs::bslots::IOB[0]);
+            let vr_bel = vr_tile.cell.bel(bslots::IOB[0]);
             let site = backend.ngrid.get_bel_name(vr_bel).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             // Test VR.
@@ -319,7 +331,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         let iob_anchor = tcrd
             .cell
             .with_cr(edev.col_io_e.unwrap(), chip.row_reg_bot(anchor_reg) + 1)
-            .bel(defs::bslots::IOB[0]);
+            .bel(bslots::IOB[0]);
         let site = backend.ngrid.get_bel_name(iob_anchor).unwrap();
         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
@@ -333,7 +345,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
             let iob_anchor_vr = tcrd
                 .cell
                 .with_cr(edev.col_io_e.unwrap(), row)
-                .bel(defs::bslots::IOB[0]);
+                .bel(bslots::IOB[0]);
             let site = backend.ngrid.get_bel_name(iob_anchor_vr).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
         }
@@ -348,23 +360,100 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
     }
 }
 
-pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let ExpandedDevice::Virtex4(edev) = backend.edev else {
-        unreachable!()
-    };
+fn add_fuzzers_routing<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
+    for (tcid, num_io) in [
+        (tcls::IO_HR_PAIR, 2),
+        (tcls::IO_HR_S, 1),
+        (tcls::IO_HR_N, 1),
+        (tcls::IO_HP_PAIR, 2),
+        (tcls::IO_HP_S, 1),
+        (tcls::IO_HP_N, 1),
+    ] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
+            continue;
+        };
+        for io in 0..num_io {
+            for w in [wires::IMUX_IOI_ICLK, wires::IMUX_IOI_OCLK] {
+                let dst0 = w[0].cell(io);
+                let dst1 = w[1].cell(io);
+                let mux = &backend.edev.db_index[tcid].muxes[&dst0];
+                for &src in mux.src.keys() {
+                    if src.wire == wires::PHASER_OCLK90 {
+                        ctx.build()
+                            .prop(WireMutexExclusive::new(dst0))
+                            .prop(WireMutexExclusive::new(dst1))
+                            .prop(BaseIntPip::new(dst1, wires::PHASER_OCLK.cell(io)))
+                            .test_routing(dst0, src)
+                            .prop(FuzzIntPip::new(dst0, src.tw))
+                            .commit();
 
-    let package = backend
-        .device
-        .bonds
-        .values()
-        .max_by_key(|bond| {
-            let bdata = &backend.db.bonds[bond.bond];
-            let prjcombine_re_xilinx_geom::Bond::Virtex4(bdata) = bdata else {
-                unreachable!();
-            };
-            bdata.pins.len()
-        })
-        .unwrap();
+                        ctx.build()
+                            .prop(WireMutexExclusive::new(dst0))
+                            .prop(WireMutexExclusive::new(dst1))
+                            .test_routing_pair_special(dst1, src, specials::IOI_OCLK90_BOTH)
+                            .prop(FuzzIntPip::new(dst0, src.tw))
+                            .commit();
+                    } else {
+                        ctx.build()
+                            .prop(WireMutexExclusive::new(dst0))
+                            .prop(WireMutexExclusive::new(dst1))
+                            .prop(BaseIntPip::new(dst1, src.tw))
+                            .test_routing(dst0, src)
+                            .prop(FuzzIntPip::new(dst0, src.tw))
+                            .commit();
+                        ctx.build()
+                            .prop(WireMutexExclusive::new(dst0))
+                            .prop(WireMutexExclusive::new(dst1))
+                            .test_routing(dst1, src)
+                            .prop(FuzzIntPip::new(dst1, src.tw))
+                            .commit();
+                    }
+                }
+            }
+
+            let dst0 = wires::IMUX_IOI_OCLKDIV[0].cell(io);
+            let dst1 = wires::IMUX_IOI_OCLKDIV[1].cell(io);
+            let dst0f = wires::IMUX_IOI_OCLKDIVF[0].cell(io);
+            let dst1f = wires::IMUX_IOI_OCLKDIVF[1].cell(io);
+            let src_p = wires::PHASER_OCLKDIV.cell(io);
+            ctx.build()
+                .prop(WireMutexExclusive::new(dst0))
+                .prop(WireMutexExclusive::new(dst1))
+                .prop(BaseIntPip::new(dst1, src_p))
+                .test_routing(dst0, src_p.pos())
+                .prop(FuzzIntPip::new(dst0, src_p))
+                .commit();
+            ctx.build()
+                .prop(WireMutexExclusive::new(dst0))
+                .prop(WireMutexExclusive::new(dst1))
+                .test_routing(dst1, src_p.pos())
+                .prop(FuzzIntPip::new(dst1, src_p))
+                .commit();
+            let mux = &backend.edev.db_index[tcid].muxes[&dst0f];
+            for &src in mux.src.keys() {
+                ctx.build()
+                    .prop(WireMutexExclusive::new(dst0))
+                    .prop(WireMutexExclusive::new(dst1))
+                    .prop(WireMutexExclusive::new(dst0f))
+                    .prop(WireMutexExclusive::new(dst1f))
+                    .prop(BaseIntPip::new(dst1, src.tw))
+                    .test_routing(dst0, src)
+                    .prop(FuzzIntPip::new(dst0, src.tw))
+                    .commit();
+                ctx.build()
+                    .prop(WireMutexExclusive::new(dst0))
+                    .prop(WireMutexExclusive::new(dst1))
+                    .prop(WireMutexExclusive::new(dst0f))
+                    .prop(WireMutexExclusive::new(dst1f))
+                    .test_routing(dst1, src)
+                    .prop(FuzzIntPip::new(dst1, src.tw))
+                    .commit();
+            }
+        }
+    }
+}
+
+fn add_fuzzers_ilogic<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     for (tcid, is_hp, num_io) in [
         (tcls::IO_HR_PAIR, false, 2),
         (tcls::IO_HR_S, false, 1),
@@ -377,8 +466,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             continue;
         };
         for i in 0..num_io {
-            let mut bctx = ctx.bel(defs::bslots::ILOGIC[i]);
-            let bel_ologic = defs::bslots::OLOGIC[i];
+            let mut bctx = ctx.bel(bslots::ILOGIC[i]);
 
             bctx.test_manual_legacy("PRESENT", "ILOGICE2")
                 .mode("ILOGICE2")
@@ -583,60 +671,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode("ILOGICE3")
                     .test_multi_attr_dec_legacy("IFFDELAY_VALUE", 5);
             }
-
-            for pin in ["CKINT0", "CKINT1", "PHASER_ICLK"] {
-                bctx.build()
-                    .mutex("MUX.CLK", pin)
-                    .pip("CLKB", pin)
-                    .test_manual_legacy("MUX.CLK", pin)
-                    .pip("CLK", pin)
-                    .commit();
-                bctx.build()
-                    .mutex("MUX.CLK", pin)
-                    .test_manual_legacy("MUX.CLKB", pin)
-                    .pip("CLKB", pin)
-                    .commit();
-            }
-            bctx.build()
-                .mutex("MUX.CLK", "PHASER_OCLK")
-                .pip("CLKB", (bel_ologic, "PHASER_OCLK"))
-                .test_manual_legacy("MUX.CLK", "PHASER_OCLK")
-                .pip("CLK", (bel_ologic, "PHASER_OCLK"))
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLK", "PHASER_OCLK")
-                .test_manual_legacy("MUX.CLKB", "PHASER_OCLK")
-                .pip("CLKB", (bel_ologic, "PHASER_OCLK"))
-                .commit();
-            for (src, num) in [("HCLK", 6), ("RCLK", 4), ("IOCLK", 4)] {
-                for i in 0..num {
-                    bctx.build()
-                        .mutex("MUX.CLK", format!("{src}{i}"))
-                        .pip("CLKB", (defs::bslots::IOI, format!("{src}{i}")))
-                        .test_manual_legacy("MUX.CLK", format!("{src}{i}"))
-                        .pip("CLK", (defs::bslots::IOI, format!("{src}{i}")))
-                        .commit();
-                    bctx.build()
-                        .mutex("MUX.CLK", format!("{src}{i}"))
-                        .test_manual_legacy("MUX.CLKB", format!("{src}{i}"))
-                        .pip("CLKB", (defs::bslots::IOI, format!("{src}{i}")))
-                        .commit();
-                }
-            }
-
-            bctx.build()
-                .mutex("MUX.CLKDIVP", "CLKDIV")
-                .test_manual_legacy("MUX.CLKDIVP", "CLKDIV")
-                .pin_pips("CLKDIVP")
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLKDIVP", "PHASER")
-                .test_manual_legacy("MUX.CLKDIVP", "PHASER")
-                .pip("CLKDIVP", "PHASER_ICLKDIV")
-                .commit();
         }
+    }
+}
+
+fn add_fuzzers_ologic<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
+    for (tcid, num_io) in [
+        (tcls::IO_HR_PAIR, 2),
+        (tcls::IO_HR_S, 1),
+        (tcls::IO_HR_N, 1),
+        (tcls::IO_HP_PAIR, 2),
+        (tcls::IO_HP_S, 1),
+        (tcls::IO_HP_N, 1),
+    ] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
+            continue;
+        };
         for i in 0..num_io {
-            let mut bctx = ctx.bel(defs::bslots::OLOGIC[i]);
+            let mut bctx = ctx.bel(bslots::OLOGIC[i]);
 
             bctx.test_manual_legacy("PRESENT", "OLOGICE2")
                 .mode("OLOGICE2")
@@ -752,105 +804,34 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("OSERDESE2")
                 .attr("DATA_RATE_OQ", "DDR")
                 .test_enum_suffix_legacy("DATA_WIDTH", "DDR", &["4", "6", "8", "10", "14"]);
-
-            bctx.build()
-                .mutex("MUX.CLK", "CKINT")
-                .pip("CLKM", "CLK_CKINT")
-                .test_manual_legacy("MUX.CLK", "CKINT")
-                .pip("CLK_MUX", "CLK_CKINT")
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLK", "CKINT")
-                .test_manual_legacy("MUX.CLKB", "CKINT")
-                .pip("CLKM", "CLK_CKINT")
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLK", "PHASER_OCLK")
-                .pip("CLKM", "PHASER_OCLK")
-                .test_manual_legacy("MUX.CLK", "PHASER_OCLK")
-                .pip("CLK_MUX", "PHASER_OCLK")
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLK", "PHASER_OCLK")
-                .test_manual_legacy("MUX.CLKB", "PHASER_OCLK")
-                .pip("CLKM", "PHASER_OCLK")
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLK", "PHASER_OCLK90")
-                .pip("CLKM", "PHASER_OCLK")
-                .test_manual_legacy("MUX.CLK", "PHASER_OCLK90")
-                .pip("CLK_MUX", "PHASER_OCLK90")
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLK", "PHASER_OCLK90.BOTH")
-                .test_manual_legacy("MUX.CLK", "PHASER_OCLK90.BOTH")
-                .pip("CLK_MUX", "PHASER_OCLK90")
-                .commit();
-            for (src, num) in [("HCLK", 6), ("RCLK", 4), ("IOCLK", 4)] {
-                for i in 0..num {
-                    bctx.build()
-                        .mutex("MUX.CLK", format!("{src}{i}"))
-                        .pip("CLKM", (defs::bslots::IOI, format!("{src}{i}")))
-                        .test_manual_legacy("MUX.CLK", format!("{src}{i}"))
-                        .pip("CLK_MUX", (defs::bslots::IOI, format!("{src}{i}")))
-                        .commit();
-                    bctx.build()
-                        .mutex("MUX.CLK", format!("{src}{i}"))
-                        .test_manual_legacy("MUX.CLKB", format!("{src}{i}"))
-                        .pip("CLKM", (defs::bslots::IOI, format!("{src}{i}")))
-                        .commit();
-                }
-            }
-
-            bctx.build()
-                .mutex("MUX.CLKDIV", "PHASER_OCLKDIV")
-                .pip("CLKDIVB", "PHASER_OCLKDIV")
-                .test_manual_legacy("MUX.CLKDIV", "PHASER_OCLKDIV")
-                .pip("CLKDIV", "PHASER_OCLKDIV")
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLKDIV", "PHASER_OCLKDIV")
-                .test_manual_legacy("MUX.CLKDIVB", "PHASER_OCLKDIV")
-                .pip("CLKDIVB", "PHASER_OCLKDIV")
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLKDIV", "CKINT")
-                .pip("CLKDIVB", "CLKDIV_CKINT")
-                .test_manual_legacy("MUX.CLKDIV", "CKINT")
-                .pip("CLKDIV", "CLKDIV_CKINT")
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLKDIV", "CKINT")
-                .test_manual_legacy("MUX.CLKDIVB", "CKINT")
-                .pip("CLKDIVB", "CLKDIV_CKINT")
-                .commit();
-            for (src, num) in [("HCLK", 6), ("RCLK", 4)] {
-                for i in 0..num {
-                    bctx.build()
-                        .mutex("MUX.CLKDIV", format!("{src}{i}"))
-                        .pip("CLKDIVB", (defs::bslots::IOI, format!("{src}{i}")))
-                        .test_manual_legacy("MUX.CLKDIV", format!("{src}{i}"))
-                        .pip("CLKDIV", (defs::bslots::IOI, format!("{src}{i}")))
-                        .commit();
-                    bctx.build()
-                        .mutex("MUX.CLKDIV", format!("{src}{i}"))
-                        .test_manual_legacy("MUX.CLKDIVB", format!("{src}{i}"))
-                        .pip("CLKDIVB", (defs::bslots::IOI, format!("{src}{i}")))
-                        .commit();
-                }
-            }
-            bctx.build()
-                .mutex("MUX.CLKDIV", "HCLK0.F")
-                .pip("CLKDIVFB", (defs::bslots::IOI, "HCLK0"))
-                .test_manual_legacy("MUX.CLKDIV", "HCLK0.F")
-                .pip("CLKDIVF", (defs::bslots::IOI, "HCLK0"))
-                .commit();
-            bctx.build()
-                .mutex("MUX.CLKDIV", "HCLK0.F")
-                .test_manual_legacy("MUX.CLKDIVB", "HCLK0.F")
-                .pip("CLKDIVFB", (defs::bslots::IOI, "HCLK0"))
-                .commit();
         }
+    }
+    let mut ctx = FuzzCtx::new_null(session, backend);
+    ctx.build()
+        .global("ENABLEMISR", "Y")
+        .extra_tiles_by_kind_legacy("IO_HP_PAIR", "OLOGIC_COMMON")
+        .extra_tiles_by_kind_legacy("IO_HR_PAIR", "OLOGIC_COMMON")
+        .extra_tiles_by_kind_legacy("IO_HP_S", "OLOGIC[0]")
+        .extra_tiles_by_kind_legacy("IO_HP_N", "OLOGIC[0]")
+        .extra_tiles_by_kind_legacy("IO_HR_S", "OLOGIC[0]")
+        .extra_tiles_by_kind_legacy("IO_HR_N", "OLOGIC[0]")
+        .test_manual_legacy("NULL", "MISR_RESET", "1")
+        .global_diff("MISRRESET", "N", "Y")
+        .commit();
+}
+
+fn add_fuzzers_iodelay<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
+    for (tcid, is_hp, num_io) in [
+        (tcls::IO_HR_PAIR, false, 2),
+        (tcls::IO_HR_S, false, 1),
+        (tcls::IO_HR_N, false, 1),
+        (tcls::IO_HP_PAIR, true, 2),
+        (tcls::IO_HP_S, true, 1),
+        (tcls::IO_HP_N, true, 1),
+    ] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
+            continue;
+        };
         let setup_idelayctrl: [Box<DynProp>; 4] = [
             Box::new(Related::new(
                 HclkIoi,
@@ -858,12 +839,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             )),
             Box::new(Related::new(
                 HclkIoi,
-                BaseBelMode::new(defs::bslots::IDELAYCTRL, 0, "IDELAYCTRL".into()),
+                BaseBelMode::new(bslots::IDELAYCTRL, 0, "IDELAYCTRL".into()),
             )),
             Box::new(Related::new(
                 HclkIoi,
                 BaseBelAttr::new(
-                    defs::bslots::IDELAYCTRL,
+                    bslots::IDELAYCTRL,
                     0,
                     "IDELAYCTRL_EN".into(),
                     "ENABLE".into(),
@@ -871,12 +852,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             )),
             Box::new(Related::new(
                 HclkIoi,
-                BaseBelAttr::new(defs::bslots::IDELAYCTRL, 0, "BIAS_MODE".into(), "0".into()),
+                BaseBelAttr::new(bslots::IDELAYCTRL, 0, "BIAS_MODE".into(), "0".into()),
             )),
         ];
         for i in 0..num_io {
-            let mut bctx = ctx.bel(defs::bslots::IDELAY[i]);
-            let bel_ologic = defs::bslots::OLOGIC[i];
+            let mut bctx = ctx.bel(bslots::IDELAY[i]);
+            let bel_ologic = bslots::OLOGIC[i];
             bctx.build()
                 .props(setup_idelayctrl.clone())
                 .test_manual_legacy("ENABLE", "1")
@@ -925,7 +906,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
         if is_hp {
             for i in 0..num_io {
-                let mut bctx = ctx.bel(defs::bslots::ODELAY[i]);
+                let mut bctx = ctx.bel(bslots::ODELAY[i]);
                 bctx.build()
                     .props(setup_idelayctrl.clone())
                     .test_manual_legacy("PRESENT", "1")
@@ -966,198 +947,121 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .props(setup_idelayctrl.clone())
                     .test_enum_legacy("FINEDELAY", &["BYPASS", "ADD_DLY"]);
             }
-            for i in 0..num_io {
-                let bel = defs::bslots::IOB[i];
-                let mut bctx = ctx.bel(bel);
-                let bel_ologic = defs::bslots::OLOGIC[i];
-                let bel_odelay = defs::bslots::ODELAY[i];
-                let bel_other = if num_io == 1 {
-                    None
-                } else {
-                    Some(defs::bslots::IOB[i ^ 1])
-                };
+        }
+    }
+}
+
+fn add_fuzzers_iob_hp<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
+    let package = backend
+        .device
+        .bonds
+        .values()
+        .max_by_key(|bond| {
+            let bdata = &backend.db.bonds[bond.bond];
+            let prjcombine_re_xilinx_geom::Bond::Virtex4(bdata) = bdata else {
+                unreachable!();
+            };
+            bdata.pins.len()
+        })
+        .unwrap();
+
+    for (tcid, num_io) in [
+        (tcls::IO_HP_PAIR, 2),
+        (tcls::IO_HP_S, 1),
+        (tcls::IO_HP_N, 1),
+    ] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
+            continue;
+        };
+        for i in 0..num_io {
+            let bel = bslots::IOB[i];
+            let mut bctx = ctx.bel(bel);
+            let bel_ologic = bslots::OLOGIC[i];
+            let bel_odelay = bslots::ODELAY[i];
+            let bel_other = if num_io == 1 {
+                None
+            } else {
+                Some(bslots::IOB[i ^ 1])
+            };
+            bctx.build()
+                .global("DCIUPDATEMODE", "ASREQUIRED")
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .test_manual_legacy("PRESENT", "IOB")
+                .mode("IOB18")
+                .commit();
+            bctx.build()
+                .global("DCIUPDATEMODE", "QUIET")
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .test_manual_legacy("PRESENT", "IOB.QUIET")
+                .mode("IOB18")
+                .commit();
+            if num_io == 2 {
                 bctx.build()
                     .global("DCIUPDATEMODE", "ASREQUIRED")
                     .raw(Key::Package, &package.name)
                     .prop(IsBonded(bel))
-                    .test_manual_legacy("PRESENT", "IOB")
-                    .mode("IOB18")
+                    .test_manual_legacy("PRESENT", "IPAD")
+                    .mode("IPAD")
                     .commit();
-                bctx.build()
-                    .global("DCIUPDATEMODE", "QUIET")
-                    .raw(Key::Package, &package.name)
-                    .prop(IsBonded(bel))
-                    .test_manual_legacy("PRESENT", "IOB.QUIET")
-                    .mode("IOB18")
-                    .commit();
-                if num_io == 2 {
-                    bctx.build()
-                        .global("DCIUPDATEMODE", "ASREQUIRED")
-                        .raw(Key::Package, &package.name)
-                        .prop(IsBonded(bel))
-                        .test_manual_legacy("PRESENT", "IPAD")
-                        .mode("IPAD")
-                        .commit();
-                }
+            }
+            bctx.mode("IOB18")
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .test_enum_legacy("PULL", &["KEEPER", "PULLDOWN", "PULLUP"]);
+            for pin in ["PD_INT_EN", "PU_INT_EN", "KEEPER_INT_EN"] {
                 bctx.mode("IOB18")
                     .raw(Key::Package, &package.name)
                     .prop(IsBonded(bel))
-                    .test_enum_legacy("PULL", &["KEEPER", "PULLDOWN", "PULLUP"]);
-                for pin in ["PD_INT_EN", "PU_INT_EN", "KEEPER_INT_EN"] {
-                    bctx.mode("IOB18")
-                        .raw(Key::Package, &package.name)
-                        .prop(IsBonded(bel))
-                        .mutex("PULL_DYNAMIC", pin)
-                        .test_manual_legacy("PULL_DYNAMIC", "1")
-                        .pin_pips(pin)
-                        .commit();
+                    .mutex("PULL_DYNAMIC", pin)
+                    .test_manual_legacy("PULL_DYNAMIC", "1")
+                    .pin_pips(pin)
+                    .commit();
+            }
+            bctx.mode("IOB18")
+                .global("UNCONSTRAINEDPINS", "ALLOW")
+                .related_tile_mutex(HclkIoi, "VCCO", "1800")
+                .pin("I")
+                .pin("O")
+                .attr("OPROGRAMMING", "0000000000000000000000000000000000")
+                .attr("IUSED", "0")
+                .attr("OUSED", "0")
+                .attr("ISTANDARD", "LVCMOS18")
+                .attr("OSTANDARD", "LVCMOS18")
+                .attr("DRIVE", "12")
+                .attr("SLEW", "SLOW")
+                .test_multi_attr_bin_legacy("IPROGRAMMING", 24);
+            bctx.mode("IOB18")
+                .global("UNCONSTRAINEDPINS", "ALLOW")
+                .related_tile_mutex(HclkIoi, "VCCO", "1800")
+                .pin("O")
+                .attr("OUSED", "0")
+                .attr("OSTANDARD", "LVCMOS18")
+                .attr("DRIVE", "12")
+                .attr("SLEW", "SLOW")
+                .test_multi_attr_bin_legacy("OPROGRAMMING", 34);
+            for &std in HP_IOSTDS {
+                if num_io == 1 && !matches!(std.name, "LVCMOS18" | "HSTL_I") {
+                    continue;
                 }
-                bctx.mode("IOB18")
-                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                    .related_tile_mutex(HclkIoi, "VCCO", "1800")
-                    .pin("I")
-                    .pin("O")
-                    .attr("OPROGRAMMING", "0000000000000000000000000000000000")
-                    .attr("IUSED", "0")
-                    .attr("OUSED", "0")
-                    .attr("ISTANDARD", "LVCMOS18")
-                    .attr("OSTANDARD", "LVCMOS18")
-                    .attr("DRIVE", "12")
-                    .attr("SLEW", "SLOW")
-                    .test_multi_attr_bin_legacy("IPROGRAMMING", 24);
-                bctx.mode("IOB18")
-                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                    .related_tile_mutex(HclkIoi, "VCCO", "1800")
-                    .pin("O")
-                    .attr("OUSED", "0")
-                    .attr("OSTANDARD", "LVCMOS18")
-                    .attr("DRIVE", "12")
-                    .attr("SLEW", "SLOW")
-                    .test_multi_attr_bin_legacy("OPROGRAMMING", 34);
-                for &std in HP_IOSTDS {
-                    if num_io == 1 && !matches!(std.name, "LVCMOS18" | "HSTL_I") {
-                        continue;
-                    }
-                    let mut vref_special = None;
-                    let mut dci_special = None;
-                    let mut dci_special_lite = None;
-                    if std.vref.is_some() {
-                        vref_special = Some(Vref(true));
-                    }
-                    if std.dci == DciKind::BiSplitT {
-                        continue;
-                    } else if matches!(
-                        std.dci,
-                        DciKind::BiSplit | DciKind::BiVcc | DciKind::InputSplit | DciKind::InputVcc
-                    ) {
-                        dci_special = Some(Dci(Some(std.name)));
-                        dci_special_lite = Some(Dci(None));
-                    }
-                    if std.diff != DiffKind::None {
-                        if let Some(bel_other) = bel_other {
-                            for (suffix, lp) in [("LP", "TRUE"), ("HP", "FALSE")] {
-                                bctx.mode("IOB18")
-                                    .global("DCIUPDATEMODE", "ASREQUIRED")
-                                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                                    .related_tile_mutex(
-                                        HclkIoi,
-                                        "VCCO",
-                                        std.vcco.unwrap().to_string(),
-                                    )
-                                    .attr("OUSED", "")
-                                    .pin("I")
-                                    .pin("DIFFI_IN")
-                                    .raw(Key::Package, &package.name)
-                                    .prop(IsBonded(bel))
-                                    .maybe_prop(dci_special)
-                                    .bel_mode(bel_other, "IOB")
-                                    .bel_pin(bel_other, "PADOUT")
-                                    .bel_attr(bel_other, "OUSED", "")
-                                    .test_manual_legacy(
-                                        "ISTD",
-                                        format!("{sn}.{suffix}", sn = std.name),
-                                    )
-                                    .attr("IUSED", "0")
-                                    .attr("DIFFI_INUSED", "0")
-                                    .attr("ISTANDARD", std.name)
-                                    .attr(
-                                        "DIFF_TERM",
-                                        if std.diff == DiffKind::True {
-                                            "FALSE"
-                                        } else {
-                                            ""
-                                        },
-                                    )
-                                    .attr("IBUF_LOW_PWR", lp)
-                                    .bel_attr(bel_other, "PADOUTUSED", "0")
-                                    .bel_attr(bel_other, "ISTANDARD", std.name)
-                                    .bel_attr(
-                                        bel_other,
-                                        "DIFF_TERM",
-                                        if std.diff == DiffKind::True {
-                                            "FALSE"
-                                        } else {
-                                            ""
-                                        },
-                                    )
-                                    .bel_attr(bel_other, "IBUF_LOW_PWR", lp)
-                                    .commit();
-                            }
-                            if std.diff == DiffKind::True && bel == defs::bslots::IOB[0] {
-                                bctx.mode("IOB18")
-                                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                                    .related_tile_mutex(
-                                        HclkIoi,
-                                        "VCCO",
-                                        std.vcco.unwrap().to_string(),
-                                    )
-                                    .attr("OUSED", "")
-                                    .pin("I")
-                                    .pin("DIFFI_IN")
-                                    .attr("IUSED", "0")
-                                    .attr("DIFFI_INUSED", "0")
-                                    .attr("ISTANDARD", std.name)
-                                    .raw(Key::Package, &package.name)
-                                    .prop(IsBonded(bel))
-                                    .maybe_prop(dci_special_lite)
-                                    .bel_mode(bel_other, "IOB")
-                                    .bel_pin(bel_other, "PADOUT")
-                                    .bel_attr(bel_other, "OUSED", "")
-                                    .bel_attr(bel_other, "PADOUTUSED", "0")
-                                    .bel_attr(bel_other, "ISTANDARD", std.name)
-                                    .test_manual_legacy("DIFF_TERM", std.name)
-                                    .attr_diff("DIFF_TERM", "FALSE", "TRUE")
-                                    .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
-                                    .commit();
-                                bctx.mode("IOB18")
-                                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                                    .related_tile_mutex(
-                                        HclkIoi,
-                                        "VCCO",
-                                        std.vcco.unwrap().to_string(),
-                                    )
-                                    .attr("OUSED", "")
-                                    .pin("I")
-                                    .pin("DIFFI_IN")
-                                    .attr("IUSED", "0")
-                                    .attr("DIFFI_INUSED", "0")
-                                    .attr("ISTANDARD", std.name)
-                                    .raw(Key::Package, &package.name)
-                                    .prop(IsBonded(bel))
-                                    .maybe_prop(dci_special_lite)
-                                    .bel_mode(bel_other, "IOB")
-                                    .bel_pin(bel_other, "PADOUT")
-                                    .bel_attr(bel_other, "OUSED", "")
-                                    .bel_attr(bel_other, "PADOUTUSED", "0")
-                                    .bel_attr(bel_other, "ISTANDARD", std.name)
-                                    .test_manual_legacy("DIFF_TERM_DYNAMIC", std.name)
-                                    .attr_diff("DIFF_TERM", "FALSE", "TRUE")
-                                    .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
-                                    .pin_pips("DIFF_TERM_INT_EN")
-                                    .commit();
-                            }
-                        }
-                    } else {
+                let mut vref_special = None;
+                let mut dci_special = None;
+                let mut dci_special_lite = None;
+                if std.vref.is_some() {
+                    vref_special = Some(Vref(true));
+                }
+                if std.dci == DciKind::BiSplitT {
+                    continue;
+                } else if matches!(
+                    std.dci,
+                    DciKind::BiSplit | DciKind::BiVcc | DciKind::InputSplit | DciKind::InputVcc
+                ) {
+                    dci_special = Some(Dci(Some(std.name)));
+                    dci_special_lite = Some(Dci(None));
+                }
+                if std.diff != DiffKind::None {
+                    if let Some(bel_other) = bel_other {
                         for (suffix, lp) in [("LP", "TRUE"), ("HP", "FALSE")] {
                             bctx.mode("IOB18")
                                 .global("DCIUPDATEMODE", "ASREQUIRED")
@@ -1165,214 +1069,184 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .related_tile_mutex(HclkIoi, "VCCO", std.vcco.unwrap().to_string())
                                 .attr("OUSED", "")
                                 .pin("I")
+                                .pin("DIFFI_IN")
                                 .raw(Key::Package, &package.name)
                                 .prop(IsBonded(bel))
-                                .maybe_prop(vref_special)
                                 .maybe_prop(dci_special)
+                                .bel_mode(bel_other, "IOB")
+                                .bel_pin(bel_other, "PADOUT")
+                                .bel_attr(bel_other, "OUSED", "")
                                 .test_manual_legacy("ISTD", format!("{sn}.{suffix}", sn = std.name))
                                 .attr("IUSED", "0")
+                                .attr("DIFFI_INUSED", "0")
                                 .attr("ISTANDARD", std.name)
+                                .attr(
+                                    "DIFF_TERM",
+                                    if std.diff == DiffKind::True {
+                                        "FALSE"
+                                    } else {
+                                        ""
+                                    },
+                                )
                                 .attr("IBUF_LOW_PWR", lp)
+                                .bel_attr(bel_other, "PADOUTUSED", "0")
+                                .bel_attr(bel_other, "ISTANDARD", std.name)
+                                .bel_attr(
+                                    bel_other,
+                                    "DIFF_TERM",
+                                    if std.diff == DiffKind::True {
+                                        "FALSE"
+                                    } else {
+                                        ""
+                                    },
+                                )
+                                .bel_attr(bel_other, "IBUF_LOW_PWR", lp)
                                 .commit();
                         }
+                        if std.diff == DiffKind::True && bel == bslots::IOB[0] {
+                            bctx.mode("IOB18")
+                                .global("UNCONSTRAINEDPINS", "ALLOW")
+                                .related_tile_mutex(HclkIoi, "VCCO", std.vcco.unwrap().to_string())
+                                .attr("OUSED", "")
+                                .pin("I")
+                                .pin("DIFFI_IN")
+                                .attr("IUSED", "0")
+                                .attr("DIFFI_INUSED", "0")
+                                .attr("ISTANDARD", std.name)
+                                .raw(Key::Package, &package.name)
+                                .prop(IsBonded(bel))
+                                .maybe_prop(dci_special_lite)
+                                .bel_mode(bel_other, "IOB")
+                                .bel_pin(bel_other, "PADOUT")
+                                .bel_attr(bel_other, "OUSED", "")
+                                .bel_attr(bel_other, "PADOUTUSED", "0")
+                                .bel_attr(bel_other, "ISTANDARD", std.name)
+                                .test_manual_legacy("DIFF_TERM", std.name)
+                                .attr_diff("DIFF_TERM", "FALSE", "TRUE")
+                                .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
+                                .commit();
+                            bctx.mode("IOB18")
+                                .global("UNCONSTRAINEDPINS", "ALLOW")
+                                .related_tile_mutex(HclkIoi, "VCCO", std.vcco.unwrap().to_string())
+                                .attr("OUSED", "")
+                                .pin("I")
+                                .pin("DIFFI_IN")
+                                .attr("IUSED", "0")
+                                .attr("DIFFI_INUSED", "0")
+                                .attr("ISTANDARD", std.name)
+                                .raw(Key::Package, &package.name)
+                                .prop(IsBonded(bel))
+                                .maybe_prop(dci_special_lite)
+                                .bel_mode(bel_other, "IOB")
+                                .bel_pin(bel_other, "PADOUT")
+                                .bel_attr(bel_other, "OUSED", "")
+                                .bel_attr(bel_other, "PADOUTUSED", "0")
+                                .bel_attr(bel_other, "ISTANDARD", std.name)
+                                .test_manual_legacy("DIFF_TERM_DYNAMIC", std.name)
+                                .attr_diff("DIFF_TERM", "FALSE", "TRUE")
+                                .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
+                                .pin_pips("DIFF_TERM_INT_EN")
+                                .commit();
+                        }
+                    }
+                } else {
+                    for (suffix, lp) in [("LP", "TRUE"), ("HP", "FALSE")] {
+                        bctx.mode("IOB18")
+                            .global("DCIUPDATEMODE", "ASREQUIRED")
+                            .global("UNCONSTRAINEDPINS", "ALLOW")
+                            .related_tile_mutex(HclkIoi, "VCCO", std.vcco.unwrap().to_string())
+                            .attr("OUSED", "")
+                            .pin("I")
+                            .raw(Key::Package, &package.name)
+                            .prop(IsBonded(bel))
+                            .maybe_prop(vref_special)
+                            .maybe_prop(dci_special)
+                            .test_manual_legacy("ISTD", format!("{sn}.{suffix}", sn = std.name))
+                            .attr("IUSED", "0")
+                            .attr("ISTANDARD", std.name)
+                            .attr("IBUF_LOW_PWR", lp)
+                            .commit();
                     }
                 }
-                bctx.mode("IOB18")
-                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                    .related_tile_mutex(HclkIoi, "VCCO", "1800")
-                    .raw(Key::Package, &package.name)
-                    .prop(IsBonded(bel))
-                    .pin("I")
-                    .pin("O")
-                    .pin("IBUFDISABLE")
-                    .attr("IUSED", "0")
-                    .attr("OUSED", "0")
-                    .attr("ISTANDARD", "LVCMOS18")
-                    .attr("OSTANDARD", "LVCMOS18")
-                    .attr("DRIVE", "12")
-                    .attr("SLEW", "SLOW")
-                    .test_enum_legacy("IBUFDISABLE_SEL", &["GND", "I"]);
-                bctx.mode("IOB18")
-                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                    .related_tile_mutex(HclkIoi, "VCCO", "1800")
-                    .raw(Key::Package, &package.name)
-                    .prop(IsBonded(bel))
-                    .pin("I")
-                    .pin("O")
-                    .pin("DCITERMDISABLE")
-                    .attr("IUSED", "0")
-                    .attr("OUSED", "0")
-                    .attr("ISTANDARD", "LVCMOS18")
-                    .attr("OSTANDARD", "LVCMOS18")
-                    .attr("DRIVE", "12")
-                    .attr("SLEW", "SLOW")
-                    .test_enum_legacy("DCITERMDISABLE_SEL", &["GND", "I"]);
-                for &std in HP_IOSTDS {
-                    if num_io == 1 && std.name != "HSTL_I" {
-                        continue;
+            }
+            bctx.mode("IOB18")
+                .global("UNCONSTRAINEDPINS", "ALLOW")
+                .related_tile_mutex(HclkIoi, "VCCO", "1800")
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .pin("I")
+                .pin("O")
+                .pin("IBUFDISABLE")
+                .attr("IUSED", "0")
+                .attr("OUSED", "0")
+                .attr("ISTANDARD", "LVCMOS18")
+                .attr("OSTANDARD", "LVCMOS18")
+                .attr("DRIVE", "12")
+                .attr("SLEW", "SLOW")
+                .test_enum_legacy("IBUFDISABLE_SEL", &["GND", "I"]);
+            bctx.mode("IOB18")
+                .global("UNCONSTRAINEDPINS", "ALLOW")
+                .related_tile_mutex(HclkIoi, "VCCO", "1800")
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .pin("I")
+                .pin("O")
+                .pin("DCITERMDISABLE")
+                .attr("IUSED", "0")
+                .attr("OUSED", "0")
+                .attr("ISTANDARD", "LVCMOS18")
+                .attr("OSTANDARD", "LVCMOS18")
+                .attr("DRIVE", "12")
+                .attr("SLEW", "SLOW")
+                .test_enum_legacy("DCITERMDISABLE_SEL", &["GND", "I"]);
+            for &std in HP_IOSTDS {
+                if num_io == 1 && std.name != "HSTL_I" {
+                    continue;
+                }
+                let mut dci_special = None;
+                if matches!(
+                    std.dci,
+                    DciKind::Output
+                        | DciKind::OutputHalf
+                        | DciKind::BiSplit
+                        | DciKind::BiVcc
+                        | DciKind::BiSplitT
+                ) {
+                    dci_special = Some(Dci(Some(std.name)));
+                }
+                if std.diff == DiffKind::True {
+                    if bel == bslots::IOB[1] {
+                        let bel_other = bel_other.unwrap();
+                        bctx.build()
+                            .global("UNCONSTRAINEDPINS", "ALLOW")
+                            .related_tile_mutex(HclkIoi, "VCCO", std.vcco.unwrap().to_string())
+                            .attr("IUSED", "")
+                            .attr("OPROGRAMMING", "")
+                            .raw(Key::Package, &package.name)
+                            .prop(IsBonded(bel))
+                            .prop(DiffOutLegacy("STD", std.name))
+                            .bel_attr(bel_other, "IUSED", "")
+                            .bel_attr(bel_other, "OPROGRAMMING", "")
+                            .bel_attr(bel_other, "OSTANDARD", "")
+                            .bel_attr(bel_other, "OUSED", "")
+                            .test_manual_legacy("OSTD", std.name)
+                            .mode_diff("IOB18", "IOB18M")
+                            .pin("O")
+                            .attr("OUSED", "0")
+                            .attr("DIFFO_OUTUSED", "0")
+                            .attr("OSTANDARD", std.name)
+                            .bel_mode_diff(bel_other, "IOB18", "IOB18S")
+                            .bel_attr(bel_other, "OUTMUX", "1")
+                            .bel_attr(bel_other, "DIFFO_INUSED", "0")
+                            .pin_pair("DIFFO_OUT", bel_other, "DIFFO_IN")
+                            .commit();
                     }
-                    let mut dci_special = None;
-                    if matches!(
-                        std.dci,
-                        DciKind::Output
-                            | DciKind::OutputHalf
-                            | DciKind::BiSplit
-                            | DciKind::BiVcc
-                            | DciKind::BiSplitT
-                    ) {
-                        dci_special = Some(Dci(Some(std.name)));
-                    }
-                    if std.diff == DiffKind::True {
-                        if bel == defs::bslots::IOB[1] {
-                            let bel_other = bel_other.unwrap();
-                            bctx.build()
-                                .global("UNCONSTRAINEDPINS", "ALLOW")
-                                .related_tile_mutex(HclkIoi, "VCCO", std.vcco.unwrap().to_string())
-                                .attr("IUSED", "")
-                                .attr("OPROGRAMMING", "")
-                                .raw(Key::Package, &package.name)
-                                .prop(IsBonded(bel))
-                                .prop(DiffOutLegacy("STD", std.name))
-                                .bel_attr(bel_other, "IUSED", "")
-                                .bel_attr(bel_other, "OPROGRAMMING", "")
-                                .bel_attr(bel_other, "OSTANDARD", "")
-                                .bel_attr(bel_other, "OUSED", "")
-                                .test_manual_legacy("OSTD", std.name)
-                                .mode_diff("IOB18", "IOB18M")
-                                .pin("O")
-                                .attr("OUSED", "0")
-                                .attr("DIFFO_OUTUSED", "0")
-                                .attr("OSTANDARD", std.name)
-                                .bel_mode_diff(bel_other, "IOB18", "IOB18S")
-                                .bel_attr(bel_other, "OUTMUX", "1")
-                                .bel_attr(bel_other, "DIFFO_INUSED", "0")
-                                .pin_pair("DIFFO_OUT", bel_other, "DIFFO_IN")
-                                .commit();
-                        }
-                    } else if std.diff != DiffKind::None {
-                        if bel == defs::bslots::IOB[1] {
-                            let bel_other = bel_other.unwrap();
-                            for slew in ["SLOW", "FAST"] {
-                                if std.dci == DciKind::BiSplitT {
-                                    bctx.build()
-                                        .global("DCIUPDATEMODE", "ASREQUIRED")
-                                        .global("UNCONSTRAINEDPINS", "ALLOW")
-                                        .related_tile_mutex(
-                                            HclkIoi,
-                                            "VCCO",
-                                            std.vcco.unwrap().to_string(),
-                                        )
-                                        .attr("OPROGRAMMING", "")
-                                        .raw(Key::Package, &package.name)
-                                        .prop(IsBonded(bel))
-                                        .maybe_prop(dci_special)
-                                        .bel_attr(bel_other, "OPROGRAMMING", "")
-                                        .bel_mode(defs::bslots::OLOGIC[0], "OLOGICE2")
-                                        .test_manual_legacy(
-                                            "OSTD",
-                                            format!("{name}.{slew}", name = std.name),
-                                        )
-                                        .mode_diff("IOB18", "IOB18M")
-                                        .pin("O")
-                                        .pin("I")
-                                        .attr("OUSED", "0")
-                                        .attr("IUSED", "0")
-                                        .attr("O_OUTUSED", "0")
-                                        .attr("OSTANDARD", std.name)
-                                        .attr("ISTANDARD", std.name)
-                                        .attr("SLEW", slew)
-                                        .bel_mode_diff(bel_other, "IOB18", "IOB18S")
-                                        .bel_pin(bel_other, "I")
-                                        .bel_attr(bel_other, "IUSED", "0")
-                                        .bel_attr(bel_other, "OUTMUX", "0")
-                                        .bel_attr(bel_other, "OINMUX", "1")
-                                        .bel_attr(bel_other, "OSTANDARD", std.name)
-                                        .bel_attr(bel_other, "ISTANDARD", std.name)
-                                        .bel_attr(bel_other, "SLEW", slew)
-                                        .pin_pair("O_OUT", bel_other, "O_IN")
-                                        .commit();
-                                } else {
-                                    bctx.build()
-                                        .global("DCIUPDATEMODE", "ASREQUIRED")
-                                        .global("UNCONSTRAINEDPINS", "ALLOW")
-                                        .related_tile_mutex(
-                                            HclkIoi,
-                                            "VCCO",
-                                            std.vcco.unwrap().to_string(),
-                                        )
-                                        .attr("IUSED", "")
-                                        .attr("OPROGRAMMING", "")
-                                        .raw(Key::Package, &package.name)
-                                        .prop(IsBonded(bel))
-                                        .maybe_prop(dci_special)
-                                        .bel_attr(bel_other, "IUSED", "")
-                                        .bel_attr(bel_other, "OPROGRAMMING", "")
-                                        .bel_mode(defs::bslots::OLOGIC[0], "OLOGICE2")
-                                        .test_manual_legacy(
-                                            "OSTD",
-                                            format!("{name}.{slew}", name = std.name),
-                                        )
-                                        .mode_diff("IOB18", "IOB18M")
-                                        .pin("O")
-                                        .attr("OUSED", "0")
-                                        .attr("O_OUTUSED", "0")
-                                        .attr("OSTANDARD", std.name)
-                                        .attr("SLEW", slew)
-                                        .bel_mode_diff(bel_other, "IOB18", "IOB18S")
-                                        .bel_attr(bel_other, "OUTMUX", "0")
-                                        .bel_attr(bel_other, "OINMUX", "1")
-                                        .bel_attr(bel_other, "OSTANDARD", std.name)
-                                        .bel_attr(bel_other, "SLEW", slew)
-                                        .pin_pair("O_OUT", bel_other, "O_IN")
-                                        .commit();
-                                }
-                            }
-                        }
-                    } else if std.dci == DciKind::BiSplitT {
+                } else if std.diff != DiffKind::None {
+                    if bel == bslots::IOB[1] {
+                        let bel_other = bel_other.unwrap();
                         for slew in ["SLOW", "FAST"] {
-                            bctx.mode("IOB18")
-                                .global("DCIUPDATEMODE", "ASREQUIRED")
-                                .global("UNCONSTRAINEDPINS", "ALLOW")
-                                .related_tile_mutex(HclkIoi, "VCCO", std.vcco.unwrap().to_string())
-                                .pin("O")
-                                .pin("I")
-                                .attr("OPROGRAMMING", "")
-                                .raw(Key::Package, &package.name)
-                                .prop(IsBonded(bel))
-                                .prop(Vref(true))
-                                .maybe_prop(dci_special)
-                                .test_manual_legacy(
-                                    "OSTD",
-                                    format!("{name}.{slew}", name = std.name),
-                                )
-                                .attr("OUSED", "0")
-                                .attr("IUSED", "0")
-                                .attr("OSTANDARD", std.name)
-                                .attr("ISTANDARD", std.name)
-                                .attr("SLEW", slew)
-                                .commit();
-                        }
-                    } else {
-                        let drives = if std.drive.is_empty() {
-                            &[0][..]
-                        } else {
-                            std.drive
-                        };
-                        let slews = if std.name.contains("LVDCI") {
-                            &[""][..]
-                        } else {
-                            &["SLOW", "FAST"][..]
-                        };
-                        for &drive in drives {
-                            for &slew in slews {
-                                let val = if slew.is_empty() {
-                                    std.name.to_string()
-                                } else if drive == 0 {
-                                    format!("{name}.{slew}", name = std.name)
-                                } else {
-                                    format!("{name}.{drive}.{slew}", name = std.name)
-                                };
-                                bctx.mode("IOB18")
+                            if std.dci == DciKind::BiSplitT {
+                                bctx.build()
                                     .global("DCIUPDATEMODE", "ASREQUIRED")
                                     .global("UNCONSTRAINEDPINS", "ALLOW")
                                     .related_tile_mutex(
@@ -1380,392 +1254,611 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         "VCCO",
                                         std.vcco.unwrap().to_string(),
                                     )
+                                    .attr("OPROGRAMMING", "")
+                                    .raw(Key::Package, &package.name)
+                                    .prop(IsBonded(bel))
+                                    .maybe_prop(dci_special)
+                                    .bel_attr(bel_other, "OPROGRAMMING", "")
+                                    .bel_mode(bslots::OLOGIC[0], "OLOGICE2")
+                                    .test_manual_legacy(
+                                        "OSTD",
+                                        format!("{name}.{slew}", name = std.name),
+                                    )
+                                    .mode_diff("IOB18", "IOB18M")
                                     .pin("O")
+                                    .pin("I")
+                                    .attr("OUSED", "0")
+                                    .attr("IUSED", "0")
+                                    .attr("O_OUTUSED", "0")
+                                    .attr("OSTANDARD", std.name)
+                                    .attr("ISTANDARD", std.name)
+                                    .attr("SLEW", slew)
+                                    .bel_mode_diff(bel_other, "IOB18", "IOB18S")
+                                    .bel_pin(bel_other, "I")
+                                    .bel_attr(bel_other, "IUSED", "0")
+                                    .bel_attr(bel_other, "OUTMUX", "0")
+                                    .bel_attr(bel_other, "OINMUX", "1")
+                                    .bel_attr(bel_other, "OSTANDARD", std.name)
+                                    .bel_attr(bel_other, "ISTANDARD", std.name)
+                                    .bel_attr(bel_other, "SLEW", slew)
+                                    .pin_pair("O_OUT", bel_other, "O_IN")
+                                    .commit();
+                            } else {
+                                bctx.build()
+                                    .global("DCIUPDATEMODE", "ASREQUIRED")
+                                    .global("UNCONSTRAINEDPINS", "ALLOW")
+                                    .related_tile_mutex(
+                                        HclkIoi,
+                                        "VCCO",
+                                        std.vcco.unwrap().to_string(),
+                                    )
                                     .attr("IUSED", "")
                                     .attr("OPROGRAMMING", "")
                                     .raw(Key::Package, &package.name)
                                     .prop(IsBonded(bel))
                                     .maybe_prop(dci_special)
-                                    .test_manual_legacy("OSTD", val)
-                                    .attr("OUSED", "0")
-                                    .attr("OSTANDARD", std.name)
-                                    .attr(
-                                        "DRIVE",
-                                        if drive == 0 {
-                                            "".to_string()
-                                        } else {
-                                            drive.to_string()
-                                        },
+                                    .bel_attr(bel_other, "IUSED", "")
+                                    .bel_attr(bel_other, "OPROGRAMMING", "")
+                                    .bel_mode(bslots::OLOGIC[0], "OLOGICE2")
+                                    .test_manual_legacy(
+                                        "OSTD",
+                                        format!("{name}.{slew}", name = std.name),
                                     )
+                                    .mode_diff("IOB18", "IOB18M")
+                                    .pin("O")
+                                    .attr("OUSED", "0")
+                                    .attr("O_OUTUSED", "0")
+                                    .attr("OSTANDARD", std.name)
                                     .attr("SLEW", slew)
+                                    .bel_mode_diff(bel_other, "IOB18", "IOB18S")
+                                    .bel_attr(bel_other, "OUTMUX", "0")
+                                    .bel_attr(bel_other, "OINMUX", "1")
+                                    .bel_attr(bel_other, "OSTANDARD", std.name)
+                                    .bel_attr(bel_other, "SLEW", slew)
+                                    .pin_pair("O_OUT", bel_other, "O_IN")
                                     .commit();
                             }
                         }
                     }
-                }
-
-                if num_io == 2 {
-                    for (std, vcco, vref) in [
-                        ("HSTL_I_12", 1200, 600),
-                        ("SSTL135", 1350, 675),
-                        ("HSTL_I", 1500, 750),
-                        ("HSTL_I_18", 1800, 900),
-                        // ("HSTL_III_18", 1800, 1100),
-                        // ("SSTL2_I", 2500, 1250),
-                    ] {
-                        bctx.build()
+                } else if std.dci == DciKind::BiSplitT {
+                    for slew in ["SLOW", "FAST"] {
+                        bctx.mode("IOB18")
+                            .global("DCIUPDATEMODE", "ASREQUIRED")
                             .global("UNCONSTRAINEDPINS", "ALLOW")
-                            .related_tile_mutex(HclkIoi, "VCCO", vcco.to_string())
-                            .mode("IOB18")
-                            .attr("OUSED", "")
+                            .related_tile_mutex(HclkIoi, "VCCO", std.vcco.unwrap().to_string())
+                            .pin("O")
                             .pin("I")
+                            .attr("OPROGRAMMING", "")
                             .raw(Key::Package, &package.name)
                             .prop(IsBonded(bel))
-                            .prop(VrefInternalLegacy(tcls::HCLK_IO_HP, vref))
-                            .test_manual_legacy("ISTD", format!("{std}.LP"))
+                            .prop(Vref(true))
+                            .maybe_prop(dci_special)
+                            .test_manual_legacy("OSTD", format!("{name}.{slew}", name = std.name))
+                            .attr("OUSED", "0")
                             .attr("IUSED", "0")
-                            .attr("ISTANDARD", std)
-                            .attr("IBUF_LOW_PWR", "TRUE")
+                            .attr("OSTANDARD", std.name)
+                            .attr("ISTANDARD", std.name)
+                            .attr("SLEW", slew)
                             .commit();
                     }
+                } else {
+                    let drives = if std.drive.is_empty() {
+                        &[0][..]
+                    } else {
+                        std.drive
+                    };
+                    let slews = if std.name.contains("LVDCI") {
+                        &[""][..]
+                    } else {
+                        &["SLOW", "FAST"][..]
+                    };
+                    for &drive in drives {
+                        for &slew in slews {
+                            let val = if slew.is_empty() {
+                                std.name.to_string()
+                            } else if drive == 0 {
+                                format!("{name}.{slew}", name = std.name)
+                            } else {
+                                format!("{name}.{drive}.{slew}", name = std.name)
+                            };
+                            bctx.mode("IOB18")
+                                .global("DCIUPDATEMODE", "ASREQUIRED")
+                                .global("UNCONSTRAINEDPINS", "ALLOW")
+                                .related_tile_mutex(HclkIoi, "VCCO", std.vcco.unwrap().to_string())
+                                .pin("O")
+                                .attr("IUSED", "")
+                                .attr("OPROGRAMMING", "")
+                                .raw(Key::Package, &package.name)
+                                .prop(IsBonded(bel))
+                                .maybe_prop(dci_special)
+                                .test_manual_legacy("OSTD", val)
+                                .attr("OUSED", "0")
+                                .attr("OSTANDARD", std.name)
+                                .attr(
+                                    "DRIVE",
+                                    if drive == 0 {
+                                        "".to_string()
+                                    } else {
+                                        drive.to_string()
+                                    },
+                                )
+                                .attr("SLEW", slew)
+                                .commit();
+                        }
+                    }
                 }
+            }
 
+            if num_io == 2 {
+                for (std, vcco, vref) in [
+                    ("HSTL_I_12", 1200, enums::INTERNAL_VREF::_600),
+                    ("SSTL135", 1350, enums::INTERNAL_VREF::_675),
+                    ("HSTL_I", 1500, enums::INTERNAL_VREF::_750),
+                    ("HSTL_I_18", 1800, enums::INTERNAL_VREF::_900),
+                    // ("HSTL_III_18", 1800, 1100),
+                    // ("SSTL2_I", 2500, 1250),
+                ] {
+                    bctx.build()
+                        .global("UNCONSTRAINEDPINS", "ALLOW")
+                        .related_tile_mutex(HclkIoi, "VCCO", vcco.to_string())
+                        .mode("IOB18")
+                        .attr("OUSED", "")
+                        .pin("I")
+                        .raw(Key::Package, &package.name)
+                        .prop(IsBonded(bel))
+                        .prop(VrefInternal(tcls::HCLK_IO_HP, vref))
+                        .test_manual_legacy("ISTD", format!("{std}.LP"))
+                        .attr("IUSED", "0")
+                        .attr("ISTANDARD", std)
+                        .attr("IBUF_LOW_PWR", "TRUE")
+                        .commit();
+                }
+            }
+
+            bctx.build()
+                .mutex("OUTPUT_DELAY", "0")
+                .bel_mode(bel_odelay, "ODELAYE2")
+                .bel_mode(bel_ologic, "OLOGICE2")
+                .test_manual_legacy("OUTPUT_DELAY", "0")
+                .pip((bel_ologic, "IOB_O"), (bel_ologic, "OQ"))
+                .commit();
+            bctx.build()
+                .mutex("OUTPUT_DELAY", "1")
+                .bel_mode(bel_odelay, "ODELAYE2")
+                .bel_mode(bel_ologic, "OLOGICE2")
+                .test_manual_legacy("OUTPUT_DELAY", "1")
+                .pip((bel_ologic, "IOB_O"), (bel_odelay, "DATAOUT"))
+                .commit();
+        }
+    }
+}
+
+fn add_fuzzers_iob_hr<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
+    let package = backend
+        .device
+        .bonds
+        .values()
+        .max_by_key(|bond| {
+            let bdata = &backend.db.bonds[bond.bond];
+            let prjcombine_re_xilinx_geom::Bond::Virtex4(bdata) = bdata else {
+                unreachable!();
+            };
+            bdata.pins.len()
+        })
+        .unwrap();
+
+    for (tcid, num_io) in [
+        (tcls::IO_HR_PAIR, 2),
+        (tcls::IO_HR_S, 1),
+        (tcls::IO_HR_N, 1),
+    ] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
+            continue;
+        };
+        for i in 0..num_io {
+            let bel = bslots::IOB[i];
+            let mut bctx = ctx.bel(bel);
+            let bel_other = if num_io == 1 {
+                None
+            } else {
+                Some(bslots::IOB[i ^ 1])
+            };
+
+            bctx.build()
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .test_manual_legacy("PRESENT", "IOB")
+                .mode("IOB33")
+                .commit();
+            if num_io == 2 {
                 bctx.build()
-                    .mutex("OUTPUT_DELAY", "0")
-                    .bel_mode(bel_odelay, "ODELAYE2")
-                    .bel_mode(bel_ologic, "OLOGICE2")
-                    .test_manual_legacy("OUTPUT_DELAY", "0")
-                    .pip((bel_ologic, "IOB_O"), (bel_ologic, "OQ"))
-                    .commit();
-                bctx.build()
-                    .mutex("OUTPUT_DELAY", "1")
-                    .bel_mode(bel_odelay, "ODELAYE2")
-                    .bel_mode(bel_ologic, "OLOGICE2")
-                    .test_manual_legacy("OUTPUT_DELAY", "1")
-                    .pip((bel_ologic, "IOB_O"), (bel_odelay, "DATAOUT"))
+                    .raw(Key::Package, &package.name)
+                    .prop(IsBonded(bel))
+                    .test_manual_legacy("PRESENT", "IPAD")
+                    .mode("IPAD")
                     .commit();
             }
-        } else {
-            for i in 0..num_io {
-                let bel = defs::bslots::IOB[i];
-                let mut bctx = ctx.bel(bel);
-                let bel_other = if num_io == 1 {
-                    None
-                } else {
-                    Some(defs::bslots::IOB[i ^ 1])
-                };
-
-                bctx.build()
+            bctx.mode("IOB33")
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .test_enum_legacy("PULL", &["KEEPER", "PULLDOWN", "PULLUP"]);
+            for pin in ["PD_INT_EN", "PU_INT_EN", "KEEPER_INT_EN"] {
+                bctx.mode("IOB33")
                     .raw(Key::Package, &package.name)
                     .prop(IsBonded(bel))
-                    .test_manual_legacy("PRESENT", "IOB")
-                    .mode("IOB33")
+                    .mutex("PULL_DYNAMIC", pin)
+                    .test_manual_legacy("PULL_DYNAMIC", "1")
+                    .pin_pips(pin)
                     .commit();
-                if num_io == 2 {
-                    bctx.build()
-                        .raw(Key::Package, &package.name)
-                        .prop(IsBonded(bel))
-                        .test_manual_legacy("PRESENT", "IPAD")
-                        .mode("IPAD")
-                        .commit();
-                }
-                bctx.mode("IOB33")
-                    .raw(Key::Package, &package.name)
-                    .prop(IsBonded(bel))
-                    .test_enum_legacy("PULL", &["KEEPER", "PULLDOWN", "PULLUP"]);
-                for pin in ["PD_INT_EN", "PU_INT_EN", "KEEPER_INT_EN"] {
-                    bctx.mode("IOB33")
-                        .raw(Key::Package, &package.name)
-                        .prop(IsBonded(bel))
-                        .mutex("PULL_DYNAMIC", pin)
-                        .test_manual_legacy("PULL_DYNAMIC", "1")
-                        .pin_pips(pin)
-                        .commit();
-                }
-                bctx.mode("IOB33")
-                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                    .related_tile_mutex(HclkIoi, "VCCO", "3300")
-                    .pin("O")
-                    .attr("OUSED", "0")
-                    .attr("OSTANDARD", "LVCMOS33")
-                    .attr("DRIVE", "12")
-                    .attr("SLEW", "SLOW")
-                    .test_multi_attr_bin_legacy("OPROGRAMMING", 39);
-                bctx.mode("IOB33")
-                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                    .related_tile_mutex(HclkIoi, "VCCO", "3300")
-                    .pin("I")
-                    .pin("O")
-                    .attr("OPROGRAMMING", "000000000000000000000000000000000000000")
-                    .attr("IUSED", "0")
-                    .attr("OUSED", "0")
-                    .attr("ISTANDARD", "LVCMOS33")
-                    .attr("OSTANDARD", "LVCMOS33")
-                    .attr("DRIVE", "12")
-                    .attr("SLEW", "SLOW")
-                    .test_multi_attr_bin_legacy("IPROGRAMMING", 9);
-                bctx.mode("IOB33")
-                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                    .related_tile_mutex(HclkIoi, "VCCO", "1800")
-                    .raw(Key::Package, &package.name)
-                    .prop(IsBonded(bel))
-                    .pin("I")
-                    .pin("O")
-                    .pin("IBUFDISABLE")
-                    .attr("IUSED", "0")
-                    .attr("OUSED", "0")
-                    .attr("ISTANDARD", "LVCMOS18")
-                    .attr("OSTANDARD", "LVCMOS18")
-                    .attr("DRIVE", "12")
-                    .attr("SLEW", "SLOW")
-                    .test_enum_legacy("IBUFDISABLE_SEL", &["GND", "I"]);
-                bctx.mode("IOB33")
-                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                    .related_tile_mutex(HclkIoi, "VCCO", "1800")
-                    .raw(Key::Package, &package.name)
-                    .prop(IsBonded(bel))
-                    .pin("I")
-                    .pin("O")
-                    .pin("INTERMDISABLE")
-                    .attr("IUSED", "0")
-                    .attr("OUSED", "0")
-                    .attr("ISTANDARD", "LVCMOS18")
-                    .attr("OSTANDARD", "LVCMOS18")
-                    .attr("DRIVE", "12")
-                    .attr("SLEW", "SLOW")
-                    .test_enum_legacy("INTERMDISABLE_SEL", &["GND", "I"]);
-                bctx.mode("IOB33")
-                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                    .related_tile_mutex(HclkIoi, "VCCO", "1800")
-                    .raw(Key::Package, &package.name)
-                    .prop(IsBonded(bel))
-                    .pin("I")
-                    .pin("O")
-                    .attr("IUSED", "0")
-                    .attr("OUSED", "0")
-                    .attr("ISTANDARD", "LVCMOS18")
-                    .attr("OSTANDARD", "LVCMOS18")
-                    .attr("DRIVE", "12")
-                    .attr("SLEW", "SLOW")
-                    .test_enum_legacy("DQS_BIAS", &["FALSE", "TRUE"]);
-                bctx.mode("IOB33")
-                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                    .related_tile_mutex(HclkIoi, "VCCO", "1800")
-                    .raw(Key::Package, &package.name)
-                    .prop(IsBonded(bel))
-                    .prop(Vref(false))
-                    .pin("I")
-                    .pin("O")
-                    .attr("IUSED", "0")
-                    .attr("OUSED", "0")
-                    .attr("ISTANDARD", "SSTL18_II")
-                    .attr("OSTANDARD", "SSTL18_II")
-                    .attr("SLEW", "SLOW")
-                    .test_enum_legacy(
-                        "IN_TERM",
-                        &[
-                            "NONE",
-                            "UNTUNED_SPLIT_40",
-                            "UNTUNED_SPLIT_50",
-                            "UNTUNED_SPLIT_60",
-                        ],
-                    );
+            }
+            bctx.mode("IOB33")
+                .global("UNCONSTRAINEDPINS", "ALLOW")
+                .related_tile_mutex(HclkIoi, "VCCO", "3300")
+                .pin("O")
+                .attr("OUSED", "0")
+                .attr("OSTANDARD", "LVCMOS33")
+                .attr("DRIVE", "12")
+                .attr("SLEW", "SLOW")
+                .test_multi_attr_bin_legacy("OPROGRAMMING", 39);
+            bctx.mode("IOB33")
+                .global("UNCONSTRAINEDPINS", "ALLOW")
+                .related_tile_mutex(HclkIoi, "VCCO", "3300")
+                .pin("I")
+                .pin("O")
+                .attr("OPROGRAMMING", "000000000000000000000000000000000000000")
+                .attr("IUSED", "0")
+                .attr("OUSED", "0")
+                .attr("ISTANDARD", "LVCMOS33")
+                .attr("OSTANDARD", "LVCMOS33")
+                .attr("DRIVE", "12")
+                .attr("SLEW", "SLOW")
+                .test_multi_attr_bin_legacy("IPROGRAMMING", 9);
+            bctx.mode("IOB33")
+                .global("UNCONSTRAINEDPINS", "ALLOW")
+                .related_tile_mutex(HclkIoi, "VCCO", "1800")
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .pin("I")
+                .pin("O")
+                .pin("IBUFDISABLE")
+                .attr("IUSED", "0")
+                .attr("OUSED", "0")
+                .attr("ISTANDARD", "LVCMOS18")
+                .attr("OSTANDARD", "LVCMOS18")
+                .attr("DRIVE", "12")
+                .attr("SLEW", "SLOW")
+                .test_enum_legacy("IBUFDISABLE_SEL", &["GND", "I"]);
+            bctx.mode("IOB33")
+                .global("UNCONSTRAINEDPINS", "ALLOW")
+                .related_tile_mutex(HclkIoi, "VCCO", "1800")
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .pin("I")
+                .pin("O")
+                .pin("INTERMDISABLE")
+                .attr("IUSED", "0")
+                .attr("OUSED", "0")
+                .attr("ISTANDARD", "LVCMOS18")
+                .attr("OSTANDARD", "LVCMOS18")
+                .attr("DRIVE", "12")
+                .attr("SLEW", "SLOW")
+                .test_enum_legacy("INTERMDISABLE_SEL", &["GND", "I"]);
+            bctx.mode("IOB33")
+                .global("UNCONSTRAINEDPINS", "ALLOW")
+                .related_tile_mutex(HclkIoi, "VCCO", "1800")
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .pin("I")
+                .pin("O")
+                .attr("IUSED", "0")
+                .attr("OUSED", "0")
+                .attr("ISTANDARD", "LVCMOS18")
+                .attr("OSTANDARD", "LVCMOS18")
+                .attr("DRIVE", "12")
+                .attr("SLEW", "SLOW")
+                .test_enum_legacy("DQS_BIAS", &["FALSE", "TRUE"]);
+            bctx.mode("IOB33")
+                .global("UNCONSTRAINEDPINS", "ALLOW")
+                .related_tile_mutex(HclkIoi, "VCCO", "1800")
+                .raw(Key::Package, &package.name)
+                .prop(IsBonded(bel))
+                .prop(Vref(false))
+                .pin("I")
+                .pin("O")
+                .attr("IUSED", "0")
+                .attr("OUSED", "0")
+                .attr("ISTANDARD", "SSTL18_II")
+                .attr("OSTANDARD", "SSTL18_II")
+                .attr("SLEW", "SLOW")
+                .test_enum_legacy(
+                    "IN_TERM",
+                    &[
+                        "NONE",
+                        "UNTUNED_SPLIT_40",
+                        "UNTUNED_SPLIT_50",
+                        "UNTUNED_SPLIT_60",
+                    ],
+                );
 
-                let anchor_props = |dy, vcco: u16, anchor_std: &'static str| -> [Box<DynProp>; 5] {
-                    let rel = Delta::new(0, dy, tcls::IO_HR_PAIR);
-                    [
-                        Box::new(Related::new(
-                            HclkIoi,
-                            TileMutex::new("VCCO".into(), vcco.to_string().into()),
-                        )),
-                        Box::new(Related::new(
-                            rel.clone(),
-                            BaseBelMode::new(defs::bslots::IOB[1], 0, "IOB33".into()),
-                        )),
-                        Box::new(Related::new(
-                            rel.clone(),
-                            BaseBelPin::new(defs::bslots::IOB[1], 0, "O".into()),
-                        )),
-                        Box::new(Related::new(
-                            rel.clone(),
-                            BaseBelAttr::new(defs::bslots::IOB[1], 0, "OUSED".into(), "0".into()),
-                        )),
-                        Box::new(Related::new(
-                            rel.clone(),
-                            BaseBelAttr::new(
-                                defs::bslots::IOB[1],
-                                0,
-                                "OSTANDARD".into(),
-                                anchor_std.into(),
-                            ),
-                        )),
-                    ]
-                };
-                let anchor_dy = match tcid {
-                    tcls::IO_HR_S => 1,
-                    tcls::IO_HR_PAIR => 2,
-                    tcls::IO_HR_N => -2,
+            let anchor_props = |dy, vcco: u16, anchor_std: &'static str| -> [Box<DynProp>; 5] {
+                let rel = Delta::new(0, dy, tcls::IO_HR_PAIR);
+                [
+                    Box::new(Related::new(
+                        HclkIoi,
+                        TileMutex::new("VCCO".into(), vcco.to_string().into()),
+                    )),
+                    Box::new(Related::new(
+                        rel.clone(),
+                        BaseBelMode::new(bslots::IOB[1], 0, "IOB33".into()),
+                    )),
+                    Box::new(Related::new(
+                        rel.clone(),
+                        BaseBelPin::new(bslots::IOB[1], 0, "O".into()),
+                    )),
+                    Box::new(Related::new(
+                        rel.clone(),
+                        BaseBelAttr::new(bslots::IOB[1], 0, "OUSED".into(), "0".into()),
+                    )),
+                    Box::new(Related::new(
+                        rel.clone(),
+                        BaseBelAttr::new(bslots::IOB[1], 0, "OSTANDARD".into(), anchor_std.into()),
+                    )),
+                ]
+            };
+            let anchor_dy = match tcid {
+                tcls::IO_HR_S => 1,
+                tcls::IO_HR_PAIR => 2,
+                tcls::IO_HR_N => -2,
+                _ => unreachable!(),
+            };
+            for &std in HR_IOSTDS {
+                if num_io == 1
+                    && !matches!(std.name, "PCI33_3" | "LVCMOS18" | "LVCMOS33" | "HSTL_I")
+                {
+                    continue;
+                }
+                let mut vref_special = None;
+                if std.vref.is_some() {
+                    vref_special = Some(Vref(true));
+                }
+                let anchor_std = match std.vcco {
+                    Some(3300) => "LVCMOS33",
+                    Some(2500) => "LVCMOS25",
+                    Some(1800) => "LVCMOS18",
+                    Some(1500) => "LVCMOS15",
+                    Some(1200) => "LVCMOS12",
+                    Some(1350) => "SSTL135",
                     _ => unreachable!(),
                 };
-                for &std in HR_IOSTDS {
-                    if num_io == 1
-                        && !matches!(std.name, "PCI33_3" | "LVCMOS18" | "LVCMOS33" | "HSTL_I")
-                    {
-                        continue;
-                    }
-                    let mut vref_special = None;
-                    if std.vref.is_some() {
-                        vref_special = Some(Vref(true));
-                    }
-                    let anchor_std = match std.vcco {
-                        Some(3300) => "LVCMOS33",
-                        Some(2500) => "LVCMOS25",
-                        Some(1800) => "LVCMOS18",
-                        Some(1500) => "LVCMOS15",
-                        Some(1200) => "LVCMOS12",
-                        Some(1350) => "SSTL135",
-                        _ => unreachable!(),
-                    };
-                    if std.diff != DiffKind::None {
-                        if let Some(bel_other) = bel_other {
-                            for (suffix, lp) in [("LP", "TRUE"), ("HP", "FALSE")] {
-                                bctx.mode("IOB33")
-                                    .global("DCIUPDATEMODE", "ASREQUIRED")
-                                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                                    .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
-                                    .attr("OUSED", "")
-                                    .pin("I")
-                                    .pin("DIFFI_IN")
-                                    .raw(Key::Package, &package.name)
-                                    .prop(IsBonded(bel))
-                                    .bel_mode(bel_other, "IOB")
-                                    .bel_pin(bel_other, "PADOUT")
-                                    .bel_attr(bel_other, "OUSED", "")
-                                    .test_manual_legacy(
-                                        "ISTD",
-                                        format!("{sn}.{suffix}", sn = std.name),
-                                    )
-                                    .attr("IUSED", "0")
-                                    .attr("DIFFI_INUSED", "0")
-                                    .attr("ISTANDARD", std.name)
-                                    .attr(
-                                        "DIFF_TERM",
-                                        if std.diff == DiffKind::True {
-                                            "FALSE"
-                                        } else {
-                                            ""
-                                        },
-                                    )
-                                    .attr("IBUF_LOW_PWR", lp)
-                                    .bel_attr(bel_other, "PADOUTUSED", "0")
-                                    .bel_attr(bel_other, "ISTANDARD", std.name)
-                                    .bel_attr(
-                                        bel_other,
-                                        "DIFF_TERM",
-                                        if std.diff == DiffKind::True {
-                                            "FALSE"
-                                        } else {
-                                            ""
-                                        },
-                                    )
-                                    .bel_attr(bel_other, "IBUF_LOW_PWR", lp)
-                                    .commit();
-                            }
-                            if std.diff == DiffKind::True
-                                && bel == defs::bslots::IOB[0]
-                                && std.name != "TMDS_33"
-                            {
-                                bctx.mode("IOB33")
-                                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                                    .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
-                                    .attr("OUSED", "")
-                                    .pin("I")
-                                    .pin("DIFFI_IN")
-                                    .attr("IUSED", "0")
-                                    .attr("DIFFI_INUSED", "0")
-                                    .attr("ISTANDARD", std.name)
-                                    .raw(Key::Package, &package.name)
-                                    .prop(IsBonded(bel))
-                                    .bel_mode(bel_other, "IOB")
-                                    .bel_pin(bel_other, "PADOUT")
-                                    .bel_attr(bel_other, "OUSED", "")
-                                    .bel_attr(bel_other, "PADOUTUSED", "0")
-                                    .bel_attr(bel_other, "ISTANDARD", std.name)
-                                    .test_manual_legacy("DIFF_TERM", std.name)
-                                    .attr_diff("DIFF_TERM", "FALSE", "TRUE")
-                                    .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
-                                    .commit();
-                                bctx.mode("IOB33")
-                                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                                    .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
-                                    .attr("OUSED", "")
-                                    .pin("I")
-                                    .pin("DIFFI_IN")
-                                    .attr("IUSED", "0")
-                                    .attr("DIFFI_INUSED", "0")
-                                    .attr("ISTANDARD", std.name)
-                                    .raw(Key::Package, &package.name)
-                                    .prop(IsBonded(bel))
-                                    .bel_mode(bel_other, "IOB")
-                                    .bel_pin(bel_other, "PADOUT")
-                                    .bel_attr(bel_other, "OUSED", "")
-                                    .bel_attr(bel_other, "PADOUTUSED", "0")
-                                    .bel_attr(bel_other, "ISTANDARD", std.name)
-                                    .test_manual_legacy("DIFF_TERM_DYNAMIC", std.name)
-                                    .attr_diff("DIFF_TERM", "FALSE", "TRUE")
-                                    .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
-                                    .pin_pips("DIFF_TERM_INT_EN")
-                                    .commit();
-                            }
-                        }
-                    } else {
+                if std.diff != DiffKind::None {
+                    if let Some(bel_other) = bel_other {
                         for (suffix, lp) in [("LP", "TRUE"), ("HP", "FALSE")] {
+                            bctx.mode("IOB33")
+                                .global("DCIUPDATEMODE", "ASREQUIRED")
+                                .global("UNCONSTRAINEDPINS", "ALLOW")
+                                .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
+                                .attr("OUSED", "")
+                                .pin("I")
+                                .pin("DIFFI_IN")
+                                .raw(Key::Package, &package.name)
+                                .prop(IsBonded(bel))
+                                .bel_mode(bel_other, "IOB")
+                                .bel_pin(bel_other, "PADOUT")
+                                .bel_attr(bel_other, "OUSED", "")
+                                .test_manual_legacy("ISTD", format!("{sn}.{suffix}", sn = std.name))
+                                .attr("IUSED", "0")
+                                .attr("DIFFI_INUSED", "0")
+                                .attr("ISTANDARD", std.name)
+                                .attr(
+                                    "DIFF_TERM",
+                                    if std.diff == DiffKind::True {
+                                        "FALSE"
+                                    } else {
+                                        ""
+                                    },
+                                )
+                                .attr("IBUF_LOW_PWR", lp)
+                                .bel_attr(bel_other, "PADOUTUSED", "0")
+                                .bel_attr(bel_other, "ISTANDARD", std.name)
+                                .bel_attr(
+                                    bel_other,
+                                    "DIFF_TERM",
+                                    if std.diff == DiffKind::True {
+                                        "FALSE"
+                                    } else {
+                                        ""
+                                    },
+                                )
+                                .bel_attr(bel_other, "IBUF_LOW_PWR", lp)
+                                .commit();
+                        }
+                        if std.diff == DiffKind::True
+                            && bel == bslots::IOB[0]
+                            && std.name != "TMDS_33"
+                        {
                             bctx.mode("IOB33")
                                 .global("UNCONSTRAINEDPINS", "ALLOW")
                                 .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
                                 .attr("OUSED", "")
                                 .pin("I")
+                                .pin("DIFFI_IN")
+                                .attr("IUSED", "0")
+                                .attr("DIFFI_INUSED", "0")
+                                .attr("ISTANDARD", std.name)
                                 .raw(Key::Package, &package.name)
                                 .prop(IsBonded(bel))
-                                .maybe_prop(vref_special)
-                                .test_manual_legacy("ISTD", format!("{sn}.{suffix}", sn = std.name))
+                                .bel_mode(bel_other, "IOB")
+                                .bel_pin(bel_other, "PADOUT")
+                                .bel_attr(bel_other, "OUSED", "")
+                                .bel_attr(bel_other, "PADOUTUSED", "0")
+                                .bel_attr(bel_other, "ISTANDARD", std.name)
+                                .test_manual_legacy("DIFF_TERM", std.name)
+                                .attr_diff("DIFF_TERM", "FALSE", "TRUE")
+                                .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
+                                .commit();
+                            bctx.mode("IOB33")
+                                .global("UNCONSTRAINEDPINS", "ALLOW")
+                                .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
+                                .attr("OUSED", "")
+                                .pin("I")
+                                .pin("DIFFI_IN")
                                 .attr("IUSED", "0")
+                                .attr("DIFFI_INUSED", "0")
                                 .attr("ISTANDARD", std.name)
-                                .attr("IBUF_LOW_PWR", lp)
+                                .raw(Key::Package, &package.name)
+                                .prop(IsBonded(bel))
+                                .bel_mode(bel_other, "IOB")
+                                .bel_pin(bel_other, "PADOUT")
+                                .bel_attr(bel_other, "OUSED", "")
+                                .bel_attr(bel_other, "PADOUTUSED", "0")
+                                .bel_attr(bel_other, "ISTANDARD", std.name)
+                                .test_manual_legacy("DIFF_TERM_DYNAMIC", std.name)
+                                .attr_diff("DIFF_TERM", "FALSE", "TRUE")
+                                .bel_attr_diff(bel_other, "DIFF_TERM", "FALSE", "TRUE")
+                                .pin_pips("DIFF_TERM_INT_EN")
                                 .commit();
                         }
                     }
-                }
-
-                for &std in HR_IOSTDS {
-                    if num_io == 1 {
-                        continue;
+                } else {
+                    for (suffix, lp) in [("LP", "TRUE"), ("HP", "FALSE")] {
+                        bctx.mode("IOB33")
+                            .global("UNCONSTRAINEDPINS", "ALLOW")
+                            .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
+                            .attr("OUSED", "")
+                            .pin("I")
+                            .raw(Key::Package, &package.name)
+                            .prop(IsBonded(bel))
+                            .maybe_prop(vref_special)
+                            .test_manual_legacy("ISTD", format!("{sn}.{suffix}", sn = std.name))
+                            .attr("IUSED", "0")
+                            .attr("ISTANDARD", std.name)
+                            .attr("IBUF_LOW_PWR", lp)
+                            .commit();
                     }
-                    let anchor_std = match std.vcco {
-                        Some(3300) => "LVCMOS33",
-                        Some(2500) => "LVCMOS25",
-                        Some(1800) => "LVCMOS18",
-                        Some(1500) => "LVCMOS15",
-                        Some(1200) => "LVCMOS12",
-                        Some(1350) => "SSTL135",
-                        _ => unreachable!(),
-                    };
-                    if std.diff == DiffKind::True {
-                        if bel == defs::bslots::IOB[1] {
-                            let bel_other = bel_other.unwrap();
+                }
+            }
+
+            for &std in HR_IOSTDS {
+                if num_io == 1 {
+                    continue;
+                }
+                let anchor_std = match std.vcco {
+                    Some(3300) => "LVCMOS33",
+                    Some(2500) => "LVCMOS25",
+                    Some(1800) => "LVCMOS18",
+                    Some(1500) => "LVCMOS15",
+                    Some(1200) => "LVCMOS12",
+                    Some(1350) => "SSTL135",
+                    _ => unreachable!(),
+                };
+                if std.diff == DiffKind::True {
+                    if bel == bslots::IOB[1] {
+                        let bel_other = bel_other.unwrap();
+                        bctx.build()
+                            .global("UNCONSTRAINEDPINS", "ALLOW")
+                            .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
+                            .attr("IUSED", "")
+                            .attr("OPROGRAMMING", "")
+                            .raw(Key::Package, &package.name)
+                            .prop(IsBonded(bel))
+                            .prop(DiffOutLegacy("STD0", std.name))
+                            .bel_attr(bel_other, "IUSED", "")
+                            .bel_attr(bel_other, "OPROGRAMMING", "")
+                            .bel_attr(bel_other, "OSTANDARD", "")
+                            .bel_attr(bel_other, "OUSED", "")
+                            .test_manual_legacy("OSTD", std.name)
+                            .mode_diff("IOB33", "IOB33M")
+                            .pin("O")
+                            .attr("OUSED", "0")
+                            .attr("DIFFO_OUTUSED", "0")
+                            .attr("OSTANDARD", std.name)
+                            .bel_mode_diff(bel_other, "IOB33", "IOB33S")
+                            .bel_attr(bel_other, "OUTMUX", "1")
+                            .bel_attr(bel_other, "DIFFO_INUSED", "0")
+                            .pin_pair("DIFFO_OUT", bel_other, "DIFFO_IN")
+                            .commit();
+                        let alt_std = if std.name == "LVDS_25" {
+                            "RSDS_25"
+                        } else {
+                            "LVDS_25"
+                        };
+                        if std.name != "TMDS_33" {
                             bctx.build()
                                 .global("UNCONSTRAINEDPINS", "ALLOW")
                                 .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
+                                .prop(Related::new(
+                                    Delta::new(0, 4, tcls::IO_HR_PAIR),
+                                    BaseBelMode::new(bslots::IOB[1], 0, "IOB33M".into()),
+                                ))
+                                .prop(Related::new(
+                                    Delta::new(0, 4, tcls::IO_HR_PAIR),
+                                    BaseBelPin::new(bslots::IOB[1], 0, "O".into()),
+                                ))
+                                .prop(Related::new(
+                                    Delta::new(0, 4, tcls::IO_HR_PAIR),
+                                    BaseBelAttr::new(bslots::IOB[1], 0, "OUSED".into(), "0".into()),
+                                ))
+                                .prop(Related::new(
+                                    Delta::new(0, 4, tcls::IO_HR_PAIR),
+                                    BaseBelAttr::new(
+                                        bslots::IOB[1],
+                                        0,
+                                        "DIFFO_OUTUSED".into(),
+                                        "0".into(),
+                                    ),
+                                ))
+                                .prop(Related::new(
+                                    Delta::new(0, 4, tcls::IO_HR_PAIR),
+                                    BaseBelAttr::new(
+                                        bslots::IOB[1],
+                                        0,
+                                        "OSTANDARD".into(),
+                                        alt_std.into(),
+                                    ),
+                                ))
+                                .prop(Related::new(
+                                    Delta::new(0, 4, tcls::IO_HR_PAIR),
+                                    BaseBelMode::new(bslots::IOB[0], 0, "IOB33S".into()),
+                                ))
+                                .prop(Related::new(
+                                    Delta::new(0, 4, tcls::IO_HR_PAIR),
+                                    BaseBelPinPair::new(
+                                        bslots::IOB[1],
+                                        0,
+                                        "DIFFO_OUT".into(),
+                                        bslots::IOB[0],
+                                        0,
+                                        "DIFFO_IN".into(),
+                                    ),
+                                ))
+                                .prop(Related::new(
+                                    Delta::new(0, 4, tcls::IO_HR_PAIR),
+                                    BaseBelAttr::new(
+                                        bslots::IOB[0],
+                                        0,
+                                        "OUTMUX".into(),
+                                        "1".into(),
+                                    ),
+                                ))
+                                .prop(Related::new(
+                                    Delta::new(0, 4, tcls::IO_HR_PAIR),
+                                    BaseBelAttr::new(
+                                        bslots::IOB[0],
+                                        0,
+                                        "DIFFO_INUSED".into(),
+                                        "0".into(),
+                                    ),
+                                ))
                                 .attr("IUSED", "")
                                 .attr("OPROGRAMMING", "")
                                 .raw(Key::Package, &package.name)
                                 .prop(IsBonded(bel))
-                                .prop(DiffOutLegacy("STD0", std.name))
+                                .prop(DiffOutLegacy("STD1", std.name))
                                 .bel_attr(bel_other, "IUSED", "")
                                 .bel_attr(bel_other, "OPROGRAMMING", "")
                                 .bel_attr(bel_other, "OSTANDARD", "")
                                 .bel_attr(bel_other, "OUSED", "")
-                                .test_manual_legacy("OSTD", std.name)
+                                .test_manual_legacy("OSTD", format!("{}.ALT", std.name))
                                 .mode_diff("IOB33", "IOB33M")
                                 .pin("O")
                                 .attr("OUSED", "0")
@@ -1776,288 +1869,198 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .bel_attr(bel_other, "DIFFO_INUSED", "0")
                                 .pin_pair("DIFFO_OUT", bel_other, "DIFFO_IN")
                                 .commit();
-                            let alt_std = if std.name == "LVDS_25" {
-                                "RSDS_25"
-                            } else {
-                                "LVDS_25"
-                            };
-                            if std.name != "TMDS_33" {
-                                bctx.build()
-                                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                                    .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
-                                    .prop(Related::new(
-                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
-                                        BaseBelMode::new(defs::bslots::IOB[1], 0, "IOB33M".into()),
-                                    ))
-                                    .prop(Related::new(
-                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
-                                        BaseBelPin::new(defs::bslots::IOB[1], 0, "O".into()),
-                                    ))
-                                    .prop(Related::new(
-                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
-                                        BaseBelAttr::new(
-                                            defs::bslots::IOB[1],
-                                            0,
-                                            "OUSED".into(),
-                                            "0".into(),
-                                        ),
-                                    ))
-                                    .prop(Related::new(
-                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
-                                        BaseBelAttr::new(
-                                            defs::bslots::IOB[1],
-                                            0,
-                                            "DIFFO_OUTUSED".into(),
-                                            "0".into(),
-                                        ),
-                                    ))
-                                    .prop(Related::new(
-                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
-                                        BaseBelAttr::new(
-                                            defs::bslots::IOB[1],
-                                            0,
-                                            "OSTANDARD".into(),
-                                            alt_std.into(),
-                                        ),
-                                    ))
-                                    .prop(Related::new(
-                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
-                                        BaseBelMode::new(defs::bslots::IOB[0], 0, "IOB33S".into()),
-                                    ))
-                                    .prop(Related::new(
-                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
-                                        BaseBelPinPair::new(
-                                            defs::bslots::IOB[1],
-                                            0,
-                                            "DIFFO_OUT".into(),
-                                            defs::bslots::IOB[0],
-                                            0,
-                                            "DIFFO_IN".into(),
-                                        ),
-                                    ))
-                                    .prop(Related::new(
-                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
-                                        BaseBelAttr::new(
-                                            defs::bslots::IOB[0],
-                                            0,
-                                            "OUTMUX".into(),
-                                            "1".into(),
-                                        ),
-                                    ))
-                                    .prop(Related::new(
-                                        Delta::new(0, 4, tcls::IO_HR_PAIR),
-                                        BaseBelAttr::new(
-                                            defs::bslots::IOB[0],
-                                            0,
-                                            "DIFFO_INUSED".into(),
-                                            "0".into(),
-                                        ),
-                                    ))
-                                    .attr("IUSED", "")
-                                    .attr("OPROGRAMMING", "")
-                                    .raw(Key::Package, &package.name)
-                                    .prop(IsBonded(bel))
-                                    .prop(DiffOutLegacy("STD1", std.name))
-                                    .bel_attr(bel_other, "IUSED", "")
-                                    .bel_attr(bel_other, "OPROGRAMMING", "")
-                                    .bel_attr(bel_other, "OSTANDARD", "")
-                                    .bel_attr(bel_other, "OUSED", "")
-                                    .test_manual_legacy("OSTD", format!("{}.ALT", std.name))
-                                    .mode_diff("IOB33", "IOB33M")
-                                    .pin("O")
-                                    .attr("OUSED", "0")
-                                    .attr("DIFFO_OUTUSED", "0")
-                                    .attr("OSTANDARD", std.name)
-                                    .bel_mode_diff(bel_other, "IOB33", "IOB33S")
-                                    .bel_attr(bel_other, "OUTMUX", "1")
-                                    .bel_attr(bel_other, "DIFFO_INUSED", "0")
-                                    .pin_pair("DIFFO_OUT", bel_other, "DIFFO_IN")
-                                    .commit();
-                            }
                         }
-                    } else if std.diff != DiffKind::None {
-                        if bel == defs::bslots::IOB[1] {
-                            let bel_other = bel_other.unwrap();
-                            let slews = if std.name == "BLVDS_25" {
-                                &[""][..]
-                            } else {
-                                &["SLOW", "FAST"]
-                            };
-                            for &slew in slews {
-                                let val = if slew.is_empty() {
-                                    std.name.to_string()
-                                } else {
-                                    format!("{name}.{slew}", name = std.name)
-                                };
-                                bctx.build()
-                                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                                    .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
-                                    .attr("IUSED", "")
-                                    .attr("OPROGRAMMING", "")
-                                    .raw(Key::Package, &package.name)
-                                    .prop(IsBonded(bel))
-                                    .bel_attr(bel_other, "IUSED", "")
-                                    .bel_attr(bel_other, "OPROGRAMMING", "")
-                                    .bel_mode(defs::bslots::OLOGIC[0], "OLOGICE2")
-                                    .test_manual_legacy("OSTD", val)
-                                    .mode_diff("IOB33", "IOB33M")
-                                    .pin("O")
-                                    .attr("OUSED", "0")
-                                    .attr("O_OUTUSED", "0")
-                                    .attr("OSTANDARD", std.name)
-                                    .attr("SLEW", slew)
-                                    .bel_mode_diff(bel_other, "IOB33", "IOB33S")
-                                    .bel_attr(bel_other, "OUTMUX", "0")
-                                    .bel_attr(bel_other, "OINMUX", "1")
-                                    .bel_attr(bel_other, "OSTANDARD", std.name)
-                                    .bel_attr(bel_other, "SLEW", slew)
-                                    .pin_pair("O_OUT", bel_other, "O_IN")
-                                    .commit();
-                            }
-                        }
-                    } else {
-                        let drives = if std.drive.is_empty() {
-                            &[0][..]
-                        } else {
-                            std.drive
-                        };
-                        let slews = if matches!(std.name, "PCI33_3" | "BLVDS_25") {
+                    }
+                } else if std.diff != DiffKind::None {
+                    if bel == bslots::IOB[1] {
+                        let bel_other = bel_other.unwrap();
+                        let slews = if std.name == "BLVDS_25" {
                             &[""][..]
                         } else {
-                            &["SLOW", "FAST"][..]
+                            &["SLOW", "FAST"]
                         };
-                        for &drive in drives {
-                            for &slew in slews {
-                                let val = if slew.is_empty() {
-                                    std.name.to_string()
-                                } else if drive == 0 {
-                                    format!("{name}.{slew}", name = std.name)
-                                } else {
-                                    format!("{name}.{drive}.{slew}", name = std.name)
-                                };
-                                bctx.mode("IOB33")
-                                    .global("UNCONSTRAINEDPINS", "ALLOW")
-                                    .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
-                                    .pin("O")
-                                    .attr("IUSED", "")
-                                    .attr("OPROGRAMMING", "")
-                                    .raw(Key::Package, &package.name)
-                                    .prop(IsBonded(bel))
-                                    .test_manual_legacy("OSTD", val)
-                                    .attr("OUSED", "0")
-                                    .attr("OSTANDARD", std.name)
-                                    .attr(
-                                        "DRIVE",
-                                        if drive == 0 {
-                                            "".to_string()
-                                        } else {
-                                            drive.to_string()
-                                        },
-                                    )
-                                    .attr("SLEW", slew)
-                                    .commit();
-                            }
+                        for &slew in slews {
+                            let val = if slew.is_empty() {
+                                std.name.to_string()
+                            } else {
+                                format!("{name}.{slew}", name = std.name)
+                            };
+                            bctx.build()
+                                .global("UNCONSTRAINEDPINS", "ALLOW")
+                                .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
+                                .attr("IUSED", "")
+                                .attr("OPROGRAMMING", "")
+                                .raw(Key::Package, &package.name)
+                                .prop(IsBonded(bel))
+                                .bel_attr(bel_other, "IUSED", "")
+                                .bel_attr(bel_other, "OPROGRAMMING", "")
+                                .bel_mode(bslots::OLOGIC[0], "OLOGICE2")
+                                .test_manual_legacy("OSTD", val)
+                                .mode_diff("IOB33", "IOB33M")
+                                .pin("O")
+                                .attr("OUSED", "0")
+                                .attr("O_OUTUSED", "0")
+                                .attr("OSTANDARD", std.name)
+                                .attr("SLEW", slew)
+                                .bel_mode_diff(bel_other, "IOB33", "IOB33S")
+                                .bel_attr(bel_other, "OUTMUX", "0")
+                                .bel_attr(bel_other, "OINMUX", "1")
+                                .bel_attr(bel_other, "OSTANDARD", std.name)
+                                .bel_attr(bel_other, "SLEW", slew)
+                                .pin_pair("O_OUT", bel_other, "O_IN")
+                                .commit();
+                        }
+                    }
+                } else {
+                    let drives = if std.drive.is_empty() {
+                        &[0][..]
+                    } else {
+                        std.drive
+                    };
+                    let slews = if matches!(std.name, "PCI33_3" | "BLVDS_25") {
+                        &[""][..]
+                    } else {
+                        &["SLOW", "FAST"][..]
+                    };
+                    for &drive in drives {
+                        for &slew in slews {
+                            let val = if slew.is_empty() {
+                                std.name.to_string()
+                            } else if drive == 0 {
+                                format!("{name}.{slew}", name = std.name)
+                            } else {
+                                format!("{name}.{drive}.{slew}", name = std.name)
+                            };
+                            bctx.mode("IOB33")
+                                .global("UNCONSTRAINEDPINS", "ALLOW")
+                                .props(anchor_props(anchor_dy, std.vcco.unwrap(), anchor_std))
+                                .pin("O")
+                                .attr("IUSED", "")
+                                .attr("OPROGRAMMING", "")
+                                .raw(Key::Package, &package.name)
+                                .prop(IsBonded(bel))
+                                .test_manual_legacy("OSTD", val)
+                                .attr("OUSED", "0")
+                                .attr("OSTANDARD", std.name)
+                                .attr(
+                                    "DRIVE",
+                                    if drive == 0 {
+                                        "".to_string()
+                                    } else {
+                                        drive.to_string()
+                                    },
+                                )
+                                .attr("SLEW", slew)
+                                .commit();
                         }
                     }
                 }
+            }
 
-                if num_io == 2 {
-                    for (std, vcco, vref) in [
-                        ("HSUL_12", 1200, 600),
-                        ("SSTL135", 1350, 675),
-                        ("HSTL_I", 1500, 750),
-                        ("HSTL_I_18", 1800, 900),
-                    ] {
-                        bctx.mode("IOB33")
-                            .global("UNCONSTRAINEDPINS", "ALLOW")
-                            .props(anchor_props(anchor_dy, vcco, std))
-                            .attr("OUSED", "")
-                            .pin("I")
-                            .raw(Key::Package, &package.name)
-                            .prop(IsBonded(bel))
-                            .prop(VrefInternalLegacy(tcls::HCLK_IO_HR, vref))
-                            .test_manual_legacy("ISTD", format!("{std}.LP"))
-                            .attr("IUSED", "0")
-                            .attr("ISTANDARD", std)
-                            .attr("IBUF_LOW_PWR", "TRUE")
-                            .commit();
-                    }
-                }
-
-                if tcid == tcls::IO_HR_S {
-                    let mut builder = bctx
-                        .mode("IOB33")
+            if num_io == 2 {
+                for (std, vcco, vref) in [
+                    ("HSUL_12", 1200, enums::INTERNAL_VREF::_600),
+                    ("SSTL135", 1350, enums::INTERNAL_VREF::_675),
+                    ("HSTL_I", 1500, enums::INTERNAL_VREF::_750),
+                    ("HSTL_I_18", 1800, enums::INTERNAL_VREF::_900),
+                ] {
+                    bctx.mode("IOB33")
                         .global("UNCONSTRAINEDPINS", "ALLOW")
-                        .related_tile_mutex(HclkIoi, "VCCO", "TEST")
-                        .pin("O")
-                        .attr("IUSED", "")
-                        .attr("OPROGRAMMING", "")
+                        .props(anchor_props(anchor_dy, vcco, std))
+                        .attr("OUSED", "")
+                        .pin("I")
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
-                        .extra_tile_attr_legacy(
-                            Delta::new(0, 49, tcls::IO_HR_N),
-                            "IOB[0]",
-                            "LOW_VOLTAGE",
-                            "1",
-                        )
-                        .extra_tile_attr_legacy(
-                            Delta::new(0, 25, tcls::HCLK_IO_HR),
-                            "DRIVERBIAS",
-                            "DRIVERBIAS",
-                            "LV",
-                        );
-                    for i in 0..24 {
-                        builder = builder.extra_tile_attr_legacy(
-                            Delta::new(0, 1 + i * 2, tcls::IO_HR_PAIR),
-                            "IOB_COMMON",
-                            "LOW_VOLTAGE",
-                            "1",
-                        );
-                    }
-                    builder
-                        .test_manual_legacy("OSTD", "LVCMOS18.4.SLOW.EXCL")
-                        .attr("OUSED", "0")
-                        .attr("OSTANDARD", "LVCMOS18")
-                        .attr("DRIVE", "4")
-                        .attr("SLEW", "SLOW")
+                        .prop(VrefInternal(tcls::HCLK_IO_HR, vref))
+                        .test_manual_legacy("ISTD", format!("{std}.LP"))
+                        .attr("IUSED", "0")
+                        .attr("ISTANDARD", std)
+                        .attr("IBUF_LOW_PWR", "TRUE")
                         .commit();
                 }
             }
+
+            if tcid == tcls::IO_HR_S {
+                let mut builder = bctx
+                    .mode("IOB33")
+                    .global("UNCONSTRAINEDPINS", "ALLOW")
+                    .related_tile_mutex(HclkIoi, "VCCO", "TEST")
+                    .pin("O")
+                    .attr("IUSED", "")
+                    .attr("OPROGRAMMING", "")
+                    .raw(Key::Package, &package.name)
+                    .prop(IsBonded(bel))
+                    .extra_tile_attr_legacy(
+                        Delta::new(0, 49, tcls::IO_HR_N),
+                        "IOB[0]",
+                        "LOW_VOLTAGE",
+                        "1",
+                    )
+                    .extra_tile_attr_legacy(
+                        Delta::new(0, 25, tcls::HCLK_IO_HR),
+                        "DRIVERBIAS",
+                        "DRIVERBIAS",
+                        "LV",
+                    );
+                for i in 0..24 {
+                    builder = builder.extra_tile_attr_legacy(
+                        Delta::new(0, 1 + i * 2, tcls::IO_HR_PAIR),
+                        "IOB_COMMON",
+                        "LOW_VOLTAGE",
+                        "1",
+                    );
+                }
+                builder
+                    .test_manual_legacy("OSTD", "LVCMOS18.4.SLOW.EXCL")
+                    .attr("OUSED", "0")
+                    .attr("OSTANDARD", "LVCMOS18")
+                    .attr("DRIVE", "4")
+                    .attr("SLEW", "SLOW")
+                    .commit();
+            }
         }
     }
-    {
-        let mut ctx = FuzzCtx::new_null(session, backend);
-        ctx.build()
-            .global("ENABLEMISR", "Y")
-            .extra_tiles_by_kind_legacy("IO_HP_PAIR", "OLOGIC_COMMON")
-            .extra_tiles_by_kind_legacy("IO_HR_PAIR", "OLOGIC_COMMON")
-            .extra_tiles_by_kind_legacy("IO_HP_S", "OLOGIC[0]")
-            .extra_tiles_by_kind_legacy("IO_HP_N", "OLOGIC[0]")
-            .extra_tiles_by_kind_legacy("IO_HR_S", "OLOGIC[0]")
-            .extra_tiles_by_kind_legacy("IO_HR_N", "OLOGIC[0]")
-            .test_manual_legacy("NULL", "MISR_RESET", "1")
-            .global_diff("MISRRESET", "N", "Y")
-            .commit();
-    }
+}
+
+fn add_fuzzers_hclk_io_hp<'a>(
+    session: &mut Session<'a, IseBackend<'a>>,
+    backend: &'a IseBackend<'a>,
+) {
+    let ExpandedDevice::Virtex4(edev) = backend.edev else {
+        unreachable!()
+    };
+
+    let package = backend
+        .device
+        .bonds
+        .values()
+        .max_by_key(|bond| {
+            let bdata = &backend.db.bonds[bond.bond];
+            let prjcombine_re_xilinx_geom::Bond::Virtex4(bdata) = bdata else {
+                unreachable!();
+            };
+            bdata.pins.len()
+        })
+        .unwrap();
 
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::HCLK_IO_HP) {
-        let mut bctx = ctx.bel(defs::bslots::DCI);
+        let mut bctx = ctx.bel(bslots::DCI);
         bctx.build()
             .global("DCIUPDATEMODE", "ASREQUIRED")
             .global_mutex("GLOBAL_DCI", "NOPE")
-            .test_manual_legacy("TEST_ENABLE", "1")
+            .test_bel_attr_bits(DCI::TEST_ENABLE)
             .mode("DCI")
             .commit();
         bctx.build()
             .global("DCIUPDATEMODE", "QUIET")
             .global_mutex("GLOBAL_DCI", "NOPE")
-            .test_manual_legacy("TEST_ENABLE", "QUIET")
+            .test_bel_attr_bits(DCI::QUIET)
             .mode("DCI")
             .commit();
         bctx.build()
             .global("DCIUPDATEMODE", "ASREQUIRED")
             .global_mutex("GLOBAL_DCI", "NOPE")
-            .test_manual_legacy("DYNAMIC_ENABLE", "1")
+            .test_bel_attr_bits(DCI::DYNAMIC_ENABLE)
             .mode("DCI")
             .pin_pips("INT_DCI_EN")
             .commit();
@@ -2081,7 +2084,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let io_tile = die
                 .cell(edev.col_io_e.unwrap(), io_row)
                 .tile(defs::tslots::BEL);
-            let io_bel = io_tile.cell.bel(defs::bslots::IOB[0]);
+            let io_bel = io_tile.cell.bel(bslots::IOB[0]);
             let hclk_row = chip.row_hclk(io_tile.cell.row);
             let hclk_tile = die
                 .cell(edev.col_io_e.unwrap(), hclk_row)
@@ -2095,7 +2098,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let vr_tile = die
                     .cell(edev.col_io_e.unwrap(), row)
                     .tile(defs::tslots::BEL);
-                let vr_bel = vr_tile.cell.bel(defs::bslots::IOB[0]);
+                let vr_bel = vr_tile.cell.bel(bslots::IOB[0]);
                 let site = backend.ngrid.get_bel_name(vr_bel).unwrap();
                 builder = builder
                     .raw(Key::SiteMode(site), None)
@@ -2103,7 +2106,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
 
             // Set up hclk.
-            builder = builder.extra_tile_attr_fixed_legacy(hclk_tile, "DCI", "ENABLE", "1");
+            builder = builder.extra_fixed_bel_attr_bits(hclk_tile, bslots::DCI, DCI::ENABLE);
 
             // Set up the IO and fire.
             let site = backend.ngrid.get_bel_name(io_bel).unwrap();
@@ -2147,10 +2150,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let hclk_row_to = chip.row_reg_hclk(anchor_reg_to);
             let hclk_tile_to = die.cell(col, hclk_row_to).tile(defs::tslots::HCLK_BEL);
             let io_row_from = hclk_row_from - 24;
-            let io_bel_from = die.cell(col, io_row_from).bel(defs::bslots::IOB[0]);
+            let io_bel_from = die.cell(col, io_row_from).bel(bslots::IOB[0]);
             let io_row_to = hclk_row_to - 24;
             let io_tile_to = die.cell(col, io_row_to).tile(defs::tslots::BEL);
-            let io_bel_to = io_tile_to.cell.bel(defs::bslots::IOB[0]);
+            let io_bel_to = io_tile_to.cell.bel(bslots::IOB[0]);
             let actual_bank_from = edev
                 .get_io_info(IoCoord {
                     cell: CellCoord {
@@ -2175,8 +2178,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             // Ensure nothing else in the bank.
             for i in 0..50 {
                 let row = hclk_row_from - 25 + i;
-                for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
-                    if row == io_row_from && bel == defs::bslots::IOB[0] {
+                for bel in [bslots::IOB[0], bslots::IOB[1]] {
+                    if row == io_row_from && bel == bslots::IOB[0] {
                         continue;
                     }
                     if let Some(site) = backend.ngrid.get_bel_name(die.cell(col, row).bel(bel)) {
@@ -2199,8 +2202,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             // Ensure nothing else in the bank.
             for i in 0..50 {
                 let row = hclk_row_to - 25 + i;
-                for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
-                    if row == io_row_to && bel == defs::bslots::IOB[0] {
+                for bel in [bslots::IOB[0], bslots::IOB[1]] {
+                    if row == io_row_to && bel == bslots::IOB[0] {
                         continue;
                     }
                     if let Some(site) = backend.ngrid.get_bel_name(die.cell(col, row).bel(bel)) {
@@ -2219,37 +2222,124 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .raw_diff(Key::SiteAttr(site, "OSTANDARD".into()), None, "HSLVDCI_18")
                 .raw_diff(Key::DciCascade(actual_bank_to), None, actual_bank_from)
                 .extra_tile_attr_fixed_legacy(io_tile_to, "IOB[0]", "OSTD", "HSLVDCI_18")
-                .extra_tile_attr_fixed_legacy(
+                .extra_fixed_bel_attr_bits(
                     hclk_tile_to,
-                    "DCI",
+                    bslots::DCI,
                     if bank_to == 0 {
-                        "CASCADE_FROM_ABOVE"
+                        DCI::CASCADE_FROM_ABOVE
                     } else {
-                        "CASCADE_FROM_BELOW"
+                        DCI::CASCADE_FROM_BELOW
                     },
-                    "1",
                 )
                 .test_manual_legacy("NULL", format!("CASCADE_DCI.{bank_to}"), "1")
                 .commit();
         }
     }
+}
 
-    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::HCLK_IO_HR) {
-        for val in ["OFF", "FREEZE", "ALWAYSACTIVE"] {
-            ctx.test_manual_legacy("VCCOSENSE", "MODE", val)
-                .prop(VccoSenseMode(val))
-                .commit();
-        }
-        let mut ctx = FuzzCtx::new_null(session, backend);
-        ctx.build()
-            .extra_tiles_by_kind_legacy("HCLK_IO_HR", "VCCOSENSE")
-            .test_manual_legacy("VCCOSENSE", "FLAG", "ENABLE")
-            .global("VCCOSENSEFLAG", "ENABLE")
+fn add_fuzzers_hclk_io_hr<'a>(
+    session: &mut Session<'a, IseBackend<'a>>,
+    backend: &'a IseBackend<'a>,
+) {
+    let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::HCLK_IO_HR) else {
+        return;
+    };
+    let mut bctx = ctx.bel(bslots::BANK);
+    for (val, vname) in [
+        (enums::VCCOSENSE_MODE::OFF, "OFF"),
+        (enums::VCCOSENSE_MODE::FREEZE, "FREEZE"),
+        (enums::VCCOSENSE_MODE::ALWAYSACTIVE, "ALWAYSACTIVE"),
+    ] {
+        bctx.build()
+            .test_bel_attr_val(BANK::HR_VCCOSENSE_MODE, val)
+            .prop(VccoSenseMode(vname))
             .commit();
+    }
+    let mut ctx = FuzzCtx::new_null(session, backend);
+    ctx.build()
+        .extra_tiles_by_class_bel_attr_bits(tcls::HCLK_IO_HR, bslots::BANK, BANK::HR_VCCOSENSE_FLAG)
+        .test_global_special(specials::VCCOSENSE_FLAG_ENABLE)
+        .global("VCCOSENSEFLAG", "ENABLE")
+        .commit();
+}
+
+pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
+    add_fuzzers_routing(session, backend);
+    add_fuzzers_ilogic(session, backend);
+    add_fuzzers_ologic(session, backend);
+    add_fuzzers_iodelay(session, backend);
+    add_fuzzers_iob_hp(session, backend);
+    add_fuzzers_iob_hr(session, backend);
+    add_fuzzers_hclk_io_hp(session, backend);
+    add_fuzzers_hclk_io_hr(session, backend);
+}
+
+fn collect_fuzzers_routing(ctx: &mut CollectorCtx) {
+    for (tcid, num_io) in [
+        (tcls::IO_HR_PAIR, 2),
+        (tcls::IO_HR_S, 1),
+        (tcls::IO_HR_N, 1),
+        (tcls::IO_HP_PAIR, 2),
+        (tcls::IO_HP_S, 1),
+        (tcls::IO_HP_N, 1),
+    ] {
+        if !ctx.has_tcls(tcid) {
+            continue;
+        };
+        for io in 0..num_io {
+            ctx.collect_mux(tcid, wires::IMUX_IOI_ICLK[0].cell(io));
+            ctx.collect_mux(tcid, wires::IMUX_IOI_ICLK[1].cell(io));
+
+            let dst0 = wires::IMUX_IOI_OCLK[0].cell(io);
+            let dst1 = wires::IMUX_IOI_OCLK[1].cell(io);
+            ctx.collect_mux(tcid, dst0);
+            let mux = &ctx.edev.db_index[tcid].muxes[&dst0];
+            let mut diffs = vec![(None, Diff::default())];
+            for &src in mux.src.keys() {
+                if src.wire == wires::PHASER_OCLK90 {
+                    let mut diff = ctx.get_diff_routing_pair_special(
+                        tcid,
+                        dst1,
+                        src,
+                        specials::IOI_OCLK90_BOTH,
+                    );
+                    diff.apply_enum_diff_raw(ctx.sb_mux(tcid, dst0), &Some(src), &None);
+                    diffs.push((Some(src), diff));
+                } else {
+                    diffs.push((Some(src), ctx.get_diff_routing(tcid, dst1, src)));
+                }
+            }
+            ctx.insert_mux(tcid, dst1, xlat_enum_raw(diffs, OcdMode::Mux));
+
+            for i in 0..2 {
+                let dst = wires::IMUX_IOI_OCLKDIV[i].cell(io);
+                let dst_f = wires::IMUX_IOI_OCLKDIVF[i].cell(io);
+
+                let mut diffs_f = vec![];
+                let mux = &ctx.edev.db_index[tcid].muxes[&dst_f];
+                for &src in mux.src.keys() {
+                    diffs_f.push((Some(src), ctx.get_diff_routing(tcid, dst, src)));
+                }
+                let diff_f = extract_common_diff(&mut diffs_f);
+                diffs_f.push((None, Diff::default()));
+                ctx.insert_mux(tcid, dst_f, xlat_enum_raw(diffs_f, OcdMode::Mux));
+
+                let src_p = wires::PHASER_OCLKDIV.cell(io);
+                let diffs = vec![
+                    (None, Diff::default()),
+                    (
+                        Some(src_p.pos()),
+                        ctx.get_diff_routing(tcid, dst, src_p.pos()),
+                    ),
+                    (Some(dst_f.pos()), diff_f),
+                ];
+                ctx.insert_mux(tcid, dst, xlat_enum_raw(diffs, OcdMode::Mux));
+            }
+        }
     }
 }
 
-pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+fn collect_fuzzers_ilogic(ctx: &mut CollectorCtx) {
     for (tile, bel) in [
         ("IO_HR_PAIR", "ILOGIC[0]"),
         ("IO_HR_PAIR", "ILOGIC[1]"),
@@ -2478,24 +2568,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert_legacy(tile, bel, "INV.ZHOLD_IFF", xlat_bit_bi_legacy(diff0, diff1));
             ctx.insert_legacy(tile, bel, "IFF_ZHOLD", xlat_bit_legacy(diff_en));
         }
-
-        let mut vals = vec!["PHASER_ICLK".to_string(), "PHASER_OCLK".to_string()];
-        for j in 0..6 {
-            vals.push(format!("HCLK{j}"));
-        }
-        for j in 0..4 {
-            vals.push(format!("RCLK{j}"));
-        }
-        for j in 0..4 {
-            vals.push(format!("IOCLK{j}"));
-        }
-        for j in 0..2 {
-            vals.push(format!("CKINT{j}"));
-        }
-        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLK", &vals, "NONE", OcdMode::Mux);
-        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLKB", &vals, "NONE", OcdMode::Mux);
-        ctx.collect_enum_default_legacy(tile, bel, "MUX.CLKDIVP", &["CLKDIV", "PHASER"], "NONE");
     }
+}
+
+fn collect_fuzzers_ologic(ctx: &mut CollectorCtx) {
     for (tile, bel) in [
         ("IO_HR_PAIR", "OLOGIC[0]"),
         ("IO_HR_PAIR", "OLOGIC[1]"),
@@ -2657,79 +2733,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present_oserdes.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "OFF_INIT"), false, true);
         present_oserdes.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "TFF_INIT"), false, true);
         present_oserdes.assert_empty();
-
-        let mut diffs_clk = vec![("NONE".to_string(), Diff::default())];
-        let mut diffs_clkb = vec![("NONE".to_string(), Diff::default())];
-        for (src, num) in [("HCLK", 6), ("RCLK", 4), ("IOCLK", 4)] {
-            for i in 0..num {
-                diffs_clk.push((
-                    format!("{src}{i}"),
-                    ctx.get_diff_legacy(tile, bel, "MUX.CLK", format!("{src}{i}")),
-                ));
-                diffs_clkb.push((
-                    format!("{src}{i}"),
-                    ctx.get_diff_legacy(tile, bel, "MUX.CLKB", format!("{src}{i}")),
-                ));
-            }
-        }
-        for val in ["CKINT", "PHASER_OCLK"] {
-            diffs_clk.push((
-                val.to_string(),
-                ctx.get_diff_legacy(tile, bel, "MUX.CLK", val),
-            ));
-            diffs_clkb.push((
-                val.to_string(),
-                ctx.get_diff_legacy(tile, bel, "MUX.CLKB", val),
-            ));
-        }
-        let diff_clk = ctx.get_diff_legacy(tile, bel, "MUX.CLK", "PHASER_OCLK90");
-        let diff_clkb = ctx
-            .get_diff_legacy(tile, bel, "MUX.CLK", "PHASER_OCLK90.BOTH")
-            .combine(&!&diff_clk);
-        diffs_clk.push(("PHASER_OCLK90".to_string(), diff_clk));
-        diffs_clkb.push(("PHASER_OCLK90".to_string(), diff_clkb));
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "MUX.CLK",
-            xlat_enum_legacy_ocd(diffs_clk, OcdMode::Mux),
-        );
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "MUX.CLKB",
-            xlat_enum_legacy_ocd(diffs_clkb, OcdMode::Mux),
-        );
-
-        for (attr, attrf) in [
-            ("MUX.CLKDIV", "MUX.CLKDIVF"),
-            ("MUX.CLKDIVB", "MUX.CLKDIVFB"),
-        ] {
-            let diff_hclk0f = ctx.get_diff_legacy(tile, bel, attr, "HCLK0.F");
-            let diff_f = ctx
-                .peek_diff_legacy(tile, bel, attr, "HCLK0")
-                .combine(&!diff_hclk0f);
-            let mut diffs = vec![("NONE", Diff::default())];
-            for val in [
-                "HCLK0", "HCLK1", "HCLK2", "HCLK3", "HCLK4", "HCLK5", "RCLK0", "RCLK1", "RCLK2",
-                "RCLK3", "CKINT",
-            ] {
-                diffs.push((
-                    val,
-                    ctx.get_diff_legacy(tile, bel, attr, val).combine(&!&diff_f),
-                ));
-            }
-            ctx.insert_legacy(tile, bel, attrf, xlat_enum_legacy_ocd(diffs, OcdMode::Mux));
-            let item = xlat_enum_legacy(vec![
-                ("NONE", Diff::default()),
-                (&attrf[4..], diff_f),
-                (
-                    "PHASER_OCLKDIV",
-                    ctx.get_diff_legacy(tile, bel, attr, "PHASER_OCLKDIV"),
-                ),
-            ]);
-            ctx.insert_legacy(tile, bel, attr, item);
-        }
     }
     for tile in ["IO_HR_PAIR", "IO_HP_PAIR"] {
         if !ctx.has_tile_legacy(tile) {
@@ -2740,6 +2743,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.insert_legacy(tile, "OLOGIC[0]", "MISR_RESET", xlat_bit_legacy(diff));
         ctx.insert_legacy(tile, "OLOGIC[1]", "MISR_RESET", xlat_bit_legacy(diff1));
     }
+}
+
+fn collect_fuzzers_iodelay(ctx: &mut CollectorCtx) {
     for (tile, bel) in [
         ("IO_HR_PAIR", "IDELAY[0]"),
         ("IO_HR_PAIR", "IDELAY[1]"),
@@ -2893,6 +2899,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.insert_legacy(tile, bel, "ODELAY_VALUE_CUR", xlat_bitvec_legacy(diffs_f));
         ctx.collect_enum_legacy(tile, bel, "FINEDELAY", &["BYPASS", "ADD_DLY"]);
     }
+}
+
+fn collect_fuzzers_iob_hp(ctx: &mut CollectorCtx) {
+    if !ctx.has_tcls(tcls::IO_HP_PAIR) {
+        return;
+    }
+
     for (tile, bel) in [
         ("IO_HP_PAIR", "IOB[0]"),
         ("IO_HP_PAIR", "IOB[1]"),
@@ -3249,128 +3262,113 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         present.assert_empty();
     }
-
-    if ctx.has_tcls(tcls::IO_HP_PAIR) {
-        let tile = "IO_HP_PAIR";
-        for &std in HP_IOSTDS {
-            if std.diff == DiffKind::None {
-                continue;
-            }
-            for bel in ["IOB[0]", "IOB[1]"] {
-                for lp in ["HP", "LP"] {
-                    if std.dci == DciKind::BiSplitT {
-                        continue;
-                    }
-                    let mut diff =
-                        ctx.get_diff_legacy(tile, bel, "ISTD", format!("{sn}.{lp}", sn = std.name));
-                    for cbel in ["IOB[0]", "IOB[1]"] {
-                        match std.dci {
-                            DciKind::None | DciKind::Output | DciKind::OutputHalf => {}
-                            DciKind::InputSplit | DciKind::BiSplit => {
-                                diff.apply_enum_diff_legacy(
-                                    ctx.item_legacy(tile, cbel, "DCI_MODE"),
-                                    "TERM_SPLIT",
-                                    "NONE",
-                                );
-                            }
-                            _ => unreachable!(),
-                        }
-                        diff.apply_enum_diff_legacy(
-                            ctx.item_legacy(tile, cbel, "IBUF_MODE"),
-                            if lp == "LP" { "DIFF_LP" } else { "DIFF_HP" },
-                            "OFF",
-                        );
-                    }
-                    diff.assert_empty();
+    let tile = "IO_HP_PAIR";
+    for &std in HP_IOSTDS {
+        if std.diff == DiffKind::None {
+            continue;
+        }
+        for bel in ["IOB[0]", "IOB[1]"] {
+            for lp in ["HP", "LP"] {
+                if std.dci == DciKind::BiSplitT {
+                    continue;
                 }
-            }
-            if std.diff == DiffKind::True {
-                let mut diff = ctx.get_diff_legacy(tile, "IOB[0]", "DIFF_TERM", std.name);
-                let val_c = extract_bitvec_val_part_legacy(
-                    ctx.item_legacy(tile, "IOB[0]", "LVDS"),
-                    &bits![0; 9],
-                    &mut diff,
-                );
-                let val_t = extract_bitvec_val_part_legacy(
-                    ctx.item_legacy(tile, "IOB[1]", "LVDS"),
-                    &bits![0; 9],
-                    &mut diff,
-                );
-                ctx.insert_misc_data_legacy(format!("HP_IOSTD:LVDS_T:TERM_{}", std.name), val_t);
-                ctx.insert_misc_data_legacy(format!("HP_IOSTD:LVDS_C:TERM_{}", std.name), val_c);
-                diff.assert_empty();
-
-                let mut diff = ctx.get_diff_legacy(tile, "IOB[0]", "DIFF_TERM_DYNAMIC", std.name);
-                let val_c = extract_bitvec_val_part_legacy(
-                    ctx.item_legacy(tile, "IOB[0]", "LVDS"),
-                    &bits![0; 9],
-                    &mut diff,
-                );
-                let val_t = extract_bitvec_val_part_legacy(
-                    ctx.item_legacy(tile, "IOB[1]", "LVDS"),
-                    &bits![0; 9],
-                    &mut diff,
-                );
-                ctx.insert_misc_data_legacy(
-                    format!("HP_IOSTD:LVDS_T:TERM_DYNAMIC_{}", std.name),
-                    val_t,
-                );
-                ctx.insert_misc_data_legacy(
-                    format!("HP_IOSTD:LVDS_C:TERM_DYNAMIC_{}", std.name),
-                    val_c,
-                );
-                diff.assert_empty();
-
-                let mut diff = ctx.get_diff_legacy(tile, "IOB[1]", "OSTD", std.name);
-                let val_c = extract_bitvec_val_part_legacy(
-                    ctx.item_legacy(tile, "IOB[0]", "LVDS"),
-                    &bits![0; 9],
-                    &mut diff,
-                );
-                let val_t = extract_bitvec_val_part_legacy(
-                    ctx.item_legacy(tile, "IOB[1]", "LVDS"),
-                    &bits![0; 9],
-                    &mut diff,
-                );
-                ctx.insert_misc_data_legacy(format!("HP_IOSTD:LVDS_T:OUTPUT_{}", std.name), val_t);
-                ctx.insert_misc_data_legacy(format!("HP_IOSTD:LVDS_C:OUTPUT_{}", std.name), val_c);
-                diff.apply_bitvec_diff_legacy(
-                    ctx.item_legacy(tile, "IOB[1]", "OUTPUT_ENABLE"),
-                    &bits![1; 2],
-                    &bits![0; 2],
-                );
-                diff.assert_empty();
-            }
-            if std.diff == DiffKind::Pseudo {
-                for slew in ["SLOW", "FAST"] {
-                    let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
-                    let mut diff = ctx.get_diff_legacy(
-                        tile,
-                        "IOB[1]",
-                        "OSTD",
-                        format!("{sn}.{slew}", sn = std.name),
-                    );
-                    for bel in ["IOB[0]", "IOB[1]"] {
-                        diff.apply_bitvec_diff_legacy(
-                            ctx.item_legacy(tile, bel, "OUTPUT_ENABLE"),
-                            &bits![1; 2],
-                            &bits![0; 2],
-                        );
-                        if !matches!(std.dci, DciKind::Output | DciKind::OutputHalf) {
-                            for attr in ["PDRIVE", "NDRIVE"] {
-                                let item = ctx.item_legacy(tile, bel, attr);
-                                let value = extract_bitvec_val_part_legacy(
-                                    item,
-                                    &BitVec::repeat(false, item.bits.len()),
-                                    &mut diff,
-                                );
-                                ctx.insert_misc_data_legacy(
-                                    format!("HP_IOSTD:{attr}:{stdname}"),
-                                    value,
-                                );
-                            }
+                let mut diff =
+                    ctx.get_diff_legacy(tile, bel, "ISTD", format!("{sn}.{lp}", sn = std.name));
+                for cbel in ["IOB[0]", "IOB[1]"] {
+                    match std.dci {
+                        DciKind::None | DciKind::Output | DciKind::OutputHalf => {}
+                        DciKind::InputSplit | DciKind::BiSplit => {
+                            diff.apply_enum_diff_legacy(
+                                ctx.item_legacy(tile, cbel, "DCI_MODE"),
+                                "TERM_SPLIT",
+                                "NONE",
+                            );
                         }
-                        for attr in ["PSLEW", "NSLEW"] {
+                        _ => unreachable!(),
+                    }
+                    diff.apply_enum_diff_legacy(
+                        ctx.item_legacy(tile, cbel, "IBUF_MODE"),
+                        if lp == "LP" { "DIFF_LP" } else { "DIFF_HP" },
+                        "OFF",
+                    );
+                }
+                diff.assert_empty();
+            }
+        }
+        if std.diff == DiffKind::True {
+            let mut diff = ctx.get_diff_legacy(tile, "IOB[0]", "DIFF_TERM", std.name);
+            let val_c = extract_bitvec_val_part_legacy(
+                ctx.item_legacy(tile, "IOB[0]", "LVDS"),
+                &bits![0; 9],
+                &mut diff,
+            );
+            let val_t = extract_bitvec_val_part_legacy(
+                ctx.item_legacy(tile, "IOB[1]", "LVDS"),
+                &bits![0; 9],
+                &mut diff,
+            );
+            ctx.insert_misc_data_legacy(format!("HP_IOSTD:LVDS_T:TERM_{}", std.name), val_t);
+            ctx.insert_misc_data_legacy(format!("HP_IOSTD:LVDS_C:TERM_{}", std.name), val_c);
+            diff.assert_empty();
+
+            let mut diff = ctx.get_diff_legacy(tile, "IOB[0]", "DIFF_TERM_DYNAMIC", std.name);
+            let val_c = extract_bitvec_val_part_legacy(
+                ctx.item_legacy(tile, "IOB[0]", "LVDS"),
+                &bits![0; 9],
+                &mut diff,
+            );
+            let val_t = extract_bitvec_val_part_legacy(
+                ctx.item_legacy(tile, "IOB[1]", "LVDS"),
+                &bits![0; 9],
+                &mut diff,
+            );
+            ctx.insert_misc_data_legacy(
+                format!("HP_IOSTD:LVDS_T:TERM_DYNAMIC_{}", std.name),
+                val_t,
+            );
+            ctx.insert_misc_data_legacy(
+                format!("HP_IOSTD:LVDS_C:TERM_DYNAMIC_{}", std.name),
+                val_c,
+            );
+            diff.assert_empty();
+
+            let mut diff = ctx.get_diff_legacy(tile, "IOB[1]", "OSTD", std.name);
+            let val_c = extract_bitvec_val_part_legacy(
+                ctx.item_legacy(tile, "IOB[0]", "LVDS"),
+                &bits![0; 9],
+                &mut diff,
+            );
+            let val_t = extract_bitvec_val_part_legacy(
+                ctx.item_legacy(tile, "IOB[1]", "LVDS"),
+                &bits![0; 9],
+                &mut diff,
+            );
+            ctx.insert_misc_data_legacy(format!("HP_IOSTD:LVDS_T:OUTPUT_{}", std.name), val_t);
+            ctx.insert_misc_data_legacy(format!("HP_IOSTD:LVDS_C:OUTPUT_{}", std.name), val_c);
+            diff.apply_bitvec_diff_legacy(
+                ctx.item_legacy(tile, "IOB[1]", "OUTPUT_ENABLE"),
+                &bits![1; 2],
+                &bits![0; 2],
+            );
+            diff.assert_empty();
+        }
+        if std.diff == DiffKind::Pseudo {
+            for slew in ["SLOW", "FAST"] {
+                let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
+                let mut diff = ctx.get_diff_legacy(
+                    tile,
+                    "IOB[1]",
+                    "OSTD",
+                    format!("{sn}.{slew}", sn = std.name),
+                );
+                for bel in ["IOB[0]", "IOB[1]"] {
+                    diff.apply_bitvec_diff_legacy(
+                        ctx.item_legacy(tile, bel, "OUTPUT_ENABLE"),
+                        &bits![1; 2],
+                        &bits![0; 2],
+                    );
+                    if !matches!(std.dci, DciKind::Output | DciKind::OutputHalf) {
+                        for attr in ["PDRIVE", "NDRIVE"] {
                             let item = ctx.item_legacy(tile, bel, attr);
                             let value = extract_bitvec_val_part_legacy(
                                 item,
@@ -3378,244 +3376,68 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 &mut diff,
                             );
                             ctx.insert_misc_data_legacy(
-                                format!("HP_IOSTD:{attr}:{stdname}.{slew}"),
+                                format!("HP_IOSTD:{attr}:{stdname}"),
                                 value,
                             );
                         }
-                        let dci_mode = ctx.item_legacy(tile, bel, "DCI_MODE");
-                        let dci_t = ctx.item_legacy(tile, bel, "DCI_T");
-                        match std.dci {
-                            DciKind::None | DciKind::InputSplit => {}
-                            DciKind::Output => {
-                                diff.apply_enum_diff_legacy(dci_mode, "OUTPUT", "NONE");
-                            }
-                            DciKind::OutputHalf => {
-                                diff.apply_enum_diff_legacy(dci_mode, "OUTPUT_HALF", "NONE");
-                            }
-                            DciKind::BiSplit => {
-                                diff.apply_enum_diff_legacy(dci_mode, "TERM_SPLIT", "NONE");
-                            }
-                            DciKind::BiSplitT => {
-                                diff.apply_enum_diff_legacy(dci_mode, "TERM_SPLIT", "NONE");
-                                diff.apply_bit_diff_legacy(dci_t, true, false);
-                            }
-                            _ => unreachable!(),
+                    }
+                    for attr in ["PSLEW", "NSLEW"] {
+                        let item = ctx.item_legacy(tile, bel, attr);
+                        let value = extract_bitvec_val_part_legacy(
+                            item,
+                            &BitVec::repeat(false, item.bits.len()),
+                            &mut diff,
+                        );
+                        ctx.insert_misc_data_legacy(
+                            format!("HP_IOSTD:{attr}:{stdname}.{slew}"),
+                            value,
+                        );
+                    }
+                    let dci_mode = ctx.item_legacy(tile, bel, "DCI_MODE");
+                    let dci_t = ctx.item_legacy(tile, bel, "DCI_T");
+                    match std.dci {
+                        DciKind::None | DciKind::InputSplit => {}
+                        DciKind::Output => {
+                            diff.apply_enum_diff_legacy(dci_mode, "OUTPUT", "NONE");
                         }
+                        DciKind::OutputHalf => {
+                            diff.apply_enum_diff_legacy(dci_mode, "OUTPUT_HALF", "NONE");
+                        }
+                        DciKind::BiSplit => {
+                            diff.apply_enum_diff_legacy(dci_mode, "TERM_SPLIT", "NONE");
+                        }
+                        DciKind::BiSplitT => {
+                            diff.apply_enum_diff_legacy(dci_mode, "TERM_SPLIT", "NONE");
+                            diff.apply_bit_diff_legacy(dci_t, true, false);
+                        }
+                        _ => unreachable!(),
                     }
-                    let diff_t = diff.split_bits_by(|bit| bit.bit.to_idx() == 17);
-                    assert_eq!(diff.bits.len(), 1);
-                    assert_eq!(diff_t.bits.len(), 1);
-                    ctx.insert_legacy(
-                        tile,
-                        "IOB[0]",
-                        "OMUX",
-                        xlat_enum_legacy(vec![("O", Diff::default()), ("OTHER_O_INV", diff)]),
-                    );
-                    ctx.insert_legacy(
-                        tile,
-                        "IOB[0]",
-                        "TMUX",
-                        xlat_enum_legacy(vec![("T", Diff::default()), ("OTHER_T", diff_t)]),
-                    );
                 }
+                let diff_t = diff.split_bits_by(|bit| bit.bit.to_idx() == 17);
+                assert_eq!(diff.bits.len(), 1);
+                assert_eq!(diff_t.bits.len(), 1);
+                ctx.insert_legacy(
+                    tile,
+                    "IOB[0]",
+                    "OMUX",
+                    xlat_enum_legacy(vec![("O", Diff::default()), ("OTHER_O_INV", diff)]),
+                );
+                ctx.insert_legacy(
+                    tile,
+                    "IOB[0]",
+                    "TMUX",
+                    xlat_enum_legacy(vec![("T", Diff::default()), ("OTHER_T", diff_t)]),
+                );
             }
         }
     }
+}
 
-    if ctx.has_tcls(tcls::HCLK_IO_HP) {
-        let tile = "HCLK_IO_HP";
-        let lvdsbias = TileItem::from_bitvec_inv(
-            vec![
-                TileBit::new(0, 41, 14),
-                TileBit::new(0, 41, 15),
-                TileBit::new(0, 41, 16),
-                TileBit::new(0, 41, 17),
-                TileBit::new(0, 41, 18),
-                TileBit::new(0, 41, 19),
-                TileBit::new(0, 41, 20),
-                TileBit::new(0, 41, 21),
-                TileBit::new(0, 41, 22),
-                TileBit::new(0, 41, 23),
-                TileBit::new(0, 41, 24),
-                TileBit::new(0, 41, 25),
-                TileBit::new(0, 41, 26),
-                TileBit::new(0, 41, 27),
-                TileBit::new(0, 41, 28),
-                TileBit::new(0, 41, 29),
-                TileBit::new(0, 41, 30),
-                TileBit::new(0, 40, 31),
-            ],
-            false,
-        );
-        let nref_output = TileItem::from_bitvec_inv(
-            vec![TileBit::new(0, 39, 30), TileBit::new(0, 39, 29)],
-            false,
-        );
-        let pref_output = TileItem::from_bitvec_inv(
-            vec![TileBit::new(0, 40, 18), TileBit::new(0, 40, 17)],
-            false,
-        );
-        let nref_output_half = TileItem::from_bitvec_inv(
-            vec![
-                TileBit::new(0, 39, 28),
-                TileBit::new(0, 39, 27),
-                TileBit::new(0, 39, 26),
-            ],
-            false,
-        );
-        let pref_output_half = TileItem::from_bitvec_inv(
-            vec![
-                TileBit::new(0, 40, 16),
-                TileBit::new(0, 40, 15),
-                TileBit::new(0, 40, 14),
-            ],
-            false,
-        );
-        let nref_term_split = TileItem::from_bitvec_inv(
-            vec![
-                TileBit::new(0, 39, 25),
-                TileBit::new(0, 39, 24),
-                TileBit::new(0, 39, 23),
-            ],
-            false,
-        );
-
-        for std in HP_IOSTDS {
-            if std.diff == DiffKind::True {
-                let bel = "LVDS";
-                let diff = ctx.get_diff_legacy(tile, bel, "STD", std.name);
-                let val = extract_bitvec_val_legacy(&lvdsbias, &bits![0; 18], diff);
-                ctx.insert_misc_data_legacy(format!("HP_IOSTD:LVDSBIAS:{}", std.name), val);
-            }
-            if std.dci != DciKind::None {
-                let bel = "DCI";
-                let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
-                let mut diff = ctx.get_diff_legacy(tile, bel, "STD", std.name);
-                match std.dci {
-                    DciKind::Output => {
-                        let val =
-                            extract_bitvec_val_part_legacy(&nref_output, &bits![0; 2], &mut diff);
-                        ctx.insert_misc_data_legacy(
-                            format!("HP_IOSTD:DCI:NREF_OUTPUT:{stdname}"),
-                            val,
-                        );
-                        let val =
-                            extract_bitvec_val_part_legacy(&pref_output, &bits![0; 2], &mut diff);
-                        ctx.insert_misc_data_legacy(
-                            format!("HP_IOSTD:DCI:PREF_OUTPUT:{stdname}"),
-                            val,
-                        );
-                    }
-                    DciKind::OutputHalf => {
-                        let val = extract_bitvec_val_part_legacy(
-                            &nref_output_half,
-                            &bits![0; 3],
-                            &mut diff,
-                        );
-                        ctx.insert_misc_data_legacy(
-                            format!("HP_IOSTD:DCI:NREF_OUTPUT_HALF:{stdname}"),
-                            val,
-                        );
-                        let val = extract_bitvec_val_part_legacy(
-                            &pref_output_half,
-                            &bits![0; 3],
-                            &mut diff,
-                        );
-                        ctx.insert_misc_data_legacy(
-                            format!("HP_IOSTD:DCI:PREF_OUTPUT_HALF:{stdname}"),
-                            val,
-                        );
-                    }
-                    DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
-                        let val = extract_bitvec_val_part_legacy(
-                            &nref_term_split,
-                            &bits![0; 3],
-                            &mut diff,
-                        );
-                        ctx.insert_misc_data_legacy(
-                            format!("HP_IOSTD:DCI:NREF_TERM_SPLIT:{stdname}"),
-                            val,
-                        );
-                    }
-                    _ => {}
-                }
-                ctx.insert_legacy(tile, bel, "ENABLE", xlat_bit_legacy(diff));
-            }
-        }
-        let bel = "LVDS";
-        ctx.insert_legacy(tile, bel, "LVDSBIAS", lvdsbias);
-        ctx.insert_misc_data_legacy("HP_IOSTD:LVDSBIAS:OFF", bits![0; 18]);
-        let bel = "DCI";
-        ctx.insert_legacy(tile, bel, "PREF_OUTPUT", pref_output);
-        ctx.insert_legacy(tile, bel, "NREF_OUTPUT", nref_output);
-        ctx.insert_legacy(tile, bel, "PREF_OUTPUT_HALF", pref_output_half);
-        ctx.insert_legacy(tile, bel, "NREF_OUTPUT_HALF", nref_output_half);
-        ctx.insert_legacy(tile, bel, "NREF_TERM_SPLIT", nref_term_split);
-        ctx.insert_misc_data_legacy("HP_IOSTD:DCI:PREF_OUTPUT:OFF", bits![0; 2]);
-        ctx.insert_misc_data_legacy("HP_IOSTD:DCI:NREF_OUTPUT:OFF", bits![0; 2]);
-        ctx.insert_misc_data_legacy("HP_IOSTD:DCI:PREF_OUTPUT_HALF:OFF", bits![0; 3]);
-        ctx.insert_misc_data_legacy("HP_IOSTD:DCI:NREF_OUTPUT_HALF:OFF", bits![0; 3]);
-        ctx.insert_misc_data_legacy("HP_IOSTD:DCI:NREF_TERM_SPLIT:OFF", bits![0; 3]);
-
-        let dci_en = ctx.get_diff_legacy(tile, bel, "ENABLE", "1");
-        let test_en = ctx.get_diff_legacy(tile, bel, "TEST_ENABLE", "1");
-        let quiet = ctx
-            .get_diff_legacy(tile, bel, "TEST_ENABLE", "QUIET")
-            .combine(&!&test_en);
-        ctx.insert_legacy(tile, bel, "QUIET", xlat_bit_legacy(quiet));
-        let test_en = test_en.combine(&!&dci_en);
-        let dyn_en = ctx
-            .get_diff_legacy(tile, bel, "DYNAMIC_ENABLE", "1")
-            .combine(&!&dci_en);
-        ctx.insert_legacy(tile, bel, "TEST_ENABLE", xlat_bit_wide_legacy(test_en));
-        ctx.insert_legacy(tile, bel, "DYNAMIC_ENABLE", xlat_bit_legacy(dyn_en));
-        let casc_from_above = ctx
-            .get_diff_legacy(tile, bel, "CASCADE_FROM_ABOVE", "1")
-            .combine(&!&dci_en);
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "CASCADE_FROM_ABOVE",
-            xlat_bit_wide_legacy(casc_from_above),
-        );
-        let casc_from_below = ctx
-            .get_diff_legacy(tile, bel, "CASCADE_FROM_BELOW", "1")
-            .combine(&!&dci_en);
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "CASCADE_FROM_BELOW",
-            xlat_bit_wide_legacy(casc_from_below),
-        );
-        ctx.insert_legacy(tile, bel, "ENABLE", xlat_bit_legacy(dci_en));
-
-        let mut diffs = vec![("OFF", Diff::default())];
-        for val in ["600", "675", "750", "900"] {
-            diffs.push((val, ctx.get_diff_legacy(tile, "INTERNAL_VREF", "VREF", val)));
-        }
-        // cannot be dealt with normally as there are no standards with such VREF.
-        diffs.push((
-            "1100",
-            Diff {
-                bits: [TileBit::new(0, 40, 19), TileBit::new(0, 40, 24)]
-                    .into_iter()
-                    .map(|x| (x, true))
-                    .collect(),
-            },
-        ));
-        diffs.push((
-            "1250",
-            Diff {
-                bits: [TileBit::new(0, 40, 19), TileBit::new(0, 40, 23)]
-                    .into_iter()
-                    .map(|x| (x, true))
-                    .collect(),
-            },
-        ));
-        ctx.insert_legacy(tile, "INTERNAL_VREF", "VREF", xlat_enum_legacy(diffs));
-
-        ctx.collect_bit_wide_legacy("CFG", "MISC", "DCI_CLK_ENABLE", "1");
+fn collect_fuzzers_iob_hr(ctx: &mut CollectorCtx) {
+    if !ctx.has_tcls(tcls::IO_HR_PAIR) {
+        return;
     }
+
     for (tile, bel) in [
         ("IO_HR_PAIR", "IOB[0]"),
         ("IO_HR_PAIR", "IOB[1]"),
@@ -3909,159 +3731,105 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
     }
-
-    if ctx.has_tcls(tcls::IO_HR_PAIR) {
-        let tile = "IO_HR_PAIR";
-        for &std in HR_IOSTDS {
-            if std.diff == DiffKind::None {
-                continue;
-            }
-            for bel in ["IOB[0]", "IOB[1]"] {
-                for lp in ["HP", "LP"] {
-                    let mut diff =
-                        ctx.get_diff_legacy(tile, bel, "ISTD", format!("{sn}.{lp}", sn = std.name));
-                    for cbel in ["IOB[0]", "IOB[1]"] {
-                        diff.apply_enum_diff_legacy(
-                            ctx.item_legacy(tile, cbel, "IBUF_MODE"),
-                            if std.name == "TMDS_33" {
-                                if lp == "LP" { "TMDS_LP" } else { "TMDS_HP" }
-                            } else {
-                                if lp == "LP" { "DIFF_LP" } else { "DIFF_HP" }
-                            },
-                            "OFF",
-                        );
-                    }
-                    diff.assert_empty();
-                }
-            }
-            if std.diff == DiffKind::Pseudo {
-                let slews = if std.name == "BLVDS_25" {
-                    &[""][..]
-                } else {
-                    &["SLOW", "FAST"]
-                };
-                for &slew in slews {
-                    let val = if slew.is_empty() {
-                        std.name.to_string()
-                    } else {
-                        format!("{name}.{slew}", name = std.name)
-                    };
-                    let mut diff = ctx.get_diff_legacy(tile, "IOB[1]", "OSTD", &val);
-                    for bel in ["IOB[0]", "IOB[1]"] {
-                        diff.apply_bitvec_diff_legacy(
-                            ctx.item_legacy(tile, bel, "OUTPUT_ENABLE"),
-                            &bits![1; 2],
-                            &bits![0; 2],
-                        );
-                        let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
-                        let drive_item = ctx.item_legacy(tile, bel, "DRIVE");
-                        let TileItemKind::BitVec { ref invert } = drive_item.kind else {
-                            unreachable!()
-                        };
-                        let value: BitVec = drive_item
-                            .bits
-                            .iter()
-                            .zip(invert.iter())
-                            .map(|(&bit, inv)| match diff.bits.remove(&bit) {
-                                Some(val) => {
-                                    assert_eq!(val, !inv);
-                                    true
-                                }
-                                None => false,
-                            })
-                            .collect();
-                        ctx.insert_misc_data_legacy(format!("HR_IOSTD:DRIVE:{stdname}"), value);
-                        let slew_item = ctx.item_legacy(tile, bel, "SLEW");
-                        let TileItemKind::BitVec { ref invert } = slew_item.kind else {
-                            unreachable!()
-                        };
-                        let value: BitVec = slew_item
-                            .bits
-                            .iter()
-                            .zip(invert.iter())
-                            .map(|(&bit, inv)| match diff.bits.remove(&bit) {
-                                Some(val) => {
-                                    assert_eq!(val, !inv);
-                                    true
-                                }
-                                None => false,
-                            })
-                            .collect();
-                        let name = if slew.is_empty() {
-                            stdname.to_string()
-                        } else {
-                            format!("{stdname}.{slew}")
-                        };
-                        ctx.insert_misc_data_legacy(format!("HR_IOSTD:SLEW:{name}"), value);
-                        let val = extract_bitvec_val_part_legacy(
-                            ctx.item_legacy(tile, bel, "OUTPUT_MISC"),
-                            &bits![0; 3],
-                            &mut diff,
-                        );
-                        ctx.insert_misc_data_legacy(format!("HR_IOSTD:OUTPUT_MISC:{stdname}"), val);
-                    }
+    let tile = "IO_HR_PAIR";
+    for &std in HR_IOSTDS {
+        if std.diff == DiffKind::None {
+            continue;
+        }
+        for bel in ["IOB[0]", "IOB[1]"] {
+            for lp in ["HP", "LP"] {
+                let mut diff =
+                    ctx.get_diff_legacy(tile, bel, "ISTD", format!("{sn}.{lp}", sn = std.name));
+                for cbel in ["IOB[0]", "IOB[1]"] {
                     diff.apply_enum_diff_legacy(
-                        ctx.item_legacy(tile, "IOB[0]", "OMUX"),
-                        "OTHER_O_INV",
-                        "O",
+                        ctx.item_legacy(tile, cbel, "IBUF_MODE"),
+                        if std.name == "TMDS_33" {
+                            if lp == "LP" { "TMDS_LP" } else { "TMDS_HP" }
+                        } else {
+                            if lp == "LP" { "DIFF_LP" } else { "DIFF_HP" }
+                        },
+                        "OFF",
                     );
-                    diff.assert_empty();
                 }
+                diff.assert_empty();
+            }
+        }
+        if std.diff == DiffKind::Pseudo {
+            let slews = if std.name == "BLVDS_25" {
+                &[""][..]
             } else {
-                if std.name != "TMDS_33" {
-                    let mut diff = ctx.get_diff_legacy(tile, "IOB[0]", "DIFF_TERM", std.name);
-                    let val_c = extract_bitvec_val_part_legacy(
-                        ctx.item_legacy(tile, "IOB[0]", "LVDS"),
-                        &bits![0; 13],
+                &["SLOW", "FAST"]
+            };
+            for &slew in slews {
+                let val = if slew.is_empty() {
+                    std.name.to_string()
+                } else {
+                    format!("{name}.{slew}", name = std.name)
+                };
+                let mut diff = ctx.get_diff_legacy(tile, "IOB[1]", "OSTD", &val);
+                for bel in ["IOB[0]", "IOB[1]"] {
+                    diff.apply_bitvec_diff_legacy(
+                        ctx.item_legacy(tile, bel, "OUTPUT_ENABLE"),
+                        &bits![1; 2],
+                        &bits![0; 2],
+                    );
+                    let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
+                    let drive_item = ctx.item_legacy(tile, bel, "DRIVE");
+                    let TileItemKind::BitVec { ref invert } = drive_item.kind else {
+                        unreachable!()
+                    };
+                    let value: BitVec = drive_item
+                        .bits
+                        .iter()
+                        .zip(invert.iter())
+                        .map(|(&bit, inv)| match diff.bits.remove(&bit) {
+                            Some(val) => {
+                                assert_eq!(val, !inv);
+                                true
+                            }
+                            None => false,
+                        })
+                        .collect();
+                    ctx.insert_misc_data_legacy(format!("HR_IOSTD:DRIVE:{stdname}"), value);
+                    let slew_item = ctx.item_legacy(tile, bel, "SLEW");
+                    let TileItemKind::BitVec { ref invert } = slew_item.kind else {
+                        unreachable!()
+                    };
+                    let value: BitVec = slew_item
+                        .bits
+                        .iter()
+                        .zip(invert.iter())
+                        .map(|(&bit, inv)| match diff.bits.remove(&bit) {
+                            Some(val) => {
+                                assert_eq!(val, !inv);
+                                true
+                            }
+                            None => false,
+                        })
+                        .collect();
+                    let name = if slew.is_empty() {
+                        stdname.to_string()
+                    } else {
+                        format!("{stdname}.{slew}")
+                    };
+                    ctx.insert_misc_data_legacy(format!("HR_IOSTD:SLEW:{name}"), value);
+                    let val = extract_bitvec_val_part_legacy(
+                        ctx.item_legacy(tile, bel, "OUTPUT_MISC"),
+                        &bits![0; 3],
                         &mut diff,
                     );
-                    let val_t = extract_bitvec_val_part_legacy(
-                        ctx.item_legacy(tile, "IOB[1]", "LVDS"),
-                        &bits![0; 13],
-                        &mut diff,
-                    );
-                    ctx.insert_misc_data_legacy(
-                        format!("HR_IOSTD:LVDS_T:TERM_{}", std.name),
-                        val_t,
-                    );
-                    ctx.insert_misc_data_legacy(
-                        format!("HR_IOSTD:LVDS_C:TERM_{}", std.name),
-                        val_c,
-                    );
-                    diff.assert_empty();
-
-                    let mut diff =
-                        ctx.get_diff_legacy(tile, "IOB[0]", "DIFF_TERM_DYNAMIC", std.name);
-                    let val_c = extract_bitvec_val_part_legacy(
-                        ctx.item_legacy(tile, "IOB[0]", "LVDS"),
-                        &bits![0; 13],
-                        &mut diff,
-                    );
-                    let val_t = extract_bitvec_val_part_legacy(
-                        ctx.item_legacy(tile, "IOB[1]", "LVDS"),
-                        &bits![0; 13],
-                        &mut diff,
-                    );
-                    ctx.insert_misc_data_legacy(
-                        format!("HR_IOSTD:LVDS_T:TERM_{}", std.name),
-                        val_t,
-                    );
-                    ctx.insert_misc_data_legacy(
-                        format!("HR_IOSTD:LVDS_C:TERM_{}", std.name),
-                        val_c,
-                    );
-                    diff.assert_empty();
+                    ctx.insert_misc_data_legacy(format!("HR_IOSTD:OUTPUT_MISC:{stdname}"), val);
                 }
-
-                let mut diff = ctx.get_diff_legacy(tile, "IOB[1]", "OSTD", std.name);
-                if std.name != "TMDS_33" {
-                    let mut altdiff = ctx
-                        .get_diff_legacy(tile, "IOB[1]", "OSTD", format!("{}.ALT", std.name))
-                        .combine(&!&diff);
-                    let diff1 = altdiff.split_bits_by(|bit| bit.rect.to_idx() == 1);
-                    ctx.insert_legacy(tile, "IOB[0]", "LVDS_GROUP", xlat_bit_legacy(altdiff));
-                    ctx.insert_legacy(tile, "IOB[1]", "LVDS_GROUP", xlat_bit_legacy(diff1));
-                }
+                diff.apply_enum_diff_legacy(
+                    ctx.item_legacy(tile, "IOB[0]", "OMUX"),
+                    "OTHER_O_INV",
+                    "O",
+                );
+                diff.assert_empty();
+            }
+        } else {
+            if std.name != "TMDS_33" {
+                let mut diff = ctx.get_diff_legacy(tile, "IOB[0]", "DIFF_TERM", std.name);
                 let val_c = extract_bitvec_val_part_legacy(
                     ctx.item_legacy(tile, "IOB[0]", "LVDS"),
                     &bits![0; 13],
@@ -4072,171 +3840,386 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     &bits![0; 13],
                     &mut diff,
                 );
-                ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDS_T:OUTPUT_{}", std.name), val_t);
-                ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDS_C:OUTPUT_{}", std.name), val_c);
-                diff.apply_bitvec_diff_legacy(
-                    ctx.item_legacy(tile, "IOB[1]", "OUTPUT_ENABLE"),
-                    &bits![1; 2],
-                    &bits![0; 2],
+                ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDS_T:TERM_{}", std.name), val_t);
+                ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDS_C:TERM_{}", std.name), val_c);
+                diff.assert_empty();
+
+                let mut diff = ctx.get_diff_legacy(tile, "IOB[0]", "DIFF_TERM_DYNAMIC", std.name);
+                let val_c = extract_bitvec_val_part_legacy(
+                    ctx.item_legacy(tile, "IOB[0]", "LVDS"),
+                    &bits![0; 13],
+                    &mut diff,
                 );
+                let val_t = extract_bitvec_val_part_legacy(
+                    ctx.item_legacy(tile, "IOB[1]", "LVDS"),
+                    &bits![0; 13],
+                    &mut diff,
+                );
+                ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDS_T:TERM_{}", std.name), val_t);
+                ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDS_C:TERM_{}", std.name), val_c);
                 diff.assert_empty();
             }
-        }
-        ctx.collect_bit_legacy("IO_HR_N", "IOB[0]", "LOW_VOLTAGE", "1");
-        // meh.
-        let _ = ctx.get_diff_legacy("IO_HR_S", "IOB[0]", "OSTD", "LVCMOS18.4.SLOW.EXCL");
-        let _ = ctx.get_diff_legacy("IO_HR_PAIR", "IOB_COMMON", "LOW_VOLTAGE", "1");
-    }
 
-    if ctx.has_tcls(tcls::HCLK_IO_HR) {
-        let tile = "HCLK_IO_HR";
-        {
-            let bel = "VCCOSENSE";
-            ctx.collect_bit_legacy(tile, bel, "FLAG", "ENABLE");
-            ctx.collect_enum_legacy(tile, bel, "MODE", &["OFF", "ALWAYSACTIVE", "FREEZE"]);
-        }
-        {
-            let bel = "INTERNAL_VREF";
-            let mut diffs = vec![("OFF", Diff::default())];
-            for val in ["600", "675", "750", "900"] {
-                diffs.push((val, ctx.get_diff_legacy(tile, bel, "VREF", val)));
+            let mut diff = ctx.get_diff_legacy(tile, "IOB[1]", "OSTD", std.name);
+            if std.name != "TMDS_33" {
+                let mut altdiff = ctx
+                    .get_diff_legacy(tile, "IOB[1]", "OSTD", format!("{}.ALT", std.name))
+                    .combine(&!&diff);
+                let diff1 = altdiff.split_bits_by(|bit| bit.rect.to_idx() == 1);
+                ctx.insert_legacy(tile, "IOB[0]", "LVDS_GROUP", xlat_bit_legacy(altdiff));
+                ctx.insert_legacy(tile, "IOB[1]", "LVDS_GROUP", xlat_bit_legacy(diff1));
             }
-            // cannot be dealt with normally as there are no standards with such VREF.
-            diffs.push((
-                "1100",
-                Diff {
-                    bits: [TileBit::new(0, 38, 26), TileBit::new(0, 38, 29)]
-                        .into_iter()
-                        .map(|x| (x, true))
-                        .collect(),
-                },
-            ));
-            diffs.push((
-                "1250",
-                Diff {
-                    bits: [TileBit::new(0, 38, 26), TileBit::new(0, 38, 30)]
-                        .into_iter()
-                        .map(|x| (x, true))
-                        .collect(),
-                },
-            ));
-            ctx.insert_legacy(tile, bel, "VREF", xlat_enum_legacy(diffs));
-        }
-        {
-            let bel = "DRIVERBIAS";
-            let item = TileItem::from_bitvec_inv(
-                vec![
-                    TileBit::new(0, 39, 16),
-                    TileBit::new(0, 39, 17),
-                    TileBit::new(0, 39, 18),
-                    TileBit::new(0, 38, 14),
-                    TileBit::new(0, 38, 15),
-                    TileBit::new(0, 39, 19),
-                    TileBit::new(0, 39, 20),
-                    TileBit::new(0, 39, 21),
-                    TileBit::new(0, 41, 26),
-                    TileBit::new(0, 41, 25),
-                    TileBit::new(0, 41, 24),
-                    TileBit::new(0, 41, 23),
-                    TileBit::new(0, 41, 22),
-                    TileBit::new(0, 41, 21),
-                    TileBit::new(0, 39, 14),
-                    TileBit::new(0, 39, 15),
-                ],
-                false,
+            let val_c = extract_bitvec_val_part_legacy(
+                ctx.item_legacy(tile, "IOB[0]", "LVDS"),
+                &bits![0; 13],
+                &mut diff,
             );
-            for val in ["OFF", "3300", "2500"] {
-                ctx.insert_misc_data_legacy(format!("HR_IOSTD:DRIVERBIAS:{val}"), bits![0; 16]);
-            }
-            let diff = ctx.get_diff_legacy(tile, bel, "DRIVERBIAS", "LV");
-            let lv = extract_bitvec_val_legacy(&item, &bits![0; 16], diff);
-            for val in ["1800", "1500", "1350", "1200"] {
-                ctx.insert_misc_data_legacy(format!("HR_IOSTD:DRIVERBIAS:{val}"), lv.clone());
-            }
-            ctx.insert_legacy(tile, bel, "DRIVERBIAS", item);
+            let val_t = extract_bitvec_val_part_legacy(
+                ctx.item_legacy(tile, "IOB[1]", "LVDS"),
+                &bits![0; 13],
+                &mut diff,
+            );
+            ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDS_T:OUTPUT_{}", std.name), val_t);
+            ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDS_C:OUTPUT_{}", std.name), val_c);
+            diff.apply_bitvec_diff_legacy(
+                ctx.item_legacy(tile, "IOB[1]", "OUTPUT_ENABLE"),
+                &bits![1; 2],
+                &bits![0; 2],
+            );
+            diff.assert_empty();
         }
-        {
+    }
+    ctx.collect_bit_legacy("IO_HR_N", "IOB[0]", "LOW_VOLTAGE", "1");
+    // meh.
+    let _ = ctx.get_diff_legacy("IO_HR_S", "IOB[0]", "OSTD", "LVCMOS18.4.SLOW.EXCL");
+    let _ = ctx.get_diff_legacy("IO_HR_PAIR", "IOB_COMMON", "LOW_VOLTAGE", "1");
+}
+
+fn collect_fuzzers_hclk_io_hp(ctx: &mut CollectorCtx) {
+    let tcid = tcls::HCLK_IO_HP;
+    if !ctx.has_tcls(tcid) {
+        return;
+    }
+    let tile = "HCLK_IO_HP";
+    let lvdsbias = vec![
+        TileBit::new(0, 41, 14).pos(),
+        TileBit::new(0, 41, 15).pos(),
+        TileBit::new(0, 41, 16).pos(),
+        TileBit::new(0, 41, 17).pos(),
+        TileBit::new(0, 41, 18).pos(),
+        TileBit::new(0, 41, 19).pos(),
+        TileBit::new(0, 41, 20).pos(),
+        TileBit::new(0, 41, 21).pos(),
+        TileBit::new(0, 41, 22).pos(),
+        TileBit::new(0, 41, 23).pos(),
+        TileBit::new(0, 41, 24).pos(),
+        TileBit::new(0, 41, 25).pos(),
+        TileBit::new(0, 41, 26).pos(),
+        TileBit::new(0, 41, 27).pos(),
+        TileBit::new(0, 41, 28).pos(),
+        TileBit::new(0, 41, 29).pos(),
+        TileBit::new(0, 41, 30).pos(),
+        TileBit::new(0, 40, 31).pos(),
+    ];
+    let nref_output = vec![TileBit::new(0, 39, 30).pos(), TileBit::new(0, 39, 29).pos()];
+    let pref_output = vec![TileBit::new(0, 40, 18).pos(), TileBit::new(0, 40, 17).pos()];
+    let nref_output_half = vec![
+        TileBit::new(0, 39, 28).pos(),
+        TileBit::new(0, 39, 27).pos(),
+        TileBit::new(0, 39, 26).pos(),
+    ];
+    let pref_output_half = vec![
+        TileBit::new(0, 40, 16).pos(),
+        TileBit::new(0, 40, 15).pos(),
+        TileBit::new(0, 40, 14).pos(),
+    ];
+    let nref_term_split = vec![
+        TileBit::new(0, 39, 25).pos(),
+        TileBit::new(0, 39, 24).pos(),
+        TileBit::new(0, 39, 23).pos(),
+    ];
+    for std in HP_IOSTDS {
+        if std.diff == DiffKind::True {
             let bel = "LVDS";
-            let common = TileItem::from_bitvec_inv(
-                vec![
-                    TileBit::new(0, 40, 30),
-                    TileBit::new(0, 40, 28),
-                    TileBit::new(0, 40, 27),
-                    TileBit::new(0, 40, 26),
-                    TileBit::new(0, 40, 25),
-                    TileBit::new(0, 40, 31),
-                    TileBit::new(0, 39, 23),
-                    TileBit::new(0, 41, 31),
-                    TileBit::new(0, 41, 30),
-                ],
-                false,
-            );
-            let group0 = TileItem::from_bitvec_inv(
-                vec![
-                    TileBit::new(0, 38, 23),
-                    TileBit::new(0, 38, 24),
-                    TileBit::new(0, 38, 25),
-                    TileBit::new(0, 41, 29),
-                    TileBit::new(0, 41, 28),
-                    TileBit::new(0, 41, 27),
-                    TileBit::new(0, 41, 14),
-                    TileBit::new(0, 41, 20),
-                    TileBit::new(0, 41, 19),
-                    TileBit::new(0, 41, 18),
-                    TileBit::new(0, 41, 17),
-                    TileBit::new(0, 41, 16),
-                    TileBit::new(0, 41, 15),
-                    TileBit::new(0, 38, 28),
-                    TileBit::new(0, 38, 27),
-                    TileBit::new(0, 40, 29),
-                ],
-                false,
-            );
-            let group1 = TileItem::from_bitvec_inv(
-                vec![
-                    TileBit::new(0, 38, 18),
-                    TileBit::new(0, 38, 19),
-                    TileBit::new(0, 38, 20),
-                    TileBit::new(0, 40, 24),
-                    TileBit::new(0, 40, 23),
-                    TileBit::new(0, 40, 22),
-                    TileBit::new(0, 40, 21),
-                    TileBit::new(0, 40, 20),
-                    TileBit::new(0, 40, 19),
-                    TileBit::new(0, 40, 18),
-                    TileBit::new(0, 40, 17),
-                    TileBit::new(0, 40, 16),
-                    TileBit::new(0, 40, 15),
-                    TileBit::new(0, 40, 14),
-                    TileBit::new(0, 39, 31),
-                    TileBit::new(0, 38, 31),
-                ],
-                false,
-            );
-            for std in HR_IOSTDS {
-                if std.diff != DiffKind::True {
-                    continue;
+            let diff = ctx.get_diff_legacy(tile, bel, "STD", std.name);
+            let val = extract_bitvec_val(&lvdsbias, &bits![0; 18], diff);
+            ctx.insert_misc_data_legacy(format!("HP_IOSTD:LVDSBIAS:{}", std.name), val);
+        }
+        if std.dci != DciKind::None {
+            let bslot = bslots::DCI;
+            let bel = "DCI";
+            let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
+            let mut diff = ctx.get_diff_legacy(tile, bel, "STD", std.name);
+            match std.dci {
+                DciKind::Output => {
+                    let val = extract_bitvec_val_part(&nref_output, &bits![0; 2], &mut diff);
+                    ctx.insert_misc_data_legacy(format!("HP_IOSTD:DCI:NREF_OUTPUT:{stdname}"), val);
+                    let val = extract_bitvec_val_part(&pref_output, &bits![0; 2], &mut diff);
+                    ctx.insert_misc_data_legacy(format!("HP_IOSTD:DCI:PREF_OUTPUT:{stdname}"), val);
                 }
-                let mut diff = ctx.get_diff_legacy(tile, bel, "STD0", std.name);
-                let vc = extract_bitvec_val_part_legacy(&common, &bits![0; 9], &mut diff);
-                let val = extract_bitvec_val_legacy(&group0, &bits![0; 16], diff);
-                ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDSBIAS:COMMON:{}", std.name), vc);
-                ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDSBIAS:GROUP:{}", std.name), val);
-                if std.name != "TMDS_33" {
-                    let diff = ctx.get_diff_legacy(tile, bel, "STD1", std.name);
-                    let val = extract_bitvec_val_legacy(&group1, &bits![0; 16], diff);
+                DciKind::OutputHalf => {
+                    let val = extract_bitvec_val_part(&nref_output_half, &bits![0; 3], &mut diff);
                     ctx.insert_misc_data_legacy(
-                        format!("HR_IOSTD:LVDSBIAS:GROUP:{}", std.name),
+                        format!("HP_IOSTD:DCI:NREF_OUTPUT_HALF:{stdname}"),
+                        val,
+                    );
+                    let val = extract_bitvec_val_part(&pref_output_half, &bits![0; 3], &mut diff);
+                    ctx.insert_misc_data_legacy(
+                        format!("HP_IOSTD:DCI:PREF_OUTPUT_HALF:{stdname}"),
                         val,
                     );
                 }
+                DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
+                    let val = extract_bitvec_val_part(&nref_term_split, &bits![0; 3], &mut diff);
+                    ctx.insert_misc_data_legacy(
+                        format!("HP_IOSTD:DCI:NREF_TERM_SPLIT:{stdname}"),
+                        val,
+                    );
+                }
+                _ => {}
             }
-            ctx.insert_misc_data_legacy("HR_IOSTD:LVDSBIAS:COMMON:OFF", bits![0; 9]);
-            ctx.insert_misc_data_legacy("HR_IOSTD:LVDSBIAS:GROUP:OFF", bits![0; 16]);
-
-            ctx.insert_legacy(tile, bel, "COMMON", common);
-            ctx.insert_legacy(tile, bel, "GROUP0", group0);
-            ctx.insert_legacy(tile, bel, "GROUP1", group1);
+            ctx.insert_bel_attr_bool(tcid, bslot, DCI::ENABLE, xlat_bit(diff));
         }
     }
+    let bslot = bslots::BANK;
+    ctx.insert_bel_attr_bitvec(tcid, bslot, BANK::V7_LVDSBIAS, lvdsbias);
+    ctx.insert_misc_data_legacy("HP_IOSTD:LVDSBIAS:OFF", bits![0; 18]);
+    let bslot = bslots::DCI;
+    ctx.insert_bel_attr_bitvec(tcid, bslot, DCI::PREF_OUTPUT, pref_output);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, DCI::NREF_OUTPUT, nref_output);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, DCI::PREF_OUTPUT_HALF, pref_output_half);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, DCI::NREF_OUTPUT_HALF, nref_output_half);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, DCI::NREF_TERM_SPLIT, nref_term_split);
+    ctx.insert_misc_data_legacy("HP_IOSTD:DCI:PREF_OUTPUT:OFF", bits![0; 2]);
+    ctx.insert_misc_data_legacy("HP_IOSTD:DCI:NREF_OUTPUT:OFF", bits![0; 2]);
+    ctx.insert_misc_data_legacy("HP_IOSTD:DCI:PREF_OUTPUT_HALF:OFF", bits![0; 3]);
+    ctx.insert_misc_data_legacy("HP_IOSTD:DCI:NREF_OUTPUT_HALF:OFF", bits![0; 3]);
+    ctx.insert_misc_data_legacy("HP_IOSTD:DCI:NREF_TERM_SPLIT:OFF", bits![0; 3]);
+
+    let dci_en = ctx.get_diff_attr_bool(tcid, bslot, DCI::ENABLE);
+    let test_en = ctx.get_diff_attr_bool(tcid, bslot, DCI::TEST_ENABLE);
+    let quiet = ctx
+        .get_diff_attr_bool(tcid, bslot, DCI::QUIET)
+        .combine(&!&test_en);
+    ctx.insert_bel_attr_bool(tcid, bslot, DCI::QUIET, xlat_bit(quiet));
+    let test_en = test_en.combine(&!&dci_en);
+    let dyn_en = ctx
+        .get_diff_attr_bool(tcid, bslot, DCI::DYNAMIC_ENABLE)
+        .combine(&!&dci_en);
+    ctx.insert_bel_attr_bitvec(tcid, bslot, DCI::TEST_ENABLE, xlat_bit_wide(test_en));
+    ctx.insert_bel_attr_bool(tcid, bslot, DCI::DYNAMIC_ENABLE, xlat_bit(dyn_en));
+    let casc_from_above = ctx
+        .get_diff_attr_bool(tcid, bslot, DCI::CASCADE_FROM_ABOVE)
+        .combine(&!&dci_en);
+    ctx.insert_bel_attr_bool(
+        tcid,
+        bslot,
+        DCI::CASCADE_FROM_ABOVE,
+        xlat_bit(casc_from_above),
+    );
+    let casc_from_below = ctx
+        .get_diff_attr_bool(tcid, bslot, DCI::CASCADE_FROM_BELOW)
+        .combine(&!&dci_en);
+    ctx.insert_bel_attr_bool(
+        tcid,
+        bslot,
+        DCI::CASCADE_FROM_BELOW,
+        xlat_bit(casc_from_below),
+    );
+    ctx.insert_bel_attr_bool(tcid, bslot, DCI::ENABLE, xlat_bit(dci_en));
+
+    let bslot = bslots::BANK;
+    let mut diffs = vec![(enums::INTERNAL_VREF::OFF, Diff::default())];
+    for val in [
+        enums::INTERNAL_VREF::_600,
+        enums::INTERNAL_VREF::_675,
+        enums::INTERNAL_VREF::_750,
+        enums::INTERNAL_VREF::_900,
+    ] {
+        diffs.push((
+            val,
+            ctx.get_diff_attr_val(tcid, bslot, BANK::INTERNAL_VREF, val),
+        ));
+    }
+    // cannot be dealt with normally as there are no standards with such VREF.
+    diffs.push((
+        enums::INTERNAL_VREF::_1100,
+        Diff {
+            bits: [TileBit::new(0, 40, 19), TileBit::new(0, 40, 24)]
+                .into_iter()
+                .map(|x| (x, true))
+                .collect(),
+        },
+    ));
+    diffs.push((
+        enums::INTERNAL_VREF::_1250,
+        Diff {
+            bits: [TileBit::new(0, 40, 19), TileBit::new(0, 40, 23)]
+                .into_iter()
+                .map(|x| (x, true))
+                .collect(),
+        },
+    ));
+    ctx.insert_bel_attr_enum(tcid, bslot, BANK::INTERNAL_VREF, xlat_enum_attr(diffs));
+
+    ctx.collect_bit_wide_legacy("CFG", "MISC", "DCI_CLK_ENABLE", "1");
+}
+
+fn collect_fuzzers_hclk_io_hr(ctx: &mut CollectorCtx) {
+    let tcid = tcls::HCLK_IO_HR;
+    if !ctx.has_tcls(tcid) {
+        return;
+    }
+    let bslot = bslots::BANK;
+
+    ctx.collect_bel_attr(tcid, bslot, BANK::HR_VCCOSENSE_FLAG);
+    ctx.collect_bel_attr(tcid, bslot, BANK::HR_VCCOSENSE_MODE);
+
+    {
+        let mut diffs = vec![(enums::INTERNAL_VREF::OFF, Diff::default())];
+        for val in [
+            enums::INTERNAL_VREF::_600,
+            enums::INTERNAL_VREF::_675,
+            enums::INTERNAL_VREF::_750,
+            enums::INTERNAL_VREF::_900,
+        ] {
+            diffs.push((
+                val,
+                ctx.get_diff_attr_val(tcid, bslot, BANK::INTERNAL_VREF, val),
+            ));
+        }
+        // cannot be dealt with normally as there are no standards with such VREF.
+        diffs.push((
+            enums::INTERNAL_VREF::_1100,
+            Diff {
+                bits: [TileBit::new(0, 38, 26), TileBit::new(0, 38, 29)]
+                    .into_iter()
+                    .map(|x| (x, true))
+                    .collect(),
+            },
+        ));
+        diffs.push((
+            enums::INTERNAL_VREF::_1250,
+            Diff {
+                bits: [TileBit::new(0, 38, 26), TileBit::new(0, 38, 30)]
+                    .into_iter()
+                    .map(|x| (x, true))
+                    .collect(),
+            },
+        ));
+        ctx.insert_bel_attr_enum(tcid, bslot, BANK::INTERNAL_VREF, xlat_enum_attr(diffs));
+    }
+    let tile = "HCLK_IO_HR";
+    {
+        let bel = "DRIVERBIAS";
+        let item = vec![
+            TileBit::new(0, 39, 16).pos(),
+            TileBit::new(0, 39, 17).pos(),
+            TileBit::new(0, 39, 18).pos(),
+            TileBit::new(0, 38, 14).pos(),
+            TileBit::new(0, 38, 15).pos(),
+            TileBit::new(0, 39, 19).pos(),
+            TileBit::new(0, 39, 20).pos(),
+            TileBit::new(0, 39, 21).pos(),
+            TileBit::new(0, 41, 26).pos(),
+            TileBit::new(0, 41, 25).pos(),
+            TileBit::new(0, 41, 24).pos(),
+            TileBit::new(0, 41, 23).pos(),
+            TileBit::new(0, 41, 22).pos(),
+            TileBit::new(0, 41, 21).pos(),
+            TileBit::new(0, 39, 14).pos(),
+            TileBit::new(0, 39, 15).pos(),
+        ];
+        for val in ["OFF", "3300", "2500"] {
+            ctx.insert_misc_data_legacy(format!("HR_IOSTD:DRIVERBIAS:{val}"), bits![0; 16]);
+        }
+        let diff = ctx.get_diff_legacy(tile, bel, "DRIVERBIAS", "LV");
+        let lv = extract_bitvec_val(&item, &bits![0; 16], diff);
+        for val in ["1800", "1500", "1350", "1200"] {
+            ctx.insert_misc_data_legacy(format!("HR_IOSTD:DRIVERBIAS:{val}"), lv.clone());
+        }
+        ctx.insert_bel_attr_bitvec(tcid, bslot, BANK::HR_DRIVERBIAS, item);
+    }
+    {
+        let bel = "LVDS";
+        let common = vec![
+            TileBit::new(0, 40, 30).pos(),
+            TileBit::new(0, 40, 28).pos(),
+            TileBit::new(0, 40, 27).pos(),
+            TileBit::new(0, 40, 26).pos(),
+            TileBit::new(0, 40, 25).pos(),
+            TileBit::new(0, 40, 31).pos(),
+            TileBit::new(0, 39, 23).pos(),
+            TileBit::new(0, 41, 31).pos(),
+            TileBit::new(0, 41, 30).pos(),
+        ];
+        let group0 = vec![
+            TileBit::new(0, 38, 23).pos(),
+            TileBit::new(0, 38, 24).pos(),
+            TileBit::new(0, 38, 25).pos(),
+            TileBit::new(0, 41, 29).pos(),
+            TileBit::new(0, 41, 28).pos(),
+            TileBit::new(0, 41, 27).pos(),
+            TileBit::new(0, 41, 14).pos(),
+            TileBit::new(0, 41, 20).pos(),
+            TileBit::new(0, 41, 19).pos(),
+            TileBit::new(0, 41, 18).pos(),
+            TileBit::new(0, 41, 17).pos(),
+            TileBit::new(0, 41, 16).pos(),
+            TileBit::new(0, 41, 15).pos(),
+            TileBit::new(0, 38, 28).pos(),
+            TileBit::new(0, 38, 27).pos(),
+            TileBit::new(0, 40, 29).pos(),
+        ];
+        let group1 = vec![
+            TileBit::new(0, 38, 18).pos(),
+            TileBit::new(0, 38, 19).pos(),
+            TileBit::new(0, 38, 20).pos(),
+            TileBit::new(0, 40, 24).pos(),
+            TileBit::new(0, 40, 23).pos(),
+            TileBit::new(0, 40, 22).pos(),
+            TileBit::new(0, 40, 21).pos(),
+            TileBit::new(0, 40, 20).pos(),
+            TileBit::new(0, 40, 19).pos(),
+            TileBit::new(0, 40, 18).pos(),
+            TileBit::new(0, 40, 17).pos(),
+            TileBit::new(0, 40, 16).pos(),
+            TileBit::new(0, 40, 15).pos(),
+            TileBit::new(0, 40, 14).pos(),
+            TileBit::new(0, 39, 31).pos(),
+            TileBit::new(0, 38, 31).pos(),
+        ];
+        for std in HR_IOSTDS {
+            if std.diff != DiffKind::True {
+                continue;
+            }
+            let mut diff = ctx.get_diff_legacy(tile, bel, "STD0", std.name);
+            let vc = extract_bitvec_val_part(&common, &bits![0; 9], &mut diff);
+            let val = extract_bitvec_val(&group0, &bits![0; 16], diff);
+            ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDSBIAS:COMMON:{}", std.name), vc);
+            ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDSBIAS:GROUP:{}", std.name), val);
+            if std.name != "TMDS_33" {
+                let diff = ctx.get_diff_legacy(tile, bel, "STD1", std.name);
+                let val = extract_bitvec_val(&group1, &bits![0; 16], diff);
+                ctx.insert_misc_data_legacy(format!("HR_IOSTD:LVDSBIAS:GROUP:{}", std.name), val);
+            }
+        }
+        ctx.insert_misc_data_legacy("HR_IOSTD:LVDSBIAS:COMMON:OFF", bits![0; 9]);
+        ctx.insert_misc_data_legacy("HR_IOSTD:LVDSBIAS:GROUP:OFF", bits![0; 16]);
+
+        let group = Vec::from_iter([group0, group1].into_iter().flatten());
+        ctx.insert_bel_attr_bitvec(tcid, bslot, BANK::HR_LVDS_COMMON, common);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, BANK::HR_LVDS_GROUP, group);
+    }
+}
+
+pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    collect_fuzzers_routing(ctx);
+    collect_fuzzers_ilogic(ctx);
+    collect_fuzzers_ologic(ctx);
+    collect_fuzzers_iodelay(ctx);
+    collect_fuzzers_iob_hp(ctx);
+    collect_fuzzers_iob_hr(ctx);
+    collect_fuzzers_hclk_io_hp(ctx);
+    collect_fuzzers_hclk_io_hr(ctx);
 }

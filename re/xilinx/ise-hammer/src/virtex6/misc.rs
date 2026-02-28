@@ -263,8 +263,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .null_bits()
             .extra_tile_attr_bits(
                 Delta::new(0, 20, tcls::HCLK),
-                bslots::HCLK_DRP,
-                bcls::HCLK_DRP_V6::DRP_MASK_SYSMON,
+                bslots::HCLK_DRP[0],
+                bcls::HCLK_DRP::DRP_MASK_SYSMON,
             )
             .test_bel_special(specials::PRESENT)
             .mode("SYSMON")
@@ -276,7 +276,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for i in 0x40..0x58 {
             let base = (i - 0x40) * 0x10;
             bctx.mode("SYSMON")
-                .test_bel_attr_bits_base(bcls::SYSMON_V5::INIT, base)
+                .test_bel_attr_bits_base(bcls::SYSMON_V5::V5_INIT, base)
                 .multi_attr(format!("INIT_{i:02X}"), MultiValue::Hex(0), 16);
         }
         for attr in [
@@ -666,7 +666,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bslot = bslots::SYSMON;
         ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::SYSMON_V5::CONVSTCLK);
         ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::SYSMON_V5::DCLK);
-        ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::INIT);
+        ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::V5_INIT);
         ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_A);
         ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_B);
         ctx.collect_bel_attr(tcid, bslot, bcls::SYSMON_V5::SYSMON_TEST_C);
@@ -684,8 +684,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     {
         let tcid = tcls::HCLK;
-        let bslot = bslots::HCLK_DRP;
-        ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP_V6::DRP_MASK_SYSMON);
+        let bslot = bslots::HCLK_DRP[0];
+        ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP::DRP_MASK_SYSMON);
     }
 
     let tile = "REG.COR";

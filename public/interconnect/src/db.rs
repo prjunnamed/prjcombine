@@ -1127,6 +1127,18 @@ impl TileClassIndex {
             muxes,
         }
     }
+
+    pub fn only_bwd(&self, wire: TileWireCoord) -> PolTileWireCoord {
+        let bwd = &self.pips_bwd[&wire];
+        assert_eq!(bwd.len(), 1);
+        bwd.iter().next().copied().unwrap()
+    }
+
+    pub fn only_fwd(&self, wire: TileWireCoord) -> PolTileWireCoord {
+        let fwd = &self.pips_fwd[&wire];
+        assert_eq!(fwd.len(), 1);
+        fwd.iter().next().copied().unwrap()
+    }
 }
 
 impl ConnectorClassIndex {

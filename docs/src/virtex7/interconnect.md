@@ -8,4 +8,3 @@ TODO: document
 {{tile virtex7 INTF}}
 {{tile virtex7 INTF_BRAM}}
 {{tile virtex7 INTF_DELAY}}
-{{tile virtex7 INT_LCLK}}

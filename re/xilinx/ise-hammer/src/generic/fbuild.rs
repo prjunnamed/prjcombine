@@ -26,10 +26,10 @@ use crate::{
 use super::props::{
     BaseRaw, DynProp, FuzzRaw, FuzzRawMulti, NullBits,
     bel::{
-        BaseBelAttr, BaseBelMode, BaseBelNoPin, BaseBelPin, BaseBelPinFrom, BaseBelPinPips,
-        BaseGlobalXy, BelMutex, ForceBelName, FuzzBelAttr, FuzzBelMode, FuzzBelMultiAttr,
-        FuzzBelPin, FuzzBelPinFrom, FuzzBelPinIntPipsInput, FuzzBelPinPair, FuzzBelPinPips,
-        FuzzGlobalXy, FuzzMultiGlobalXy, GlobalMutexHere, RowMutexHere,
+        BaseBelAttr, BaseBelMode, BaseBelNoPin, BaseBelPin, BaseBelPinFrom, BaseGlobalXy, BelMutex,
+        ForceBelName, FuzzBelAttr, FuzzBelMode, FuzzBelMultiAttr, FuzzBelPin, FuzzBelPinFrom,
+        FuzzBelPinIntPipsInput, FuzzBelPinPair, FuzzBelPinPips, FuzzGlobalXy, FuzzMultiGlobalXy,
+        GlobalMutexHere, RowMutexHere,
     },
     extra::{ExtraGtz, ExtraReg, ExtraTile, ExtraTilesByBel, ExtraTilesByClass},
     mutex::{IntMutex, RowMutex, TileMutex, TileMutexExclusive},
@@ -237,6 +237,18 @@ pub trait FuzzBuilderBase<'b>: Sized {
         self.prop(ExtraTilesByClass::new(
             tcid,
             ExtraKeyBelSpecial::new(bslot, spec),
+        ))
+    }
+
+    fn extra_tiles_by_class_bel_attr_bits(
+        self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+    ) -> Self {
+        self.prop(ExtraTilesByClass::new(
+            tcid,
+            ExtraKeyBelAttrBits::new(bslot, attr, 0, true),
         ))
     }
 
@@ -508,6 +520,25 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
         self.test_raw(key)
     }
 
+    pub fn test_routing_special(
+        self,
+        wt: TileWireCoord,
+        spec: SpecialId,
+    ) -> FuzzBuilderTestManual<'sm, 'b> {
+        let key = DiffKey::RoutingSpecial(self.tile_class.unwrap(), wt, spec);
+        self.test_raw(key)
+    }
+
+    pub fn test_routing_pair_special(
+        self,
+        wt: TileWireCoord,
+        wf: PolTileWireCoord,
+        spec: SpecialId,
+    ) -> FuzzBuilderTestManual<'sm, 'b> {
+        let key = DiffKey::RoutingPairSpecial(self.tile_class.unwrap(), wt, wf, spec);
+        self.test_raw(key)
+    }
+
     pub fn test_global_special(self, spec: SpecialId) -> FuzzBuilderTestManual<'sm, 'b> {
         self.test_raw(DiffKey::GlobalSpecial(spec))
     }
@@ -751,11 +782,6 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
 
     pub fn no_pin(self, pin: impl Into<String>) -> Self {
         let prop = BaseBelNoPin::new(self.bel, self.sub, pin.into());
-        self.prop(prop)
-    }
-
-    pub fn pin_pips(self, pin: impl Into<String>) -> Self {
-        let prop = BaseBelPinPips::new(self.bel, pin.into());
         self.prop(prop)
     }
 

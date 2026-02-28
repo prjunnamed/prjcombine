@@ -340,7 +340,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let by = pmviob_grid.ylut[row];
                 ntile.add_bel(bslots::PMVIOB_CLK, format!("PMVIOB_X{bx}Y{by}"));
             }
-            tcls::CMT_BUFG_S => {
+            tcls::CLK_BUFG_S => {
                 let ntile = namer.ngrid.name_tile(
                     tcrd,
                     kind,
@@ -353,7 +353,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ntile.add_bel(bslots::BUFGCTRL[i], format!("BUFGCTRL_X0Y{i}"));
                 }
             }
-            tcls::CMT_BUFG_N => {
+            tcls::CLK_BUFG_N => {
                 let ntile = namer.ngrid.name_tile(
                     tcrd,
                     kind,
