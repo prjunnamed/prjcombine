@@ -78,7 +78,7 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
                     &db.int,
                     "pll-in-dly-set",
                     &devdata,
-                    &[devdata::PLL_IN_DLY_SET],
+                    &[devdata::PLL_V5_IN_DLY_SET],
                 );
             }
             "virtex6" => {
@@ -159,28 +159,6 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
                         "IOSTD:DCI:NMASK_TERM_SPLIT",
                     ],
                 );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "mmcm-filter",
-                    &["MMCM:CP", "MMCM:RES", "MMCM:LFHF"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "mmcm-lock",
-                    &[
-                        "MMCM:LOCK_REF_DLY",
-                        "MMCM:LOCK_FB_DLY",
-                        "MMCM:LOCK_CNT",
-                        "MMCM:LOCK_SAT_HIGH",
-                        "MMCM:UNLOCK_CNT",
-                    ],
-                );
                 gen_devdata_table(
                     ctx,
                     &db.bsdata,
@@ -190,14 +168,13 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
                     "iodelay-default",
                     &["IODELAY:DEFAULT_IDELAY_VALUE"],
                 );
-                gen_devdata_table(
+                gen_devdata(
                     ctx,
-                    &db.bsdata,
-                    &part_names,
-                    &mut devdata_used,
                     "virtex6",
-                    "mmcm-in-dly-set",
-                    &["MMCM:IN_DLY_SET"],
+                    &db.int,
+                    "pll-in-dly-set",
+                    &devdata,
+                    &[devdata::PLL_V6_IN_DLY_SET],
                 );
             }
             "virtex7" => {
@@ -308,52 +285,6 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
                     "virtex7",
                     "hr-iostd-lvdsbias",
                     &["HR_IOSTD:LVDSBIAS:COMMON", "HR_IOSTD:LVDSBIAS:GROUP"],
-                );
-
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "mmcm-filter",
-                    &["MMCM:CP", "MMCM:RES", "MMCM:LFHF"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "mmcm-lock",
-                    &[
-                        "MMCM:LOCK_REF_DLY",
-                        "MMCM:LOCK_FB_DLY",
-                        "MMCM:LOCK_CNT",
-                        "MMCM:LOCK_SAT_HIGH",
-                        "MMCM:UNLOCK_CNT",
-                    ],
-                );
-
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "pll-filter",
-                    &["PLL:CP", "PLL:RES", "PLL:LFHF"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "pll-lock",
-                    &[
-                        "PLL:LOCK_REF_DLY",
-                        "PLL:LOCK_FB_DLY",
-                        "PLL:LOCK_CNT",
-                        "PLL:LOCK_SAT_HIGH",
-                        "PLL:UNLOCK_CNT",
-                    ],
                 );
             }
             _ => unreachable!(),

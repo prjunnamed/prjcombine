@@ -1,6 +1,7 @@
 use prjcombine_entity::{EntityBundleItemIndex, EntityId};
 use prjcombine_interconnect::{
     db::{BelInfo, BelInputId, BelKind, SwitchBoxItem, WireSlotIdExt},
+    dir::Dir,
     grid::{BelCoord, RowId},
 };
 use prjcombine_re_xilinx_naming::db::RawTileId;
@@ -527,7 +528,7 @@ fn verify_gt11(vrf: &mut Verifier, bcrd: BelCoord) {
     bel.commit();
 }
 
-fn verify_gt11clk(vrf: &mut Verifier, bcrd: BelCoord) {
+fn verify_gt11clk(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let mut bel = vrf
         .verify_bel(bcrd)
         .skip_out(bcls::GT11CLK::SYNCLK1)
@@ -572,8 +573,7 @@ fn verify_gt11clk(vrf: &mut Verifier, bcrd: BelCoord) {
         );
     }
 
-    if let Some(cell) = bel.vrf.grid.cell_delta(bcrd.cell, 0, -32) {
-        let obel = cell.bel(bslots::GT11CLK);
+    if let Some(obel) = edev.bel_gtclk_neighbour(bcrd, Dir::S) {
         bel.verify_net(&[bel.wire("SYNCLK1_S"), bel.bel_wire(obel, "SYNCLK1")]);
         bel.verify_net(&[bel.wire("SYNCLK2_S"), bel.bel_wire(obel, "SYNCLK2")]);
     } else {
@@ -643,7 +643,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         bslots::CCM => (),
         bslots::SYSMON => verify_sysmon(edev, vrf, bcrd),
         _ if bslots::GT11.contains(bcrd.slot) => verify_gt11(vrf, bcrd),
-        bslots::GT11CLK => verify_gt11clk(vrf, bcrd),
+        bslots::GT11CLK => verify_gt11clk(edev, vrf, bcrd),
         _ => println!("MEOW {}", bcrd.to_string(edev.db)),
     }
 }

@@ -1,11 +1,13 @@
 use prjcombine_entity::EntityId;
+use prjcombine_interconnect::grid::BelCoord;
 use prjcombine_re_xilinx_naming_virtex::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{LegacyBelContext, SitePinDir, Verifier, verify};
-use prjcombine_virtex::{chip::ChipKind, defs};
+use prjcombine_re_xilinx_rdverify::{SitePinDir, Verifier};
+use prjcombine_virtex::{chip::ChipKind, defs::bslots, expanded::ExpandedDevice};
 
-fn verify_slice(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
-    let idx = defs::bslots::SLICE.index_of(bel.slot).unwrap();
+fn verify_slice(vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
+    let idx = bslots::SLICE.index_of(bel.slot).unwrap();
     vrf.verify_legacy_bel(
         bel,
         "SLICE",
@@ -27,28 +29,29 @@ fn verify_slice(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
 
     vrf.claim_net(&[bel.wire("F5")]);
     vrf.claim_net(&[bel.wire("F5IN")]);
-    let oslot = defs::bslots::SLICE[idx ^ 1];
+    let oslot = bslots::SLICE[idx ^ 1];
     let obel = vrf.find_bel_sibling(bel, oslot);
     vrf.claim_pip(bel.wire("F5IN"), obel.wire("F5"));
 }
 
-fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_iob(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
     let mut kind = "IOB";
     let mut pins = Vec::new();
     if bel.name.unwrap().starts_with("EMPTY") {
         kind = "EMPTYIOB";
     }
-    if (bel.col == endev.grid.col_w() || bel.col == endev.grid.col_e())
-        && ((bel.row == endev.grid.row_mid() && bel.slot == defs::bslots::IO[3])
-            || (bel.row == endev.grid.row_mid() - 1 && bel.slot == defs::bslots::IO[1]))
+    if (bel.col == edev.chip.col_w() || bel.col == edev.chip.col_e())
+        && ((bel.row == edev.chip.row_mid() && bel.slot == bslots::IO[3])
+            || (bel.row == edev.chip.row_mid() - 1 && bel.slot == bslots::IO[1]))
     {
         kind = "PCIIOB";
         pins.push(("PCI", SitePinDir::Out));
     }
-    if endev.grid.kind != ChipKind::Virtex
-        && (bel.row == endev.grid.row_s() || bel.row == endev.grid.row_n())
-        && ((bel.col == endev.grid.col_clk() && bel.slot == defs::bslots::IO[2])
-            || (bel.col == endev.grid.col_clk() - 1 && bel.slot == defs::bslots::IO[1]))
+    if edev.chip.kind != ChipKind::Virtex
+        && (bel.row == edev.chip.row_s() || bel.row == edev.chip.row_n())
+        && ((bel.col == edev.chip.col_clk() && bel.slot == bslots::IO[2])
+            || (bel.col == edev.chip.col_clk() - 1 && bel.slot == bslots::IO[1]))
     {
         kind = "DLLIOB";
         pins.push(("DLLFB", SitePinDir::Out));
@@ -56,26 +59,28 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelCo
     vrf.verify_legacy_bel(bel, kind, &pins, &[]);
 }
 
-fn verify_tbuf(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_tbuf(vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
     vrf.verify_legacy_bel(bel, "TBUF", &[("O", SitePinDir::Out)], &[]);
     vrf.claim_net(&[bel.wire("O")]);
 }
 
-fn verify_tbus(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
-    let obel = vrf.find_bel_sibling(bel, defs::bslots::TBUF[0]);
+fn verify_tbus(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
+    let obel = vrf.find_bel_sibling(bel, bslots::TBUF[0]);
     vrf.claim_pip(bel.wire("BUS0"), obel.wire("O"));
     vrf.claim_pip(bel.wire("BUS2"), obel.wire("O"));
-    let obel = vrf.find_bel_sibling(bel, defs::bslots::TBUF[1]);
+    let obel = vrf.find_bel_sibling(bel, bslots::TBUF[1]);
     vrf.claim_pip(bel.wire("BUS1"), obel.wire("O"));
     vrf.claim_pip(bel.wire("BUS3"), obel.wire("O"));
     if bel.naming.pins.contains_key("BUS3_E") {
-        let col_e = endev.grid.col_e();
+        let col_e = edev.chip.col_e();
         if bel.col.to_idx() < col_e.to_idx() - 5 {
             vrf.claim_net(&[bel.wire("BUS3_E")]);
         }
         vrf.claim_pip(bel.wire("BUS3"), bel.wire("BUS3_E"));
         vrf.claim_pip(bel.wire("BUS3_E"), bel.wire("BUS3"));
-        let obel = vrf.find_bel_walk(bel, 1, 0, defs::bslots::TBUS).unwrap();
+        let obel = vrf.find_bel_walk(bel, 1, 0, bslots::TBUS).unwrap();
         vrf.verify_net(&[bel.wire("BUS0"), obel.wire("BUS1")]);
         vrf.verify_net(&[bel.wire("BUS1"), obel.wire("BUS2")]);
         vrf.verify_net(&[bel.wire("BUS2"), obel.wire("BUS3")]);
@@ -86,23 +91,26 @@ fn verify_tbus(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelC
     }
 }
 
-fn verify_bufg(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_bufg(vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
     vrf.verify_legacy_bel(bel, "GCLK", &[], &["OUT.GLOBAL"]);
     vrf.claim_net(&[bel.wire("OUT.GLOBAL")]);
     vrf.claim_pip(bel.wire("OUT.GLOBAL"), bel.wire("OUT"));
 }
 
-fn verify_iofb(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
-    let idx = defs::bslots::IOFB.index_of(bel.slot).unwrap();
+fn verify_iofb(vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
+    let idx = bslots::IOFB.index_of(bel.slot).unwrap();
     let obel = match idx {
-        0 => vrf.find_bel_sibling(bel, defs::bslots::IO[2]),
-        1 => vrf.find_bel_delta(bel, -1, 0, defs::bslots::IO[1]).unwrap(),
+        0 => vrf.find_bel_sibling(bel, bslots::IO[2]),
+        1 => vrf.find_bel_delta(bel, -1, 0, bslots::IO[1]).unwrap(),
         _ => unreachable!(),
     };
     vrf.verify_net(&[bel.wire("O"), obel.wire("DLLFB")]);
 }
 
-fn verify_pcilogic(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_pcilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
     vrf.verify_legacy_bel(
         bel,
         "PCILOGIC",
@@ -116,35 +124,33 @@ fn verify_pcilogic(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Legacy
         vrf.claim_net(&[bel.wire(pin)]);
         vrf.claim_net(&[bel.wire_far(pin)]);
     }
-    let obel = vrf.get_legacy_bel(
-        bel.cell
-            .with_row(endev.grid.row_mid())
-            .bel(defs::bslots::IO[3]),
-    );
+    let obel = vrf.get_legacy_bel(bel.cell.with_row(edev.chip.row_mid()).bel(bslots::IO[3]));
     vrf.verify_net(&[bel.wire_far("IRDY"), obel.wire("PCI")]);
     let obel = vrf.get_legacy_bel(
         bel.cell
-            .with_row(endev.grid.row_mid() - 1)
-            .bel(defs::bslots::IO[1]),
+            .with_row(edev.chip.row_mid() - 1)
+            .bel(bslots::IO[1]),
     );
     vrf.verify_net(&[bel.wire_far("TRDY"), obel.wire("PCI")]);
 }
 
-fn verify_clkc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_clkc(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
     for (opin, ipin, srow, sslot) in [
-        ("OUT0", "IN0", endev.grid.row_s(), defs::bslots::BUFG[0]),
-        ("OUT1", "IN1", endev.grid.row_s(), defs::bslots::BUFG[1]),
-        ("OUT2", "IN2", endev.grid.row_n(), defs::bslots::BUFG[0]),
-        ("OUT3", "IN3", endev.grid.row_n(), defs::bslots::BUFG[1]),
+        ("OUT0", "IN0", edev.chip.row_s(), bslots::BUFG[0]),
+        ("OUT1", "IN1", edev.chip.row_s(), bslots::BUFG[1]),
+        ("OUT2", "IN2", edev.chip.row_n(), bslots::BUFG[0]),
+        ("OUT3", "IN3", edev.chip.row_n(), bslots::BUFG[1]),
     ] {
         vrf.claim_net(&[bel.wire(opin)]);
         vrf.claim_pip(bel.wire(opin), bel.wire(ipin));
-        let obel = vrf.get_legacy_bel(bel.cell.with_cr(endev.grid.col_clk(), srow).bel(sslot));
+        let obel = vrf.get_legacy_bel(bel.cell.with_cr(edev.chip.col_clk(), srow).bel(sslot));
         vrf.verify_net(&[bel.wire(ipin), obel.wire("OUT.GLOBAL")]);
     }
 }
 
-fn verify_gclkc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_gclkc(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
     for (opin, ipin) in [
         ("OUT0", "IN0"),
         ("OUT1", "IN1"),
@@ -153,16 +159,13 @@ fn verify_gclkc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBel
     ] {
         vrf.claim_net(&[bel.wire(opin)]);
         vrf.claim_pip(bel.wire(opin), bel.wire(ipin));
-        let obel = vrf.get_legacy_bel(
-            bel.cell
-                .with_col(endev.grid.col_clk())
-                .bel(defs::bslots::CLKC),
-        );
+        let obel = vrf.get_legacy_bel(bel.cell.with_col(edev.chip.col_clk()).bel(bslots::CLKC));
         vrf.verify_net(&[bel.wire(ipin), obel.wire(opin)]);
     }
 }
 
-fn verify_bram_clkh(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_bram_clkh(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
     for (opin, ipin) in [
         ("OUT0", "IN0"),
         ("OUT1", "IN1"),
@@ -170,16 +173,13 @@ fn verify_bram_clkh(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Legac
         ("OUT3", "IN3"),
     ] {
         vrf.claim_pip(bel.wire(opin), bel.wire(ipin));
-        let obel = vrf.get_legacy_bel(
-            bel.cell
-                .with_col(endev.grid.col_clk())
-                .bel(defs::bslots::CLKC),
-        );
+        let obel = vrf.get_legacy_bel(bel.cell.with_col(edev.chip.col_clk()).bel(bslots::CLKC));
         vrf.verify_net(&[bel.wire(ipin), obel.wire(opin)]);
     }
 }
 
-fn verify_clkv(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_clkv(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
     for (opinl, opinr, ipin, opin) in [
         ("OUT_L0", "OUT_R0", "IN0", "OUT0"),
         ("OUT_L1", "OUT_R1", "IN1", "OUT1"),
@@ -188,16 +188,13 @@ fn verify_clkv(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelC
     ] {
         vrf.claim_pip(bel.wire(opinl), bel.wire(ipin));
         vrf.claim_pip(bel.wire(opinr), bel.wire(ipin));
-        let obel = vrf.get_legacy_bel(
-            bel.cell
-                .with_row(endev.grid.row_clk())
-                .bel(defs::bslots::GCLKC),
-        );
+        let obel = vrf.get_legacy_bel(bel.cell.with_row(edev.chip.row_clk()).bel(bslots::GCLKC));
         vrf.verify_net(&[bel.wire(ipin), obel.wire(opin)]);
     }
 }
 
-fn verify_clkv_bram_sn(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_clkv_bram_sn(vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
     for (opinl, opinr, ipin) in [
         ("OUT_L0", "OUT_R0", "IN0"),
         ("OUT_L1", "OUT_R1", "IN1"),
@@ -209,7 +206,8 @@ fn verify_clkv_bram_sn(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     }
 }
 
-fn verify_clkv_bram(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+fn verify_clkv_bram(vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &mut vrf.get_legacy_bel(bcrd);
     for i in 0..4 {
         let ipin = format!("IN{i}");
         for j in 0..4 {
@@ -221,40 +219,51 @@ fn verify_clkv_bram(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     }
 }
 
-fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
-    match bel.slot {
-        _ if defs::bslots::SLICE.contains(bel.slot) => verify_slice(vrf, bel),
-        _ if defs::bslots::IO.contains(bel.slot) => verify_iob(endev, vrf, bel),
-        _ if defs::bslots::TBUF.contains(bel.slot) => verify_tbuf(vrf, bel),
-        defs::bslots::TBUS => verify_tbus(endev, vrf, bel),
-        defs::bslots::BRAM => vrf.verify_legacy_bel(bel, "BLOCKRAM", &[], &[]),
-        defs::bslots::STARTUP | defs::bslots::CAPTURE | defs::bslots::BSCAN => {
-            vrf.verify_legacy_bel(bel, endev.edev.db.bel_slots.key(bel.slot), &[], &[])
+fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    match bcrd.slot {
+        bslots::INT | bslots::GCLK_INT | bslots::DLL_INT | bslots::PCI_INT | bslots::GLOBAL => (),
+        _ if bslots::SLICE.contains(bcrd.slot) => verify_slice(vrf, bcrd),
+        _ if bslots::IO.contains(bcrd.slot) => verify_iob(edev, vrf, bcrd),
+        _ if bslots::TBUF.contains(bcrd.slot) => verify_tbuf(vrf, bcrd),
+        bslots::TBUS => verify_tbus(edev, vrf, bcrd),
+        bslots::BRAM => {
+            let bel = &mut vrf.get_legacy_bel(bcrd);
+            vrf.verify_legacy_bel(bel, "BLOCKRAM", &[], &[])
         }
-        _ if defs::bslots::GCLK_IO.contains(bel.slot) => {
+        bslots::STARTUP | bslots::CAPTURE | bslots::BSCAN => {
+            let bel = &mut vrf.get_legacy_bel(bcrd);
+            vrf.verify_legacy_bel(bel, edev.db.bel_slots.key(bcrd.slot), &[], &[])
+        }
+        _ if bslots::GCLK_IO.contains(bcrd.slot) => {
+            let bel = &mut vrf.get_legacy_bel(bcrd);
             vrf.verify_legacy_bel(bel, "GCLKIOB", &[], &[])
         }
-        _ if defs::bslots::BUFG.contains(bel.slot) => verify_bufg(vrf, bel),
-        _ if defs::bslots::IOFB.contains(bel.slot) => verify_iofb(vrf, bel),
-        defs::bslots::PCILOGIC => verify_pcilogic(endev, vrf, bel),
-        defs::bslots::DLL => vrf.verify_legacy_bel(bel, "DLL", &[], &[]),
-        defs::bslots::CLKC => verify_clkc(endev, vrf, bel),
-        defs::bslots::GCLKC => verify_gclkc(endev, vrf, bel),
-        defs::bslots::BRAM_CLKH => verify_bram_clkh(endev, vrf, bel),
-        defs::bslots::CLKV => verify_clkv(endev, vrf, bel),
-        defs::bslots::CLKV_BRAM_S | defs::bslots::CLKV_BRAM_N => verify_clkv_bram_sn(vrf, bel),
-        defs::bslots::CLKV_BRAM => verify_clkv_bram(vrf, bel),
+        _ if bslots::BUFG.contains(bcrd.slot) => verify_bufg(vrf, bcrd),
+        _ if bslots::IOFB.contains(bcrd.slot) => verify_iofb(vrf, bcrd),
+        bslots::PCILOGIC => verify_pcilogic(edev, vrf, bcrd),
+        bslots::DLL => {
+            let bel = &mut vrf.get_legacy_bel(bcrd);
+            vrf.verify_legacy_bel(bel, "DLL", &[], &[])
+        }
+        bslots::CLKC => verify_clkc(edev, vrf, bcrd),
+        bslots::GCLKC => verify_gclkc(edev, vrf, bcrd),
+        bslots::BRAM_CLKH => verify_bram_clkh(edev, vrf, bcrd),
+        bslots::CLKV => verify_clkv(edev, vrf, bcrd),
+        bslots::CLKV_BRAM_S | bslots::CLKV_BRAM_N => verify_clkv_bram_sn(vrf, bcrd),
+        bslots::CLKV_BRAM => verify_clkv_bram(vrf, bcrd),
         _ => unreachable!(),
     }
 }
 
 pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
-    verify(
-        rd,
-        &endev.ngrid,
-        |_| (),
-        |_, _| (),
-        |vrf, bel| verify_bel(endev, vrf, bel),
-        |_| (),
-    );
+    let mut vrf = Verifier::new(rd, &endev.ngrid);
+    vrf.prep_int_wires();
+    vrf.handle_int();
+    for (tcrd, tile) in endev.edev.tiles() {
+        let tcls = &endev.edev.db[tile.class];
+        for slot in tcls.bels.ids() {
+            verify_bel(endev.edev, &mut vrf, tcrd.bel(slot));
+        }
+    }
+    vrf.finish();
 }

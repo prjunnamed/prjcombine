@@ -231,7 +231,6 @@ impl DieExpander<'_, '_, '_> {
         for gtcol in &self.chip.cols_gt {
             let is_l = gtcol.col < self.col_clk;
             for (reg, &kind) in &gtcol.regs {
-                let br = self.chip.row_reg_bot(reg);
                 let cell = self.die.cell(gtcol.col, self.chip.row_reg_bot(reg));
                 if let Some(kind) = kind {
                     if gtcol.is_middle {
@@ -334,12 +333,6 @@ impl DieExpander<'_, '_, '_> {
                     );
 
                     self.gt.push(cell.delta(0, 25));
-                }
-                if br.to_idx() != 0
-                    && (kind.is_some() || gtcol.regs[reg - 1].is_some())
-                    && !gtcol.is_middle
-                {
-                    self.egrid.add_tile_id(cell, tcls::BRKH_GTX, &[]);
                 }
             }
         }

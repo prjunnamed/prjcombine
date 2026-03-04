@@ -413,7 +413,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_global_attr_bool_rename("GLUTMASK_B", bcls::GLOBAL::GLUTMASK, "1", "0");
 
         for (attr, opt) in [
-            (bcls::GLOBAL::VBG_SEL, "VBG_SEL"),
+            (bcls::GLOBAL::V5_VBG_SEL, "VBG_SEL"),
             (bcls::GLOBAL::VBG_DLL_SEL, "VBG_DLL_SEL"),
             (bcls::GLOBAL::VGG_SEL, "VGG_SEL"),
         ] {
@@ -652,7 +652,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::SELECTMAP_ABORT);
         ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::GLUTMASK);
         ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::ENCRYPT_KEY_SELECT);
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::VBG_SEL);
+        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::V5_VBG_SEL);
         ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::VBG_DLL_SEL);
         ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::VGG_SEL);
         // these are too much trouble to deal with the normal way.

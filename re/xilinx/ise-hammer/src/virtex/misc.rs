@@ -5,12 +5,11 @@ use prjcombine_re_collector::{
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileBit, TileItem};
+use prjcombine_types::bsdata::TileBit;
 use prjcombine_virtex::{
     chip::ChipKind,
-    defs::{self, tcls, wires},
+    defs::{bcls::GLOBAL, bslots, enums, tcls, wires},
 };
-use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -24,7 +23,7 @@ use crate::{
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     for tcid in [tcls::PCI_W, tcls::PCI_E] {
         let mut ctx = FuzzCtx::new(session, backend, tcid);
-        let mut bctx = ctx.bel(defs::bslots::PCILOGIC);
+        let mut bctx = ctx.bel(bslots::PCILOGIC);
         bctx.test_manual_legacy("PRESENT", "1")
             .mode("PCILOGIC")
             .commit();
@@ -38,7 +37,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new_null(session, backend);
     for val in ["00", "01", "10", "11"] {
         ctx.build()
-            .extra_tiles_by_bel_legacy(defs::bslots::PCILOGIC, "PCILOGIC")
+            .extra_tiles_by_bel_legacy(bslots::PCILOGIC, "PCILOGIC")
             .test_manual_legacy("PCILOGIC", "PCI_DELAY", val)
             .global("PCIDELAY", val)
             .commit();
@@ -71,7 +70,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
 
-        let mut bctx = ctx.bel(defs::bslots::CAPTURE);
+        let mut bctx = ctx.bel(bslots::CAPTURE);
         bctx.test_manual_legacy("PRESENT", "1")
             .mode("CAPTURE")
             .commit();
@@ -82,7 +81,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("CAP")
             .test_enum_legacy("CAPMUX", &["0", "1", "CAP", "CAP_B"]);
         bctx.mode("CAPTURE")
-            .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "CAPTURE", "ONESHOT", "1")
+            .extra_tiles_by_bel_attr_bits(bslots::GLOBAL, GLOBAL::CAPTURE_ONESHOT)
             .test_manual_legacy("ONESHOT", "1")
             .attr("ONESHOT_ATTR", "ONE_SHOT")
             .commit();
@@ -110,7 +109,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
 
-        let mut bctx = ctx.bel(defs::bslots::STARTUP);
+        let mut bctx = ctx.bel(bslots::STARTUP);
         bctx.test_manual_legacy("PRESENT", "1")
             .mode("STARTUP")
             .commit();
@@ -170,16 +169,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("GSR_SYNC", val)
                 .commit();
         }
-        for val in ["CCLK", "USERCLK", "JTAGCLK"] {
+        for (val, vname) in [
+            (enums::STARTUP_CLOCK::CCLK, "CCLK"),
+            (enums::STARTUP_CLOCK::USERCLK, "USERCLK"),
+            (enums::STARTUP_CLOCK::JTAGCLK, "JTAGCLK"),
+        ] {
             bctx.mode("STARTUP")
                 .pin("CLK")
-                .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "STARTUPCLK", val)
-                .test_manual_legacy("STARTUPCLK", val)
-                .global("STARTUPCLK", val)
+                .extra_tiles_by_bel_attr_val(bslots::GLOBAL, GLOBAL::STARTUP_CLOCK, val)
+                .test_manual_legacy("STARTUPCLK", vname)
+                .global("STARTUPCLK", vname)
                 .commit();
         }
 
-        let mut bctx = ctx.bel(defs::bslots::BSCAN);
+        let mut bctx = ctx.bel(bslots::BSCAN);
         bctx.test_manual_legacy("PRESENT", "1")
             .mode("BSCAN")
             .commit();
@@ -220,55 +223,69 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    let mut ctx = FuzzCtx::new_null(session, backend);
-    for attr in ["GSR_CYCLE", "GWE_CYCLE", "GTS_CYCLE"] {
-        for val in ["1", "2", "3", "4", "5", "6", "DONE", "KEEP"] {
-            ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", attr, val)
-                .global(attr, val)
+    {
+        let mut ctx = FuzzCtx::new(session, backend, tcls::GLOBAL);
+        let mut bctx = ctx.bel(bslots::GLOBAL);
+        // COR
+        for (val, vname) in [
+            (enums::STARTUP_CYCLE::_1, "1"),
+            (enums::STARTUP_CYCLE::_2, "2"),
+            (enums::STARTUP_CYCLE::_3, "3"),
+            (enums::STARTUP_CYCLE::_4, "4"),
+            (enums::STARTUP_CYCLE::_5, "5"),
+            (enums::STARTUP_CYCLE::_6, "6"),
+            (enums::STARTUP_CYCLE::DONE, "DONE"),
+            (enums::STARTUP_CYCLE::KEEP, "KEEP"),
+        ] {
+            bctx.build()
+                .test_bel_attr_val(GLOBAL::GSR_CYCLE, val)
+                .global("GSR_CYCLE", vname)
+                .commit();
+            bctx.build()
+                .test_bel_attr_val(GLOBAL::GWE_CYCLE, val)
+                .global("GWE_CYCLE", vname)
+                .commit();
+            bctx.build()
+                .test_bel_attr_val(GLOBAL::GTS_CYCLE, val)
+                .global("GTS_CYCLE", vname)
+                .commit();
+            if val != enums::STARTUP_CYCLE::DONE {
+                bctx.build()
+                    .test_bel_attr_val(GLOBAL::DONE_CYCLE, val)
+                    .global("DONE_CYCLE", vname)
+                    .commit();
+            }
+        }
+        for (val, vname) in [
+            (enums::STARTUP_CYCLE::_0, "0"),
+            (enums::STARTUP_CYCLE::_1, "1"),
+            (enums::STARTUP_CYCLE::_2, "2"),
+            (enums::STARTUP_CYCLE::_3, "3"),
+            (enums::STARTUP_CYCLE::_4, "4"),
+            (enums::STARTUP_CYCLE::_5, "5"),
+            (enums::STARTUP_CYCLE::_6, "6"),
+            (enums::STARTUP_CYCLE::NOWAIT, "NOWAIT"),
+        ] {
+            bctx.build()
+                .test_bel_attr_val(GLOBAL::LOCK_CYCLE, val)
+                .global("LCK_CYCLE", vname)
                 .commit();
         }
-    }
-    for val in ["1", "2", "3", "4", "5", "6", "KEEP"] {
-        ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DONE_CYCLE", val)
-            .global("DONE_CYCLE", val)
-            .commit();
-    }
-    for val in ["0", "1", "2", "3", "4", "5", "6", "NOWAIT"] {
-        ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "LCK_CYCLE", val)
-            .global("LCK_CYCLE", val)
-            .commit();
-    }
-    for val in ["NO", "YES"] {
-        ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DRIVE_DONE", val)
-            .global("DRIVEDONE", val)
-            .commit();
-        ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DONE_PIPE", val)
-            .global("DONEPIPE", val)
-            .commit();
-    }
-    for val in [
-        "4", "5", "7", "8", "9", "10", "13", "15", "20", "26", "30", "34", "41", "51", "55", "60",
-        "130",
-    ] {
-        ctx.test_reg_legacy(Reg::Cor0, "REG.COR", "STARTUP", "CONFIG_RATE", val)
-            .global("CONFIGRATE", val)
-            .commit();
-    }
+        bctx.build()
+            .test_global_attr_bool_rename("DRIVEDONE", GLOBAL::DRIVE_DONE, "NO", "YES");
+        bctx.build()
+            .test_global_attr_bool_rename("DONEPIPE", GLOBAL::DONE_PIPE, "NO", "YES");
+        bctx.build()
+            .test_global_attr_rename("CONFIGRATE", GLOBAL::CONFIG_RATE);
 
-    let mut ctx = FuzzCtx::new_null(session, backend);
-
-    // persist not fuzzed — too much effort
-    for val in ["NONE", "LEVEL1", "LEVEL2"] {
-        ctx.test_reg_legacy(Reg::Ctl0, "REG.CTL", "MISC", "SECURITY", val)
-            .global("SECURITY", val)
-            .commit();
-    }
-    for val in ["0", "1"] {
-        for attr in ["DISPMP1", "DISPMP2"] {
-            ctx.test_reg_legacy(Reg::Ctl0, "REG.CTL", "MISC", attr, val)
-                .global(attr, val)
-                .commit();
-        }
+        // CTL
+        bctx.build()
+            .test_global_attr_rename("SECURITY", GLOBAL::SECURITY);
+        bctx.build()
+            .test_global_attr_bool_rename("DISPMP1", GLOBAL::DISPMP1, "0", "1");
+        bctx.build()
+            .test_global_attr_bool_rename("DISPMP2", GLOBAL::DISPMP2, "0", "1");
+        // persist not fuzzed — too much effort
     }
 }
 
@@ -436,79 +453,98 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_legacy(tile, bel, "TDIPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
         ctx.collect_enum_legacy(tile, bel, "TDOPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
     }
+
     {
-        let tile = "REG.COR";
-        let bel = "STARTUP";
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "GSR_CYCLE",
-            &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
-        );
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "GWE_CYCLE",
-            &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
-        );
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "GTS_CYCLE",
-            &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
-        );
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "DONE_CYCLE",
-            &["1", "2", "3", "4", "5", "6", "KEEP"],
-        );
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "LCK_CYCLE",
-            &["0", "1", "2", "3", "4", "5", "6", "NOWAIT"],
-        );
-        ctx.collect_enum_legacy(tile, bel, "STARTUPCLK", &["CCLK", "USERCLK", "JTAGCLK"]);
-        ctx.collect_enum_legacy_ocd(
-            tile,
-            bel,
-            "CONFIG_RATE",
+        let tcid = tcls::GLOBAL;
+        let bslot = bslots::GLOBAL;
+
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            GLOBAL::GSR_CYCLE,
             &[
-                "4", "5", "7", "8", "9", "10", "13", "15", "20", "26", "30", "34", "41", "51",
-                "55", "60", "130",
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::DONE,
+                enums::STARTUP_CYCLE::KEEP,
             ],
-            OcdMode::BitOrder,
         );
-        ctx.collect_bit_bi_legacy(tile, bel, "DRIVE_DONE", "NO", "YES");
-        ctx.collect_bit_bi_legacy(tile, bel, "DONE_PIPE", "NO", "YES");
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "SHUTDOWN",
-            TileItem::from_bit_inv(TileBit::new(0, 0, 15), false),
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            GLOBAL::GWE_CYCLE,
+            &[
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::DONE,
+                enums::STARTUP_CYCLE::KEEP,
+            ],
         );
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            GLOBAL::GTS_CYCLE,
+            &[
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::DONE,
+                enums::STARTUP_CYCLE::KEEP,
+            ],
+        );
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            GLOBAL::DONE_CYCLE,
+            &[
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::KEEP,
+            ],
+        );
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            GLOBAL::LOCK_CYCLE,
+            &[
+                enums::STARTUP_CYCLE::_0,
+                enums::STARTUP_CYCLE::_1,
+                enums::STARTUP_CYCLE::_2,
+                enums::STARTUP_CYCLE::_3,
+                enums::STARTUP_CYCLE::_4,
+                enums::STARTUP_CYCLE::_5,
+                enums::STARTUP_CYCLE::_6,
+                enums::STARTUP_CYCLE::NOWAIT,
+            ],
+        );
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::STARTUP_CLOCK);
+        ctx.insert_bel_attr_bool(tcid, bslot, GLOBAL::SHUTDOWN, TileBit::new(0, 0, 15).pos());
+        ctx.collect_bel_attr_ocd(tcid, bslot, GLOBAL::CONFIG_RATE, OcdMode::BitOrder);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::DRIVE_DONE);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::DONE_PIPE);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::CAPTURE_ONESHOT);
 
-        let bel = "CAPTURE";
-        ctx.collect_bit_legacy(tile, bel, "ONESHOT", "1");
-
-        let tile = "REG.CTL";
-        let bel = "MISC";
-        ctx.collect_bit_bi_legacy(tile, bel, "DISPMP1", "0", "1");
-        ctx.collect_bit_bi_legacy(tile, bel, "DISPMP2", "0", "1");
-        ctx.collect_enum_legacy(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
+        // CTL
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::DISPMP1);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::DISPMP2);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::SECURITY);
         // these are too much trouble to deal with the normal way.
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "PERSIST",
-            TileItem::from_bit_inv(TileBit::new(0, 0, 6), false),
-        );
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "GTS_USR_B",
-            TileItem::from_bit_inv(TileBit::new(0, 0, 0), false),
-        );
+        ctx.insert_bel_attr_bool(tcid, bslot, GLOBAL::PERSIST, TileBit::new(1, 0, 6).pos());
+        ctx.insert_bel_attr_bool(tcid, bslot, GLOBAL::GTS_USR_B, TileBit::new(1, 0, 0).pos());
     }
 }

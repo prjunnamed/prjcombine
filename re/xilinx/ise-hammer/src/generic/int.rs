@@ -1036,6 +1036,7 @@ fn skip_mux(
                     | tcls_v7::CLK_BUFG_N
                     | tcls_v7::CLK_BUFG_REBUF
                     | tcls_v7::CLK_BALI_REBUF
+                    | tcls_v7::GTP_COMMON_MID
             ) {
                 return true;
             }

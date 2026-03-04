@@ -1,25 +1,24 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{db::WireSlotIdExt, dir::DirH, grid::TileCoord};
-use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, OcdMode, xlat_bit, xlat_enum_raw},
-    legacy::{extract_bitvec_val_part_legacy, xlat_bit_legacy},
+use prjcombine_re_collector::diff::{
+    Diff, DiffKey, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum_raw,
 };
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
     bits,
     bitvec::BitVec,
-    bsdata::{BitRectId, TileBit, TileItem},
+    bsdata::{BitRectId, TileBit},
 };
 use prjcombine_virtex4::defs::{
     self,
     bcls::{self, BUFHCE, PLL_V6 as PLL},
-    bslots,
-    virtex6::{tcls, wires},
+    bslots, devdata,
+    virtex6::{tables::PLL_MULT, tcls, wires},
 };
 
 use crate::{
-    backend::IseBackend,
+    backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
@@ -63,7 +62,9 @@ pub fn add_fuzzers<'a>(
                 .mutex("MODE", "COMP")
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
                 .attr("HROW_DLY_SET", "000")
-                .test_enum_legacy("COMPENSATION", &["ZHOLD"]);
+                .test_bel_special(specials::PLL_COMPENSATION_ZHOLD)
+                .attr("COMPENSATION", "ZHOLD")
+                .commit();
         }
         return;
     }
@@ -86,7 +87,7 @@ pub fn add_fuzzers<'a>(
 
         bctx.build()
             .global_xy("MMCMADV_*_USE_CALC", "NO")
-            .test_manual_legacy("ENABLE", "1")
+            .test_bel_attr_bits(PLL::ENABLE)
             .mode(mode)
             .commit();
 
@@ -103,32 +104,32 @@ pub fn add_fuzzers<'a>(
         }
 
         for attr in [
-            "CASC_LOCK_EN",
-            "CLKBURST_ENABLE",
-            "CLKBURST_REPEAT",
-            "CLKFBOUT_EN",
-            "CLKOUT0_EN",
-            "CLKOUT1_EN",
-            "CLKOUT2_EN",
-            "CLKOUT3_EN",
-            "CLKOUT4_EN",
-            "CLKOUT5_EN",
-            "CLKOUT6_EN",
-            "DIRECT_PATH_CNTRL",
-            "CLOCK_HOLD",
-            "EN_VCO_DIV1",
-            "EN_VCO_DIV6",
-            "HVLF_STEP",
-            "HVLF_CNT_TEST_EN",
-            "IN_DLY_EN",
-            "STARTUP_WAIT",
-            "VLF_HIGH_DIS_B",
-            "VLF_HIGH_PWDN_B",
+            PLL::CASC_LOCK_EN,
+            PLL::CLKBURST_ENABLE,
+            PLL::CLKBURST_REPEAT,
+            PLL::CLKFBOUT_EN,
+            PLL::CLKOUT0_EN,
+            PLL::CLKOUT1_EN,
+            PLL::CLKOUT2_EN,
+            PLL::CLKOUT3_EN,
+            PLL::CLKOUT4_EN,
+            PLL::CLKOUT5_EN,
+            PLL::CLKOUT6_EN,
+            PLL::DIRECT_PATH_CNTRL,
+            PLL::CLOCK_HOLD,
+            PLL::EN_VCO_DIV1,
+            PLL::EN_VCO_DIV6,
+            PLL::HVLF_STEP,
+            PLL::HVLF_CNT_TEST_EN,
+            PLL::IN_DLY_EN,
+            PLL::STARTUP_WAIT,
+            PLL::VLF_HIGH_DIS_B,
+            PLL::VLF_HIGH_PWDN_B,
         ] {
             bctx.mode(mode)
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
                 .mutex("MODE", "TEST")
-                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
+                .test_bel_attr_bool_auto(attr, "FALSE", "TRUE");
         }
         bctx.mode(mode)
             .global_xy("MMCMADV_*_USE_CALC", "NO")
@@ -136,21 +137,21 @@ pub fn add_fuzzers<'a>(
             .attr("CLKOUT6_EN", "TRUE")
             .attr("CLKOUT4_USE_FINE_PS", "")
             .attr("CLKOUT4_MX", "")
-            .test_enum_legacy("CLKOUT4_CASCADE", &["FALSE", "TRUE"]);
+            .test_bel_attr_bool_auto(PLL::CLKOUT4_CASCADE, "FALSE", "TRUE");
         bctx.mode(mode)
             .global_xy("MMCMADV_*_USE_CALC", "NO")
             .mutex("MODE", "TEST")
             .attr("STARTUP_WAIT", "FALSE")
-            .test_enum_legacy("GTS_WAIT", &["FALSE", "TRUE"]);
+            .test_bel_attr_bool_auto(PLL::GTS_WAIT, "FALSE", "TRUE");
         for attr in [
-            "CLKOUT0_USE_FINE_PS",
-            "CLKOUT1_USE_FINE_PS",
-            "CLKOUT2_USE_FINE_PS",
-            "CLKOUT3_USE_FINE_PS",
-            "CLKOUT4_USE_FINE_PS",
-            "CLKOUT5_USE_FINE_PS",
-            "CLKOUT6_USE_FINE_PS",
-            "CLKFBOUT_USE_FINE_PS",
+            PLL::CLKOUT0_USE_FINE_PS,
+            PLL::CLKOUT1_USE_FINE_PS,
+            PLL::CLKOUT2_USE_FINE_PS,
+            PLL::CLKOUT3_USE_FINE_PS,
+            PLL::CLKOUT4_USE_FINE_PS,
+            PLL::CLKOUT5_USE_FINE_PS,
+            PLL::CLKOUT6_USE_FINE_PS,
+            PLL::CLKFBOUT_USE_FINE_PS,
         ] {
             bctx.mode(mode)
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
@@ -164,144 +165,163 @@ pub fn add_fuzzers<'a>(
                 .attr("CLKOUT5_MX", "")
                 .attr("CLKOUT6_MX", "")
                 .attr("INTERP_EN", "00000000")
-                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
+                .test_bel_attr_bool_auto(attr, "FALSE", "TRUE");
         }
-        for attr in ["CLKOUT0_FRAC_EN", "CLKFBOUT_FRAC_EN"] {
+        for attr in [PLL::CLKOUT0_FRAC_EN, PLL::CLKFBOUT_FRAC_EN] {
             bctx.mode(mode)
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
                 .mutex("MODE", "TEST")
                 .attr("CLKOUT5_EN", "TRUE")
                 .attr("CLKOUT6_EN", "TRUE")
                 .attr("INTERP_EN", "00000000")
-                .test_enum_legacy(attr, &["FALSE", "TRUE"]);
+                .test_bel_attr_bool_auto(attr, "FALSE", "TRUE");
         }
 
-        for (attr, width) in [
-            ("ANALOG_MISC", 4),
-            ("AVDD_COMP_SET", 2),
-            ("AVDD_VBG_PD", 3),
-            ("AVDD_VBG_SEL", 4),
-            ("CLKFBIN_HT", 6),
-            ("CLKFBIN_LT", 6),
-            ("CLKFBOUT_DT", 6),
-            ("CLKFBOUT_FRAC", 3),
-            ("CLKFBOUT_HT", 6),
-            ("CLKFBOUT_LT", 6),
-            ("CLKFBOUT_MX", 2),
-            ("CLKFBOUT_FRAC", 3),
-            ("CLKOUT0_DT", 6),
-            ("CLKOUT0_HT", 6),
-            ("CLKOUT0_LT", 6),
-            ("CLKOUT0_MX", 2),
-            ("CLKOUT0_FRAC", 3),
-            ("CLKOUT1_DT", 6),
-            ("CLKOUT1_HT", 6),
-            ("CLKOUT1_LT", 6),
-            ("CLKOUT1_MX", 2),
-            ("CLKOUT2_DT", 6),
-            ("CLKOUT2_HT", 6),
-            ("CLKOUT2_LT", 6),
-            ("CLKOUT2_MX", 2),
-            ("CLKOUT3_DT", 6),
-            ("CLKOUT3_HT", 6),
-            ("CLKOUT3_LT", 6),
-            ("CLKOUT3_MX", 2),
-            ("CLKOUT4_DT", 6),
-            ("CLKOUT4_HT", 6),
-            ("CLKOUT4_LT", 6),
-            ("CLKOUT4_MX", 2),
-            ("CLKOUT5_DT", 6),
-            ("CLKOUT5_HT", 6),
-            ("CLKOUT5_LT", 6),
-            ("CLKOUT5_MX", 2),
-            ("CLKOUT6_DT", 6),
-            ("CLKOUT6_HT", 6),
-            ("CLKOUT6_LT", 6),
-            ("CLKOUT6_MX", 2),
-            ("CONTROL_0", 16),
-            ("CONTROL_1", 16),
-            ("CONTROL_2", 16),
-            ("CONTROL_3", 16),
-            ("CONTROL_4", 16),
-            ("CONTROL_5", 16),
-            ("CP_BIAS_TRIP_SET", 1),
-            ("CP_RES", 2),
-            ("DIVCLK_HT", 6),
-            ("DIVCLK_LT", 6),
-            ("DVDD_COMP_SET", 2),
-            ("DVDD_VBG_PD", 3),
-            ("DVDD_VBG_SEL", 4),
-            ("INTERP_EN", 8),
-            ("IN_DLY_MX_CVDD", 6),
-            ("IN_DLY_MX_DVDD", 6),
-            ("LF_NEN", 2),
-            ("LF_PEN", 2),
-            ("MAN_LF", 3),
-            ("PFD", 7),
-            ("TMUX_MUX_SEL", 2),
+        for attr in [
+            PLL::ANALOG_MISC,
+            PLL::AVDD_VBG_PD,
+            PLL::AVDD_VBG_SEL,
+            PLL::CLKFBIN_HT,
+            PLL::CLKFBIN_LT,
+            PLL::CLKFBOUT_DT,
+            PLL::CLKFBOUT_HT,
+            PLL::CLKFBOUT_LT,
+            PLL::CLKFBOUT_MX,
+            PLL::CLKFBOUT_FRAC,
+            PLL::CLKOUT0_DT,
+            PLL::CLKOUT0_HT,
+            PLL::CLKOUT0_LT,
+            PLL::CLKOUT0_MX,
+            PLL::CLKOUT0_FRAC,
+            PLL::CLKOUT1_DT,
+            PLL::CLKOUT1_HT,
+            PLL::CLKOUT1_LT,
+            PLL::CLKOUT1_MX,
+            PLL::CLKOUT2_DT,
+            PLL::CLKOUT2_HT,
+            PLL::CLKOUT2_LT,
+            PLL::CLKOUT2_MX,
+            PLL::CLKOUT3_DT,
+            PLL::CLKOUT3_HT,
+            PLL::CLKOUT3_LT,
+            PLL::CLKOUT3_MX,
+            PLL::CLKOUT4_DT,
+            PLL::CLKOUT4_HT,
+            PLL::CLKOUT4_LT,
+            PLL::CLKOUT4_MX,
+            PLL::CLKOUT5_DT,
+            PLL::CLKOUT5_HT,
+            PLL::CLKOUT5_LT,
+            PLL::CLKOUT5_MX,
+            PLL::CLKOUT6_DT,
+            PLL::CLKOUT6_HT,
+            PLL::CLKOUT6_LT,
+            PLL::CLKOUT6_MX,
+            PLL::CONTROL_0,
+            PLL::CONTROL_1,
+            PLL::CONTROL_2,
+            PLL::CONTROL_3,
+            PLL::CONTROL_4,
+            PLL::CONTROL_5,
+            PLL::CP_BIAS_TRIP_SET,
+            PLL::CP_RES,
+            PLL::DIVCLK_HT,
+            PLL::DIVCLK_LT,
+            PLL::DVDD_VBG_PD,
+            PLL::DVDD_VBG_SEL,
+            PLL::INTERP_EN,
+            PLL::IN_DLY_MX_CVDD,
+            PLL::IN_DLY_MX_DVDD,
+            PLL::LF_NEN,
+            PLL::LF_PEN,
+            PLL::MAN_LF,
+            PLL::PFD,
+            PLL::TMUX_MUX_SEL,
         ] {
             bctx.mode(mode)
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
                 .mutex("MODE", "TEST")
                 .attr("CLKOUT0_DIVIDE_F", "1.5")
                 .attr("CLKFBOUT_MULT_F", "1.5")
-                .test_multi_attr_bin_legacy(attr, width);
+                .test_bel_attr_multi(attr, MultiValue::Bin);
         }
-        for (attr, width) in [
-            ("CLKFBOUT_PM", 3),
-            ("CLKOUT0_PM", 3),
-            ("CLKOUT1_PM", 3),
-            ("CLKOUT2_PM", 3),
-            ("CLKOUT3_PM", 3),
-            ("CLKOUT4_PM", 3),
-            ("CLKOUT5_PM", 3),
-            ("CLKOUT6_PM", 3),
-            ("FINE_PS_FRAC", 6),
+        for (attr, aname, width) in [
+            (PLL::V6_AVDD_COMP_SET, "AVDD_COMP_SET", 2),
+            (PLL::V6_DVDD_COMP_SET, "DVDD_COMP_SET", 2),
+        ] {
+            bctx.mode(mode)
+                .global_xy("MMCMADV_*_USE_CALC", "NO")
+                .mutex("MODE", "TEST")
+                .attr("CLKOUT0_DIVIDE_F", "1.5")
+                .attr("CLKFBOUT_MULT_F", "1.5")
+                .test_bel_attr_bits(attr)
+                .multi_attr(aname, MultiValue::Bin, width);
+        }
+        for attr in [
+            PLL::CLKFBOUT_PM,
+            PLL::CLKOUT0_PM,
+            PLL::CLKOUT1_PM,
+            PLL::CLKOUT2_PM,
+            PLL::CLKOUT3_PM,
+            PLL::CLKOUT4_PM,
+            PLL::CLKOUT5_PM,
+            PLL::CLKOUT6_PM,
+            PLL::FINE_PS_FRAC,
         ] {
             bctx.mode(mode)
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
                 .mutex("MODE", "TEST")
                 .attr("INTERP_EN", "00000000")
-                .test_multi_attr_bin_legacy(attr, width);
+                .test_bel_attr_multi(attr, MultiValue::Bin);
         }
-        for (attr, width) in [
-            ("CLKBURST_CNT", 4),
-            ("CP", 4),
-            ("HROW_DLY_SET", 3),
-            ("HVLF_CNT_TEST", 6),
-            ("LFHF", 2),
-            ("LOCK_CNT", 10),
-            ("LOCK_FB_DLY", 5),
-            ("LOCK_REF_DLY", 5),
-            ("LOCK_SAT_HIGH", 10),
-            ("RES", 4),
-            ("UNLOCK_CNT", 10),
+        for attr in [
+            PLL::CLKBURST_CNT,
+            PLL::CP,
+            PLL::HROW_DLY_SET,
+            PLL::HVLF_CNT_TEST,
+            PLL::LFHF,
+            PLL::LOCK_CNT,
+            PLL::LOCK_FB_DLY,
+            PLL::LOCK_REF_DLY,
+            PLL::LOCK_SAT_HIGH,
+            PLL::RES,
+            PLL::UNLOCK_CNT,
         ] {
             bctx.mode(mode)
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
                 .mutex("MODE", "TEST")
-                .test_multi_attr_dec_legacy(attr, width);
+                .test_bel_attr_multi(attr, MultiValue::Dec(0));
         }
 
         for mult in 1..=64 {
-            for bandwidth in ["LOW", "HIGH"] {
+            for (spec, bandwidth) in [
+                (specials::PLL_TABLES_LOW, "LOW"),
+                (specials::PLL_TABLES_HIGH, "HIGH"),
+            ] {
                 bctx.mode(mode)
                     .mutex("MODE", "CALC")
                     .global_xy("MMCMADV_*_USE_CALC", "NO")
-                    .test_manual_legacy("TABLES", format!("{mult}.{bandwidth}"))
-                    .attr("CLKFBOUT_MULT_F", format!("{mult}"))
+                    .test_bel_special_u32(spec, mult)
+                    .attr("CLKFBOUT_MULT_F", mult.to_string())
                     .attr("BANDWIDTH", bandwidth)
                     .commit();
             }
         }
-        bctx.mode(mode)
-            .mutex("MODE", "COMP")
-            .global_xy("MMCMADV_*_USE_CALC", "NO")
-            .attr("HROW_DLY_SET", "000")
-            .test_enum_legacy(
-                "COMPENSATION",
-                &["ZHOLD", "EXTERNAL", "INTERNAL", "BUF_IN", "CASCADE"],
-            );
+        for (spec, val) in [
+            (specials::PLL_COMPENSATION_ZHOLD, "ZHOLD"),
+            (specials::PLL_COMPENSATION_EXTERNAL, "EXTERNAL"),
+            (specials::PLL_COMPENSATION_INTERNAL, "INTERNAL"),
+            (specials::PLL_COMPENSATION_BUF_IN, "BUF_IN"),
+            (specials::PLL_COMPENSATION_CASCADE, "CASCADE"),
+        ] {
+            bctx.mode(mode)
+                .mutex("MODE", "COMP")
+                .global_xy("MMCMADV_*_USE_CALC", "NO")
+                .attr("HROW_DLY_SET", "000")
+                .test_bel_special(spec)
+                .attr("COMPENSATION", val)
+                .commit();
+        }
     }
     {
         let mut bctx = ctx.bel(bslots::PPR_FRAME);
@@ -714,16 +734,16 @@ pub fn add_fuzzers<'a>(
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let tcid = tcls::CMT;
-    let tile = "CMT";
     if devdata_only {
-        for bel in ["PLL[0]", "PLL[1]"] {
-            let mut diff = ctx.get_diff_legacy(tile, bel, "COMPENSATION", "ZHOLD");
-            let dly_val = extract_bitvec_val_part_legacy(
-                ctx.item_legacy(tile, bel, "IN_DLY_SET"),
+        for idx in 0..2 {
+            let bslot = bslots::PLL[idx];
+            let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::PLL_COMPENSATION_ZHOLD);
+            let dly_val = extract_bitvec_val_part(
+                ctx.bel_attr_bitvec(tcid, bslot, PLL::V6_IN_DLY_SET),
                 &bits![0; 5],
                 &mut diff,
             );
-            ctx.insert_device_data_legacy("MMCM:IN_DLY_SET", dly_val);
+            ctx.insert_devdata_bitvec(devdata::PLL_V6_IN_DLY_SET, dly_val);
         }
         return;
     }
@@ -737,7 +757,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     }
     for i in 0..2 {
         let bslot = bslots::PLL[i];
-        let bel = &format!("PLL[{i}]");
 
         fn mmcm_drp_bit(which: usize, reg: usize, bit: usize) -> TileBit {
             let tile = if which == 0 {
@@ -756,7 +775,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 drp.push(mmcm_drp_bit(i, reg, bit).pos());
             }
         }
-        ctx.insert_bel_attr_bitvec(tcid, bslot, PLL::DRP, drp);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, PLL::MMCM_DRP, drp);
 
         for pin in [
             PLL::RST,
@@ -769,241 +788,211 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
 
         for attr in [
-            "CASC_LOCK_EN",
-            "CLKBURST_ENABLE",
-            "CLKBURST_REPEAT",
-            "CLKFBOUT_EN",
-            "CLKOUT0_EN",
-            "CLKOUT1_EN",
-            "CLKOUT2_EN",
-            "CLKOUT3_EN",
-            "CLKOUT4_EN",
-            "CLKOUT5_EN",
-            "CLKOUT6_EN",
-            "CLKFBOUT_USE_FINE_PS",
-            "CLKOUT0_USE_FINE_PS",
-            "CLKOUT1_USE_FINE_PS",
-            "CLKOUT2_USE_FINE_PS",
-            "CLKOUT3_USE_FINE_PS",
-            "CLKOUT4_USE_FINE_PS",
-            "CLKOUT5_USE_FINE_PS",
-            "CLKOUT6_USE_FINE_PS",
-            "CLKFBOUT_FRAC_EN",
-            "CLKOUT0_FRAC_EN",
-            "CLKOUT4_CASCADE",
-            "CLOCK_HOLD",
-            "DIRECT_PATH_CNTRL",
-            "EN_VCO_DIV1",
-            "EN_VCO_DIV6",
-            "HVLF_STEP",
-            "HVLF_CNT_TEST_EN",
-            "IN_DLY_EN",
-            "STARTUP_WAIT",
-            "VLF_HIGH_DIS_B",
-            "VLF_HIGH_PWDN_B",
+            PLL::CASC_LOCK_EN,
+            PLL::CLKBURST_ENABLE,
+            PLL::CLKBURST_REPEAT,
+            PLL::CLKFBOUT_EN,
+            PLL::CLKOUT0_EN,
+            PLL::CLKOUT1_EN,
+            PLL::CLKOUT2_EN,
+            PLL::CLKOUT3_EN,
+            PLL::CLKOUT4_EN,
+            PLL::CLKOUT5_EN,
+            PLL::CLKOUT6_EN,
+            PLL::CLKFBOUT_USE_FINE_PS,
+            PLL::CLKOUT0_USE_FINE_PS,
+            PLL::CLKOUT1_USE_FINE_PS,
+            PLL::CLKOUT2_USE_FINE_PS,
+            PLL::CLKOUT3_USE_FINE_PS,
+            PLL::CLKOUT4_USE_FINE_PS,
+            PLL::CLKOUT5_USE_FINE_PS,
+            PLL::CLKOUT6_USE_FINE_PS,
+            PLL::CLKFBOUT_FRAC_EN,
+            PLL::CLKOUT0_FRAC_EN,
+            PLL::CLKOUT4_CASCADE,
+            PLL::CLOCK_HOLD,
+            PLL::DIRECT_PATH_CNTRL,
+            PLL::EN_VCO_DIV1,
+            PLL::EN_VCO_DIV6,
+            PLL::HVLF_STEP,
+            PLL::HVLF_CNT_TEST_EN,
+            PLL::IN_DLY_EN,
+            PLL::STARTUP_WAIT,
+            PLL::VLF_HIGH_DIS_B,
+            PLL::VLF_HIGH_PWDN_B,
         ] {
-            ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
+            ctx.collect_bel_attr_bi(tcid, bslot, attr);
         }
         for attr in [
-            "ANALOG_MISC",
-            "AVDD_COMP_SET",
-            "AVDD_VBG_PD",
-            "AVDD_VBG_SEL",
-            "CLKBURST_CNT",
-            "CLKFBIN_HT",
-            "CLKFBIN_LT",
-            "CLKFBOUT_DT",
-            "CLKFBOUT_HT",
-            "CLKFBOUT_LT",
-            "CLKFBOUT_MX",
-            "CLKFBOUT_PM",
-            "CLKFBOUT_FRAC",
-            "CLKOUT0_DT",
-            "CLKOUT0_HT",
-            "CLKOUT0_LT",
-            "CLKOUT0_MX",
-            "CLKOUT0_PM",
-            "CLKOUT0_FRAC",
-            "CLKOUT1_DT",
-            "CLKOUT1_HT",
-            "CLKOUT1_LT",
-            "CLKOUT1_MX",
-            "CLKOUT1_PM",
-            "CLKOUT2_DT",
-            "CLKOUT2_HT",
-            "CLKOUT2_LT",
-            "CLKOUT2_MX",
-            "CLKOUT2_PM",
-            "CLKOUT3_DT",
-            "CLKOUT3_HT",
-            "CLKOUT3_LT",
-            "CLKOUT3_MX",
-            "CLKOUT3_PM",
-            "CLKOUT4_DT",
-            "CLKOUT4_HT",
-            "CLKOUT4_LT",
-            "CLKOUT4_MX",
-            "CLKOUT4_PM",
-            "CLKOUT5_DT",
-            "CLKOUT5_HT",
-            "CLKOUT5_LT",
-            "CLKOUT5_MX",
-            "CLKOUT5_PM",
-            "CLKOUT6_DT",
-            "CLKOUT6_HT",
-            "CLKOUT6_LT",
-            "CLKOUT6_MX",
-            "CLKOUT6_PM",
-            "CONTROL_0",
-            "CONTROL_1",
-            "CONTROL_2",
-            "CONTROL_3",
-            "CONTROL_4",
-            "CONTROL_5",
-            "CP",
-            "CP_BIAS_TRIP_SET",
-            "CP_RES",
-            "DIVCLK_HT",
-            "DIVCLK_LT",
-            "DVDD_COMP_SET",
-            "DVDD_VBG_PD",
-            "DVDD_VBG_SEL",
-            "FINE_PS_FRAC",
-            "HROW_DLY_SET",
-            "HVLF_CNT_TEST",
-            "INTERP_EN",
-            "IN_DLY_MX_CVDD",
-            "IN_DLY_MX_DVDD",
-            "LF_NEN",
-            "LF_PEN",
-            "LFHF",
-            "MAN_LF",
-            "LOCK_CNT",
-            "LOCK_FB_DLY",
-            "LOCK_REF_DLY",
-            "LOCK_SAT_HIGH",
-            "PFD",
-            "RES",
-            "TMUX_MUX_SEL",
-            "UNLOCK_CNT",
+            PLL::ANALOG_MISC,
+            PLL::V6_AVDD_COMP_SET,
+            PLL::AVDD_VBG_PD,
+            PLL::AVDD_VBG_SEL,
+            PLL::CLKBURST_CNT,
+            PLL::CLKFBIN_HT,
+            PLL::CLKFBIN_LT,
+            PLL::CLKFBOUT_DT,
+            PLL::CLKFBOUT_HT,
+            PLL::CLKFBOUT_LT,
+            PLL::CLKFBOUT_MX,
+            PLL::CLKFBOUT_PM,
+            PLL::CLKFBOUT_FRAC,
+            PLL::CLKOUT0_DT,
+            PLL::CLKOUT0_HT,
+            PLL::CLKOUT0_LT,
+            PLL::CLKOUT0_MX,
+            PLL::CLKOUT0_PM,
+            PLL::CLKOUT0_FRAC,
+            PLL::CLKOUT1_DT,
+            PLL::CLKOUT1_HT,
+            PLL::CLKOUT1_LT,
+            PLL::CLKOUT1_MX,
+            PLL::CLKOUT1_PM,
+            PLL::CLKOUT2_DT,
+            PLL::CLKOUT2_HT,
+            PLL::CLKOUT2_LT,
+            PLL::CLKOUT2_MX,
+            PLL::CLKOUT2_PM,
+            PLL::CLKOUT3_DT,
+            PLL::CLKOUT3_HT,
+            PLL::CLKOUT3_LT,
+            PLL::CLKOUT3_MX,
+            PLL::CLKOUT3_PM,
+            PLL::CLKOUT4_DT,
+            PLL::CLKOUT4_HT,
+            PLL::CLKOUT4_LT,
+            PLL::CLKOUT4_MX,
+            PLL::CLKOUT4_PM,
+            PLL::CLKOUT5_DT,
+            PLL::CLKOUT5_HT,
+            PLL::CLKOUT5_LT,
+            PLL::CLKOUT5_MX,
+            PLL::CLKOUT5_PM,
+            PLL::CLKOUT6_DT,
+            PLL::CLKOUT6_HT,
+            PLL::CLKOUT6_LT,
+            PLL::CLKOUT6_MX,
+            PLL::CLKOUT6_PM,
+            PLL::CONTROL_0,
+            PLL::CONTROL_1,
+            PLL::CONTROL_2,
+            PLL::CONTROL_3,
+            PLL::CONTROL_4,
+            PLL::CONTROL_5,
+            PLL::CP,
+            PLL::CP_BIAS_TRIP_SET,
+            PLL::CP_RES,
+            PLL::DIVCLK_HT,
+            PLL::DIVCLK_LT,
+            PLL::V6_DVDD_COMP_SET,
+            PLL::DVDD_VBG_PD,
+            PLL::DVDD_VBG_SEL,
+            PLL::FINE_PS_FRAC,
+            PLL::HROW_DLY_SET,
+            PLL::HVLF_CNT_TEST,
+            PLL::INTERP_EN,
+            PLL::IN_DLY_MX_CVDD,
+            PLL::IN_DLY_MX_DVDD,
+            PLL::LF_NEN,
+            PLL::LF_PEN,
+            PLL::LFHF,
+            PLL::MAN_LF,
+            PLL::LOCK_CNT,
+            PLL::LOCK_FB_DLY,
+            PLL::LOCK_REF_DLY,
+            PLL::LOCK_SAT_HIGH,
+            PLL::PFD,
+            PLL::RES,
+            PLL::TMUX_MUX_SEL,
+            PLL::UNLOCK_CNT,
         ] {
-            ctx.collect_bitvec_legacy(tile, bel, attr, "");
+            ctx.collect_bel_attr(tcid, bslot, attr);
         }
 
-        for (addr, name) in [(0x16, "DIVCLK"), (0x17, "CLKFBIN")] {
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("{name}_NOCOUNT"),
-                TileItem::from_bit_inv(mmcm_drp_bit(i, addr, 12), false),
-            );
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("{name}_EDGE"),
-                TileItem::from_bit_inv(mmcm_drp_bit(i, addr, 13), false),
-            );
-        }
-        for (addr, name) in [
-            (0x07, "CLKOUT5"),
-            (0x09, "CLKOUT0"),
-            (0x13, "CLKOUT6"),
-            (0x15, "CLKFBOUT"),
+        for (addr, nocount, edge) in [
+            (0x16, PLL::DIVCLK_NOCOUNT, PLL::DIVCLK_EDGE),
+            (0x17, PLL::CLKFBIN_NOCOUNT, PLL::CLKFBIN_EDGE),
         ] {
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("{name}_FRAC_WF"),
-                TileItem::from_bit_inv(mmcm_drp_bit(i, addr, 10), false),
-            );
+            ctx.insert_bel_attr_bool(tcid, bslot, nocount, mmcm_drp_bit(i, addr, 12).pos());
+            ctx.insert_bel_attr_bool(tcid, bslot, edge, mmcm_drp_bit(i, addr, 13).pos());
         }
-        for (addr, name) in [
-            (0x07, "CLKOUT5"),
-            (0x09, "CLKOUT0"),
-            (0x0b, "CLKOUT1"),
-            (0x0d, "CLKOUT2"),
-            (0x0f, "CLKOUT3"),
-            (0x11, "CLKOUT4"),
-            (0x13, "CLKOUT6"),
-            (0x15, "CLKFBOUT"),
+        for (addr, attr) in [
+            (0x07, PLL::CLKOUT5_FRAC_WF),
+            (0x09, PLL::CLKOUT0_FRAC_WF),
+            (0x13, PLL::CLKOUT6_FRAC_WF),
+            (0x15, PLL::CLKFBOUT_FRAC_WF),
         ] {
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("{name}_NOCOUNT"),
-                TileItem::from_bit_inv(mmcm_drp_bit(i, addr, 6), false),
-            );
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("{name}_EDGE"),
-                TileItem::from_bit_inv(mmcm_drp_bit(i, addr, 7), false),
-            );
+            ctx.insert_bel_attr_bool(tcid, bslot, attr, mmcm_drp_bit(i, addr, 10).pos());
+        }
+        for (addr, nocount, edge) in [
+            (0x07, PLL::CLKOUT5_NOCOUNT, PLL::CLKOUT5_EDGE),
+            (0x09, PLL::CLKOUT0_NOCOUNT, PLL::CLKOUT0_EDGE),
+            (0x0b, PLL::CLKOUT1_NOCOUNT, PLL::CLKOUT1_EDGE),
+            (0x0d, PLL::CLKOUT2_NOCOUNT, PLL::CLKOUT2_EDGE),
+            (0x0f, PLL::CLKOUT3_NOCOUNT, PLL::CLKOUT3_EDGE),
+            (0x11, PLL::CLKOUT4_NOCOUNT, PLL::CLKOUT4_EDGE),
+            (0x13, PLL::CLKOUT6_NOCOUNT, PLL::CLKOUT6_EDGE),
+            (0x15, PLL::CLKFBOUT_NOCOUNT, PLL::CLKFBOUT_EDGE),
+        ] {
+            ctx.insert_bel_attr_bool(tcid, bslot, nocount, mmcm_drp_bit(i, addr, 6).pos());
+            ctx.insert_bel_attr_bool(tcid, bslot, edge, mmcm_drp_bit(i, addr, 7).pos());
         }
 
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "SYNTH_CLK_DIV",
-            TileItem::from_bitvec_inv(
-                vec![mmcm_drp_bit(i, 0x02, 0), mmcm_drp_bit(i, 0x02, 1)],
-                false,
-            ),
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            PLL::SYNTH_CLK_DIV,
+            vec![
+                mmcm_drp_bit(i, 0x02, 0).pos(),
+                mmcm_drp_bit(i, 0x02, 1).pos(),
+            ],
         );
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "IN_DLY_SET",
-            TileItem::from_bitvec_inv(
-                vec![
-                    mmcm_drp_bit(i, 0x05, 10),
-                    mmcm_drp_bit(i, 0x05, 11),
-                    mmcm_drp_bit(i, 0x05, 12),
-                    mmcm_drp_bit(i, 0x05, 13),
-                    mmcm_drp_bit(i, 0x05, 14),
-                ],
-                false,
-            ),
+        ctx.insert_bel_attr_bitvec(
+            tcid,
+            bslot,
+            PLL::V6_IN_DLY_SET,
+            vec![
+                mmcm_drp_bit(i, 0x05, 10).pos(),
+                mmcm_drp_bit(i, 0x05, 11).pos(),
+                mmcm_drp_bit(i, 0x05, 12).pos(),
+                mmcm_drp_bit(i, 0x05, 13).pos(),
+                mmcm_drp_bit(i, 0x05, 14).pos(),
+            ],
         );
 
-        ctx.get_diff_legacy(tile, bel, "GTS_WAIT", "FALSE")
+        ctx.get_diff_attr_bool_bi(tcid, bslot, PLL::GTS_WAIT, false)
             .assert_empty();
-        let mut diff = ctx.get_diff_legacy(tile, bel, "GTS_WAIT", "TRUE");
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "SYNTH_CLK_DIV"), 1, 0);
-        ctx.insert_legacy(tile, bel, "GTS_WAIT", xlat_bit_legacy(diff));
+        let mut diff = ctx.get_diff_attr_bool_bi(tcid, bslot, PLL::GTS_WAIT, true);
+        diff.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::SYNTH_CLK_DIV), 1, 0);
+        ctx.insert_bel_attr_bool(tcid, bslot, PLL::GTS_WAIT, xlat_bit(diff));
 
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "MMCM_EN",
-            TileItem::from_bit_inv(mmcm_drp_bit(i, 0x74, 0), false),
-        );
+        ctx.insert_bel_attr_bool(tcid, bslot, PLL::ENABLE, mmcm_drp_bit(i, 0x74, 0).pos());
 
-        let mut enable = ctx.get_diff_legacy(tile, bel, "ENABLE", "1");
-        enable.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "MMCM_EN"), true, false);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "RES"), 0xf, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CP"), 0x5, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "INTERP_EN"), 0x10, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKFBIN_HT"), 1, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKFBIN_LT"), 0x3f, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "DIVCLK_HT"), 1, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "DIVCLK_LT"), 0x3f, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_HT"), 1, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_LT"), 0x3f, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT0_HT"), 1, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT0_LT"), 0x3f, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT1_HT"), 1, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT1_LT"), 0x3f, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT2_HT"), 1, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT2_LT"), 0x3f, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT3_HT"), 1, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT3_LT"), 0x3f, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT4_HT"), 1, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT4_LT"), 0x3f, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT5_HT"), 1, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT5_LT"), 0x3f, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT6_HT"), 1, 0);
-        enable.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "CLKOUT6_LT"), 0x3f, 0);
+        let mut enable = ctx.get_diff_attr_bool(tcid, bslot, PLL::ENABLE);
+        enable.apply_bit_diff(ctx.bel_attr_bit(tcid, bslot, PLL::ENABLE), true, false);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::RES), 0xf, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CP), 0x5, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::INTERP_EN), 0x10, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKFBIN_HT), 1, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKFBIN_LT), 0x3f, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::DIVCLK_HT), 1, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::DIVCLK_LT), 0x3f, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKFBOUT_HT), 1, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKFBOUT_LT), 0x3f, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT0_HT), 1, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT0_LT), 0x3f, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT1_HT), 1, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT1_LT), 0x3f, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT2_HT), 1, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT2_LT), 0x3f, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT3_HT), 1, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT3_LT), 0x3f, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT4_HT), 1, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT4_LT), 0x3f, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT5_HT), 1, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT5_LT), 0x3f, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT6_HT), 1, 0);
+        enable.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKOUT6_LT), 0x3f, 0);
         assert_eq!(enable.bits.len(), 1);
         let drp_mask = enable.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(40)]));
         assert_eq!(drp_mask.bits.len(), 1);
@@ -1014,80 +1003,129 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             xlat_bit(drp_mask),
         );
 
-        let mut diff = ctx.get_diff_legacy(tile, bel, "COMPENSATION", "BUF_IN");
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "IN_DLY_MX_DVDD"), 0x31, 0);
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "IN_DLY_MX_CVDD"), 0x12, 0);
+        let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::PLL_COMPENSATION_BUF_IN);
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::IN_DLY_MX_DVDD),
+            0x31,
+            0,
+        );
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::IN_DLY_MX_CVDD),
+            0x12,
+            0,
+        );
         diff.assert_empty();
-        let mut diff = ctx.get_diff_legacy(tile, bel, "COMPENSATION", "CASCADE");
-        diff.apply_bit_diff_legacy(ctx.item_legacy(tile, bel, "CASC_LOCK_EN"), true, false);
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "IN_DLY_MX_DVDD"), 0x0a, 0);
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "IN_DLY_MX_CVDD"), 0x12, 0);
+        let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::PLL_COMPENSATION_CASCADE);
+        diff.apply_bit_diff(
+            ctx.bel_attr_bit(tcid, bslot, PLL::CASC_LOCK_EN),
+            true,
+            false,
+        );
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::IN_DLY_MX_DVDD),
+            0x0a,
+            0,
+        );
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::IN_DLY_MX_CVDD),
+            0x12,
+            0,
+        );
         diff.assert_empty();
-        let mut diff = ctx.get_diff_legacy(tile, bel, "COMPENSATION", "EXTERNAL");
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "IN_DLY_MX_DVDD"), 0x31, 0);
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "IN_DLY_MX_CVDD"), 0x12, 0);
+        let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::PLL_COMPENSATION_EXTERNAL);
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::IN_DLY_MX_DVDD),
+            0x31,
+            0,
+        );
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::IN_DLY_MX_CVDD),
+            0x12,
+            0,
+        );
         diff.assert_empty();
-        let mut diff = ctx.get_diff_legacy(tile, bel, "COMPENSATION", "INTERNAL");
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "IN_DLY_MX_DVDD"), 0x2f, 0);
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "IN_DLY_MX_CVDD"), 0x12, 0);
+        let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::PLL_COMPENSATION_INTERNAL);
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::IN_DLY_MX_DVDD),
+            0x2f,
+            0,
+        );
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::IN_DLY_MX_CVDD),
+            0x12,
+            0,
+        );
         diff.assert_empty();
-        let mut diff = ctx.get_diff_legacy(tile, bel, "COMPENSATION", "ZHOLD");
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "IN_DLY_MX_DVDD"), 0x01, 0);
-        diff.apply_bitvec_diff_int_legacy(ctx.item_legacy(tile, bel, "IN_DLY_MX_CVDD"), 0x18, 0);
-        let dly_val = extract_bitvec_val_part_legacy(
-            ctx.item_legacy(tile, bel, "IN_DLY_SET"),
+        let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::PLL_COMPENSATION_ZHOLD);
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::IN_DLY_MX_DVDD),
+            0x01,
+            0,
+        );
+        diff.apply_bitvec_diff_int(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::IN_DLY_MX_CVDD),
+            0x18,
+            0,
+        );
+        let dly_val = extract_bitvec_val_part(
+            ctx.bel_attr_bitvec(tcid, bslot, PLL::V6_IN_DLY_SET),
             &bits![0; 5],
             &mut diff,
         );
-        ctx.insert_device_data_legacy("MMCM:IN_DLY_SET", dly_val);
+        ctx.insert_devdata_bitvec(devdata::PLL_V6_IN_DLY_SET, dly_val);
         diff.assert_empty();
 
         for mult in 1..=64 {
-            for bandwidth in ["LOW", "HIGH"] {
-                let mut diff =
-                    ctx.get_diff_legacy(tile, bel, "TABLES", format!("{mult}.{bandwidth}"));
-                for (attr, base) in [
-                    ("CP", bits![1, 0, 1, 0]),
-                    ("RES", bits![1, 1, 1, 1]),
-                    ("LFHF", bits![0, 0]),
+            let row = ctx.edev.db[PLL_MULT]
+                .rows
+                .get(&format!("MMCM_{mult}"))
+                .unwrap()
+                .0;
+            for (spec, field_cp, field_res, field_lfhf) in [
+                (
+                    specials::PLL_TABLES_LOW,
+                    PLL_MULT::PLL_CP_LOW,
+                    PLL_MULT::PLL_RES_LOW,
+                    PLL_MULT::PLL_LFHF_LOW,
+                ),
+                (
+                    specials::PLL_TABLES_HIGH,
+                    PLL_MULT::PLL_CP_HIGH,
+                    PLL_MULT::PLL_RES_HIGH,
+                    PLL_MULT::PLL_LFHF_HIGH,
+                ),
+            ] {
+                let mut diff = ctx.get_diff_bel_special_u32(tcid, bslot, spec, mult);
+                for (attr, field, base) in [
+                    (PLL::CP, field_cp, bits![1, 0, 1, 0]),
+                    (PLL::RES, field_res, bits![1, 1, 1, 1]),
+                    (PLL::LFHF, field_lfhf, bits![0, 0]),
                 ] {
-                    let val = extract_bitvec_val_part_legacy(
-                        ctx.item_legacy(tile, bel, attr),
+                    let val = extract_bitvec_val_part(
+                        ctx.bel_attr_bitvec(tcid, bslot, attr),
                         &base,
                         &mut diff,
                     );
-                    let mut ival = 0;
-                    for (i, v) in val.into_iter().enumerate() {
-                        if v {
-                            ival |= 1 << i;
-                        }
-                    }
-                    ctx.insert_misc_data_legacy(format!("MMCM:{attr}:{bandwidth}:{mult}"), ival);
+                    ctx.insert_table_bitvec(PLL_MULT, row, field, val);
                 }
-                for (attr, width) in [
-                    ("LOCK_REF_DLY", 5),
-                    ("LOCK_FB_DLY", 5),
-                    ("LOCK_CNT", 10),
-                    ("LOCK_SAT_HIGH", 10),
-                    ("UNLOCK_CNT", 10),
+                for (attr, field, width) in [
+                    (PLL::LOCK_REF_DLY, PLL_MULT::LOCK_REF_DLY, 5),
+                    (PLL::LOCK_FB_DLY, PLL_MULT::LOCK_FB_DLY, 5),
+                    (PLL::LOCK_CNT, PLL_MULT::LOCK_CNT, 10),
+                    (PLL::LOCK_SAT_HIGH, PLL_MULT::LOCK_SAT_HIGH, 10),
+                    (PLL::UNLOCK_CNT, PLL_MULT::UNLOCK_CNT, 10),
                 ] {
-                    let val = extract_bitvec_val_part_legacy(
-                        ctx.item_legacy(tile, bel, attr),
+                    let val = extract_bitvec_val_part(
+                        ctx.bel_attr_bitvec(tcid, bslot, attr),
                         &BitVec::repeat(false, width),
                         &mut diff,
                     );
-                    let mut ival = 0;
-                    for (i, v) in val.into_iter().enumerate() {
-                        if v {
-                            ival |= 1 << i;
-                        }
-                    }
-                    ctx.insert_misc_data_legacy(format!("MMCM:{attr}:{mult}"), ival);
+                    ctx.insert_table_bitvec(PLL_MULT, row, field, val);
                 }
-                diff.discard_bits_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_NOCOUNT"));
-                diff.discard_bits_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_EDGE"));
-                diff.discard_bits_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_LT"));
-                diff.discard_bits_legacy(ctx.item_legacy(tile, bel, "CLKFBOUT_HT"));
+                diff.discard_polbits(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKFBOUT_NOCOUNT));
+                diff.discard_polbits(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKFBOUT_EDGE));
+                diff.discard_polbits(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKFBOUT_LT));
+                diff.discard_polbits(ctx.bel_attr_bitvec(tcid, bslot, PLL::CLKFBOUT_HT));
                 diff.assert_empty();
             }
         }

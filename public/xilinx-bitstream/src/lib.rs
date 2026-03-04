@@ -14,7 +14,6 @@ pub enum Reg {
     Idcode,
     Ctl0,
     Ctl1,
-    Unk1C,
     Cor0,
     Cor1,
     Cor2,

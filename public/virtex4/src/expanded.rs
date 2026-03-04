@@ -5,6 +5,7 @@ use crate::defs::{self, bslots};
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use bimap::BiHashMap;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_interconnect::dir::Dir;
 use prjcombine_interconnect::grid::{BelCoord, DieIdExt};
 use prjcombine_interconnect::{
     dir::{DirH, DirPartMap},
@@ -940,7 +941,30 @@ impl ExpandedDevice<'_> {
                     BitRect::Reg(die, Reg::WbStar),
                     BitRect::Reg(die, Reg::Testmode),
                 ]),
-                _ => todo!(),
+                ChipKind::Virtex6 => EntityVec::from_iter([
+                    BitRect::Reg(die, Reg::Cor0),
+                    BitRect::Reg(die, Reg::Cor1),
+                    BitRect::Reg(die, Reg::Ctl0),
+                    BitRect::Reg(die, Reg::Ctl1),
+                    BitRect::Reg(die, Reg::Timer),
+                    BitRect::Reg(die, Reg::WbStar),
+                    BitRect::Reg(die, Reg::Testmode),
+                    BitRect::Reg(die, Reg::Trim0),
+                    BitRect::Reg(die, Reg::Trim1),
+                ]),
+                ChipKind::Virtex7 => EntityVec::from_iter([
+                    BitRect::Reg(die, Reg::Cor0),
+                    BitRect::Reg(die, Reg::Cor1),
+                    BitRect::Reg(die, Reg::Ctl0),
+                    BitRect::Reg(die, Reg::Ctl1),
+                    BitRect::Reg(die, Reg::Timer),
+                    BitRect::Reg(die, Reg::WbStar),
+                    BitRect::Reg(die, Reg::Testmode),
+                    BitRect::Reg(die, Reg::Trim0),
+                    BitRect::Reg(die, Reg::Trim1),
+                    BitRect::Reg(die, Reg::Trim2),
+                    BitRect::Reg(die, Reg::Bspi),
+                ]),
             }
         } else if self.kind == ChipKind::Virtex4 && tile.class == defs::virtex4::tcls::BRAM {
             EntityVec::from_iter([
@@ -1160,6 +1184,93 @@ impl ExpandedDevice<'_> {
             Some(bcrd.bel(bslots::DSP[0]))
         } else {
             panic!("not a carry-chain bel: {}", bcrd.to_string(self.db))
+        }
+    }
+
+    pub fn bel_carry_next(&self, bcrd: BelCoord) -> Option<BelCoord> {
+        if let Some(idx) = bslots::SLICE.index_of(bcrd.slot) {
+            if self.kind == ChipKind::Virtex4 {
+                if idx < 2 {
+                    Some(bcrd.bel(bslots::SLICE[idx + 2]))
+                } else {
+                    self.bel_delta(bcrd.cell, 0, 1, bslots::SLICE[idx - 2])
+                }
+            } else {
+                self.bel_delta(bcrd.cell, 0, 1, bcrd.slot)
+            }
+        } else if bcrd.slot == bslots::BRAM {
+            if self.kind == ChipKind::Virtex4 {
+                self.bel_delta(bcrd.cell, 0, 4, bslots::BRAM)
+            } else {
+                self.bel_delta(bcrd.cell, 0, 5, bslots::BRAM)
+            }
+        } else if bcrd.slot == bslots::DSP[1] {
+            if self.kind == ChipKind::Virtex4 {
+                self.bel_delta(bcrd.cell, 0, 4, bslots::DSP[0])
+            } else {
+                self.bel_delta(bcrd.cell, 0, 5, bslots::DSP[0])
+            }
+        } else if bcrd.slot == bslots::DSP[0] {
+            Some(bcrd.bel(bslots::DSP[1]))
+        } else {
+            panic!("not a carry-chain bel: {}", bcrd.to_string(self.db))
+        }
+    }
+
+    pub fn bel_gtclk_neighbour(&self, bcrd: BelCoord, dir: Dir) -> Option<BelCoord> {
+        match self.kind {
+            ChipKind::Virtex4 => {
+                assert_eq!(bcrd.slot, bslots::GT11CLK);
+                let dy = match dir {
+                    Dir::S => -32,
+                    Dir::N => 32,
+                    _ => unreachable!(),
+                };
+                self.bel_delta(bcrd.cell, 0, dy, bcrd.slot)
+            }
+            ChipKind::Virtex5 => {
+                assert!(matches!(bcrd.slot, bslots::GTP_DUAL | bslots::GTX_DUAL));
+                let dy = match dir {
+                    Dir::S => -20,
+                    Dir::N => 20,
+                    _ => unreachable!(),
+                };
+                self.bel_delta(bcrd.cell, 0, dy, bcrd.slot)
+            }
+            ChipKind::Virtex6 => {
+                assert!(matches!(bcrd.slot, bslots::HCLK_GTX | bslots::GTH_QUAD));
+                let dy = match dir {
+                    Dir::S => -40,
+                    Dir::N => 40,
+                    _ => unreachable!(),
+                };
+                self.bel_delta(bcrd.cell, 0, dy, bcrd.slot)
+            }
+            ChipKind::Virtex7 => {
+                if bcrd.slot == bslots::GTP_COMMON {
+                    let Dir::H(dir) = dir else { unreachable!() };
+                    if let Some((cw, ce)) = self.col_gt_m {
+                        if bcrd.col == cw && dir == DirH::E {
+                            Some(bcrd.with_col(ce).bel(bcrd.slot))
+                        } else if bcrd.col == ce && dir == DirH::W {
+                            Some(bcrd.with_col(cw).bel(bcrd.slot))
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                } else if bcrd.slot == bslots::GTX_COMMON {
+                    let dy = match dir {
+                        Dir::S => -50,
+                        Dir::N => 50,
+                        _ => unreachable!(),
+                    };
+                    self.bel_delta(bcrd.cell, 0, dy, bcrd.slot)
+                } else {
+                    unreachable!()
+                }
+            }
         }
     }
 }

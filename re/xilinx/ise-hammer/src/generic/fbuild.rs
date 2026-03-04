@@ -10,7 +10,6 @@ use prjcombine_re_collector::diff::{DiffKey, FeatureId, SpecialId};
 use prjcombine_re_fpga_hammer::{FpgaFuzzerGen, FuzzerProp};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bitvec::BitVec;
-use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
     backend::{IseBackend, Key, MultiValue, PinFromKind, Value},
@@ -31,7 +30,7 @@ use super::props::{
         FuzzBelPinIntPipsInput, FuzzBelPinPair, FuzzBelPinPips, FuzzGlobalXy, FuzzMultiGlobalXy,
         GlobalMutexHere, RowMutexHere,
     },
-    extra::{ExtraGtz, ExtraReg, ExtraTile, ExtraTilesByBel, ExtraTilesByClass},
+    extra::{ExtraGtz, ExtraTile, ExtraTilesByBel, ExtraTilesByClass},
     mutex::{IntMutex, RowMutex, TileMutex, TileMutexExclusive},
     pip::{BasePip, BelIntoPipWire, FuzzPip},
     relation::{FixedRelation, HasRelated, NoopRelation, Related, TileRelation},
@@ -99,17 +98,6 @@ impl<'sm, 'b> FuzzCtx<'sm, 'b> {
         val: impl AsRef<str>,
     ) -> FuzzBuilderTestManual<'nsm, 'b> {
         self.build().test_manual_legacy(bel, attr, val)
-    }
-
-    pub fn test_reg_legacy<'nsm>(
-        &'nsm mut self,
-        reg: Reg,
-        tile: impl Into<String>,
-        bel: &'static str,
-        attr: impl AsRef<str>,
-        val: impl AsRef<str>,
-    ) -> FuzzBuilderTestManual<'nsm, 'b> {
-        self.build().test_reg(reg, tile, bel, attr, val)
     }
 
     pub fn build<'nsm>(&'nsm mut self) -> FuzzBuilder<'nsm, 'b> {
@@ -270,6 +258,18 @@ pub trait FuzzBuilderBase<'b>: Sized {
         ))
     }
 
+    fn extra_tiles_by_bel_attr_bits_bi(
+        self,
+        slot: BelSlotId,
+        attr: BelAttributeId,
+        val: bool,
+    ) -> Self {
+        self.prop(ExtraTilesByBel::new(
+            slot,
+            ExtraKeyBelAttrBits::new(slot, attr, 0, val),
+        ))
+    }
+
     fn extra_tiles_by_bel_attr_val(
         self,
         slot: BelSlotId,
@@ -282,51 +282,6 @@ pub trait FuzzBuilderBase<'b>: Sized {
         ))
     }
 
-    fn extra_tile_reg(self, reg: Reg, tile: impl Into<String>, bel: impl Into<String>) -> Self {
-        self.prop(ExtraReg::new(
-            vec![reg],
-            false,
-            tile.into(),
-            Some(bel.into()),
-            None,
-            None,
-        ))
-    }
-
-    fn extra_tile_reg_present(
-        self,
-        reg: Reg,
-        tile: impl Into<String>,
-        bel: impl Into<String>,
-    ) -> Self {
-        self.prop(ExtraReg::new(
-            vec![reg],
-            true,
-            tile.into(),
-            Some(bel.into()),
-            None,
-            None,
-        ))
-    }
-
-    fn extra_tile_reg_attr_legacy(
-        self,
-        reg: Reg,
-        tile: impl Into<String>,
-        bel: impl Into<String>,
-        attr: impl Into<String>,
-        val: impl Into<String>,
-    ) -> Self {
-        self.prop(ExtraReg::new(
-            vec![reg],
-            false,
-            tile.into(),
-            Some(bel.into()),
-            Some(attr.into()),
-            Some(val.into()),
-        ))
-    }
-
     fn extra_tile_attr_bits<R: TileRelation + 'b>(
         self,
         relation: R,
@@ -336,6 +291,32 @@ pub trait FuzzBuilderBase<'b>: Sized {
         self.prop(ExtraTile::new(
             relation,
             ExtraKeyBelAttrBits::new(bslot, attr, 0, true),
+        ))
+    }
+
+    fn extra_tile_attr_bits_bi<R: TileRelation + 'b>(
+        self,
+        relation: R,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        val: bool,
+    ) -> Self {
+        self.prop(ExtraTile::new(
+            relation,
+            ExtraKeyBelAttrBits::new(bslot, attr, 0, val),
+        ))
+    }
+
+    fn extra_tile_attr_val<R: TileRelation + 'b>(
+        self,
+        relation: R,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        val: EnumValueId,
+    ) -> Self {
+        self.prop(ExtraTile::new(
+            relation,
+            ExtraKeyBelAttrValue::new(bslot, attr, val),
         ))
     }
 
@@ -543,20 +524,6 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
         self.test_raw(DiffKey::GlobalSpecial(spec))
     }
 
-    pub fn test_reg(
-        self,
-        reg: Reg,
-        tile: impl Into<String>,
-        bel: &'static str,
-        attr: impl AsRef<str>,
-        val: impl AsRef<str>,
-    ) -> FuzzBuilderTestManual<'sm, 'b> {
-        let attr = attr.as_ref();
-        let val = val.as_ref();
-        self.extra_tile_reg(reg, tile, bel)
-            .test_manual_legacy(bel, attr, val)
-    }
-
     pub fn test_gtz(
         self,
         dir: DirV,
@@ -611,6 +578,10 @@ impl<'b> FuzzBuilderTestManual<'_, 'b> {
         val1: impl Into<String>,
     ) -> Self {
         self.raw_diff(Key::GlobalOpt(opt.into()), val0.into(), val1.into())
+    }
+
+    pub fn global_diff_none(self, opt: impl Into<String>, val0: impl Into<String>) -> Self {
+        self.raw_diff(Key::GlobalOpt(opt.into()), val0.into(), None)
     }
 
     pub fn commit(self) {
@@ -918,6 +889,24 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
             value,
             width,
         );
+        self.test_bel_attr_bits(attr).prop(prop).commit();
+    }
+
+    pub fn test_bel_attr_multi_rename(
+        self,
+        rattr: impl Into<String>,
+        attr: BelAttributeId,
+        value: MultiValue,
+    ) {
+        let rattr = rattr.into();
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.test_bel].kind else {
+            unreachable!()
+        };
+        let BelAttributeType::BitVec(width) = self.backend.edev.db[bcid].attributes[attr].typ
+        else {
+            unreachable!()
+        };
+        let prop = FuzzBelMultiAttr::new(self.bel, self.sub, rattr, value, width);
         self.test_bel_attr_bits(attr).prop(prop).commit();
     }
 
@@ -1540,6 +1529,10 @@ impl<'b> FuzzBuilderBelTestManual<'_, 'b> {
         val1: impl Into<String>,
     ) -> Self {
         self.raw_diff(Key::GlobalOpt(opt.into()), val0.into(), val1.into())
+    }
+
+    pub fn global_diff_none(self, opt: impl Into<String>, val0: impl Into<String>) -> Self {
+        self.raw_diff(Key::GlobalOpt(opt.into()), val0.into(), None)
     }
 
     pub fn global_xy(self, opt: impl Into<String>, val: impl Into<String>) -> Self {

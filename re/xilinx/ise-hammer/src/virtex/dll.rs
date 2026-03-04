@@ -14,8 +14,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex::defs::{self, tcls};
-use prjcombine_xilinx_bitstream::Reg;
+use prjcombine_virtex::defs::{bcls::GLOBAL, bslots, tcls};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -137,7 +136,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
-        let mut bctx = ctx.bel(defs::bslots::DLL);
+        let mut bctx = ctx.bel(bslots::DLL);
         let cnr_nw = edev.chip.corner(DirHV::NW);
         bctx.build()
             .extra_tile_attr_fixed_legacy(cnr_nw, "MISC", "DLL_ENABLE", "1")
@@ -209,10 +208,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 bctx.mode("DLL")
                     .global_mutex("DLL", "USE")
-                    .prop(PinWireMutexShared(defs::bslots::DLL, "CLKIN"))
-                    .prop(PinWireMutexShared(defs::bslots::DLL, "CLKFB"))
+                    .prop(PinWireMutexShared(bslots::DLL, "CLKIN"))
+                    .prop(PinWireMutexShared(bslots::DLL, "CLKFB"))
                     .test_manual_legacy(attr, val)
-                    .prop(FuzzGlobalDll(defs::bslots::DLL, opt, val))
+                    .prop(FuzzGlobalDll(bslots::DLL, opt, val))
                     .commit();
             }
         }
@@ -221,7 +220,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode("DLL")
                     .global_mutex("DLL", "USE")
                     .test_manual_legacy(attr, val)
-                    .prop(FuzzGlobalDll(defs::bslots::DLL, opt, val))
+                    .prop(FuzzGlobalDll(bslots::DLL, opt, val))
                     .commit();
             }
         }
@@ -232,7 +231,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("DLL")
                 .global_mutex_here("DLL")
                 .prop(DeviceSide(DirH::W))
-                .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BL", "1")
+                .extra_tiles_by_bel_attr_bits(bslots::GLOBAL, GLOBAL::LOCK_WAIT_SW)
                 .null_bits()
                 .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                 .attr("STARTUP_ATTR", "STARTUP_WAIT")
@@ -241,7 +240,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("DLL")
                 .global_mutex_here("DLL")
                 .prop(DeviceSide(DirH::E))
-                .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_BR", "1")
+                .extra_tiles_by_bel_attr_bits(bslots::GLOBAL, GLOBAL::LOCK_WAIT_SE)
                 .null_bits()
                 .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                 .attr("STARTUP_ATTR", "STARTUP_WAIT")
@@ -252,7 +251,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("DLL")
                 .global_mutex_here("DLL")
                 .prop(DeviceSide(DirH::W))
-                .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TL", "1")
+                .extra_tiles_by_bel_attr_bits(bslots::GLOBAL, GLOBAL::LOCK_WAIT_NW)
                 .null_bits()
                 .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                 .attr("STARTUP_ATTR", "STARTUP_WAIT")
@@ -260,7 +259,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("DLL")
                 .global_mutex_here("DLL")
                 .prop(DeviceSide(DirH::E))
-                .extra_tile_reg_attr_legacy(Reg::Cor0, "REG.COR", "STARTUP", "DLL_WAIT_TR", "1")
+                .extra_tiles_by_bel_attr_bits(bslots::GLOBAL, GLOBAL::LOCK_WAIT_NE)
                 .null_bits()
                 .test_manual_legacy("STARTUP_ATTR", "STARTUP_WAIT")
                 .attr("STARTUP_ATTR", "STARTUP_WAIT")
@@ -270,7 +269,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new_null(session, backend);
     for val in ["90", "180", "270", "360"] {
         ctx.build()
-            .extra_tiles_by_bel_legacy(defs::bslots::DLL, "DLL")
+            .extra_tiles_by_bel_legacy(bslots::DLL, "DLL")
             .test_manual_legacy("DLL", "TEST_OSC", val)
             .global("TESTOSC", val)
             .commit();
@@ -397,10 +396,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_legacy(tile, "DLL", "TEST_OSC", &["90", "180", "270", "360"]);
     }
     ctx.collect_bit_legacy("CNR_NW", "MISC", "DLL_ENABLE", "1");
-    let tile = "REG.COR";
-    let bel = "STARTUP";
-    ctx.collect_bit_legacy(tile, bel, "DLL_WAIT_BL", "1");
-    ctx.collect_bit_legacy(tile, bel, "DLL_WAIT_BR", "1");
-    ctx.collect_bit_legacy(tile, bel, "DLL_WAIT_TL", "1");
-    ctx.collect_bit_legacy(tile, bel, "DLL_WAIT_TR", "1");
+
+    let tcid = tcls::GLOBAL;
+    let bslot = bslots::GLOBAL;
+    ctx.collect_bel_attr(tcid, bslot, GLOBAL::LOCK_WAIT_SW);
+    ctx.collect_bel_attr(tcid, bslot, GLOBAL::LOCK_WAIT_SE);
+    ctx.collect_bel_attr(tcid, bslot, GLOBAL::LOCK_WAIT_NW);
+    ctx.collect_bel_attr(tcid, bslot, GLOBAL::LOCK_WAIT_NE);
 }

@@ -1,6 +1,36 @@
 use prjcombine_tablegen::target_defs;
 
 target_defs! {
+    enum STARTUP_CYCLE { _0, _1, _2, _3, _4, _5, _6, DONE, KEEP, NOWAIT }
+    enum STARTUP_CLOCK { CCLK, USERCLK, JTAGCLK }
+    enum CONFIG_RATE { _4, _5, _7, _8, _9, _10, _13, _15, _20, _26, _30, _34, _41, _51, _55, _60, _130 }
+    enum SECURITY { NONE, LEVEL1, LEVEL2 }
+    bel_class GLOBAL {
+        // COR
+        attribute GSR_CYCLE: STARTUP_CYCLE;
+        attribute GWE_CYCLE: STARTUP_CYCLE;
+        attribute GTS_CYCLE: STARTUP_CYCLE;
+        attribute LOCK_CYCLE: STARTUP_CYCLE;
+        attribute DONE_CYCLE: STARTUP_CYCLE;
+        attribute SHUTDOWN: bool;
+        attribute LOCK_WAIT_SW: bool;
+        attribute LOCK_WAIT_SE: bool;
+        attribute LOCK_WAIT_NW: bool;
+        attribute LOCK_WAIT_NE: bool;
+        attribute STARTUP_CLOCK: STARTUP_CLOCK;
+        attribute CONFIG_RATE: CONFIG_RATE;
+        attribute CAPTURE_ONESHOT: bool;
+        attribute DRIVE_DONE: bool;
+        attribute DONE_PIPE: bool;
+
+        // CTL
+        attribute GTS_USR_B: bool;
+        attribute DISPMP2: bool;
+        attribute DISPMP1: bool;
+        attribute PERSIST: bool;
+        attribute SECURITY: SECURITY;
+    }
+
     region_slot GLOBAL;
     region_slot LEAF;
     region_slot PCI_CE;
@@ -191,6 +221,8 @@ target_defs! {
     bitrect CLKV = vertical (1, rev 18);
     bitrect BRAM_DATA = vertical (64, rev 72);
 
+    bitrect REG32 = horizontal (1, rev 32);
+
     tile_slot MAIN {
         bel_slot INT: routing;
         bel_slot SLICE[2]: legacy;
@@ -356,6 +388,15 @@ target_defs! {
         tile_class CLKV_BRAM_S, CLKV_BRAM_N {
             cell CELL, W, BRAM;
             bitrect MAIN: BRAM;
+        }
+    }
+
+    tile_slot GLOBAL {
+        bel_slot GLOBAL: GLOBAL;
+        tile_class GLOBAL {
+            bitrect COR: REG32;
+            bitrect CTL: REG32;
+            bel GLOBAL;
         }
     }
 

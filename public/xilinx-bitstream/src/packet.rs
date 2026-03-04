@@ -57,7 +57,7 @@ pub enum Packet {
     Cor2(u32),
     Ctl0(u32),
     Ctl1(u32),
-    Unk1c(u32),
+    Trim1(u32),
     Bspi(u32),
     Idcode(u32),
     Timer(u32),
@@ -646,7 +646,7 @@ impl Iterator for PacketParser<'_> {
                                     Some(Packet::Dwc(val))
                                 }
                                 (0x1b, 1) if is_v4 => Some(Packet::Trim(get_val(0))),
-                                (0x1c, 1) if is_v4 => Some(Packet::Unk1c(get_val(0))),
+                                (0x1c, 1) if is_v4 => Some(Packet::Trim1(get_val(0))),
                                 (0x1e, 0) => continue,
                                 (0x1f, 1) if is_v4 => Some(Packet::Bspi(get_val(0))),
                                 _ => panic!("unk write: {reg} times {num}"),

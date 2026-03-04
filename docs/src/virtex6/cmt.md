@@ -7,7 +7,6 @@ TODO: describe this madness
 
 ## Tables
 
-{{misc virtex6 mmcm-filter}}
-{{misc virtex6 mmcm-lock}}
+{{table virtex6 PLL_MULT}}
 
-{{devdata virtex6 mmcm-in-dly-set}}
+{{devdata virtex6 pll-in-dly-set}}

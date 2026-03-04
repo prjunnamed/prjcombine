@@ -26,7 +26,7 @@ use prjcombine_virtex4::{
     chip::RegId,
     defs::{
         self,
-        bcls::{BANK, DCI},
+        bcls::{self, BANK, DCI},
         bslots, enums,
         virtex7::{tcls, wires},
     },
@@ -2073,7 +2073,11 @@ fn add_fuzzers_hclk_io_hp<'a>(
                 .raw(Key::Package, &package.name)
                 .global("DCIUPDATEMODE", "ASREQUIRED")
                 .global("UNCONSTRAINEDPINS", "ALLOW")
-                .extra_tile_attr_fixed_legacy(edev.tile_cfg(die), "MISC", "DCI_CLK_ENABLE", "1");
+                .extra_fixed_bel_attr_bits(
+                    edev.tile_cfg(die),
+                    bslots::MISC_CFG,
+                    bcls::MISC_CFG::DCI_CLK_ENABLE_TR,
+                );
 
             let anchor_reg = if chip.has_ps {
                 RegId::from_idx(chip.regs - 2)
@@ -4062,7 +4066,11 @@ fn collect_fuzzers_hclk_io_hp(ctx: &mut CollectorCtx) {
     ));
     ctx.insert_bel_attr_enum(tcid, bslot, BANK::INTERNAL_VREF, xlat_enum_attr(diffs));
 
-    ctx.collect_bit_wide_legacy("CFG", "MISC", "DCI_CLK_ENABLE", "1");
+    let tcid = tcls::CFG;
+    let bslot = bslots::MISC_CFG;
+    let bits =
+        xlat_bit_wide(ctx.get_diff_attr_bool(tcid, bslot, bcls::MISC_CFG::DCI_CLK_ENABLE_TR));
+    ctx.insert_bel_attr_bitvec(tcid, bslot, bcls::MISC_CFG::DCI_CLK_ENABLE_TR, bits);
 }
 
 fn collect_fuzzers_hclk_io_hr(ctx: &mut CollectorCtx) {

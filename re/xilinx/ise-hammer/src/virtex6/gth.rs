@@ -1,10 +1,15 @@
-use prjcombine_re_collector::legacy::{xlat_bitvec_legacy, xlat_enum_legacy};
+use prjcombine_interconnect::db::{BelAttributeType, BelInputId};
+use prjcombine_re_collector::diff::{OcdMode, xlat_bitvec};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs::{bcls, bslots, virtex6::tcls};
+use prjcombine_types::bsdata::TileBit;
+use prjcombine_virtex4::defs::{
+    bcls::{self, GTH_QUAD},
+    bslots, enums,
+    virtex6::tcls,
+};
 
 use crate::{
-    backend::IseBackend,
+    backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
@@ -13,345 +18,20 @@ use crate::{
     virtex4::specials,
 };
 
-const GTH_INVPINS: &[&str] = &[
-    "DCLK",
-    "SCANCLK",
-    "SDSSCANCLK",
-    "TPCLK",
-    "TSTNOISECLK",
-    "RXUSERCLKIN0",
-    "RXUSERCLKIN1",
-    "RXUSERCLKIN2",
-    "RXUSERCLKIN3",
-    "TXUSERCLKIN0",
-    "TXUSERCLKIN1",
-    "TXUSERCLKIN2",
-    "TXUSERCLKIN3",
-];
-
-const GTH_ENUM_ATTRS: &[(&str, &[&str])] = &[
-    ("CLKTESTSIG_SEL", &["USER_OPERATION", "CLKTESTSIG"]),
-    (
-        "RX_FABRIC_WIDTH0",
-        &["6466", "8", "10", "16", "20", "32", "40", "64", "80"],
-    ),
-    (
-        "RX_FABRIC_WIDTH1",
-        &["6466", "8", "10", "16", "20", "32", "40", "64", "80"],
-    ),
-    (
-        "RX_FABRIC_WIDTH2",
-        &["6466", "8", "10", "16", "20", "32", "40", "64", "80"],
-    ),
-    (
-        "RX_FABRIC_WIDTH3",
-        &["6466", "8", "10", "16", "20", "32", "40", "64", "80"],
-    ),
-    (
-        "TX_FABRIC_WIDTH0",
-        &["6466", "8", "10", "16", "20", "32", "40", "64", "80"],
-    ),
-    (
-        "TX_FABRIC_WIDTH1",
-        &["6466", "8", "10", "16", "20", "32", "40", "64", "80"],
-    ),
-    (
-        "TX_FABRIC_WIDTH2",
-        &["6466", "8", "10", "16", "20", "32", "40", "64", "80"],
-    ),
-    (
-        "TX_FABRIC_WIDTH3",
-        &["6466", "8", "10", "16", "20", "32", "40", "64", "80"],
-    ),
-];
-
-const GTH_BIN_ATTRS: &[(&str, usize)] = &[
-    ("GTH_CFG_PWRUP_LANE0", 1),
-    ("GTH_CFG_PWRUP_LANE1", 1),
-    ("GTH_CFG_PWRUP_LANE2", 1),
-    ("GTH_CFG_PWRUP_LANE3", 1),
-    ("TST_PCS_LOOPBACK_LANE0", 1),
-    ("TST_PCS_LOOPBACK_LANE1", 1),
-    ("TST_PCS_LOOPBACK_LANE2", 1),
-    ("TST_PCS_LOOPBACK_LANE3", 1),
-];
-
-const GTH_HEX_ATTRS: &[(&str, usize)] = &[
-    ("BER_CONST_PTRN0", 16),
-    ("BER_CONST_PTRN1", 16),
-    ("BUFFER_CONFIG_LANE0", 16),
-    ("BUFFER_CONFIG_LANE1", 16),
-    ("BUFFER_CONFIG_LANE2", 16),
-    ("BUFFER_CONFIG_LANE3", 16),
-    ("DFE_TRAIN_CTRL_LANE0", 16),
-    ("DFE_TRAIN_CTRL_LANE1", 16),
-    ("DFE_TRAIN_CTRL_LANE2", 16),
-    ("DFE_TRAIN_CTRL_LANE3", 16),
-    ("DLL_CFG0", 16),
-    ("DLL_CFG1", 16),
-    ("E10GBASEKR_LD_COEFF_UPD_LANE0", 16),
-    ("E10GBASEKR_LD_COEFF_UPD_LANE1", 16),
-    ("E10GBASEKR_LD_COEFF_UPD_LANE2", 16),
-    ("E10GBASEKR_LD_COEFF_UPD_LANE3", 16),
-    ("E10GBASEKR_LP_COEFF_UPD_LANE0", 16),
-    ("E10GBASEKR_LP_COEFF_UPD_LANE1", 16),
-    ("E10GBASEKR_LP_COEFF_UPD_LANE2", 16),
-    ("E10GBASEKR_LP_COEFF_UPD_LANE3", 16),
-    ("E10GBASEKR_PMA_CTRL_LANE0", 16),
-    ("E10GBASEKR_PMA_CTRL_LANE1", 16),
-    ("E10GBASEKR_PMA_CTRL_LANE2", 16),
-    ("E10GBASEKR_PMA_CTRL_LANE3", 16),
-    ("E10GBASEKX_CTRL_LANE0", 16),
-    ("E10GBASEKX_CTRL_LANE1", 16),
-    ("E10GBASEKX_CTRL_LANE2", 16),
-    ("E10GBASEKX_CTRL_LANE3", 16),
-    ("E10GBASER_PCS_CFG_LANE0", 16),
-    ("E10GBASER_PCS_CFG_LANE1", 16),
-    ("E10GBASER_PCS_CFG_LANE2", 16),
-    ("E10GBASER_PCS_CFG_LANE3", 16),
-    ("E10GBASER_PCS_SEEDA0_LANE0", 16),
-    ("E10GBASER_PCS_SEEDA0_LANE1", 16),
-    ("E10GBASER_PCS_SEEDA0_LANE2", 16),
-    ("E10GBASER_PCS_SEEDA0_LANE3", 16),
-    ("E10GBASER_PCS_SEEDA1_LANE0", 16),
-    ("E10GBASER_PCS_SEEDA1_LANE1", 16),
-    ("E10GBASER_PCS_SEEDA1_LANE2", 16),
-    ("E10GBASER_PCS_SEEDA1_LANE3", 16),
-    ("E10GBASER_PCS_SEEDA2_LANE0", 16),
-    ("E10GBASER_PCS_SEEDA2_LANE1", 16),
-    ("E10GBASER_PCS_SEEDA2_LANE2", 16),
-    ("E10GBASER_PCS_SEEDA2_LANE3", 16),
-    ("E10GBASER_PCS_SEEDA3_LANE0", 16),
-    ("E10GBASER_PCS_SEEDA3_LANE1", 16),
-    ("E10GBASER_PCS_SEEDA3_LANE2", 16),
-    ("E10GBASER_PCS_SEEDA3_LANE3", 16),
-    ("E10GBASER_PCS_SEEDB0_LANE0", 16),
-    ("E10GBASER_PCS_SEEDB0_LANE1", 16),
-    ("E10GBASER_PCS_SEEDB0_LANE2", 16),
-    ("E10GBASER_PCS_SEEDB0_LANE3", 16),
-    ("E10GBASER_PCS_SEEDB1_LANE0", 16),
-    ("E10GBASER_PCS_SEEDB1_LANE1", 16),
-    ("E10GBASER_PCS_SEEDB1_LANE2", 16),
-    ("E10GBASER_PCS_SEEDB1_LANE3", 16),
-    ("E10GBASER_PCS_SEEDB2_LANE0", 16),
-    ("E10GBASER_PCS_SEEDB2_LANE1", 16),
-    ("E10GBASER_PCS_SEEDB2_LANE2", 16),
-    ("E10GBASER_PCS_SEEDB2_LANE3", 16),
-    ("E10GBASER_PCS_SEEDB3_LANE0", 16),
-    ("E10GBASER_PCS_SEEDB3_LANE1", 16),
-    ("E10GBASER_PCS_SEEDB3_LANE2", 16),
-    ("E10GBASER_PCS_SEEDB3_LANE3", 16),
-    ("E10GBASER_PCS_TEST_CTRL_LANE0", 16),
-    ("E10GBASER_PCS_TEST_CTRL_LANE1", 16),
-    ("E10GBASER_PCS_TEST_CTRL_LANE2", 16),
-    ("E10GBASER_PCS_TEST_CTRL_LANE3", 16),
-    ("E10GBASEX_PCS_TSTCTRL_LANE0", 16),
-    ("E10GBASEX_PCS_TSTCTRL_LANE1", 16),
-    ("E10GBASEX_PCS_TSTCTRL_LANE2", 16),
-    ("E10GBASEX_PCS_TSTCTRL_LANE3", 16),
-    ("GLBL0_NOISE_CTRL", 16),
-    ("GLBL_AMON_SEL", 16),
-    ("GLBL_DMON_SEL", 16),
-    ("GLBL_PWR_CTRL", 16),
-    ("LANE_AMON_SEL", 16),
-    ("LANE_DMON_SEL", 16),
-    ("LANE_LNK_CFGOVRD", 16),
-    ("LANE_PWR_CTRL_LANE0", 16),
-    ("LANE_PWR_CTRL_LANE1", 16),
-    ("LANE_PWR_CTRL_LANE2", 16),
-    ("LANE_PWR_CTRL_LANE3", 16),
-    ("LNK_TRN_CFG_LANE0", 16),
-    ("LNK_TRN_CFG_LANE1", 16),
-    ("LNK_TRN_CFG_LANE2", 16),
-    ("LNK_TRN_CFG_LANE3", 16),
-    ("LNK_TRN_COEFF_REQ_LANE0", 16),
-    ("LNK_TRN_COEFF_REQ_LANE1", 16),
-    ("LNK_TRN_COEFF_REQ_LANE2", 16),
-    ("LNK_TRN_COEFF_REQ_LANE3", 16),
-    ("MISC_CFG", 16),
-    ("MODE_CFG1", 16),
-    ("MODE_CFG2", 16),
-    ("MODE_CFG3", 16),
-    ("MODE_CFG4", 16),
-    ("MODE_CFG5", 16),
-    ("MODE_CFG6", 16),
-    ("MODE_CFG7", 16),
-    ("PCS_ABILITY_LANE0", 16),
-    ("PCS_ABILITY_LANE1", 16),
-    ("PCS_ABILITY_LANE2", 16),
-    ("PCS_ABILITY_LANE3", 16),
-    ("PCS_CTRL1_LANE0", 16),
-    ("PCS_CTRL1_LANE1", 16),
-    ("PCS_CTRL1_LANE2", 16),
-    ("PCS_CTRL1_LANE3", 16),
-    ("PCS_CTRL2_LANE0", 16),
-    ("PCS_CTRL2_LANE1", 16),
-    ("PCS_CTRL2_LANE2", 16),
-    ("PCS_CTRL2_LANE3", 16),
-    ("PCS_MISC_CFG_0_LANE0", 16),
-    ("PCS_MISC_CFG_0_LANE1", 16),
-    ("PCS_MISC_CFG_0_LANE2", 16),
-    ("PCS_MISC_CFG_0_LANE3", 16),
-    ("PCS_MISC_CFG_1_LANE0", 16),
-    ("PCS_MISC_CFG_1_LANE1", 16),
-    ("PCS_MISC_CFG_1_LANE2", 16),
-    ("PCS_MISC_CFG_1_LANE3", 16),
-    ("PCS_MODE_LANE0", 16),
-    ("PCS_MODE_LANE1", 16),
-    ("PCS_MODE_LANE2", 16),
-    ("PCS_MODE_LANE3", 16),
-    ("PCS_RESET_1_LANE0", 16),
-    ("PCS_RESET_1_LANE1", 16),
-    ("PCS_RESET_1_LANE2", 16),
-    ("PCS_RESET_1_LANE3", 16),
-    ("PCS_RESET_LANE0", 16),
-    ("PCS_RESET_LANE1", 16),
-    ("PCS_RESET_LANE2", 16),
-    ("PCS_RESET_LANE3", 16),
-    ("PCS_TYPE_LANE0", 16),
-    ("PCS_TYPE_LANE1", 16),
-    ("PCS_TYPE_LANE2", 16),
-    ("PCS_TYPE_LANE3", 16),
-    ("PLL_CFG0", 16),
-    ("PLL_CFG1", 16),
-    ("PLL_CFG2", 16),
-    ("PMA_CTRL1_LANE0", 16),
-    ("PMA_CTRL1_LANE1", 16),
-    ("PMA_CTRL1_LANE2", 16),
-    ("PMA_CTRL1_LANE3", 16),
-    ("PMA_CTRL2_LANE0", 16),
-    ("PMA_CTRL2_LANE1", 16),
-    ("PMA_CTRL2_LANE2", 16),
-    ("PMA_CTRL2_LANE3", 16),
-    ("PMA_LPBK_CTRL_LANE0", 16),
-    ("PMA_LPBK_CTRL_LANE1", 16),
-    ("PMA_LPBK_CTRL_LANE2", 16),
-    ("PMA_LPBK_CTRL_LANE3", 16),
-    ("PRBS_BER_CFG0_LANE0", 16),
-    ("PRBS_BER_CFG0_LANE1", 16),
-    ("PRBS_BER_CFG0_LANE2", 16),
-    ("PRBS_BER_CFG0_LANE3", 16),
-    ("PRBS_BER_CFG1_LANE0", 16),
-    ("PRBS_BER_CFG1_LANE1", 16),
-    ("PRBS_BER_CFG1_LANE2", 16),
-    ("PRBS_BER_CFG1_LANE3", 16),
-    ("PRBS_CFG_LANE0", 16),
-    ("PRBS_CFG_LANE1", 16),
-    ("PRBS_CFG_LANE2", 16),
-    ("PRBS_CFG_LANE3", 16),
-    ("PTRN_CFG0_LSB", 16),
-    ("PTRN_CFG0_MSB", 16),
-    ("PTRN_LEN_CFG", 16),
-    ("PWRUP_DLY", 16),
-    ("RX_AEQ_VAL0_LANE0", 16),
-    ("RX_AEQ_VAL0_LANE1", 16),
-    ("RX_AEQ_VAL0_LANE2", 16),
-    ("RX_AEQ_VAL0_LANE3", 16),
-    ("RX_AEQ_VAL1_LANE0", 16),
-    ("RX_AEQ_VAL1_LANE1", 16),
-    ("RX_AEQ_VAL1_LANE2", 16),
-    ("RX_AEQ_VAL1_LANE3", 16),
-    ("RX_AGC_CTRL_LANE0", 16),
-    ("RX_AGC_CTRL_LANE1", 16),
-    ("RX_AGC_CTRL_LANE2", 16),
-    ("RX_AGC_CTRL_LANE3", 16),
-    ("RX_CDR_CTRL0_LANE0", 16),
-    ("RX_CDR_CTRL0_LANE1", 16),
-    ("RX_CDR_CTRL0_LANE2", 16),
-    ("RX_CDR_CTRL0_LANE3", 16),
-    ("RX_CDR_CTRL1_LANE0", 16),
-    ("RX_CDR_CTRL1_LANE1", 16),
-    ("RX_CDR_CTRL1_LANE2", 16),
-    ("RX_CDR_CTRL1_LANE3", 16),
-    ("RX_CDR_CTRL2_LANE0", 16),
-    ("RX_CDR_CTRL2_LANE1", 16),
-    ("RX_CDR_CTRL2_LANE2", 16),
-    ("RX_CDR_CTRL2_LANE3", 16),
-    ("RX_CFG0_LANE0", 16),
-    ("RX_CFG0_LANE1", 16),
-    ("RX_CFG0_LANE2", 16),
-    ("RX_CFG0_LANE3", 16),
-    ("RX_CFG1_LANE0", 16),
-    ("RX_CFG1_LANE1", 16),
-    ("RX_CFG1_LANE2", 16),
-    ("RX_CFG1_LANE3", 16),
-    ("RX_CFG2_LANE0", 16),
-    ("RX_CFG2_LANE1", 16),
-    ("RX_CFG2_LANE2", 16),
-    ("RX_CFG2_LANE3", 16),
-    ("RX_CTLE_CTRL_LANE0", 16),
-    ("RX_CTLE_CTRL_LANE1", 16),
-    ("RX_CTLE_CTRL_LANE2", 16),
-    ("RX_CTLE_CTRL_LANE3", 16),
-    ("RX_CTRL_OVRD_LANE0", 16),
-    ("RX_CTRL_OVRD_LANE1", 16),
-    ("RX_CTRL_OVRD_LANE2", 16),
-    ("RX_CTRL_OVRD_LANE3", 16),
-    ("RX_LOOP_CTRL_LANE0", 16),
-    ("RX_LOOP_CTRL_LANE1", 16),
-    ("RX_LOOP_CTRL_LANE2", 16),
-    ("RX_LOOP_CTRL_LANE3", 16),
-    ("RX_MVAL0_LANE0", 16),
-    ("RX_MVAL0_LANE1", 16),
-    ("RX_MVAL0_LANE2", 16),
-    ("RX_MVAL0_LANE3", 16),
-    ("RX_MVAL1_LANE0", 16),
-    ("RX_MVAL1_LANE1", 16),
-    ("RX_MVAL1_LANE2", 16),
-    ("RX_MVAL1_LANE3", 16),
-    ("RX_P0S_CTRL", 16),
-    ("RX_P0_CTRL", 16),
-    ("RX_P1_CTRL", 16),
-    ("RX_P2_CTRL", 16),
-    ("RX_PI_CTRL0", 16),
-    ("RX_PI_CTRL1", 16),
-    ("SLICE_CFG", 16),
-    ("SLICE_NOISE_CTRL_0_LANE01", 16),
-    ("SLICE_NOISE_CTRL_0_LANE23", 16),
-    ("SLICE_NOISE_CTRL_1_LANE01", 16),
-    ("SLICE_NOISE_CTRL_1_LANE23", 16),
-    ("SLICE_NOISE_CTRL_2_LANE01", 16),
-    ("SLICE_NOISE_CTRL_2_LANE23", 16),
-    ("SLICE_TX_RESET_LANE01", 16),
-    ("SLICE_TX_RESET_LANE23", 16),
-    ("TERM_CTRL_LANE0", 16),
-    ("TERM_CTRL_LANE1", 16),
-    ("TERM_CTRL_LANE2", 16),
-    ("TERM_CTRL_LANE3", 16),
-    ("TX_CFG0_LANE0", 16),
-    ("TX_CFG0_LANE1", 16),
-    ("TX_CFG0_LANE2", 16),
-    ("TX_CFG0_LANE3", 16),
-    ("TX_CFG1_LANE0", 16),
-    ("TX_CFG1_LANE1", 16),
-    ("TX_CFG1_LANE2", 16),
-    ("TX_CFG1_LANE3", 16),
-    ("TX_CFG2_LANE0", 16),
-    ("TX_CFG2_LANE1", 16),
-    ("TX_CFG2_LANE2", 16),
-    ("TX_CFG2_LANE3", 16),
-    ("TX_CLK_SEL0_LANE0", 16),
-    ("TX_CLK_SEL0_LANE1", 16),
-    ("TX_CLK_SEL0_LANE2", 16),
-    ("TX_CLK_SEL0_LANE3", 16),
-    ("TX_CLK_SEL1_LANE0", 16),
-    ("TX_CLK_SEL1_LANE1", 16),
-    ("TX_CLK_SEL1_LANE2", 16),
-    ("TX_CLK_SEL1_LANE3", 16),
-    ("TX_DISABLE_LANE0", 16),
-    ("TX_DISABLE_LANE1", 16),
-    ("TX_DISABLE_LANE2", 16),
-    ("TX_DISABLE_LANE3", 16),
-    ("TX_P0P0S_CTRL", 16),
-    ("TX_P1P2_CTRL", 16),
-    ("TX_PREEMPH_LANE0", 16),
-    ("TX_PREEMPH_LANE1", 16),
-    ("TX_PREEMPH_LANE2", 16),
-    ("TX_PREEMPH_LANE3", 16),
-    ("TX_PWR_RATE_OVRD_LANE0", 16),
-    ("TX_PWR_RATE_OVRD_LANE1", 16),
-    ("TX_PWR_RATE_OVRD_LANE2", 16),
-    ("TX_PWR_RATE_OVRD_LANE3", 16),
+const GTH_INVPINS: &[BelInputId] = &[
+    GTH_QUAD::DCLK,
+    GTH_QUAD::SCANCLK,
+    GTH_QUAD::SDSSCANCLK,
+    GTH_QUAD::TPCLK,
+    GTH_QUAD::TSTNOISECLK,
+    GTH_QUAD::RXUSERCLKIN0,
+    GTH_QUAD::RXUSERCLKIN1,
+    GTH_QUAD::RXUSERCLKIN2,
+    GTH_QUAD::RXUSERCLKIN3,
+    GTH_QUAD::TXUSERCLKIN0,
+    GTH_QUAD::TXUSERCLKIN1,
+    GTH_QUAD::TXUSERCLKIN2,
+    GTH_QUAD::TXUSERCLKIN3,
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
@@ -366,32 +46,66 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bslots::HCLK_DRP[0],
             specials::DRP_MASK_GTH,
         )
-        .test_manual_legacy("ENABLE", "1")
+        .test_bel_attr_bits(GTH_QUAD::ENABLE)
         .mode(mode)
         .commit();
+
     for &pin in GTH_INVPINS {
-        bctx.mode(mode).test_inv_legacy(pin);
-    }
-    for &(attr, vals) in GTH_ENUM_ATTRS {
-        bctx.mode(mode).test_enum_legacy(attr, vals);
-    }
-    for &(attr, width) in GTH_BIN_ATTRS {
-        bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
-    }
-    for &(attr, width) in GTH_HEX_ATTRS {
-        bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
+        bctx.mode(mode).test_bel_input_inv_auto(pin);
     }
 
-    for pin in ["GREFCLK", "REFCLK_IN", "REFCLK_SOUTH", "REFCLK_NORTH"] {
+    for (aid, aname, attr) in &backend.edev.db[GTH_QUAD].attributes {
+        match aid {
+            GTH_QUAD::DRP | GTH_QUAD::ENABLE | GTH_QUAD::MUX_REFCLK => (),
+            _ => match attr.typ {
+                BelAttributeType::Bool => {
+                    bctx.mode(mode)
+                        .test_bel_attr_bool_auto(aid, "FALSE", "TRUE");
+                }
+                BelAttributeType::Enum(enums::GTH_QUAD_FABRIC_WIDTH) => {
+                    for (val, vname) in [
+                        (enums::GTH_QUAD_FABRIC_WIDTH::_16_20, "8"),
+                        (enums::GTH_QUAD_FABRIC_WIDTH::_16_20, "10"),
+                        (enums::GTH_QUAD_FABRIC_WIDTH::_16_20, "16"),
+                        (enums::GTH_QUAD_FABRIC_WIDTH::_16_20, "20"),
+                        (enums::GTH_QUAD_FABRIC_WIDTH::_32, "32"),
+                        (enums::GTH_QUAD_FABRIC_WIDTH::_40, "40"),
+                        (enums::GTH_QUAD_FABRIC_WIDTH::_64, "64"),
+                        (enums::GTH_QUAD_FABRIC_WIDTH::_80, "80"),
+                        (enums::GTH_QUAD_FABRIC_WIDTH::_64_66, "6466"),
+                    ] {
+                        bctx.mode(mode)
+                            .test_bel_attr_val(aid, val)
+                            .attr(aname, vname)
+                            .commit();
+                    }
+                }
+                BelAttributeType::Enum(_) => {
+                    bctx.mode(mode).test_bel_attr_auto(aid);
+                }
+                BelAttributeType::BitVec(_width) => {
+                    bctx.mode(mode).test_bel_attr_multi(aid, MultiValue::Hex(0));
+                }
+                _ => unreachable!(),
+            },
+        }
+    }
+
+    for (val, pin) in [
+        (enums::GTH_QUAD_MUX_REFCLK::GREFCLK, "GREFCLK"),
+        (enums::GTH_QUAD_MUX_REFCLK::REFCLK_IN, "REFCLK_IN"),
+        (enums::GTH_QUAD_MUX_REFCLK::REFCLK_SOUTH, "REFCLK_SOUTH"),
+        (enums::GTH_QUAD_MUX_REFCLK::REFCLK_NORTH, "REFCLK_NORTH"),
+    ] {
         bctx.mode(mode)
             .mutex("MUX.REFCLK", pin)
             .attr("PLL_CFG2", "")
-            .test_manual_legacy("MUX.REFCLK", pin)
+            .test_bel_attr_val(GTH_QUAD::MUX_REFCLK, val)
             .pip((PinFar, "REFCLK"), pin)
             .commit();
     }
 
-    let mut bctx = ctx.bel(bslots::BUFDS[0]);
+    let mut bctx = ctx.bel(bslots::GTH_QUAD).sub(1);
     bctx.build()
         .null_bits()
         .test_bel_special(specials::PRESENT)
@@ -400,70 +114,62 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let tile = "GTH";
-    if !ctx.has_tile_legacy(tile) {
+    let tcid = tcls::GTH;
+    if !ctx.has_tcls(tcid) {
         return;
     }
-    let bel = "GTH_QUAD";
+    let bslot = bslots::GTH_QUAD;
     fn drp_bit(idx: usize, bit: usize) -> TileBit {
         let tile = idx >> 3;
         let frame = 28 + (bit & 1);
         let bit = (bit >> 1) | (idx & 7) << 3;
         TileBit::new(tile, frame, bit)
     }
+    let mut drp = vec![];
     for addr in 0..0x140 {
-        ctx.insert_legacy(
-            tile,
-            bel,
-            format!("DRP{addr:03X}"),
-            TileItem::from_bitvec_inv((0..16).map(|bit| drp_bit(addr, bit)).collect(), false),
-        );
-    }
-    ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-    for &pin in GTH_INVPINS {
-        ctx.collect_inv_legacy(tile, bel, pin);
-    }
-    for &(attr, vals) in GTH_ENUM_ATTRS {
-        if attr.contains("X_FABRIC_WIDTH") {
-            let mut diffs = vec![];
-            for (val, sval) in [
-                ("8_10_16_20", "8"),
-                ("8_10_16_20", "10"),
-                ("8_10_16_20", "16"),
-                ("8_10_16_20", "20"),
-                ("32", "32"),
-                ("40", "40"),
-                ("64", "64"),
-                ("80", "80"),
-                ("6466", "6466"),
-            ] {
-                diffs.push((val, ctx.get_diff_legacy(tile, bel, attr, sval)));
-            }
-            ctx.insert_legacy(tile, bel, attr, xlat_enum_legacy(diffs));
-        } else {
-            ctx.collect_enum_legacy(tile, bel, attr, vals);
+        for bit in 0..16 {
+            drp.push(drp_bit(addr, bit).pos());
         }
     }
-    for &(attr, _) in GTH_BIN_ATTRS {
-        ctx.collect_bitvec_legacy(tile, bel, attr, "");
+    ctx.insert_bel_attr_bitvec(tcid, bslot, GTH_QUAD::DRP, drp);
+
+    for &pin in GTH_INVPINS {
+        ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
     }
-    for &(attr, _) in GTH_HEX_ATTRS {
-        let mut diffs = ctx.get_diffs_legacy(tile, bel, attr, "");
-        if attr == "SLICE_NOISE_CTRL_1_LANE01" {
+    ctx.collect_bel_attr(tcid, bslot, GTH_QUAD::ENABLE);
+
+    for (aid, _, attr) in &ctx.edev.db[GTH_QUAD].attributes {
+        if matches!(aid, GTH_QUAD::DRP | GTH_QUAD::ENABLE) {
+            continue;
+        }
+        if aid == GTH_QUAD::MUX_REFCLK {
+            ctx.collect_bel_attr_default(tcid, bslot, aid, enums::GTH_QUAD_MUX_REFCLK::NONE);
+            continue;
+        }
+        if aid == GTH_QUAD::SLICE_NOISE_CTRL_1_LANE01 {
+            // AAAAAAAAAAAAAAARGH
+            let mut diffs = ctx.get_diffs_attr_bits(tcid, bslot, aid, 16);
             let bit = TileBit::new(12, 29, 32);
             assert_eq!(diffs[1].bits.len(), 0);
             assert_eq!(diffs[2].bits.len(), 2);
             diffs[1].bits.insert(bit, true);
             assert_eq!(diffs[2].bits.remove(&bit), Some(true));
+            ctx.insert_bel_attr_bitvec(tcid, bslot, aid, xlat_bitvec(diffs));
+            continue;
         }
-        ctx.insert_legacy(tile, bel, attr, xlat_bitvec_legacy(diffs));
+        match attr.typ {
+            BelAttributeType::Bool => {
+                ctx.collect_bel_attr_bi(tcid, bslot, aid);
+            }
+            BelAttributeType::BitVec(_) => {
+                ctx.collect_bel_attr(tcid, bslot, aid);
+            }
+            BelAttributeType::Enum(_) => {
+                ctx.collect_bel_attr_ocd(tcid, bslot, aid, OcdMode::BitOrderDrpV6);
+            }
+            _ => unreachable!(),
+        }
     }
-    ctx.collect_enum_legacy(
-        tile,
-        bel,
-        "MUX.REFCLK",
-        &["GREFCLK", "REFCLK_IN", "REFCLK_SOUTH", "REFCLK_NORTH"],
-    );
 
     let tcid = tcls::HCLK;
     let bslot = bslots::HCLK_DRP[0];

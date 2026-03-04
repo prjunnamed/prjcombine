@@ -22,7 +22,12 @@ use prjcombine_types::{
 use prjcombine_virtex2::{
     chip::{Chip, ChipKind, IoDiffKind},
     defs::{
-        self, bcls, bslots, devdata, enums, spartan3::tcls as tcls_s3, tables::IOB_DATA, tslots,
+        self,
+        bcls::{self, GLOBAL},
+        bslots, devdata, enums,
+        spartan3::tcls as tcls_s3,
+        tables::IOB_DATA,
+        tslots,
         virtex2::tcls as tcls_v2,
     },
     iob::IobKind,
@@ -169,7 +174,7 @@ pub fn add_fuzzers<'a>(
                         builder = builder.extra_fixed_bel_attr_bits_base_bi(
                             global,
                             bslots::GLOBAL,
-                            bcls::GLOBAL::SEND_VGG,
+                            GLOBAL::SEND_VGG,
                             i,
                             val,
                         );
@@ -186,7 +191,7 @@ pub fn add_fuzzers<'a>(
                     builder = builder.extra_fixed_bel_attr_bits_bi(
                         global,
                         bslots::GLOBAL,
-                        bcls::GLOBAL::VGG_SENDMAX,
+                        GLOBAL::VGG_SENDMAX,
                         val,
                     );
                 }
@@ -303,7 +308,7 @@ pub fn add_fuzzers<'a>(
                         builder = builder.extra_fixed_bel_attr_bits_base_bi(
                             global,
                             bslots::GLOBAL,
-                            bcls::GLOBAL::SEND_VGG,
+                            GLOBAL::SEND_VGG,
                             i,
                             val,
                         );
@@ -317,12 +322,12 @@ pub fn add_fuzzers<'a>(
             for (attr, gattr, opt) in [
                 (
                     bcls::MISC_SW::VGG_SENDMAX,
-                    bcls::GLOBAL::VGG_SENDMAX,
+                    GLOBAL::VGG_SENDMAX,
                     "VGG_SENDMAX",
                 ),
                 (
                     bcls::MISC_SW::VGG_ENABLE_OFFCHIP,
-                    bcls::GLOBAL::VGG_ENABLE_OFFCHIP,
+                    GLOBAL::VGG_ENABLE_OFFCHIP,
                     "VGG_ENABLE_OFFCHIP",
                 ),
             ] {
@@ -492,7 +497,7 @@ pub fn add_fuzzers<'a>(
         if edev.chip.kind == ChipKind::Spartan3E {
             bctx.mode("STARTUP")
                 .null_bits()
-                .extra_fixed_bel_attr_bits(global, bslots::GLOBAL, bcls::GLOBAL::MULTIBOOT_ENABLE)
+                .extra_fixed_bel_attr_bits(global, bslots::GLOBAL, GLOBAL::MULTIBOOT_ENABLE)
                 .test_bel_special(specials::STARTUP_MULTIBOOT_ENABLE)
                 .pin("MBT")
                 .commit();
@@ -504,7 +509,7 @@ pub fn add_fuzzers<'a>(
         ] {
             bctx.mode("STARTUP")
                 .null_bits()
-                .extra_fixed_bel_attr_val(global, bslots::GLOBAL, bcls::GLOBAL::STARTUP_CLOCK, val)
+                .extra_fixed_bel_attr_val(global, bslots::GLOBAL, GLOBAL::STARTUP_CLOCK, val)
                 .pin("CLK")
                 .test_bel_special_val(specials::STARTUP_CLOCK, val)
                 .global("STARTUPCLK", vname)
@@ -532,7 +537,7 @@ pub fn add_fuzzers<'a>(
                     .extra_fixed_bel_attr_bits_bi(
                         global,
                         bslots::GLOBAL,
-                        bcls::GLOBAL::CAPTURE_ONESHOT,
+                        GLOBAL::CAPTURE_ONESHOT,
                         val,
                     )
                     .test_bel_special(specials::CAPTURE_ONESHOT)
@@ -542,7 +547,7 @@ pub fn add_fuzzers<'a>(
         } else {
             bctx.mode("CAPTURE")
                 .null_bits()
-                .extra_fixed_bel_attr_bits(global, bslots::GLOBAL, bcls::GLOBAL::CAPTURE_ONESHOT)
+                .extra_fixed_bel_attr_bits(global, bslots::GLOBAL, GLOBAL::CAPTURE_ONESHOT)
                 .test_bel_special(specials::CAPTURE_ONESHOT)
                 .attr("ONESHOT_ATTR", "ONE_SHOT")
                 .commit();
@@ -552,7 +557,7 @@ pub fn add_fuzzers<'a>(
         if edev.chip.kind.is_spartan3a() {
             bctx.build()
                 .null_bits()
-                .extra_fixed_bel_attr_bits(global, bslots::GLOBAL, bcls::GLOBAL::ICAP_ENABLE)
+                .extra_fixed_bel_attr_bits(global, bslots::GLOBAL, GLOBAL::ICAP_ENABLE)
                 .test_bel_attr_bits(bcls::ICAP::ENABLE)
                 .mode("ICAP")
                 .commit();
@@ -1201,18 +1206,18 @@ pub fn add_fuzzers<'a>(
         (enums::STARTUP_CYCLE::KEEP, "KEEP"),
     ] {
         bctx.build()
-            .test_bel_attr_val(bcls::GLOBAL::GWE_CYCLE, val)
+            .test_bel_attr_val(GLOBAL::GWE_CYCLE, val)
             .global("GWE_CYCLE", vname)
             .commit();
         bctx.build()
-            .test_bel_attr_val(bcls::GLOBAL::GTS_CYCLE, val)
+            .test_bel_attr_val(GLOBAL::GTS_CYCLE, val)
             .global("GTS_CYCLE", vname)
             .commit();
         if val != enums::STARTUP_CYCLE::DONE
             && (val != enums::STARTUP_CYCLE::KEEP || !edev.chip.kind.is_spartan3a())
         {
             bctx.build()
-                .test_bel_attr_val(bcls::GLOBAL::DONE_CYCLE, val)
+                .test_bel_attr_val(GLOBAL::DONE_CYCLE, val)
                 .global("DONE_CYCLE", vname)
                 .commit();
         }
@@ -1232,7 +1237,7 @@ pub fn add_fuzzers<'a>(
         }
         if edev.chip.kind != ChipKind::FpgaCore {
             bctx.build()
-                .test_bel_attr_val(bcls::GLOBAL::LOCK_CYCLE, val)
+                .test_bel_attr_val(GLOBAL::LOCK_CYCLE, val)
                 .global("LCK_CYCLE", vname)
                 .commit();
         }
@@ -1240,27 +1245,23 @@ pub fn add_fuzzers<'a>(
             // option is accepted on S3E, but doesn't do anything
             bctx.build()
                 .global_mutex("DCI", "NO")
-                .test_bel_attr_val(bcls::GLOBAL::MATCH_CYCLE, val)
+                .test_bel_attr_val(GLOBAL::MATCH_CYCLE, val)
                 .global("MATCH_CYCLE", vname)
                 .commit();
         }
     }
     bctx.build()
-        .test_global_attr_bool_rename("DRIVEDONE", bcls::GLOBAL::DRIVE_DONE, "NO", "YES");
+        .test_global_attr_bool_rename("DRIVEDONE", GLOBAL::DRIVE_DONE, "NO", "YES");
     bctx.build()
-        .test_global_attr_bool_rename("DONEPIPE", bcls::GLOBAL::DONE_PIPE, "NO", "YES");
+        .test_global_attr_bool_rename("DONEPIPE", GLOBAL::DONE_PIPE, "NO", "YES");
     if edev.chip.kind.is_spartan3a() {
-        bctx.build().test_global_attr_bool_rename(
-            "DRIVE_AWAKE",
-            bcls::GLOBAL::DRIVE_AWAKE,
-            "NO",
-            "YES",
-        );
+        bctx.build()
+            .test_global_attr_bool_rename("DRIVE_AWAKE", GLOBAL::DRIVE_AWAKE, "NO", "YES");
     }
     if edev.chip.kind != ChipKind::FpgaCore && !edev.chip.kind.is_spartan3a() {
         bctx.build().test_global_attr_bool_rename(
             "DCMSHUTDOWN",
-            bcls::GLOBAL::DCM_SHUTDOWN,
+            GLOBAL::DCM_SHUTDOWN,
             "DISABLE",
             "ENABLE",
         );
@@ -1279,68 +1280,60 @@ pub fn add_fuzzers<'a>(
             .commit();
         bctx.build().test_global_attr_bool_rename(
             "POWERDOWNSTATUS",
-            bcls::GLOBAL::POWERDOWN_STATUS,
+            GLOBAL::POWERDOWN_STATUS,
             "DISABLE",
             "ENABLE",
         );
     }
     bctx.build()
-        .test_global_attr_bool_rename("CRC", bcls::GLOBAL::CRC_ENABLE, "DISABLE", "ENABLE");
+        .test_global_attr_bool_rename("CRC", GLOBAL::CRC_ENABLE, "DISABLE", "ENABLE");
 
     if edev.chip.kind.is_virtex2() {
         bctx.build()
-            .test_global_attr_rename("CONFIGRATE", bcls::GLOBAL::CONFIG_RATE_V2);
+            .test_global_attr_rename("CONFIGRATE", GLOBAL::CONFIG_RATE_V2);
     } else if !edev.chip.kind.is_spartan3ea() {
         bctx.build()
-            .test_global_attr_rename("CONFIGRATE", bcls::GLOBAL::CONFIG_RATE_S3);
+            .test_global_attr_rename("CONFIGRATE", GLOBAL::CONFIG_RATE_S3);
     } else if edev.chip.kind == ChipKind::Spartan3E {
         bctx.build()
-            .test_global_attr_rename("CONFIGRATE", bcls::GLOBAL::CONFIG_RATE_S3E);
+            .test_global_attr_rename("CONFIGRATE", GLOBAL::CONFIG_RATE_S3E);
     }
 
     if !edev.chip.kind.is_virtex2() && !edev.chip.kind.is_spartan3a() {
         bctx.build()
-            .test_global_attr_rename("BUSCLKFREQ", bcls::GLOBAL::BUSCLK_FREQ);
+            .test_global_attr_rename("BUSCLKFREQ", GLOBAL::BUSCLK_FREQ);
 
         if !edev.chip.kind.is_spartan3ea() {
             bctx.build()
-                .test_global_attr_rename("VRDSEL", bcls::GLOBAL::S3_VRDSEL);
+                .test_global_attr_rename("VRDSEL", GLOBAL::S3_VRDSEL);
         } else {
             bctx.build()
-                .test_global_attr_rename("VRDSEL", bcls::GLOBAL::S3E_VRDSEL);
+                .test_global_attr_rename("VRDSEL", GLOBAL::S3E_VRDSEL);
         }
     }
     if edev.chip.kind.is_spartan3a() {
         bctx.build()
-            .test_bel_attr_bits(bcls::GLOBAL::S3A_VRDSEL)
+            .test_bel_attr_bits(GLOBAL::S3A_VRDSEL)
             .multi_global("VRDSEL", MultiValue::Bin, 3);
         bctx.build()
-            .test_global_attr_bool_rename("BPI_DIV8", bcls::GLOBAL::BPI_DIV8, "NO", "YES");
+            .test_global_attr_bool_rename("BPI_DIV8", GLOBAL::BPI_DIV8, "NO", "YES");
         bctx.build().test_global_attr_bool_rename(
             "RESET_ON_ERR",
-            bcls::GLOBAL::RESET_ON_ERR,
+            GLOBAL::RESET_ON_ERR,
             "NO",
             "YES",
         );
-        bctx.build().test_global_attr_bool_rename(
-            "ICAP_BYPASS",
-            bcls::GLOBAL::ICAP_BYPASS,
-            "NO",
-            "YES",
-        );
+        bctx.build()
+            .test_global_attr_bool_rename("ICAP_BYPASS", GLOBAL::ICAP_BYPASS, "NO", "YES");
     }
 
     bctx.build()
-        .test_global_attr_bool_rename("GTS_USR_B", bcls::GLOBAL::GTS_USR_B, "NO", "YES");
+        .test_global_attr_bool_rename("GTS_USR_B", GLOBAL::GTS_USR_B, "NO", "YES");
     bctx.build()
-        .test_global_attr_bool_rename("VGG_TEST", bcls::GLOBAL::VGG_TEST, "NO", "YES");
+        .test_global_attr_bool_rename("VGG_TEST", GLOBAL::VGG_TEST, "NO", "YES");
     if !edev.chip.kind.is_spartan3a() {
-        bctx.build().test_global_attr_bool_rename(
-            "BCLK_TEST",
-            bcls::GLOBAL::BCLK_TEST,
-            "NO",
-            "YES",
-        );
+        bctx.build()
+            .test_global_attr_bool_rename("BCLK_TEST", GLOBAL::BCLK_TEST, "NO", "YES");
         for (val, vname) in [
             (enums::SECURITY::NONE, "NONE"),
             (enums::SECURITY::LEVEL1, "LEVEL1"),
@@ -1351,13 +1344,13 @@ pub fn add_fuzzers<'a>(
                 bctx.build()
                     .global_mutex("DCI", "NO")
                     .global("EARLYGHIGH", "YES")
-                    .test_bel_attr_val(bcls::GLOBAL::SECURITY, val)
+                    .test_bel_attr_val(GLOBAL::SECURITY, val)
                     .global("SECURITY", vname)
                     .commit();
             } else {
                 bctx.build()
                     .global_mutex("DCI", "NO")
-                    .test_bel_attr_val(bcls::GLOBAL::SECURITY, val)
+                    .test_bel_attr_val(GLOBAL::SECURITY, val)
                     .global("SECURITY", vname)
                     .commit();
             }
@@ -1376,120 +1369,100 @@ pub fn add_fuzzers<'a>(
     } else {
         bctx.build().test_global_attr_bool_rename(
             "MULTIBOOTMODE",
-            bcls::GLOBAL::MULTIBOOT_ENABLE,
+            GLOBAL::MULTIBOOT_ENABLE,
             "NO",
             "YES",
         );
         bctx.build()
-            .test_global_attr_rename("SECURITY", bcls::GLOBAL::SECURITY);
+            .test_global_attr_rename("SECURITY", GLOBAL::SECURITY);
 
         // CONFIGRATE too annoying.
         for val in 0..4 {
             bctx.build()
-                .test_bel_attr_bitvec_u32(bcls::GLOBAL::CCLK_DLY, val)
+                .test_bel_attr_bitvec_u32(GLOBAL::CCLK_DLY, val)
                 .global("CCLK_DLY", val.to_string())
                 .commit();
             bctx.build()
-                .test_bel_attr_bitvec_u32(bcls::GLOBAL::CCLK_SEP, val)
+                .test_bel_attr_bitvec_u32(GLOBAL::CCLK_SEP, val)
                 .global("CCLK_SEP", val.to_string())
                 .commit();
             bctx.build()
-                .test_bel_attr_bitvec_u32(bcls::GLOBAL::CLK_SWITCH_OPT, val)
+                .test_bel_attr_bitvec_u32(GLOBAL::CLK_SWITCH_OPT, val)
                 .global("CLK_SWITCH_OPT", val.to_string())
                 .commit();
         }
 
-        bctx.build().test_global_attr_bool_rename(
-            "BRAM_SKIP",
-            bcls::GLOBAL::BRAM_SKIP,
-            "NO",
-            "YES",
-        );
-        bctx.build().test_global_attr_bool_rename(
-            "TWO_ROUND",
-            bcls::GLOBAL::TWO_ROUND,
-            "NO",
-            "YES",
-        );
+        bctx.build()
+            .test_global_attr_bool_rename("BRAM_SKIP", GLOBAL::BRAM_SKIP, "NO", "YES");
+        bctx.build()
+            .test_global_attr_bool_rename("TWO_ROUND", GLOBAL::TWO_ROUND, "NO", "YES");
 
         for val in 1..16 {
             bctx.build()
-                .test_bel_attr_bitvec_u32(bcls::GLOBAL::HC_CYCLE, val)
+                .test_bel_attr_bitvec_u32(GLOBAL::HC_CYCLE, val)
                 .global("HC_CYCLE", val.to_string())
                 .commit();
         }
 
         bctx.build()
-            .test_global_attr_rename("SW_CLK", bcls::GLOBAL::SW_CLK);
+            .test_global_attr_rename("SW_CLK", GLOBAL::SW_CLK);
+        bctx.build()
+            .test_global_attr_bool_rename("EN_SUSPEND", GLOBAL::EN_SUSPEND, "NO", "YES");
+        bctx.build()
+            .test_global_attr_bool_rename("EN_PORB", GLOBAL::EN_PORB, "NO", "YES");
         bctx.build().test_global_attr_bool_rename(
-            "EN_SUSPEND",
-            bcls::GLOBAL::EN_SUSPEND,
+            "SUSPEND_FILTER",
+            GLOBAL::SUSPEND_FILTER,
             "NO",
             "YES",
         );
         bctx.build()
-            .test_global_attr_bool_rename("EN_PORB", bcls::GLOBAL::EN_PORB, "NO", "YES");
-        bctx.build().test_global_attr_bool_rename(
-            "SUSPEND_FILTER",
-            bcls::GLOBAL::SUSPEND_FILTER,
-            "NO",
-            "YES",
-        );
-        bctx.build().test_global_attr_bool_rename(
-            "EN_SW_GSR",
-            bcls::GLOBAL::EN_SW_GSR,
-            "NO",
-            "YES",
-        );
+            .test_global_attr_bool_rename("EN_SW_GSR", GLOBAL::EN_SW_GSR, "NO", "YES");
         for val in 1..8 {
             bctx.build()
-                .test_bel_attr_bitvec_u32(bcls::GLOBAL::WAKE_DELAY1, val)
+                .test_bel_attr_bitvec_u32(GLOBAL::WAKE_DELAY1, val)
                 .global("WAKE_DELAY1", val.to_string())
                 .commit();
         }
         for val in 1..32 {
             bctx.build()
-                .test_bel_attr_bitvec_u32(bcls::GLOBAL::WAKE_DELAY2, val)
+                .test_bel_attr_bitvec_u32(GLOBAL::WAKE_DELAY2, val)
                 .global("WAKE_DELAY2", val.to_string())
                 .commit();
         }
 
         bctx.build()
-            .test_bel_attr_bits(bcls::GLOBAL::SW_GWE_CYCLE)
+            .test_bel_attr_bits(GLOBAL::SW_GWE_CYCLE)
             .multi_global("SW_GWE_CYCLE", MultiValue::Dec(0), 10);
 
         bctx.build()
-            .test_bel_attr_bits(bcls::GLOBAL::SW_GTS_CYCLE)
+            .test_bel_attr_bits(GLOBAL::SW_GTS_CYCLE)
             .multi_global("SW_GTS_CYCLE", MultiValue::Dec(0), 10);
 
-        bctx.build().test_global_attr_bool_rename(
-            "TESTMODE_EN",
-            bcls::GLOBAL::TESTMODE_EN,
-            "NO",
-            "YES",
-        );
+        bctx.build()
+            .test_global_attr_bool_rename("TESTMODE_EN", GLOBAL::TESTMODE_EN, "NO", "YES");
         bctx.build().test_global_attr_bool_rename(
             "NEXT_CONFIG_NEW_MODE",
-            bcls::GLOBAL::NEXT_CONFIG_NEW_MODE,
+            GLOBAL::NEXT_CONFIG_NEW_MODE,
             "NO",
             "YES",
         );
         bctx.build()
-            .test_bel_attr_bits(bcls::GLOBAL::NEXT_CONFIG_BOOT_MODE)
+            .test_bel_attr_bits(GLOBAL::NEXT_CONFIG_BOOT_MODE)
             .multi_global("NEXT_CONFIG_BOOT_MODE", MultiValue::Bin, 3);
         bctx.build()
-            .test_bel_attr_bits(bcls::GLOBAL::BOOTVSEL)
+            .test_bel_attr_bits(GLOBAL::BOOTVSEL)
             .multi_global("BOOTVSEL", MultiValue::Bin, 3);
 
         bctx.build()
-            .test_bel_attr_bits(bcls::GLOBAL::NEXT_CONFIG_ADDR)
+            .test_bel_attr_bits(GLOBAL::NEXT_CONFIG_ADDR)
             .multi_global("NEXT_CONFIG_ADDR", MultiValue::HexPrefix, 32);
 
         bctx.build()
-            .test_global_attr_bool_rename("GLUTMASK", bcls::GLOBAL::GLUTMASK, "NO", "YES");
+            .test_global_attr_bool_rename("GLUTMASK", GLOBAL::GLUTMASK, "NO", "YES");
         bctx.build().test_global_attr_bool_rename(
             "POST_CRC_KEEP",
-            bcls::GLOBAL::POST_CRC_KEEP,
+            GLOBAL::POST_CRC_KEEP,
             "NO",
             "YES",
         );
@@ -2592,7 +2565,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.collect_bel_attr_subset(
             tcid,
             bslot,
-            bcls::GLOBAL::GWE_CYCLE,
+            GLOBAL::GWE_CYCLE,
             &[
                 enums::STARTUP_CYCLE::_1,
                 enums::STARTUP_CYCLE::_2,
@@ -2607,7 +2580,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.collect_bel_attr_subset(
             tcid,
             bslot,
-            bcls::GLOBAL::GTS_CYCLE,
+            GLOBAL::GTS_CYCLE,
             &[
                 enums::STARTUP_CYCLE::_1,
                 enums::STARTUP_CYCLE::_2,
@@ -2622,7 +2595,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.collect_bel_attr_subset(
             tcid,
             bslot,
-            bcls::GLOBAL::DONE_CYCLE,
+            GLOBAL::DONE_CYCLE,
             &[
                 enums::STARTUP_CYCLE::_1,
                 enums::STARTUP_CYCLE::_2,
@@ -2638,7 +2611,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             ctx.collect_bel_attr_subset(
                 tcid,
                 bslot,
-                bcls::GLOBAL::LOCK_CYCLE,
+                GLOBAL::LOCK_CYCLE,
                 &[
                     enums::STARTUP_CYCLE::_0,
                     enums::STARTUP_CYCLE::_1,
@@ -2655,7 +2628,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             ctx.collect_bel_attr_subset(
                 tcid,
                 bslot,
-                bcls::GLOBAL::MATCH_CYCLE,
+                GLOBAL::MATCH_CYCLE,
                 &[
                     enums::STARTUP_CYCLE::_0,
                     enums::STARTUP_CYCLE::_1,
@@ -2668,50 +2641,45 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 ],
             );
         }
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::STARTUP_CLOCK);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::STARTUP_CLOCK);
         if edev.chip.kind == ChipKind::Spartan3E {
-            ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::MULTIBOOT_ENABLE);
+            ctx.collect_bel_attr(tcid, bslot, GLOBAL::MULTIBOOT_ENABLE);
         }
         if edev.chip.kind.is_virtex2() {
-            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::CONFIG_RATE_V2, OcdMode::BitOrder);
+            ctx.collect_bel_attr_ocd(tcid, bslot, GLOBAL::CONFIG_RATE_V2, OcdMode::BitOrder);
         } else if !edev.chip.kind.is_spartan3ea() {
-            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::CONFIG_RATE_S3, OcdMode::BitOrder);
+            ctx.collect_bel_attr_ocd(tcid, bslot, GLOBAL::CONFIG_RATE_S3, OcdMode::BitOrder);
         } else {
-            ctx.collect_bel_attr_ocd(
-                tcid,
-                bslot,
-                bcls::GLOBAL::CONFIG_RATE_S3E,
-                OcdMode::BitOrder,
-            );
+            ctx.collect_bel_attr_ocd(tcid, bslot, GLOBAL::CONFIG_RATE_S3E, OcdMode::BitOrder);
         };
         if !edev.chip.kind.is_virtex2() {
-            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::BUSCLK_FREQ, OcdMode::BitOrder);
+            ctx.collect_bel_attr_ocd(tcid, bslot, GLOBAL::BUSCLK_FREQ, OcdMode::BitOrder);
         }
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DRIVE_DONE);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DONE_PIPE);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::DRIVE_DONE);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::DONE_PIPE);
         if edev.chip.kind != ChipKind::FpgaCore {
-            ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DCM_SHUTDOWN);
+            ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::DCM_SHUTDOWN);
         }
         if edev.chip.kind.is_virtex2() {
-            ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::POWERDOWN_STATUS);
+            ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::POWERDOWN_STATUS);
         }
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::CRC_ENABLE);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::CRC_ENABLE);
         if matches!(edev.chip.kind, ChipKind::Spartan3 | ChipKind::FpgaCore) {
-            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::S3_VRDSEL, OcdMode::BitOrder);
+            ctx.collect_bel_attr_ocd(tcid, bslot, GLOBAL::S3_VRDSEL, OcdMode::BitOrder);
         } else if edev.chip.kind == ChipKind::Spartan3E {
             // ??? 70 == 75?
-            ctx.collect_bel_attr_ocd(tcid, bslot, bcls::GLOBAL::S3E_VRDSEL, OcdMode::BitOrder);
+            ctx.collect_bel_attr_ocd(tcid, bslot, GLOBAL::S3E_VRDSEL, OcdMode::BitOrder);
         }
 
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::CAPTURE_ONESHOT);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::CAPTURE_ONESHOT);
 
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::GTS_USR_B);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::VGG_TEST);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::BCLK_TEST);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::GTS_USR_B);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::VGG_TEST);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::BCLK_TEST);
         ctx.collect_bel_attr_subset(
             tcid,
             bslot,
-            bcls::GLOBAL::SECURITY,
+            GLOBAL::SECURITY,
             &[
                 enums::SECURITY::NONE,
                 enums::SECURITY::LEVEL1,
@@ -2719,27 +2687,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             ],
         );
         // these are too much trouble to deal with the normal way.
-        ctx.insert_bel_attr_bool(
-            tcid,
-            bslot,
-            bcls::GLOBAL::PERSIST,
-            TileBit::new(1, 0, 3).pos(),
-        );
+        ctx.insert_bel_attr_bool(tcid, bslot, GLOBAL::PERSIST, TileBit::new(1, 0, 3).pos());
     } else {
         let tcid = tcls_s3::GLOBAL_S3A;
         let bslot = bslots::GLOBAL;
 
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::STARTUP_CLOCK);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DRIVE_DONE);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DONE_PIPE);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::DRIVE_AWAKE);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::CRC_ENABLE);
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::S3A_VRDSEL);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::STARTUP_CLOCK);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::DRIVE_DONE);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::DONE_PIPE);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::DRIVE_AWAKE);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::CRC_ENABLE);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::S3A_VRDSEL);
 
         ctx.collect_bel_attr_subset(
             tcid,
             bslot,
-            bcls::GLOBAL::GWE_CYCLE,
+            GLOBAL::GWE_CYCLE,
             &[
                 enums::STARTUP_CYCLE::_1,
                 enums::STARTUP_CYCLE::_2,
@@ -2754,7 +2717,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.collect_bel_attr_subset(
             tcid,
             bslot,
-            bcls::GLOBAL::GTS_CYCLE,
+            GLOBAL::GTS_CYCLE,
             &[
                 enums::STARTUP_CYCLE::_1,
                 enums::STARTUP_CYCLE::_2,
@@ -2769,7 +2732,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.collect_bel_attr_subset(
             tcid,
             bslot,
-            bcls::GLOBAL::DONE_CYCLE,
+            GLOBAL::DONE_CYCLE,
             &[
                 enums::STARTUP_CYCLE::_1,
                 enums::STARTUP_CYCLE::_2,
@@ -2783,7 +2746,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.collect_bel_attr_subset(
             tcid,
             bslot,
-            bcls::GLOBAL::LOCK_CYCLE,
+            GLOBAL::LOCK_CYCLE,
             &[
                 enums::STARTUP_CYCLE::_1,
                 enums::STARTUP_CYCLE::_2,
@@ -2794,70 +2757,65 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 enums::STARTUP_CYCLE::NOWAIT,
             ],
         );
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::CAPTURE_ONESHOT);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::BPI_DIV8);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::RESET_ON_ERR);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::ICAP_BYPASS);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::CAPTURE_ONESHOT);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::BPI_DIV8);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::RESET_ON_ERR);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::ICAP_BYPASS);
 
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::GTS_USR_B);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::VGG_TEST);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::MULTIBOOT_ENABLE);
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::SECURITY);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::GTS_USR_B);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::VGG_TEST);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::MULTIBOOT_ENABLE);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::SECURITY);
         // too much trouble to deal with in normal ways.
-        ctx.insert_bel_attr_bool(
-            tcid,
-            bslot,
-            bcls::GLOBAL::PERSIST,
-            TileBit::new(2, 0, 3).pos(),
-        );
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::ICAP_ENABLE);
+        ctx.insert_bel_attr_bool(tcid, bslot, GLOBAL::PERSIST, TileBit::new(2, 0, 3).pos());
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::ICAP_ENABLE);
 
         ctx.insert_bel_attr_bitvec(
             tcid,
             bslot,
-            bcls::GLOBAL::CONFIG_RATE_DIV,
+            GLOBAL::CONFIG_RATE_DIV,
             (0..10).map(|i| TileBit::new(3, 0, i).pos()).collect(),
         );
-        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::CCLK_DLY, 0..4);
-        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::CCLK_SEP, 0..4);
-        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::CLK_SWITCH_OPT, 0..4);
+        ctx.collect_bel_attr_sparse(tcid, bslot, GLOBAL::CCLK_DLY, 0..4);
+        ctx.collect_bel_attr_sparse(tcid, bslot, GLOBAL::CCLK_SEP, 0..4);
+        ctx.collect_bel_attr_sparse(tcid, bslot, GLOBAL::CLK_SWITCH_OPT, 0..4);
 
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::BRAM_SKIP);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::TWO_ROUND);
-        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::HC_CYCLE, 1..16);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::BRAM_SKIP);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::TWO_ROUND);
+        ctx.collect_bel_attr_sparse(tcid, bslot, GLOBAL::HC_CYCLE, 1..16);
 
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::SW_CLK);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::EN_SUSPEND);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::EN_PORB);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::EN_SW_GSR);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::SUSPEND_FILTER);
-        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::WAKE_DELAY1, 1..8);
-        ctx.collect_bel_attr_sparse(tcid, bslot, bcls::GLOBAL::WAKE_DELAY2, 1..32);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::SW_CLK);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::EN_SUSPEND);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::EN_PORB);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::EN_SW_GSR);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::SUSPEND_FILTER);
+        ctx.collect_bel_attr_sparse(tcid, bslot, GLOBAL::WAKE_DELAY1, 1..8);
+        ctx.collect_bel_attr_sparse(tcid, bslot, GLOBAL::WAKE_DELAY2, 1..32);
 
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::SW_GWE_CYCLE);
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::SW_GTS_CYCLE);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::SW_GWE_CYCLE);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::SW_GTS_CYCLE);
 
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::BOOTVSEL);
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::NEXT_CONFIG_BOOT_MODE);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::NEXT_CONFIG_NEW_MODE);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::TESTMODE_EN);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::BOOTVSEL);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::NEXT_CONFIG_BOOT_MODE);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::NEXT_CONFIG_NEW_MODE);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::TESTMODE_EN);
 
-        ctx.collect_bel_attr(tcid, bslot, bcls::GLOBAL::NEXT_CONFIG_ADDR);
+        ctx.collect_bel_attr(tcid, bslot, GLOBAL::NEXT_CONFIG_ADDR);
 
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::GLUTMASK);
-        ctx.collect_bel_attr_bi(tcid, bslot, bcls::GLOBAL::POST_CRC_KEEP);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::GLUTMASK);
+        ctx.collect_bel_attr_bi(tcid, bslot, GLOBAL::POST_CRC_KEEP);
 
         // too much effort to include in the automatic fuzzer
         ctx.insert_bel_attr_bool(
             tcid,
             bslot,
-            bcls::GLOBAL::POST_CRC_EN,
+            GLOBAL::POST_CRC_EN,
             TileBit::new(11, 0, 0).pos(),
         );
         ctx.insert_bel_attr_bitvec(
             tcid,
             bslot,
-            bcls::GLOBAL::POST_CRC_FREQ_DIV,
+            GLOBAL::POST_CRC_FREQ_DIV,
             (0..10).map(|i| TileBit::new(11, 0, 4 + i).pos()).collect(),
         );
     }

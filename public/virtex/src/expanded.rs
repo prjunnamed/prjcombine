@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, RowId, TileCoord};
 use prjcombine_types::bsdata::BitRectId;
-use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
+use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom, Reg};
 
 use crate::{
     chip::{Chip, DisabledPart},
@@ -97,6 +97,11 @@ impl ExpandedDevice<'_> {
         let tile = &self[tcrd];
         if self.db[tile.class].bitrects.is_empty() {
             EntityVec::new()
+        } else if tile.class == tcls::GLOBAL {
+            EntityVec::from_iter([
+                BitRect::Reg(Chip::DIE, Reg::Cor0),
+                BitRect::Reg(Chip::DIE, Reg::Ctl0),
+            ])
         } else if matches!(tile.class, tcls::BRAM_W | tcls::BRAM_E | tcls::BRAM_M) {
             EntityVec::from_iter([
                 self.btile_main(tcrd.col, tcrd.row),

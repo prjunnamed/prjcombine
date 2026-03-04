@@ -1584,8 +1584,8 @@ fn parse_virtex4_bitstream(
                 p => panic!("expected mask got {p:?}"),
             };
             match packets.next() {
-                Some(Packet::Unk1c(val)) => {
-                    diebs.regs.insert(Reg::Unk1C, val);
+                Some(Packet::Trim1(val)) => {
+                    diebs.regs.insert(Reg::Trim1, val);
                 }
                 Some(Packet::Trim(val)) => {
                     diebs.regs.insert(Reg::Trim0, val);
@@ -2000,7 +2000,7 @@ fn parse_virtex4_bitstream(
                 num_nops -= 0x10; // encrypted header
                 num_nops -= 0x78; // encrypted trailer
             }
-            if diebs.regs.contains_key(&Reg::Unk1C) {
+            if diebs.regs.contains_key(&Reg::Trim1) {
                 num_nops -= 4;
             }
             if trim_regs == 0 && diebs.regs.contains_key(&Reg::Trim0) {

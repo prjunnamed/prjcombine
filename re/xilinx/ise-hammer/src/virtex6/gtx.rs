@@ -1,350 +1,35 @@
-use core::ops::Range;
-
-use prjcombine_interconnect::db::WireSlotIdExt;
-use prjcombine_re_collector::{
-    diff::Diff,
-    legacy::{xlat_bit_legacy, xlat_enum_legacy},
-};
+use prjcombine_interconnect::db::{BelAttributeType, BelInputId, WireSlotIdExt};
+use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_bit, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::bsdata::{TileBit, TileItem};
+use prjcombine_types::bsdata::TileBit;
 use prjcombine_virtex4::defs::{
-    bcls, bslots,
+    bcls::{GTCLK, GTX, HCLK_DRP, HCLK_GTX},
+    bslots, enums,
     virtex6::{tcls, wires},
 };
 
 use crate::{
-    backend::IseBackend,
+    backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         int::BaseIntPip,
         props::{mutex::WireMutexExclusive, pip::PinFar, relation::Delta},
     },
+    virtex4::specials,
 };
 
-const GTX_INVPINS: &[&str] = &[
-    "DCLK",
-    "RXUSRCLK",
-    "RXUSRCLK2",
-    "TXUSRCLK",
-    "TXUSRCLK2",
-    "TSTCLK0",
-    "TSTCLK1",
-    "SCANCLK",
-    "GREFCLKRX",
-    "GREFCLKTX",
-];
-
-const GTX_BOOL_ATTRS: &[&str] = &[
-    "AC_CAP_DIS",
-    "CHAN_BOND_KEEP_ALIGN",
-    "CHAN_BOND_SEQ_2_USE",
-    "CLK_COR_INSERT_IDLE_FLAG",
-    "CLK_COR_KEEP_IDLE",
-    "CLK_COR_PRECEDENCE",
-    "CLK_CORRECT_USE",
-    "CLK_COR_SEQ_2_USE",
-    "COMMA_DOUBLE",
-    "DEC_MCOMMA_DETECT",
-    "DEC_PCOMMA_DETECT",
-    "DEC_VALID_COMMA_ONLY",
-    "DFE_DRP_EN",
-    "GEN_RXUSRCLK",
-    "GEN_TXUSRCLK",
-    "GTX_CFG_PWRUP",
-    "LOOPBACK_DRP_EN",
-    "MASTER_DRP_EN",
-    "MCOMMA_DETECT",
-    "PCI_EXPRESS_MODE",
-    "PCOMMA_DETECT",
-    "PDELIDLE_DRP_EN",
-    "PHASEALIGN_DRP_EN",
-    "PLL_DRP_EN",
-    "POLARITY_DRP_EN",
-    "PRBS_DRP_EN",
-    "RCV_TERM_GND",
-    "RCV_TERM_VTTRX",
-    "RESET_DRP_EN",
-    "RX_BUFFER_USE",
-    "RXBUF_OVRD_THRESH",
-    "RX_CDR_FORCE_ROTATE",
-    "RX_DECODE_SEQ_MATCH",
-    "RX_EN_IDLE_HOLD_CDR",
-    "RX_EN_IDLE_HOLD_DFE",
-    "RX_EN_IDLE_RESET_BUF",
-    "RX_EN_IDLE_RESET_FR",
-    "RX_EN_IDLE_RESET_PH",
-    "RX_EN_MODE_RESET_BUF",
-    "RX_EN_RATE_RESET_BUF",
-    "RX_EN_REALIGN_RESET_BUF2",
-    "RX_EN_REALIGN_RESET_BUF",
-    "RXGEARBOX_USE",
-    "RX_LOSS_OF_SYNC_FSM",
-    "RX_OVERSAMPLE_MODE",
-    "RXPLL_STARTUP_EN",
-    "SHOW_REALIGN_COMMA",
-    "TERMINATION_OVRD",
-    "TX_BUFFER_USE",
-    "TXDRIVE_DRP_EN",
-    "TXDRIVE_LOOPBACK_HIZ",
-    "TXDRIVE_LOOPBACK_PD",
-    "TX_EN_RATE_RESET_BUF",
-    "TXGEARBOX_USE",
-    "TX_OVERSAMPLE_MODE",
-    "TXPLL_STARTUP_EN",
-];
-
-const GTX_ENUM_ATTRS: &[(&str, &[&str])] = &[
-    ("ALIGN_COMMA_WORD", &["1", "2"]),
-    ("CHAN_BOND_SEQ_LEN", &["4", "1", "2", "3"]),
-    ("CLK_COR_ADJ_LEN", &["1", "2", "3", "4"]),
-    ("CLK_COR_DET_LEN", &["1", "2", "3", "4"]),
-    ("RX_DATA_WIDTH", &["8", "10", "16", "20", "32", "40"]),
-    ("RX_FIFO_ADDR_MODE", &["FULL", "FAST"]),
-    (
-        "RX_LOS_INVALID_INCR",
-        &["1", "2", "4", "8", "16", "32", "64", "128"],
-    ),
-    (
-        "RX_LOS_THRESHOLD",
-        &["4", "8", "16", "32", "64", "128", "256", "512"],
-    ),
-    ("RXPLL_DIVSEL45_FB", &["4", "5"]),
-    (
-        "RXPLL_DIVSEL_FB",
-        &["1", "2", "3", "4", "5", "6", "8", "10", "12", "16", "20"],
-    ),
-    ("RXPLL_DIVSEL_OUT", &["1", "2", "4"]),
-    (
-        "RXPLL_DIVSEL_REF",
-        &["1", "2", "3", "4", "5", "6", "8", "10", "12", "16", "20"],
-    ),
-    (
-        "RXRECCLK_CTRL",
-        &[
-            "RXRECCLKPCS",
-            "CLKTESTSIG1",
-            "OFF_HIGH",
-            "OFF_LOW",
-            "RXPLLREFCLK_DIV1",
-            "RXPLLREFCLK_DIV2",
-            "RXRECCLKPMA_DIV1",
-            "RXRECCLKPMA_DIV2",
-        ],
-    ),
-    ("RX_SLIDE_MODE", &["#OFF", "AUTO", "PCS", "PMA"]),
-    ("RX_XCLK_SEL", &["RXREC", "RXUSR"]),
-    ("TX_CLK_SOURCE", &["TXPLL", "RXPLL"]),
-    ("TX_DATA_WIDTH", &["8", "10", "16", "20", "32", "40"]),
-    ("TX_DRIVE_MODE", &["DIRECT", "PIPE"]),
-    (
-        "TXOUTCLK_CTRL",
-        &[
-            "TXOUTCLKPCS",
-            "CLKTESTSIG0",
-            "OFF_HIGH",
-            "OFF_LOW",
-            "TXOUTCLKPMA_DIV1",
-            "TXOUTCLKPMA_DIV2",
-            "TXPLLREFCLK_DIV1",
-            "TXPLLREFCLK_DIV2",
-        ],
-    ),
-    ("TXPLL_DIVSEL45_FB", &["4", "5"]),
-    (
-        "TXPLL_DIVSEL_FB",
-        &["1", "2", "3", "4", "5", "6", "8", "10", "12", "16", "20"],
-    ),
-    ("TXPLL_DIVSEL_OUT", &["1", "2", "4"]),
-    (
-        "TXPLL_DIVSEL_REF",
-        &["1", "2", "3", "4", "5", "6", "8", "10", "12", "16", "20"],
-    ),
-    ("TX_XCLK_SEL", &["TXUSR", "TXOUT"]),
-    (
-        "RX_CLK25_DIVIDER",
-        &[
-            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
-            "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
-            "31", "32",
-        ],
-    ),
-    (
-        "TX_CLK25_DIVIDER",
-        &[
-            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
-            "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
-            "31", "32",
-        ],
-    ),
-];
-
-const GTX_ENUM_INT_ATTRS: &[(&str, Range<u32>)] = &[
-    ("CHAN_BOND_1_MAX_SKEW", 1..15),
-    ("CHAN_BOND_2_MAX_SKEW", 1..15),
-    ("CLK_COR_MAX_LAT", 3..49),
-    ("CLK_COR_MIN_LAT", 3..49),
-    ("SAS_MAX_COMSAS", 1..62),
-    ("SAS_MIN_COMSAS", 1..62),
-    ("SATA_MAX_BURST", 1..62),
-    ("SATA_MAX_INIT", 1..62),
-    ("SATA_MAX_WAKE", 1..62),
-    ("SATA_MIN_BURST", 1..62),
-    ("SATA_MIN_INIT", 1..62),
-    ("SATA_MIN_WAKE", 1..62),
-];
-
-const GTX_DEC_ATTRS: &[(&str, usize)] = &[
-    ("CLK_COR_REPEAT_WAIT", 5),
-    ("RXBUF_OVFL_THRESH", 6),
-    ("RXBUF_UDFL_THRESH", 6),
-    ("RX_SLIDE_AUTO_WAIT", 4),
-    ("TXOUTCLKPCS_SEL", 1),
-];
-
-const GTX_BIN_ATTRS: &[(&str, usize)] = &[
-    ("A_DFECLKDLYADJ", 6),
-    ("A_DFEDLYOVRD", 1),
-    ("A_DFETAP1", 5),
-    ("A_DFETAP2", 5),
-    ("A_DFETAP3", 4),
-    ("A_DFETAP4", 4),
-    ("A_DFETAPOVRD", 1),
-    ("A_GTXRXRESET", 1),
-    ("A_GTXTXRESET", 1),
-    ("A_LOOPBACK", 3),
-    ("A_PLLCLKRXRESET", 1),
-    ("A_PLLCLKTXRESET", 1),
-    ("A_PLLRXRESET", 1),
-    ("A_PLLTXRESET", 1),
-    ("A_PRBSCNTRESET", 1),
-    ("A_RXBUFRESET", 1),
-    ("A_RXCDRFREQRESET", 1),
-    ("A_RXCDRHOLD", 1),
-    ("A_RXCDRPHASERESET", 1),
-    ("A_RXCDRRESET", 1),
-    ("A_RXDFERESET", 1),
-    ("A_RXENPMAPHASEALIGN", 1),
-    ("A_RXENPRBSTST", 3),
-    ("A_RXENSAMPLEALIGN", 1),
-    ("A_RXEQMIX", 10),
-    ("A_RXPLLLKDETEN", 1),
-    ("A_RXPLLPOWERDOWN", 1),
-    ("A_RXPMASETPHASE", 1),
-    ("A_RXPOLARITY", 1),
-    ("A_RXPOWERDOWN", 2),
-    ("A_RXRESET", 1),
-    ("A_TXBUFDIFFCTRL", 3),
-    ("A_TXDEEMPH", 1),
-    ("A_TXDIFFCTRL", 4),
-    ("A_TXELECIDLE", 1),
-    ("A_TXENPMAPHASEALIGN", 1),
-    ("A_TXENPRBSTST", 3),
-    ("A_TXMARGIN", 3),
-    ("A_TXPLLLKDETEN", 1),
-    ("A_TXPLLPOWERDOWN", 1),
-    ("A_TXPMASETPHASE", 1),
-    ("A_TXPOLARITY", 1),
-    ("A_TXPOSTEMPHASIS", 5),
-    ("A_TXPOWERDOWN", 2),
-    ("A_TXPRBSFORCEERR", 1),
-    ("A_TXPREEMPHASIS", 4),
-    ("A_TXRESET", 1),
-    ("A_TXSWING", 1),
-    ("BGTEST_CFG", 2),
-    ("CDR_PH_ADJ_TIME", 5),
-    ("CHAN_BOND_SEQ_1_1", 10),
-    ("CHAN_BOND_SEQ_1_2", 10),
-    ("CHAN_BOND_SEQ_1_3", 10),
-    ("CHAN_BOND_SEQ_1_4", 10),
-    ("CHAN_BOND_SEQ_1_ENABLE", 4),
-    ("CHAN_BOND_SEQ_2_1", 10),
-    ("CHAN_BOND_SEQ_2_2", 10),
-    ("CHAN_BOND_SEQ_2_3", 10),
-    ("CHAN_BOND_SEQ_2_4", 10),
-    ("CHAN_BOND_SEQ_2_CFG", 5),
-    ("CHAN_BOND_SEQ_2_ENABLE", 4),
-    ("CLK_COR_SEQ_1_1", 10),
-    ("CLK_COR_SEQ_1_2", 10),
-    ("CLK_COR_SEQ_1_3", 10),
-    ("CLK_COR_SEQ_1_4", 10),
-    ("CLK_COR_SEQ_1_ENABLE", 4),
-    ("CLK_COR_SEQ_2_1", 10),
-    ("CLK_COR_SEQ_2_2", 10),
-    ("CLK_COR_SEQ_2_3", 10),
-    ("CLK_COR_SEQ_2_4", 10),
-    ("CLK_COR_SEQ_2_ENABLE", 4),
-    ("CM_TRIM", 2),
-    ("COMMA_10B_ENABLE", 10),
-    ("COM_BURST_VAL", 4),
-    ("DFE_CAL_TIME", 5),
-    ("DFE_CFG", 8),
-    ("GEARBOX_ENDEC", 3),
-    ("MCOMMA_10B_VALUE", 10),
-    ("OOBDETECT_THRESHOLD", 3),
-    ("PCOMMA_10B_VALUE", 10),
-    ("POWER_SAVE", 10),
-    ("RXPLL_LKDET_CFG", 3),
-    ("RXPRBSERR_LOOPBACK", 1),
-    ("RXRECCLK_DLY", 10),
-    ("RX_DLYALIGN_CTRINC", 4),
-    ("RX_DLYALIGN_EDGESET", 5),
-    ("RX_DLYALIGN_LPFINC", 4),
-    ("RX_DLYALIGN_MONSEL", 3),
-    ("RX_DLYALIGN_OVRDSETTING", 8),
-    ("RX_EYE_SCANMODE", 2),
-    ("RX_IDLE_HI_CNT", 4),
-    ("RX_IDLE_LO_CNT", 4),
-    ("SATA_BURST_VAL", 3),
-    ("SATA_IDLE_VAL", 3),
-    ("TERMINATION_CTRL", 5),
-    ("TXOUTCLK_DLY", 10),
-    ("TXPLL_LKDET_CFG", 3),
-    ("TXPLL_SATA", 2),
-    ("TX_DEEMPH_0", 5),
-    ("TX_DEEMPH_1", 5),
-    ("TX_DLYALIGN_CTRINC", 4),
-    ("TX_DLYALIGN_LPFINC", 4),
-    ("TX_DLYALIGN_MONSEL", 3),
-    ("TX_DLYALIGN_OVRDSETTING", 8),
-    ("TX_IDLE_ASSERT_DELAY", 3),
-    ("TX_IDLE_DEASSERT_DELAY", 3),
-    ("TX_MARGIN_FULL_0", 7),
-    ("TX_MARGIN_FULL_1", 7),
-    ("TX_MARGIN_FULL_2", 7),
-    ("TX_MARGIN_FULL_3", 7),
-    ("TX_MARGIN_FULL_4", 7),
-    ("TX_MARGIN_LOW_0", 7),
-    ("TX_MARGIN_LOW_1", 7),
-    ("TX_MARGIN_LOW_2", 7),
-    ("TX_MARGIN_LOW_3", 7),
-    ("TX_MARGIN_LOW_4", 7),
-    ("TX_PMADATA_OPT", 1),
-    ("TX_TDCC_CFG", 2),
-    ("USR_CODE_ERR_CLR", 1),
-];
-
-const GTX_HEX_ATTRS: &[(&str, usize)] = &[
-    ("BIAS_CFG", 17),
-    ("PMA_CDR_SCAN", 27),
-    ("PMA_CFG", 76),
-    ("PMA_RXSYNC_CFG", 7),
-    ("PMA_RX_CFG", 25),
-    ("PMA_TX_CFG", 20),
-    ("RXPLL_COM_CFG", 24),
-    ("RXPLL_CP_CFG", 8),
-    ("RXUSRCLK_DLY", 16),
-    ("RX_EYE_OFFSET", 8),
-    ("TRANS_TIME_FROM_P2", 12),
-    ("TRANS_TIME_NON_P2", 8),
-    ("TRANS_TIME_RATE", 8),
-    ("TRANS_TIME_TO_P2", 10),
-    ("TST_ATTR", 32),
-    ("TXPLL_COM_CFG", 24),
-    ("TXPLL_CP_CFG", 8),
-    ("TX_BYTECLK_CFG", 6),
-    ("TX_DETECT_RX_CFG", 14),
-    ("TX_USRCLK_CFG", 6),
+const GTX_INVPINS: &[BelInputId] = &[
+    GTX::DCLK,
+    GTX::RXUSRCLK,
+    GTX::RXUSRCLK2,
+    GTX::TXUSRCLK,
+    GTX::TXUSRCLK2,
+    GTX::TSTCLK.index_const(0),
+    GTX::TSTCLK.index_const(1),
+    GTX::SCANCLK,
+    GTX::GREFCLKRX,
+    GTX::GREFCLKTX,
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
@@ -361,84 +46,181 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 Delta::new(0, 0, tcls::HCLK),
                 bslots::HCLK_DRP[0],
                 if i < 2 {
-                    bcls::HCLK_DRP::DRP_MASK_S
+                    HCLK_DRP::DRP_MASK_S
                 } else {
-                    bcls::HCLK_DRP::DRP_MASK_N
+                    HCLK_DRP::DRP_MASK_N
                 },
             )
-            .test_manual_legacy("GTX_CFG_PWRUP", "1")
+            .test_bel_attr_bits(GTX::GTX_CFG_PWRUP)
             .mode(mode)
             .commit();
         for &pin in GTX_INVPINS {
-            bctx.mode(mode).test_inv_legacy(pin);
+            bctx.mode(mode).test_bel_input_inv_auto(pin);
         }
-        for &attr in GTX_BOOL_ATTRS {
-            bctx.mode(mode).test_enum_legacy(attr, &["FALSE", "TRUE"]);
+
+        for (aid, aname, attr) in &backend.edev.db[GTX].attributes {
+            match aid {
+                GTX::DRP
+                | GTX::GTX_CFG_PWRUP
+                | GTX::PMA_CAS_CLK_EN
+                | GTX::RXPLLREFSEL_STATIC_VAL
+                | GTX::RXPLLREFSEL_MODE_DYNAMIC
+                | GTX::RXPLLREFSEL_TESTCLK
+                | GTX::TXPLLREFSEL_STATIC_VAL
+                | GTX::TXPLLREFSEL_MODE_DYNAMIC
+                | GTX::TXPLLREFSEL_TESTCLK => (),
+
+                GTX::CLK_COR_REPEAT_WAIT
+                | GTX::RXBUF_OVFL_THRESH
+                | GTX::RXBUF_UDFL_THRESH
+                | GTX::RX_SLIDE_AUTO_WAIT
+                | GTX::TXOUTCLKPCS_SEL => {
+                    bctx.mode(mode).test_bel_attr_multi(aid, MultiValue::Dec(0));
+                }
+                GTX::RX_CLK25_DIVIDER | GTX::TX_CLK25_DIVIDER => {
+                    bctx.mode(mode).test_bel_attr_multi(aid, MultiValue::Dec(1));
+                }
+
+                GTX::BIAS_CFG
+                | GTX::PMA_CDR_SCAN
+                | GTX::PMA_CFG
+                | GTX::PMA_RXSYNC_CFG
+                | GTX::PMA_RX_CFG
+                | GTX::PMA_TX_CFG
+                | GTX::RXPLL_COM_CFG
+                | GTX::RXPLL_CP_CFG
+                | GTX::RXUSRCLK_DLY
+                | GTX::RX_EYE_OFFSET
+                | GTX::TRANS_TIME_FROM_P2
+                | GTX::TRANS_TIME_NON_P2
+                | GTX::TRANS_TIME_RATE
+                | GTX::TRANS_TIME_TO_P2
+                | GTX::TST_ATTR
+                | GTX::TXPLL_COM_CFG
+                | GTX::TXPLL_CP_CFG
+                | GTX::TX_BYTECLK_CFG
+                | GTX::TX_DETECT_RX_CFG
+                | GTX::TX_USRCLK_CFG => {
+                    bctx.mode(mode).test_bel_attr_multi(aid, MultiValue::Hex(0));
+                }
+
+                GTX::RX_SLIDE_MODE => {
+                    for (val, vname) in [
+                        (enums::GTX_RX_SLIDE_MODE::NONE, "#OFF"),
+                        (enums::GTX_RX_SLIDE_MODE::AUTO, "AUTO"),
+                        (enums::GTX_RX_SLIDE_MODE::PCS, "PCS"),
+                        (enums::GTX_RX_SLIDE_MODE::PMA, "PMA"),
+                    ] {
+                        bctx.mode(mode)
+                            .test_bel_attr_val(aid, val)
+                            .attr(aname, vname)
+                            .commit();
+                    }
+                }
+
+                GTX::CHAN_BOND_1_MAX_SKEW | GTX::CHAN_BOND_2_MAX_SKEW => {
+                    for val in 1..15 {
+                        bctx.mode(mode)
+                            .test_bel_attr_bitvec_u32(aid, val)
+                            .attr(aname, val.to_string())
+                            .commit();
+                    }
+                }
+                GTX::CLK_COR_MAX_LAT | GTX::CLK_COR_MIN_LAT => {
+                    for val in 3..49 {
+                        bctx.mode(mode)
+                            .test_bel_attr_bitvec_u32(aid, val)
+                            .attr(aname, val.to_string())
+                            .commit();
+                    }
+                }
+                GTX::SAS_MAX_COMSAS
+                | GTX::SAS_MIN_COMSAS
+                | GTX::SATA_MAX_BURST
+                | GTX::SATA_MAX_INIT
+                | GTX::SATA_MAX_WAKE
+                | GTX::SATA_MIN_BURST
+                | GTX::SATA_MIN_INIT
+                | GTX::SATA_MIN_WAKE => {
+                    for val in 1..62 {
+                        bctx.mode(mode)
+                            .test_bel_attr_bitvec_u32(aid, val)
+                            .attr(aname, val.to_string())
+                            .commit();
+                    }
+                }
+
+                _ => match attr.typ {
+                    BelAttributeType::Bool => {
+                        bctx.mode(mode)
+                            .test_bel_attr_bool_auto(aid, "FALSE", "TRUE");
+                    }
+                    BelAttributeType::BitVec(_width) => {
+                        bctx.mode(mode).test_bel_attr_multi(aid, MultiValue::Bin);
+                    }
+                    BelAttributeType::Enum(_) => {
+                        bctx.mode(mode).test_bel_attr_auto(aid);
+                    }
+                    _ => unreachable!(),
+                },
+            }
         }
-        for &(attr, vals) in GTX_ENUM_ATTRS {
-            bctx.mode(mode).test_enum_legacy(attr, vals);
-        }
-        for &(attr, ref vals) in GTX_ENUM_INT_ATTRS {
-            let vals = Vec::from_iter(vals.clone().map(|i| i.to_string()));
-            bctx.mode(mode).test_enum_legacy(attr, &vals);
-        }
-        for &(attr, width) in GTX_DEC_ATTRS {
-            bctx.mode(mode).test_multi_attr_dec_legacy(attr, width);
-        }
-        for &(attr, width) in GTX_BIN_ATTRS {
-            bctx.mode(mode).test_multi_attr_bin_legacy(attr, width);
-        }
-        for &(attr, width) in GTX_HEX_ATTRS {
-            bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
+        for val in ["FALSE", "TRUE"] {
+            bctx.build()
+                .null_bits()
+                .mode(mode)
+                .test_bel_special(specials::GTX_CFG_PWRUP)
+                .attr("GTX_CFG_PWRUP", val)
+                .commit();
         }
 
         for (val, orx, otx, pin) in [
             // ("PERFCLK", "PERFCLKRX", "PERFCLKTX", "PERFCLK"),
             (
-                "MGTREFCLK0",
+                enums::GTX_PLLREFSEL::MGTREFCLK0,
                 "MGTREFCLKRX0",
                 "MGTREFCLKTX0",
                 "MGTREFCLKOUT0",
             ),
             (
-                "MGTREFCLK1",
+                enums::GTX_PLLREFSEL::MGTREFCLK1,
                 "MGTREFCLKRX1",
                 "MGTREFCLKTX1",
                 "MGTREFCLKOUT1",
             ),
             (
-                "SOUTHREFCLK0",
+                enums::GTX_PLLREFSEL::SOUTHREFCLK0,
                 "SOUTHREFCLKRX0",
                 "SOUTHREFCLKTX0",
                 "SOUTHREFCLKOUT0",
             ),
             (
-                "SOUTHREFCLK1",
+                enums::GTX_PLLREFSEL::SOUTHREFCLK1,
                 "SOUTHREFCLKRX1",
                 "SOUTHREFCLKTX1",
                 "SOUTHREFCLKOUT1",
             ),
             (
-                "NORTHREFCLK0",
+                enums::GTX_PLLREFSEL::NORTHREFCLK0,
                 "NORTHREFCLKRX0",
                 "NORTHREFCLKTX0",
                 "NORTHREFCLKIN0",
             ),
             (
-                "NORTHREFCLK1",
+                enums::GTX_PLLREFSEL::NORTHREFCLK1,
                 "NORTHREFCLKRX1",
                 "NORTHREFCLKTX1",
                 "NORTHREFCLKIN1",
             ),
         ] {
             bctx.build()
-                .mutex("RXPLLREFSEL", val)
-                .test_manual_legacy("RXPLLREFSEL_STATIC", val)
+                .mutex("RXPLLREFSEL", pin)
+                .test_bel_attr_val(GTX::RXPLLREFSEL_STATIC_VAL, val)
                 .pip(orx, pin)
                 .commit();
             bctx.build()
-                .mutex("TXPLLREFSEL", val)
-                .test_manual_legacy("TXPLLREFSEL_STATIC", val)
+                .mutex("TXPLLREFSEL", pin)
+                .test_bel_attr_val(GTX::TXPLLREFSEL_STATIC_VAL, val)
                 .pip(otx, pin)
                 .commit();
         }
@@ -448,247 +230,319 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .prop(WireMutexExclusive::new(wt))
             .prop(BaseIntPip::new(wt, wf))
             .mutex("RXPLLREFSEL", "PERFCLK")
-            .test_manual_legacy("RXPLLREFSEL_STATIC", "PERFCLK")
+            .test_bel_attr_val(
+                GTX::RXPLLREFSEL_TESTCLK,
+                enums::GTX_PLLREFSEL_TESTCLK::PERFCLK,
+            )
             .pip("PERFCLKRX", (PinFar, "PERFCLKRX"))
             .commit();
         bctx.build()
             .prop(WireMutexExclusive::new(wt))
             .prop(BaseIntPip::new(wt, wf))
             .mutex("TXPLLREFSEL", "PERFCLK")
-            .test_manual_legacy("TXPLLREFSEL_STATIC", "PERFCLK")
+            .test_bel_attr_val(
+                GTX::TXPLLREFSEL_TESTCLK,
+                enums::GTX_PLLREFSEL_TESTCLK::PERFCLK,
+            )
             .pip("PERFCLKTX", (PinFar, "PERFCLKTX"))
             .commit();
         bctx.mode(mode)
             .mutex("RXPLLREFSEL", "CAS_CLK")
             .mutex("TXPLLREFSEL", "CAS_CLK")
-            .test_manual_legacy("PMA_CAS_CLK_EN", "TRUE")
+            .test_bel_attr_bits(GTX::PMA_CAS_CLK_EN)
             .attr("PMA_CAS_CLK_EN", "TRUE")
             .commit();
         bctx.build()
             .mutex("RXPLLREFSEL", "GREFCLK")
-            .test_manual_legacy("RXPLLREFSEL_STATIC", "GREFCLK")
+            .test_bel_attr_val(
+                GTX::RXPLLREFSEL_TESTCLK,
+                enums::GTX_PLLREFSEL_TESTCLK::GREFCLK,
+            )
             .pip("GREFCLKRX", (PinFar, "GREFCLKRX"))
             .commit();
         bctx.build()
             .mutex("TXPLLREFSEL", "GREFCLK")
-            .test_manual_legacy("TXPLLREFSEL_STATIC", "GREFCLK")
+            .test_bel_attr_val(
+                GTX::TXPLLREFSEL_TESTCLK,
+                enums::GTX_PLLREFSEL_TESTCLK::GREFCLK,
+            )
             .pip("GREFCLKTX", (PinFar, "GREFCLKTX"))
             .commit();
         bctx.build()
             .mutex("RXPLLREFSEL", "MODE")
             .pip("GREFCLKRX", (PinFar, "GREFCLKRX"))
-            .test_manual_legacy("RXPLLREFSEL_MODE", "DYNAMIC")
+            .test_bel_attr_bits(GTX::RXPLLREFSEL_MODE_DYNAMIC)
             .pip("MGTREFCLKRX0", "MGTREFCLKOUT0")
             .commit();
         bctx.build()
             .mutex("TXPLLREFSEL", "MODE")
             .pip("GREFCLKTX", (PinFar, "GREFCLKTX"))
-            .test_manual_legacy("TXPLLREFSEL_MODE", "DYNAMIC")
+            .test_bel_attr_bits(GTX::TXPLLREFSEL_MODE_DYNAMIC)
             .pip("MGTREFCLKTX0", "MGTREFCLKOUT0")
             .commit();
     }
     for i in 0..2 {
-        let mut bctx = ctx.bel(bslots::BUFDS[i]);
+        let mut bctx = ctx.bel(bslots::GTCLK[i]);
         let mode = "IBUFDS_GTXE1";
         bctx.mode(mode)
-            .test_enum_legacy("CLKCM_CFG", &["FALSE", "TRUE"]);
+            .test_bel_attr_bool_auto(GTCLK::CLKCM_CFG, "FALSE", "TRUE");
         bctx.mode(mode)
-            .test_enum_legacy("CLKRCV_TRST", &["FALSE", "TRUE"]);
+            .test_bel_attr_bool_auto(GTCLK::CLKRCV_TRST, "FALSE", "TRUE");
         bctx.mode(mode)
-            .test_multi_attr_bin_legacy("REFCLKOUT_DLY", 10);
+            .test_bel_attr_multi(GTCLK::REFCLKOUT_DLY, MultiValue::Bin);
         for (val, pin) in [
-            ("O", "O"),
-            ("ODIV2", "ODIV2"),
-            ("CLKTESTSIG", "CLKTESTSIG_INT"),
+            (enums::GTCLK_MUX_CLKOUT::O, "O"),
+            (enums::GTCLK_MUX_CLKOUT::ODIV2, "ODIV2"),
+            (enums::GTCLK_MUX_CLKOUT::CLKTESTSIG, "CLKTESTSIG"),
         ] {
             bctx.mode(mode)
-                .mutex("MUX.HCLK_OUT", val)
-                .test_manual_legacy("MUX.HCLK_OUT", val)
-                .pip("HCLK_OUT", pin)
+                .mutex("MUX_CLKOUT", pin)
+                .test_bel_attr_val(GTCLK::MUX_CLKOUT, val)
+                .pip("CLKOUT", (PinFar, pin))
                 .commit();
         }
     }
     let mut bctx = ctx.bel(bslots::HCLK_GTX);
-    for i in 0..2 {
+    for (i, attr, val_pass, vals_refclkin) in [
+        (
+            0,
+            HCLK_GTX::MUX_SOUTHREFCLKOUT0,
+            enums::HCLK_GTX_MUX_SOUTHREFCLKOUT0::SOUTHREFCLKIN0,
+            [
+                enums::HCLK_GTX_MUX_SOUTHREFCLKOUT0::MGTREFCLKIN0,
+                enums::HCLK_GTX_MUX_SOUTHREFCLKOUT0::MGTREFCLKIN1,
+            ],
+        ),
+        (
+            1,
+            HCLK_GTX::MUX_SOUTHREFCLKOUT1,
+            enums::HCLK_GTX_MUX_SOUTHREFCLKOUT1::SOUTHREFCLKIN1,
+            [
+                enums::HCLK_GTX_MUX_SOUTHREFCLKOUT1::MGTREFCLKIN0,
+                enums::HCLK_GTX_MUX_SOUTHREFCLKOUT1::MGTREFCLKIN1,
+            ],
+        ),
+    ] {
         for j in 0..2 {
             bctx.build()
-                .mutex(format!("MUX.SOUTHREFCLKOUT{i}"), format!("MGTREFCLKIN{j}"))
-                .test_manual_legacy(format!("MUX.SOUTHREFCLKOUT{i}"), format!("MGTREFCLKIN{j}"))
+                .mutex(format!("MUX_SOUTHREFCLKOUT{i}"), format!("MGTREFCLKIN{j}"))
+                .test_bel_attr_val(attr, vals_refclkin[j])
                 .pip(format!("SOUTHREFCLKOUT{i}"), format!("MGTREFCLKIN{j}"))
                 .commit();
         }
         bctx.build()
             .mutex(
-                format!("MUX.SOUTHREFCLKOUT{i}"),
+                format!("MUX_SOUTHREFCLKOUT{i}"),
                 format!("SOUTHREFCLKIN{i}"),
             )
-            .test_manual_legacy(
-                format!("MUX.SOUTHREFCLKOUT{i}"),
-                format!("SOUTHREFCLKIN{i}"),
-            )
+            .test_bel_attr_val(attr, val_pass)
             .pip(format!("SOUTHREFCLKOUT{i}"), format!("SOUTHREFCLKIN{i}"))
             .commit();
+    }
+    for (i, attr, val_pass, vals_refclkin) in [
+        (
+            0,
+            HCLK_GTX::MUX_NORTHREFCLKOUT0,
+            enums::HCLK_GTX_MUX_NORTHREFCLKOUT0::NORTHREFCLKIN0,
+            [
+                enums::HCLK_GTX_MUX_NORTHREFCLKOUT0::MGTREFCLKIN0,
+                enums::HCLK_GTX_MUX_NORTHREFCLKOUT0::MGTREFCLKIN1,
+            ],
+        ),
+        (
+            1,
+            HCLK_GTX::MUX_NORTHREFCLKOUT1,
+            enums::HCLK_GTX_MUX_NORTHREFCLKOUT1::NORTHREFCLKIN1,
+            [
+                enums::HCLK_GTX_MUX_NORTHREFCLKOUT1::MGTREFCLKIN0,
+                enums::HCLK_GTX_MUX_NORTHREFCLKOUT1::MGTREFCLKIN1,
+            ],
+        ),
+    ] {
         for j in 0..2 {
             bctx.build()
-                .mutex(format!("MUX.NORTHREFCLKOUT{i}"), format!("MGTREFCLKOUT{j}"))
-                .test_manual_legacy(format!("MUX.NORTHREFCLKOUT{i}"), format!("MGTREFCLKOUT{j}"))
+                .mutex(format!("MUX_NORTHREFCLKOUT{i}"), format!("MGTREFCLKOUT{j}"))
+                .test_bel_attr_val(attr, vals_refclkin[j])
                 .pip(format!("NORTHREFCLKOUT{i}"), format!("MGTREFCLKOUT{j}"))
                 .commit();
         }
         bctx.build()
             .mutex(
-                format!("MUX.NORTHREFCLKOUT{i}"),
+                format!("MUX_NORTHREFCLKOUT{i}"),
                 format!("NORTHREFCLKIN{i}"),
             )
-            .test_manual_legacy(
-                format!("MUX.NORTHREFCLKOUT{i}"),
-                format!("NORTHREFCLKIN{i}"),
-            )
+            .test_bel_attr_val(attr, val_pass)
             .pip(format!("NORTHREFCLKOUT{i}"), format!("NORTHREFCLKIN{i}"))
             .commit();
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let tile = "GTX";
-    if !ctx.has_tile_legacy(tile) {
+    let tcid = tcls::GTX;
+    if !ctx.has_tcls(tcid) {
         return;
     }
     for i in 0..4 {
-        let bel = &format!("GTX[{i}]");
+        let bslot = bslots::GTX[i];
         fn drp_bit(which: usize, idx: usize, bit: usize) -> TileBit {
             let tile = which * 10 + (idx >> 3);
             let frame = 28 + (bit & 1);
             let bit = (bit >> 1) | (idx & 7) << 3;
             TileBit::new(tile, frame, bit)
         }
+        let mut drp = vec![];
         for addr in 0..0x50 {
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("DRP{addr:02X}"),
-                TileItem::from_bitvec_inv(
-                    (0..16).map(|bit| drp_bit(i, addr, bit)).collect(),
-                    false,
-                ),
-            );
-        }
-
-        ctx.collect_bit_legacy(tile, bel, "GTX_CFG_PWRUP", "1");
-        for &pin in GTX_INVPINS {
-            ctx.collect_inv_legacy(tile, bel, pin);
-        }
-        for &attr in GTX_BOOL_ATTRS {
-            if attr == "GTX_CFG_PWRUP" {
-                ctx.get_diff_legacy(tile, bel, attr, "FALSE").assert_empty();
-                ctx.get_diff_legacy(tile, bel, attr, "TRUE").assert_empty();
-            } else {
-                ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
+            for bit in 0..16 {
+                drp.push(drp_bit(i, addr, bit).pos());
             }
         }
-        for &(attr, vals) in GTX_ENUM_ATTRS {
-            ctx.collect_enum_legacy(tile, bel, attr, vals);
-        }
-        for &(attr, ref vals) in GTX_ENUM_INT_ATTRS {
-            ctx.collect_enum_legacy_int(tile, bel, attr, vals.clone(), 0);
-        }
-        for &(attr, _) in GTX_DEC_ATTRS {
-            ctx.collect_bitvec_legacy(tile, bel, attr, "");
-        }
-        for &(attr, _) in GTX_BIN_ATTRS {
-            ctx.collect_bitvec_legacy(tile, bel, attr, "");
-        }
-        for &(attr, _) in GTX_HEX_ATTRS {
-            ctx.collect_bitvec_legacy(tile, bel, attr, "");
+        ctx.insert_bel_attr_bitvec(tcid, bslot, GTX::DRP, drp);
+
+        for &pin in GTX_INVPINS {
+            ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
         }
 
-        let mut diff_cas_clk = ctx.get_diff_legacy(tile, bel, "PMA_CAS_CLK_EN", "TRUE");
-        for rxtx in ["RX", "TX"] {
-            let attr_static = &format!("{rxtx}PLLREFSEL_STATIC");
-            let diff_grefclk = ctx.get_diff_legacy(tile, bel, attr_static, "GREFCLK");
+        for (aid, _, attr) in &ctx.edev.db[GTX].attributes {
+            match aid {
+                GTX::DRP
+                | GTX::PMA_CAS_CLK_EN
+                | GTX::RXPLLREFSEL_STATIC_VAL
+                | GTX::RXPLLREFSEL_MODE_DYNAMIC
+                | GTX::RXPLLREFSEL_TESTCLK
+                | GTX::TXPLLREFSEL_STATIC_VAL
+                | GTX::TXPLLREFSEL_MODE_DYNAMIC
+                | GTX::TXPLLREFSEL_TESTCLK => (),
+
+                GTX::GTX_CFG_PWRUP => {
+                    ctx.collect_bel_attr(tcid, bslot, aid);
+                }
+                GTX::CHAN_BOND_1_MAX_SKEW | GTX::CHAN_BOND_2_MAX_SKEW => {
+                    ctx.collect_bel_attr_sparse(tcid, bslot, aid, 1..15);
+                }
+                GTX::CLK_COR_MAX_LAT | GTX::CLK_COR_MIN_LAT => {
+                    ctx.collect_bel_attr_sparse(tcid, bslot, aid, 3..49);
+                }
+                GTX::SAS_MAX_COMSAS
+                | GTX::SAS_MIN_COMSAS
+                | GTX::SATA_MAX_BURST
+                | GTX::SATA_MAX_INIT
+                | GTX::SATA_MAX_WAKE
+                | GTX::SATA_MIN_BURST
+                | GTX::SATA_MIN_INIT
+                | GTX::SATA_MIN_WAKE => {
+                    ctx.collect_bel_attr_sparse(tcid, bslot, aid, 1..62);
+                }
+                _ => match attr.typ {
+                    BelAttributeType::Bool => {
+                        ctx.collect_bel_attr_bi(tcid, bslot, aid);
+                    }
+                    BelAttributeType::BitVec(_) => {
+                        ctx.collect_bel_attr(tcid, bslot, aid);
+                    }
+                    BelAttributeType::Enum(_) => {
+                        ctx.collect_bel_attr_ocd(tcid, bslot, aid, OcdMode::BitOrderDrpV6);
+                    }
+                    _ => unreachable!(),
+                },
+            }
+        }
+
+        let mut diff_cas_clk = ctx.get_diff_attr_bool(tcid, bslot, GTX::PMA_CAS_CLK_EN);
+        for (attr_static, attr_dynamic, attr_testclk) in [
+            (
+                GTX::RXPLLREFSEL_STATIC_VAL,
+                GTX::RXPLLREFSEL_MODE_DYNAMIC,
+                GTX::RXPLLREFSEL_TESTCLK,
+            ),
+            (
+                GTX::TXPLLREFSEL_STATIC_VAL,
+                GTX::TXPLLREFSEL_MODE_DYNAMIC,
+                GTX::TXPLLREFSEL_TESTCLK,
+            ),
+        ] {
+            let diff_grefclk = ctx.get_diff_attr_val(
+                tcid,
+                bslot,
+                attr_testclk,
+                enums::GTX_PLLREFSEL_TESTCLK::GREFCLK,
+            );
             let diff_perfclk = ctx
-                .get_diff_legacy(tile, bel, attr_static, "PERFCLK")
+                .get_diff_attr_val(
+                    tcid,
+                    bslot,
+                    attr_testclk,
+                    enums::GTX_PLLREFSEL_TESTCLK::PERFCLK,
+                )
                 .combine(&!&diff_grefclk);
-            ctx.insert_legacy(
-                tile,
-                bel,
-                format!("{rxtx}PLLREFSEL_TESTCLK"),
-                xlat_enum_legacy(vec![
-                    ("GREFCLK", Diff::default()),
-                    ("PERFCLK", diff_perfclk),
+            ctx.insert_bel_attr_enum(
+                tcid,
+                bslot,
+                attr_testclk,
+                xlat_enum_attr(vec![
+                    (enums::GTX_PLLREFSEL_TESTCLK::GREFCLK, Diff::default()),
+                    (enums::GTX_PLLREFSEL_TESTCLK::PERFCLK, diff_perfclk),
                 ]),
             );
             let mut diffs = vec![];
             for val in [
-                "MGTREFCLK0",
-                "MGTREFCLK1",
-                "NORTHREFCLK0",
-                "NORTHREFCLK1",
-                "SOUTHREFCLK0",
-                "SOUTHREFCLK1",
+                enums::GTX_PLLREFSEL::MGTREFCLK0,
+                enums::GTX_PLLREFSEL::MGTREFCLK1,
+                enums::GTX_PLLREFSEL::NORTHREFCLK0,
+                enums::GTX_PLLREFSEL::NORTHREFCLK1,
+                enums::GTX_PLLREFSEL::SOUTHREFCLK0,
+                enums::GTX_PLLREFSEL::SOUTHREFCLK1,
             ] {
-                diffs.push((val, ctx.get_diff_legacy(tile, bel, attr_static, val)))
+                diffs.push((val, ctx.get_diff_attr_val(tcid, bslot, attr_static, val)))
             }
             diffs.push((
-                "CAS_CLK",
+                enums::GTX_PLLREFSEL::CAS_CLK,
                 diff_cas_clk.split_bits(&diff_grefclk.bits.keys().copied().collect()),
             ));
-            diffs.push(("TESTCLK", diff_grefclk));
-            ctx.insert_legacy(tile, bel, attr_static, xlat_enum_legacy(diffs));
-            ctx.collect_enum_default_legacy(
-                tile,
-                bel,
-                &format!("{rxtx}PLLREFSEL_MODE"),
-                &["DYNAMIC"],
-                "STATIC",
-            );
+            diffs.push((enums::GTX_PLLREFSEL::TESTCLK, diff_grefclk));
+            ctx.insert_bel_attr_enum(tcid, bslot, attr_static, xlat_enum_attr(diffs));
+            ctx.collect_bel_attr(tcid, bslot, attr_dynamic);
         }
-        ctx.insert_legacy(tile, bel, "PMA_CAS_CLK_EN", xlat_bit_legacy(diff_cas_clk));
+        ctx.insert_bel_attr_bool(tcid, bslot, GTX::PMA_CAS_CLK_EN, xlat_bit(diff_cas_clk));
     }
     for i in 0..2 {
-        let bel = &format!("BUFDS[{i}]");
-        ctx.collect_bit_bi_legacy(tile, bel, "CLKCM_CFG", "FALSE", "TRUE");
-        ctx.collect_bit_bi_legacy(tile, bel, "CLKRCV_TRST", "FALSE", "TRUE");
-        ctx.collect_bitvec_legacy(tile, bel, "REFCLKOUT_DLY", "");
-        ctx.collect_enum_default_legacy(
-            tile,
-            bel,
-            "MUX.HCLK_OUT",
-            &["O", "ODIV2", "CLKTESTSIG"],
-            "NONE",
+        let bslot = bslots::GTCLK[i];
+        ctx.collect_bel_attr_bi(tcid, bslot, GTCLK::CLKCM_CFG);
+        ctx.collect_bel_attr_bi(tcid, bslot, GTCLK::CLKRCV_TRST);
+        ctx.collect_bel_attr(tcid, bslot, GTCLK::REFCLKOUT_DLY);
+        ctx.collect_bel_attr_default(
+            tcid,
+            bslot,
+            GTCLK::MUX_CLKOUT,
+            enums::GTCLK_MUX_CLKOUT::NONE,
         );
     }
-    let bel = "HCLK_GTX";
-    ctx.collect_enum_default_legacy(
-        tile,
-        bel,
-        "MUX.SOUTHREFCLKOUT0",
-        &["SOUTHREFCLKIN0", "MGTREFCLKIN0", "MGTREFCLKIN1"],
-        "NONE",
+    let bslot = bslots::HCLK_GTX;
+    ctx.collect_bel_attr_default(
+        tcid,
+        bslot,
+        HCLK_GTX::MUX_SOUTHREFCLKOUT0,
+        enums::HCLK_GTX_MUX_SOUTHREFCLKOUT0::NONE,
     );
-    ctx.collect_enum_default_legacy(
-        tile,
-        bel,
-        "MUX.SOUTHREFCLKOUT1",
-        &["SOUTHREFCLKIN1", "MGTREFCLKIN0", "MGTREFCLKIN1"],
-        "NONE",
+    ctx.collect_bel_attr_default(
+        tcid,
+        bslot,
+        HCLK_GTX::MUX_SOUTHREFCLKOUT1,
+        enums::HCLK_GTX_MUX_SOUTHREFCLKOUT1::NONE,
     );
-    ctx.collect_enum_default_legacy(
-        tile,
-        bel,
-        "MUX.NORTHREFCLKOUT0",
-        &["NORTHREFCLKIN0", "MGTREFCLKOUT0", "MGTREFCLKOUT1"],
-        "NONE",
+    ctx.collect_bel_attr_default(
+        tcid,
+        bslot,
+        HCLK_GTX::MUX_NORTHREFCLKOUT0,
+        enums::HCLK_GTX_MUX_NORTHREFCLKOUT0::NONE,
     );
-    ctx.collect_enum_default_legacy(
-        tile,
-        bel,
-        "MUX.NORTHREFCLKOUT1",
-        &["NORTHREFCLKIN1", "MGTREFCLKOUT0", "MGTREFCLKOUT1"],
-        "NONE",
+    ctx.collect_bel_attr_default(
+        tcid,
+        bslot,
+        HCLK_GTX::MUX_NORTHREFCLKOUT1,
+        enums::HCLK_GTX_MUX_NORTHREFCLKOUT1::NONE,
     );
     let tcid = tcls::HCLK;
     let bslot = bslots::HCLK_DRP[0];
-    ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP::DRP_MASK_S);
-    ctx.collect_bel_attr(tcid, bslot, bcls::HCLK_DRP::DRP_MASK_N);
+    ctx.collect_bel_attr(tcid, bslot, HCLK_DRP::DRP_MASK_S);
+    ctx.collect_bel_attr(tcid, bslot, HCLK_DRP::DRP_MASK_N);
 }

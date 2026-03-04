@@ -10,7 +10,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_collector::diff::{DiffKey, FeatureId, SpecialId};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
-use prjcombine_xilinx_bitstream::{BitRect, Reg};
+use prjcombine_xilinx_bitstream::BitRect;
 
 use crate::backend::IseBackend;
 
@@ -362,71 +362,6 @@ impl<'b, K: KeyMaker + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel<K>
                     rects: backend.edev.tile_bits(tcrd),
                 });
             }
-        }
-        Some((fuzzer, false))
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct ExtraReg {
-    pub regs: Vec<Reg>,
-    pub present: bool,
-    pub tile: String,
-    pub bel: Option<String>,
-    pub attr: Option<String>,
-    pub val: Option<String>,
-}
-
-impl ExtraReg {
-    pub fn new(
-        regs: Vec<Reg>,
-        present: bool,
-        tile: String,
-        bel: Option<String>,
-        attr: Option<String>,
-        val: Option<String>,
-    ) -> Self {
-        Self {
-            regs,
-            present,
-            tile,
-            bel,
-            attr,
-            val,
-        }
-    }
-}
-
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraReg {
-    fn dyn_clone(&self) -> Box<DynProp<'b>> {
-        Box::new(Clone::clone(self))
-    }
-
-    fn apply<'a>(
-        &self,
-        backend: &IseBackend<'a>,
-        _tcrd: TileCoord,
-        mut fuzzer: Fuzzer<IseBackend<'a>>,
-    ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        for die in backend.edev.die.ids() {
-            let DiffKey::Legacy(ref main_id) = fuzzer.info.features[0].key else {
-                unreachable!()
-            };
-            let id = FeatureId {
-                tile: self.tile.clone(),
-                bel: self.bel.as_ref().unwrap_or(&main_id.bel).clone(),
-                attr: self.attr.as_ref().unwrap_or(&main_id.attr).clone(),
-                val: self.val.as_ref().unwrap_or(&main_id.val).clone(),
-            };
-            let mut rects =
-                EntityVec::from_iter(self.regs.iter().map(|&reg| BitRect::Reg(die, reg)));
-            if self.present {
-                rects.extend(self.regs.iter().map(|&reg| BitRect::RegPresent(die, reg)));
-            }
-            fuzzer.info.features.push(FuzzerFeature {
-                key: DiffKey::Legacy(id),
-                rects,
-            });
         }
         Some((fuzzer, false))
     }

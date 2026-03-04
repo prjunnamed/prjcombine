@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::defs::{self, tslots};
+use crate::defs::{bslots, tslots};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ChipKind {
@@ -182,12 +182,12 @@ impl Chip {
             EdgeIoCoord::S(col, iob) => (col, self.row_s(), iob),
             EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
         };
-        let slot = defs::bslots::IO[iob.to_idx()];
+        let slot = bslots::IO[iob.to_idx()];
         Self::DIE.cell(col, row).bel(slot)
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
-        let iob = TileIobId::from_idx(defs::bslots::IO.index_of(bel.slot).unwrap());
+        let iob = TileIobId::from_idx(bslots::IO.index_of(bel.slot).unwrap());
         if bel.col == self.col_w() {
             EdgeIoCoord::W(bel.row, iob)
         } else if bel.col == self.col_e() {
@@ -247,7 +247,15 @@ impl Chip {
     pub fn bel_pci(&self, side: DirH) -> BelCoord {
         Self::DIE
             .cell(self.col_edge(side), self.row_clk())
-            .bel(defs::bslots::PCILOGIC)
+            .bel(bslots::PCILOGIC)
+    }
+
+    pub fn tile_global(&self) -> TileCoord {
+        self.corner(DirHV::SW).tile(tslots::GLOBAL)
+    }
+
+    pub fn bel_global(&self) -> BelCoord {
+        self.tile_global().bel(bslots::GLOBAL)
     }
 }
 

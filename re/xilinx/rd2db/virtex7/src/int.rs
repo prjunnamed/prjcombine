@@ -3331,6 +3331,7 @@ impl IntMaker<'_> {
                 self.builder
                     .bel_xy(bslots::EFUSE_USR, "EFUSE_USR", 0, 0)
                     .raw_tile(2),
+                self.builder.bel_virtual(bslots::MISC_CFG),
             ];
             let mut xn = self
                 .builder
@@ -3554,27 +3555,26 @@ impl IntMaker<'_> {
         ] {
             if let Some(&xy) = self.rd.tiles_by_kind_name(tkn).iter().next() {
                 let intf = self.builder.ndb.get_tile_class_naming(intf_kind);
-                let bels = [
-                    self.builder
-                        .bel_xy(bslots::GTP_CHANNEL, "GTPE2_CHANNEL", 0, 0)
-                        .pins_name_only(&["GTPRXP", "GTPRXN", "GTPTXP", "GTPTXN"])
-                        .pin_name_only("PLL0CLK", 1)
-                        .pin_name_only("PLL1CLK", 1)
-                        .pin_name_only("PLL0REFCLK", 1)
-                        .pin_name_only("PLL1REFCLK", 1),
-                    self.builder
-                        .bel_xy(bslots::IPAD_RXP[0], "IPAD", 0, 1)
-                        .pins_name_only(&["O"]),
-                    self.builder
-                        .bel_xy(bslots::IPAD_RXN[0], "IPAD", 0, 0)
-                        .pins_name_only(&["O"]),
-                    self.builder
-                        .bel_xy(bslots::OPAD_TXP[0], "OPAD", 0, 1)
-                        .pins_name_only(&["I"]),
-                    self.builder
-                        .bel_xy(bslots::OPAD_TXN[0], "OPAD", 0, 0)
-                        .pins_name_only(&["I"]),
-                ];
+                let bel = self
+                    .builder
+                    .bel_xy(bslots::GTP_CHANNEL, "GTPE2_CHANNEL", 0, 0)
+                    .pins_name_only(&["GTPRXP", "GTPRXN", "GTPTXP", "GTPTXN"])
+                    .pin_name_only("PLL0CLK", 1)
+                    .pin_name_only("PLL1CLK", 1)
+                    .pin_name_only("PLL0REFCLK", 1)
+                    .pin_name_only("PLL1REFCLK", 1)
+                    .sub_xy(self.rd, "IPAD", 0, 1)
+                    .pin_rename("O", "IPAD_GTPRXP_O")
+                    .pins_name_only(&["IPAD_GTPRXP_O"])
+                    .sub_xy(self.rd, "IPAD", 0, 0)
+                    .pin_rename("O", "IPAD_GTPRXN_O")
+                    .pins_name_only(&["IPAD_GTPRXN_O"])
+                    .sub_xy(self.rd, "OPAD", 0, 1)
+                    .pin_rename("I", "OPAD_GTPTXP_I")
+                    .pins_name_only(&["OPAD_GTPTXP_I"])
+                    .sub_xy(self.rd, "OPAD", 0, 0)
+                    .pin_rename("I", "OPAD_GTPTXN_I")
+                    .pins_name_only(&["OPAD_GTPTXN_I"]);
                 let mut xn = self.builder.xtile_id(tcid, tkn, xy).num_cells(11);
                 for i in 0..11 {
                     xn = xn.ref_int(xy.delta(int_dx, -5 + i as i32), i).ref_single(
@@ -3583,7 +3583,7 @@ impl IntMaker<'_> {
                         intf,
                     );
                 }
-                xn.bels(bels).extract();
+                xn.bel(bel).extract();
             }
         }
     }
@@ -3653,25 +3653,25 @@ impl IntMaker<'_> {
                 let mut bels = vec![
                     bel,
                     self.builder
-                        .bel_xy(bslots::BUFDS[0], "IBUFDS_GTE2", 0, 0)
+                        .bel_xy(bslots::GTCLK[0], "IBUFDS_GTE2", 0, 0)
                         .pins_name_only(&["I", "IB", "O", "ODIV2"])
-                        .extra_int_out("MGTCLKOUT", &["IBUFDS_GTPE2_0_MGTCLKOUT"]),
+                        .extra_int_out("CLKOUT", &["IBUFDS_GTPE2_0_MGTCLKOUT"])
+                        .sub_xy(self.rd, "IPAD", 0, 0)
+                        .pin_rename("O", "IPAD_I_O")
+                        .pins_name_only(&["IPAD_I_O"])
+                        .sub_xy(self.rd, "IPAD", 0, 1)
+                        .pin_rename("O", "IPAD_IB_O")
+                        .pins_name_only(&["IPAD_IB_O"]),
                     self.builder
-                        .bel_xy(bslots::BUFDS[1], "IBUFDS_GTE2", 0, 1)
+                        .bel_xy(bslots::GTCLK[1], "IBUFDS_GTE2", 0, 1)
                         .pins_name_only(&["I", "IB", "O", "ODIV2"])
-                        .extra_int_out("MGTCLKOUT", &["IBUFDS_GTPE2_1_MGTCLKOUT"]),
-                    self.builder
-                        .bel_xy(bslots::IPAD_CLKP[0], "IPAD", 0, 0)
-                        .pins_name_only(&["O"]),
-                    self.builder
-                        .bel_xy(bslots::IPAD_CLKN[0], "IPAD", 0, 1)
-                        .pins_name_only(&["O"]),
-                    self.builder
-                        .bel_xy(bslots::IPAD_CLKP[1], "IPAD", 0, 2)
-                        .pins_name_only(&["O"]),
-                    self.builder
-                        .bel_xy(bslots::IPAD_CLKN[1], "IPAD", 0, 3)
-                        .pins_name_only(&["O"]),
+                        .extra_int_out("CLKOUT", &["IBUFDS_GTPE2_1_MGTCLKOUT"])
+                        .sub_xy(self.rd, "IPAD", 0, 2)
+                        .pin_rename("O", "IPAD_I_O")
+                        .pins_name_only(&["IPAD_I_O"])
+                        .sub_xy(self.rd, "IPAD", 0, 3)
+                        .pin_rename("O", "IPAD_IB_O")
+                        .pins_name_only(&["IPAD_IB_O"]),
                 ];
                 if tcid == tcls::GTP_COMMON_MID {
                     bels.push(self.builder.bel_virtual(bslots::HCLK_DRP_GTP_MID));
@@ -3765,7 +3765,7 @@ impl IntMaker<'_> {
             (
                 "GTH_CHANNEL_0",
                 tcls::GTH_CHANNEL,
-                bslots::GTH_CHANNEL,
+                bslots::GTX_CHANNEL,
                 "GTHE2_CHANNEL",
                 "INTF_GTH_L",
                 "INTF_GTH",
@@ -3773,7 +3773,7 @@ impl IntMaker<'_> {
             (
                 "GTH_CHANNEL_1",
                 tcls::GTH_CHANNEL,
-                bslots::GTH_CHANNEL,
+                bslots::GTX_CHANNEL,
                 "GTHE2_CHANNEL",
                 "INTF_GTH_L",
                 "INTF_GTH",
@@ -3781,7 +3781,7 @@ impl IntMaker<'_> {
             (
                 "GTH_CHANNEL_2",
                 tcls::GTH_CHANNEL,
-                bslots::GTH_CHANNEL,
+                bslots::GTX_CHANNEL,
                 "GTHE2_CHANNEL",
                 "INTF_GTH_L",
                 "INTF_GTH",
@@ -3789,7 +3789,7 @@ impl IntMaker<'_> {
             (
                 "GTH_CHANNEL_3",
                 tcls::GTH_CHANNEL,
-                bslots::GTH_CHANNEL,
+                bslots::GTX_CHANNEL,
                 "GTHE2_CHANNEL",
                 "INTF_GTH_L",
                 "INTF_GTH",
@@ -3803,35 +3803,42 @@ impl IntMaker<'_> {
                 } else {
                     intf_r_kind
                 });
-                let bels = [
-                    self.builder
-                        .bel_xy(slot, bslot, 0, 0)
-                        .pins_name_only(&if is_gtx {
-                            ["GTXRXP", "GTXRXN", "GTXTXP", "GTXTXN"]
-                        } else {
-                            ["GTHRXP", "GTHRXN", "GTHTXP", "GTHTXN"]
-                        })
-                        .pin_name_only("GTREFCLK0", 1)
-                        .pin_name_only("GTREFCLK1", 1)
-                        .pin_name_only("GTNORTHREFCLK0", 1)
-                        .pin_name_only("GTNORTHREFCLK1", 1)
-                        .pin_name_only("GTSOUTHREFCLK0", 1)
-                        .pin_name_only("GTSOUTHREFCLK1", 1)
-                        .pin_name_only("QPLLCLK", 1)
-                        .pin_name_only("QPLLREFCLK", 1),
-                    self.builder
-                        .bel_xy(bslots::IPAD_RXP[0], "IPAD", 0, 1)
-                        .pins_name_only(&["O"]),
-                    self.builder
-                        .bel_xy(bslots::IPAD_RXN[0], "IPAD", 0, 0)
-                        .pins_name_only(&["O"]),
-                    self.builder
-                        .bel_xy(bslots::OPAD_TXP[0], "OPAD", 0, 1)
-                        .pins_name_only(&["I"]),
-                    self.builder
-                        .bel_xy(bslots::OPAD_TXN[0], "OPAD", 0, 0)
-                        .pins_name_only(&["I"]),
-                ];
+                let pref = if is_gtx { "GTX" } else { "GTH" };
+                let mut bel = self
+                    .builder
+                    .bel_xy(slot, bslot, 0, 0)
+                    .pins_name_only(&if is_gtx {
+                        ["GTXRXP", "GTXRXN", "GTXTXP", "GTXTXN"]
+                    } else {
+                        ["GTHRXP", "GTHRXN", "GTHTXP", "GTHTXN"]
+                    })
+                    .pin_name_only("GTREFCLK0", 1)
+                    .pin_name_only("GTREFCLK1", 1)
+                    .pin_name_only("GTNORTHREFCLK0", 1)
+                    .pin_name_only("GTNORTHREFCLK1", 1)
+                    .pin_name_only("GTSOUTHREFCLK0", 1)
+                    .pin_name_only("GTSOUTHREFCLK1", 1)
+                    .pin_name_only("QPLLCLK", 1)
+                    .pin_name_only("QPLLREFCLK", 1);
+                if tcid == tcls::GTX_CHANNEL {
+                    bel = bel
+                        .pin_rename("RXDATAVALID", "RXDATAVALID0")
+                        .pin_rename("RXHEADERVALID", "RXHEADERVALID0")
+                        .pin_rename("RXSTARTOFSEQ", "RXSTARTOFSEQ0")
+                }
+                bel = bel
+                    .sub_xy(self.rd, "IPAD", 0, 1)
+                    .pin_rename("O", format!("IPAD_{pref}RXP_O"))
+                    .pins_name_only(&[format!("IPAD_{pref}RXP_O")])
+                    .sub_xy(self.rd, "IPAD", 0, 0)
+                    .pin_rename("O", format!("IPAD_{pref}RXN_O"))
+                    .pins_name_only(&[format!("IPAD_{pref}RXN_O")])
+                    .sub_xy(self.rd, "OPAD", 0, 1)
+                    .pin_rename("I", format!("OPAD_{pref}TXP_I"))
+                    .pins_name_only(&[format!("OPAD_{pref}TXP_I")])
+                    .sub_xy(self.rd, "OPAD", 0, 0)
+                    .pin_rename("I", format!("OPAD_{pref}TXN_I"))
+                    .pins_name_only(&[format!("OPAD_{pref}TXN_I")]);
                 let mut xn = self.builder.xtile_id(tcid, tkn, xy).num_cells(11);
                 let int_dx = if is_l { 3 } else { -4 };
                 let intf_dx = if is_l { 2 } else { -3 };
@@ -3842,17 +3849,16 @@ impl IntMaker<'_> {
                         intf,
                     );
                 }
-                xn.bels(bels).extract();
+                xn.bel(bel).extract();
             }
         }
     }
 
     fn fill_gtx_common_tiles(&mut self) {
-        for (tkn, tcid, slot, bslot, intf_l_kind, intf_r_kind) in [
+        for (tkn, tcid, bslot, intf_l_kind, intf_r_kind) in [
             (
                 "GTX_COMMON",
                 tcls::GTX_COMMON,
-                bslots::GTX_COMMON,
                 "GTXE2_COMMON",
                 "INTF_GTX_L",
                 "INTF_GTX",
@@ -3860,7 +3866,6 @@ impl IntMaker<'_> {
             (
                 "GTH_COMMON",
                 tcls::GTH_COMMON,
-                bslots::GTH_COMMON,
                 "GTHE2_COMMON",
                 "INTF_GTH_L",
                 "INTF_GTH",
@@ -3875,7 +3880,7 @@ impl IntMaker<'_> {
                 });
                 let mut bel = self
                     .builder
-                    .bel_xy(slot, bslot, 0, 0)
+                    .bel_xy(bslots::GTX_COMMON, bslot, 0, 0)
                     .pin_name_only("QPLLOUTCLK", 1)
                     .pin_name_only("QPLLOUTREFCLK", 1)
                     .pin_name_only("GTREFCLK0", 1)
@@ -3901,39 +3906,58 @@ impl IntMaker<'_> {
                             ],
                         );
                 }
+                bel = bel
+                    .sub_virtual()
+                    .raw_tile(1)
+                    .extra_wire_force("BRKH_S_REFCLK0", "BRKH_GTX_REFCLK0_UPPER")
+                    .extra_wire_force("BRKH_S_REFCLK1", "BRKH_GTX_REFCLK1_UPPER")
+                    .extra_wire_force("BRKH_S_SOUTHREFCLK0_S", "BRKH_GTX_SOUTHREFCLK0_LOWER")
+                    .extra_wire_force("BRKH_S_SOUTHREFCLK1_S", "BRKH_GTX_SOUTHREFCLK1_LOWER")
+                    .extra_wire_force("BRKH_S_SOUTHREFCLK0", "BRKH_GTX_SOUTHREFCLK0_UPPER")
+                    .extra_wire_force("BRKH_S_SOUTHREFCLK1", "BRKH_GTX_SOUTHREFCLK1_UPPER")
+                    .sub_virtual()
+                    .raw_tile(2)
+                    .extra_wire_force("BRKH_N_REFCLK0", "BRKH_GTX_REFCLK0_LOWER")
+                    .extra_wire_force("BRKH_N_REFCLK1", "BRKH_GTX_REFCLK1_LOWER")
+                    .extra_wire_force("BRKH_N_NORTHREFCLK0", "BRKH_GTX_NORTHREFCLK0_LOWER")
+                    .extra_wire_force("BRKH_N_NORTHREFCLK1", "BRKH_GTX_NORTHREFCLK1_LOWER")
+                    .extra_wire_force("BRKH_N_NORTHREFCLK0_N", "BRKH_GTX_NORTHREFCLK0_UPPER")
+                    .extra_wire_force("BRKH_N_NORTHREFCLK1_N", "BRKH_GTX_NORTHREFCLK1_UPPER");
 
                 let bels = [
                     bel,
                     self.builder
-                        .bel_xy(bslots::BUFDS[0], "IBUFDS_GTE2", 0, 0)
+                        .bel_xy(bslots::GTCLK[0], "IBUFDS_GTE2", 0, 0)
                         .pins_name_only(&["I", "IB", "O", "ODIV2"])
                         .extra_int_out(
-                            "MGTCLKOUT",
+                            "CLKOUT",
                             &["IBUFDS_GTE2_0_MGTCLKOUT", "IBUFDS_GTHE2_0_MGTCLKOUT"],
-                        ),
+                        )
+                        .sub_xy(self.rd, "IPAD", 0, 0)
+                        .pin_rename("O", "IPAD_I_O")
+                        .pins_name_only(&["IPAD_I_O"])
+                        .sub_xy(self.rd, "IPAD", 0, 1)
+                        .pin_rename("O", "IPAD_IB_O")
+                        .pins_name_only(&["IPAD_IB_O"]),
                     self.builder
-                        .bel_xy(bslots::BUFDS[1], "IBUFDS_GTE2", 0, 1)
+                        .bel_xy(bslots::GTCLK[1], "IBUFDS_GTE2", 0, 1)
                         .pins_name_only(&["I", "IB", "O", "ODIV2"])
                         .extra_int_out(
-                            "MGTCLKOUT",
+                            "CLKOUT",
                             &["IBUFDS_GTE2_1_MGTCLKOUT", "IBUFDS_GTHE2_1_MGTCLKOUT"],
-                        ),
-                    self.builder
-                        .bel_xy(bslots::IPAD_CLKP[0], "IPAD", 0, 0)
-                        .pins_name_only(&["O"]),
-                    self.builder
-                        .bel_xy(bslots::IPAD_CLKN[0], "IPAD", 0, 1)
-                        .pins_name_only(&["O"]),
-                    self.builder
-                        .bel_xy(bslots::IPAD_CLKP[1], "IPAD", 0, 2)
-                        .pins_name_only(&["O"]),
-                    self.builder
-                        .bel_xy(bslots::IPAD_CLKN[1], "IPAD", 0, 3)
-                        .pins_name_only(&["O"]),
+                        )
+                        .sub_xy(self.rd, "IPAD", 0, 2)
+                        .pin_rename("O", "IPAD_I_O")
+                        .pins_name_only(&["IPAD_I_O"])
+                        .sub_xy(self.rd, "IPAD", 0, 3)
+                        .pin_rename("O", "IPAD_IB_O")
+                        .pins_name_only(&["IPAD_IB_O"]),
                 ];
                 let mut xn = self
                     .builder
                     .xtile_id(tcid, tkn, xy)
+                    .raw_tile(xy.delta(0, -23))
+                    .raw_tile(xy.delta(0, 29))
                     .num_cells(6)
                     .switchbox(bslots::SPEC_INT)
                     .optin_muxes(&wires::HROW_O[..]);
@@ -3961,28 +3985,6 @@ impl IntMaker<'_> {
                     *mode = PipMode::PermaBuf;
                 }
             }
-        }
-        if let Some(&xy) = self.rd.tiles_by_kind_name("BRKH_GTX").iter().next() {
-            let bel = self
-                .builder
-                .bel_virtual(bslots::BRKH_GTX)
-                .extra_wire("REFCLK0_D", &["BRKH_GTX_REFCLK0_LOWER"])
-                .extra_wire("REFCLK1_D", &["BRKH_GTX_REFCLK1_LOWER"])
-                .extra_wire("REFCLK0_U", &["BRKH_GTX_REFCLK0_UPPER"])
-                .extra_wire("REFCLK1_U", &["BRKH_GTX_REFCLK1_UPPER"])
-                .extra_wire("NORTHREFCLK0_D", &["BRKH_GTX_NORTHREFCLK0_LOWER"])
-                .extra_wire("NORTHREFCLK1_D", &["BRKH_GTX_NORTHREFCLK1_LOWER"])
-                .extra_wire("NORTHREFCLK0_U", &["BRKH_GTX_NORTHREFCLK0_UPPER"])
-                .extra_wire("NORTHREFCLK1_U", &["BRKH_GTX_NORTHREFCLK1_UPPER"])
-                .extra_wire("SOUTHREFCLK0_D", &["BRKH_GTX_SOUTHREFCLK0_LOWER"])
-                .extra_wire("SOUTHREFCLK1_D", &["BRKH_GTX_SOUTHREFCLK1_LOWER"])
-                .extra_wire("SOUTHREFCLK0_U", &["BRKH_GTX_SOUTHREFCLK0_UPPER"])
-                .extra_wire("SOUTHREFCLK1_U", &["BRKH_GTX_SOUTHREFCLK1_UPPER"]);
-            self.builder
-                .xtile_id(tcls::BRKH_GTX, "BRKH_GTX", xy)
-                .num_cells(0)
-                .bel(bel)
-                .extract();
         }
     }
 }

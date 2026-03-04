@@ -1,6 +1,7 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::WireSlotIdExt,
+    dir::Dir,
     grid::{BelCoord, DieId, DieIdExt, RowId},
 };
 use prjcombine_re_xilinx_naming::db::RawTileId;
@@ -288,7 +289,7 @@ fn verify_pll(vrf: &mut Verifier, bcrd: BelCoord) {
     bel.commit();
 }
 
-fn verify_gt(vrf: &mut Verifier, bcrd: BelCoord) {
+fn verify_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let grefclk = match bcrd.slot {
         bslots::GTP_DUAL => bcls::GTP_DUAL::GREFCLK,
         bslots::GTX_DUAL => bcls::GTX_DUAL::GREFCLK,
@@ -317,7 +318,7 @@ fn verify_gt(vrf: &mut Verifier, bcrd: BelCoord) {
     bel.claim_net(&[bel.wire("CLKOUT_SOUTH")]);
     bel.claim_pip(bel.wire("CLKOUT_SOUTH"), bel.wire("CLKOUT_SOUTH_N"));
     bel.claim_pip(bel.wire("CLKOUT_SOUTH"), bel.wire("BUFDS_O"));
-    if let Some(obel) = bel.vrf.grid.bel_delta(bcrd.cell, 0, -20, bcrd.slot) {
+    if let Some(obel) = edev.bel_gtclk_neighbour(bcrd, Dir::S) {
         bel.verify_net(&[
             bel.wire("CLKOUT_NORTH_S"),
             bel.bel_wire(obel, "CLKOUT_NORTH"),
@@ -325,7 +326,7 @@ fn verify_gt(vrf: &mut Verifier, bcrd: BelCoord) {
     } else {
         bel.claim_net(&[bel.wire("CLKOUT_NORTH_S")]);
     }
-    if let Some(obel) = bel.vrf.grid.bel_delta(bcrd.cell, 0, 20, bcrd.slot) {
+    if let Some(obel) = edev.bel_gtclk_neighbour(bcrd, Dir::N) {
         bel.verify_net(&[
             bel.wire("CLKOUT_SOUTH_N"),
             bel.bel_wire(obel, "CLKOUT_SOUTH"),
@@ -437,7 +438,7 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         _ if bslots::DCM.contains(bcrd.slot) => vrf.verify_bel(bcrd).kind("DCM_ADV").commit(),
         _ if bslots::PLL.contains(bcrd.slot) => verify_pll(vrf, bcrd),
 
-        bslots::GTX_DUAL | bslots::GTP_DUAL => verify_gt(vrf, bcrd),
+        bslots::GTX_DUAL | bslots::GTP_DUAL => verify_gt(edev, vrf, bcrd),
         _ if bslots::CRC32.contains(bcrd.slot) => verify_crc32(vrf, bcrd),
 
         _ if bslots::BUFR.contains(bcrd.slot) => vrf.verify_bel(bcrd).commit(),

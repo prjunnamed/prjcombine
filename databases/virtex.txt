@@ -82224,6 +82224,74 @@ device xcv812e {
 }
 
 intdb {
+	enum STARTUP_CYCLE {
+		_0,
+		_1,
+		_2,
+		_3,
+		_4,
+		_5,
+		_6,
+		DONE,
+		KEEP,
+		NOWAIT,
+	}
+
+	enum STARTUP_CLOCK {
+		CCLK,
+		USERCLK,
+		JTAGCLK,
+	}
+
+	enum CONFIG_RATE {
+		_4,
+		_5,
+		_7,
+		_8,
+		_9,
+		_10,
+		_13,
+		_15,
+		_20,
+		_26,
+		_30,
+		_34,
+		_41,
+		_51,
+		_55,
+		_60,
+		_130,
+	}
+
+	enum SECURITY {
+		NONE,
+		LEVEL1,
+		LEVEL2,
+	}
+
+	bel_class GLOBAL {
+		attribute GSR_CYCLE: STARTUP_CYCLE;
+		attribute GWE_CYCLE: STARTUP_CYCLE;
+		attribute GTS_CYCLE: STARTUP_CYCLE;
+		attribute LOCK_CYCLE: STARTUP_CYCLE;
+		attribute DONE_CYCLE: STARTUP_CYCLE;
+		attribute SHUTDOWN: bool;
+		attribute LOCK_WAIT_SW: bool;
+		attribute LOCK_WAIT_SE: bool;
+		attribute LOCK_WAIT_NW: bool;
+		attribute LOCK_WAIT_NE: bool;
+		attribute STARTUP_CLOCK: STARTUP_CLOCK;
+		attribute CONFIG_RATE: CONFIG_RATE;
+		attribute CAPTURE_ONESHOT: bool;
+		attribute DRIVE_DONE: bool;
+		attribute DONE_PIPE: bool;
+		attribute GTS_USR_B: bool;
+		attribute DISPMP2: bool;
+		attribute DISPMP1: bool;
+		attribute PERSIST: bool;
+		attribute SECURITY: SECURITY;
+	}
+
 	region_slot GLOBAL;
 	region_slot LEAF;
 	region_slot PCI_CE;
@@ -88701,6 +88769,108 @@ intdb {
 			// wire BRAM.GCLK[1]                   CLKV_BRAM_N.IN1
 			// wire BRAM.GCLK[2]                   CLKV_BRAM_N.IN2
 			// wire BRAM.GCLK[3]                   CLKV_BRAM_N.IN3
+		}
+	}
+
+	tile_slot GLOBAL {
+		bel_slot GLOBAL: GLOBAL;
+
+		tile_class GLOBAL {
+			bitrect COR: Horizontal (1, rev 32);
+			bitrect CTL: Horizontal (1, rev 32);
+
+			bel GLOBAL {
+				attribute GSR_CYCLE @[COR[0][2], COR[0][1], COR[0][0]] {
+					_1 = 0b000,
+					_2 = 0b001,
+					_3 = 0b010,
+					_4 = 0b011,
+					_5 = 0b100,
+					_6 = 0b101,
+					DONE = 0b110,
+					KEEP = 0b111,
+				}
+				attribute GWE_CYCLE @[COR[0][5], COR[0][4], COR[0][3]] {
+					_1 = 0b000,
+					_2 = 0b001,
+					_3 = 0b010,
+					_4 = 0b011,
+					_5 = 0b100,
+					_6 = 0b101,
+					DONE = 0b110,
+					KEEP = 0b111,
+				}
+				attribute GTS_CYCLE @[COR[0][8], COR[0][7], COR[0][6]] {
+					_1 = 0b000,
+					_2 = 0b001,
+					_3 = 0b010,
+					_4 = 0b011,
+					_5 = 0b100,
+					_6 = 0b101,
+					DONE = 0b110,
+					KEEP = 0b111,
+				}
+				attribute LOCK_CYCLE @[COR[0][11], COR[0][10], COR[0][9]] {
+					_0 = 0b000,
+					_1 = 0b001,
+					_2 = 0b010,
+					_3 = 0b011,
+					_4 = 0b100,
+					_5 = 0b101,
+					_6 = 0b110,
+					NOWAIT = 0b111,
+				}
+				attribute DONE_CYCLE @[COR[0][14], COR[0][13], COR[0][12]] {
+					_1 = 0b000,
+					_2 = 0b001,
+					_3 = 0b010,
+					_4 = 0b011,
+					_5 = 0b100,
+					_6 = 0b101,
+					KEEP = 0b111,
+				}
+				attribute SHUTDOWN @COR[0][15];
+				attribute LOCK_WAIT_SW @COR[0][17];
+				attribute LOCK_WAIT_SE @COR[0][16];
+				attribute LOCK_WAIT_NW @COR[0][19];
+				attribute LOCK_WAIT_NE @COR[0][18];
+				attribute STARTUP_CLOCK @[COR[0][21], COR[0][20]] {
+					CCLK = 0b00,
+					USERCLK = 0b01,
+					JTAGCLK = 0b10,
+				}
+				attribute CONFIG_RATE @[COR[0][27], COR[0][26], COR[0][25], COR[0][24], COR[0][23], COR[0][22]] {
+					_4 = 0b000010,
+					_5 = 0b010001,
+					_7 = 0b000100,
+					_8 = 0b000101,
+					_9 = 0b000110,
+					_10 = 0b000111,
+					_13 = 0b001010,
+					_15 = 0b001101,
+					_20 = 0b010111,
+					_26 = 0b011010,
+					_30 = 0b011101,
+					_34 = 0b110010,
+					_41 = 0b100111,
+					_51 = 0b101010,
+					_55 = 0b110100,
+					_60 = 0b101101,
+					_130 = 0b111111,
+				}
+				attribute CAPTURE_ONESHOT @COR[0][28];
+				attribute DRIVE_DONE @COR[0][29];
+				attribute DONE_PIPE @COR[0][30];
+				attribute GTS_USR_B @CTL[0][0];
+				attribute DISPMP2 @CTL[0][1];
+				attribute DISPMP1 @CTL[0][2];
+				attribute PERSIST @CTL[0][6];
+				attribute SECURITY @[CTL[0][8], CTL[0][7]] {
+					NONE = 0b00,
+					LEVEL1 = 0b01,
+					LEVEL2 = 0b10,
+				}
+			}
 		}
 	}
 
@@ -107296,94 +107466,6 @@ bstile PCI_W {
 		0010: HEX_V5[1]
 		0100: HEX_V6[1]
 		0000: NONE
-}
-
-bstile REG.COR {
-	CAPTURE:ONESHOT: R0.F0.B28 inv 0
-	STARTUP:CONFIG_RATE: R0.F0.B27 R0.F0.B26 R0.F0.B25 R0.F0.B24 R0.F0.B23 R0.F0.B22
-		000111: 10
-		001010: 13
-		111111: 130
-		001101: 15
-		010111: 20
-		011010: 26
-		011101: 30
-		110010: 34
-		000010: 4
-		100111: 41
-		010001: 5
-		101010: 51
-		110100: 55
-		101101: 60
-		000100: 7
-		000101: 8
-		000110: 9
-	STARTUP:DLL_WAIT_BL: R0.F0.B17 inv 0
-	STARTUP:DLL_WAIT_BR: R0.F0.B16 inv 0
-	STARTUP:DLL_WAIT_TL: R0.F0.B19 inv 0
-	STARTUP:DLL_WAIT_TR: R0.F0.B18 inv 0
-	STARTUP:DONE_CYCLE: R0.F0.B14 R0.F0.B13 R0.F0.B12
-		000: 1
-		001: 2
-		010: 3
-		011: 4
-		100: 5
-		101: 6
-		111: KEEP
-	STARTUP:DONE_PIPE: R0.F0.B30 inv 0
-	STARTUP:DRIVE_DONE: R0.F0.B29 inv 0
-	STARTUP:GSR_CYCLE: R0.F0.B2 R0.F0.B1 R0.F0.B0
-		000: 1
-		001: 2
-		010: 3
-		011: 4
-		100: 5
-		101: 6
-		110: DONE
-		111: KEEP
-	STARTUP:GTS_CYCLE: R0.F0.B8 R0.F0.B7 R0.F0.B6
-		000: 1
-		001: 2
-		010: 3
-		011: 4
-		100: 5
-		101: 6
-		110: DONE
-		111: KEEP
-	STARTUP:GWE_CYCLE: R0.F0.B5 R0.F0.B4 R0.F0.B3
-		000: 1
-		001: 2
-		010: 3
-		011: 4
-		100: 5
-		101: 6
-		110: DONE
-		111: KEEP
-	STARTUP:LCK_CYCLE: R0.F0.B11 R0.F0.B10 R0.F0.B9
-		000: 0
-		001: 1
-		010: 2
-		011: 3
-		100: 4
-		101: 5
-		110: 6
-		111: NOWAIT
-	STARTUP:SHUTDOWN: R0.F0.B15 inv 0
-	STARTUP:STARTUPCLK: R0.F0.B21 R0.F0.B20
-		00: CCLK
-		10: JTAGCLK
-		01: USERCLK
-}
-
-bstile REG.CTL {
-	MISC:DISPMP1: R0.F0.B2 inv 0
-	MISC:DISPMP2: R0.F0.B1 inv 0
-	MISC:GTS_USR_B: R0.F0.B0 inv 0
-	MISC:PERSIST: R0.F0.B6 inv 0
-	MISC:SECURITY: R0.F0.B8 R0.F0.B7
-		01: LEVEL1
-		10: LEVEL2
-		00: NONE
 }
 
 misc_data IOSTD:V:IOSTD_MISC:AGP = 0b000;

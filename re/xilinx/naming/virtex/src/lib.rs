@@ -3,7 +3,7 @@ use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, DieIdExt, EdgeIoCoo
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex::{
     chip::{Chip, ChipKind, DisabledPart},
-    defs,
+    defs::{self, tcls},
     expanded::ExpandedDevice,
 };
 
@@ -184,44 +184,44 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let CellCoord { col, row, .. } = tcrd.cell;
         let kind = edev.db.tile_classes.key(tile.class);
         match tile.class {
-            defs::tcls::CNR_SW => {
+            tcls::CNR_SW => {
                 let ntile = namer.ngrid.name_tile(tcrd, "CNR_SW", ["BL".into()]);
                 ntile.add_bel(defs::bslots::CAPTURE, "CAPTURE".to_string());
             }
-            defs::tcls::CNR_NW => {
+            tcls::CNR_NW => {
                 let ntile = namer.ngrid.name_tile(tcrd, "CNR_NW", ["TL".into()]);
                 ntile.add_bel(defs::bslots::STARTUP, "STARTUP".to_string());
                 ntile.add_bel(defs::bslots::BSCAN, "BSCAN".to_string());
             }
-            defs::tcls::CNR_SE => {
+            tcls::CNR_SE => {
                 namer.ngrid.name_tile(tcrd, "CNR_SE", ["BR".into()]);
             }
-            defs::tcls::CNR_NE => {
+            tcls::CNR_NE => {
                 namer.ngrid.name_tile(tcrd, "CNR_NE", ["TR".into()]);
             }
-            defs::tcls::IO_W => {
+            tcls::IO_W => {
                 let c = namer.clut[col];
                 let r = namer.rlut[row];
                 let ntile = namer.ngrid.name_tile(tcrd, "IO_W", [format!("LR{r}")]);
                 ntile.add_bel(defs::bslots::TBUF[0], format!("TBUF_R{r}C{c}.1"));
                 ntile.add_bel(defs::bslots::TBUF[1], format!("TBUF_R{r}C{c}.0"));
             }
-            defs::tcls::IO_E => {
+            tcls::IO_E => {
                 let c = namer.clut[col];
                 let r = namer.rlut[row];
                 let ntile = namer.ngrid.name_tile(tcrd, "IO_E", [format!("RR{r}")]);
                 ntile.add_bel(defs::bslots::TBUF[0], format!("TBUF_R{r}C{c}.0"));
                 ntile.add_bel(defs::bslots::TBUF[1], format!("TBUF_R{r}C{c}.1"));
             }
-            defs::tcls::IO_S => {
+            tcls::IO_S => {
                 let c = namer.clut[col];
                 namer.ngrid.name_tile(tcrd, "IO_S", [format!("BC{c}")]);
             }
-            defs::tcls::IO_N => {
+            tcls::IO_N => {
                 let c = namer.clut[col];
                 namer.ngrid.name_tile(tcrd, "IO_N", [format!("TC{c}")]);
             }
-            defs::tcls::CLB => {
+            tcls::CLB => {
                 let c = namer.clut[col];
                 let r = namer.rlut[row];
                 let ntile = namer.ngrid.name_tile(tcrd, "CLB", [format!("R{r}C{c}")]);
@@ -235,7 +235,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ntile.add_bel(defs::bslots::TBUF[1], format!("TBUF_R{r}C{c}.0"));
                 }
             }
-            defs::tcls::BRAM_S => {
+            tcls::BRAM_S => {
                 let name = if chip.kind == ChipKind::Virtex {
                     if col == chip.col_w() + 1 {
                         "LBRAM_BOT".to_string()
@@ -258,7 +258,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            defs::tcls::BRAM_N => {
+            tcls::BRAM_N => {
                 let name = if chip.kind == ChipKind::Virtex {
                     if col == chip.col_w() + 1 {
                         "LBRAM_TOP".to_string()
@@ -281,7 +281,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            defs::tcls::BRAM_W | defs::tcls::BRAM_E | defs::tcls::BRAM_M => {
+            tcls::BRAM_W | tcls::BRAM_E | tcls::BRAM_M => {
                 let r = namer.rlut[row];
                 let c = namer.bramclut[col];
                 let lr = if col < chip.col_clk() { 'L' } else { 'R' };
@@ -303,21 +303,21 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let ntile = namer.ngrid.name_tile(tcrd, kind, names);
                 ntile.add_bel(defs::bslots::BRAM, format!("RAMB4_R{br}C{bc}"));
             }
-            defs::tcls::CLK_S_V | defs::tcls::CLK_S_VE_2DLL | defs::tcls::CLK_S_VE_4DLL => {
+            tcls::CLK_S_V | tcls::CLK_S_VE_2DLL | tcls::CLK_S_VE_4DLL => {
                 let ntile = namer.ngrid.name_tile(tcrd, kind, ["BM".into()]);
                 ntile.add_bel(defs::bslots::GCLK_IO[0], "GCLKPAD0".to_string());
                 ntile.add_bel(defs::bslots::GCLK_IO[1], "GCLKPAD1".to_string());
                 ntile.add_bel(defs::bslots::BUFG[0], "GCLKBUF0".to_string());
                 ntile.add_bel(defs::bslots::BUFG[1], "GCLKBUF1".to_string());
             }
-            defs::tcls::CLK_N_V | defs::tcls::CLK_N_VE_2DLL | defs::tcls::CLK_N_VE_4DLL => {
+            tcls::CLK_N_V | tcls::CLK_N_VE_2DLL | tcls::CLK_N_VE_4DLL => {
                 let ntile = namer.ngrid.name_tile(tcrd, kind, ["TM".into()]);
                 ntile.add_bel(defs::bslots::GCLK_IO[0], "GCLKPAD2".to_string());
                 ntile.add_bel(defs::bslots::GCLK_IO[1], "GCLKPAD3".to_string());
                 ntile.add_bel(defs::bslots::BUFG[0], "GCLKBUF2".to_string());
                 ntile.add_bel(defs::bslots::BUFG[1], "GCLKBUF3".to_string());
             }
-            defs::tcls::DLL_S => {
+            tcls::DLL_S => {
                 let (naming, name, bname) = if col < chip.col_clk() {
                     ("DLL_SW", "LBRAM_BOT", "DLL1")
                 } else {
@@ -328,7 +328,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, naming, [name.into(), "BM".into()]);
                 ntile.add_bel(defs::bslots::DLL, bname.to_string());
             }
-            defs::tcls::DLL_N => {
+            tcls::DLL_N => {
                 let (naming, name, bname) = if col < chip.col_clk() {
                     ("DLL_NW", "LBRAM_TOP", "DLL3")
                 } else {
@@ -339,7 +339,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, naming, [name.into(), "TM".into()]);
                 ntile.add_bel(defs::bslots::DLL, bname.to_string());
             }
-            defs::tcls::DLLS_S | defs::tcls::DLLP_S | defs::tcls::DLLS_N | defs::tcls::DLLP_N => {
+            tcls::DLLS_S | tcls::DLLP_S | tcls::DLLS_N | tcls::DLLP_N => {
                 let c = namer.bramclut[col];
                 let sp = if kind.starts_with("DLLS") { "S" } else { "P" };
                 let spn = if edev.disabled.contains(&DisabledPart::PrimaryDlls) {
@@ -372,15 +372,15 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, &naming, [name, format!("{bt}M")]);
                 ntile.add_bel(defs::bslots::DLL, format!("DLL{dll}{spn}"));
             }
-            defs::tcls::PCI_W => {
+            tcls::PCI_W => {
                 let ntile = namer.ngrid.name_tile(tcrd, "PCI_W", ["LM".into()]);
                 ntile.add_bel(defs::bslots::PCILOGIC, "LPCILOGIC".to_string());
             }
-            defs::tcls::PCI_E => {
+            tcls::PCI_E => {
                 let ntile = namer.ngrid.name_tile(tcrd, "PCI_E", ["RM".into()]);
                 ntile.add_bel(defs::bslots::PCILOGIC, "RPCILOGIC".to_string());
             }
-            defs::tcls::CLKV_BRAM_S => {
+            tcls::CLKV_BRAM_S => {
                 let name = if chip.kind == ChipKind::Virtex {
                     let lr = if col < chip.col_clk() { 'L' } else { 'R' };
                     format!("{lr}BRAM_BOT")
@@ -390,7 +390,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 namer.ngrid.name_tile(tcrd, "CLKV_BRAM_S", [name]);
             }
-            defs::tcls::CLKV_BRAM_N => {
+            tcls::CLKV_BRAM_N => {
                 let name = if chip.kind == ChipKind::Virtex {
                     let lr = if col < chip.col_clk() { 'L' } else { 'R' };
                     format!("{lr}BRAM_TOP")
@@ -400,7 +400,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 namer.ngrid.name_tile(tcrd, "CLKV_BRAM_N", [name]);
             }
-            defs::tcls::CLKV_NULL => {
+            tcls::CLKV_NULL => {
                 let (name, naming) = if col == chip.col_clk() {
                     if row == chip.row_s() {
                         ("BM".to_string(), "CLKV_CLKB")
@@ -417,20 +417,20 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            defs::tcls::CLKV_CLKV => {
+            tcls::CLKV_CLKV => {
                 let r = namer.rlut[row];
                 namer
                     .ngrid
                     .name_tile(tcrd, "CLKV_CLKV", [format!("VMR{r}")]);
             }
-            defs::tcls::CLKV_GCLKV => {
+            tcls::CLKV_GCLKV => {
                 let r = namer.rlut[row];
                 let c = namer.clkclut[col];
                 namer
                     .ngrid
                     .name_tile(tcrd, "CLKV_GCLKV", [format!("GCLKVR{r}C{c}")]);
             }
-            defs::tcls::BRAM_CLKH => {
+            tcls::BRAM_CLKH => {
                 let name = if chip.kind == ChipKind::Virtex {
                     if col == chip.col_w() + 1 {
                         "LBRAMM".to_string()
@@ -443,13 +443,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 namer.ngrid.name_tile(tcrd, "BRAM_CLKH", [name]);
             }
-            defs::tcls::CLKC => {
+            tcls::CLKC => {
                 namer.ngrid.name_tile(tcrd, "CLKC", ["M".into()]);
             }
-            defs::tcls::GCLKC => {
+            tcls::GCLKC => {
                 let c = namer.clkclut[col];
                 namer.ngrid.name_tile(tcrd, "GCLKC", [format!("GCLKCC{c}")]);
             }
+            tcls::GLOBAL => (),
             _ if tcrd.slot == defs::tslots::IOB => (),
 
             _ => panic!("umm {kind}?"),

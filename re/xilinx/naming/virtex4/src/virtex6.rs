@@ -60,17 +60,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     ngrid.tie_pin_gnd = Some("HARD0".to_string());
     ngrid.tie_pin_vcc = Some("HARD1".to_string());
 
-    let clb_grid = ngrid.bel_grid(|_, name, _| name == "CLBLL" || name == "CLBLM");
-    let bram_grid = ngrid.bel_grid(|_, name, _| name == "BRAM");
-    let dsp_grid = ngrid.bel_grid(|_, name, _| name == "DSP");
-    let io_grid = ngrid.bel_grid(|_, name, _| name == "IO");
-    let cmt_grid = ngrid.bel_grid(|_, name, _| name == "CMT");
-    let emac_grid = ngrid.bel_grid(|_, name, _| name == "EMAC");
-    let pcie_grid = ngrid.bel_grid(|_, name, _| name == "PCIE");
-    let gt_grid = ngrid.bel_grid(|_, name, _| name == "GTX" || name == "GTH");
-    let gth_grid = ngrid.bel_grid(|_, name, _| name == "GTH");
-    let pmvbram_grid = ngrid.bel_grid(|_, name, _| name == "PMVBRAM");
-    let pmviob_grid = ngrid.bel_grid(|_, name, _| name == "PMVIOB");
+    let clb_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::CLBLL || tcid == tcls::CLBLM);
+    let bram_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::BRAM);
+    let dsp_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::DSP);
+    let io_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::IO);
+    let cmt_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::CMT);
+    let emac_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::EMAC);
+    let pcie_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::PCIE);
+    let gt_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::GTX || tcid == tcls::GTH);
+    let gth_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::GTH);
+    let pmvbram_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::PMVBRAM);
+    let pmviob_grid = ngrid.bel_grid(|tcid, _, _| tcid == tcls::PMVIOB);
 
     let mut namer = Namer {
         ngrid,
@@ -463,47 +463,32 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let gy = gt_grid.ylut[row];
                 let ipx = if col.to_idx() == 0 { 0 } else { 1 + gx };
                 for i in 0..4 {
-                    ntile.add_bel(
-                        bslots::IPAD_RXP[i],
-                        format!("IPAD_X{ipx}Y{y}", y = gy * 24 + i * 6 + 1),
+                    ntile.add_bel_multi(
+                        bslots::GTX[i],
+                        [
+                            format!("GTXE1_X{gx}Y{gy}", gy = gy * 4 + i),
+                            format!("IPAD_X{ipx}Y{y}", y = gy * 24 + i * 6 + 1),
+                            format!("IPAD_X{ipx}Y{y}", y = gy * 24 + i * 6),
+                            format!("OPAD_X{gx}Y{y}", y = gy * 8 + i * 2 + 1),
+                            format!("OPAD_X{gx}Y{y}", y = gy * 8 + i * 2),
+                        ],
                     );
-                    ntile.add_bel(
-                        bslots::IPAD_RXN[i],
-                        format!("IPAD_X{ipx}Y{y}", y = gy * 24 + i * 6),
-                    );
-                    ntile.add_bel(
-                        bslots::OPAD_TXP[i],
-                        format!("OPAD_X{gx}Y{y}", y = gy * 8 + i * 2 + 1),
-                    );
-                    ntile.add_bel(
-                        bslots::OPAD_TXN[i],
-                        format!("OPAD_X{gx}Y{y}", y = gy * 8 + i * 2),
-                    );
-                    ntile.add_bel(bslots::GTX[i], format!("GTXE1_X{gx}Y{gy}", gy = gy * 4 + i));
                 }
-                ntile.add_bel(
-                    bslots::IPAD_CLKP[0],
-                    format!("IPAD_X{ipx}Y{y}", y = gy * 24 + 10),
+                ntile.add_bel_multi(
+                    bslots::GTCLK[0],
+                    [
+                        format!("IBUFDS_GTXE1_X{gx}Y{y}", y = gy * 2),
+                        format!("IPAD_X{ipx}Y{y}", y = gy * 24 + 10),
+                        format!("IPAD_X{ipx}Y{y}", y = gy * 24 + 11),
+                    ],
                 );
-                ntile.add_bel(
-                    bslots::IPAD_CLKN[0],
-                    format!("IPAD_X{ipx}Y{y}", y = gy * 24 + 11),
-                );
-                ntile.add_bel(
-                    bslots::IPAD_CLKP[1],
-                    format!("IPAD_X{ipx}Y{y}", y = gy * 24 + 8),
-                );
-                ntile.add_bel(
-                    bslots::IPAD_CLKN[1],
-                    format!("IPAD_X{ipx}Y{y}", y = gy * 24 + 9),
-                );
-                ntile.add_bel(
-                    bslots::BUFDS[0],
-                    format!("IBUFDS_GTXE1_X{gx}Y{y}", y = gy * 2),
-                );
-                ntile.add_bel(
-                    bslots::BUFDS[1],
-                    format!("IBUFDS_GTXE1_X{gx}Y{y}", y = gy * 2 + 1),
+                ntile.add_bel_multi(
+                    bslots::GTCLK[1],
+                    [
+                        format!("IBUFDS_GTXE1_X{gx}Y{y}", y = gy * 2 + 1),
+                        format!("IPAD_X{ipx}Y{y}", y = gy * 24 + 8),
+                        format!("IPAD_X{ipx}Y{y}", y = gy * 24 + 9),
+                    ],
                 );
             }
             tcls::GTH => {
@@ -533,45 +518,31 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let gthy = gth_grid.ylut[row];
                 let gtxy = gy - gthy;
                 let ipx = if col.to_idx() == 0 { 0 } else { 1 + gx };
+                let mut names = vec![
+                    format!("GTHE1_QUAD_X{gx}Y{gthy}"),
+                    format!("IBUFDS_GTHE1_X{gx}Y{y}", y = gthy * 2 + 1),
+                    format!("IPAD_X{ipx}Y{y}", y = gtxy * 24 - 8 + gthy * 12),
+                    format!("IPAD_X{ipx}Y{y}", y = gtxy * 24 - 9 + gthy * 12),
+                ];
                 for i in 0..4 {
-                    ntile.add_bel(
-                        bslots::IPAD_RXP[i],
+                    names.extend([
                         format!(
                             "IPAD_X{ipx}Y{y}",
                             y = gtxy * 24 + gthy * 12 + 6 + (7 - 2 * i)
                         ),
-                    );
-                    ntile.add_bel(
-                        bslots::IPAD_RXN[i],
                         format!(
                             "IPAD_X{ipx}Y{y}",
                             y = gtxy * 24 + gthy * 12 + 6 + (6 - 2 * i)
                         ),
-                    );
+                    ]);
                 }
                 for i in 0..4 {
-                    ntile.add_bel(
-                        bslots::OPAD_TXP[i],
+                    names.extend([
                         format!("OPAD_X{gx}Y{y}", y = (gtxy * 4 + gthy) * 8 + (7 - 2 * i)),
-                    );
-                    ntile.add_bel(
-                        bslots::OPAD_TXN[i],
                         format!("OPAD_X{gx}Y{y}", y = (gtxy * 4 + gthy) * 8 + (6 - 2 * i)),
-                    );
+                    ]);
                 }
-                ntile.add_bel(
-                    bslots::IPAD_CLKP[0],
-                    format!("IPAD_X{ipx}Y{y}", y = gtxy * 24 - 8 + gthy * 12),
-                );
-                ntile.add_bel(
-                    bslots::IPAD_CLKN[0],
-                    format!("IPAD_X{ipx}Y{y}", y = gtxy * 24 - 9 + gthy * 12),
-                );
-                ntile.add_bel(bslots::GTH_QUAD, format!("GTHE1_QUAD_X{gx}Y{gthy}"));
-                ntile.add_bel(
-                    bslots::BUFDS[0],
-                    format!("IBUFDS_GTHE1_X{gx}Y{y}", y = gthy * 2 + 1),
-                );
+                ntile.add_bel_multi(bslots::GTH_QUAD, names);
             }
             tcls::GLOBAL => (),
 

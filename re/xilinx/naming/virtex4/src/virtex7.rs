@@ -1217,7 +1217,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let (slot, gkind) = match gtcol.regs[reg].unwrap() {
                     GtKind::Gtp => (bslots::GTP_CHANNEL, "GTP"),
                     GtKind::Gtx => (bslots::GTX_CHANNEL, "GTX"),
-                    GtKind::Gth => (bslots::GTH_CHANNEL, "GTH"),
+                    GtKind::Gth => (bslots::GTX_CHANNEL, "GTH"),
                 };
                 let rx = if gtcol.is_middle {
                     if col < edev.col_clk {
@@ -1250,18 +1250,23 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let ipy = ipad_grid.ylut[die][row];
                 let opx = opad_grid.xlut[col];
                 let opy = opad_grid.ylut[die][row];
-                ntile.add_bel(slot, format!("{gkind}E2_CHANNEL_X{gtx}Y{gty}"));
-                ntile.add_bel(bslots::IPAD_RXP[0], format!("IPAD_X{ipx}Y{y}", y = ipy + 1));
-                ntile.add_bel(bslots::IPAD_RXN[0], format!("IPAD_X{ipx}Y{ipy}"));
-                ntile.add_bel(bslots::OPAD_TXP[0], format!("OPAD_X{opx}Y{y}", y = opy + 1));
-                ntile.add_bel(bslots::OPAD_TXN[0], format!("OPAD_X{opx}Y{opy}"));
+                ntile.add_bel_multi(
+                    slot,
+                    [
+                        format!("{gkind}E2_CHANNEL_X{gtx}Y{gty}"),
+                        format!("IPAD_X{ipx}Y{y}", y = ipy + 1),
+                        format!("IPAD_X{ipx}Y{ipy}"),
+                        format!("OPAD_X{opx}Y{y}", y = opy + 1),
+                        format!("OPAD_X{opx}Y{opy}"),
+                    ],
+                );
             }
             tcls::GTP_COMMON | tcls::GTP_COMMON_MID | tcls::GTX_COMMON | tcls::GTH_COMMON => {
                 let gtcol = chip.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
                 let (slot, gkind) = match gtcol.regs[reg].unwrap() {
                     GtKind::Gtp => (bslots::GTP_COMMON, "GTP"),
                     GtKind::Gtx => (bslots::GTX_COMMON, "GTX"),
-                    GtKind::Gth => (bslots::GTH_COMMON, "GTH"),
+                    GtKind::Gth => (bslots::GTX_COMMON, "GTH"),
                 };
                 let rx = if gtcol.is_middle {
                     if col < edev.col_clk {
@@ -1287,51 +1292,64 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     kind.to_string()
                 };
                 let ry = raw_grid.ylut[die][row - 3];
-                let ntile = ngrid.name_tile(tcrd, &naming, [format!("{naming}_X{rx}Y{ry}")]);
+                let mut names = vec![format!("{naming}_X{rx}Y{ry}")];
+                if matches!(tile.class, tcls::GTX_COMMON | tcls::GTH_COMMON) {
+                    names.extend([
+                        if reg.to_idx() == 0 {
+                            format!(
+                                "NULL_X{rx}Y{ry}",
+                                rx = raw_grid.xlut[gtcol.col]
+                                    + if col.to_idx() == 0 { 0 } else { 4 },
+                                ry = raw_grid.ylut[die][row - 25] - 1
+                            )
+                        } else if gtcol.regs[reg - 1].is_none() {
+                            format!("BRKH_GTX_X{x}Y{y}", x = x + 1, y = y - 26)
+                        } else {
+                            format!(
+                                "BRKH_GTX_X{rx}Y{ry}",
+                                rx = raw_grid.xlut[gtcol.col]
+                                    + if col.to_idx() == 0 { 0 } else { 4 },
+                                ry = raw_grid.ylut[die][row - 25] - 1
+                            )
+                        },
+                        if reg.to_idx() == edev.chips[die].regs - 1 {
+                            format!(
+                                "NULL_X{rx}Y{ry}",
+                                rx = raw_grid.xlut[gtcol.col]
+                                    + if col.to_idx() == 0 { 0 } else { 4 },
+                                ry = raw_grid.ylut[die][row + 24] + 1
+                            )
+                        } else {
+                            format!(
+                                "BRKH_GTX_X{rx}Y{ry}",
+                                rx = raw_grid.xlut[gtcol.col]
+                                    + if col.to_idx() == 0 { 0 } else { 4 },
+                                ry = raw_grid.ylut[die][row + 24] + 1
+                            )
+                        },
+                    ]);
+                }
+                let ntile = ngrid.name_tile(tcrd, &naming, names);
                 let gtx = gtc_grid.xlut[col];
                 let gty = gtc_grid.ylut[die][row];
                 let ipx = ipad_grid.xlut[col];
                 let ipy = ipad_grid.ylut[die][row - 3];
                 ntile.add_bel(slot, format!("{gkind}E2_COMMON_X{gtx}Y{gty}"));
-                ntile.add_bel(
-                    bslots::BUFDS[0],
-                    format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2),
+                ntile.add_bel_multi(
+                    bslots::GTCLK[0],
+                    [
+                        format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2),
+                        format!("IPAD_X{ipx}Y{y}", y = ipy - 4),
+                        format!("IPAD_X{ipx}Y{y}", y = ipy - 3),
+                    ],
                 );
-                ntile.add_bel(
-                    bslots::BUFDS[1],
-                    format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2 + 1),
-                );
-                ntile.add_bel(
-                    bslots::IPAD_CLKP[0],
-                    format!("IPAD_X{ipx}Y{y}", y = ipy - 4),
-                );
-                ntile.add_bel(
-                    bslots::IPAD_CLKN[0],
-                    format!("IPAD_X{ipx}Y{y}", y = ipy - 3),
-                );
-                ntile.add_bel(
-                    bslots::IPAD_CLKP[1],
-                    format!("IPAD_X{ipx}Y{y}", y = ipy - 2),
-                );
-                ntile.add_bel(
-                    bslots::IPAD_CLKN[1],
-                    format!("IPAD_X{ipx}Y{y}", y = ipy - 1),
-                );
-            }
-            tcls::BRKH_GTX => {
-                let gtcol = chip.cols_gt.iter().find(|gtcol| gtcol.col == col).unwrap();
-                ngrid.name_tile(
-                    tcrd,
-                    kind,
-                    [if gtcol.regs[reg - 1].is_none() {
-                        format!("BRKH_GTX_X{x}Y{y}", x = x + 1, y = y - 1)
-                    } else {
-                        format!(
-                            "BRKH_GTX_X{rx}Y{ry}",
-                            rx = raw_grid.xlut[gtcol.col] + if col.to_idx() == 0 { 0 } else { 4 },
-                            ry = raw_grid.ylut[die][row] - 1
-                        )
-                    }],
+                ntile.add_bel_multi(
+                    bslots::GTCLK[1],
+                    [
+                        format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2 + 1),
+                        format!("IPAD_X{ipx}Y{y}", y = ipy - 2),
+                        format!("IPAD_X{ipx}Y{y}", y = ipy - 1),
+                    ],
                 );
             }
             tcls::GLOBAL => (),

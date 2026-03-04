@@ -1488,7 +1488,7 @@ target_defs! {
         attribute PLL_UNLOCK_CNT_RST_FAST: bool;
         attribute PLL_VLFHIGH_DIS: bool;
     }
-    device_data PLL_IN_DLY_SET: bitvec[9];
+    device_data PLL_V5_IN_DLY_SET: bitvec[9];
     if variant virtex5 {
         table PLL_MULT {
             field PLL_CP_LOW, PLL_CP_HIGH: bitvec[4];
@@ -1501,12 +1501,19 @@ target_defs! {
         }
     }
 
+    // This bel class is used to represent three distinct but closely related primitives:
+    //
+    // - virtex6 MMCM (`MMCM_ADV`), an evolution of the virtex5 PLL with many new features
+    // - virtex7 MMCM (`MMCME2_ADV`), an improved version of the virtex6 version
+    // - virtex7 PLL (`PLL2_ADV`), a slimmed-down version of the MMCM that resembles the virtex5 PLL in available functionality
     bel_class PLL_V6 {
         input CLKIN1, CLKIN2;
         input CLKINSEL;
         input CLKFBIN;
+        // virtex6 only
         input CLKIN_CASC, CLKFB_CASC;
 
+        // CLKOUT6, CLKOUT*B and CLKFBOUT are MMCM only
         output
             CLKOUT0, CLKOUT0B, CLKOUT1, CLKOUT1B,
             CLKOUT2, CLKOUT2B, CLKOUT3, CLKOUT3B,
@@ -1524,19 +1531,187 @@ target_defs! {
         output DRDY;
         output DO[16];
 
+        // MMCM only
         input PSCLK;
         output PSDONE;
         input PSEN;
         input PSINCDEC;
 
+        // MMCM only
         output CLKINSTOPPED, CLKFBSTOPPED;
+
         input TESTIN[32];
         output TESTOUT[64];
 
         // 0x00..0x80
-        attribute DRP: bitvec[16][128];
+        attribute MMCM_DRP: bitvec[16][0x80];
+        // 0x00..0x68
+        attribute PLL_DRP: bitvec[16][0x68];
 
-        // TODO: attributes
+        attribute ENABLE: bool;
+        attribute STARTUP_WAIT: bool;
+        attribute DIRECT_PATH_CNTRL: bool;
+        attribute GTS_WAIT: bool;
+        attribute EN_VCO_DIV1: bool;
+        attribute EN_VCO_DIV6: bool;
+        attribute HVLF_CNT_TEST_EN: bool;
+        attribute IN_DLY_EN: bool;
+        attribute VLF_HIGH_DIS_B: bool;
+        attribute VLF_HIGH_PWDN_B: bool;
+        attribute TMUX_MUX_SEL: bitvec[2];
+        attribute CONTROL_0: bitvec[16];
+        attribute CONTROL_1: bitvec[16];
+        attribute CONTROL_2: bitvec[16];
+        attribute CONTROL_3: bitvec[16];
+        attribute CONTROL_4: bitvec[16];
+        attribute CONTROL_5: bitvec[16];
+        // CONTROL_[67] are virtex7 only
+        attribute CONTROL_6: bitvec[16];
+        attribute CONTROL_7: bitvec[16];
+        attribute ANALOG_MISC: bitvec[4];
+        attribute CP_BIAS_TRIP_SET: bitvec[1];
+        attribute CP_RES: bitvec[2];
+        attribute V6_AVDD_COMP_SET: bitvec[2];
+        attribute V7_AVDD_COMP_SET: bitvec[3];
+        attribute AVDD_VBG_PD: bitvec[3];
+        attribute AVDD_VBG_SEL: bitvec[4];
+        attribute V6_DVDD_COMP_SET: bitvec[2];
+        attribute V7_DVDD_COMP_SET: bitvec[3];
+        attribute DVDD_VBG_PD: bitvec[3];
+        attribute DVDD_VBG_SEL: bitvec[4];
+        attribute IN_DLY_MX_CVDD: bitvec[6];
+        attribute IN_DLY_MX_DVDD: bitvec[6];
+        attribute LF_NEN: bitvec[2];
+        attribute LF_PEN: bitvec[2];
+        attribute MAN_LF: bitvec[3];
+        attribute PFD: bitvec[7];
+        attribute CP: bitvec[4];
+        attribute HROW_DLY_SET: bitvec[3];
+        attribute HVLF_CNT_TEST: bitvec[6];
+        attribute LFHF: bitvec[2];
+        attribute LOCK_CNT: bitvec[10];
+        attribute LOCK_FB_DLY: bitvec[5];
+        attribute LOCK_REF_DLY: bitvec[5];
+        attribute LOCK_SAT_HIGH: bitvec[10];
+        attribute RES: bitvec[4];
+        attribute UNLOCK_CNT: bitvec[10];
+        attribute V6_IN_DLY_SET: bitvec[5];
+        attribute V7_IN_DLY_SET: bitvec[6];
+        attribute SYNTH_CLK_DIV: bitvec[2];
+
+        // virtex6 only
+        attribute CLOCK_HOLD: bool;
+        attribute CASC_LOCK_EN: bool;
+        attribute HVLF_STEP: bool;
+        attribute INTERP_EN: bitvec[8];
+
+        // virtex7 only
+        attribute LF_LOW_SEL: bool;
+        attribute SEL_HV_NMOS: bool;
+        attribute SEL_LV_NMOS: bool;
+        attribute SUP_SEL_AREG: bool;
+        attribute SUP_SEL_DREG: bool;
+        attribute EN_CURR_SINK: bitvec[2];
+        attribute FREQ_COMP: bitvec[2];
+        attribute SKEW_FLOP_INV: bitvec[4];
+        attribute SPARE_ANALOG: bitvec[5];
+        attribute SPARE_DIGITAL: bitvec[5];
+        attribute VREF_START: bitvec[2];
+        attribute MVDD_SEL: bitvec[2];
+
+        // MMCM only
+        attribute CLKBURST_ENABLE: bool;
+        attribute CLKBURST_REPEAT: bool;
+        attribute CLKBURST_CNT: bitvec[4];
+        attribute SEL_SLIPD: bool;
+        attribute INTERP_TEST: bool;
+
+        // virtex7 MMCM only
+        attribute SS_EN: bool;
+        attribute SS_STEPS: bitvec[3];
+        attribute SS_STEPS_INIT: bitvec[3];
+
+        // output control
+        // everything related to CLKOUT6 is MMCM only
+        for i in 0..7 {
+            attribute "CLKOUT{i}_EN": bool;
+            attribute "CLKOUT{i}_NOCOUNT": bool;
+            attribute "CLKOUT{i}_EDGE": bool;
+            attribute "CLKOUT{i}_DT": bitvec[6];
+            attribute "CLKOUT{i}_HT": bitvec[6];
+            attribute "CLKOUT{i}_LT": bitvec[6];
+            attribute "CLKOUT{i}_MX": bitvec[2];
+            // replaced by PM_RISE and PM_FALL on virtex7 MMCM
+            attribute "CLKOUT{i}_PM": bitvec[3];
+            // MMCM only
+            attribute "CLKOUT{i}_USE_FINE_PS": bool;
+        }
+        // PM_RISE and PM_FALL are virtex7 MMCM only
+        attribute CLKOUT0_PM_RISE: bitvec[3];
+        attribute CLKOUT0_PM_FALL: bitvec[3];
+        attribute CLKFBOUT_EN: bool;
+        attribute CLKFBOUT_NOCOUNT: bool;
+        attribute CLKFBOUT_EDGE: bool;
+        attribute CLKFBOUT_DT: bitvec[6];
+        attribute CLKFBOUT_HT: bitvec[6];
+        attribute CLKFBOUT_LT: bitvec[6];
+        attribute CLKFBOUT_MX: bitvec[2];
+        // replaced by PM_RISE and PM_FALL on virtex7 MMCM
+        attribute CLKFBOUT_PM: bitvec[3];
+        // PM_RISE and PM_FALL are virtex7 MMCM only
+        attribute CLKFBOUT_PM_RISE: bitvec[3];
+        attribute CLKFBOUT_PM_FALL: bitvec[3];
+        // MMCM only
+        attribute CLKFBOUT_USE_FINE_PS: bool;
+        attribute CLKOUT0_FRAC_EN: bool;
+        attribute CLKOUT0_FRAC: bitvec[3];
+        attribute CLKFBOUT_FRAC_EN: bool;
+        attribute CLKFBOUT_FRAC: bitvec[3];
+        attribute CLKOUT4_CASCADE: bool;
+        attribute FINE_PS_FRAC: bitvec[6];
+        // TODO: the following two sets are likely one and the same, with different names
+        // virtex6 only
+        attribute CLKOUT0_FRAC_WF: bool;
+        attribute CLKOUT5_FRAC_WF: bool;
+        attribute CLKOUT6_FRAC_WF: bool;
+        attribute CLKFBOUT_FRAC_WF: bool;
+        // virtex7 MMCM only
+        attribute CLKOUT0_FRAC_WF_RISE: bool;
+        attribute CLKOUT0_FRAC_WF_FALL: bool;
+        attribute CLKFBOUT_FRAC_WF_RISE: bool;
+        attribute CLKFBOUT_FRAC_WF_FALL: bool;
+
+        // input control
+        attribute DIVCLK_NOCOUNT: bool;
+        attribute DIVCLK_EDGE: bool;
+        attribute DIVCLK_HT: bitvec[6];
+        attribute DIVCLK_LT: bitvec[6];
+        attribute CLKFBIN_NOCOUNT: bool;
+        attribute CLKFBIN_EDGE: bool;
+        attribute CLKFBIN_HT: bitvec[6];
+        attribute CLKFBIN_LT: bitvec[6];
+    }
+    device_data PLL_V6_IN_DLY_SET: bitvec[5];
+    if variant [virtex6, virtex7] {
+        table PLL_MULT {
+            field PLL_CP_LOW, PLL_CP_HIGH, PLL_CP_SS: bitvec[4];
+            field PLL_RES_LOW, PLL_RES_HIGH, PLL_RES_SS: bitvec[4];
+            field PLL_LFHF_LOW, PLL_LFHF_HIGH, PLL_LFHF_SS: bitvec[2];
+            field LOCK_REF_DLY: bitvec[5];
+            field LOCK_FB_DLY: bitvec[5];
+            field LOCK_CNT: bitvec[10];
+            field LOCK_SAT_HIGH: bitvec[10];
+            field UNLOCK_CNT: bitvec[10];
+
+            for i in 1..=64 {
+                row "MMCM_{i}";
+            }
+            if variant virtex7 {
+                for i in 1..=64 {
+                    row "PLL_{i}";
+                }
+            }
+        }
     }
 
     enum PHASER_CLKOUT_DIV { NONE, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16 }
@@ -2279,11 +2454,19 @@ target_defs! {
     enum STARTUP_CLOCK { CCLK, USERCLK, JTAGCLK }
     enum CONFIG_RATE_V4 { _4, _5, _7, _8, _9, _10, _13, _15, _20, _26, _30, _34, _41, _51, _55, _60, _130 }
     enum CONFIG_RATE_V5 { _2, _6, _9, _13, _17, _20, _24, _27, _31, _35, _38, _42, _46, _49, _53, _56, _60 }
+    enum CONFIG_RATE_V6 { _2, _4, _6, _10, _12, _16, _22, _26, _33, _40, _50, _66 }
+    enum CONFIG_RATE_V7 { _3, _6, _9, _12, _16, _22, _26, _33, _40, _50, _66 }
+    enum EXTMASTERCCLK_DIV { _8, _4, _2, _1 }
     enum SECURITY { NONE, LEVEL1, LEVEL2 }
     enum ICAP_SELECT { BOTTOM, TOP }
     enum BPI_PAGE_SIZE { _1, _4, _8 }
     enum BPI_1ST_READ_CYCLE { _1, _2, _3, _4 }
     enum ENCRYPT_KEY_SELECT { BBRAM, EFUSE }
+    enum POST_CRC_CLK { CFG_CLK, INTERNAL }
+    enum POST_CRC_FREQ { _50, _25, _13, _6, _3, _2, _1 }
+    enum FARSRC { FAR, EFAR }
+    enum SPI_BUSWIDTH { _1, _2, _4 }
+    enum BPI_SYNC_MODE { NONE, TYPE1, TYPE2 }
     bel_class GLOBAL {
         // COR
         attribute GWE_CYCLE: STARTUP_CYCLE;
@@ -2294,12 +2477,16 @@ target_defs! {
         attribute STARTUP_CLOCK: STARTUP_CLOCK;
         attribute CONFIG_RATE_V4: CONFIG_RATE_V4;
         attribute CONFIG_RATE_V5: CONFIG_RATE_V5;
+        attribute CONFIG_RATE_V6: CONFIG_RATE_V6;
+        attribute CONFIG_RATE_V7: CONFIG_RATE_V7;
         attribute CAPTURE_ONESHOT: bool;
         attribute DRIVE_DONE: bool;
         attribute DONE_PIPE: bool;
         attribute DCM_SHUTDOWN: bool;
         attribute POWERDOWN_STATUS: bool;
         attribute CRC_ENABLE: bool;
+        attribute EXTMASTERCCLK_DIV: EXTMASTERCCLK_DIV;
+        attribute EXTMASTERCCLK_EN: bool;
 
         // COR1 (virtex5 and up only)
         attribute BPI_PAGE_SIZE: BPI_PAGE_SIZE;
@@ -2307,9 +2494,19 @@ target_defs! {
         attribute POST_CRC_EN: bool;
         attribute POST_CRC_NO_PIN: bool;
         attribute POST_CRC_RECONFIG: bool;
+        attribute POST_CRC_KEEP: bool;
+        attribute POST_CRC_CORRECT: bool;
         attribute RETAIN_CONFIG_STATUS: bool;
         attribute POST_CRC_SEL: bitvec[1];
+        attribute FUSE_NO_CDR: bitvec[1];
         attribute PERSIST_DEASSERT_AT_DESYNCH: bool;
+        attribute SYSMON_PARTIAL_RECONFIG: bool;
+        attribute FALLBACK_PULSE_FWE: bool;
+        attribute POST_CRC_CLK: POST_CRC_CLK;
+        attribute POST_CRC_FREQ: POST_CRC_FREQ;
+        attribute CFG_IO_ACCESS_TDO: bool;
+        attribute TRIM_BITSTREAM: bool;
+        attribute TRIM_REG: bitvec[2];
 
         // CTL
         attribute GTS_USR_B: bool;
@@ -2329,7 +2526,23 @@ target_defs! {
         attribute SELECTMAP_ABORT: bool;
         attribute VGG_SEL: bitvec[5];
         attribute VBG_DLL_SEL: bitvec[5];
-        attribute VBG_SEL: bitvec[5];
+        attribute V5_VBG_SEL: bitvec[5];
+        // virtex6 and up
+        attribute INIT_SIGNALS_ERROR: bool;
+        attribute SEC_ALL: bool;
+        attribute SEC_ERROR: bool;
+        attribute SEC_STATUS: bool;
+        attribute FARSRC: FARSRC;
+
+        // CTL1
+        attribute ICAP_ENCRYPTION: bool;
+        attribute DIS_VGG_REG: bool;
+        attribute ENABLE_VGG_CLAMP: bool;
+        attribute VGG_OPT_DRV: bool;
+        attribute VGG_V4_OPT: bool;
+        attribute VGG_SEL2: bitvec[5];
+        attribute VGG_NEG_GAIN_SEL: bitvec[5];
+        attribute VGG_POS_GAIN_SEL: bitvec[1];
 
         // TIMER (virtex5 and up only)
         attribute TIMER: bitvec[24];
@@ -2344,6 +2557,39 @@ target_defs! {
 
         // TESTMODE (virtex5 and up only)
         attribute DD_OVERRIDE: bool;
+
+        // BSPI (virtex7 only)
+        attribute SPI_BUSWIDTH: SPI_BUSWIDTH;
+        attribute SPI_OPCODE: bitvec[8];
+        // TODO: this thing has 16 bits; it's definitely *not* a simple enum; figure it out
+        attribute BPI_SYNC_MODE: BPI_SYNC_MODE;
+
+        // TESTMODE
+        attribute TEST_REF_SEL: bitvec[3];
+        attribute TEST_VGG_SEL: bitvec[4];
+        attribute TEST_NEG_SLOPE_VGG: bitvec[1];
+        attribute TEST_VGG_ENABLE: bitvec[1];
+        attribute FUSE_SHADOW: bitvec[1];
+
+        // TRIM0
+        attribute MPD_SEL: bitvec[3];
+        attribute TRIM_SPARE: bitvec[2];
+        attribute MPD_DIS_OVERRIDE: bitvec[1];
+        attribute MPD_OVERRIDE: bitvec[1];
+
+        // TRIM1
+        // V6
+        attribute V6_VBG_SEL: bitvec[6];
+        attribute VBG_VGG_FLAST_SEL: bitvec[6];
+        attribute VBG_VGG_NEG_SEL: bitvec[6];
+        // V7 (possibly same as above, with different names)
+        attribute VBG_FLAT_SEL: bitvec[6];
+        attribute VGGSEL: bitvec[6];
+        attribute VGGSEL2: bitvec[6];
+
+        // TRIM2
+        attribute VGG_TRIM_BOT: bitvec[12];
+        attribute VGG_TRIM_TOP: bitvec[12];
 
     }
 
@@ -5868,18 +6114,19 @@ target_defs! {
     //     - the entire complex is represented by a single `GTM_DUAL` bel
     //   - GTR: part of the PS complex and dedicated for its purposes; not represented in the database
 
+    enum GT_RX_LOS_INVALID_INCR { _1, _2, _4, _8, _16, _32, _64, _128 }
+    enum GT_RX_LOS_THRESHOLD { _4, _8, _16, _32, _64, _128, _256, _512 }
     enum GT11_ALIGN_COMMA_WORD { _1, _2, _4 }
     enum GT11_CHAN_BOND_MODE { NONE, MASTER, SLAVE_1_HOP, SLAVE_2_HOPS }
     enum GT11_CHAN_BOND_SEQ_LEN { _1, _2, _3, _4, _8 }
     enum GT11_CLK_COR_SEQ_LEN { _1, _2, _3, _4, _8 }
     enum GT11_FDCAL_CLOCK_DIVIDE { TWO, NONE, FOUR }
-    enum GT11_RX_LOS_INVALID_INCR { _1, _2, _4, _8, _16, _32, _64, _128 }
-    enum GT11_RX_LOS_THRESHOLD { _4, _8, _16, _32, _64, _128, _256, _512 }
     enum GT11_RXTXOUTDIV2SEL { _1, _2, _4, _8, _16, _32 }
     enum GT11_PLLNDIVSEL { _8, _10, _16, _20, _32, _40 }
     enum GT11_PMACLKSEL { REFCLK1, REFCLK2, GREFCLK }
     enum GT11_RXUSRDIVISOR { _1, _2, _4, _8, _16 }
 
+    // virtex4
     bel_class GT11 {
         input REFCLK1, REFCLK2;
         input GREFCLK;
@@ -6222,8 +6469,8 @@ target_defs! {
         attribute CHAN_BOND_SEQ_LEN: GT11_CHAN_BOND_SEQ_LEN;
         attribute CLK_COR_SEQ_LEN: GT11_CLK_COR_SEQ_LEN;
         attribute RXFDCAL_CLOCK_DIVIDE: GT11_FDCAL_CLOCK_DIVIDE;
-        attribute RX_LOS_INVALID_INCR: GT11_RX_LOS_INVALID_INCR;
-        attribute RX_LOS_THRESHOLD: GT11_RX_LOS_THRESHOLD;
+        attribute RX_LOS_INVALID_INCR: GT_RX_LOS_INVALID_INCR;
+        attribute RX_LOS_THRESHOLD: GT_RX_LOS_THRESHOLD;
         attribute RXOUTDIV2SEL: GT11_RXTXOUTDIV2SEL;
         attribute RXPLLNDIVSEL: GT11_PLLNDIVSEL;
         attribute RXPMACLKSEL: GT11_PMACLKSEL;
@@ -6232,6 +6479,7 @@ target_defs! {
         attribute TXOUTDIV2SEL: GT11_RXTXOUTDIV2SEL;
     }
 
+    // virtex4
     enum GT11_REFCLKSEL { SYNCLK1IN, SYNCLK2IN, RXBCLK, REFCLK, MGTCLK }
     enum GT11_SYNCLK_DRIVE { NONE, BUF_UP, BUF_DOWN, DRIVE_UP, DRIVE_DOWN, DRIVE_BOTH }
     bel_class GT11CLK {
@@ -6314,6 +6562,7 @@ target_defs! {
         attribute ENABLE64: bool;
     }
 
+    // virtex5
     enum GTP_CLK25_DIVIDER { _1, _2, _3, _4, _5, _6, _10, _12 }
     enum GTP_OOB_CLK_DIVIDER { _1, _2, _4, _6, _8, _10, _12, _14 }
     enum GTP_PLL_DIVSEL_FB { _1, _2, _3, _4, _5, _8, _10 }
@@ -6322,8 +6571,6 @@ target_defs! {
     enum GTP_ALIGN_COMMA_WORD { _1, _2 }
     enum GTP_CHAN_BOND_MODE { NONE, MASTER, SLAVE }
     enum GTP_SEQ_LEN { _1, _2, _3, _4 }
-    enum GTP_RX_LOS_INVALID_INCR { _1, _2, _4, _8, _16, _32, _64, _128 }
-    enum GTP_RX_LOS_THRESHOLD { _4, _8, _16, _32, _64, _128, _256, _512 }
     enum GTP_RX_SLIDE_MODE { PCS, PMA }
     enum GTP_RX_STATUS_FMT { PCIE, SATA }
     enum GTP_RX_XCLK_SEL { RXUSR, RXREC }
@@ -6513,8 +6760,8 @@ target_defs! {
             attribute "CLK_COR_DET_LEN_{ch}": GTP_SEQ_LEN;
             attribute "PLL_RXDIVSEL_OUT_{ch}": GTP_PLL_DIVSEL_OUT;
             attribute "PLL_TXDIVSEL_OUT_{ch}": GTP_PLL_DIVSEL_OUT;
-            attribute "RX_LOS_INVALID_INCR_{ch}": GTP_RX_LOS_INVALID_INCR;
-            attribute "RX_LOS_THRESHOLD_{ch}": GTP_RX_LOS_THRESHOLD;
+            attribute "RX_LOS_INVALID_INCR_{ch}": GT_RX_LOS_INVALID_INCR;
+            attribute "RX_LOS_THRESHOLD_{ch}": GT_RX_LOS_THRESHOLD;
             attribute "RX_SLIDE_MODE_{ch}": GTP_RX_SLIDE_MODE;
             attribute "RX_STATUS_FMT_{ch}": GTP_RX_STATUS_FMT;
             attribute "RX_XCLK_SEL_{ch}": GTP_RX_XCLK_SEL;
@@ -6571,6 +6818,7 @@ target_defs! {
         }
     }
 
+    // virtex5
     bel_class GTX_DUAL {
         input DCLK;
         input DEN;
@@ -6785,8 +7033,8 @@ target_defs! {
             attribute "CLK_COR_DET_LEN_{ch}": GTP_SEQ_LEN;
             attribute "PLL_RXDIVSEL_OUT_{ch}": GTP_PLL_DIVSEL_OUT;
             attribute "PLL_TXDIVSEL_OUT_{ch}": GTP_PLL_DIVSEL_OUT;
-            attribute "RX_LOS_INVALID_INCR_{ch}": GTP_RX_LOS_INVALID_INCR;
-            attribute "RX_LOS_THRESHOLD_{ch}": GTP_RX_LOS_THRESHOLD;
+            attribute "RX_LOS_INVALID_INCR_{ch}": GT_RX_LOS_INVALID_INCR;
+            attribute "RX_LOS_THRESHOLD_{ch}": GT_RX_LOS_THRESHOLD;
             attribute "RX_SLIDE_MODE_{ch}": GTP_RX_SLIDE_MODE;
             attribute "RX_STATUS_FMT_{ch}": GTP_RX_STATUS_FMT;
             attribute "RX_XCLK_SEL_{ch}": GTP_RX_XCLK_SEL;
@@ -6850,6 +7098,2450 @@ target_defs! {
             attribute "TRANS_TIME_TO_P2_{ch}": bitvec[10];
             attribute "TX_DETECT_RX_CFG_{ch}": bitvec[14];
         }
+    }
+
+    // virtex6 GTX, virtex7 GTP/GTX/GTH
+    enum GTCLK_MUX_CLKOUT { O, ODIV2, NONE, CLKTESTSIG }
+    bel_class GTCLK {
+        input CEB;
+        input CLKTESTSIG;
+        output CLKOUT;
+
+        pad CLKP, CLKN: input;
+
+        attribute CLKCM_CFG: bool;
+        attribute CLKRCV_TRST: bool;
+        attribute MUX_CLKOUT: GTCLK_MUX_CLKOUT;
+        attribute REFCLKOUT_DLY: bitvec[10];
+    }
+
+    // virtex6
+    enum HCLK_GTX_MUX_SOUTHREFCLKOUT0 { NONE, MGTREFCLKIN0, MGTREFCLKIN1, SOUTHREFCLKIN0 }
+    enum HCLK_GTX_MUX_SOUTHREFCLKOUT1 { NONE, MGTREFCLKIN0, MGTREFCLKIN1, SOUTHREFCLKIN1 }
+    enum HCLK_GTX_MUX_NORTHREFCLKOUT0 { NONE, MGTREFCLKIN0, MGTREFCLKIN1, NORTHREFCLKIN0 }
+    enum HCLK_GTX_MUX_NORTHREFCLKOUT1 { NONE, MGTREFCLKIN0, MGTREFCLKIN1, NORTHREFCLKIN1 }
+    bel_class HCLK_GTX {
+        pad AVCC, AVTT, AVTTRCAL: power;
+        pad RREF: analog;
+
+        attribute MUX_SOUTHREFCLKOUT0: HCLK_GTX_MUX_SOUTHREFCLKOUT0;
+        attribute MUX_SOUTHREFCLKOUT1: HCLK_GTX_MUX_SOUTHREFCLKOUT1;
+        attribute MUX_NORTHREFCLKOUT0: HCLK_GTX_MUX_NORTHREFCLKOUT0;
+        attribute MUX_NORTHREFCLKOUT1: HCLK_GTX_MUX_NORTHREFCLKOUT1;
+    }
+
+    // virtex6
+    enum GTX_DATA_WIDTH { _8, _10, _16, _20, _32, _40 }
+    enum GTX_RX_FIFO_ADDR_MODE { FULL, FAST }
+    enum GTX_PLL_DIVSEL45_FB { _4, _5 }
+    enum GTX_TX_CLK_SOURCE { TXPLL, RXPLL }
+    enum GTX_TX_DRIVE_MODE { DIRECT, PIPE }
+    enum GTX_RX_SLIDE_MODE { NONE, AUTO, PCS, PMA }
+    enum GTX_RXRECCLK_CTRL {
+        RXRECCLKPCS,
+        RXRECCLKPMA_DIV1,
+        RXRECCLKPMA_DIV2,
+        RXPLLREFCLK_DIV1,
+        RXPLLREFCLK_DIV2,
+        OFF_LOW,
+        OFF_HIGH,
+        CLKTESTSIG1,
+    }
+    enum GTX_TXOUTCLK_CTRL {
+        TXOUTCLKPCS,
+        TXOUTCLKPMA_DIV1,
+        TXOUTCLKPMA_DIV2,
+        TXPLLREFCLK_DIV1,
+        TXPLLREFCLK_DIV2,
+        OFF_LOW,
+        OFF_HIGH,
+        CLKTESTSIG0,
+    }
+    enum GTX_PLLREFSEL {
+        MGTREFCLK0,
+        MGTREFCLK1,
+        NORTHREFCLK0,
+        NORTHREFCLK1,
+        SOUTHREFCLK0,
+        SOUTHREFCLK1,
+        CAS_CLK,
+        TESTCLK,
+    }
+    enum GTX_PLLREFSEL_TESTCLK { GREFCLK, PERFCLK }
+    bel_class GTX {
+        input DCLK;
+        input DEN;
+        input DWE;
+        input DADDR[8];
+        input DI[16];
+        output DRDY;
+        output DRPDO[16];
+
+        input PLLRXRESET;
+        output RXPLLLKDET;
+        input RXPLLLKDETEN;
+        input RXPLLPOWERDOWN;
+        input RXPLLREFSELDY[3];
+
+        input PLLTXRESET;
+        output TXPLLLKDET;
+        input TXPLLLKDETEN;
+        input TXPLLPOWERDOWN;
+        input TXPLLREFSELDY[3];
+
+        input GREFCLKRX;
+        input GREFCLKTX;
+        input PERFCLKRX;
+        input PERFCLKTX;
+        output MGTREFCLKFAB[2];
+        input GTXRXRESET;
+        input GTXTXRESET;
+        input GTXTEST[13];
+        input LOOPBACK[3];
+        input CLKTESTSIG[2];
+        input USRCODEERR;
+        output PHYSTATUS;
+
+        input RXRESET;
+        output RXRESETDONE;
+        input RXUSRCLK;
+        input RXUSRCLK2;
+        output RXRECCLK;
+        output RXRECCLKPCS;
+
+        output COMINITDET;
+        output COMSASDET;
+        output COMWAKEDET;
+        input GATERXELECIDLE;
+        input IGNORESIGDET;
+        output RXELECIDLE;
+        output RXSTATUS[3];
+        output RXVALID;
+        input RXPOWERDOWN[2];
+
+        input DFECLKDLYADJ[6];
+        output DFECLKDLYADJMON[6];
+        input DFEDLYOVRD;
+        output DFEEYEDACMON[5];
+        output DFESENSCAL[3];
+        input DFETAP1[5];
+        output DFETAP1MONITOR[5];
+        input DFETAP2[5];
+        output DFETAP2MONITOR[5];
+        input DFETAP3[4];
+        output DFETAP3MONITOR[4];
+        input DFETAP4[4];
+        output DFETAP4MONITOR[4];
+        input DFETAPOVRD;
+        input RXEQMIX[10];
+
+        input RXCDRRESET;
+        input RXRATE[2];
+        output RXRATEDONE;
+
+        input RXPOLARITY;
+        input RXENSAMPLEALIGN;
+        output RXOVERSAMPLEERR;
+
+        input PRBSCNTRESET;
+        input RXENPRBSTST[3];
+        output RXPRBSERR;
+
+        output RXBYTEISALIGNED;
+        output RXBYTEREALIGN;
+        output RXCOMMADET;
+        input RXCOMMADETUSE;
+        input RXENMCOMMAALIGN;
+        input RXENPCOMMAALIGN;
+        input RXSLIDE;
+
+        output RXLOSSOFSYNC[2];
+
+        output RXCHARISCOMMA[4];
+        output RXCHARISK[4];
+        input RXDEC8B10BUSE;
+        output RXDISPERR[4];
+        output RXNOTINTABLE[4];
+        output RXRUNDISP[4];
+
+        input RXDLYALIGNDISABLE;
+        input RXDLYALIGNFORCEROTATEB;
+        input RXDLYALIGNMONENB;
+        output RXDLYALIGNMONITOR[8];
+        input RXDLYALIGNOVERRIDE;
+        input RXDLYALIGNRESET;
+        input RXDLYALIGNSWPPRECURB;
+        input RXDLYALIGNTESTMODEENB;
+        input RXDLYALIGNUPDSW;
+        input RXENPMAPHASEALIGN;
+        input RXPMASETPHASE;
+
+        input RXBUFRESET;
+        output RXBUFSTATUS[3];
+        input RXBUFWE;
+        output RXCLKCORCNT[3];
+
+        output RXCHANBONDSEQ;
+        output RXCHANISALIGNED;
+        output RXCHANREALIGN;
+        input RXCHBONDI[4];
+        input RXCHBONDLEVEL[3];
+        input RXCHBONDMASTER;
+        input RXCHBONDSLAVE;
+        output RXCHBONDO[4];
+        input RXENCHANSYNC;
+
+        output RXDATAVALID;
+        input RXGEARBOXSLIP;
+        output RXHEADER[3];
+        output RXHEADERVALID;
+        output RXSTARTOFSEQ;
+
+        output RXDATA[32];
+
+        input TXUSRCLK;
+        input TXUSRCLK2;
+        output TXOUTCLK;
+        output TXOUTCLKPCS;
+        input TXRESET;
+        output TXRESETDONE;
+
+        input TXDATA[32];
+        input TXBYPASS8B10B[4];
+        input TXCHARDISPMODE[4];
+        input TXCHARDISPVAL[4];
+        input TXCHARISK[4];
+        input TXENC8B10BUSE;
+        output TXKERR[4];
+        output TXRUNDISP[4];
+
+        output TXGEARBOXREADY;
+        input TXHEADER[3];
+        input TXSEQUENCE[7];
+        input TXSTARTSEQ;
+
+        output TXBUFSTATUS[2];
+        input TXDLYALIGNDISABLE;
+        input TXDLYALIGNMONENB;
+        output TXDLYALIGNMONITOR[8];
+        input TXDLYALIGNOVERRIDE;
+        input TXDLYALIGNRESET;
+        input TXDLYALIGNUPDSW;
+        input TXDLYALIGNFORCEROTATEB;
+        input TXDLYALIGNTESTMODEENB;
+        input TXENPMAPHASEALIGN;
+        input TXPMASETPHASE;
+
+        input TXENPRBSTST[3];
+        input TXPRBSFORCEERR;
+
+        input TXPOLARITY;
+        input TXRATE[2];
+        output TXRATEDONE;
+
+        input TXBUFDIFFCTRL[3];
+        input TXDEEMPH;
+        input TXDIFFCTRL[4];
+        input TXELECIDLE;
+        input TXINHIBIT;
+        input TXMARGIN[3];
+        input TXPDOWNASYNCH;
+        input TXPOSTEMPHASIS[5];
+        input TXPREEMPHASIS[4];
+        input TXSWING;
+
+        output COMFINISH;
+        input TXCOMINIT;
+        input TXCOMSAS;
+        input TXCOMWAKE;
+        input TXPOWERDOWN[2];
+        input TXDETECTRX;
+
+        input TSTCLK[2];
+        input TSTIN[20];
+        output TSTOUT[10];
+        input TSTPWRDN[5];
+        input TSTPWRDNOVRD;
+
+        input SCANCLK;
+        input SCANENB;
+        input SCANIN[5];
+        input SCANMODEB;
+        output SCANOUT[5];
+
+        pad RXP, RXN: input;
+        pad TXP, TXN: output;
+
+        // address 0x00..0x50
+        attribute DRP: bitvec[16][0x50];
+
+        attribute PMA_CAS_CLK_EN: bool;
+        attribute RXPLLREFSEL_STATIC_VAL: GTX_PLLREFSEL;
+        attribute RXPLLREFSEL_MODE_DYNAMIC: bool;
+        attribute RXPLLREFSEL_TESTCLK: GTX_PLLREFSEL_TESTCLK;
+        attribute TXPLLREFSEL_STATIC_VAL: GTX_PLLREFSEL;
+        attribute TXPLLREFSEL_MODE_DYNAMIC: bool;
+        attribute TXPLLREFSEL_TESTCLK: GTX_PLLREFSEL_TESTCLK;
+
+        attribute AC_CAP_DIS: bool;
+        attribute CHAN_BOND_KEEP_ALIGN: bool;
+        attribute CHAN_BOND_SEQ_2_USE: bool;
+        attribute CLK_COR_INSERT_IDLE_FLAG: bool;
+        attribute CLK_COR_KEEP_IDLE: bool;
+        attribute CLK_COR_PRECEDENCE: bool;
+        attribute CLK_CORRECT_USE: bool;
+        attribute CLK_COR_SEQ_2_USE: bool;
+        attribute COMMA_DOUBLE: bool;
+        attribute DEC_MCOMMA_DETECT: bool;
+        attribute DEC_PCOMMA_DETECT: bool;
+        attribute DEC_VALID_COMMA_ONLY: bool;
+        attribute DFE_DRP_EN: bool;
+        attribute GEN_RXUSRCLK: bool;
+        attribute GEN_TXUSRCLK: bool;
+        attribute GTX_CFG_PWRUP: bool;
+        attribute LOOPBACK_DRP_EN: bool;
+        attribute MASTER_DRP_EN: bool;
+        attribute MCOMMA_DETECT: bool;
+        attribute PCI_EXPRESS_MODE: bool;
+        attribute PCOMMA_DETECT: bool;
+        attribute PDELIDLE_DRP_EN: bool;
+        attribute PHASEALIGN_DRP_EN: bool;
+        attribute PLL_DRP_EN: bool;
+        attribute POLARITY_DRP_EN: bool;
+        attribute PRBS_DRP_EN: bool;
+        attribute RCV_TERM_GND: bool;
+        attribute RCV_TERM_VTTRX: bool;
+        attribute RESET_DRP_EN: bool;
+        attribute RX_BUFFER_USE: bool;
+        attribute RXBUF_OVRD_THRESH: bool;
+        attribute RX_CDR_FORCE_ROTATE: bool;
+        attribute RX_DECODE_SEQ_MATCH: bool;
+        attribute RX_EN_IDLE_HOLD_CDR: bool;
+        attribute RX_EN_IDLE_HOLD_DFE: bool;
+        attribute RX_EN_IDLE_RESET_BUF: bool;
+        attribute RX_EN_IDLE_RESET_FR: bool;
+        attribute RX_EN_IDLE_RESET_PH: bool;
+        attribute RX_EN_MODE_RESET_BUF: bool;
+        attribute RX_EN_RATE_RESET_BUF: bool;
+        attribute RX_EN_REALIGN_RESET_BUF2: bool;
+        attribute RX_EN_REALIGN_RESET_BUF: bool;
+        attribute RXGEARBOX_USE: bool;
+        attribute RX_LOSS_OF_SYNC_FSM: bool;
+        attribute RX_OVERSAMPLE_MODE: bool;
+        attribute RXPLL_STARTUP_EN: bool;
+        attribute SHOW_REALIGN_COMMA: bool;
+        attribute TERMINATION_OVRD: bool;
+        attribute TX_BUFFER_USE: bool;
+        attribute TXDRIVE_DRP_EN: bool;
+        attribute TXDRIVE_LOOPBACK_HIZ: bool;
+        attribute TXDRIVE_LOOPBACK_PD: bool;
+        attribute TX_EN_RATE_RESET_BUF: bool;
+        attribute TXGEARBOX_USE: bool;
+        attribute TX_OVERSAMPLE_MODE: bool;
+        attribute TXPLL_STARTUP_EN: bool;
+
+        attribute ALIGN_COMMA_WORD: GTP_ALIGN_COMMA_WORD;
+        attribute CHAN_BOND_SEQ_LEN: GTP_SEQ_LEN;
+        attribute CLK_COR_ADJ_LEN: GTP_SEQ_LEN;
+        attribute CLK_COR_DET_LEN: GTP_SEQ_LEN;
+        attribute RX_DATA_WIDTH: GTX_DATA_WIDTH;
+        attribute RX_FIFO_ADDR_MODE: GTX_RX_FIFO_ADDR_MODE;
+        attribute RX_LOS_INVALID_INCR: GT_RX_LOS_INVALID_INCR;
+        attribute RX_LOS_THRESHOLD: GT_RX_LOS_THRESHOLD;
+        attribute RXPLL_DIVSEL45_FB: GTX_PLL_DIVSEL45_FB;
+        attribute RXPLL_DIVSEL_FB: GTP_PLL_DIVSEL_REF;
+        attribute RXPLL_DIVSEL_OUT: GTP_PLL_DIVSEL_OUT;
+        attribute RXPLL_DIVSEL_REF: GTP_PLL_DIVSEL_REF;
+        attribute RXRECCLK_CTRL: GTX_RXRECCLK_CTRL;
+        attribute RX_SLIDE_MODE: GTX_RX_SLIDE_MODE;
+        attribute RX_XCLK_SEL: GTP_RX_XCLK_SEL;
+        attribute TX_CLK_SOURCE: GTX_TX_CLK_SOURCE;
+        attribute TX_DATA_WIDTH: GTX_DATA_WIDTH;
+        attribute TX_DRIVE_MODE: GTX_TX_DRIVE_MODE;
+        attribute TXOUTCLK_CTRL: GTX_TXOUTCLK_CTRL;
+        attribute TXPLL_DIVSEL45_FB: GTX_PLL_DIVSEL45_FB;
+        attribute TXPLL_DIVSEL_FB: GTP_PLL_DIVSEL_REF;
+        attribute TXPLL_DIVSEL_OUT: GTP_PLL_DIVSEL_OUT;
+        attribute TXPLL_DIVSEL_REF: GTP_PLL_DIVSEL_REF;
+        attribute TX_XCLK_SEL: GTP_TX_XCLK_SEL;
+        // NOTE: stored as -1
+        attribute RX_CLK25_DIVIDER: bitvec[5];
+        attribute TX_CLK25_DIVIDER: bitvec[5];
+
+        attribute CHAN_BOND_1_MAX_SKEW: bitvec[4];
+        attribute CHAN_BOND_2_MAX_SKEW: bitvec[4];
+        attribute CLK_COR_MAX_LAT: bitvec[6];
+        attribute CLK_COR_MIN_LAT: bitvec[6];
+        attribute SAS_MAX_COMSAS: bitvec[6];
+        attribute SAS_MIN_COMSAS: bitvec[6];
+        attribute SATA_MAX_BURST: bitvec[6];
+        attribute SATA_MAX_INIT: bitvec[6];
+        attribute SATA_MAX_WAKE: bitvec[6];
+        attribute SATA_MIN_BURST: bitvec[6];
+        attribute SATA_MIN_INIT: bitvec[6];
+        attribute SATA_MIN_WAKE: bitvec[6];
+
+        attribute CLK_COR_REPEAT_WAIT: bitvec[5];
+        attribute RXBUF_OVFL_THRESH: bitvec[6];
+        attribute RXBUF_UDFL_THRESH: bitvec[6];
+        attribute RX_SLIDE_AUTO_WAIT: bitvec[4];
+        attribute TXOUTCLKPCS_SEL: bitvec[1];
+        attribute A_DFECLKDLYADJ: bitvec[6];
+        attribute A_DFEDLYOVRD: bitvec[1];
+        attribute A_DFETAP1: bitvec[5];
+        attribute A_DFETAP2: bitvec[5];
+        attribute A_DFETAP3: bitvec[4];
+        attribute A_DFETAP4: bitvec[4];
+        attribute A_DFETAPOVRD: bitvec[1];
+        attribute A_GTXRXRESET: bitvec[1];
+        attribute A_GTXTXRESET: bitvec[1];
+        attribute A_LOOPBACK: bitvec[3];
+        attribute A_PLLCLKRXRESET: bitvec[1];
+        attribute A_PLLCLKTXRESET: bitvec[1];
+        attribute A_PLLRXRESET: bitvec[1];
+        attribute A_PLLTXRESET: bitvec[1];
+        attribute A_PRBSCNTRESET: bitvec[1];
+        attribute A_RXBUFRESET: bitvec[1];
+        attribute A_RXCDRFREQRESET: bitvec[1];
+        attribute A_RXCDRHOLD: bitvec[1];
+        attribute A_RXCDRPHASERESET: bitvec[1];
+        attribute A_RXCDRRESET: bitvec[1];
+        attribute A_RXDFERESET: bitvec[1];
+        attribute A_RXENPMAPHASEALIGN: bitvec[1];
+        attribute A_RXENPRBSTST: bitvec[3];
+        attribute A_RXENSAMPLEALIGN: bitvec[1];
+        attribute A_RXEQMIX: bitvec[10];
+        attribute A_RXPLLLKDETEN: bitvec[1];
+        attribute A_RXPLLPOWERDOWN: bitvec[1];
+        attribute A_RXPMASETPHASE: bitvec[1];
+        attribute A_RXPOLARITY: bitvec[1];
+        attribute A_RXPOWERDOWN: bitvec[2];
+        attribute A_RXRESET: bitvec[1];
+        attribute A_TXBUFDIFFCTRL: bitvec[3];
+        attribute A_TXDEEMPH: bitvec[1];
+        attribute A_TXDIFFCTRL: bitvec[4];
+        attribute A_TXELECIDLE: bitvec[1];
+        attribute A_TXENPMAPHASEALIGN: bitvec[1];
+        attribute A_TXENPRBSTST: bitvec[3];
+        attribute A_TXMARGIN: bitvec[3];
+        attribute A_TXPLLLKDETEN: bitvec[1];
+        attribute A_TXPLLPOWERDOWN: bitvec[1];
+        attribute A_TXPMASETPHASE: bitvec[1];
+        attribute A_TXPOLARITY: bitvec[1];
+        attribute A_TXPOSTEMPHASIS: bitvec[5];
+        attribute A_TXPOWERDOWN: bitvec[2];
+        attribute A_TXPRBSFORCEERR: bitvec[1];
+        attribute A_TXPREEMPHASIS: bitvec[4];
+        attribute A_TXRESET: bitvec[1];
+        attribute A_TXSWING: bitvec[1];
+        attribute BGTEST_CFG: bitvec[2];
+        attribute CDR_PH_ADJ_TIME: bitvec[5];
+        attribute CHAN_BOND_SEQ_1_1: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_2: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_3: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_4: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_ENABLE: bitvec[4];
+        attribute CHAN_BOND_SEQ_2_1: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_2: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_3: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_4: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_CFG: bitvec[5];
+        attribute CHAN_BOND_SEQ_2_ENABLE: bitvec[4];
+        attribute CLK_COR_SEQ_1_1: bitvec[10];
+        attribute CLK_COR_SEQ_1_2: bitvec[10];
+        attribute CLK_COR_SEQ_1_3: bitvec[10];
+        attribute CLK_COR_SEQ_1_4: bitvec[10];
+        attribute CLK_COR_SEQ_1_ENABLE: bitvec[4];
+        attribute CLK_COR_SEQ_2_1: bitvec[10];
+        attribute CLK_COR_SEQ_2_2: bitvec[10];
+        attribute CLK_COR_SEQ_2_3: bitvec[10];
+        attribute CLK_COR_SEQ_2_4: bitvec[10];
+        attribute CLK_COR_SEQ_2_ENABLE: bitvec[4];
+        attribute CM_TRIM: bitvec[2];
+        attribute COMMA_10B_ENABLE: bitvec[10];
+        attribute COM_BURST_VAL: bitvec[4];
+        attribute DFE_CAL_TIME: bitvec[5];
+        attribute DFE_CFG: bitvec[8];
+        attribute GEARBOX_ENDEC: bitvec[3];
+        attribute MCOMMA_10B_VALUE: bitvec[10];
+        attribute OOBDETECT_THRESHOLD: bitvec[3];
+        attribute PCOMMA_10B_VALUE: bitvec[10];
+        attribute POWER_SAVE: bitvec[10];
+        attribute RXPLL_LKDET_CFG: bitvec[3];
+        attribute RXPRBSERR_LOOPBACK: bitvec[1];
+        attribute RXRECCLK_DLY: bitvec[10];
+        attribute RX_DLYALIGN_CTRINC: bitvec[4];
+        attribute RX_DLYALIGN_EDGESET: bitvec[5];
+        attribute RX_DLYALIGN_LPFINC: bitvec[4];
+        attribute RX_DLYALIGN_MONSEL: bitvec[3];
+        attribute RX_DLYALIGN_OVRDSETTING: bitvec[8];
+        attribute RX_EYE_SCANMODE: bitvec[2];
+        attribute RX_IDLE_HI_CNT: bitvec[4];
+        attribute RX_IDLE_LO_CNT: bitvec[4];
+        attribute SATA_BURST_VAL: bitvec[3];
+        attribute SATA_IDLE_VAL: bitvec[3];
+        attribute TERMINATION_CTRL: bitvec[5];
+        attribute TXOUTCLK_DLY: bitvec[10];
+        attribute TXPLL_LKDET_CFG: bitvec[3];
+        attribute TXPLL_SATA: bitvec[2];
+        attribute TX_DEEMPH_0: bitvec[5];
+        attribute TX_DEEMPH_1: bitvec[5];
+        attribute TX_DLYALIGN_CTRINC: bitvec[4];
+        attribute TX_DLYALIGN_LPFINC: bitvec[4];
+        attribute TX_DLYALIGN_MONSEL: bitvec[3];
+        attribute TX_DLYALIGN_OVRDSETTING: bitvec[8];
+        attribute TX_IDLE_ASSERT_DELAY: bitvec[3];
+        attribute TX_IDLE_DEASSERT_DELAY: bitvec[3];
+        attribute TX_MARGIN_FULL_0: bitvec[7];
+        attribute TX_MARGIN_FULL_1: bitvec[7];
+        attribute TX_MARGIN_FULL_2: bitvec[7];
+        attribute TX_MARGIN_FULL_3: bitvec[7];
+        attribute TX_MARGIN_FULL_4: bitvec[7];
+        attribute TX_MARGIN_LOW_0: bitvec[7];
+        attribute TX_MARGIN_LOW_1: bitvec[7];
+        attribute TX_MARGIN_LOW_2: bitvec[7];
+        attribute TX_MARGIN_LOW_3: bitvec[7];
+        attribute TX_MARGIN_LOW_4: bitvec[7];
+        attribute TX_PMADATA_OPT: bitvec[1];
+        attribute TX_TDCC_CFG: bitvec[2];
+        attribute USR_CODE_ERR_CLR: bitvec[1];
+        attribute BIAS_CFG: bitvec[17];
+        attribute PMA_CDR_SCAN: bitvec[27];
+        attribute PMA_CFG: bitvec[76];
+        attribute PMA_RXSYNC_CFG: bitvec[7];
+        attribute PMA_RX_CFG: bitvec[25];
+        attribute PMA_TX_CFG: bitvec[20];
+        attribute RXPLL_COM_CFG: bitvec[24];
+        attribute RXPLL_CP_CFG: bitvec[8];
+        attribute RXUSRCLK_DLY: bitvec[16];
+        attribute RX_EYE_OFFSET: bitvec[8];
+        attribute TRANS_TIME_FROM_P2: bitvec[12];
+        attribute TRANS_TIME_NON_P2: bitvec[8];
+        attribute TRANS_TIME_RATE: bitvec[8];
+        attribute TRANS_TIME_TO_P2: bitvec[10];
+        attribute TST_ATTR: bitvec[32];
+        attribute TXPLL_COM_CFG: bitvec[24];
+        attribute TXPLL_CP_CFG: bitvec[8];
+        attribute TX_BYTECLK_CFG: bitvec[6];
+        attribute TX_DETECT_RX_CFG: bitvec[14];
+        attribute TX_USRCLK_CFG: bitvec[6];
+    }
+
+    // virtex6
+    enum GTH_QUAD_CLKTESTSIG_SEL { CLKTESTSIG, USER_OPERATION }
+    enum GTH_QUAD_FABRIC_WIDTH { _16_20, _32, _40, _64, _80, _64_66 }
+    enum GTH_QUAD_MUX_REFCLK { NONE, REFCLK_IN, GREFCLK, REFCLK_NORTH, REFCLK_SOUTH }
+    bel_class GTH_QUAD {
+        input DISABLEDRP;
+        input DCLK;
+        input DEN;
+        input DWE;
+        input DADDR[16];
+        input DI[16];
+        output DRDY;
+        output DRPDO[16];
+
+        input MGMTPCSREGRD;
+        input MGMTPCSREGWR;
+        input MGMTPCSLANESEL[4];
+        input MGMTPCSMMDADDR[5];
+        input MGMTPCSREGADDR[16];
+        input MGMTPCSWRDATA[16];
+        output MGMTPCSRDDATA[16];
+        output MGMTPCSRDACK;
+
+        input GREFCLK;
+        input GTHINIT;
+        output GTHINITDONE;
+        input GTHRESET;
+        input CLKTESTSIG[10];
+        output RESETDONE1;
+        output RESETDONE2;
+        output RESETDONE3;
+
+        input GTHX2LANE01;
+        input GTHX2LANE23;
+        input GTHX4LANE;
+
+        input PLLPCSCLKDIV[6];
+        input PLLREFCLKSEL[3];
+
+        for ch in 0..4 {
+           input "DFETRAINCTRL{ch}";
+
+            input "POWERDOWN{ch}";
+           input "RXBUFRESET{ch}";
+           output "RXCODEERR{ch}"[8];
+           output "RXCTRL{ch}"[8];
+           output "RXCTRLACK{ch}";
+           output "RXDATA{ch}"[64];
+           output "RXDATATAP{ch}";
+           output "RXDISPERR{ch}"[8];
+           input "RXENCOMMADET{ch}";
+           output "RXPCSCLKSMPL{ch}";
+           input "RXPOLARITY{ch}";
+           input "RXPOWERDOWN{ch}"[2];
+           input "RXRATE{ch}"[2];
+           input "RXSLIP{ch}";
+           input "RXUSERCLKIN{ch}";
+           output "RXUSERCLKOUT{ch}";
+           output "RXVALID{ch}"[8];
+           input "SAMPLERATE{ch}"[3];
+
+            input "TXBUFRESET{ch}";
+           input "TXCTRL{ch}"[8];
+           output "TXCTRLACK{ch}";
+           input "TXDATA{ch}"[64];
+           input "TXDATAMSB{ch}"[8];
+           output "TXDATATAP1{ch}";
+           output "TXDATATAP2{ch}";
+           input "TXDEEMPH{ch}";
+           input "TXMARGIN{ch}"[3];
+           output "TXPCSCLKSMPL{ch}";
+           input "TXPOWERDOWN{ch}"[2];
+           input "TXRATE{ch}"[2];
+           input "TXUSERCLKIN{ch}";
+           output "TXUSERCLKOUT{ch}";
+        }
+
+        input SCANCLK;
+        input SCANENB;
+        input SCANMODEB;
+        input SCANIN[16];
+        output SCANOUT[16];
+
+        input SDSIDDQMODE;
+        input SDSSCANARST;
+        input SDSSCANCLK;
+        input SDSSCANENB;
+        output SDSTSTFBCLK;
+        output SDSTSTTDO;
+        input TPCLK;
+        input TPDI;
+        output TPDO;
+        input TPEXE;
+        input TPRST;
+        input TPSENB;
+        input TSTNOISECLK;
+        output TSTNOISEMON;
+        input TSTNOISESRC;
+        output TSTPATH;
+        output TSTREFCLKFAB;
+        output TSTREFCLKOUT;
+
+        pad CLKP, CLKN: input;
+        pad RXP[4], RXN[4]: input;
+        pad TXP[4], TXN[4]: output;
+        pad AGND, AVCC, AVCCPLL, AVCCRX, AVTT: power;
+        pad RBIAS: analog;
+
+        // 0x000..0x140
+        attribute DRP: bitvec[16][0x140];
+        attribute ENABLE: bool;
+        attribute CLKTESTSIG_SEL: GTH_QUAD_CLKTESTSIG_SEL;
+        attribute MUX_REFCLK: GTH_QUAD_MUX_REFCLK;
+        for ch in 0..4 {
+            attribute "RX_FABRIC_WIDTH{ch}": GTH_QUAD_FABRIC_WIDTH;
+            attribute "TX_FABRIC_WIDTH{ch}": GTH_QUAD_FABRIC_WIDTH;
+            attribute "GTH_CFG_PWRUP_LANE{ch}": bitvec[1];
+            attribute "TST_PCS_LOOPBACK_LANE{ch}": bitvec[1];
+            attribute "BUFFER_CONFIG_LANE{ch}": bitvec[16];
+            attribute "DFE_TRAIN_CTRL_LANE{ch}": bitvec[16];
+            attribute "E10GBASEKR_LD_COEFF_UPD_LANE{ch}": bitvec[16];
+            attribute "E10GBASEKR_LP_COEFF_UPD_LANE{ch}": bitvec[16];
+            attribute "E10GBASEKR_PMA_CTRL_LANE{ch}": bitvec[16];
+            attribute "E10GBASEKX_CTRL_LANE{ch}": bitvec[16];
+            attribute "E10GBASER_PCS_CFG_LANE{ch}": bitvec[16];
+            attribute "E10GBASER_PCS_SEEDA0_LANE{ch}": bitvec[16];
+            attribute "E10GBASER_PCS_SEEDA1_LANE{ch}": bitvec[16];
+            attribute "E10GBASER_PCS_SEEDA2_LANE{ch}": bitvec[16];
+            attribute "E10GBASER_PCS_SEEDA3_LANE{ch}": bitvec[16];
+            attribute "E10GBASER_PCS_SEEDB0_LANE{ch}": bitvec[16];
+            attribute "E10GBASER_PCS_SEEDB1_LANE{ch}": bitvec[16];
+            attribute "E10GBASER_PCS_SEEDB2_LANE{ch}": bitvec[16];
+            attribute "E10GBASER_PCS_SEEDB3_LANE{ch}": bitvec[16];
+            attribute "E10GBASER_PCS_TEST_CTRL_LANE{ch}": bitvec[16];
+            attribute "E10GBASEX_PCS_TSTCTRL_LANE{ch}": bitvec[16];
+            attribute "LANE_PWR_CTRL_LANE{ch}": bitvec[16];
+            attribute "LNK_TRN_CFG_LANE{ch}": bitvec[16];
+            attribute "LNK_TRN_COEFF_REQ_LANE{ch}": bitvec[16];
+            attribute "PCS_ABILITY_LANE{ch}": bitvec[16];
+            attribute "PCS_CTRL1_LANE{ch}": bitvec[16];
+            attribute "PCS_CTRL2_LANE{ch}": bitvec[16];
+            attribute "PCS_MISC_CFG_0_LANE{ch}": bitvec[16];
+            attribute "PCS_MISC_CFG_1_LANE{ch}": bitvec[16];
+            attribute "PCS_MODE_LANE{ch}": bitvec[16];
+            attribute "PCS_RESET_1_LANE{ch}": bitvec[16];
+            attribute "PCS_RESET_LANE{ch}": bitvec[16];
+            attribute "PCS_TYPE_LANE{ch}": bitvec[16];
+            attribute "PMA_CTRL1_LANE{ch}": bitvec[16];
+            attribute "PMA_CTRL2_LANE{ch}": bitvec[16];
+            attribute "PMA_LPBK_CTRL_LANE{ch}": bitvec[16];
+            attribute "PRBS_BER_CFG0_LANE{ch}": bitvec[16];
+            attribute "PRBS_BER_CFG1_LANE{ch}": bitvec[16];
+            attribute "PRBS_CFG_LANE{ch}": bitvec[16];
+            attribute "RX_AEQ_VAL0_LANE{ch}": bitvec[16];
+            attribute "RX_AEQ_VAL1_LANE{ch}": bitvec[16];
+            attribute "RX_AGC_CTRL_LANE{ch}": bitvec[16];
+            attribute "RX_CDR_CTRL0_LANE{ch}": bitvec[16];
+            attribute "RX_CDR_CTRL1_LANE{ch}": bitvec[16];
+            attribute "RX_CDR_CTRL2_LANE{ch}": bitvec[16];
+            attribute "RX_CFG0_LANE{ch}": bitvec[16];
+            attribute "RX_CFG1_LANE{ch}": bitvec[16];
+            attribute "RX_CFG2_LANE{ch}": bitvec[16];
+            attribute "RX_CTLE_CTRL_LANE{ch}": bitvec[16];
+            attribute "RX_CTRL_OVRD_LANE{ch}": bitvec[16];
+            attribute "RX_LOOP_CTRL_LANE{ch}": bitvec[16];
+            attribute "RX_MVAL0_LANE{ch}": bitvec[16];
+            attribute "RX_MVAL1_LANE{ch}": bitvec[16];
+            attribute "TERM_CTRL_LANE{ch}": bitvec[16];
+            attribute "TX_CFG0_LANE{ch}": bitvec[16];
+            attribute "TX_CFG1_LANE{ch}": bitvec[16];
+            attribute "TX_CFG2_LANE{ch}": bitvec[16];
+            attribute "TX_CLK_SEL0_LANE{ch}": bitvec[16];
+            attribute "TX_CLK_SEL1_LANE{ch}": bitvec[16];
+            attribute "TX_DISABLE_LANE{ch}": bitvec[16];
+            attribute "TX_PREEMPH_LANE{ch}": bitvec[16];
+            attribute "TX_PWR_RATE_OVRD_LANE{ch}": bitvec[16];
+        }
+        attribute BER_CONST_PTRN0: bitvec[16];
+        attribute BER_CONST_PTRN1: bitvec[16];
+        attribute DLL_CFG0: bitvec[16];
+        attribute DLL_CFG1: bitvec[16];
+        attribute GLBL0_NOISE_CTRL: bitvec[16];
+        attribute GLBL_AMON_SEL: bitvec[16];
+        attribute GLBL_DMON_SEL: bitvec[16];
+        attribute GLBL_PWR_CTRL: bitvec[16];
+        attribute LANE_AMON_SEL: bitvec[16];
+        attribute LANE_DMON_SEL: bitvec[16];
+        attribute LANE_LNK_CFGOVRD: bitvec[16];
+        attribute MISC_CFG: bitvec[16];
+        attribute MODE_CFG1: bitvec[16];
+        attribute MODE_CFG2: bitvec[16];
+        attribute MODE_CFG3: bitvec[16];
+        attribute MODE_CFG4: bitvec[16];
+        attribute MODE_CFG5: bitvec[16];
+        attribute MODE_CFG6: bitvec[16];
+        attribute MODE_CFG7: bitvec[16];
+        attribute PLL_CFG0: bitvec[16];
+        attribute PLL_CFG1: bitvec[16];
+        attribute PLL_CFG2: bitvec[16];
+        attribute PTRN_CFG0_LSB: bitvec[16];
+        attribute PTRN_CFG0_MSB: bitvec[16];
+        attribute PTRN_LEN_CFG: bitvec[16];
+        attribute PWRUP_DLY: bitvec[16];
+        attribute RX_P0S_CTRL: bitvec[16];
+        attribute RX_P0_CTRL: bitvec[16];
+        attribute RX_P1_CTRL: bitvec[16];
+        attribute RX_P2_CTRL: bitvec[16];
+        attribute RX_PI_CTRL0: bitvec[16];
+        attribute RX_PI_CTRL1: bitvec[16];
+        attribute SLICE_CFG: bitvec[16];
+        attribute SLICE_NOISE_CTRL_0_LANE01: bitvec[16];
+        attribute SLICE_NOISE_CTRL_0_LANE23: bitvec[16];
+        attribute SLICE_NOISE_CTRL_1_LANE01: bitvec[16];
+        attribute SLICE_NOISE_CTRL_1_LANE23: bitvec[16];
+        attribute SLICE_NOISE_CTRL_2_LANE01: bitvec[16];
+        attribute SLICE_NOISE_CTRL_2_LANE23: bitvec[16];
+        attribute SLICE_TX_RESET_LANE01: bitvec[16];
+        attribute SLICE_TX_RESET_LANE23: bitvec[16];
+        attribute TX_P0P0S_CTRL: bitvec[16];
+        attribute TX_P1P2_CTRL: bitvec[16];
+    }
+
+    enum GTP_COMMON_WE_REFCLK_SEL { NONE, REFCLK0, REFCLK1 }
+    enum GTP_COMMON_PLLREFCLKSEL {
+        NONE,
+        GTREFCLK0,
+        GTREFCLK1,
+        GTEASTREFCLK0,
+        GTEASTREFCLK1,
+        GTWESTREFCLK0,
+        GTWESTREFCLK1,
+        GTGREFCLK,
+    }
+    // virtex7
+    bel_class GTP_COMMON {
+        input DRPCLK;
+        input DRPEN;
+        input DRPWE;
+        input DRPADDR[8];
+        input DRPDI[16];
+        output DRPRDY;
+        output DRPDO[16];
+
+        input BGBYPASSB;
+        input BGMONITORENB;
+        input BGPDB;
+        input BGRCALOVRD[5];
+        input BGRCALOVRDENB;
+
+        output DMONITOROUT[8];
+
+        input GTGREFCLK0;
+        input GTGREFCLK1;
+
+        for i in 0..2 {
+            output "PLL{i}FBCLKLOST";
+            output "PLL{i}LOCK";
+            input "PLL{i}LOCKDETCLK";
+            input "PLL{i}LOCKEN";
+            input "PLL{i}PD";
+            output "PLL{i}REFCLKLOST";
+            input "PLL{i}REFCLKSEL"[3];
+            input "PLL{i}RESET";
+        }
+
+        input PLLCLKSPARE;
+        input PLLRSVD1[16];
+        input PLLRSVD2[5];
+        input PMARSVD[8];
+        output PMARSVDOUT[16];
+        input PMASCANCLK0;
+        input PMASCANCLK1;
+        input PMASCANENB;
+        input PMASCANIN[5];
+        output PMASCANOUT[5];
+
+        input QDPMASCANMODEB;
+        input QDPMASCANRSTEN;
+        input RCALENB;
+        output REFCLKOUTMONITOR0;
+        output REFCLKOUTMONITOR1;
+
+        pad AVCC, AVTT: power;
+        pad RREF: analog;
+
+        // 0x00..0x60
+        attribute DRP: bitvec[16][0x60];
+
+        attribute CLKSWING_CFG: bitvec[2];
+        attribute PLL0REFCLKSEL_STATIC_VAL: GTP_COMMON_PLLREFCLKSEL;
+        attribute PLL0REFCLKSEL_MODE_DYNAMIC: bool;
+        attribute PLL1REFCLKSEL_STATIC_VAL: GTP_COMMON_PLLREFCLKSEL;
+        attribute PLL1REFCLKSEL_MODE_DYNAMIC: bool;
+        attribute EAST_REFCLK0_SEL: GTP_COMMON_WE_REFCLK_SEL;
+        attribute EAST_REFCLK1_SEL: GTP_COMMON_WE_REFCLK_SEL;
+        attribute WEST_REFCLK0_SEL: GTP_COMMON_WE_REFCLK_SEL;
+        attribute WEST_REFCLK1_SEL: GTP_COMMON_WE_REFCLK_SEL;
+
+        attribute PLL0_FBDIV: GTP_PLL_DIVSEL_REF;
+        attribute PLL1_FBDIV: GTP_PLL_DIVSEL_REF;
+        attribute PLL0_FBDIV_45: GTX_PLL_DIVSEL45_FB;
+        attribute PLL1_FBDIV_45: GTX_PLL_DIVSEL45_FB;
+        attribute PLL0_REFCLK_DIV: GTP_PLL_DIVSEL_REF;
+        attribute PLL1_REFCLK_DIV: GTP_PLL_DIVSEL_REF;
+
+        attribute AEN_BGBS: bitvec[1];
+        attribute AEN_MASTER: bitvec[1];
+        attribute AEN_PD: bitvec[1];
+        attribute AEN_PLL: bitvec[1];
+        attribute AEN_REFCLK: bitvec[1];
+        attribute AEN_RESET: bitvec[1];
+        attribute A_BGMONITOREN: bitvec[1];
+        attribute A_BGPD: bitvec[1];
+        attribute A_GTREFCLKPD0: bitvec[1];
+        attribute A_GTREFCLKPD1: bitvec[1];
+        attribute A_PLL0LOCKEN: bitvec[1];
+        attribute A_PLL1LOCKEN: bitvec[1];
+        attribute A_PLL0PD: bitvec[1];
+        attribute A_PLL1PD: bitvec[1];
+        attribute A_PLL0RESET: bitvec[1];
+        attribute A_PLL1RESET: bitvec[1];
+        attribute AQDMUXSEL: bitvec[3];
+        attribute COMMON_AMUX_SEL: bitvec[2];
+        attribute COMMON_INSTANTIATED: bitvec[1];
+        attribute PLL_CLKOUT_CFG: bitvec[8];
+        attribute PLL0_DMON_CFG: bitvec[1];
+        attribute PLL1_DMON_CFG: bitvec[1];
+        attribute BIAS_CFG: bitvec[64];
+        attribute COMMON_CFG: bitvec[32];
+        attribute PLL0_CFG: bitvec[27];
+        attribute PLL1_CFG: bitvec[27];
+        attribute PLL0_LOCK_CFG: bitvec[9];
+        attribute PLL1_LOCK_CFG: bitvec[9];
+        attribute PLL0_INIT_CFG: bitvec[24];
+        attribute PLL1_INIT_CFG: bitvec[24];
+        attribute RSVD_ATTR0: bitvec[16];
+        attribute RSVD_ATTR1: bitvec[16];
+    }
+
+    // virtex7
+    enum GTP_CHANNEL_CBCC_DATA_SOURCE_SEL { DECODED, ENCODED }
+    enum GTP_CHANNEL_DATA_WIDTH { _16, _20, _32, _40 }
+    enum GTP_CHANNEL_CLKOUT_DIV { _1, _2, _4, _8, _16 }
+    enum GTP_CHANNEL_RXOOB_CLK_CFG { PMA, FABRIC }
+    enum GTP_CHANNEL_SATA_PLL_CFG { VCO_750MHZ, VCO_1500MHZ, VCO_3000MHZ }
+    enum GTP_CHANNEL_TX_DRIVE_MODE { DIRECT, PIPE, PIPEGEN3 }
+    enum GTP_CHANNEL_TXPI_PPMCLK_SEL { TXUSRCLK, TXUSRCLK2 }
+    bel_class GTP_CHANNEL {
+        input CFGRESET;
+
+        input CLKRSVD[2];
+
+        input DMONFIFORESET;
+        input DMONITORCLK;
+        output DMONITOROUT[15];
+
+        input DRPCLK;
+        input DRPEN;
+        input DRPWE;
+        input DRPADDR[9];
+        input DRPDI[16];
+        output DRPRDY;
+        output DRPDO[16];
+
+        output EYESCANDATAERROR;
+        input EYESCANMODE;
+        input EYESCANRESET;
+        input EYESCANTRIGGER;
+
+        input GTRESETSEL;
+        input GTRSVD[16];
+        input GTRXRESET;
+        input GTTXRESET;
+
+        input LOOPBACK[3];
+
+        input PCSRSVDIN[16];
+        output PCSRSVDOUT[16];
+
+        output PHYSTATUS;
+
+        input PMARSVDIN[5];
+        output PMARSVDOUT[2];
+        input PMASCANCLK[4];
+        input PMASCANENB;
+        input PMASCANIN[7];
+        input PMASCANMODEB;
+        output PMASCANOUT[7];
+        input PMASCANRSTEN;
+
+        input RESETOVRD;
+
+        input RX8B10BEN;
+        input RXADAPTSELTEST[14];
+        input RXBUFRESET;
+        output RXBUFSTATUS[3];
+        output RXBYTEISALIGNED;
+        output RXBYTEREALIGN;
+        input RXCDRFREQRESET;
+        input RXCDRHOLD;
+        output RXCDRLOCK;
+        input RXCDROVRDEN;
+        input RXCDRRESET;
+        input RXCDRRESETRSV;
+        output RXCHANBONDSEQ;
+        output RXCHANISALIGNED;
+        output RXCHANREALIGN;
+        output RXCHARISCOMMA[4];
+        output RXCHARISK[4];
+        input RXCHBONDEN;
+        input RXCHBONDI[4];
+        input RXCHBONDLEVEL[3];
+        input RXCHBONDMASTER;
+        output RXCHBONDO[4];
+        input RXCHBONDSLAVE;
+        output RXCLKCORCNT[2];
+        output RXCOMINITDET;
+        output RXCOMMADET;
+        input RXCOMMADETEN;
+        output RXCOMSASDET;
+        output RXCOMWAKEDET;
+        output RXDATA[32];
+        output RXDATAVALID[2];
+        input RXDDIEN;
+        input RXDEBUGPULSE;
+        input RXDFEXYDEN;
+        output RXDISPERR[4];
+        input RXDLYBYPASS;
+        input RXDLYEN;
+        input RXDLYOVRDEN;
+        input RXDLYSRESET;
+        output RXDLYSRESETDONE;
+        input RXDLYTESTENB;
+        output RXELECIDLE;
+        input RXELECIDLEMODE[2];
+        input RXGEARBOXSLIP;
+        output RXHEADER[3];
+        output RXHEADERVALID;
+        input RXLPMHFHOLD;
+        input RXLPMHFOVRDEN;
+        input RXLPMLFHOLD;
+        input RXLPMLFOVRDEN;
+        input RXLPMOSINTNTRLEN;
+        input RXLPMRESET;
+        input RXMCOMMAALIGNEN;
+        output RXNOTINTABLE[4];
+        input RXOOBRESET;
+        input RXOSCALRESET;
+        input RXOSHOLD;
+        input RXOSINTCFG[4];
+        output RXOSINTDONE;
+        input RXOSINTEN;
+        input RXOSINTHOLD;
+        input RXOSINTID0[4];
+        input RXOSINTNTRLEN;
+        input RXOSINTOVRDEN;
+        input RXOSINTPD;
+        output RXOSINTSTARTED;
+        input RXOSINTSTROBE;
+        output RXOSINTSTROBEDONE;
+        output RXOSINTSTROBESTARTED;
+        input RXOSINTTESTOVRDEN;
+        input RXOSOVRDEN;
+        output RXOUTCLK;
+        output RXOUTCLKFABRIC;
+        output RXOUTCLKPCS;
+        input RXOUTCLKSEL[3];
+        input RXPCOMMAALIGNEN;
+        input RXPCSRESET;
+        input RXPD[2];
+        input RXPHALIGN;
+        output RXPHALIGNDONE;
+        input RXPHALIGNEN;
+        input RXPHDLYPD;
+        input RXPHDLYRESET;
+        output RXPHMONITOR[5];
+        input RXPHOVRDEN;
+        output RXPHSLIPMONITOR[5];
+        input RXPMARESET;
+        output RXPMARESETDONE;
+        input RXPOLARITY;
+        input RXPRBSCNTRESET;
+        output RXPRBSERR;
+        input RXPRBSSEL[3];
+        input RXRATE[3];
+        output RXRATEDONE;
+        input RXRATEMODE;
+        output RXRESETDONE;
+        input RXSLIDE;
+        output RXSTARTOFSEQ[2];
+        output RXSTATUS[3];
+        input RXSYNCALLIN;
+        output RXSYNCDONE;
+        input RXSYNCIN;
+        input RXSYNCMODE;
+        output RXSYNCOUT;
+        input RXSYSCLKSEL[2];
+        input RXUSERRDY;
+        input RXUSRCLK;
+        input RXUSRCLK2;
+        output RXVALID;
+
+        input SETERRSTATUS;
+        input SIGVALIDCLK;
+
+        input TX8B10BBYPASS[4];
+        input TX8B10BEN;
+        input TXBUFDIFFCTRL[3];
+        output TXBUFSTATUS[2];
+        input TXCHARDISPMODE[4];
+        input TXCHARDISPVAL[4];
+        input TXCHARISK[4];
+        output TXCOMFINISH;
+        input TXCOMINIT;
+        input TXCOMSAS;
+        input TXCOMWAKE;
+        input TXDATA[32];
+        input TXDEEMPH;
+        input TXDETECTRX;
+        input TXDIFFCTRL[4];
+        input TXDIFFPD;
+        input TXDLYBYPASS;
+        input TXDLYEN;
+        input TXDLYHOLD;
+        input TXDLYOVRDEN;
+        input TXDLYSRESET;
+        output TXDLYSRESETDONE;
+        input TXDLYTESTENB;
+        input TXDLYUPDOWN;
+        input TXELECIDLE;
+        output TXGEARBOXREADY;
+        input TXHEADER[3];
+        input TXINHIBIT;
+        input TXMAINCURSOR[7];
+        input TXMARGIN[3];
+        output TXOUTCLK;
+        output TXOUTCLKFABRIC;
+        output TXOUTCLKPCS;
+        input TXOUTCLKSEL[3];
+        input TXPCSRESET;
+        input TXPD[2];
+        input TXPDELECIDLEMODE;
+        input TXPHALIGN;
+        output TXPHALIGNDONE;
+        input TXPHALIGNEN;
+        input TXPHDLYPD;
+        input TXPHDLYRESET;
+        input TXPHDLYTSTCLK;
+        input TXPHINIT;
+        output TXPHINITDONE;
+        input TXPHOVRDEN;
+        input TXPIPPMEN;
+        input TXPIPPMOVRDEN;
+        input TXPIPPMPD;
+        input TXPIPPMSEL;
+        input TXPIPPMSTEPSIZE[5];
+        input TXPISOPD;
+        input TXPMARESET;
+        output TXPMARESETDONE;
+        input TXPOLARITY;
+        input TXPOSTCURSOR[5];
+        input TXPOSTCURSORINV;
+        input TXPRBSFORCEERR;
+        input TXPRBSSEL[3];
+        input TXPRECURSOR[5];
+        input TXPRECURSORINV;
+        input TXRATE[3];
+        output TXRATEDONE;
+        input TXRATEMODE;
+        output TXRESETDONE;
+        output TXRUNDISP[4];
+        input TXSEQUENCE[7];
+        input TXSTARTSEQ;
+        input TXSWING;
+        input TXSYNCALLIN;
+        output TXSYNCDONE;
+        input TXSYNCIN;
+        input TXSYNCMODE;
+        output TXSYNCOUT;
+        input TXSYSCLKSEL[2];
+        input TXUSERRDY;
+        input TXUSRCLK;
+        input TXUSRCLK2;
+
+        input TSTCLK[2];
+        input TSTIN[20];
+        input TSTPD[5];
+        input TSTPDOVRDB;
+
+        input SCANCLK;
+        input SCANENB;
+        input SCANIN[6];
+        input SCANMODEB;
+        output SCANOUT[6];
+
+        pad RXP, RXN: input;
+        pad TXP, TXN: output;
+
+        attribute DRP: bitvec[16][0xb0];
+
+        attribute ALIGN_COMMA_DOUBLE: bool;
+        attribute ALIGN_MCOMMA_DET: bool;
+        attribute ALIGN_PCOMMA_DET: bool;
+        attribute CHAN_BOND_KEEP_ALIGN: bool;
+        attribute CHAN_BOND_SEQ_2_USE: bool;
+        attribute CLK_COR_INSERT_IDLE_FLAG: bool;
+        attribute CLK_COR_KEEP_IDLE: bool;
+        attribute CLK_COR_PRECEDENCE: bool;
+        attribute CLK_CORRECT_USE: bool;
+        attribute CLK_COR_SEQ_2_USE: bool;
+        attribute DEC_MCOMMA_DETECT: bool;
+        attribute DEC_PCOMMA_DETECT: bool;
+        attribute DEC_VALID_COMMA_ONLY: bool;
+        attribute ES_ERRDET_EN: bool;
+        attribute ES_EYE_SCAN_EN: bool;
+        attribute FTS_LANE_DESKEW_EN: bool;
+        attribute GEN_RXUSRCLK: bool;
+        attribute GEN_TXUSRCLK: bool;
+        attribute PCS_PCIE_EN: bool;
+        attribute RXBUF_EN: bool;
+        attribute RXBUF_RESET_ON_CB_CHANGE: bool;
+        attribute RXBUF_RESET_ON_COMMAALIGN: bool;
+        attribute RXBUF_RESET_ON_EIDLE: bool;
+        attribute RXBUF_RESET_ON_RATE_CHANGE: bool;
+        attribute RXBUF_THRESH_OVRD: bool;
+        attribute RX_DEFER_RESET_BUF_EN: bool;
+        attribute RX_DISPERR_SEQ_MATCH: bool;
+        attribute RXGEARBOX_EN: bool;
+        attribute SHOW_REALIGN_COMMA: bool;
+        attribute TXBUF_EN: bool;
+        attribute TXBUF_RESET_ON_RATE_CHANGE: bool;
+        attribute TXGEARBOX_EN: bool;
+        attribute TX_LOOPBACK_DRIVE_HIZ: bool;
+
+        attribute ALIGN_COMMA_WORD: GTP_ALIGN_COMMA_WORD;
+        attribute CBCC_DATA_SOURCE_SEL: GTP_CHANNEL_CBCC_DATA_SOURCE_SEL;
+        attribute CHAN_BOND_SEQ_LEN: GTP_SEQ_LEN;
+        attribute CLK_COR_SEQ_LEN: GTP_SEQ_LEN;
+        attribute RXBUF_ADDR_MODE: GTX_RX_FIFO_ADDR_MODE;
+        attribute RX_DATA_WIDTH: GTP_CHANNEL_DATA_WIDTH;
+        attribute RXOOB_CLK_CFG: GTP_CHANNEL_RXOOB_CLK_CFG;
+        attribute RXOUT_DIV: GTP_CHANNEL_CLKOUT_DIV;
+        attribute RXSIPO_DIV_45: GTX_PLL_DIVSEL45_FB;
+        attribute RXSLIDE_MODE: GTX_RX_SLIDE_MODE;
+        attribute RX_XCLK_SEL: GTP_RX_XCLK_SEL;
+        attribute SATA_PLL_CFG: GTP_CHANNEL_SATA_PLL_CFG;
+        attribute TX_DATA_WIDTH: GTP_CHANNEL_DATA_WIDTH;
+        attribute TX_DRIVE_MODE: GTP_CHANNEL_TX_DRIVE_MODE;
+        attribute TXOUT_DIV: GTP_CHANNEL_CLKOUT_DIV;
+        attribute TXPI_PPMCLK_SEL: GTP_CHANNEL_TXPI_PPMCLK_SEL;
+        attribute TXPISO_DIV_45: GTX_PLL_DIVSEL45_FB;
+        attribute TX_XCLK_SEL: GTP_TX_XCLK_SEL;
+
+        attribute CHAN_BOND_MAX_SKEW: bitvec[4];
+        attribute CLK_COR_MAX_LAT: bitvec[6];
+        attribute CLK_COR_MIN_LAT: bitvec[6];
+        attribute RX_CLK25_DIV: bitvec[5];
+        attribute RX_SIG_VALID_DLY: bitvec[5];
+        attribute SAS_MAX_COM: bitvec[7];
+        attribute SAS_MIN_COM: bitvec[6];
+        attribute SATA_MAX_BURST: bitvec[6];
+        attribute SATA_MAX_INIT: bitvec[6];
+        attribute SATA_MAX_WAKE: bitvec[6];
+        attribute SATA_MIN_BURST: bitvec[6];
+        attribute SATA_MIN_INIT: bitvec[6];
+        attribute SATA_MIN_WAKE: bitvec[6];
+        attribute TX_CLK25_DIV: bitvec[5];
+        attribute CLK_COR_REPEAT_WAIT: bitvec[5];
+        attribute RXBUF_THRESH_OVFLW: bitvec[6];
+        attribute RXBUF_THRESH_UNDFLW: bitvec[6];
+        attribute RXSLIDE_AUTO_WAIT: bitvec[4];
+        attribute TXOUTCLKPCS_SEL: bitvec[1];
+        attribute ACJTAG_DEBUG_MODE: bitvec[1];
+        attribute ACJTAG_MODE: bitvec[1];
+        attribute ACJTAG_RESET: bitvec[1];
+        attribute ADAPT_CFG0: bitvec[20];
+        attribute AEN_LOOPBACK: bitvec[1];
+        attribute AEN_MASTER: bitvec[1];
+        attribute AEN_PD_AND_EIDLE: bitvec[1];
+        attribute AEN_PLL: bitvec[1];
+        attribute AEN_POLARITY: bitvec[1];
+        attribute AEN_PRBS: bitvec[1];
+        attribute AEN_RESET: bitvec[1];
+        attribute AEN_RSV: bitvec[1];
+        attribute AEN_RXCDR: bitvec[1];
+        attribute AEN_RXDFE: bitvec[1];
+        attribute AEN_RXLPM: bitvec[1];
+        attribute AEN_RXOUTCLK_SEL: bitvec[1];
+        attribute AEN_RXPHDLY: bitvec[1];
+        attribute AEN_RXSYSCLK_SEL: bitvec[1];
+        attribute AEN_TXOUTCLK_SEL: bitvec[1];
+        attribute AEN_TXPHDLY: bitvec[1];
+        attribute AEN_TXPI_PPM: bitvec[1];
+        attribute AEN_TXSYSCLK_SEL: bitvec[1];
+        attribute AEN_TX_DRIVE_MODE: bitvec[1];
+        attribute ALIGN_COMMA_ENABLE: bitvec[10];
+        attribute ALIGN_MCOMMA_VALUE: bitvec[10];
+        attribute ALIGN_PCOMMA_VALUE: bitvec[10];
+        attribute A_CFGRESET: bitvec[1];
+        attribute A_EYESCANMODE: bitvec[1];
+        attribute A_EYESCANRESET: bitvec[1];
+        attribute A_GTRESETSEL: bitvec[1];
+        attribute A_GTRXRESET: bitvec[1];
+        attribute A_GTTXRESET: bitvec[1];
+        attribute A_LOOPBACK: bitvec[3];
+        attribute A_PMARSVDIN3: bitvec[1];
+        attribute A_PMARSVDIN4: bitvec[1];
+        attribute A_RXADAPTSELTEST: bitvec[14];
+        attribute A_RXBUFRESET: bitvec[1];
+        attribute A_RXCDRFREQRESET: bitvec[1];
+        attribute A_RXCDRHOLD: bitvec[1];
+        attribute A_RXCDROVRDEN: bitvec[1];
+        attribute A_RXCDRRESET: bitvec[1];
+        attribute A_RXCDRRESETRSV: bitvec[1];
+        attribute A_RXDFEXYDEN: bitvec[1];
+        attribute A_RXDLYBYPASS: bitvec[1];
+        attribute A_RXDLYEN: bitvec[1];
+        attribute A_RXDLYOVRDEN: bitvec[1];
+        attribute A_RXDLYSRESET: bitvec[1];
+        attribute A_RXLPMHFHOLD: bitvec[1];
+        attribute A_RXLPMHFOVRDEN: bitvec[1];
+        attribute A_RXLPMLFHOLD: bitvec[1];
+        attribute A_RXLPMLFOVRDEN: bitvec[1];
+        attribute A_RXLPMOSINTNTRLEN: bitvec[1];
+        attribute A_RXLPMRESET: bitvec[1];
+        attribute A_RXOOBRESET: bitvec[1];
+        attribute A_RXOSCALRESET: bitvec[1];
+        attribute A_RXOSHOLD: bitvec[1];
+        attribute A_RXOSINTCFG: bitvec[4];
+        attribute A_RXOSINTEN: bitvec[1];
+        attribute A_RXOSINTHOLD: bitvec[1];
+        attribute A_RXOSINTID0: bitvec[4];
+        attribute A_RXOSINTNTRLEN: bitvec[1];
+        attribute A_RXOSINTOVRDEN: bitvec[1];
+        attribute A_RXOSINTSTROBE: bitvec[1];
+        attribute A_RXOSINTTESTOVRDEN: bitvec[1];
+        attribute A_RXOSOVRDEN: bitvec[1];
+        attribute A_RXOUTCLKSEL: bitvec[3];
+        attribute A_RXPCSRESET: bitvec[1];
+        attribute A_RXPD: bitvec[2];
+        attribute A_RXPHALIGN: bitvec[1];
+        attribute A_RXPHALIGNEN: bitvec[1];
+        attribute A_RXPHDLYPD: bitvec[1];
+        attribute A_RXPHDLYRESET: bitvec[1];
+        attribute A_RXPHOVRDEN: bitvec[1];
+        attribute A_RXPMARESET: bitvec[1];
+        attribute A_RXPOLARITY: bitvec[1];
+        attribute A_RXPRBSCNTRESET: bitvec[1];
+        attribute A_RXPRBSSEL: bitvec[3];
+        attribute A_RXSYSCLKSEL: bitvec[2];
+        attribute A_SPARE: bitvec[1];
+        attribute A_TXBUFDIFFCTRL: bitvec[3];
+        attribute A_TXDEEMPH: bitvec[1];
+        attribute A_TXDIFFCTRL: bitvec[4];
+        attribute A_TXDLYBYPASS: bitvec[1];
+        attribute A_TXDLYEN: bitvec[1];
+        attribute A_TXDLYOVRDEN: bitvec[1];
+        attribute A_TXDLYSRESET: bitvec[1];
+        attribute A_TXELECIDLE: bitvec[1];
+        attribute A_TXINHIBIT: bitvec[1];
+        attribute A_TXMAINCURSOR: bitvec[7];
+        attribute A_TXMARGIN: bitvec[3];
+        attribute A_TXOUTCLKSEL: bitvec[3];
+        attribute A_TXPCSRESET: bitvec[1];
+        attribute A_TXPD: bitvec[2];
+        attribute A_TXPHALIGN: bitvec[1];
+        attribute A_TXPHALIGNEN: bitvec[1];
+        attribute A_TXPHDLYPD: bitvec[1];
+        attribute A_TXPHDLYRESET: bitvec[1];
+        attribute A_TXPHINIT: bitvec[1];
+        attribute A_TXPHOVRDEN: bitvec[1];
+        attribute A_TXPIPPMOVRDEN: bitvec[1];
+        attribute A_TXPIPPMPD: bitvec[1];
+        attribute A_TXPIPPMSEL: bitvec[1];
+        attribute A_TXPMARESET: bitvec[1];
+        attribute A_TXPOLARITY: bitvec[1];
+        attribute A_TXPOSTCURSOR: bitvec[5];
+        attribute A_TXPOSTCURSORINV: bitvec[1];
+        attribute A_TXPRBSFORCEERR: bitvec[1];
+        attribute A_TXPRBSSEL: bitvec[3];
+        attribute A_TXPRECURSOR: bitvec[5];
+        attribute A_TXPRECURSORINV: bitvec[1];
+        attribute A_TXSWING: bitvec[1];
+        attribute A_TXSYSCLKSEL: bitvec[2];
+        attribute CFOK_CFG: bitvec[43];
+        attribute CFOK_CFG2: bitvec[7];
+        attribute CFOK_CFG3: bitvec[7];
+        attribute CFOK_CFG4: bitvec[1];
+        attribute CFOK_CFG5: bitvec[2];
+        attribute CFOK_CFG6: bitvec[4];
+        attribute CHAN_BOND_SEQ_1_1: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_2: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_3: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_4: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_ENABLE: bitvec[4];
+        attribute CHAN_BOND_SEQ_2_1: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_2: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_3: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_4: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_ENABLE: bitvec[4];
+        attribute CLK_COMMON_SWING: bitvec[1];
+        attribute CLK_COR_SEQ_1_1: bitvec[10];
+        attribute CLK_COR_SEQ_1_2: bitvec[10];
+        attribute CLK_COR_SEQ_1_3: bitvec[10];
+        attribute CLK_COR_SEQ_1_4: bitvec[10];
+        attribute CLK_COR_SEQ_1_ENABLE: bitvec[4];
+        attribute CLK_COR_SEQ_2_1: bitvec[10];
+        attribute CLK_COR_SEQ_2_2: bitvec[10];
+        attribute CLK_COR_SEQ_2_3: bitvec[10];
+        attribute CLK_COR_SEQ_2_4: bitvec[10];
+        attribute CLK_COR_SEQ_2_ENABLE: bitvec[4];
+        attribute ES_CLK_PHASE_SEL: bitvec[1];
+        attribute ES_CONTROL: bitvec[6];
+        attribute ES_PMA_CFG: bitvec[10];
+        attribute ES_PRESCALE: bitvec[5];
+        attribute ES_VERT_OFFSET: bitvec[9];
+        attribute FTS_DESKEW_SEQ_ENABLE: bitvec[4];
+        attribute FTS_LANE_DESKEW_CFG: bitvec[4];
+        attribute GEARBOX_MODE: bitvec[3];
+        attribute GT_INSTANTIATED: bitvec[1];
+        attribute LOOPBACK_CFG: bitvec[1];
+        attribute OUTREFCLK_SEL_INV: bitvec[2];
+        attribute PCD_2UI_CFG: bitvec[1];
+        attribute PMA_LOOPBACK_CFG: bitvec[1];
+        attribute PMA_POWER_SAVE: bitvec[10];
+        attribute PMA_RSV3: bitvec[2];
+        attribute PMA_RSV4: bitvec[4];
+        attribute PMA_RSV5: bitvec[1];
+        attribute PMA_RSV6: bitvec[1];
+        attribute PMA_RSV7: bitvec[1];
+        attribute RXBUFRESET_TIME: bitvec[5];
+        attribute RXBUF_EIDLE_HI_CNT: bitvec[4];
+        attribute RXBUF_EIDLE_LO_CNT: bitvec[4];
+        attribute RXCDRFREQRESET_TIME: bitvec[5];
+        attribute RXCDRPHRESET_TIME: bitvec[5];
+        attribute RXCDRRESET_TIME: bitvec[7];
+        attribute RXCDR_FR_RESET_ON_EIDLE: bitvec[1];
+        attribute RXCDR_HOLD_DURING_EIDLE: bitvec[1];
+        attribute RXCDR_LOCK_CFG: bitvec[6];
+        attribute RXCDR_PCIERESET_WAIT_TIME: bitvec[5];
+        attribute RXCDR_PH_RESET_ON_EIDLE: bitvec[1];
+        attribute RXISCANRESET_TIME: bitvec[5];
+        attribute RXLPMRESET_TIME: bitvec[7];
+        attribute RXLPM_BIAS_STARTUP_DISABLE: bitvec[1];
+        attribute RXLPM_CFG: bitvec[4];
+        attribute RXLPM_CFG1: bitvec[1];
+        attribute RXLPM_CM_CFG: bitvec[1];
+        attribute RXLPM_GC_CFG: bitvec[9];
+        attribute RXLPM_GC_CFG2: bitvec[3];
+        attribute RXLPM_HF_CFG: bitvec[14];
+        attribute RXLPM_HF_CFG2: bitvec[5];
+        attribute RXLPM_HF_CFG3: bitvec[4];
+        attribute RXLPM_HOLD_DURING_EIDLE: bitvec[1];
+        attribute RXLPM_INCM_CFG: bitvec[1];
+        attribute RXLPM_IPCM_CFG: bitvec[1];
+        attribute RXLPM_LF_CFG: bitvec[18];
+        attribute RXLPM_LF_CFG2: bitvec[5];
+        attribute RXLPM_OSINT_CFG: bitvec[3];
+        attribute RXOOB_CFG: bitvec[7];
+        attribute RXOSCALRESET_TIME: bitvec[5];
+        attribute RXOSCALRESET_TIMEOUT: bitvec[5];
+        attribute RXPCSRESET_TIME: bitvec[5];
+        attribute RXPH_MONITOR_SEL: bitvec[5];
+        attribute RXPI_CFG0: bitvec[3];
+        attribute RXPI_CFG1: bitvec[1];
+        attribute RXPI_CFG2: bitvec[1];
+        attribute RXPLL_SEL: bitvec[1];
+        attribute RXPMARESET_TIME: bitvec[5];
+        attribute RXPRBS_ERR_LOOPBACK: bitvec[1];
+        attribute RXSYNC_MULTILANE: bitvec[1];
+        attribute RXSYNC_OVRD: bitvec[1];
+        attribute RXSYNC_SKIP_DA: bitvec[1];
+        attribute RX_BIAS_CFG: bitvec[16];
+        attribute RX_BUFFER_CFG: bitvec[6];
+        attribute RX_CLKMUX_EN: bitvec[1];
+        attribute RX_CM_SEL: bitvec[2];
+        attribute RX_CM_TRIM: bitvec[4];
+        attribute RX_DDI_SEL: bitvec[6];
+        attribute RX_DEBUG_CFG: bitvec[14];
+        attribute RX_OS_CFG: bitvec[13];
+        attribute SATA_BURST_SEQ_LEN: bitvec[4];
+        attribute SATA_BURST_VAL: bitvec[3];
+        attribute SATA_EIDLE_VAL: bitvec[3];
+        attribute SP_REFCLK_CFG: bitvec[3];
+        attribute TERM_RCAL_CFG: bitvec[15];
+        attribute TERM_RCAL_OVRD: bitvec[3];
+        attribute TXOOB_CFG: bitvec[1];
+        attribute TXPCSRESET_TIME: bitvec[5];
+        attribute TXPH_MONITOR_SEL: bitvec[5];
+        attribute TXPI_CFG0: bitvec[2];
+        attribute TXPI_CFG1: bitvec[2];
+        attribute TXPI_CFG2: bitvec[2];
+        attribute TXPI_CFG3: bitvec[1];
+        attribute TXPI_CFG4: bitvec[1];
+        attribute TXPI_CFG5: bitvec[3];
+        attribute TXPI_GREY_SEL: bitvec[1];
+        attribute TXPI_INVSTROBE_SEL: bitvec[1];
+        attribute TXPI_PPM_CFG: bitvec[8];
+        attribute TXPI_SYNFREQ_PPM: bitvec[3];
+        attribute TXPLL_SEL: bitvec[1];
+        attribute TXPMARESET_TIME: bitvec[5];
+        attribute TXSYNC_MULTILANE: bitvec[1];
+        attribute TXSYNC_OVRD: bitvec[1];
+        attribute TXSYNC_SKIP_DA: bitvec[1];
+        attribute TX_CLKMUX_EN: bitvec[1];
+        attribute TX_DEEMPH0: bitvec[6];
+        attribute TX_DEEMPH1: bitvec[6];
+        attribute TX_EIDLE_ASSERT_DELAY: bitvec[3];
+        attribute TX_EIDLE_DEASSERT_DELAY: bitvec[3];
+        attribute TX_MAINCURSOR_SEL: bitvec[1];
+        attribute TX_MARGIN_FULL_0: bitvec[7];
+        attribute TX_MARGIN_FULL_1: bitvec[7];
+        attribute TX_MARGIN_FULL_2: bitvec[7];
+        attribute TX_MARGIN_FULL_3: bitvec[7];
+        attribute TX_MARGIN_FULL_4: bitvec[7];
+        attribute TX_MARGIN_LOW_0: bitvec[7];
+        attribute TX_MARGIN_LOW_1: bitvec[7];
+        attribute TX_MARGIN_LOW_2: bitvec[7];
+        attribute TX_MARGIN_LOW_3: bitvec[7];
+        attribute TX_MARGIN_LOW_4: bitvec[7];
+        attribute TX_PREDRIVER_MODE: bitvec[1];
+        attribute TX_RXDETECT_REF: bitvec[3];
+        attribute UCODEER_CLR: bitvec[1];
+        attribute USE_PCS_CLK_PHASE_SEL: bitvec[1];
+        attribute AMONITOR_CFG: bitvec[16];
+        attribute DMONITOR_CFG: bitvec[24];
+        attribute ES_HORZ_OFFSET: bitvec[12];
+        attribute ES_QUALIFIER: bitvec[80];
+        attribute ES_QUAL_MASK: bitvec[80];
+        attribute ES_SDATA_MASK: bitvec[80];
+        attribute PCS_RSVD_ATTR: bitvec[48];
+        attribute PD_TRANS_TIME_FROM_P2: bitvec[12];
+        attribute PD_TRANS_TIME_NONE_P2: bitvec[8];
+        attribute PD_TRANS_TIME_TO_P2: bitvec[8];
+        attribute PMA_RSV: bitvec[32];
+        attribute PMA_RSV2: bitvec[32];
+        attribute RXCDR_CFG: bitvec[83];
+        attribute RXDLY_CFG: bitvec[16];
+        attribute RXDLY_LCFG: bitvec[9];
+        attribute RXDLY_TAP_CFG: bitvec[16];
+        attribute RXPHDLY_CFG: bitvec[24];
+        attribute RXPH_CFG: bitvec[24];
+        attribute TRANS_TIME_RATE: bitvec[8];
+        attribute TST_RSV: bitvec[32];
+        attribute TXDLY_CFG: bitvec[16];
+        attribute TXDLY_LCFG: bitvec[9];
+        attribute TXDLY_TAP_CFG: bitvec[16];
+        attribute TXPHDLY_CFG: bitvec[24];
+        attribute TXPH_CFG: bitvec[16];
+        attribute TX_RXDETECT_CFG: bitvec[14];
+    }
+
+    // virtex7
+    enum GTX_COMMON_PLLREFCLKSEL {
+        NONE,
+        GTREFCLK0,
+        GTREFCLK1,
+        GTNORTHREFCLK0,
+        GTNORTHREFCLK1,
+        GTSOUTHREFCLK0,
+        GTSOUTHREFCLK1,
+        GTGREFCLK,
+    }
+    bel_class GTX_COMMON {
+        input DRPCLK;
+        input DRPEN;
+        input DRPWE;
+        input DRPADDR[8];
+        input DRPDI[16];
+        output DRPRDY;
+        output DRPDO[16];
+
+        input BGBYPASSB;
+        input BGMONITORENB;
+        input BGPDB;
+        input BGRCALOVRD[5];
+        // GTH only
+        input BGRCALOVRDENB;
+
+        input GTGREFCLK;
+
+        input PMARSVD[8];
+        // GTH only
+        output PMARSVDOUT[16];
+
+        input PMASCANCLK[2];
+        input PMASCANENB;
+        input PMASCANIN[5];
+        output PMASCANOUT[5];
+
+        input QDPMASCANMODEB;
+        input QDPMASCANRSTEN;
+
+        input QPLLCLKSPARE[2];
+        output QPLLDMONITOR[8];
+        output QPLLFBCLKLOST;
+        output QPLLLOCK;
+        input QPLLLOCKDETCLK;
+        input QPLLLOCKEN;
+        input QPLLOUTRESET;
+        input QPLLPD;
+        output QPLLREFCLKLOST;
+        input QPLLREFCLKSEL[3];
+        input QPLLRESET;
+        input QPLLRSVD1[16];
+        input QPLLRSVD2[5];
+
+        input RCALENB;
+        output REFCLKOUTMONITOR;
+
+        pad AVCC, AVTT, VCCAUX, AVTTRCAL: power;
+        pad RREF: analog;
+
+        // 0x00..0x60
+        attribute DRP: bitvec[16][0x60];
+
+        attribute CLKSWING_CFG: bitvec[2];
+        attribute QPLLREFCLKSEL_STATIC_VAL: GTX_COMMON_PLLREFCLKSEL;
+        attribute QPLLREFCLKSEL_MODE_DYNAMIC: bool;
+        attribute MUX_SOUTHREFCLKOUT0: HCLK_GTX_MUX_SOUTHREFCLKOUT0;
+        attribute MUX_SOUTHREFCLKOUT1: HCLK_GTX_MUX_SOUTHREFCLKOUT1;
+        attribute MUX_NORTHREFCLKOUT0: HCLK_GTX_MUX_NORTHREFCLKOUT0;
+        attribute MUX_NORTHREFCLKOUT1: HCLK_GTX_MUX_NORTHREFCLKOUT1;
+
+        attribute QPLL_REFCLK_DIV: GTP_PLL_DIVSEL_REF;
+
+        attribute AEN_BGBS: bitvec[1];
+        attribute AEN_MASTER: bitvec[1];
+        attribute AEN_PD: bitvec[1];
+        attribute AEN_QPLL: bitvec[1];
+        attribute AEN_REFCLK: bitvec[1];
+        attribute AEN_RESET: bitvec[1];
+        attribute AQDMUXSEL: bitvec[3];
+        attribute A_BGMONITOREN: bitvec[1];
+        attribute A_BGPD: bitvec[1];
+        attribute A_GTREFCLKPD0: bitvec[1];
+        attribute A_GTREFCLKPD1: bitvec[1];
+        attribute A_QPLLLOCKEN: bitvec[1];
+        attribute A_QPLLOUTRESET: bitvec[1];
+        attribute A_QPLLPD: bitvec[1];
+        attribute A_QPLLRESET: bitvec[1];
+        attribute COMMON_AMUX_SEL: bitvec[2];
+        attribute COMMON_INSTANTIATED: bitvec[1];
+        attribute QPLL_AMONITOR_SEL: bitvec[2];
+        attribute QPLL_CLKOUT_CFG: bitvec[4];
+        attribute QPLL_COARSE_FREQ_OVRD: bitvec[6];
+        attribute QPLL_COARSE_FREQ_OVRD_EN: bitvec[1];
+        attribute QPLL_CP: bitvec[10];
+        attribute QPLL_CP_MONITOR_EN: bitvec[1];
+        attribute QPLL_DMONITOR_SEL: bitvec[1];
+        attribute QPLL_FBDIV: bitvec[10];
+        attribute QPLL_FBDIV_MONITOR_EN: bitvec[1];
+        attribute QPLL_FBDIV_RATIO: bitvec[1];
+        attribute QPLL_LPF: bitvec[4];
+        attribute QPLL_VCTRL_MONITOR_EN: bitvec[1];
+        attribute QPLL_VREG_MONITOR_EN: bitvec[1];
+        // GTH only
+        attribute QPLL_RP_COMP: bitvec[1];
+        attribute QPLL_VTRL_RESET: bitvec[2];
+        attribute RCAL_CFG: bitvec[2];
+
+        attribute BIAS_CFG: bitvec[64];
+        attribute COMMON_CFG: bitvec[32];
+        attribute QPLL_CFG: bitvec[27];
+        attribute QPLL_INIT_CFG: bitvec[24];
+        attribute QPLL_LOCK_CFG: bitvec[16];
+        // GTH only
+        attribute RSVD_ATTR0: bitvec[16];
+        attribute RSVD_ATTR1: bitvec[16];
+    }
+
+    // virtex7
+    enum GTX_CHANNEL_DATA_WIDTH { _16, _20, _32, _40, _64, _80 }
+    enum GTX_CHANNEL_PLL_SEL { CPLL, QPLL }
+    bel_class GTX_CHANNEL {
+        input CFGRESET;
+        // GTH has only 2
+        input CLKRSVD[4];
+
+        output CPLLFBCLKLOST;
+        output CPLLLOCK;
+        input CPLLLOCKDETCLK;
+        input CPLLLOCKEN;
+        input CPLLPD;
+        output CPLLREFCLKLOST;
+        input CPLLREFCLKSEL0;
+        input CPLLREFCLKSEL1;
+        input CPLLREFCLKSEL2;
+        input CPLLRESET;
+
+        // GTH only, except DMONITOROUT which also exists on GTX but is only 8 bits
+        input DMONFIFORESET;
+        input DMONITORCLK;
+        output DMONITOROUT[15];
+
+        input DRPCLK;
+        input DRPEN;
+        input DRPWE;
+        input DRPADDR[9];
+        input DRPDI[16];
+        output DRPRDY;
+        output DRPDO[16];
+
+        // GTX only
+        input EDTCLOCK;
+        input EDTBYPASS;
+        input EDTCONFIGURATION;
+        input EDTSINGLEBYPASSCHAIN;
+        input EDTUPDATE;
+
+        output EYESCANDATAERROR;
+        input EYESCANMODE;
+        input EYESCANRESET;
+        input EYESCANTRIGGER;
+        input GTGREFCLK;
+        output GTREFCLKMONITOR;
+        input GTRESETSEL;
+        input GTRSVD[16];
+        input GTRXRESET;
+        input GTTXRESET;
+        input LOOPBACK[3];
+        input PCSRSVDIN[16];
+        input PCSRSVDIN2[5];
+        output PCSRSVDOUT[16];
+        output PHYSTATUS;
+
+        input PMARSVDIN[5];
+        // GTX only
+        input PMARSVDIN2[5];
+
+        // GTX has only 5 bits of PMASCANIN/OUT
+        input PMASCANCLK[5];
+        input PMASCANRSTEN;
+        input PMASCANENB;
+        input PMASCANMODEB;
+        input PMASCANIN[8];
+        output PMASCANOUT[8];
+
+        input RESETOVRD;
+
+        // GTH only
+        output RSOSINTDONE;
+
+        input RX8B10BEN;
+        // GTH only
+        input RXADAPTSELTEST[14];
+        input RXBUFRESET;
+        output RXBUFSTATUS[3];
+        output RXBYTEISALIGNED;
+        output RXBYTEREALIGN;
+        input RXCDRFREQRESET;
+        input RXCDRHOLD;
+        output RXCDRLOCK;
+        input RXCDROVRDEN;
+        input RXCDRRESET;
+        input RXCDRRESETRSV;
+        output RXCHANBONDSEQ;
+        output RXCHANISALIGNED;
+        output RXCHANREALIGN;
+        output RXCHARISCOMMA[8];
+        output RXCHARISK[8];
+        input RXCHBONDEN;
+        input RXCHBONDI[5];
+        input RXCHBONDLEVEL[3];
+        input RXCHBONDMASTER;
+        output RXCHBONDO[5];
+        input RXCHBONDSLAVE;
+        output RXCLKCORCNT[2];
+        output RXCOMINITDET;
+        output RXCOMMADET;
+        input RXCOMMADETEN;
+        output RXCOMSASDET;
+        output RXCOMWAKEDET;
+        output RXDATA[64];
+        // GTX has only a single bit
+        output RXDATAVALID[2];
+        input RXDDIEN;
+        input RXDEBUGPULSE;
+        input RXDFEAGCHOLD;
+        input RXDFEAGCOVRDEN;
+        // GTH only
+        input RXDFEAGCTRL[5];
+        input RXDFECM1EN;
+        input RXDFELFHOLD;
+        input RXDFELFOVRDEN;
+        input RXDFELPMRESET;
+        input RXDFEUTHOLD;
+        input RXDFEUTOVRDEN;
+        input RXDFEVPHOLD;
+        input RXDFEVPOVRDEN;
+        input RXDFEVSEN;
+        input RXDFEXYDEN;
+        // these two GTX only
+        input RXDFEXYDHOLD;
+        input RXDFEXYDOVRDEN;
+
+        // all of this GTH only
+        input RXDFESLIDETAP[5];
+        input RXDFESLIDETAPADAPTEN;
+        input RXDFESLIDETAPHOLD;
+        input RXDFESLIDETAPID[6];
+        input RXDFESLIDETAPINITOVRDEN;
+        input RXDFESLIDETAPONLYADAPTEN;
+        input RXDFESLIDETAPOVRDEN;
+        output RXDFESLIDETAPSTARTED;
+        input RXDFESLIDETAPSTROBE;
+        output RXDFESLIDETAPSTROBEDONE;
+        output RXDFESLIDETAPSTROBESTARTED;
+        output RXDFESTADAPTDONE;
+
+        input RXDFETAP2HOLD;
+        input RXDFETAP2OVRDEN;
+        input RXDFETAP3HOLD;
+        input RXDFETAP3OVRDEN;
+        input RXDFETAP4HOLD;
+        input RXDFETAP4OVRDEN;
+        input RXDFETAP5HOLD;
+        input RXDFETAP5OVRDEN;
+        // taps 6 and 7 GTH only
+        input RXDFETAP6HOLD;
+        input RXDFETAP6OVRDEN;
+        input RXDFETAP7HOLD;
+        input RXDFETAP7OVRDEN;
+
+        output RXDISPERR[8];
+        input RXDLYBYPASS;
+        input RXDLYEN;
+        input RXDLYOVRDEN;
+        input RXDLYSRESET;
+        output RXDLYSRESETDONE;
+        input RXDLYTESTENB;
+        output RXELECIDLE;
+        input RXELECIDLEMODE[2];
+        input RXGEARBOXSLIP;
+        // only 3 bits on GTX
+        output RXHEADER[6];
+        // GTX has only a single bit
+        output RXHEADERVALID[2];
+        input RXLPMEN;
+        input RXLPMHFHOLD;
+        input RXLPMHFOVRDEN;
+        input RXLPMLFHOLD;
+        input RXLPMLFKLOVRDEN;
+        input RXMCOMMAALIGNEN;
+        output RXMONITOROUT[7];
+        input RXMONITORSEL[2];
+        output RXNOTINTABLE[8];
+        input RXOOBRESET;
+        input RXOSHOLD;
+        input RXOSOVRDEN;
+
+        // all of this GTH only
+        input RXOSCALRESET;
+        input RXOSINTCFG[4];
+        input RXOSINTEN;
+        input RXOSINTHOLD;
+        input RXOSINTID0[4];
+        input RXOSINTNTRLEN;
+        input RXOSINTOVRDEN;
+        output RXOSINTSTARTED;
+        input RXOSINTSTROBE;
+        output RXOSINTSTROBEDONE;
+        output RXOSINTSTROBESTARTED;
+        input RXOSINTTESTOVRDEN;
+        output RXOUTCLK;
+        output RXOUTCLKFABRIC;
+        output RXOUTCLKPCS;
+        input RXOUTCLKSEL[3];
+        // GTX only
+        output RXPCD1DONE;
+        input RXPCOMMAALIGNEN;
+        input RXPCSRESET;
+        input RXPD[2];
+        input RXPHALIGN;
+        output RXPHALIGNDONE;
+        input RXPHALIGNEN;
+        input RXPHDLYPD;
+        input RXPHDLYRESET;
+        output RXPHMONITOR[5];
+        input RXPHOVRDEN;
+        output RXPHSLIPMONITOR[5];
+        input RXPMARESET;
+        // GTH only
+        output RXPMARESETDONE;
+        input RXPOLARITY;
+        input RXPRBSCNTRESET;
+        output RXPRBSERR;
+        input RXPRBSSEL[3];
+        input RXQPIEN;
+        output RXQPISENN;
+        output RXQPISENP;
+        input RXRATE[3];
+        output RXRATEDONE;
+        // GTH only
+        input RXRATEMODE;
+        output RXRESETDONE;
+        input RXSLIDE;
+        // GTX has only a single bit
+        output RXSTARTOFSEQ[2];
+        output RXSTATUS[3];
+
+        // all of this GTH only
+        input RXSYNCALLIN;
+        output RXSYNCDONE;
+        input RXSYNCIN;
+        input RXSYNCMODE;
+        output RXSYNCOUT;
+
+        input RXSYSCLKSEL[2];
+        input RXUSERRDY;
+        input RXUSRCLK;
+        input RXUSRCLK2;
+        output RXVALID;
+
+        input SETERRSTATUS;
+
+        // GTH only
+        input SIGVALIDCLK;
+
+        input TSTCLK[2];
+        input TSTIN[20];
+        // GTX only
+        output TSTOUT[10];
+        input TSTPD[5];
+        input TSTPDOVRDB;
+
+        input TX8B10BBYPASS[8];
+        input TX8B10BEN;
+        input TXBUFDIFFCTRL[3];
+        output TXBUFSTATUS[2];
+        input TXCHARDISPMODE[8];
+        input TXCHARDISPVAL[8];
+        input TXCHARISK[8];
+        output TXCOMFINISH;
+        input TXCOMINIT;
+        input TXCOMSAS;
+        input TXCOMWAKE;
+        input TXDATA[64];
+        input TXDEEMPH;
+        input TXDETECTRX;
+        input TXDIFFCTRL[4];
+        input TXDIFFPD;
+        input TXDLYBYPASS;
+        input TXDLYEN;
+        input TXDLYHOLD;
+        input TXDLYOVRDEN;
+        input TXDLYSRESET;
+        output TXDLYSRESETDONE;
+        input TXDLYTESTENB;
+        input TXDLYUPDOWN;
+        input TXELECIDLE;
+        output TXGEARBOXREADY;
+        input TXHEADER[3];
+        input TXINHIBIT;
+        input TXMAINCURSOR[7];
+        input TXMARGIN[3];
+        output TXOUTCLK;
+        output TXOUTCLKFABRIC;
+        output TXOUTCLKPCS;
+        input TXOUTCLKSEL[3];
+        input TXPCSRESET;
+        input TXPD[2];
+        input TXPDELECIDLEMODE;
+        input TXPHALIGN;
+        output TXPHALIGNDONE;
+        input TXPHALIGNEN;
+        input TXPHDLYPD;
+        input TXPHDLYRESET;
+        input TXPHDLYTSTCLK;
+        input TXPHINIT;
+        output TXPHINITDONE;
+        input TXPHOVRDEN;
+
+        // all GTH only
+        input TXPIPPMEN;
+        input TXPIPPMOVRDEN;
+        input TXPIPPMPD;
+        input TXPIPPMSEL;
+        input TXPIPPMSTEPSIZE[5];
+
+        input TXPISOPD;
+        input TXPMARESET;
+        // GTH only
+        output TXPMARESETDONE;
+        input TXPOLARITY;
+        input TXPOSTCURSOR[5];
+        input TXPOSTCURSORINV;
+        input TXPRBSFORCEERR;
+        input TXPRBSSEL[3];
+        input TXPRECURSOR[5];
+        input TXPRECURSORINV;
+        input TXQPIBIASEN;
+        output TXQPISENN;
+        output TXQPISENP;
+        input TXQPISTRONGPDOWN;
+        input TXQPIWEAKPUP;
+        input TXRATE[3];
+        output TXRATEDONE;
+        // GTH only
+        input TXRATEMODE;
+        output TXRESETDONE;
+        output TXRUNDISP[8];
+        input TXSEQUENCE[7];
+        input TXSTARTSEQ;
+        input TXSWING;
+        input TXSYSCLKSEL[2];
+        input TXUSERRDY;
+        input TXUSRCLK;
+        input TXUSRCLK2;
+
+        // all this GTH only
+        input TXSYNCALLIN;
+        output TXSYNCDONE;
+        input TXSYNCIN;
+        input TXSYNCMODE;
+        output TXSYNCOUT;
+
+        input SCANCLK;
+        input SCANENB;
+        input SCANMODEB;
+        // GTX only has 5 bits each
+        input SCANIN[6];
+        output SCANOUT[6];
+
+        pad RXP, RXN: input;
+        pad TXP, TXN: output;
+
+        attribute DRP: bitvec[16][0xb0];
+
+        attribute CPLLREFCLKSEL_STATIC_VAL: GTX_COMMON_PLLREFCLKSEL;
+        attribute CPLLREFCLKSEL_MODE_DYNAMIC: bool;
+
+        attribute ALIGN_COMMA_DOUBLE: bool;
+        attribute ALIGN_MCOMMA_DET: bool;
+        attribute ALIGN_PCOMMA_DET: bool;
+        attribute CHAN_BOND_KEEP_ALIGN: bool;
+        attribute CHAN_BOND_SEQ_2_USE: bool;
+        attribute CLK_COR_INSERT_IDLE_FLAG: bool;
+        attribute CLK_COR_KEEP_IDLE: bool;
+        attribute CLK_COR_PRECEDENCE: bool;
+        attribute CLK_COR_SEQ_2_USE: bool;
+        attribute CLK_CORRECT_USE: bool;
+        attribute DEC_MCOMMA_DETECT: bool;
+        attribute DEC_PCOMMA_DETECT: bool;
+        attribute DEC_VALID_COMMA_ONLY: bool;
+        attribute ES_ERRDET_EN: bool;
+        attribute ES_EYE_SCAN_EN: bool;
+        attribute FTS_LANE_DESKEW_EN: bool;
+        attribute GEN_RXUSRCLK: bool;
+        attribute GEN_TXUSRCLK: bool;
+        attribute PCS_PCIE_EN: bool;
+        attribute RXBUF_EN: bool;
+        attribute RXBUF_RESET_ON_CB_CHANGE: bool;
+        attribute RXBUF_RESET_ON_COMMAALIGN: bool;
+        attribute RXBUF_RESET_ON_EIDLE: bool;
+        attribute RXBUF_RESET_ON_RATE_CHANGE: bool;
+        attribute RXBUF_THRESH_OVRD: bool;
+        attribute RX_DEFER_RESET_BUF_EN: bool;
+        attribute RX_DISPERR_SEQ_MATCH: bool;
+        attribute RXGEARBOX_EN: bool;
+        attribute SHOW_REALIGN_COMMA: bool;
+        attribute TXBUF_EN: bool;
+        attribute TXBUF_RESET_ON_RATE_CHANGE: bool;
+        attribute TXGEARBOX_EN: bool;
+        attribute TX_LOOPBACK_DRIVE_HIZ: bool;
+
+        attribute ALIGN_COMMA_WORD: GT11_ALIGN_COMMA_WORD;
+        attribute CBCC_DATA_SOURCE_SEL: GTP_CHANNEL_CBCC_DATA_SOURCE_SEL;
+        attribute CHAN_BOND_SEQ_LEN: GTP_SEQ_LEN;
+        attribute CLK_COR_SEQ_LEN: GTP_SEQ_LEN;
+        attribute CPLL_FBDIV: GTP_PLL_DIVSEL_REF;
+        attribute CPLL_FBDIV_45: GTX_PLL_DIVSEL45_FB;
+        attribute CPLL_REFCLK_DIV: GTP_PLL_DIVSEL_REF;
+        attribute RXBUF_ADDR_MODE: GTX_RX_FIFO_ADDR_MODE;
+        attribute RXOUT_DIV: GTP_CHANNEL_CLKOUT_DIV;
+        attribute RX_DATA_WIDTH: GTX_CHANNEL_DATA_WIDTH;
+        attribute RX_XCLK_SEL: GTP_RX_XCLK_SEL;
+        attribute RXPLL_SEL: GTX_CHANNEL_PLL_SEL;
+        attribute RXSIPO_DIV_45: GTX_PLL_DIVSEL45_FB;
+        attribute RXSLIDE_MODE: GTX_RX_SLIDE_MODE;
+        attribute SATA_CPLL_CFG: GTP_CHANNEL_SATA_PLL_CFG;
+        attribute TX_DATA_WIDTH: GTX_CHANNEL_DATA_WIDTH;
+        attribute TX_DRIVE_MODE: GTP_CHANNEL_TX_DRIVE_MODE;
+        attribute TXOUT_DIV: GTP_CHANNEL_CLKOUT_DIV;
+        attribute TX_XCLK_SEL: GTP_TX_XCLK_SEL;
+        attribute TXPISO_DIV_45: GTX_PLL_DIVSEL45_FB;
+        attribute TXPLL_SEL: GTX_CHANNEL_PLL_SEL;
+        // GTH only
+        attribute TXPI_PPMCLK_SEL: GTP_CHANNEL_TXPI_PPMCLK_SEL;
+        attribute RXOOB_CLK_CFG: GTP_CHANNEL_RXOOB_CLK_CFG;
+
+        attribute CHAN_BOND_MAX_SKEW: bitvec[4];
+        attribute CLK_COR_MAX_LAT: bitvec[6];
+        attribute CLK_COR_MIN_LAT: bitvec[6];
+        attribute RX_CLK25_DIV: bitvec[5];
+        attribute RX_SIG_VALID_DLY: bitvec[5];
+        attribute SAS_MAX_COM: bitvec[7];
+        attribute SAS_MIN_COM: bitvec[6];
+        attribute SATA_MAX_BURST: bitvec[6];
+        attribute SATA_MAX_INIT: bitvec[6];
+        attribute SATA_MAX_WAKE: bitvec[6];
+        attribute SATA_MIN_BURST: bitvec[6];
+        attribute SATA_MIN_INIT: bitvec[6];
+        attribute SATA_MIN_WAKE: bitvec[6];
+        attribute TX_CLK25_DIV: bitvec[5];
+
+        attribute CLK_COR_REPEAT_WAIT: bitvec[5];
+        attribute RXBUF_THRESH_OVFLW: bitvec[6];
+        attribute RXBUF_THRESH_UNDFLW: bitvec[6];
+        attribute RXSLIDE_AUTO_WAIT: bitvec[4];
+        attribute RX_INT_DATAWIDTH: bitvec[1];
+        attribute TXOUTCLKPCS_SEL: bitvec[1];
+        attribute TX_INT_DATAWIDTH: bitvec[1];
+
+        // these three GTH only
+        attribute ACJTAG_DEBUG_MODE: bitvec[1];
+        attribute ACJTAG_MODE: bitvec[1];
+        attribute ACJTAG_RESET: bitvec[1];
+
+        attribute AEN_CPLL: bitvec[1];
+        attribute AEN_LOOPBACK: bitvec[1];
+        attribute AEN_MASTER: bitvec[1];
+        attribute AEN_PD_AND_EIDLE: bitvec[1];
+        attribute AEN_POLARITY: bitvec[1];
+        attribute AEN_PRBS: bitvec[1];
+        attribute AEN_QPI: bitvec[1];
+        attribute AEN_RESET: bitvec[1];
+        attribute AEN_RXCDR: bitvec[1];
+        attribute AEN_RXDFE: bitvec[1];
+        attribute AEN_RXDFELPM: bitvec[1];
+        attribute AEN_RXOUTCLK_SEL: bitvec[1];
+        attribute AEN_RXPHDLY: bitvec[1];
+        attribute AEN_RXSYSCLK_SEL: bitvec[1];
+        attribute AEN_TXOUTCLK_SEL: bitvec[1];
+        attribute AEN_TXPHDLY: bitvec[1];
+        attribute AEN_TXSYSCLK_SEL: bitvec[1];
+        attribute AEN_TX_DRIVE_MODE: bitvec[1];
+        // GTH only
+        attribute AEN_TXPI_PPM: bitvec[1];
+
+        attribute ALIGN_COMMA_ENABLE: bitvec[10];
+        attribute ALIGN_MCOMMA_VALUE: bitvec[10];
+        attribute ALIGN_PCOMMA_VALUE: bitvec[10];
+        attribute A_CFGRESET: bitvec[1];
+        attribute A_CPLLLOCKEN: bitvec[1];
+        attribute A_CPLLPD: bitvec[1];
+        attribute A_CPLLRESET: bitvec[1];
+        attribute A_EYESCANMODE: bitvec[1];
+        attribute A_EYESCANRESET: bitvec[1];
+        attribute A_GTRESETSEL: bitvec[1];
+        attribute A_GTRXRESET: bitvec[1];
+        attribute A_GTTXRESET: bitvec[1];
+        attribute A_LOOPBACK: bitvec[3];
+
+        // GTH only
+        attribute A_RXADAPTSELTEST: bitvec[14];
+
+        attribute A_RXBUFRESET: bitvec[1];
+        attribute A_RXCDRFREQRESET: bitvec[1];
+        attribute A_RXCDRHOLD: bitvec[1];
+        attribute A_RXCDROVRDEN: bitvec[1];
+        attribute A_RXCDRRESET: bitvec[1];
+        attribute A_RXCDRRESETRSV: bitvec[1];
+        attribute A_RXDFEAGCHOLD: bitvec[1];
+        attribute A_RXDFEAGCOVRDEN: bitvec[1];
+        attribute A_RXDFECM1EN: bitvec[1];
+        attribute A_RXDFELFHOLD: bitvec[1];
+        attribute A_RXDFELFOVRDEN: bitvec[1];
+        attribute A_RXDFELPMRESET: bitvec[1];
+        attribute A_RXDFEUTHOLD: bitvec[1];
+        attribute A_RXDFEUTOVRDEN: bitvec[1];
+        attribute A_RXDFEVPHOLD: bitvec[1];
+        attribute A_RXDFEVPOVRDEN: bitvec[1];
+        attribute A_RXDFEVSEN: bitvec[1];
+        attribute A_RXDFEXYDEN: bitvec[1];
+        attribute A_RXDFETAP2HOLD: bitvec[1];
+        attribute A_RXDFETAP2OVRDEN: bitvec[1];
+        attribute A_RXDFETAP3HOLD: bitvec[1];
+        attribute A_RXDFETAP3OVRDEN: bitvec[1];
+        attribute A_RXDFETAP4HOLD: bitvec[1];
+        attribute A_RXDFETAP4OVRDEN: bitvec[1];
+        attribute A_RXDFETAP5HOLD: bitvec[1];
+        attribute A_RXDFETAP5OVRDEN: bitvec[1];
+
+        // these two GTX only
+        attribute A_RXDFEXYDHOLD: bitvec[1];
+        attribute A_RXDFEXYDOVRDEN: bitvec[1];
+
+        // all this GTH only
+        attribute A_RXDFETAP6HOLD: bitvec[1];
+        attribute A_RXDFETAP6OVRDEN: bitvec[1];
+        attribute A_RXDFETAP7HOLD: bitvec[1];
+        attribute A_RXDFETAP7OVRDEN: bitvec[1];
+        attribute A_RXDFEAGCTRL: bitvec[5];
+        attribute A_RXDFESLIDETAP: bitvec[5];
+        attribute A_RXDFESLIDETAPADAPTEN: bitvec[1];
+        attribute A_RXDFESLIDETAPHOLD: bitvec[1];
+        attribute A_RXDFESLIDETAPID: bitvec[6];
+        attribute A_RXDFESLIDETAPINITOVRDEN: bitvec[1];
+        attribute A_RXDFESLIDETAPONLYADAPTEN: bitvec[1];
+        attribute A_RXDFESLIDETAPOVRDEN: bitvec[1];
+        attribute A_RXDFESLIDETAPSTROBE: bitvec[1];
+
+        attribute A_RXDLYBYPASS: bitvec[1];
+        attribute A_RXDLYEN: bitvec[1];
+        attribute A_RXDLYOVRDEN: bitvec[1];
+        attribute A_RXDLYSRESET: bitvec[1];
+        attribute A_RXLPMEN: bitvec[1];
+        attribute A_RXLPMHFHOLD: bitvec[1];
+        attribute A_RXLPMHFOVRDEN: bitvec[1];
+        attribute A_RXLPMLFHOLD: bitvec[1];
+        attribute A_RXLPMLFKLOVRDEN: bitvec[1];
+        attribute A_RXMONITORSEL: bitvec[2];
+        attribute A_RXOOBRESET: bitvec[1];
+        attribute A_RXOSHOLD: bitvec[1];
+        attribute A_RXOSOVRDEN: bitvec[1];
+
+        // GTH only
+        attribute A_RXOSCALRESET: bitvec[1];
+        attribute A_RXOSINTCFG: bitvec[4];
+        attribute A_RXOSINTEN: bitvec[1];
+        attribute A_RXOSINTHOLD: bitvec[1];
+        attribute A_RXOSINTID0: bitvec[4];
+        attribute A_RXOSINTNTRLEN: bitvec[1];
+        attribute A_RXOSINTOVRDEN: bitvec[1];
+        attribute A_RXOSINTSTROBE: bitvec[1];
+        attribute A_RXOSINTTESTOVRDEN: bitvec[1];
+
+        attribute A_RXOUTCLKSEL: bitvec[3];
+        attribute A_RXPCSRESET: bitvec[1];
+        attribute A_RXPD: bitvec[2];
+        attribute A_RXPHALIGN: bitvec[1];
+        attribute A_RXPHALIGNEN: bitvec[1];
+        attribute A_RXPHDLYPD: bitvec[1];
+        attribute A_RXPHDLYRESET: bitvec[1];
+        attribute A_RXPHOVRDEN: bitvec[1];
+        attribute A_RXPMARESET: bitvec[1];
+        attribute A_RXPOLARITY: bitvec[1];
+        attribute A_RXPRBSCNTRESET: bitvec[1];
+        attribute A_RXPRBSSEL: bitvec[3];
+        attribute A_RXSYSCLKSEL: bitvec[2];
+        attribute A_SPARE: bitvec[1];
+        attribute A_TXBUFDIFFCTRL: bitvec[3];
+        attribute A_TXDEEMPH: bitvec[1];
+        attribute A_TXDIFFCTRL: bitvec[4];
+        attribute A_TXDLYBYPASS: bitvec[1];
+        attribute A_TXDLYEN: bitvec[1];
+        attribute A_TXDLYOVRDEN: bitvec[1];
+        attribute A_TXDLYSRESET: bitvec[1];
+        attribute A_TXELECIDLE: bitvec[1];
+        attribute A_TXINHIBIT: bitvec[1];
+        attribute A_TXMAINCURSOR: bitvec[7];
+        attribute A_TXMARGIN: bitvec[3];
+        attribute A_TXOUTCLKSEL: bitvec[3];
+        attribute A_TXPCSRESET: bitvec[1];
+        attribute A_TXPD: bitvec[2];
+        attribute A_TXPHALIGN: bitvec[1];
+        attribute A_TXPHALIGNEN: bitvec[1];
+        attribute A_TXPHDLYPD: bitvec[1];
+        attribute A_TXPHDLYRESET: bitvec[1];
+        attribute A_TXPHINIT: bitvec[1];
+        attribute A_TXPHOVRDEN: bitvec[1];
+
+        // these three GTH only
+        attribute A_TXPIPPMOVRDEN: bitvec[1];
+        attribute A_TXPIPPMPD: bitvec[1];
+        attribute A_TXPIPPMSEL: bitvec[1];
+
+        attribute A_TXPMARESET: bitvec[1];
+        attribute A_TXPOLARITY: bitvec[1];
+        attribute A_TXPOSTCURSOR: bitvec[5];
+        attribute A_TXPOSTCURSORINV: bitvec[1];
+        attribute A_TXPRBSFORCEERR: bitvec[1];
+        attribute A_TXPRBSSEL: bitvec[3];
+        attribute A_TXPRECURSOR: bitvec[5];
+        attribute A_TXPRECURSORINV: bitvec[1];
+        attribute A_TXSWING: bitvec[1];
+        attribute A_TXSYSCLKSEL: bitvec[2];
+
+        // GTH only
+        attribute A_TXQPIBIASEN: bitvec[1];
+        attribute CFOK_CFG2: bitvec[6];
+        attribute CFOK_CFG3: bitvec[6];
+
+        attribute CHAN_BOND_SEQ_1_1: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_2: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_3: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_4: bitvec[10];
+        attribute CHAN_BOND_SEQ_1_ENABLE: bitvec[4];
+        attribute CHAN_BOND_SEQ_2_1: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_2: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_3: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_4: bitvec[10];
+        attribute CHAN_BOND_SEQ_2_ENABLE: bitvec[4];
+        attribute CLK_COR_SEQ_1_1: bitvec[10];
+        attribute CLK_COR_SEQ_1_2: bitvec[10];
+        attribute CLK_COR_SEQ_1_3: bitvec[10];
+        attribute CLK_COR_SEQ_1_4: bitvec[10];
+        attribute CLK_COR_SEQ_1_ENABLE: bitvec[4];
+        attribute CLK_COR_SEQ_2_1: bitvec[10];
+        attribute CLK_COR_SEQ_2_2: bitvec[10];
+        attribute CLK_COR_SEQ_2_3: bitvec[10];
+        attribute CLK_COR_SEQ_2_4: bitvec[10];
+        attribute CLK_COR_SEQ_2_ENABLE: bitvec[4];
+        attribute CPLL_PCD_2UI_CFG: bitvec[1];
+
+        // GTX only
+        attribute CPLL_PCD_1UI_CFG: bitvec[1];
+
+        // GTH only
+        attribute ES_CLK_PHASE_SEL: bitvec[1];
+
+        attribute ES_CONTROL: bitvec[6];
+        attribute ES_PMA_CFG: bitvec[10];
+        attribute ES_PRESCALE: bitvec[5];
+        attribute ES_VERT_OFFSET: bitvec[9];
+        attribute FTS_DESKEW_SEQ_ENABLE: bitvec[4];
+        attribute FTS_LANE_DESKEW_CFG: bitvec[4];
+        attribute GEARBOX_MODE: bitvec[3];
+        attribute GT_INSTANTIATED: bitvec[1];
+
+        // GTH only
+        attribute LOOPBACK_CFG: bitvec[1];
+
+        attribute OUTREFCLK_SEL_INV: bitvec[2];
+        attribute PMA_POWER_SAVE: bitvec[10];
+        attribute PMA_RSV3: bitvec[2];
+
+        // GTH only
+        attribute RESET_POWERSAVE_DISABLE: bitvec[1];
+
+        attribute RXBUFRESET_TIME: bitvec[5];
+        attribute RXBUF_EIDLE_HI_CNT: bitvec[4];
+        attribute RXBUF_EIDLE_LO_CNT: bitvec[4];
+        attribute RXCDRFREQRESET_TIME: bitvec[5];
+        attribute RXCDRPHRESET_TIME: bitvec[5];
+        attribute RXCDRRESET_TIME: bitvec[7];
+        attribute RXCDR_FR_RESET_ON_EIDLE: bitvec[1];
+        attribute RXCDR_HOLD_DURING_EIDLE: bitvec[1];
+        attribute RXCDR_LOCK_CFG: bitvec[6];
+        attribute RXCDR_PCIERESET_WAIT_TIME: bitvec[5];
+        attribute RXCDR_PH_RESET_ON_EIDLE: bitvec[1];
+        attribute RXDFELPMRESET_TIME: bitvec[7];
+        attribute RXISCANRESET_TIME: bitvec[5];
+        attribute RXLPM_HF_CFG: bitvec[14];
+        attribute RXOOB_CFG: bitvec[7];
+
+        // GTH only
+        attribute RXOSCALRESET_TIME: bitvec[5];
+        attribute RXOSCALRESET_TIMEOUT: bitvec[5];
+        attribute RXPI_CFG0: bitvec[2];
+        attribute RXPI_CFG1: bitvec[2];
+        attribute RXPI_CFG2: bitvec[2];
+        attribute RXPI_CFG3: bitvec[2];
+        attribute RXPI_CFG4: bitvec[1];
+        attribute RXPI_CFG5: bitvec[1];
+        attribute RXPI_CFG6: bitvec[3];
+        attribute RXSYNC_MULTILANE: bitvec[1];
+        attribute RXSYNC_OVRD: bitvec[1];
+        attribute RXSYNC_SKIP_DA: bitvec[1];
+
+        attribute RXPCSRESET_TIME: bitvec[5];
+        attribute RXPH_MONITOR_SEL: bitvec[5];
+        attribute RXPMARESET_TIME: bitvec[5];
+        attribute RXPRBS_ERR_LOOPBACK: bitvec[1];
+        attribute RX_BUFFER_CFG: bitvec[6];
+        attribute RX_CLKMUX_PD: bitvec[1];
+        attribute RX_CM_SEL: bitvec[2];
+        attribute RX_DDI_SEL: bitvec[6];
+
+        // present on both, size varies
+        attribute RXLPM_LF_CFG_GTX: bitvec[14];
+        attribute RXLPM_LF_CFG_GTH: bitvec[18];
+        attribute RX_BIAS_CFG_GTX: bitvec[12];
+        attribute RX_BIAS_CFG_GTH: bitvec[24];
+        attribute RX_CM_TRIM_GTX: bitvec[3];
+        attribute RX_CM_TRIM_GTH: bitvec[4];
+        attribute RX_DEBUG_CFG_GTX: bitvec[12];
+        attribute RX_DEBUG_CFG_GTH: bitvec[14];
+        attribute RX_DFE_KL_CFG_GTX: bitvec[13];
+        attribute RX_DFE_KL_CFG_GTH: bitvec[33];
+        attribute TERM_RCAL_CFG_GTX: bitvec[5];
+        attribute TERM_RCAL_OVRD_GTX: bitvec[1];
+        attribute TERM_RCAL_CFG_GTH: bitvec[15];
+        attribute TERM_RCAL_OVRD_GTH: bitvec[3];
+        attribute TX_DEEMPH0_GTX: bitvec[5];
+        attribute TX_DEEMPH1_GTX: bitvec[5];
+        attribute TX_DEEMPH0_GTH: bitvec[6];
+        attribute TX_DEEMPH1_GTH: bitvec[6];
+
+        attribute RX_DFE_LPM_HOLD_DURING_EIDLE: bitvec[1];
+        attribute RX_DFE_UT_CFG: bitvec[17];
+        attribute RX_DFE_VP_CFG: bitvec[17];
+        attribute RX_DFE_VS_CFG: bitvec[9];
+        attribute RX_DFE_H2_CFG: bitvec[12];
+        attribute RX_DFE_H3_CFG: bitvec[12];
+        attribute RX_DFE_H4_CFG: bitvec[11];
+        attribute RX_DFE_H5_CFG: bitvec[11];
+
+        // GTH only
+        attribute RX_DFE_H6_CFG: bitvec[11];
+        attribute RX_DFE_H7_CFG: bitvec[11];
+        attribute RX_DFELPM_CFG0: bitvec[4];
+        attribute RX_DFELPM_CFG1: bitvec[1];
+        attribute RX_DFELPM_KLKH_AGC_STUP_EN: bitvec[1];
+        attribute RX_DFE_AGC_CFG0: bitvec[2];
+        attribute RX_DFE_AGC_CFG1: bitvec[3];
+        attribute RX_DFE_AGC_CFG2: bitvec[4];
+        attribute RX_DFE_AGC_OVRDEN: bitvec[1];
+        attribute RX_DFE_KL_LPM_KH_CFG0: bitvec[2];
+        attribute RX_DFE_KL_LPM_KH_CFG1: bitvec[3];
+        attribute RX_DFE_KL_LPM_KH_CFG2: bitvec[4];
+        attribute RX_DFE_KL_LPM_KH_OVRDEN: bitvec[1];
+        attribute RX_DFE_KL_LPM_KL_CFG0: bitvec[2];
+        attribute RX_DFE_KL_LPM_KL_CFG1: bitvec[3];
+        attribute RX_DFE_KL_LPM_KL_CFG2: bitvec[4];
+        attribute RX_DFE_KL_LPM_KL_OVRDEN: bitvec[1];
+
+        // GTX only
+        attribute RX_DFE_XYD_CFG: bitvec[13];
+
+        attribute RX_OS_CFG: bitvec[13];
+        attribute SATA_BURST_SEQ_LEN: bitvec[4];
+        attribute SATA_BURST_VAL: bitvec[3];
+        attribute SATA_EIDLE_VAL: bitvec[3];
+        attribute SP_REFCLK_CFG: bitvec[3];
+        attribute TXPCSRESET_TIME: bitvec[5];
+        attribute TXPH_MONITOR_SEL: bitvec[5];
+        attribute TXPMARESET_TIME: bitvec[5];
+        attribute TX_CLKMUX_PD: bitvec[1];
+        attribute TX_EIDLE_ASSERT_DELAY: bitvec[3];
+        attribute TX_EIDLE_DEASSERT_DELAY: bitvec[3];
+        attribute TX_MAINCURSOR_SEL: bitvec[1];
+        attribute TX_MARGIN_FULL_0: bitvec[7];
+        attribute TX_MARGIN_FULL_1: bitvec[7];
+        attribute TX_MARGIN_FULL_2: bitvec[7];
+        attribute TX_MARGIN_FULL_3: bitvec[7];
+        attribute TX_MARGIN_FULL_4: bitvec[7];
+        attribute TX_MARGIN_LOW_0: bitvec[7];
+        attribute TX_MARGIN_LOW_1: bitvec[7];
+        attribute TX_MARGIN_LOW_2: bitvec[7];
+        attribute TX_MARGIN_LOW_3: bitvec[7];
+        attribute TX_MARGIN_LOW_4: bitvec[7];
+        attribute TX_QPI_STATUS_EN: bitvec[1];
+        attribute TX_RXDETECT_REF: bitvec[3];
+        attribute UCODEER_CLR: bitvec[1];
+
+        // GTX only
+        attribute TX_PREDRIVER_MODE: bitvec[1];
+
+        // GTH only
+        attribute TXOOB_CFG: bitvec[1];
+        attribute TXPI_CFG0: bitvec[2];
+        attribute TXPI_CFG1: bitvec[2];
+        attribute TXPI_CFG2: bitvec[2];
+        attribute TXPI_CFG3: bitvec[1];
+        attribute TXPI_CFG4: bitvec[1];
+        attribute TXPI_CFG5: bitvec[3];
+        attribute TXPI_GREY_SEL: bitvec[1];
+        attribute TXPI_INVSTROBE_SEL: bitvec[1];
+        attribute TXPI_PPM_CFG: bitvec[8];
+        attribute TXPI_SYNFREQ_PPM: bitvec[3];
+        attribute TXSYNC_MULTILANE: bitvec[1];
+        attribute TXSYNC_OVRD: bitvec[1];
+        attribute TXSYNC_SKIP_DA: bitvec[1];
+        attribute USE_PCS_CLK_PHASE_SEL: bitvec[1];
+
+        attribute AMONITOR_CFG: bitvec[16];
+        attribute CPLL_INIT_CFG: bitvec[24];
+        attribute CPLL_LOCK_CFG: bitvec[16];
+        attribute DMONITOR_CFG: bitvec[24];
+        attribute ES_HORZ_OFFSET: bitvec[12];
+        attribute ES_QUALIFIER: bitvec[80];
+        attribute ES_QUAL_MASK: bitvec[80];
+        attribute ES_SDATA_MASK: bitvec[80];
+        attribute PCS_RSVD_ATTR: bitvec[48];
+        attribute PD_TRANS_TIME_FROM_P2: bitvec[12];
+        attribute PD_TRANS_TIME_NONE_P2: bitvec[8];
+        attribute PD_TRANS_TIME_TO_P2: bitvec[8];
+        attribute RXDLY_CFG: bitvec[16];
+        attribute RXDLY_LCFG: bitvec[9];
+        attribute RXDLY_TAP_CFG: bitvec[16];
+        attribute RXPHDLY_CFG: bitvec[24];
+        attribute RXPH_CFG: bitvec[24];
+        attribute RX_DFE_GAIN_CFG: bitvec[23];
+        attribute RX_DFE_LPM_CFG: bitvec[16];
+        attribute TRANS_TIME_RATE: bitvec[8];
+        attribute TST_RSV: bitvec[32];
+        attribute TXDLY_CFG: bitvec[16];
+        attribute TXDLY_LCFG: bitvec[9];
+        attribute TXDLY_TAP_CFG: bitvec[16];
+        attribute TXPHDLY_CFG: bitvec[24];
+        attribute TXPH_CFG: bitvec[16];
+        attribute TX_RXDETECT_CFG: bitvec[14];
+        attribute PMA_RSV: bitvec[32];
+
+        // size varies
+        attribute CPLL_CFG_GTX: bitvec[24];
+        attribute RXCDR_CFG_GTX: bitvec[72];
+        attribute CPLL_CFG_GTH: bitvec[29];
+        attribute RXCDR_CFG_GTH: bitvec[83];
+        attribute PMA_RSV2_GTX: bitvec[16];
+        attribute PMA_RSV4_GTX: bitvec[32];
+        attribute PMA_RSV2_GTH: bitvec[32];
+        attribute PMA_RSV4_GTH: bitvec[15];
+
+        // GTX only
+        attribute RX_DFE_KL_CFG2: bitvec[32];
+
+        // GTH only
+        attribute PMA_RSV5: bitvec[4];
+        attribute ADAPT_CFG0: bitvec[20];
+        attribute CFOK_CFG: bitvec[42];
+        attribute RX_DFE_ST_CFG: bitvec[54];
+        attribute TX_RXDETECT_PRECHARGE_TIME: bitvec[17];
     }
 
     bel_class PS {
@@ -8675,8 +11367,9 @@ target_defs! {
             }
         }
 
-        bel_slot HCLK_GTX: legacy;
-        bel_slot GTX[4]: legacy;
+        bel_slot HCLK_GTX: HCLK_GTX;
+        bel_slot GTCLK[2]: GTCLK;
+        bel_slot GTX[4]: GTX;
         if variant virtex6 {
             tile_class GTX {
                 cell CELL[40];
@@ -8684,7 +11377,7 @@ target_defs! {
             }
         }
 
-        bel_slot GTH_QUAD: legacy;
+        bel_slot GTH_QUAD: GTH_QUAD;
         if variant virtex6 {
             tile_class GTH {
                 cell CELL[40];
@@ -8693,9 +11386,8 @@ target_defs! {
         }
 
         bel_slot HCLK_DRP_GTP_MID: HCLK_DRP;
-        bel_slot GTP_COMMON: legacy;
-        bel_slot GTX_COMMON: legacy;
-        bel_slot GTH_COMMON: legacy;
+        bel_slot GTP_COMMON: GTP_COMMON;
+        bel_slot GTX_COMMON: GTX_COMMON;
 
         if variant virtex7 {
             tile_class GTP_COMMON {
@@ -8721,9 +11413,8 @@ target_defs! {
             }
         }
 
-        bel_slot GTP_CHANNEL: legacy;
-        bel_slot GTX_CHANNEL: legacy;
-        bel_slot GTH_CHANNEL: legacy;
+        bel_slot GTP_CHANNEL: GTP_CHANNEL;
+        bel_slot GTX_CHANNEL: GTX_CHANNEL;
 
         if variant virtex7 {
             tile_class GTP_CHANNEL {
@@ -8744,15 +11435,7 @@ target_defs! {
             }
         }
 
-        bel_slot BUFDS[2]: legacy;
         bel_slot CRC32[4]: CRC32;
-
-        bel_slot IPAD_CLKP[2]: legacy;
-        bel_slot IPAD_CLKN[2]: legacy;
-        bel_slot IPAD_RXP[4]: legacy;
-        bel_slot IPAD_RXN[4]: legacy;
-        bel_slot OPAD_TXP[4]: legacy;
-        bel_slot OPAD_TXN[4]: legacy;
 
         bel_slot BUFGCTRL[32]: BUFGCTRL;
         if variant virtex4 {
@@ -9043,13 +11726,6 @@ target_defs! {
             tile_class HCLK_IO_HP, HCLK_IO_HR {
                 cell CELL[8];
                 bitrect MAIN: HCLK_IO;
-            }
-        }
-
-        bel_slot BRKH_GTX: legacy;
-
-        if variant virtex7 {
-            tile_class BRKH_GTX {
             }
         }
 

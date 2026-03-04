@@ -920,7 +920,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
             &bits![0; 9],
             &mut enable,
         );
-        ctx.insert_devdata_bitvec(devdata::PLL_IN_DLY_SET, dly_val);
+        ctx.insert_devdata_bitvec(devdata::PLL_V5_IN_DLY_SET, dly_val);
 
         {
             let tcid = tcls::HCLK_CMT;
@@ -1903,7 +1903,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
             &dly_val,
         );
         diff.assert_empty();
-        ctx.insert_devdata_bitvec(devdata::PLL_IN_DLY_SET, dly_val);
+        ctx.insert_devdata_bitvec(devdata::PLL_V5_IN_DLY_SET, dly_val);
     }
     {
         let tcid = tcls::HCLK_CMT;

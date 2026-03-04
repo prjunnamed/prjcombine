@@ -682,6 +682,7 @@ pub fn add_fuzzers<'a>(
         bctx.mode("OSERDESE1")
             .test_enum_legacy("SELFHEAL", &["FALSE", "TRUE"]);
         bctx.mode("OSERDESE1")
+            .attr("DATA_RATE_OQ", "SDR")
             .test_enum_legacy("INTERFACE_TYPE", &["DEFAULT", "MEMORY_DDR3"]);
         bctx.mode("OSERDESE1")
             .test_enum_legacy("TRISTATE_WIDTH", &["1", "4"]);
