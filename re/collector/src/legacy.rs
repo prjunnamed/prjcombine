@@ -1,15 +1,14 @@
-use prjcombine_entity::{EntityPartVec, EntityVec};
 use prjcombine_types::{
     bitvec::BitVec,
-    bsdata::{BitRectId, PolTileBit, TileBit, TileItem, TileItemKind},
+    bsdata::{PolTileBit, TileItem, TileItemKind},
 };
 
 use crate::{
     collect::Collector,
     diff::{
-        Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
-        xlat_bit_bi, xlat_bit_bi_default, xlat_bit_wide, xlat_bit_wide_bi, xlat_bitvec,
-        xlat_bitvec_sparse_u32, xlat_enum_raw,
+        Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_bit_bi,
+        xlat_bit_bi_default, xlat_bit_wide, xlat_bit_wide_bi, xlat_bitvec, xlat_bitvec_sparse_u32,
+        xlat_enum_raw,
     },
 };
 
@@ -307,24 +306,6 @@ impl Collector<'_, '_> {
         self.data.bsdata.insert(tile, bel, attr, item);
     }
 
-    pub fn collect_bit_wide_legacy(&mut self, tile: &str, bel: &str, attr: &str, val: &str) {
-        let item = self.extract_bit_wide_legacy(tile, bel, attr, val);
-        self.data.bsdata.insert(tile, bel, attr, item);
-    }
-
-    pub fn collect_bit_bi_default_legacy(
-        &mut self,
-        tile: &str,
-        bel: &str,
-        attr: &str,
-        val0: &str,
-        val1: &str,
-    ) -> bool {
-        let (item, res) = self.extract_bit_bi_default_legacy(tile, bel, attr, val0, val1);
-        self.data.bsdata.insert(tile, bel, attr, item);
-        res
-    }
-
     pub fn collect_bit_bi_legacy(
         &mut self,
         tile: &str,
@@ -372,18 +353,6 @@ impl Collector<'_, '_> {
         self.data.bsdata.insert(tile, bel, attr, item);
     }
 
-    pub fn collect_enum_legacy_int(
-        &mut self,
-        tile: &str,
-        bel: &str,
-        attr: &str,
-        vals: core::ops::Range<u32>,
-        delta: u32,
-    ) {
-        let item = self.extract_enum_legacy_int(tile, bel, attr, vals, delta);
-        self.data.bsdata.insert(tile, bel, attr, item);
-    }
-
     pub fn collect_enum_default_legacy(
         &mut self,
         tile: &str,
@@ -394,65 +363,6 @@ impl Collector<'_, '_> {
     ) {
         let item = self.extract_enum_default_legacy(tile, bel, attr, vals, default);
         self.data.bsdata.insert(tile, bel, attr, item);
-    }
-
-    pub fn collect_enum_default_legacy_ocd(
-        &mut self,
-        tile: &str,
-        bel: &str,
-        attr: &str,
-        vals: &[impl AsRef<str>],
-        default: &str,
-        ocd: OcdMode,
-    ) {
-        let item = self.extract_enum_default_legacy_ocd(tile, bel, attr, vals, default, ocd);
-        self.data.bsdata.insert(tile, bel, attr, item);
-    }
-}
-
-pub fn enum_ocd_swap_bits_legacy(item: &mut TileItem, a: usize, b: usize) {
-    item.bits.swap(a, b);
-    let TileItemKind::Enum { ref mut values } = item.kind else {
-        unreachable!()
-    };
-    for val in values.values_mut() {
-        val.swap(a, b);
-    }
-}
-
-pub fn xlat_item_tile_fwd_legacy(
-    item: TileItem,
-    xlat: &EntityVec<BitRectId, BitRectId>,
-) -> TileItem {
-    TileItem {
-        bits: item
-            .bits
-            .into_iter()
-            .map(|bit| TileBit {
-                rect: xlat[bit.rect],
-                ..bit
-            })
-            .collect(),
-        kind: item.kind,
-    }
-}
-
-pub fn xlat_item_tile_legacy(item: TileItem, xlat: &EntityVec<BitRectId, BitRectId>) -> TileItem {
-    let mut rxlat = EntityPartVec::new();
-    for (dst_rect, &src_rect) in xlat {
-        assert!(!rxlat.contains_id(src_rect));
-        rxlat.insert(src_rect, dst_rect);
-    }
-    TileItem {
-        bits: item
-            .bits
-            .into_iter()
-            .map(|bit| TileBit {
-                rect: rxlat[bit.rect],
-                ..bit
-            })
-            .collect(),
-        kind: item.kind,
     }
 }
 
@@ -468,20 +378,8 @@ pub fn xlat_bit_wide_legacy(diff: Diff) -> TileItem {
     xlat_bit_wide(diff).into()
 }
 
-pub fn concat_bitvec_legacy(vecs: impl IntoIterator<Item = TileItem>) -> TileItem {
-    let mut res = vec![];
-    for vec in vecs {
-        res.extend(vec.as_bitvec());
-    }
-    res.into()
-}
-
 pub fn extract_bitvec_val_part_legacy(item: &TileItem, base: &BitVec, diff: &mut Diff) -> BitVec {
     extract_bitvec_val_part(&item.as_bitvec(), base, diff)
-}
-
-pub fn extract_bitvec_val_legacy(item: &TileItem, base: &BitVec, diff: Diff) -> BitVec {
-    extract_bitvec_val(&item.as_bitvec(), base, diff)
 }
 
 pub fn xlat_bit_bi_default_legacy(diff0: Diff, diff1: Diff) -> (TileItem, bool) {

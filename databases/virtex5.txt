@@ -26370,6 +26370,9 @@ intdb {
 		VREF,
 		DIFF,
 		CMOS,
+		CMOS12,
+		CMOS_HV,
+		TMDS,
 	}
 
 	enum IOB_DCI_MODE {
@@ -26378,6 +26381,13 @@ intdb {
 		OUTPUT_HALF,
 		TERM_VCC,
 		TERM_SPLIT,
+	}
+
+	enum IOB_IN_TERM {
+		NONE,
+		UNTUNED_SPLIT_40,
+		UNTUNED_SPLIT_50,
+		UNTUNED_SPLIT_60,
 	}
 
 	enum BUFHCE_CE_TYPE {
@@ -27918,14 +27928,30 @@ intdb {
 		attribute PULL: IOB_PULL;
 		attribute VREF_SYSMON: bool;
 		attribute VR: bool;
+		attribute PULL_DYNAMIC: bool;
+		attribute DQS_BIAS_P: bool;
+		attribute DQS_BIAS_N: bool;
+		attribute DQS_BIAS: bool;
+		attribute IBUFDISABLE_EN: bool;
+		attribute DCITERMDISABLE_EN: bool;
+		attribute INTERMDISABLE_EN: bool;
+		attribute LOW_VOLTAGE: bool;
 		attribute IBUF_MODE: IOB_IBUF_MODE;
 		attribute I_INV: bool;
+		attribute IBUF_VREF_HP: bool;
+		attribute IBUF_DIFF_HP: bool;
+		attribute INPUT_MISC: bitvec[1];
+		attribute IN_TERM: IOB_IN_TERM;
+		attribute IBUF_PCI: bool;
 		attribute OUTPUT_ENABLE: bitvec[2];
 		attribute OUTPUT_DELAY: bool;
 		attribute DCI_MODE: IOB_DCI_MODE;
 		attribute DCI_MISC: bitvec[2];
 		attribute DCI_T: bool;
 		attribute DCIUPDATEMODE_ASREQUIRED: bool;
+		attribute OUTPUT_PSEUDO_DIFF: bool;
+		attribute OUTPUT_PSEUDO_DIFF_T: bool;
+		attribute LVDS_GROUP: bitvec[1];
 		attribute V4_PDRIVE: bitvec[5];
 		attribute V4_NDRIVE: bitvec[5];
 		attribute V4_PSLEW: bitvec[4];
@@ -27936,6 +27962,20 @@ intdb {
 		attribute V5_NSLEW: bitvec[6];
 		attribute V5_OUTPUT_MISC: bitvec[6];
 		attribute V5_LVDS: bitvec[9];
+		attribute V6_PDRIVE: bitvec[6];
+		attribute V6_NDRIVE: bitvec[6];
+		attribute V6_PSLEW: bitvec[5];
+		attribute V6_NSLEW: bitvec[5];
+		attribute V6_OUTPUT_MISC: bitvec[4];
+		attribute V7_PDRIVE: bitvec[7];
+		attribute V7_NDRIVE: bitvec[7];
+		attribute V7_OUTPUT_MISC: bitvec[6];
+		attribute HR_PDRIVE: bitvec[3];
+		attribute HR_NDRIVE: bitvec[4];
+		attribute HR_PSLEW: bitvec[3];
+		attribute HR_NSLEW: bitvec[3];
+		attribute HR_OUTPUT_MISC: bitvec[2];
+		attribute HR_LVDS: bitvec[13];
 	}
 
 	bel_class GLOBALSIG {
@@ -78503,6 +78543,7 @@ intdb {
 			PSLEW_FAST = 0b111111;
 			NSLEW_FAST = 0b111111;
 		}
+		row HSUL_12_DCI;
 		row GTL {
 			PDRIVE = 0b00000;
 			NDRIVE = 0b10011;
@@ -78517,6 +78558,9 @@ intdb {
 			PSLEW_FAST = 0b000000;
 			NSLEW_FAST = 0b010101;
 		}
+		row SSTL12;
+		row SSTL135;
+		row SSTL15;
 		row SSTL18_I {
 			PDRIVE = 0b01000;
 			NDRIVE = 0b00100;
@@ -78545,6 +78589,7 @@ intdb {
 			PSLEW_FAST = 0b111111;
 			NSLEW_FAST = 0b001111;
 		}
+		row HSUL_12;
 		row HSTL_I_12 {
 			PDRIVE = 0b11010;
 			NDRIVE = 0b00110;
@@ -78624,6 +78669,12 @@ intdb {
 			NSLEW_FAST = 0b111111;
 			PMASK_TERM_VCC = 0b00000;
 		}
+		row SSTL12_DCI;
+		row SSTL12_T_DCI;
+		row SSTL135_DCI;
+		row SSTL135_T_DCI;
+		row SSTL15_DCI;
+		row SSTL15_T_DCI;
 		row SSTL18_I_DCI {
 			PDRIVE = 0b00111;
 			NDRIVE = 0b00011;
@@ -78778,6 +78829,8 @@ intdb {
 			PSLEW_FAST = 0b111111;
 			NSLEW_FAST = 0b001111;
 		}
+		row LVDS_25_DCI;
+		row LVDSEXT_25_DCI;
 	}
 
 	table LVDS_DATA {

@@ -130,12 +130,5 @@ The devices also have dedicated configuration bank 0, which has no user I/O and 
 
 {{devdata virtex6 iodelay-default}}
 
-{{misc virtex6 iostd-drive}}
-{{misc virtex6 iostd-slew}}
-{{misc virtex6 iostd-misc}}
-{{misc virtex6 iostd-lvds}}
-{{misc virtex6 iostd-lvdsbias}}
-{{misc virtex6 iostd-dci-output}}
-{{misc virtex6 iostd-dci-output-half}}
-{{misc virtex6 iostd-dci-term-vcc}}
-{{misc virtex6 iostd-dci-term-split}}
+{{table virtex6 IOB_DATA}}
+{{table virtex6 LVDS_DATA}}

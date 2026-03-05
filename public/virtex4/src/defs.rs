@@ -647,9 +647,11 @@ target_defs! {
     }
 
     enum IOB_PULL { NONE, PULLUP, PULLDOWN, KEEPER }
-    enum IOB_IBUF_MODE { NONE, VREF, DIFF, CMOS }
+    // CMOS12 is virtex6 only
+    // CMOS_HV and TMDS are virtex7 HR only
+    enum IOB_IBUF_MODE { NONE, VREF, DIFF, CMOS, CMOS12, CMOS_HV, TMDS }
     enum IOB_DCI_MODE { NONE, OUTPUT, OUTPUT_HALF, TERM_VCC, TERM_SPLIT }
-
+    enum IOB_IN_TERM { NONE, UNTUNED_SPLIT_40, UNTUNED_SPLIT_50, UNTUNED_SPLIT_60 }
     bel_class IOB {
         // virtex6 and up only
         input PD_INT_EN, PU_INT_EN, KEEPER_INT_EN;
@@ -664,10 +666,31 @@ target_defs! {
         attribute PULL: IOB_PULL;
         attribute VREF_SYSMON: bool;
         attribute VR: bool;
+        // virtex6 and up only
+        attribute PULL_DYNAMIC: bool;
+        // virtex7 HP only
+        attribute DQS_BIAS_P: bool;
+        attribute DQS_BIAS_N: bool;
+        // virtex7 HR only
+        attribute DQS_BIAS: bool;
+        // virtex7 only
+        attribute IBUFDISABLE_EN: bool;
+        attribute DCITERMDISABLE_EN: bool;
+        attribute INTERMDISABLE_EN: bool;
+        // virtex7 HR only
+        attribute LOW_VOLTAGE: bool;
 
         attribute IBUF_MODE: IOB_IBUF_MODE;
         // virtex5 only
         attribute I_INV: bool;
+        // virtex6 and up only
+        attribute IBUF_VREF_HP: bool;
+        attribute IBUF_DIFF_HP: bool;
+        // virtex7 only (both HP and HR)
+        attribute INPUT_MISC: bitvec[1];
+        // virtex7 HR only
+        attribute IN_TERM: IOB_IN_TERM;
+        attribute IBUF_PCI: bool;
 
         attribute OUTPUT_ENABLE: bitvec[2];
         // virtex5 and up only
@@ -676,6 +699,15 @@ target_defs! {
         attribute DCI_MISC: bitvec[2];
         attribute DCI_T: bool;
         attribute DCIUPDATEMODE_ASREQUIRED: bool;
+        // virtex6 and up only, and also IOB[0] only; if set, the output will be inverted output of OLOGIC[1];
+        // otherwise, the output will be non-inverted output of OLOGIC[0]
+        // TODO: does this also affect T on virtex6?
+        attribute OUTPUT_PSEUDO_DIFF: bool;
+        // virtex7 only, and also paired IOB[0] only; if set, the tristate is from OLOGIC[1];
+        // otherwise, tristate is from OLOGIC[0]
+        attribute OUTPUT_PSEUDO_DIFF_T: bool;
+        // virtex7 HR only
+        attribute LVDS_GROUP: bitvec[1];
 
         attribute V4_PDRIVE: bitvec[5];
         attribute V4_NDRIVE: bitvec[5];
@@ -689,76 +721,131 @@ target_defs! {
         attribute V5_NSLEW: bitvec[6];
         attribute V5_OUTPUT_MISC: bitvec[6];
         attribute V5_LVDS: bitvec[9];
+
+        // reuse same-size V5_LVDS
+        attribute V6_PDRIVE: bitvec[6];
+        attribute V6_NDRIVE: bitvec[6];
+        attribute V6_PSLEW: bitvec[5];
+        attribute V6_NSLEW: bitvec[5];
+        attribute V6_OUTPUT_MISC: bitvec[4];
+
+        // reuse same-size V5_LVDS
+        attribute V7_PDRIVE: bitvec[7];
+        attribute V7_NDRIVE: bitvec[7];
+        // reuse same-size V6_*SLEW
+        attribute V7_OUTPUT_MISC: bitvec[6];
+
+        attribute HR_PDRIVE: bitvec[3];
+        attribute HR_NDRIVE: bitvec[4];
+        attribute HR_PSLEW: bitvec[3];
+        attribute HR_NSLEW: bitvec[3];
+        attribute HR_OUTPUT_MISC: bitvec[2];
+        attribute HR_LVDS: bitvec[13];
     }
 
-    if variant [virtex4, virtex5] {
-        table IOB_DATA {
+    table IOB_DATA {
+        if variant virtex4  {
             field PDRIVE: bitvec[5];
             field NDRIVE: bitvec[5];
-            if variant virtex4  {
-                field OUTPUT_MISC: bitvec[2];
-                field PSLEW_FAST: bitvec[4];
-                field NSLEW_FAST: bitvec[4];
-                field PSLEW_SLOW: bitvec[4];
-                field NSLEW_SLOW: bitvec[4];
-            } else {
-                field OUTPUT_MISC: bitvec[6];
-                field PSLEW_FAST: bitvec[6];
-                field NSLEW_FAST: bitvec[6];
-                field PSLEW_SLOW: bitvec[6];
-                field NSLEW_SLOW: bitvec[6];
-            }
+            field OUTPUT_MISC: bitvec[2];
+            field PSLEW_FAST: bitvec[4];
+            field NSLEW_FAST: bitvec[4];
+            field PSLEW_SLOW: bitvec[4];
+            field NSLEW_SLOW: bitvec[4];
             field PMASK_TERM_VCC: bitvec[5];
             field PMASK_TERM_SPLIT: bitvec[5];
             field NMASK_TERM_SPLIT: bitvec[5];
-            if variant virtex4 {
-                field LVDIV2: bitvec[2];
-            } else {
-                field LVDIV2: bitvec[3];
-            }
-
-            row OFF, VREF, VR;
-
-            // push-pull I/O standards
-            if variant virtex5 {
-                row LVCMOS12_2, LVCMOS12_4, LVCMOS12_6, LVCMOS12_8;
-            }
-            row LVCMOS15_2, LVCMOS15_4, LVCMOS15_6, LVCMOS15_8, LVCMOS15_12, LVCMOS15_16;
-            row LVCMOS18_2, LVCMOS18_4, LVCMOS18_6, LVCMOS18_8, LVCMOS18_12, LVCMOS18_16;
-            row LVCMOS25_2, LVCMOS25_4, LVCMOS25_6, LVCMOS25_8, LVCMOS25_12, LVCMOS25_16, LVCMOS25_24;
-            row LVCMOS33_2, LVCMOS33_4, LVCMOS33_6, LVCMOS33_8, LVCMOS33_12, LVCMOS33_16, LVCMOS33_24;
-            row LVTTL_2, LVTTL_4, LVTTL_6, LVTTL_8, LVTTL_12, LVTTL_16, LVTTL_24;
-            row PCI33_3, PCI66_3, PCIX;
-
-            // DCI output
-            row LVDCI_15, LVDCI_18, LVDCI_25, LVDCI_33;
-            row LVDCI_DV2_15, LVDCI_DV2_18, LVDCI_DV2_25;
-            // VREF-based with DCI output
-            row HSLVDCI_15, HSLVDCI_18, HSLVDCI_25, HSLVDCI_33;
-
-            // VREF-based
-            row GTL, GTLP;
-            row SSTL18_I, SSTL18_II;
-            row SSTL2_I, SSTL2_II;
-            row HSTL_I_12;
-            row HSTL_I, HSTL_II, HSTL_III, HSTL_IV;
-            row HSTL_I_18, HSTL_II_18, HSTL_III_18, HSTL_IV_18;
-            // with DCI
-            row GTL_DCI, GTLP_DCI;
-            row SSTL18_I_DCI, SSTL18_II_DCI, SSTL18_II_T_DCI;
-            row SSTL2_I_DCI, SSTL2_II_DCI, SSTL2_II_T_DCI;
-            row HSTL_I_DCI, HSTL_II_DCI, HSTL_II_T_DCI, HSTL_III_DCI, HSTL_IV_DCI;
-            row HSTL_I_DCI_18, HSTL_II_DCI_18, HSTL_II_T_DCI_18, HSTL_III_DCI_18, HSTL_IV_DCI_18;
-
-            // pseudo-differential
-            row BLVDS_25;
-            row LVPECL_25;
-
-            if variant virtex4 {
-                // DCI term for true differential
-                row LVDS_25_DCI, LVDSEXT_25_DCI;
-            }
+            field LVDIV2: bitvec[2];
+        } else if variant virtex5 {
+            field PDRIVE: bitvec[5];
+            field NDRIVE: bitvec[5];
+            field OUTPUT_MISC: bitvec[6];
+            field PSLEW_FAST: bitvec[6];
+            field NSLEW_FAST: bitvec[6];
+            field PSLEW_SLOW: bitvec[6];
+            field NSLEW_SLOW: bitvec[6];
+            field PMASK_TERM_VCC: bitvec[5];
+            field PMASK_TERM_SPLIT: bitvec[5];
+            field NMASK_TERM_SPLIT: bitvec[5];
+            field LVDIV2: bitvec[3];
+        } else if variant virtex6 {
+            field PDRIVE: bitvec[6];
+            field NDRIVE: bitvec[6];
+            field OUTPUT_MISC: bitvec[4];
+            field PSLEW_FAST: bitvec[5];
+            field NSLEW_FAST: bitvec[5];
+            field PSLEW_SLOW: bitvec[5];
+            field NSLEW_SLOW: bitvec[5];
+            field PREF_OUTPUT: bitvec[2];
+            field NREF_OUTPUT: bitvec[2];
+            field PREF_OUTPUT_HALF: bitvec[3];
+            field NREF_OUTPUT_HALF: bitvec[3];
+            field PREF_TERM_VCC: bitvec[2];
+            field PMASK_TERM_VCC: bitvec[6];
+            field PREF_TERM_SPLIT: bitvec[3];
+            field NREF_TERM_SPLIT: bitvec[3];
+            field PMASK_TERM_SPLIT: bitvec[6];
+            field NMASK_TERM_SPLIT: bitvec[6];
+        } else {
+            field PDRIVE: bitvec[7];
+            field NDRIVE: bitvec[7];
+            field OUTPUT_MISC: bitvec[6];
+            field PSLEW_FAST: bitvec[5];
+            field NSLEW_FAST: bitvec[5];
+            field PSLEW_SLOW: bitvec[5];
+            field NSLEW_SLOW: bitvec[5];
+            field PREF_OUTPUT: bitvec[2];
+            field NREF_OUTPUT: bitvec[2];
+            field PREF_OUTPUT_HALF: bitvec[3];
+            field NREF_OUTPUT_HALF: bitvec[3];
+            field NREF_TERM_SPLIT: bitvec[3];
         }
+
+        row OFF, VREF, VR;
+
+        // push-pull I/O standards
+        row LVCMOS12_2, LVCMOS12_4, LVCMOS12_6, LVCMOS12_8;
+        row LVCMOS15_2, LVCMOS15_4, LVCMOS15_6, LVCMOS15_8, LVCMOS15_12, LVCMOS15_16;
+        row LVCMOS18_2, LVCMOS18_4, LVCMOS18_6, LVCMOS18_8, LVCMOS18_12, LVCMOS18_16;
+        row LVCMOS25_2, LVCMOS25_4, LVCMOS25_6, LVCMOS25_8, LVCMOS25_12, LVCMOS25_16, LVCMOS25_24;
+        row LVCMOS33_2, LVCMOS33_4, LVCMOS33_6, LVCMOS33_8, LVCMOS33_12, LVCMOS33_16, LVCMOS33_24;
+        row LVTTL_2, LVTTL_4, LVTTL_6, LVTTL_8, LVTTL_12, LVTTL_16, LVTTL_24;
+        row PCI33_3, PCI66_3, PCIX;
+
+        // DCI output
+        row LVDCI_15, LVDCI_18, LVDCI_25, LVDCI_33;
+        row LVDCI_DV2_15, LVDCI_DV2_18, LVDCI_DV2_25;
+        // VREF-based with DCI output
+        row HSLVDCI_15, HSLVDCI_18, HSLVDCI_25, HSLVDCI_33;
+        row HSUL_12_DCI;
+
+        // VREF-based
+        row GTL, GTLP;
+        row SSTL12;
+        row SSTL135;
+        row SSTL15;
+        row SSTL18_I, SSTL18_II;
+        row SSTL2_I, SSTL2_II;
+        row HSUL_12;
+        row HSTL_I_12;
+        row HSTL_I, HSTL_II, HSTL_III, HSTL_IV;
+        row HSTL_I_18, HSTL_II_18, HSTL_III_18, HSTL_IV_18;
+        // with DCI
+        row GTL_DCI, GTLP_DCI;
+        row SSTL12_DCI, SSTL12_T_DCI;
+        row SSTL135_DCI, SSTL135_T_DCI;
+        row SSTL15_DCI, SSTL15_T_DCI;
+        row SSTL18_I_DCI, SSTL18_II_DCI, SSTL18_II_T_DCI;
+        row SSTL2_I_DCI, SSTL2_II_DCI, SSTL2_II_T_DCI;
+        row HSTL_I_DCI, HSTL_II_DCI, HSTL_II_T_DCI, HSTL_III_DCI, HSTL_IV_DCI;
+        row HSTL_I_DCI_18, HSTL_II_DCI_18, HSTL_II_T_DCI_18, HSTL_III_DCI_18, HSTL_IV_DCI_18;
+
+        // pseudo-differential
+        row BLVDS_25;
+        row LVPECL_25;
+
+        // DCI term for true differential
+        row LVDS_25_DCI, LVDSEXT_25_DCI;
     }
     if variant virtex4 {
         table LVDS_DATA {
@@ -790,6 +877,97 @@ target_defs! {
             row LVDSEXT_25;
             row RSDS_25;
             row HT_25;
+        }
+    } else if variant virtex6 {
+        table LVDS_DATA {
+            field OUTPUT_T: bitvec[9];
+            field OUTPUT_C: bitvec[9];
+            field TERM_T: bitvec[9];
+            field TERM_C: bitvec[9];
+            field DYN_TERM_T: bitvec[9];
+            field DYN_TERM_C: bitvec[9];
+            field LVDSBIAS: bitvec[17];
+
+            row OFF;
+            row LVDS_25;
+            row LVDSEXT_25;
+            row RSDS_25;
+            row HT_25;
+        }
+    } else {
+        table LVDS_DATA {
+            field OUTPUT_T: bitvec[9];
+            field OUTPUT_C: bitvec[9];
+            field TERM_T: bitvec[9];
+            field TERM_C: bitvec[9];
+            field DYN_TERM_T: bitvec[9];
+            field DYN_TERM_C: bitvec[9];
+            field LVDSBIAS: bitvec[18];
+
+            row OFF;
+            row LVDS;
+        }
+    }
+
+    if variant virtex7 {
+        table IOB_DATA_HR {
+            field PDRIVE: bitvec[3];
+            field NDRIVE: bitvec[4];
+            field PSLEW_SLOW: bitvec[3];
+            field NSLEW_SLOW: bitvec[3];
+            field PSLEW_FAST: bitvec[3];
+            field NSLEW_FAST: bitvec[3];
+            field OUTPUT_MISC: bitvec[2];
+
+            row OFF;
+
+            // CMOS
+            row LVTTL_4, LVTTL_8, LVTTL_12, LVTTL_16, LVTTL_24;
+            row LVCMOS33_4, LVCMOS33_8, LVCMOS33_12, LVCMOS33_16;
+            row LVCMOS25_4, LVCMOS25_8, LVCMOS25_12, LVCMOS25_16;
+            row LVCMOS18_4, LVCMOS18_8, LVCMOS18_12, LVCMOS18_16, LVCMOS18_24;
+            row LVCMOS15_4, LVCMOS15_8, LVCMOS15_12, LVCMOS15_16;
+            row LVCMOS12_4, LVCMOS12_8, LVCMOS12_12;
+            row PCI33_3;
+            row MOBILE_DDR;
+
+            // VREF
+            row SSTL135, SSTL135_R;
+            row SSTL15, SSTL15_R;
+            row SSTL18_I, SSTL18_II;
+            row HSTL_I, HSTL_II;
+            row HSTL_I_18, HSTL_II_18;
+            row HSUL_12;
+
+            // pseudo-differential
+            row BLVDS_25;
+        }
+
+        table LVDS_DATA_HR {
+            field OUTPUT_T: bitvec[13];
+            field OUTPUT_C: bitvec[13];
+            field TERM_T: bitvec[13];
+            field TERM_C: bitvec[13];
+            field LVDSBIAS_COMMON: bitvec[9];
+            field LVDSBIAS_GROUP: bitvec[16];
+
+            row OFF;
+            row LVDS_25;
+            row MINI_LVDS_25;
+            row RSDS_25;
+            row PPDS_25;
+            row TMDS_33;
+        }
+
+        table DRIVERBIAS {
+            field DRIVERBIAS: bitvec[16];
+            row OFF;
+            row _3V3;
+            row _2V5;
+            row _1V8;
+            row _1V5;
+            row _1V35;
+            row _1V2;
         }
     }
 

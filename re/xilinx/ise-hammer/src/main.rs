@@ -354,9 +354,10 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
                     virtex6::misc::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_io {
-                    virtex6::io::add_fuzzers(&mut hammer, &backend, false);
+                    virtex6::ioi::add_fuzzers(&mut hammer, &backend, false);
+                    virtex6::iob::add_fuzzers(&mut hammer, &backend);
                 } else if opts.devdata_only {
-                    virtex6::io::add_fuzzers(&mut hammer, &backend, true);
+                    virtex6::ioi::add_fuzzers(&mut hammer, &backend, true);
                 }
                 if !opts.skip_pll {
                     virtex6::cmt::add_fuzzers(&mut hammer, &backend, false);
@@ -388,7 +389,9 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
                     virtex7::misc::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_io {
-                    virtex7::io::add_fuzzers(&mut hammer, &backend);
+                    virtex7::ioi::add_fuzzers(&mut hammer, &backend);
+                    virtex7::iob_hp::add_fuzzers(&mut hammer, &backend);
+                    virtex7::iob_hr::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_pll {
                     virtex7::cmt::add_fuzzers(&mut hammer, &backend);
@@ -627,9 +630,10 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
                     virtex6::misc::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_io {
-                    virtex6::io::collect_fuzzers(&mut ctx, false);
+                    virtex6::ioi::collect_fuzzers(&mut ctx, false);
+                    virtex6::iob::collect_fuzzers(&mut ctx);
                 } else if opts.devdata_only {
-                    virtex6::io::collect_fuzzers(&mut ctx, true);
+                    virtex6::ioi::collect_fuzzers(&mut ctx, true);
                 }
                 if !opts.skip_pll {
                     virtex6::cmt::collect_fuzzers(&mut ctx, false);
@@ -661,7 +665,9 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
                     virtex7::misc::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_io {
-                    virtex7::io::collect_fuzzers(&mut ctx);
+                    virtex7::ioi::collect_fuzzers(&mut ctx);
+                    virtex7::iob_hp::collect_fuzzers(&mut ctx);
+                    virtex7::iob_hr::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_pll {
                     virtex7::cmt::collect_fuzzers(&mut ctx);

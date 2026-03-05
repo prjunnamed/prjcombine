@@ -109,10 +109,6 @@ const GTH_CHANNEL_INVPINS: &[BelInputId] = &[
     GTX_CHANNEL::TXUSRCLK2,
 ];
 
-const GTX_CHANNEL_HEX_ATTRS: &[(&str, usize)] = &[];
-
-const GTH_CHANNEL_HEX_ATTRS: &[(&str, usize)] = &[];
-
 #[derive(Clone, Copy, Debug)]
 pub struct TouchHout(pub usize);
 
@@ -998,22 +994,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     _ => unreachable!(),
                 },
             }
-        }
-    }
-    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTX_CHANNEL) {
-        let mut bctx = ctx.bel(bslots::GTX_CHANNEL);
-        let mode = "GTXE2_CHANNEL";
-
-        for &(attr, width) in GTX_CHANNEL_HEX_ATTRS {
-            bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
-        }
-    }
-    if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcls::GTH_CHANNEL) {
-        let mut bctx = ctx.bel(bslots::GTX_CHANNEL);
-        let mode = "GTHE2_CHANNEL";
-
-        for &(attr, width) in GTH_CHANNEL_HEX_ATTRS {
-            bctx.mode(mode).test_multi_attr_hex_legacy(attr, width);
         }
     }
     for tcid in [tcls::GTX_CHANNEL, tcls::GTH_CHANNEL] {

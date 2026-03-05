@@ -1314,7 +1314,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     };
     let intdb = edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
-        if !ctx.has_tile_legacy(tcname) {
+        if !ctx.has_tcls(tcid) {
             continue;
         }
         for (bslot, bel) in &tcls.bels {

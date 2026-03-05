@@ -188,20 +188,12 @@ The devices also have dedicated configuration bank 0, which has no user I/O and 
 
 ## Tables — HP IO
 
-{{misc virtex7 hp-iostd-drive}}
-{{misc virtex7 hp-iostd-slew}}
-{{misc virtex7 hp-iostd-lvds}}
-{{misc virtex7 hp-iostd-lvdsbias}}
-{{misc virtex7 hp-iostd-dci-output}}
-{{misc virtex7 hp-iostd-dci-output-half}}
-{{misc virtex7 hp-iostd-dci-term-split}}
+{{table virtex7 IOB_DATA}}
+{{table virtex7 LVDS_DATA}}
 
 
 ## Tables — HR IO
 
-{{misc virtex7 hr-iostd-drive}}
-{{misc virtex7 hr-iostd-slew}}
-{{misc virtex7 hr-iostd-misc}}
-{{misc virtex7 hr-iostd-lvds}}
-{{misc virtex7 hr-iostd-driverbias}}
-{{misc virtex7 hr-iostd-lvdsbias}}
+{{table virtex7 IOB_DATA_HR}}
+{{table virtex7 LVDS_DATA_HR}}
+{{table virtex7 DRIVERBIAS}}

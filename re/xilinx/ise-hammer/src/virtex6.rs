@@ -5,6 +5,7 @@ pub mod dsp;
 pub mod emac;
 pub mod gth;
 pub mod gtx;
-pub mod io;
+pub mod iob;
+pub mod ioi;
 pub mod misc;
 pub mod pcie;

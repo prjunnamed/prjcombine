@@ -7,7 +7,7 @@ use crate::{
     DocgenContext,
     bsdata::{
         FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_bstiles,
-        gen_devdata_table, gen_misc_table,
+        gen_devdata_table,
     },
     interconnect::{gen_devdata, gen_intdb},
 };
@@ -51,7 +51,7 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
         }
 
         gen_bstiles(ctx, kind, &db.bsdata, orientation);
-        let mut misc_used = HashSet::new();
+        let misc_used = HashSet::new();
         let mut devdata_used = HashSet::new();
         match kind {
             "virtex4" => {}
@@ -82,83 +82,6 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
                 );
             }
             "virtex6" => {
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "iostd-misc",
-                    &["IOSTD:OUTPUT_MISC"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "iostd-drive",
-                    &["IOSTD:PDRIVE", "IOSTD:NDRIVE"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "iostd-slew",
-                    &["IOSTD:PSLEW", "IOSTD:NSLEW"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "iostd-lvds",
-                    &["IOSTD:LVDS_T", "IOSTD:LVDS_C"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "iostd-lvdsbias",
-                    &["IOSTD:LVDSBIAS"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "iostd-dci-output",
-                    &["IOSTD:DCI:PREF_OUTPUT", "IOSTD:DCI:NREF_OUTPUT"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "iostd-dci-output-half",
-                    &["IOSTD:DCI:PREF_OUTPUT_HALF", "IOSTD:DCI:NREF_OUTPUT_HALF"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "iostd-dci-term-vcc",
-                    &["IOSTD:DCI:PREF_TERM_VCC", "IOSTD:DCI:PMASK_TERM_VCC"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex6",
-                    "iostd-dci-term-split",
-                    &[
-                        "IOSTD:DCI:PREF_TERM_SPLIT",
-                        "IOSTD:DCI:NREF_TERM_SPLIT",
-                        "IOSTD:DCI:PMASK_TERM_SPLIT",
-                        "IOSTD:DCI:NMASK_TERM_SPLIT",
-                    ],
-                );
                 gen_devdata_table(
                     ctx,
                     &db.bsdata,
@@ -177,116 +100,7 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
                     &[devdata::PLL_V6_IN_DLY_SET],
                 );
             }
-            "virtex7" => {
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hp-iostd-drive",
-                    &["HP_IOSTD:PDRIVE", "HP_IOSTD:NDRIVE"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hp-iostd-slew",
-                    &["HP_IOSTD:PSLEW", "HP_IOSTD:NSLEW"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hp-iostd-lvds",
-                    &["HP_IOSTD:LVDS_T", "HP_IOSTD:LVDS_C"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hp-iostd-lvdsbias",
-                    &["HP_IOSTD:LVDSBIAS"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hp-iostd-dci-output",
-                    &["HP_IOSTD:DCI:PREF_OUTPUT", "HP_IOSTD:DCI:NREF_OUTPUT"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hp-iostd-dci-output-half",
-                    &[
-                        "HP_IOSTD:DCI:PREF_OUTPUT_HALF",
-                        "HP_IOSTD:DCI:NREF_OUTPUT_HALF",
-                    ],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hp-iostd-dci-term-split",
-                    &["HP_IOSTD:DCI:NREF_TERM_SPLIT"],
-                );
-
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hr-iostd-drive",
-                    &["HR_IOSTD:DRIVE"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hr-iostd-slew",
-                    &["HR_IOSTD:SLEW"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hr-iostd-misc",
-                    &["HR_IOSTD:OUTPUT_MISC"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hr-iostd-lvds",
-                    &["HR_IOSTD:LVDS_T", "HR_IOSTD:LVDS_C"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hr-iostd-driverbias",
-                    &["HR_IOSTD:DRIVERBIAS"],
-                );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex7",
-                    "hr-iostd-lvdsbias",
-                    &["HR_IOSTD:LVDSBIAS:COMMON", "HR_IOSTD:LVDSBIAS:GROUP"],
-                );
-            }
+            "virtex7" => {}
             _ => unreachable!(),
         }
         check_misc_data(&db.bsdata, kind, &misc_used);

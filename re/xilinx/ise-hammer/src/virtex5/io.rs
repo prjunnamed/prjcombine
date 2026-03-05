@@ -4,8 +4,8 @@ use prjcombine_interconnect::{
     grid::{DieId, DieIdExt, RowId, TileCoord, TileIobId},
 };
 use prjcombine_re_collector::diff::{
-    Diff, DiffKey, FeatureId, OcdMode, SpecialId, extract_bitvec_val, extract_bitvec_val_part,
-    xlat_bit, xlat_bit_wide, xlat_bit_wide_bi, xlat_bitvec, xlat_enum_attr, xlat_enum_attr_ocd,
+    Diff, DiffKey, OcdMode, SpecialId, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
+    xlat_bit_wide, xlat_bit_wide_bi, xlat_bitvec, xlat_enum_attr, xlat_enum_attr_ocd,
 };
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -411,7 +411,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct DiffOut(TableRowId);
+pub struct DiffOut(pub SpecialId, pub TableRowId);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -446,54 +446,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
                     hclk_ioi_tile.class
                 },
                 bslots::BANK,
-                specials::IOB_OSTD_LVDS,
                 self.0,
+                self.1,
             ),
-            rects: edev.tile_bits(hclk_ioi),
-        });
-        Some((fuzzer, false))
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct DiffOutLegacy(pub &'static str, pub &'static str);
-
-impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOutLegacy {
-    fn dyn_clone(&self) -> Box<DynProp<'b>> {
-        Box::new(Clone::clone(self))
-    }
-
-    fn apply(
-        &self,
-        backend: &IseBackend<'b>,
-        tcrd: TileCoord,
-        mut fuzzer: Fuzzer<IseBackend<'b>>,
-    ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
-        let ExpandedDevice::Virtex4(edev) = backend.edev else {
-            unreachable!()
-        };
-        let chip = edev.chips[tcrd.die];
-        let lvds_row = chip.row_hclk(tcrd.row);
-        // Take exclusive mutex on bank LVDS.
-        let hclk_ioi = tcrd.with_row(lvds_row).tile(defs::tslots::HCLK_BEL);
-        fuzzer = fuzzer.fuzz(
-            Key::TileMutex(hclk_ioi, "BANK_LVDS".to_string()),
-            None,
-            "EXCLUSIVE",
-        );
-
-        let hclk_ioi_tile = &edev[hclk_ioi];
-        fuzzer.info.features.push(FuzzerFeature {
-            key: DiffKey::Legacy(FeatureId {
-                tile: if edev.kind == ChipKind::Virtex5 {
-                    "HCLK_IO".into()
-                } else {
-                    edev.db.tile_classes.key(hclk_ioi_tile.class).clone()
-                },
-                bel: "LVDS".into(),
-                attr: self.0.into(),
-                val: self.1.into(),
-            }),
             rects: edev.tile_bits(hclk_ioi),
         });
         Some((fuzzer, false))
@@ -1360,7 +1315,7 @@ pub fn add_fuzzers<'a>(
                         .attr("OPROGRAMMING", "")
                         .raw(Key::Package, &package.name)
                         .prop(IsBonded(bel))
-                        .prop(DiffOut(row))
+                        .prop(DiffOut(specials::IOB_OSTD_LVDS, row))
                         .bel_attr(bel_other, "IMUX", "")
                         .bel_attr(bel_other, "OPROGRAMMING", "")
                         .bel_attr(bel_other, "OSTANDARD", "")
