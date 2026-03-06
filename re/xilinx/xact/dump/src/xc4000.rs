@@ -212,7 +212,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
                     let o = prim.get_pin("O");
                     let wire_o = edev.get_bel_input(bel, bcls::HIO::O).wire;
                     extractor.net_int(o, wire_o);
-                    let mut o = Vec::from_iter(extractor.nets[o].pips_bwd.clone().into_iter());
+                    let mut o = Vec::from_iter(extractor.nets[o].pips_bwd.clone());
                     assert_eq!(o.len(), 2);
                     if col == chip.col_w() {
                         o.sort_by_key(|(_, pip)| pip.0);

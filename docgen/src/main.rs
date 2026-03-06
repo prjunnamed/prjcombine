@@ -160,10 +160,9 @@ impl Preprocessor for Docgen {
             if let Some(ref path) = chapter.path {
                 let path = path.to_string_lossy().into_owned();
                 if let Some(extras) = ctx.extra_docs.get(&path) {
-                    let mut index = 1;
                     let mut parent_names = chapter.parent_names.clone();
                     parent_names.push(chapter.name.clone());
-                    for (path, name, content) in extras {
+                    for (index, (path, name, content)) in (1..).zip(extras) {
                         let mut number = chapter.number.clone();
                         if let Some(ref mut number) = number {
                             number.push(index);
@@ -177,7 +176,6 @@ impl Preprocessor for Docgen {
                             source_path: None,
                             parent_names: parent_names.clone(),
                         }));
-                        index += 1;
                     }
                 }
             }

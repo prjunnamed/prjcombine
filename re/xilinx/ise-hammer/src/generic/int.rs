@@ -225,14 +225,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                     return None;
                 }
             }
-            ExpandedDevice::Virtex4(edev) => {
-                if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4 {
-                    // avoid CLK in center column — using it on DCM tiles causes the inverter bit to be auto-set
-                    if intdb.wires.key(self.wire.wire).starts_with("IMUX_CLK")
-                        && tcrd.col == edev.col_clk
-                    {
-                        return None;
-                    }
+            ExpandedDevice::Virtex4(edev)
+                if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4 =>
+            {
+                // avoid CLK in center column — using it on DCM tiles causes the inverter bit to be auto-set
+                if intdb.wires.key(self.wire.wire).starts_with("IMUX_CLK")
+                    && tcrd.col == edev.col_clk
+                {
+                    return None;
                 }
             }
             ExpandedDevice::Spartan6(edev) => {
@@ -850,31 +850,26 @@ fn skip_permabuf(
     src: TileWireCoord,
 ) -> bool {
     match edev {
-        ExpandedDevice::Virtex2(edev) => {
-            if !edev.chip.kind.is_virtex2() {
-                if matches!(tcid, tcls_s3::CLK_S_S3E | tcls_s3::CLK_N_S3E)
-                    && edev.chip.dcms == Some(prjcombine_virtex2::chip::Dcms::Two)
-                    && wires_s3::DCM_CLKPAD.contains(dst.wire)
-                    && dst.cell.to_idx() == 3
-                {
-                    return true;
-                }
-                if tcid == tcls_s3::CLK_S_S3A
-                    && edev.chip.dcms == Some(prjcombine_virtex2::chip::Dcms::Two)
-                    && wires_s3::DCM_CLKPAD.contains(dst.wire)
-                {
-                    return true;
-                }
-                if matches!(
-                    tcid,
-                    tcls_s3::CLK_W_S3E
-                        | tcls_s3::CLK_E_S3E
-                        | tcls_s3::CLK_W_S3A
-                        | tcls_s3::CLK_E_S3A
-                ) && wires_s3::DCM_CLKPAD.contains(dst.wire)
-                {
-                    return true;
-                }
+        ExpandedDevice::Virtex2(edev) if !edev.chip.kind.is_virtex2() => {
+            if matches!(tcid, tcls_s3::CLK_S_S3E | tcls_s3::CLK_N_S3E)
+                && edev.chip.dcms == Some(prjcombine_virtex2::chip::Dcms::Two)
+                && wires_s3::DCM_CLKPAD.contains(dst.wire)
+                && dst.cell.to_idx() == 3
+            {
+                return true;
+            }
+            if tcid == tcls_s3::CLK_S_S3A
+                && edev.chip.dcms == Some(prjcombine_virtex2::chip::Dcms::Two)
+                && wires_s3::DCM_CLKPAD.contains(dst.wire)
+            {
+                return true;
+            }
+            if matches!(
+                tcid,
+                tcls_s3::CLK_W_S3E | tcls_s3::CLK_E_S3E | tcls_s3::CLK_W_S3A | tcls_s3::CLK_E_S3A
+            ) && wires_s3::DCM_CLKPAD.contains(dst.wire)
+            {
+                return true;
             }
         }
         ExpandedDevice::Spartan6(_) => {

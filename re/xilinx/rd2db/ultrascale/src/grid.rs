@@ -721,8 +721,8 @@ pub fn make_grids(
 
     let mut chips = EntityVec::new();
     let mut disabled = BTreeSet::new();
-    let mut dieid = DieId::from_idx(0);
-    for w in rows_slr_split.windows(2) {
+    for (idx, w) in rows_slr_split.windows(2).enumerate() {
+        let dieid = DieId::from_idx(idx);
         let int = extract_int_slr_column(rd, &["INT"], &[], *w[0], *w[1]);
         let int = IntGridWrapper { int };
         let mut columns = make_columns(&int);
@@ -772,7 +772,6 @@ pub fn make_grids(
             is_dmc: int.find_column(&["FSR_DMC_TARGET_FT"]).is_some(),
             is_alt_cfg,
         });
-        dieid += 1;
     }
     let tterms = find_rows(rd, &["INT_TERM_T"]);
     if !tterms.contains(&(rd.height as i32 - 1)) {

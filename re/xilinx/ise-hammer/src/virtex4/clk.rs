@@ -1357,7 +1357,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .chain(wires::GIOB_DCM)
             .chain(wires::MGT_DCM)
         {
-            if tcid == tcls::CCM && wires::MGT_DCM.contains(w) && !edev.col_gt_w.is_some() {
+            if tcid == tcls::CCM && wires::MGT_DCM.contains(w) && edev.col_gt_w.is_none() {
                 continue;
             }
             let w = w.cell(0);

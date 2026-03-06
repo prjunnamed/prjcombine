@@ -4130,74 +4130,70 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|t| (t.0, t))
         .collect::<HashMap<_, _>>();
     for (crd, tile) in rd.tiles.iter() {
-        match tile_info_d.get(&rd.tile_kinds.key(tile.kind)[..]) {
-            None => (),
-            Some(t) => {
-                if t.1 != SINGLE {
-                    let (mut er, mut el, mut eu, mut ed) = t.1;
-                    if crd.x >= mx_th {
-                        core::mem::swap(&mut el, &mut er);
-                    }
-                    if crd.y >= my_th {
-                        core::mem::swap(&mut eu, &mut ed);
-                    }
-                    if matches!(
-                        rd.tile_kinds.key(tile.kind).as_str(),
-                        "HDIOLC_HDIOL_LEFT_TERM_B_FT"
-                            | "HDIOLC_HDIOL_BOT_LEFT_FT"
-                            | "HDIOLC_HDIOL_TOP_LEFT_FT"
-                            | "RCLK_RCLK_HDIOL_MRC_L_FT"
-                            | "HDIOLC_HDIOL_LEFT_RBRK_FT"
-                    ) && crd.x == 3
-                    {
-                        el += 1;
-                        er -= 1;
-                    }
-                    for dx in -el..er + 1 {
-                        for dy in -ed..eu + 1 {
-                            let nc = (
-                                (crd.x as isize + dx) as usize,
-                                (crd.y as isize + dy) as usize,
+        if let Some(t) = tile_info_d.get(&rd.tile_kinds.key(tile.kind)[..])
+            && t.1 != SINGLE
+        {
+            let (mut er, mut el, mut eu, mut ed) = t.1;
+            if crd.x >= mx_th {
+                core::mem::swap(&mut el, &mut er);
+            }
+            if crd.y >= my_th {
+                core::mem::swap(&mut eu, &mut ed);
+            }
+            if matches!(
+                rd.tile_kinds.key(tile.kind).as_str(),
+                "HDIOLC_HDIOL_LEFT_TERM_B_FT"
+                    | "HDIOLC_HDIOL_BOT_LEFT_FT"
+                    | "HDIOLC_HDIOL_TOP_LEFT_FT"
+                    | "RCLK_RCLK_HDIOL_MRC_L_FT"
+                    | "HDIOLC_HDIOL_LEFT_RBRK_FT"
+            ) && crd.x == 3
+            {
+                el += 1;
+                er -= 1;
+            }
+            for dx in -el..er + 1 {
+                for dy in -ed..eu + 1 {
+                    let nc = (
+                        (crd.x as isize + dx) as usize,
+                        (crd.y as isize + dy) as usize,
+                    );
+                    let ncrd = Coord {
+                        x: nc.0 as u16,
+                        y: nc.1 as u16,
+                    };
+                    if ncrd != *crd {
+                        let Some(ntile) = rd.tiles.get(&ncrd) else {
+                            println!(
+                                "Tile {tn} expanded out of device bounds at {nc:?}",
+                                tn = tile.name
                             );
-                            let ncrd = Coord {
-                                x: nc.0 as u16,
-                                y: nc.1 as u16,
-                            };
-                            if ncrd != *crd {
-                                let Some(ntile) = rd.tiles.get(&ncrd) else {
-                                    println!(
-                                        "Tile {tn} expanded out of device bounds at {nc:?}",
-                                        tn = tile.name
-                                    );
-                                    continue;
-                                };
-                                let ntk = &rd.tile_kinds[ntile.kind];
-                                let ntkn = rd.tile_kinds.key(ntile.kind);
-                                if need_null {
-                                    if ntkn != "NULL"
-                                        && ntkn != "PCIE_NULL"
-                                        && ntkn != "INVALID_0_0"
-                                        && ntkn != "__EMPTY__"
-                                    {
-                                        println!(
-                                            "Tile {} expanded onto {} which is not NULL",
-                                            tile.name, ntile.name
-                                        );
-                                    }
-                                } else if !ntk.wires.is_empty() {
-                                    println!(
-                                        "Tile {} expanded onto {} which is not empty",
-                                        tile.name, ntile.name
-                                    );
-                                }
+                            continue;
+                        };
+                        let ntk = &rd.tile_kinds[ntile.kind];
+                        let ntkn = rd.tile_kinds.key(ntile.kind);
+                        if need_null {
+                            if ntkn != "NULL"
+                                && ntkn != "PCIE_NULL"
+                                && ntkn != "INVALID_0_0"
+                                && ntkn != "__EMPTY__"
+                            {
+                                println!(
+                                    "Tile {} expanded onto {} which is not NULL",
+                                    tile.name, ntile.name
+                                );
                             }
-                            if dx == -el && dy == eu {
-                                grid[nc] =
-                                    Some((*crd, (el + er + 1) as usize, (ed + eu + 1) as usize));
-                            } else {
-                                grid[nc] = None;
-                            }
+                        } else if !ntk.wires.is_empty() {
+                            println!(
+                                "Tile {} expanded onto {} which is not empty",
+                                tile.name, ntile.name
+                            );
                         }
+                    }
+                    if dx == -el && dy == eu {
+                        grid[nc] = Some((*crd, (el + er + 1) as usize, (ed + eu + 1) as usize));
+                    } else {
+                        grid[nc] = None;
                     }
                 }
             }

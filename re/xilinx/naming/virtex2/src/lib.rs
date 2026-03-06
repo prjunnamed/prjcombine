@@ -2546,8 +2546,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 namer.ngrid.name_conn_pair(ccrd, "PPC_N", name_b, name_t);
             }
             (true, ccls_v2::PASS_S) => {
-                if chip.kind.is_virtex2()
-                    && chip.columns[col].kind == ColumnKind::Bram
+                if chip.columns[col].kind == ColumnKind::Bram
                     && chip.bram_row(row) == Some(0)
                     && row.to_idx() != 1
                     && !edev.is_in_hole(ccrd.cell)

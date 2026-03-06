@@ -1273,12 +1273,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         }
     }
 
-    let mut pad_cnt = 1;
-    for io in edev.chip.get_bonded_ios() {
+    for (idx, io) in (1..).zip(edev.chip.get_bonded_ios()) {
         let bel = grid.get_io_loc(io);
         let ntile = namer.ngrid.tiles.get_mut(&bel.tile(tslots::IOB)).unwrap();
-        ntile.add_bel(bel.slot, format!("PAD{pad_cnt}"));
-        pad_cnt += 1;
+        ntile.add_bel(bel.slot, format!("PAD{idx}"));
     }
 
     ExpandedNamedDevice {
