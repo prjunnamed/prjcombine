@@ -10,7 +10,6 @@
 {{tile virtex CLKV_GCLKV}}
 {{tile virtex CLKV_BRAM_S}}
 {{tile virtex CLKV_BRAM_N}}
-{{tile virtex CLKV_NULL}}
-{{tile virtex CLKC}}
-{{tile virtex GCLKC}}
-{{tile virtex BRAM_CLKH}}
+{{tile virtex CLKV_BRAM_S_S2}}
+{{tile virtex CLKV_BRAM_N_S2}}
+{{tile virtex CLKV_IO}}

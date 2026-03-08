@@ -49,10 +49,6 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         self.data.bsdata.item(tile, bel, attr)
     }
 
-    pub fn insert_misc_data_legacy(&mut self, key: impl Into<String>, val: impl Into<DbValue>) {
-        self.collector.data.bsdata.insert_misc_data(key, val);
-    }
-
     pub fn insert_device_data_legacy(&mut self, key: impl Into<String>, val: impl Into<DbValue>) {
         self.collector
             .data

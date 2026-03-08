@@ -1,60 +1,91 @@
-use prjcombine_re_collector::legacy::{xlat_bit_bi_legacy, xlat_bit_legacy, xlat_enum_legacy};
+use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex::defs::{self, tcls};
+use prjcombine_types::bsdata::TileBit;
+use prjcombine_virtex::defs::{bcls::SLICE, bslots, enums, tcls};
 
-use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
+use crate::{
+    backend::{IseBackend, MultiValue},
+    collector::CollectorCtx,
+    generic::fbuild::FuzzCtx,
+    virtex::specials,
+};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, tcls::CLB);
     for i in 0..2 {
-        let mut bctx = ctx.bel(defs::bslots::SLICE[i]);
+        let mut bctx = ctx.bel(bslots::SLICE[i]);
         let mode = "SLICE";
         // inverters
         bctx.mode(mode)
             .attr("FFX", "#FF")
             .pin("CLK")
-            .test_enum_legacy("CKINV", &["0", "1"]);
-        bctx.mode(mode)
-            .attr("FFX", "#FF")
-            .attr("CKINV", "1")
-            .pin("CE")
-            .pin("CLK")
-            .pin("XQ")
-            .test_enum_legacy("CEMUX", &["0", "1", "CE", "CE_B"]);
-        bctx.mode(mode)
-            .attr("F", "#LUT:0")
-            .attr("DXMUX", "1")
-            .attr("SRFFMUX", "0")
-            .attr("CEMUX", "0")
-            .attr("FFX", "#FF")
-            .attr("FFY", "#FF")
-            .attr("CKINV", "1")
-            .pin("SR")
-            .pin("CLK")
-            .pin("XQ")
-            .test_enum_legacy("SRMUX", &["0", "1", "SR", "SR_B"]);
-        bctx.mode(mode)
-            .attr("FFX", "#FF")
-            .attr("DXMUX", "0")
-            .pin("BX")
-            .pin("XQ")
-            .test_enum_legacy("BXMUX", &["0", "1", "BX", "BX_B"]);
-        bctx.mode(mode)
-            .attr("FFY", "#FF")
-            .attr("DYMUX", "0")
-            .pin("BY")
-            .pin("YQ")
-            .test_enum_legacy("BYMUX", &["0", "1", "BY", "BY_B"]);
+            .test_bel_input_inv_enum("CKINV", SLICE::CLK, "1", "0");
+        for (val, vname) in [(false, "1"), (true, "0"), (false, "CE"), (true, "CE_B")] {
+            bctx.mode(mode)
+                .attr("FFX", "#FF")
+                .attr("CKINV", "1")
+                .pin("CE")
+                .pin("CLK")
+                .pin("XQ")
+                .test_bel_input_inv(SLICE::CE, val)
+                .attr("CEMUX", vname)
+                .commit();
+        }
+        for (val, vname) in [(false, "1"), (true, "0"), (false, "SR"), (true, "SR_B")] {
+            bctx.mode(mode)
+                .attr("F", "#LUT:0")
+                .attr("DXMUX", "1")
+                .attr("SRFFMUX", "0")
+                .attr("CEMUX", "0")
+                .attr("FFX", "#FF")
+                .attr("FFY", "#FF")
+                .attr("CKINV", "1")
+                .pin("SR")
+                .pin("CLK")
+                .pin("XQ")
+                .test_bel_input_inv(SLICE::SR, val)
+                .attr("SRMUX", vname)
+                .commit();
+        }
+        for (val, vname) in [(false, "1"), (true, "0"), (false, "BX"), (true, "BX_B")] {
+            bctx.mode(mode)
+                .attr("FFX", "#FF")
+                .attr("DXMUX", "0")
+                .pin("BX")
+                .pin("XQ")
+                .test_bel_input_inv(SLICE::BX, val)
+                .attr("BXMUX", vname)
+                .commit();
+        }
+        for (val, vname) in [(false, "1"), (true, "0"), (false, "BY"), (true, "BY_B")] {
+            bctx.mode(mode)
+                .attr("FFY", "#FF")
+                .attr("DYMUX", "0")
+                .pin("BY")
+                .pin("YQ")
+                .test_bel_input_inv(SLICE::BY, val)
+                .attr("BYMUX", vname)
+                .commit();
+        }
 
         // LUT
-        for attr in ["F", "G"] {
-            bctx.mode(mode).test_multi_attr_lut(attr, 16);
+        bctx.mode(mode)
+            .test_bel_attr_multi(SLICE::F, MultiValue::Lut);
+        bctx.mode(mode)
+            .test_bel_attr_multi(SLICE::G, MultiValue::Lut);
+        for (spec, val) in [
+            (specials::SLICE_RAMCONFIG_16X1, "16X1"),
+            (specials::SLICE_RAMCONFIG_16X2, "16X2"),
+            (specials::SLICE_RAMCONFIG_16X1DP, "16X1DP"),
+            (specials::SLICE_RAMCONFIG_32X1, "32X1"),
+            (specials::SLICE_RAMCONFIG_1SHIFT, "1SHIFT"),
+            (specials::SLICE_RAMCONFIG_2SHIFTS, "2SHIFTS"),
+        ] {
+            bctx.mode(mode)
+                .test_bel_special(spec)
+                .attr("RAMCONFIG", val)
+                .commit();
         }
-        bctx.mode(mode).test_enum_legacy(
-            "RAMCONFIG",
-            &["16X1", "16X1DP", "16X2", "32X1", "1SHIFT", "2SHIFTS"],
-        );
 
         // carry chain
         bctx.mode(mode)
@@ -65,7 +96,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("CIN")
             .pin("BX")
             .pin("COUT")
-            .test_enum_legacy("CYINIT", &["CIN", "BX"]);
+            .test_bel_attr_auto(SLICE::CYINIT);
         bctx.mode(mode)
             .attr("F", "#LUT:0")
             .attr("CY0F", "0")
@@ -75,7 +106,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("COUTUSED", "0")
             .pin("BX")
             .pin("COUT")
-            .test_enum_legacy("CYSELF", &["F", "1"]);
+            .test_bel_attr_auto(SLICE::CYSELF);
         bctx.mode(mode)
             .attr("G", "#LUT:0")
             .attr("CY0G", "0")
@@ -85,79 +116,105 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .attr("COUTUSED", "0")
             .pin("BX")
             .pin("COUT")
-            .test_enum_legacy("CYSELG", &["G", "1"]);
-        bctx.mode(mode)
-            .attr("CYINIT", "BX")
-            .attr("BXMUX", "BX")
-            .attr("FXMUX", "FXOR")
-            .attr("F", "#LUT:0")
-            .attr("XUSED", "0")
-            .attr("CYSELF", "F")
-            .attr("CYSELG", "1")
-            .attr("COUTUSED", "0")
-            .pin("F1")
-            .pin("F2")
-            .pin("BX")
-            .pin("X")
-            .pin("COUT")
-            .test_enum_legacy("CY0F", &["0", "1", "F1", "PROD"]);
-        bctx.mode(mode)
-            .attr("CYINIT", "BX")
-            .attr("BXMUX", "BX")
-            .attr("BYMUX", "BY")
-            .attr("GYMUX", "GXOR")
-            .attr("G", "#LUT:0")
-            .attr("YUSED", "0")
-            .attr("CYSELF", "1")
-            .attr("CYSELG", "G")
-            .attr("COUTUSED", "0")
-            .pin("G1")
-            .pin("G2")
-            .pin("BX")
-            .pin("BY")
-            .pin("Y")
-            .pin("COUT")
-            .test_enum_legacy("CY0G", &["0", "1", "G1", "PROD"]);
+            .test_bel_attr_auto(SLICE::CYSELG);
+        for (val, vf, vg) in [
+            (enums::SLICE_CY0::CONST_0, "0", "0"),
+            (enums::SLICE_CY0::CONST_1, "1", "1"),
+            (enums::SLICE_CY0::F1_G1, "F1", "G1"),
+            (enums::SLICE_CY0::PROD, "PROD", "PROD"),
+        ] {
+            bctx.mode(mode)
+                .attr("CYINIT", "BX")
+                .attr("BXMUX", "BX")
+                .attr("FXMUX", "FXOR")
+                .attr("F", "#LUT:0")
+                .attr("XUSED", "0")
+                .attr("CYSELF", "F")
+                .attr("CYSELG", "1")
+                .attr("COUTUSED", "0")
+                .pin("F1")
+                .pin("F2")
+                .pin("BX")
+                .pin("X")
+                .pin("COUT")
+                .test_bel_attr_val(SLICE::CY0, val)
+                .attr("CY0F", vf)
+                .commit();
+            bctx.mode(mode)
+                .attr("CYINIT", "BX")
+                .attr("BXMUX", "BX")
+                .attr("BYMUX", "BY")
+                .attr("GYMUX", "GXOR")
+                .attr("G", "#LUT:0")
+                .attr("YUSED", "0")
+                .attr("CYSELF", "1")
+                .attr("CYSELG", "G")
+                .attr("COUTUSED", "0")
+                .pin("G1")
+                .pin("G2")
+                .pin("BX")
+                .pin("BY")
+                .pin("Y")
+                .pin("COUT")
+                .test_bel_attr_val(SLICE::CY0, val)
+                .attr("CY0G", vg)
+                .commit();
+        }
 
         // muxes
-        bctx.mode(mode)
-            .attr("CYINIT", "BX")
-            .attr("BXMUX", "BX")
-            .attr("BYMUX", "BY")
-            .attr("GYMUX", "GXOR")
-            .attr("G", "#LUT:0")
-            .attr("YUSED", "0")
-            .attr("CYSELF", "1")
-            .attr("CYSELG", "1")
-            .attr("COUTUSED", "0")
-            .pin("BX")
-            .pin("BY")
-            .pin("Y")
-            .pin("YB")
-            .pin("COUT")
-            .test_enum_legacy("YBMUX", &["0", "1"]);
+        for (val, vname) in [
+            (enums::SLICE_YBMUX::GCY, "1"),
+            (enums::SLICE_YBMUX::BY, "0"),
+        ] {
+            bctx.mode(mode)
+                .attr("CYINIT", "BX")
+                .attr("BXMUX", "BX")
+                .attr("BYMUX", "BY")
+                .attr("GYMUX", "GXOR")
+                .attr("G", "#LUT:0")
+                .attr("YUSED", "0")
+                .attr("CYSELF", "1")
+                .attr("CYSELG", "1")
+                .attr("COUTUSED", "0")
+                .pin("BX")
+                .pin("BY")
+                .pin("Y")
+                .pin("YB")
+                .pin("COUT")
+                .test_bel_attr_val(SLICE::YBMUX, val)
+                .attr("YBMUX", vname)
+                .commit();
+        }
+        for (val, vname) in [(enums::SLICE_DXMUX::X, "1"), (enums::SLICE_DXMUX::BX, "0")] {
+            bctx.mode(mode)
+                .attr("F", "#LUT:0")
+                .attr("XUSED", "0")
+                .attr("FXMUX", "F")
+                .attr("FFX", "#FF")
+                .attr("BXMUX", "BX")
+                .pin("X")
+                .pin("XQ")
+                .pin("BX")
+                .test_bel_attr_val(SLICE::DXMUX, val)
+                .attr("DXMUX", vname)
+                .commit();
+        }
+        for (val, vname) in [(enums::SLICE_DYMUX::Y, "1"), (enums::SLICE_DYMUX::BY, "0")] {
+            bctx.mode(mode)
+                .attr("G", "#LUT:0")
+                .attr("YUSED", "0")
+                .attr("GYMUX", "G")
+                .attr("FFY", "#FF")
+                .attr("BYMUX", "BY")
+                .pin("Y")
+                .pin("YQ")
+                .pin("BY")
+                .test_bel_attr_val(SLICE::DYMUX, val)
+                .attr("DYMUX", vname)
+                .commit();
+        }
         bctx.mode(mode)
             .attr("F", "#LUT:0")
-            .attr("XUSED", "0")
-            .attr("FXMUX", "F")
-            .attr("FFX", "#FF")
-            .attr("BXMUX", "BX")
-            .pin("X")
-            .pin("XQ")
-            .pin("BX")
-            .test_enum_legacy("DXMUX", &["0", "1"]);
-        bctx.mode(mode)
-            .attr("G", "#LUT:0")
-            .attr("YUSED", "0")
-            .attr("GYMUX", "G")
-            .attr("FFY", "#FF")
-            .attr("BYMUX", "BY")
-            .pin("Y")
-            .pin("YQ")
-            .pin("BY")
-            .test_enum_legacy("DYMUX", &["0", "1"]);
-        bctx.mode(mode)
-            .attr("F", "#LUT:0")
             .attr("CYSELF", "1")
             .attr("CYINIT", "BX")
             .attr("BXMUX", "BX")
@@ -166,7 +223,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("X")
             .pin("BX")
             .pin("COUT")
-            .test_enum_legacy("FXMUX", &["F", "F5", "FXOR"]);
+            .test_bel_attr_auto(SLICE::FXMUX);
         bctx.mode(mode)
             .attr("G", "#LUT:0")
             .attr("CYSELF", "1")
@@ -178,154 +235,116 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("Y")
             .pin("BX")
             .pin("COUT")
-            .test_enum_legacy("GYMUX", &["G", "F6", "GXOR"]);
+            .test_bel_attr_auto(SLICE::GYMUX);
 
         // FFs
         bctx.mode(mode)
             .pin("XQ")
             .attr("FFX", "#FF")
-            .test_enum_legacy("SYNC_ATTR", &["SYNC", "ASYNC"]);
+            .test_bel_attr_bool_rename("SYNC_ATTR", SLICE::FF_SR_SYNC, "ASYNC", "SYNC");
         bctx.mode(mode)
             .attr("FFY", "")
             .attr("CEMUX", "CE_B")
             .attr("INITX", "LOW")
             .pin("XQ")
             .pin("CE")
-            .test_enum_legacy("FFX", &["#FF", "#LATCH"]);
+            .test_bel_attr_bool_rename("FFX", SLICE::FF_LATCH, "#FF", "#LATCH");
         bctx.mode(mode)
             .attr("FFX", "")
             .attr("CEMUX", "CE_B")
             .attr("INITY", "LOW")
             .pin("YQ")
             .pin("CE")
-            .test_enum_legacy("FFY", &["#FF", "#LATCH"]);
+            .test_bel_attr_bool_rename("FFY", SLICE::FF_LATCH, "#FF", "#LATCH");
         bctx.mode(mode)
             .attr("FFX", "#FF")
             .pin("XQ")
-            .test_enum_legacy("INITX", &["LOW", "HIGH"]);
+            .test_bel_attr_bool_rename("INITX", SLICE::FFX_INIT, "LOW", "HIGH");
         bctx.mode(mode)
             .attr("FFY", "#FF")
             .pin("YQ")
-            .test_enum_legacy("INITY", &["LOW", "HIGH"]);
+            .test_bel_attr_bool_rename("INITY", SLICE::FFY_INIT, "LOW", "HIGH");
         bctx.mode(mode)
             .attr("FFX", "#FF")
             .attr("BYMUX", "BY")
             .pin("XQ")
             .pin("BY")
-            .test_enum_legacy("REVUSED", &["0"]);
+            .test_bel_attr_bits(SLICE::FF_REV_ENABLE)
+            .attr("REVUSED", "0")
+            .commit();
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let tile = "CLB";
-    for bel in ["SLICE[0]", "SLICE[1]"] {
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "CKINV", "1", "0");
-        ctx.insert_legacy(tile, bel, "INV.CLK", item);
-        for (pinmux, pin, pin_b) in [
-            ("BXMUX", "BX", "BX_B"),
-            ("BYMUX", "BY", "BY_B"),
-            ("CEMUX", "CE", "CE_B"),
-            ("SRMUX", "SR", "SR_B"),
-        ] {
-            let d0 = ctx.get_diff_legacy(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
-            let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
-            ctx.insert_legacy(tile, bel, format!("INV.{pin}"), xlat_bit_bi_legacy(d0, d1));
-        }
+    let tcid = tcls::CLB;
+    for bslot in bslots::SLICE {
+        ctx.collect_bel_input_inv_bi(tcid, bslot, SLICE::CLK);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, SLICE::SR);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, SLICE::CE);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, SLICE::BX);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, SLICE::BY);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::F);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::G);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::CYINIT);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::CYSELF);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::CYSELG);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::CY0);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::YBMUX);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::DXMUX);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::DYMUX);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::FXMUX);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::GYMUX);
+        ctx.collect_bel_attr_bi(tcid, bslot, SLICE::FF_SR_SYNC);
+        ctx.collect_bel_attr(tcid, bslot, SLICE::FF_REV_ENABLE);
+        ctx.collect_bel_attr_bi(tcid, bslot, SLICE::FF_LATCH);
+        ctx.collect_bel_attr_bi(tcid, bslot, SLICE::FFX_INIT);
+        ctx.collect_bel_attr_bi(tcid, bslot, SLICE::FFY_INIT);
 
-        ctx.collect_bitvec_legacy(tile, bel, "F", "#LUT");
-        ctx.collect_bitvec_legacy(tile, bel, "G", "#LUT");
-        ctx.collect_enum_default_legacy(
-            tile,
-            bel,
-            "RAMCONFIG",
-            &["16X1", "16X1DP", "16X2", "32X1", "1SHIFT", "2SHIFTS"],
-            "ROM",
+        let diff_16x1 = ctx.get_diff_bel_special(tcid, bslot, specials::SLICE_RAMCONFIG_16X1);
+        let diff_16x2 = ctx.get_diff_bel_special(tcid, bslot, specials::SLICE_RAMCONFIG_16X2);
+        let diff_16x1dp = ctx.get_diff_bel_special(tcid, bslot, specials::SLICE_RAMCONFIG_16X1DP);
+        let diff_32x1 = ctx.get_diff_bel_special(tcid, bslot, specials::SLICE_RAMCONFIG_32X1);
+        let diff_1shift = ctx.get_diff_bel_special(tcid, bslot, specials::SLICE_RAMCONFIG_1SHIFT);
+        let diff_2shifts = ctx.get_diff_bel_special(tcid, bslot, specials::SLICE_RAMCONFIG_2SHIFTS);
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            SLICE::WA4_ENABLE,
+            xlat_bit(diff_32x1.combine(&!&diff_16x1dp)),
         );
-
-        // carry chain
-        ctx.collect_enum_legacy(tile, bel, "CYINIT", &["BX", "CIN"]);
-        ctx.collect_enum_legacy(tile, bel, "CYSELF", &["F", "1"]);
-        ctx.collect_enum_legacy(tile, bel, "CYSELG", &["G", "1"]);
-        let d_0 = ctx.get_diff_legacy(tile, bel, "CY0F", "0");
-        let d_1 = ctx.get_diff_legacy(tile, bel, "CY0F", "1");
-        let d_f1_g1 = ctx.get_diff_legacy(tile, bel, "CY0F", "F1");
-        let d_prod = ctx.get_diff_legacy(tile, bel, "CY0F", "PROD");
-        assert_eq!(d_0, ctx.get_diff_legacy(tile, bel, "CY0G", "0"));
-        assert_eq!(d_1, ctx.get_diff_legacy(tile, bel, "CY0G", "1"));
-        assert_eq!(d_f1_g1, ctx.get_diff_legacy(tile, bel, "CY0G", "G1"));
-        assert_eq!(d_prod, ctx.get_diff_legacy(tile, bel, "CY0G", "PROD"));
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "CY0",
-            xlat_enum_legacy(vec![
-                ("0", d_0),
-                ("1", d_1),
-                ("F1_G1", d_f1_g1),
-                ("PROD", d_prod),
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            SLICE::F_SHIFT_ENABLE,
+            xlat_bit(diff_2shifts.combine(&!&diff_1shift)),
+        );
+        let f_ram_en = xlat_bit(diff_16x2.combine(&!&diff_16x1));
+        ctx.insert_bel_attr_bool(tcid, bslot, SLICE::F_RAM_ENABLE, f_ram_en);
+        let diff_dif_bx = diff_16x2.combine(&!&diff_16x1dp);
+        let diff_1shift = diff_1shift.combine(&!&diff_dif_bx);
+        let diff_16x1 = diff_16x1.combine(&!&diff_dif_bx);
+        ctx.insert_bel_attr_enum(
+            tcid,
+            bslot,
+            SLICE::DIF_MUX,
+            xlat_enum_attr(vec![
+                (enums::SLICE_DIF_MUX::BY, Diff::default()),
+                (enums::SLICE_DIF_MUX::BX, diff_dif_bx),
             ]),
         );
-
-        // muxes
-        let yb_by = ctx.get_diff_legacy(tile, bel, "YBMUX", "0");
-        let yb_cy = ctx.get_diff_legacy(tile, bel, "YBMUX", "1");
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "YBMUX",
-            xlat_enum_legacy(vec![("BY", yb_by), ("CY", yb_cy)]),
-        );
-        let dx_bx = ctx.get_diff_legacy(tile, bel, "DXMUX", "0");
-        let dx_x = ctx.get_diff_legacy(tile, bel, "DXMUX", "1");
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "DXMUX",
-            xlat_enum_legacy(vec![("BX", dx_bx), ("X", dx_x)]),
-        );
-        let dy_by = ctx.get_diff_legacy(tile, bel, "DYMUX", "0");
-        let dy_y = ctx.get_diff_legacy(tile, bel, "DYMUX", "1");
-        ctx.insert_legacy(
-            tile,
-            bel,
-            "DYMUX",
-            xlat_enum_legacy(vec![("BY", dy_by), ("Y", dy_y)]),
-        );
-        ctx.collect_enum_legacy(tile, bel, "FXMUX", &["F", "F5", "FXOR"]);
-        ctx.collect_enum_legacy(tile, bel, "GYMUX", &["G", "F6", "GXOR"]);
-
-        // FFs
-        let ff_sync = ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "SYNC");
-        ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "ASYNC")
-            .assert_empty();
-        ctx.insert_legacy(tile, bel, "FF_SR_SYNC", xlat_bit_legacy(ff_sync));
-
-        let revused = ctx.get_diff_legacy(tile, bel, "REVUSED", "0");
-        ctx.insert_legacy(tile, bel, "FF_REV_ENABLE", xlat_bit_legacy(revused));
-
-        let ff_latch = ctx.get_diff_legacy(tile, bel, "FFX", "#LATCH");
-        assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, "FFY", "#LATCH"));
-        ctx.get_diff_legacy(tile, bel, "FFX", "#FF").assert_empty();
-        ctx.get_diff_legacy(tile, bel, "FFY", "#FF").assert_empty();
-        ctx.insert_legacy(tile, bel, "FF_LATCH", xlat_bit_legacy(ff_latch));
-
-        ctx.collect_bit_bi_legacy(tile, bel, "INITX", "LOW", "HIGH");
-        ctx.collect_bit_bi_legacy(tile, bel, "INITY", "LOW", "HIGH");
+        let (diff_g_shift, diff_g_ram, common) =
+            Diff::split(diff_1shift.clone(), diff_16x1.clone());
+        ctx.insert_bel_attr_bool(tcid, bslot, SLICE::FF_SR_ENABLE, !xlat_bit(common));
+        ctx.insert_bel_attr_bool(tcid, bslot, SLICE::G_SHIFT_ENABLE, xlat_bit(diff_g_shift));
+        ctx.insert_bel_attr_bool(tcid, bslot, SLICE::G_RAM_ENABLE, xlat_bit(diff_g_ram));
     }
     // extracted manually from .ll
-    for (bel, attr, frame, bit) in [
-        ("SLICE[0]", "READBACK_XQ", 45, 16),
-        ("SLICE[0]", "READBACK_YQ", 39, 16),
-        ("SLICE[1]", "READBACK_XQ", 2, 16),
-        ("SLICE[1]", "READBACK_YQ", 8, 16),
+    for (bslot, attr, frame, bit) in [
+        (bslots::SLICE[0], SLICE::FFX_READBACK, 45, 16),
+        (bslots::SLICE[0], SLICE::FFY_READBACK, 39, 16),
+        (bslots::SLICE[1], SLICE::FFX_READBACK, 2, 16),
+        (bslots::SLICE[1], SLICE::FFY_READBACK, 8, 16),
     ] {
-        ctx.insert_legacy(
-            tile,
-            bel,
-            attr,
-            TileItem::from_bit_inv(TileBit::new(0, frame, bit), false),
-        );
+        ctx.insert_bel_attr_bool(tcid, bslot, attr, TileBit::new(0, frame, bit).pos());
     }
 }

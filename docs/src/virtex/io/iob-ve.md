@@ -8,8 +8,4 @@
 
 ## Tables
 
-{{misc virtexe iostd-drive}}
-
-{{misc virtexe iostd-slew}}
-
-{{misc virtexe iostd-misc}}
+{{table virtex IOB_DATA_VE}}

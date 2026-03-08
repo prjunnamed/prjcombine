@@ -5,4 +5,5 @@ pub mod dll;
 pub mod int;
 pub mod io;
 pub mod misc;
+mod specials;
 pub mod tbus;

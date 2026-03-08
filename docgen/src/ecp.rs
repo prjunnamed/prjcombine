@@ -1,8 +1,6 @@
-use std::collections::HashSet;
-
 use crate::{
     DocgenContext,
-    bsdata::{FrameDirection, TileOrientation, check_misc_data, gen_bstiles},
+    bsdata::{FrameDirection, TileOrientation, gen_bstiles},
     interconnect::gen_intdb,
 };
 
@@ -32,7 +30,5 @@ pub fn gen_ecp(ctx: &mut DocgenContext) {
         .unwrap();
         gen_intdb(ctx, kind, &db.int);
         gen_bstiles(ctx, kind, &db.bsdata, |_| tile_orientation);
-        let misc_used = HashSet::new();
-        check_misc_data(&db.bsdata, kind, &misc_used);
     }
 }

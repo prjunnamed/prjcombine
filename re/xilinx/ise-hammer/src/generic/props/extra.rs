@@ -82,6 +82,25 @@ impl KeyMaker for ExtraKeyBelAttrValue {
 }
 
 #[derive(Clone, Debug)]
+pub struct ExtraKeyBelAttrU32 {
+    pub bel: BelSlotId,
+    pub attr: BelAttributeId,
+    pub val: u32,
+}
+
+impl ExtraKeyBelAttrU32 {
+    pub fn new(bel: BelSlotId, attr: BelAttributeId, val: u32) -> Self {
+        Self { bel, attr, val }
+    }
+}
+
+impl KeyMaker for ExtraKeyBelAttrU32 {
+    fn make_key(&self, _backend: &IseBackend, _main_key: &DiffKey, tcid: TileClassId) -> DiffKey {
+        DiffKey::BelAttrU32(tcid, self.bel, self.attr, self.val)
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct ExtraKeyBelAttrBits {
     pub bel: BelSlotId,
     pub attr: BelAttributeId,
@@ -176,30 +195,6 @@ impl ExtraKeyRoutingSpecial {
 impl KeyMaker for ExtraKeyRoutingSpecial {
     fn make_key(&self, _backend: &IseBackend, _main_key: &DiffKey, tcid: TileClassId) -> DiffKey {
         DiffKey::RoutingSpecial(tcid, self.wire, self.spec)
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct ExtraKeyLegacyAttr {
-    pub bel: String,
-    pub attr: String,
-    pub val: String,
-}
-
-impl ExtraKeyLegacyAttr {
-    pub fn new(bel: String, attr: String, val: String) -> Self {
-        Self { bel, attr, val }
-    }
-}
-
-impl KeyMaker for ExtraKeyLegacyAttr {
-    fn make_key(&self, backend: &IseBackend, _main_key: &DiffKey, tcid: TileClassId) -> DiffKey {
-        DiffKey::Legacy(FeatureId {
-            tile: backend.edev.db.tile_classes.key(tcid).to_string(),
-            bel: self.bel.clone(),
-            attr: self.attr.clone(),
-            val: self.val.clone(),
-        })
     }
 }
 

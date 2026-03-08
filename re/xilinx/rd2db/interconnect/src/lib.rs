@@ -2263,6 +2263,7 @@ impl<'a> IntBuilder<'a> {
                 if let Some(slot) = sub.slot {
                     let tks = tk.sites.get(&slot).unwrap().1;
                     for (name, tksp) in &tks.pins {
+                        let name = sub.pin_renames.get(name).unwrap_or(name);
                         match sub.pins.get(name).unwrap_or(&BelPinInfo::Int) {
                             &BelPinInfo::Int => {
                                 let dir = match tksp.dir {
@@ -2487,9 +2488,12 @@ impl<'a> IntBuilder<'a> {
             let mut pips = Pips::default();
             let mut tcls_naming = TileClassNaming::default();
             let mut names = HashMap::new();
+            let mut alt_names = HashMap::new();
             for &wi in tk.wires.keys() {
                 if let Some(w) = self.get_wire_by_name(tki, &self.rd.wires[wi]) {
                     names.insert(wi, (IntConnKind::Raw, w));
+                } else if let Some(w) = self.get_wire_by_alt_name(tki, &self.rd.wires[wi]) {
+                    alt_names.insert(wi, w);
                 }
             }
 
@@ -2503,6 +2507,9 @@ impl<'a> IntBuilder<'a> {
                         alt_pips_from: Default::default(),
                     },
                 );
+            }
+            for (&k, &v) in &alt_names {
+                tcls_naming.wires.get_mut(&v).unwrap().alt_name = Some(self.rd.wires[k].clone())
             }
 
             for &(wfi, wti) in tk.pips.keys() {
@@ -2523,6 +2530,15 @@ impl<'a> IntBuilder<'a> {
                     if let Some(&(_, wf)) = names.get(&wfi) {
                         let mode = self.pip_mode(wt.wire);
                         pips.pips.insert((wt, wf.pos()), mode);
+                    } else if let Some(&wf) = alt_names.get(&wfi) {
+                        let mode = self.pip_mode(wt.wire);
+                        pips.pips.insert((wt, wf.pos()), mode);
+                        tcls_naming
+                            .wires
+                            .get_mut(&wf)
+                            .unwrap()
+                            .alt_pips_from
+                            .insert(wt);
                     } else if self.stub_outs.contains(&self.rd.wires[wfi]) {
                         // ignore
                     } else {
@@ -3880,34 +3896,6 @@ impl<'a> IntBuilder<'a> {
                 extract_delay,
             );
         }
-    }
-
-    pub fn extract_xtile_id(
-        &mut self,
-        tcid: TileClassId,
-        sb: BelSlotId,
-        xy: Coord,
-        buf_xy: &[Coord],
-        int_xy: &[Coord],
-        naming: &str,
-        bels: &[ExtrBelInfo],
-        skip_wires: &[WireSlotId],
-    ) {
-        let mut x = self
-            .xtile_id(tcid, naming, xy)
-            .num_cells(int_xy.len())
-            .extract_muxes(sb)
-            .skip_muxes(skip_wires);
-        for &xy in buf_xy {
-            x = x.raw_tile(xy);
-        }
-        for (i, &xy) in int_xy.iter().enumerate() {
-            x = x.ref_int(xy, i);
-        }
-        for bel in bels {
-            x = x.bel(bel.clone());
-        }
-        x.extract();
     }
 
     pub fn extract_xtile_bels_id(

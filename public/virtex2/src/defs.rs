@@ -35,7 +35,6 @@ target_defs! {
         attribute DIG_MUX: SLICE_DIG_MUX;
         attribute F_RAM_ENABLE, G_RAM_ENABLE: bool;
         attribute F_SHIFT_ENABLE, G_SHIFT_ENABLE: bool;
-        // SLICEM only
         // TODO should these have better names?
         attribute SLICEWE0USED: bool;
         // spartan3 only, and only in SLICE[0]; SLICE[1] effectively borrows SLICE[0] value

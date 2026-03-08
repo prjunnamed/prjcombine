@@ -469,6 +469,7 @@ pub struct Verifier<'a> {
     force_bel_pin: HashMap<(TileClassId, BelSlotId, &'static str), TileWireCoord>,
     force_bel_output: HashMap<(TileClassId, BelSlotId, BelOutputId), TileWireCoord>,
     skip_bel_input: HashSet<(TileClassId, BelSlotId, BelInputId)>,
+    skip_bel_output: HashSet<(TileClassId, BelSlotId, BelOutputId)>,
     skip_tcls_pips: EntityPartVec<TileClassId, HashSet<(TileWireCoord, TileWireCoord)>>,
     skip_tile_pips: HashMap<TileCoord, HashSet<(TileWireCoord, TileWireCoord)>>,
     inject_tcls_pips: EntityPartVec<TileClassId, HashSet<(TileWireCoord, TileWireCoord)>>,
@@ -542,6 +543,7 @@ impl<'a> Verifier<'a> {
             force_bel_pin: Default::default(),
             force_bel_output: Default::default(),
             skip_bel_input: Default::default(),
+            skip_bel_output: Default::default(),
             skip_tcls_pips: EntityPartVec::new(),
             skip_tile_pips: Default::default(),
             inject_tcls_pips: EntityPartVec::new(),
@@ -689,6 +691,10 @@ impl<'a> Verifier<'a> {
 
     pub fn skip_bel_input(&mut self, tcid: TileClassId, bslot: BelSlotId, pin: BelInputId) {
         self.skip_bel_input.insert((tcid, bslot, pin));
+    }
+
+    pub fn skip_bel_output(&mut self, tcid: TileClassId, bslot: BelSlotId, pin: BelOutputId) {
+        self.skip_bel_output.insert((tcid, bslot, pin));
     }
 
     fn prep_tile_class_used_info(&self, tcid: TileClassId) -> TileClassUsedInfo {
@@ -1787,6 +1793,9 @@ impl<'a> Verifier<'a> {
                         }
                     }
                     for (pid, wires) in &bel.outputs {
+                        if self.skip_bel_output.contains(&(tile.class, bslot, pid)) {
+                            continue;
+                        }
                         let (name, idx) = bcls.outputs.key(pid);
                         let pin = self.pin_index(name, idx, bcls.outputs[pid].indexing);
                         let n = &bn.pins[&pin];

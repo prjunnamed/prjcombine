@@ -11,6 +11,7 @@ use crate::defs::{bslots, tslots};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ChipKind {
+    Spartan2,
     Virtex,
     VirtexE,
     VirtexEM,
@@ -19,10 +20,17 @@ pub enum ChipKind {
 impl std::fmt::Display for ChipKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            ChipKind::Spartan2 => write!(f, "spartan2"),
             ChipKind::Virtex => write!(f, "virtex"),
             ChipKind::VirtexE => write!(f, "virtexe"),
             ChipKind::VirtexEM => write!(f, "virtexem"),
         }
+    }
+}
+
+impl ChipKind {
+    pub fn is_virtexe(self) -> bool {
+        matches!(self, ChipKind::VirtexE | ChipKind::VirtexEM)
     }
 }
 
@@ -182,12 +190,12 @@ impl Chip {
             EdgeIoCoord::S(col, iob) => (col, self.row_s(), iob),
             EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
         };
-        let slot = bslots::IO[iob.to_idx()];
+        let slot = bslots::IOI[iob.to_idx()];
         Self::DIE.cell(col, row).bel(slot)
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
-        let iob = TileIobId::from_idx(bslots::IO.index_of(bel.slot).unwrap());
+        let iob = TileIobId::from_idx(bslots::IOI.index_of(bel.slot).unwrap());
         if bel.col == self.col_w() {
             EdgeIoCoord::W(bel.row, iob)
         } else if bel.col == self.col_e() {

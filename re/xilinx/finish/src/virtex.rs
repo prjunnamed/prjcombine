@@ -70,7 +70,7 @@ fn sort_key<'a>(name: &'a str, chip: &'a Chip) -> SortKey<'a> {
     }
 }
 
-pub fn finish(geom: GeomDb, mut bitdb: CollectorData) -> Database {
+pub fn finish(geom: GeomDb, bitdb: CollectorData) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     for dev in &geom.devices {
         let prjcombine_re_xilinx_geom::Chip::Virtex(ref chip) =
@@ -161,14 +161,13 @@ pub fn finish(geom: GeomDb, mut bitdb: CollectorData) -> Database {
     assert_eq!(geom.ints.len(), 1);
     let mut int = geom.ints.into_values().next().unwrap();
 
-    let bsdata = std::mem::take(&mut bitdb.bsdata);
-    bitdb.insert_into(&mut int, true);
+    assert!(bitdb.bsdata.is_empty());
+    bitdb.insert_into(&mut int, false);
 
     Database {
         chips,
         bonds,
         devices: parts,
         int,
-        bsdata,
     }
 }

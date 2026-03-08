@@ -15,8 +15,8 @@ use crate::{
     backend::{IseBackend, Key, MultiValue, PinFromKind, Value},
     generic::{
         props::extra::{
-            ExtraKeyBelAttrBits, ExtraKeyBelAttrValue, ExtraKeyBelSpecial, ExtraKeyBelSpecialRow,
-            ExtraKeyLegacy, ExtraKeyLegacyAttr, ExtraKeyRouting, ExtraKeyRoutingSpecial,
+            ExtraKeyBelAttrBits, ExtraKeyBelAttrU32, ExtraKeyBelAttrValue, ExtraKeyBelSpecial,
+            ExtraKeyBelSpecialRow, ExtraKeyLegacy, ExtraKeyRouting, ExtraKeyRoutingSpecial,
         },
         utils::get_input_name,
     },
@@ -89,15 +89,6 @@ impl<'sm, 'b> FuzzCtx<'sm, 'b> {
             bel,
             sub: 0,
         }
-    }
-
-    pub fn test_manual_legacy<'nsm>(
-        &'nsm mut self,
-        bel: &'static str,
-        attr: impl AsRef<str>,
-        val: impl AsRef<str>,
-    ) -> FuzzBuilderTestManual<'nsm, 'b> {
-        self.build().test_manual_legacy(bel, attr, val)
     }
 
     pub fn build<'nsm>(&'nsm mut self) -> FuzzBuilder<'nsm, 'b> {
@@ -185,29 +176,6 @@ pub trait FuzzBuilderBase<'b>: Sized {
         }
     }
 
-    fn extra_tile_attr_legacy<R: TileRelation + 'b>(
-        self,
-        relation: R,
-        bel: impl Into<String>,
-        attr: impl Into<String>,
-        val: impl Into<String>,
-    ) -> Self {
-        self.prop(ExtraTile::new(
-            relation,
-            ExtraKeyLegacyAttr::new(bel.into(), attr.into(), val.into()),
-        ))
-    }
-
-    fn extra_tile_attr_fixed_legacy(
-        self,
-        tcrd: TileCoord,
-        bel: impl Into<String>,
-        attr: impl Into<String>,
-        val: impl Into<String>,
-    ) -> Self {
-        self.extra_tile_attr_legacy(FixedRelation(tcrd), bel, attr, val)
-    }
-
     fn extra_tiles_by_kind_legacy(self, kind: impl AsRef<str>, bel: impl Into<String>) -> Self {
         let kind = self.backend().edev.db.get_tile_class(kind.as_ref());
         self.prop(ExtraTilesByClass::new(
@@ -270,6 +238,19 @@ pub trait FuzzBuilderBase<'b>: Sized {
         ))
     }
 
+    fn extra_tiles_by_bel_attr_bits_base_bi(
+        self,
+        slot: BelSlotId,
+        attr: BelAttributeId,
+        base: usize,
+        val: bool,
+    ) -> Self {
+        self.prop(ExtraTilesByBel::new(
+            slot,
+            ExtraKeyBelAttrBits::new(slot, attr, base, val),
+        ))
+    }
+
     fn extra_tiles_by_bel_attr_val(
         self,
         slot: BelSlotId,
@@ -279,6 +260,13 @@ pub trait FuzzBuilderBase<'b>: Sized {
         self.prop(ExtraTilesByBel::new(
             slot,
             ExtraKeyBelAttrValue::new(slot, attr, val),
+        ))
+    }
+
+    fn extra_tiles_by_bel_attr_u32(self, slot: BelSlotId, attr: BelAttributeId, val: u32) -> Self {
+        self.prop(ExtraTilesByBel::new(
+            slot,
+            ExtraKeyBelAttrU32::new(slot, attr, val),
         ))
     }
 
@@ -866,12 +854,6 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let prop =
             FuzzBelMultiAttr::new(self.bel, self.sub, attr.clone(), MultiValue::Hex(0), width);
         self.test_manual_legacy(attr, "").prop(prop).commit();
-    }
-
-    pub fn test_multi_attr_lut(self, attr: impl Into<String>, width: usize) {
-        let attr = attr.into();
-        let prop = FuzzBelMultiAttr::new(self.bel, self.sub, attr.clone(), MultiValue::Lut, width);
-        self.test_manual_legacy(attr, "#LUT").prop(prop).commit();
     }
 
     pub fn test_bel_attr_multi(self, attr: BelAttributeId, value: MultiValue) {

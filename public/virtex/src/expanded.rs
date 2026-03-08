@@ -102,7 +102,10 @@ impl ExpandedDevice<'_> {
                 BitRect::Reg(Chip::DIE, Reg::Cor0),
                 BitRect::Reg(Chip::DIE, Reg::Ctl0),
             ])
-        } else if matches!(tile.class, tcls::BRAM_W | tcls::BRAM_E | tcls::BRAM_M) {
+        } else if matches!(
+            tile.class,
+            tcls::BRAM_W | tcls::BRAM_E | tcls::BRAM_M | tcls::BRAM_W_S2 | tcls::BRAM_E_S2
+        ) {
             EntityVec::from_iter([
                 self.btile_main(tcrd.col, tcrd.row),
                 self.btile_main(tcrd.col, tcrd.row + 1),
@@ -110,14 +113,16 @@ impl ExpandedDevice<'_> {
                 self.btile_main(tcrd.col, tcrd.row + 3),
                 self.btile_bram(tcrd.col, tcrd.row),
             ])
-        } else if tcrd.slot == tslots::CLK_SN {
+        } else if matches!(tile.class, tcls::CLKV_CLKV | tcls::CLKV_GCLKV) {
+            EntityVec::from_iter([self.btile_clkv(tcrd.col, tcrd.row)])
+        } else if matches!(tile.class, tcls::CLKV_BRAM_S_S2 | tcls::CLKV_BRAM_N_S2) {
+            EntityVec::from_iter([self.btile_main(tcrd.col, tcrd.row)])
+        } else if tcrd.slot == tslots::CLK {
             if tcrd.row == self.chip.row_s() {
                 EntityVec::from_iter([self.btile_spine(tcrd.row), self.btile_spine(tcrd.row + 1)])
             } else {
                 EntityVec::from_iter([self.btile_spine(tcrd.row), self.btile_spine(tcrd.row - 1)])
             }
-        } else if matches!(tile.class, tcls::CLKV_CLKV | tcls::CLKV_GCLKV) {
-            EntityVec::from_iter([self.btile_clkv(tcrd.col, tcrd.row)])
         } else if matches!(tcrd.slot, tslots::DLL | tslots::IOB)
             || matches!(tile.class, tcls::BRAM_S | tcls::BRAM_N)
         {

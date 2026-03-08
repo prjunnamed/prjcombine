@@ -1,99 +1,117 @@
-use prjcombine_re_collector::legacy::{xlat_bit_bi_legacy, xlat_bitvec_legacy};
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex::defs::{self, tcls};
+use prjcombine_virtex::defs::{bcls::BRAM, bslots, enums, tcls};
 
-use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
+use crate::{
+    backend::{IseBackend, MultiValue},
+    collector::CollectorCtx,
+    generic::fbuild::FuzzCtx,
+    virtex::specials,
+};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    for tcid in [tcls::BRAM_W, tcls::BRAM_E, tcls::BRAM_M] {
+    for tcid in [
+        tcls::BRAM_W,
+        tcls::BRAM_E,
+        tcls::BRAM_M,
+        tcls::BRAM_W_S2,
+        tcls::BRAM_E_S2,
+    ] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
-        let mut bctx = ctx.bel(defs::bslots::BRAM);
+        let mut bctx = ctx.bel(bslots::BRAM);
         let mode = "BLOCKRAM";
 
-        bctx.test_manual_legacy("PRESENT", "1").mode(mode).commit();
-        for (pinmux, pin) in [("CLKAMUX", "CLKA"), ("CLKBMUX", "CLKB")] {
-            bctx.mode(mode)
-                .attr("PORTA_ATTR", "256X16")
-                .attr("PORTB_ATTR", "256X16")
-                .pin(pin)
-                .test_enum_legacy(pinmux, &["0", "1"]);
-        }
-        for (pinmux, pin, pin_b) in [
-            ("ENAMUX", "ENA", "ENA_B"),
-            ("ENBMUX", "ENB", "ENB_B"),
-            ("WEAMUX", "WEA", "WEA_B"),
-            ("WEBMUX", "WEB", "WEB_B"),
-            ("RSTAMUX", "RSTA", "RSTA_B"),
-            ("RSTBMUX", "RSTB", "RSTB_B"),
+        bctx.build()
+            .test_bel_special(specials::PRESENT)
+            .mode(mode)
+            .commit();
+        for (p, pinmux, pin) in [
+            (BRAM::CLKA, "CLKAMUX", "CLKA"),
+            (BRAM::CLKB, "CLKBMUX", "CLKB"),
         ] {
             bctx.mode(mode)
                 .attr("PORTA_ATTR", "256X16")
                 .attr("PORTB_ATTR", "256X16")
                 .pin(pin)
-                .test_enum_legacy(pinmux, &["0", "1", pin, pin_b]);
+                .test_bel_input_inv_enum(pinmux, p, "1", "0");
         }
-        for attr in ["PORTA_ATTR", "PORTB_ATTR"] {
-            bctx.mode(mode)
-                .test_enum_legacy(attr, &["4096X1", "2048X2", "1024X4", "512X8", "256X16"]);
+        for (p, pinmux, pin, pin_b) in [
+            (BRAM::ENA, "ENAMUX", "ENA", "ENA_B"),
+            (BRAM::ENB, "ENBMUX", "ENB", "ENB_B"),
+            (BRAM::WEA, "WEAMUX", "WEA", "WEA_B"),
+            (BRAM::WEB, "WEBMUX", "WEB", "WEB_B"),
+            (BRAM::RSTA, "RSTAMUX", "RSTA", "RSTA_B"),
+            (BRAM::RSTB, "RSTBMUX", "RSTB", "RSTB_B"),
+        ] {
+            for (val, vname) in [(false, "1"), (true, "0"), (false, pin), (true, pin_b)] {
+                bctx.mode(mode)
+                    .attr("PORTA_ATTR", "256X16")
+                    .attr("PORTB_ATTR", "256X16")
+                    .pin(pin)
+                    .test_bel_input_inv(p, val)
+                    .attr(pinmux, vname)
+                    .commit();
+            }
+        }
+        for (attr, aname) in [
+            (BRAM::DATA_WIDTH_A, "PORTA_ATTR"),
+            (BRAM::DATA_WIDTH_B, "PORTB_ATTR"),
+        ] {
+            for (val, vname) in [
+                (enums::BRAM_DATA_WIDTH::_1, "4096X1"),
+                (enums::BRAM_DATA_WIDTH::_2, "2048X2"),
+                (enums::BRAM_DATA_WIDTH::_4, "1024X4"),
+                (enums::BRAM_DATA_WIDTH::_8, "512X8"),
+                (enums::BRAM_DATA_WIDTH::_16, "256X16"),
+            ] {
+                bctx.mode(mode)
+                    .test_bel_attr_val(attr, val)
+                    .attr(aname, vname)
+                    .commit();
+            }
         }
         for i in 0..0x10 {
             let attr = format!("INIT_{i:02x}");
             bctx.mode(mode)
                 .attr("PORTA_ATTR", "256X16")
                 .attr("PORTB_ATTR", "256X16")
-                .test_multi_attr_hex_legacy(attr, 256);
+                .test_bel_attr_bits_base(BRAM::INIT, i * 0x100)
+                .multi_attr(attr, MultiValue::Hex(0), 256);
         }
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tcid in [tcls::BRAM_W, tcls::BRAM_E, tcls::BRAM_M] {
+    for tcid in [
+        tcls::BRAM_W,
+        tcls::BRAM_E,
+        tcls::BRAM_M,
+        tcls::BRAM_W_S2,
+        tcls::BRAM_E_S2,
+    ] {
         if !ctx.has_tcls(tcid) {
             continue;
         }
-        let tile = ctx.edev.db.tile_classes.key(tcid);
-        let bel = "BRAM";
-        let ti = ctx.extract_bit_bi_legacy(tile, bel, "CLKAMUX", "1", "0");
-        ctx.insert_legacy(tile, "INT", "INV.0.IMUX.BRAM.CLKA", ti);
-        let ti = ctx.extract_bit_bi_legacy(tile, bel, "CLKBMUX", "1", "0");
-        ctx.insert_legacy(tile, "INT", "INV.0.IMUX.BRAM.CLKB", ti);
-        for (wire, pinmux, pin, pin_b) in [
-            ("SELA", "ENAMUX", "ENA", "ENA_B"),
-            ("SELB", "ENBMUX", "ENB", "ENB_B"),
-            ("WEA", "WEAMUX", "WEA", "WEA_B"),
-            ("WEB", "WEBMUX", "WEB", "WEB_B"),
-            ("RSTA", "RSTAMUX", "RSTA", "RSTA_B"),
-            ("RSTB", "RSTBMUX", "RSTB", "RSTB_B"),
+        let bslot = bslots::BRAM;
+        for pin in [
+            BRAM::CLKA,
+            BRAM::CLKB,
+            BRAM::ENA,
+            BRAM::ENB,
+            BRAM::RSTA,
+            BRAM::RSTB,
+            BRAM::WEA,
+            BRAM::WEB,
         ] {
-            let d0 = ctx.get_diff_legacy(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
-            let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
-            ctx.insert_legacy(
-                tile,
-                "INT",
-                format!("INV.0.IMUX.BRAM.{wire}"),
-                xlat_bit_bi_legacy(d0, d1),
-            );
+            ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
         }
-        let mut diffs_data = vec![];
-        for i in 0..0x10 {
-            diffs_data.extend(ctx.get_diffs_legacy(tile, bel, format!("INIT_{i:02x}"), ""));
-        }
-        for attr in ["PORTA_ATTR", "PORTB_ATTR"] {
-            ctx.collect_enum_legacy(
-                tile,
-                bel,
-                attr,
-                &["4096X1", "2048X2", "1024X4", "512X8", "256X16"],
-            );
-        }
-        ctx.insert_legacy(tile, bel, "DATA", xlat_bitvec_legacy(diffs_data));
-        let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-        present.discard_bits_legacy(ctx.item_legacy(tile, "INT", "INV.0.IMUX.BRAM.SELA"));
-        present.discard_bits_legacy(ctx.item_legacy(tile, "INT", "INV.0.IMUX.BRAM.SELB"));
+        ctx.collect_bel_attr(tcid, bslot, BRAM::DATA_WIDTH_A);
+        ctx.collect_bel_attr(tcid, bslot, BRAM::DATA_WIDTH_B);
+        ctx.collect_bel_attr(tcid, bslot, BRAM::INIT);
+        let mut present = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
+        present.discard_polbits(&[ctx.bel_input_inv(tcid, bslot, BRAM::ENA)]);
+        present.discard_polbits(&[ctx.bel_input_inv(tcid, bslot, BRAM::ENB)]);
         present.assert_empty();
     }
 }

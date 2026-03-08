@@ -5,10 +5,7 @@ use prjcombine_virtex4::defs::devdata;
 
 use crate::{
     DocgenContext,
-    bsdata::{
-        FrameDirection, TileOrientation, check_devdata, check_misc_data, gen_bstiles,
-        gen_devdata_table,
-    },
+    bsdata::{FrameDirection, TileOrientation, check_devdata, gen_bstiles, gen_devdata_table},
     interconnect::{gen_devdata, gen_intdb},
 };
 
@@ -51,7 +48,6 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
         }
 
         gen_bstiles(ctx, kind, &db.bsdata, orientation);
-        let misc_used = HashSet::new();
         let mut devdata_used = HashSet::new();
         match kind {
             "virtex4" => {}
@@ -103,7 +99,6 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
             "virtex7" => {}
             _ => unreachable!(),
         }
-        check_misc_data(&db.bsdata, kind, &misc_used);
         check_devdata(&db.bsdata, kind, &devdata_used);
     }
 }

@@ -12,7 +12,13 @@ use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int, find_columns};
 
 fn get_kind(rd: &Part) -> ChipKind {
     match &rd.family[..] {
-        "virtex" | "spartan2" => ChipKind::Virtex,
+        "virtex" | "spartan2" => {
+            if rd.part.contains("2s") {
+                ChipKind::Spartan2
+            } else {
+                ChipKind::Virtex
+            }
+        }
         "virtexe" | "spartan2e" => {
             if find_columns(rd, &["MBRAM"]).contains(&6) {
                 ChipKind::VirtexEM
@@ -82,8 +88,11 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
             {
                 let col = int.lookup_column(crd.x.into());
                 let row = int.lookup_row(crd.y.into());
-                let io =
-                    chip.get_io_crd(Chip::DIE.cell(col, row).bel(defs::bslots::IO[idx as usize]));
+                let io = chip.get_io_crd(
+                    Chip::DIE
+                        .cell(col, row)
+                        .bel(defs::bslots::IOI[idx as usize]),
+                );
                 io_lookup.insert(v.clone(), io);
             }
         }

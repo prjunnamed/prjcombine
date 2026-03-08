@@ -1,8 +1,10 @@
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_collector::legacy::xlat_bit_bi_legacy;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex::defs::{bslots, tcls, tslots};
+use prjcombine_virtex::defs::{
+    bcls::{TBUF, TBUS, TBUS_WE},
+    bslots, tcls, tslots,
+};
 
 use crate::{
     backend::IseBackend,
@@ -34,43 +36,66 @@ impl TileRelation for ClbTbusRight {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     for tcid in [tcls::CLB, tcls::IO_W, tcls::IO_E] {
         let mut ctx = FuzzCtx::new(session, backend, tcid);
+        let tbus = if tcid == tcls::CLB {
+            bslots::TBUS
+        } else {
+            bslots::TBUS_WE
+        };
         for (i, out_a, out_b) in [(0, "BUS0", "BUS2"), (1, "BUS1", "BUS3")] {
             let mut bctx = ctx.bel(bslots::TBUF[i]);
-            bctx.mode("TBUF")
-                .pin("T")
-                .pin("O")
-                .test_enum_legacy("TMUX", &["0", "1", "T", "T_B"]);
-            bctx.mode("TBUF")
-                .pin("I")
-                .pin("O")
-                .test_enum_legacy("IMUX", &["0", "1", "I", "I_B"]);
+            for (val, vname) in [(false, "1"), (true, "0"), (false, "T"), (true, "T_B")] {
+                bctx.mode("TBUF")
+                    .pin("T")
+                    .pin("O")
+                    .test_bel_input_inv(TBUF::T, val)
+                    .attr("TMUX", vname)
+                    .commit();
+            }
+            for (val, vname) in [(false, "1"), (true, "0"), (false, "I"), (true, "I_B")] {
+                bctx.mode("TBUF")
+                    .pin("I")
+                    .pin("O")
+                    .test_bel_input_inv(TBUF::I, val)
+                    .attr("IMUX", vname)
+                    .commit();
+            }
             bctx.build()
                 .row_mutex_here("TBUF")
-                .test_manual_legacy("OUT_A", "1")
-                .pip((bslots::TBUS, out_a), "O")
+                .test_bel_attr_bits(TBUF::OUT_A)
+                .pip((tbus, out_a), "O")
                 .commit();
             bctx.build()
                 .row_mutex_here("TBUF")
-                .test_manual_legacy("OUT_B", "1")
-                .pip((bslots::TBUS, out_b), "O")
+                .test_bel_attr_bits(TBUF::OUT_B)
+                .pip((tbus, out_b), "O")
                 .commit();
         }
-        let mut bctx = ctx.bel(bslots::TBUS);
-        if tcid == tcls::IO_W {
+    }
+    {
+        {
+            let mut ctx = FuzzCtx::new(session, backend, tcls::IO_W);
+            let mut bctx = ctx.bel(bslots::TBUS_WE);
             bctx.build()
                 .row_mutex_here("TBUS")
-                .test_manual_legacy("JOINER", "1")
+                .test_bel_attr_bits(TBUS_WE::JOINER)
                 .pip("BUS3_E", "BUS3")
                 .commit();
             bctx.build()
                 .row_mutex_here("TBUS")
-                .test_manual_legacy("JOINER_E", "1")
-                .related_pip(ClbTbusRight, "BUS3_E", "BUS3")
+                .test_bel_attr_bits(TBUS_WE::JOINER_E)
+                .related_pip(
+                    ClbTbusRight,
+                    (bslots::TBUS, "BUS3_E"),
+                    (bslots::TBUS, "BUS3"),
+                )
                 .commit();
-        } else if tcid == tcls::CLB {
+        }
+        {
+            let mut ctx = FuzzCtx::new(session, backend, tcls::CLB);
+            let mut bctx = ctx.bel(bslots::TBUS);
             bctx.build()
                 .row_mutex_here("TBUS")
-                .test_manual_legacy("JOINER_E", "1")
+                .test_bel_attr_bits(TBUS::JOINER_E)
                 .related_pip(ClbTbusRight, "BUS3_E", "BUS3")
                 .commit();
         }
@@ -79,26 +104,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for tcid in [tcls::CLB, tcls::IO_W, tcls::IO_E] {
-        let tile = ctx.edev.db.tile_classes.key(tcid);
-        for bel in ["TBUF[0]", "TBUF[1]"] {
-            for (pinmux, pin, pin_b) in [("TMUX", "T", "T_B"), ("IMUX", "I", "I_B")] {
-                let d0 = ctx.get_diff_legacy(tile, bel, pinmux, pin);
-                assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
-                let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
-                assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
-                let item = xlat_bit_bi_legacy(d0, d1);
-                ctx.insert_legacy(tile, bel, format!("INV.{pin}"), item);
-            }
-            for attr in ["OUT_A", "OUT_B"] {
-                ctx.collect_bit_legacy(tile, bel, attr, "1");
-            }
+        for bslot in bslots::TBUF {
+            ctx.collect_bel_input_inv_bi(tcid, bslot, TBUF::I);
+            ctx.collect_bel_input_inv_bi(tcid, bslot, TBUF::T);
+            ctx.collect_bel_attr(tcid, bslot, TBUF::OUT_A);
+            ctx.collect_bel_attr(tcid, bslot, TBUF::OUT_B);
         }
-        let bel = "TBUS";
-        if tile == "IO_W" {
-            ctx.collect_bit_legacy(tile, bel, "JOINER", "1");
-        }
-        if tile != "IO_E" {
-            ctx.collect_bit_legacy(tile, bel, "JOINER_E", "1");
-        }
+    }
+    {
+        let tcid = tcls::IO_W;
+        let bslot = bslots::TBUS_WE;
+        ctx.collect_bel_attr(tcid, bslot, TBUS_WE::JOINER);
+        ctx.collect_bel_attr(tcid, bslot, TBUS_WE::JOINER_E);
+    }
+    {
+        let tcid = tcls::CLB;
+        let bslot = bslots::TBUS;
+        ctx.collect_bel_attr(tcid, bslot, TBUS::JOINER_E);
     }
 }

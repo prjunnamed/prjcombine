@@ -32,14 +32,28 @@ impl Expander<'_, '_> {
         for cell in self.egrid.die_cells(self.die) {
             if cell.col == self.chip.col_w() {
                 if cell.row == self.chip.row_s() {
-                    self.egrid.add_tile_single_id(cell, tcls::CNR_SW);
+                    self.egrid.add_tile_single_id(
+                        cell,
+                        if self.chip.kind == ChipKind::Spartan2 {
+                            tcls::CNR_SW_S2
+                        } else {
+                            tcls::CNR_SW
+                        },
+                    );
                 } else if cell.row == self.chip.row_n() {
-                    self.egrid.add_tile_single_id(cell, tcls::CNR_NW);
+                    self.egrid.add_tile_single_id(
+                        cell,
+                        if self.chip.kind == ChipKind::Spartan2 {
+                            tcls::CNR_NW_S2
+                        } else {
+                            tcls::CNR_NW
+                        },
+                    );
                 } else {
                     self.egrid.add_tile_single_id(cell, tcls::IO_W);
                     self.egrid.add_tile_id(
                         cell,
-                        if self.chip.kind == ChipKind::Virtex {
+                        if !self.chip.kind.is_virtexe() {
                             tcls::IOB_W_V
                         } else {
                             tcls::IOB_W_VE
@@ -56,7 +70,7 @@ impl Expander<'_, '_> {
                     self.egrid.add_tile_single_id(cell, tcls::IO_E);
                     self.egrid.add_tile_id(
                         cell,
-                        if self.chip.kind == ChipKind::Virtex {
+                        if !self.chip.kind.is_virtexe() {
                             tcls::IOB_E_V
                         } else {
                             tcls::IOB_E_VE
@@ -71,7 +85,7 @@ impl Expander<'_, '_> {
                     self.egrid.add_tile_single_id(cell, tcls::IO_S);
                     self.egrid.add_tile_id(
                         cell,
-                        if self.chip.kind == ChipKind::Virtex {
+                        if !self.chip.kind.is_virtexe() {
                             tcls::IOB_S_V
                         } else {
                             tcls::IOB_S_VE
@@ -82,7 +96,7 @@ impl Expander<'_, '_> {
                     self.egrid.add_tile_single_id(cell, tcls::IO_N);
                     self.egrid.add_tile_id(
                         cell,
-                        if self.chip.kind == ChipKind::Virtex {
+                        if !self.chip.kind.is_virtexe() {
                             tcls::IOB_N_V
                         } else {
                             tcls::IOB_N_VE
@@ -141,14 +155,21 @@ impl Expander<'_, '_> {
                 if cell.row == self.chip.row_n() || cell.row.to_idx() % 4 != 1 {
                     continue;
                 }
-                let tcid;
-                if cell.col == self.chip.col_w() + 1 {
-                    tcid = tcls::BRAM_W;
+                let tcid = if cell.col == self.chip.col_w() + 1 {
+                    if self.chip.kind == ChipKind::Spartan2 {
+                        tcls::BRAM_W_S2
+                    } else {
+                        tcls::BRAM_W
+                    }
                 } else if cell.col == self.chip.col_e() - 1 {
-                    tcid = tcls::BRAM_E;
+                    if self.chip.kind == ChipKind::Spartan2 {
+                        tcls::BRAM_E_S2
+                    } else {
+                        tcls::BRAM_E
+                    }
                 } else {
-                    tcid = tcls::BRAM_M;
-                }
+                    tcls::BRAM_M
+                };
                 self.egrid.add_tile_id(
                     cell,
                     tcid,
@@ -191,12 +212,12 @@ impl Expander<'_, '_> {
         }
     }
 
-    fn fill_clkbt(&mut self) {
+    fn fill_clk_sn(&mut self) {
         for edge in [DirV::S, DirV::N] {
             let row = self.chip.row_edge(edge);
             let cell = self.die.cell(self.chip.col_clk(), row);
             // CLKB/CLKT and DLLs
-            if self.chip.kind == ChipKind::Virtex {
+            if !self.chip.kind.is_virtexe() {
                 let cell_dll_w = cell.with_col(self.chip.col_w() + 1);
                 let cell_dll_e = cell.with_col(self.chip.col_e() - 1);
                 self.egrid.add_tile_id(
@@ -205,7 +226,7 @@ impl Expander<'_, '_> {
                         DirV::S => tcls::CLK_S_V,
                         DirV::N => tcls::CLK_N_V,
                     },
-                    &[cell, cell_dll_w, cell_dll_e],
+                    &[cell.delta(-1, 0), cell, cell_dll_w, cell_dll_e],
                 );
                 self.egrid.add_tile_id(
                     cell_dll_w,
@@ -243,7 +264,14 @@ impl Expander<'_, '_> {
                 self.egrid.add_tile_id(
                     cell,
                     tcid,
-                    &[cell, cell_dllp_w, cell_dllp_e, cell_dlls_w, cell_dlls_e],
+                    &[
+                        cell.delta(-1, 0),
+                        cell,
+                        cell_dllp_w,
+                        cell_dllp_e,
+                        cell_dlls_w,
+                        cell_dlls_e,
+                    ],
                 );
                 // DLLS
                 let (tcid_p, tcid_s) = match edge {
@@ -277,10 +305,15 @@ impl Expander<'_, '_> {
     }
 
     fn fill_pcilogic(&mut self) {
+        let (pci_w, pci_e) = if self.chip.kind.is_virtexe() {
+            (tcls::PCI_W_VE, tcls::PCI_E_VE)
+        } else {
+            (tcls::PCI_W_V, tcls::PCI_E_V)
+        };
         self.egrid
-            .add_tile_single_id(self.chip.bel_pci(DirH::W).cell, tcls::PCI_W);
+            .add_tile_single_id(self.chip.bel_pci(DirH::W).cell, pci_w);
         self.egrid
-            .add_tile_single_id(self.chip.bel_pci(DirH::E).cell, tcls::PCI_E);
+            .add_tile_single_id(self.chip.bel_pci(DirH::E).cell, pci_e);
         for col in [self.chip.col_w(), self.chip.col_e()] {
             for cell in self.egrid.column(self.die, col) {
                 self.egrid[cell].region_root[defs::rslots::PCI_CE] =
@@ -314,21 +347,30 @@ impl Expander<'_, '_> {
                 let cell = self.die.cell(col_m, self.chip.row_s());
                 self.egrid.add_tile_id(
                     cell,
-                    tcls::CLKV_BRAM_S,
-                    &[cell, cell.delta(-1, 0), cell.delta(0, 1)],
+                    if self.chip.kind == ChipKind::Spartan2 {
+                        tcls::CLKV_BRAM_S_S2
+                    } else {
+                        tcls::CLKV_BRAM_S
+                    },
+                    &[cell.delta(-1, 0), cell],
                 );
                 let cell = self.die.cell(col_m, self.chip.row_n());
                 self.egrid.add_tile_id(
                     cell,
-                    tcls::CLKV_BRAM_N,
-                    &[cell, cell.delta(-1, 0), cell.delta(0, -4)],
+                    if self.chip.kind == ChipKind::Spartan2 {
+                        tcls::CLKV_BRAM_N_S2
+                    } else {
+                        tcls::CLKV_BRAM_N
+                    },
+                    &[cell.delta(-1, 0), cell],
                 );
-                self.egrid
-                    .add_tile_single_id(self.die.cell(col_m, self.chip.row_clk()), tcls::BRAM_CLKH);
             } else {
                 for cell in self.egrid.column(self.die, col_m) {
                     let tcid = if self.chip.is_row_io(cell.row) {
-                        tcls::CLKV_NULL
+                        if col_m == self.chip.col_clk() {
+                            continue;
+                        }
+                        tcls::CLKV_IO
                     } else if col_m == self.chip.col_clk() {
                         tcls::CLKV_CLKV
                     } else {
@@ -336,19 +378,6 @@ impl Expander<'_, '_> {
                     };
                     self.egrid
                         .add_tile_id(cell, tcid, &[cell.delta(-1, 0), cell]);
-                }
-                if col_m == self.chip.col_clk() {
-                    self.egrid.add_tile_id(
-                        self.die.cell(col_m, self.chip.row_clk()),
-                        tcls::CLKC,
-                        &[],
-                    );
-                } else {
-                    self.egrid.add_tile_id(
-                        self.die.cell(col_m, self.chip.row_clk()),
-                        tcls::GCLKC,
-                        &[],
-                    );
                 }
             }
         }
@@ -431,8 +460,8 @@ impl Expander<'_, '_> {
         // bram main
         if split_bram {
             for dx in 0..(self.chip.columns / 2) {
-                for lr in ['R', 'L'] {
-                    let col = if lr == 'R' {
+                for side in [DirH::E, DirH::W] {
+                    let col = if side == DirH::E {
                         self.chip.col_clk() + dx
                     } else {
                         self.chip.col_clk() - 1 - dx
@@ -458,15 +487,15 @@ impl Expander<'_, '_> {
         }
 
         // bram data
-        major = u32::from(self.chip.kind != ChipKind::Virtex);
+        major = if self.chip.kind.is_virtexe() { 1 } else { 0 };
         for dx in 0..(self.chip.columns / 2) {
-            let lrorder = if self.chip.kind == ChipKind::Virtex {
-                ['L', 'R']
+            let side_order = if !self.chip.kind.is_virtexe() {
+                [DirH::W, DirH::E]
             } else {
-                ['R', 'L']
+                [DirH::E, DirH::W]
             };
-            for lr in lrorder {
-                let col = if lr == 'R' {
+            for side in side_order {
+                let col = if side == DirH::E {
                     self.chip.col_clk() + dx
                 } else {
                     self.chip.col_clk() - 1 - dx
@@ -518,7 +547,7 @@ impl Chip {
         expander.fill_int();
         expander.fill_main_passes();
         expander.fill_bram();
-        expander.fill_clkbt();
+        expander.fill_clk_sn();
         expander.fill_pcilogic();
         expander.fill_clk();
         expander.fill_global();

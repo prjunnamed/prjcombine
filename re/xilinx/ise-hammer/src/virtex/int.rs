@@ -2,36 +2,78 @@ use std::collections::HashSet;
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{BelInfo, SwitchBoxItem, TileWireCoord, WireSlotId},
+    db::{
+        BelInfo, PolTileWireCoord, SwitchBoxItem, TileClassId, TileWireCoord, WireSlotId,
+        WireSlotIdExt,
+    },
     grid::{ColId, RowId, TileCoord},
 };
-use prjcombine_re_collector::{
-    diff::{Diff, OcdMode},
-    legacy::{xlat_bit_legacy, xlat_enum_legacy_ocd},
-};
+use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_bit, xlat_enum_raw};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_types::bitrect::BitRect as _;
-use prjcombine_virtex::{defs, defs::tcls, defs::wires};
+use prjcombine_virtex::defs::{
+    self, bcls::DLL, bslots, tcls, tslots, wire_from_mux, wire_to_mux, wires,
+};
 
 use crate::{
     backend::{IseBackend, Key},
     collector::CollectorCtx,
     generic::{
-        fbuild::FuzzCtx,
+        fbuild::{FuzzBuilderBase, FuzzCtx},
         int::{BaseIntPip, FuzzIntPip, resolve_int_pip},
         props::{
-            BaseRaw, DynProp,
+            BaseRaw, DynProp, NullBits,
             bel::{BaseBelMode, BaseBelPin, FuzzBelMode},
             mutex::WireMutexExclusive,
             relation::{Delta, Related},
         },
     },
+    virtex::specials,
 };
 
 #[derive(Clone, Debug)]
 struct VirtexPinBramLv(TileWireCoord);
+
+fn pips_bwd(edev: &ExpandedDevice, tcid: TileClassId, tw: TileWireCoord) -> Vec<PolTileWireCoord> {
+    let Some(bwd) = edev.db_index.tile_classes[tcid].pips_bwd.get(&tw) else {
+        return vec![];
+    };
+    let mut res = vec![];
+    for &w in bwd {
+        if wire_to_mux(tw.wire) == Some(w.wire) {
+            for &ww in &edev.db_index.tile_classes[tcid].pips_bwd[&w.tw] {
+                res.push(ww);
+            }
+        } else {
+            res.push(w);
+        }
+    }
+    res
+}
+
+fn pips_fwd(edev: &ExpandedDevice, tcid: TileClassId, tw: TileWireCoord) -> Vec<PolTileWireCoord> {
+    let Some(fwd) = edev.db_index.tile_classes[tcid].pips_fwd.get(&tw) else {
+        return vec![];
+    };
+    let mut res = vec![];
+    for &w in fwd {
+        if let Some(ww) = wire_from_mux(w.wire) {
+            res.push(PolTileWireCoord {
+                tw: TileWireCoord {
+                    wire: ww,
+                    cell: w.cell,
+                },
+                inv: w.inv,
+            });
+        } else {
+            res.push(w);
+        }
+    }
+    res
+}
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinBramLv {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -89,23 +131,19 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinLh {
             .with_col(ColId::from_idx(0))
             .tile(defs::tslots::MAIN);
         let tile = &backend.edev[tcrd];
-        let tcls_index = &backend.edev.db_index[tile.class];
         for i in 0..12 {
             let wire_pin = TileWireCoord::new_idx(0, wires::LH[i]);
             let resolved_pin = backend.edev.resolve_wire(tcrd.wire(wire_pin.wire)).unwrap();
             if resolved_pin != resolved_wire {
                 continue;
             }
-            for (&wire_out, mux_data) in &tcls_index.pips_bwd {
-                if mux_data.contains(&wire_pin.pos()) {
-                    // FOUND
-                    let resolved_out = backend.edev.resolve_wire(tcrd.wire(wire_out.wire)).unwrap();
-                    let (tile, wt, wf) =
-                        resolve_int_pip(backend, tcrd, wire_out, wire_pin).unwrap();
-                    fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
-                    fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_out), None, "EXCLUSIVE");
-                    return Some((fuzzer, false));
-                }
+            if let Some(&wire_out) = pips_fwd(backend.edev, tile.class, wire_pin).first() {
+                // FOUND
+                let resolved_out = backend.edev.resolve_wire(tcrd.wire(wire_out.wire)).unwrap();
+                let (tile, wt, wf) = resolve_int_pip(backend, tcrd, wire_out.tw, wire_pin).unwrap();
+                fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
+                fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_out), None, "EXCLUSIVE");
+                return Some((fuzzer, false));
             }
         }
         unreachable!()
@@ -124,33 +162,24 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
         &self,
         backend: &IseBackend<'a>,
         tcrd: TileCoord,
-        mut fuzzer: Fuzzer<IseBackend<'a>>,
+        fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let resolved_wire = backend
             .edev
             .resolve_wire(backend.edev.tile_wire(tcrd, self.0))?;
-        let mut tcrd = backend
-            .edev
-            .tile_cell(tcrd, self.0.cell)
+        let mut tcrd = resolved_wire
             .with_col(ColId::from_idx(0))
             .tile(defs::tslots::MAIN);
         loop {
             let tile = &backend.edev[tcrd];
             if matches!(tile.class, tcls::IO_S | tcls::IO_N) {
-                for (i, wfake) in [(0, wires::LH_FAKE0), (6, wires::LH_FAKE6)] {
-                    let wire_pin = TileWireCoord::new_idx(0, wires::LH[i]);
+                for i in [0, 6] {
+                    let wire_pin = wires::LH[i].cell(0);
                     let resolved_pin = backend.edev.resolve_wire(tcrd.wire(wire_pin.wire)).unwrap();
-                    if resolved_pin != resolved_wire {
-                        continue;
+                    if resolved_pin == resolved_wire {
+                        // FOUND
+                        return BaseFakeLhPip(wire_pin).apply(backend, tcrd, fuzzer);
                     }
-                    // FOUND
-                    let wire_buf = TileWireCoord::new_idx(0, wfake);
-                    let resolved_buf = backend.edev.resolve_wire(tcrd.wire(wire_buf.wire)).unwrap();
-                    let (tile, wt, wf) =
-                        resolve_int_pip(backend, tcrd, wire_buf, wire_pin).unwrap();
-                    fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
-                    fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_buf), None, "EXCLUSIVE");
-                    return Some((fuzzer, false));
                 }
             }
             tcrd.col += 1;
@@ -200,7 +229,6 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
                         | tcls::CNR_NE
                 )
             {
-                let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
@@ -210,24 +238,21 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
                     if resolved_pin != resolved_wire {
                         continue;
                     }
-                    for (&wire_out, mux_data) in &tcls_index.pips_bwd {
-                        if mux_data.contains(&wire_pin.pos()) {
-                            let out_name = backend.edev.db.wires.key(wire_out.wire);
-                            if out_name.starts_with("SINGLE")
-                                || (out_name.starts_with("LV") && i >= 4)
-                                || (out_name.starts_with("HEX_E") && tile.class == tcls::IO_W)
-                                || (out_name.starts_with("HEX_W") && tile.class == tcls::IO_E)
-                            {
-                                // FOUND
-                                let resolved_out =
-                                    backend.edev.resolve_wire(tcrd.wire(wire_out.wire)).unwrap();
-                                let (tile, wt, wf) =
-                                    resolve_int_pip(backend, tcrd, wire_out, wire_pin).unwrap();
-                                fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
-                                fuzzer =
-                                    fuzzer.fuzz(Key::WireMutex(resolved_out), None, "EXCLUSIVE");
-                                return Some((fuzzer, false));
-                            }
+                    for wire_out in pips_fwd(backend.edev, tile.class, wire_pin) {
+                        let out_name = backend.edev.db.wires.key(wire_out.wire);
+                        if out_name.starts_with("SINGLE")
+                            || (out_name.starts_with("LV") && i >= 4)
+                            || (out_name.starts_with("HEX_E") && tile.class == tcls::IO_W)
+                            || (out_name.starts_with("HEX_W") && tile.class == tcls::IO_E)
+                        {
+                            // FOUND
+                            let resolved_out =
+                                backend.edev.resolve_wire(tcrd.wire(wire_out.wire)).unwrap();
+                            let (tile, wt, wf) =
+                                resolve_int_pip(backend, tcrd, wire_out.tw, wire_pin).unwrap();
+                            fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
+                            fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_out), None, "EXCLUSIVE");
+                            return Some((fuzzer, false));
                         }
                     }
                 }
@@ -273,7 +298,6 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
                     tcls::IO_W | tcls::IO_E | tcls::CLB | tcls::IO_S | tcls::IO_N
                 )
             {
-                let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
@@ -283,23 +307,20 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
                     if resolved_pin != resolved_wire {
                         continue;
                     }
-                    for (&wire_out, mux_data) in &tcls_index.pips_bwd {
-                        if mux_data.contains(&wire_pin.pos()) {
-                            let out_name = backend.edev.db.wires.key(wire_out.wire);
-                            if out_name.starts_with("SINGLE")
-                                || (out_name.starts_with("HEX_N") && tile.class == tcls::IO_S)
-                                || (out_name.starts_with("HEX_S") && tile.class == tcls::IO_N)
-                            {
-                                // FOUND
-                                let resolved_out =
-                                    backend.edev.resolve_wire(tcrd.wire(wire_out.wire)).unwrap();
-                                let (tile, wt, wf) =
-                                    resolve_int_pip(backend, tcrd, wire_out, wire_pin).unwrap();
-                                fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
-                                fuzzer =
-                                    fuzzer.fuzz(Key::WireMutex(resolved_out), None, "EXCLUSIVE");
-                                return Some((fuzzer, false));
-                            }
+                    for wire_out in pips_fwd(backend.edev, tile.class, wire_pin) {
+                        let out_name = backend.edev.db.wires.key(wire_out.wire);
+                        if out_name.starts_with("SINGLE")
+                            || (out_name.starts_with("HEX_N") && tile.class == tcls::IO_S)
+                            || (out_name.starts_with("HEX_S") && tile.class == tcls::IO_N)
+                        {
+                            // FOUND
+                            let resolved_out =
+                                backend.edev.resolve_wire(tcrd.wire(wire_out.wire)).unwrap();
+                            let (tile, wt, wf) =
+                                resolve_int_pip(backend, tcrd, wire_out.tw, wire_pin).unwrap();
+                            fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
+                            fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_out), None, "EXCLUSIVE");
+                            return Some((fuzzer, false));
                         }
                     }
                 }
@@ -345,7 +366,6 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
                     tcls::IO_W | tcls::IO_E | tcls::CLB | tcls::IO_S | tcls::IO_N
                 )
             {
-                let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
@@ -355,30 +375,22 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
                     if resolved_pin != resolved_wire {
                         continue;
                     }
-                    if let Some(mux_data) = tcls_index.pips_bwd.get(&wire_pin) {
-                        for &inp in mux_data {
-                            let inp_name = backend.edev.db.wires.key(inp.wire);
-                            if inp_name.starts_with("OMUX")
-                                || inp_name.starts_with("OUT")
-                                || (h == 'E'
-                                    && tile.class == tcls::IO_W
-                                    && inp_name.starts_with("HEX"))
-                                || (h == 'W'
-                                    && tile.class == tcls::IO_E
-                                    && inp_name.starts_with("HEX"))
-                            {
-                                // FOUND
-                                let resolved_inp =
-                                    backend.edev.resolve_wire(tcrd.wire(inp.wire)).unwrap();
-                                let (tile, wt, wf) =
-                                    resolve_int_pip(backend, tcrd, wire_pin, inp.tw).unwrap();
-                                fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
-                                fuzzer =
-                                    fuzzer.fuzz(Key::WireMutex(resolved_inp), None, "EXCLUSIVE");
-                                fuzzer =
-                                    fuzzer.fuzz(Key::WireMutex(resolved_pin), None, "EXCLUSIVE");
-                                return Some((fuzzer, false));
-                            }
+                    for inp in pips_bwd(backend.edev, tile.class, wire_pin) {
+                        let inp_name = backend.edev.db.wires.key(inp.wire);
+                        if inp_name.starts_with("OMUX")
+                            || inp_name.starts_with("OUT")
+                            || (h == 'E' && tile.class == tcls::IO_W && inp_name.starts_with("HEX"))
+                            || (h == 'W' && tile.class == tcls::IO_E && inp_name.starts_with("HEX"))
+                        {
+                            // FOUND
+                            let resolved_inp =
+                                backend.edev.resolve_wire(tcrd.wire(inp.wire)).unwrap();
+                            let (tile, wt, wf) =
+                                resolve_int_pip(backend, tcrd, wire_pin, inp.tw).unwrap();
+                            fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
+                            fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_inp), None, "EXCLUSIVE");
+                            fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_pin), None, "EXCLUSIVE");
+                            return Some((fuzzer, false));
                         }
                     }
                 }
@@ -425,7 +437,6 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
                     tcls::IO_W | tcls::IO_E | tcls::CLB | tcls::IO_S | tcls::IO_N
                 )
             {
-                let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
@@ -435,36 +446,53 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
                     if resolved_pin != resolved_wire {
                         continue;
                     }
-                    if let Some(mux_data) = tcls_index.pips_bwd.get(&wire_pin) {
-                        for &inp in mux_data {
-                            let inp_name = backend.edev.db.wires.key(inp.wire);
-                            if inp_name.starts_with("OMUX")
-                                || inp_name.starts_with("OUT")
-                                || (v == 'N'
-                                    && tile.class == tcls::IO_S
-                                    && inp_name.starts_with("HEX"))
-                                || (v == 'S'
-                                    && tile.class == tcls::IO_N
-                                    && inp_name.starts_with("HEX"))
-                            {
-                                // FOUND
-                                let resolved_inp =
-                                    backend.edev.resolve_wire(tcrd.wire(inp.wire)).unwrap();
-                                let (tile, wt, wf) =
-                                    resolve_int_pip(backend, tcrd, wire_pin, inp.tw).unwrap();
-                                fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
-                                fuzzer =
-                                    fuzzer.fuzz(Key::WireMutex(resolved_inp), None, "EXCLUSIVE");
-                                fuzzer =
-                                    fuzzer.fuzz(Key::WireMutex(resolved_pin), None, "EXCLUSIVE");
-                                return Some((fuzzer, false));
-                            }
+                    for inp in pips_bwd(backend.edev, tile.class, wire_pin) {
+                        let inp_name = backend.edev.db.wires.key(inp.wire);
+                        if inp_name.starts_with("OMUX")
+                            || inp_name.starts_with("OUT")
+                            || (v == 'N' && tile.class == tcls::IO_S && inp_name.starts_with("HEX"))
+                            || (v == 'S' && tile.class == tcls::IO_N && inp_name.starts_with("HEX"))
+                        {
+                            // FOUND
+                            let resolved_inp =
+                                backend.edev.resolve_wire(tcrd.wire(inp.wire)).unwrap();
+                            let (tile, wt, wf) =
+                                resolve_int_pip(backend, tcrd, wire_pin, inp.tw).unwrap();
+                            fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
+                            fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_inp), None, "EXCLUSIVE");
+                            fuzzer = fuzzer.fuzz(Key::WireMutex(resolved_pin), None, "EXCLUSIVE");
+                            return Some((fuzzer, false));
                         }
                     }
                 }
             }
             tcrd.row += 1;
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+struct BaseFakeLhPip(TileWireCoord);
+
+impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseFakeLhPip {
+    fn dyn_clone(&self) -> Box<dyn FuzzerProp<'b, IseBackend<'b>> + 'b> {
+        Box::new(*self)
+    }
+
+    fn apply(
+        &self,
+        backend: &IseBackend<'b>,
+        tcrd: TileCoord,
+        mut fuzzer: Fuzzer<IseBackend<'b>>,
+    ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
+        let ntile = &backend.endev.ngrid().tiles[&tcrd];
+        let tile = ntile.names[RawTileId::from_idx(0)].as_str();
+        let tn = &backend.endev.ngrid().db.tile_class_namings[ntile.naming];
+        let wn = &tn.wires[&self.0];
+        let wt = wn.alt_name.as_ref().unwrap();
+        let wf = wn.name.as_str();
+        fuzzer = fuzzer.base(Key::Pip(tile, wf, wt), true);
+        Some((fuzzer, false))
     }
 }
 
@@ -518,7 +546,7 @@ fn hex_to_buf(wire: WireSlotId) -> WireSlotId {
 
 fn wire_unbuf(wire: WireSlotId) -> Option<WireSlotId> {
     if let Some(idx) = wires::GCLK_BUF.index_of(wire) {
-        Some(wires::GCLK[idx])
+        Some(wires::GCLK_LEAF[idx])
     } else if let Some(idx) = wires::SINGLE_W_BUF.index_of(wire) {
         Some(wires::SINGLE_W[idx])
     } else if let Some(idx) = wires::SINGLE_E_BUF.index_of(wire) {
@@ -555,10 +583,6 @@ fn wire_unbuf(wire: WireSlotId) -> Option<WireSlotId> {
         Some(wires::HEX_V5[idx])
     } else if let Some(idx) = wires::HEX_V6_BUF.index_of(wire) {
         Some(wires::HEX_V6[idx])
-    } else if wire == wires::LH_FAKE0 {
-        Some(wires::LH[0])
-    } else if wire == wires::LH_FAKE6 {
-        Some(wires::LH[6])
     } else {
         None
     }
@@ -567,16 +591,14 @@ fn wire_unbuf(wire: WireSlotId) -> Option<WireSlotId> {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
-        let tcls_index = &backend.edev.db_index[tcid];
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
-        for (&wire_to, ins) in &tcls_index.pips_bwd {
-            let mux_name = if tcls.cells.len() == 1 {
-                format!("MUX.{}", intdb.wires.key(wire_to.wire))
-            } else {
-                format!("MUX.{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire))
-            };
+        for &wire_to in backend.edev.db_index[tcid].pips_bwd.keys() {
+            if wire_from_mux(wire_to.wire).is_some() {
+                continue;
+            }
+            let ins = &pips_bwd(backend.edev, tcid, wire_to);
             let out_name = intdb.wires.key(wire_to.wire);
             if wire_unbuf(wire_to.wire).is_some() {
                 continue;
@@ -585,18 +607,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 if matches!(tcid, tcls::IO_W | tcls::IO_E) {
                     for i in 0..4 {
                         props.push(Box::new(BaseBelMode::new(
-                            defs::bslots::IO[i],
+                            bslots::IOI[i],
                             0,
                             ["EMPTYIOB", "IOB", "IOB", "IOB"][i].into(),
                         )));
-                        props.push(Box::new(BaseBelPin::new(
-                            defs::bslots::IO[i],
-                            0,
-                            "I".into(),
-                        )));
+                        props.push(Box::new(BaseBelPin::new(bslots::IOI[i], 0, "I".into())));
                     }
-                    let clb_id = intdb.get_tile_class("CLB");
-                    let clb_index = &backend.edev.db_index[clb_id];
                     let idx = wires::OMUX.index_of(wire_to.wire).unwrap();
                     let clb_wire = if tcid == tcls::IO_W {
                         match idx {
@@ -612,7 +628,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         }
                     };
                     let clb_wire = TileWireCoord::new_idx(0, clb_wire);
-                    let wire_pin = clb_index.pips_fwd[&clb_wire].iter().next().unwrap().tw;
+                    let wire_pin = pips_fwd(backend.edev, tcls::CLB, clb_wire)
+                        .first()
+                        .unwrap()
+                        .tw;
                     let relation = if tcid == tcls::IO_W {
                         Delta::new(2, 0, tcls::CLB)
                     } else {
@@ -627,20 +646,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         WireMutexExclusive::new(wire_pin),
                     )));
                 } else {
-                    let wire_pin = tcls_index.pips_fwd[&wire_to].iter().next().unwrap().tw;
+                    let wire_pin = pips_fwd(backend.edev, tcid, wire_to).first().unwrap().tw;
                     props.push(Box::new(BaseIntPip::new(wire_pin, wire_to)));
                     props.push(Box::new(WireMutexExclusive::new(wire_pin)));
                 }
                 for &wire_from in ins {
                     let wire_from = wire_from.tw;
-                    let in_name = if tcls.cells.len() == 1 {
-                        intdb.wires.key(wire_from.wire).to_string()
-                    } else {
-                        format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
-                    };
                     let mut builder = ctx
                         .build()
-                        .test_manual_legacy("INT", &mux_name, in_name)
+                        .test_routing(wire_to, wire_from.pos())
                         .prop(FuzzIntPip::new(wire_to, wire_from));
                     for prop in &props {
                         builder = builder.prop_box(prop.clone());
@@ -679,14 +693,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         (false, wire_to)
                     };
                 let wire_pin = 'quad_dst_pin: {
-                    for &wire_pin in &tcls_index.pips_fwd[&wire_to_root] {
+                    for wire_pin in pips_fwd(backend.edev, tcid, wire_to_root) {
                         let wire_pin = wire_pin.tw;
                         let wire_pin_name = intdb.wires.key(wire_pin.wire);
                         if wire_pin_name.starts_with("IMUX") || wire_pin_name.starts_with("HEX") {
                             break 'quad_dst_pin wire_pin;
                         }
                     }
-                    panic!("NO WAY TO PIN {tcname} {mux_name}");
+                    panic!(
+                        "NO WAY TO PIN {tcname} {dst}",
+                        dst = wire_to.to_string(backend.edev.db, tcls)
+                    );
                 };
                 if !is_s {
                     props.push(Box::new(BaseIntPip::new(wire_pin, wire_to)));
@@ -715,7 +732,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 let related = Delta::new(
                                     -1,
                                     wire_from.cell.to_idx() as i32 - 4,
-                                    if tcid == tcls::BRAM_W {
+                                    if matches!(tcid, tcls::BRAM_W | tcls::BRAM_W_S2) {
                                         tcls::IO_W
                                     } else {
                                         tcls::CLB
@@ -735,7 +752,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 props.push(Box::new(WireMutexExclusive::new(wire_from)));
                                 break 'quad_src_all_pin;
                             } else if in_wire_name.starts_with("HEX") {
-                                for &wire_pin in &tcls_index.pips_fwd[&wire_from] {
+                                for wire_pin in pips_fwd(backend.edev, tcid, wire_from) {
                                     let wire_pin = wire_pin.tw;
                                     if wire_pin != wire_to && !pins.contains(&wire_pin) {
                                         props.push(Box::new(BaseIntPip::new(wire_pin, wire_from)));
@@ -748,18 +765,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             } else {
                                 break 'quad_src_all_pin;
                             }
-                            panic!("NO WAY TO PIN {tcname} {mux_name} {in_wire_name}");
+                            panic!(
+                                "NO WAY TO PIN {tcname} {dst} {src}",
+                                dst = wire_to.to_string(backend.edev.db, tcls),
+                                src = wire_from.to_string(backend.edev.db, tcls),
+                            );
                         }
                     }
                 }
                 for &wire_from in ins {
                     let wire_from = wire_from.tw;
                     let in_wire_name = intdb.wires.key(wire_from.wire);
-                    let in_name = if tcls.cells.len() == 1 {
-                        in_wire_name.to_string()
-                    } else {
-                        format!("{:#}.{}", wire_from.cell, in_wire_name)
-                    };
                     let mut props = props.clone();
                     if in_wire_name.starts_with("BRAM_QUAD") {
                         'quad_src_pin: {
@@ -797,7 +813,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 (false, wire_from)
                             };
 
-                            for &wire_pin in &tcls_index.pips_bwd[&wire_from_root] {
+                            for wire_pin in pips_bwd(backend.edev, tcid, wire_from_root) {
                                 let wire_pin = wire_pin.tw;
                                 let wire_pin_name = intdb.wires.key(wire_pin.wire);
                                 if intdb.wires.key(wire_pin.wire).starts_with("HEX")
@@ -825,11 +841,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     break 'quad_src_pin;
                                 }
                             }
-                            panic!("NO WAY TO PIN {tcname} {mux_name} {in_name}");
+                            panic!(
+                                "NO WAY TO PIN {tcname} {dst} {src}",
+                                dst = wire_to.to_string(backend.edev.db, tcls),
+                                src = wire_from.to_string(backend.edev.db, tcls),
+                            );
                         }
                     }
                     props.push(Box::new(FuzzIntPip::new(wire_to, wire_from)));
-                    let mut builder = ctx.build().test_manual_legacy("INT", &mux_name, &in_name);
+                    let mut builder = ctx.build().test_routing(wire_to, wire_from.pos());
                     for prop in &props {
                         builder = builder.prop_box(prop.clone());
                     }
@@ -846,7 +866,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let related = Delta::new(
                         -1,
                         wire_to.cell.to_idx() as i32 - 4,
-                        if tcid == tcls::BRAM_W {
+                        if matches!(tcid, tcls::BRAM_W | tcls::BRAM_W_S2) {
                             tcls::IO_W
                         } else {
                             tcls::CLB
@@ -864,16 +884,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 for &wire_from in ins {
                     let wire_from = wire_from.tw;
                     let in_wire_name = intdb.wires.key(wire_from.wire);
-                    let in_name = if tcls.cells.len() == 1 {
-                        in_wire_name.to_string()
-                    } else {
-                        format!("{:#}.{}", wire_from.cell, in_wire_name)
-                    };
 
                     let mut props = props.clone();
                     'single_pin: {
                         if in_wire_name.starts_with("SINGLE") {
-                            for &wire_pin in &tcls_index.pips_bwd[&wire_from] {
+                            for wire_pin in pips_bwd(backend.edev, tcid, wire_from) {
                                 let wire_pin = wire_pin.tw;
                                 let wire_pin_name = intdb.wires.key(wire_pin.wire);
                                 if intdb.wires.key(wire_pin.wire).starts_with("HEX")
@@ -887,7 +902,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 }
                             }
                         } else {
-                            for &wire_pin in &tcls_index.pips_fwd[&wire_from] {
+                            for wire_pin in pips_fwd(backend.edev, tcid, wire_from) {
                                 let wire_pin = wire_pin.tw;
                                 let wire_pin_name = intdb.wires.key(wire_pin.wire);
                                 if wire_pin != wire_to && wire_pin_name.starts_with("SINGLE") {
@@ -897,11 +912,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 }
                             }
                         }
-                        panic!("NO WAY TO PIN {tcname} {mux_name} {in_name}");
+                        panic!(
+                            "NO WAY TO PIN {tcname} {dst} {src}",
+                            dst = wire_to.to_string(backend.edev.db, tcls),
+                            src = wire_from.to_string(backend.edev.db, tcls),
+                        );
                     };
 
                     props.push(Box::new(FuzzIntPip::new(wire_to, wire_from)));
-                    let mut builder = ctx.build().test_manual_legacy("INT", &mux_name, &in_name);
+                    let mut builder = ctx.build().test_routing(wire_to, wire_from.pos());
                     for prop in &props {
                         builder = builder.prop_box(prop.clone());
                     }
@@ -913,27 +932,43 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             {
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
 
+                if wires::HEX_W2.contains(wire_to.wire)
+                    || wires::HEX_W3.contains(wire_to.wire)
+                    || wires::HEX_W4.contains(wire_to.wire)
+                    || wires::HEX_W5.contains(wire_to.wire)
+                    || wires::HEX_E2.contains(wire_to.wire)
+                    || wires::HEX_E3.contains(wire_to.wire)
+                    || wires::HEX_E4.contains(wire_to.wire)
+                    || wires::HEX_E5.contains(wire_to.wire)
+                    || wires::HEX_S2.contains(wire_to.wire)
+                    || wires::HEX_S3.contains(wire_to.wire)
+                    || wires::HEX_S4.contains(wire_to.wire)
+                    || wires::HEX_S5.contains(wire_to.wire)
+                    || wires::HEX_N2.contains(wire_to.wire)
+                    || wires::HEX_N3.contains(wire_to.wire)
+                    || wires::HEX_N4.contains(wire_to.wire)
+                    || wires::HEX_N5.contains(wire_to.wire)
+                {
+                    props.push(Box::new(NullBits));
+                }
+
                 if out_name.starts_with("LH") && matches!(tcid, tcls::IO_S | tcls::IO_N) {
-                    let wire_buf = TileWireCoord::new_idx(
-                        0,
-                        if wire_to.wire == wires::LH[0] {
-                            wires::LH_FAKE0
-                        } else if wire_to.wire == wires::LH[6] {
-                            wires::LH_FAKE6
-                        } else {
-                            unreachable!()
-                        },
-                    );
-                    props.push(Box::new(BaseIntPip::new(wire_buf, wire_to)));
-                    props.push(Box::new(WireMutexExclusive::new(wire_buf)));
+                    props.push(Box::new(BaseFakeLhPip(wire_to)));
                 } else if out_name.starts_with("LV") && matches!(tcid, tcls::BRAM_S | tcls::BRAM_N)
                 {
                     props.push(Box::new(VirtexPinBramLv(wire_to)));
                 } else if out_name.starts_with("LH")
-                    && matches!(tcid, tcls::BRAM_W | tcls::BRAM_E | tcls::BRAM_M)
+                    && matches!(
+                        tcid,
+                        tcls::BRAM_W
+                            | tcls::BRAM_E
+                            | tcls::BRAM_M
+                            | tcls::BRAM_W_S2
+                            | tcls::BRAM_E_S2
+                    )
                 {
                     props.push(Box::new(VirtexPinLh(wire_to)));
-                } else if out_name.starts_with("LH") && tcname.starts_with("CLK") {
+                } else if out_name.starts_with("LH") && tcls.slot == tslots::CLK {
                     props.push(Box::new(VirtexPinIoLh(wire_to)));
                 } else if out_name.starts_with("HEX_H")
                     || out_name.starts_with("HEX_E")
@@ -947,7 +982,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     props.push(Box::new(VirtexPinHexV(wire_to)));
                 } else {
                     'll_pin: {
-                        for &wire_pin in &tcls_index.pips_fwd[&wire_to] {
+                        for wire_pin in pips_fwd(backend.edev, tcid, wire_to) {
                             let wire_pin = wire_pin.tw;
                             let wire_pin_name = intdb.wires.key(wire_pin.wire);
                             if wire_pin_name.starts_with("HEX")
@@ -958,7 +993,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 break 'll_pin;
                             }
                         }
-                        println!("NO WAY TO PIN {tcname} {mux_name}");
+                        panic!(
+                            "NO WAY TO PIN {tcname} {dst}",
+                            dst = wire_to.to_string(backend.edev.db, tcls),
+                        );
                     }
                 }
 
@@ -974,7 +1012,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         } else if in_wire_name.starts_with("OMUX")
                             || in_wire_name.starts_with("BRAM_QUAD_DOUT")
                         {
-                            for &wire_pin in &tcls_index.pips_bwd[&wire_from] {
+                            for wire_pin in pips_bwd(backend.edev, tcid, wire_from) {
                                 let wire_pin = wire_pin.tw;
                                 if intdb.wires.key(wire_pin.wire).starts_with("OUT") {
                                     props.push(Box::new(BaseIntPip::new(wire_from, wire_pin)));
@@ -996,14 +1034,37 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         } else if in_wire_name.starts_with("LH")
                             && matches!(
                                 tcid,
-                                tcls::CNR_SW | tcls::CNR_SE | tcls::CNR_NW | tcls::CNR_NE
+                                tcls::CNR_SW
+                                    | tcls::CNR_SE
+                                    | tcls::CNR_NW
+                                    | tcls::CNR_NE
+                                    | tcls::CNR_SW_S2
+                                    | tcls::CNR_NW_S2
                             )
                         {
                             // it's fine.
                             props.push(Box::new(VirtexPinIoLh(wire_from)));
                             break 'll_src_pin;
-                        } else if in_wire_name.starts_with("LH") || in_wire_name.starts_with("LV") {
-                            for &wire_pin in &tcls_index.pips_bwd[&wire_from] {
+                        } else if wires::LH.contains(wire_from.wire)
+                            || wires::LV.contains(wire_from.wire)
+                        {
+                            let extra_in = if matches!(tcid, tcls::IO_S | tcls::IO_N)
+                                && let Some(idx) = wires::LV.index_of(wire_from.wire)
+                            {
+                                match idx {
+                                    0 => Some(wires::OUT_IO_IQ[0].cell(0).pos()),
+                                    1 => Some(wires::OUT_IO_I[0].cell(0).pos()),
+                                    10 => Some(wires::OUT_IO_IQ[3].cell(0).pos()),
+                                    11 => Some(wires::OUT_IO_I[3].cell(0).pos()),
+                                    _ => None,
+                                }
+                            } else {
+                                None
+                            };
+                            for wire_pin in pips_bwd(backend.edev, tcid, wire_from)
+                                .into_iter()
+                                .chain(extra_in)
+                            {
                                 let wire_pin = wire_pin.tw;
                                 if intdb.wires.key(wire_pin.wire).starts_with("OMUX")
                                     || intdb.wires.key(wire_pin.wire).starts_with("OUT")
@@ -1018,11 +1079,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             }
                         } else if in_wire_name.starts_with("SINGLE") {
                             let wire_buf = TileWireCoord::new_idx(0, single_to_buf(wire_from.wire));
-                            if matches!(tcid, tcls::BRAM_W | tcls::BRAM_E | tcls::BRAM_M) {
+                            if matches!(
+                                tcid,
+                                tcls::BRAM_W
+                                    | tcls::BRAM_E
+                                    | tcls::BRAM_M
+                                    | tcls::BRAM_W_S2
+                                    | tcls::BRAM_E_S2
+                            ) {
                                 let related = Delta::new(
                                     -1,
                                     wire_from.cell.to_idx() as i32 - 4,
-                                    if tcid == tcls::BRAM_W {
+                                    if matches!(tcid, tcls::BRAM_W | tcls::BRAM_W_S2) {
                                         tcls::IO_W
                                     } else {
                                         tcls::CLB
@@ -1049,7 +1117,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         } else if in_wire_name.starts_with("OUT_IO") {
                             for i in 0..4 {
                                 props.push(Box::new(BaseBelMode::new(
-                                    defs::bslots::IO[i],
+                                    bslots::IOI[i],
                                     0,
                                     [
                                         "EMPTYIOB",
@@ -1064,12 +1132,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                         .into(),
                                 )));
                                 props.push(Box::new(BaseBelPin::new(
-                                    defs::bslots::IO[i],
+                                    bslots::IOI[i],
                                     0,
                                     "I".into(),
                                 )));
                                 props.push(Box::new(BaseBelPin::new(
-                                    defs::bslots::IO[i],
+                                    bslots::IOI[i],
                                     0,
                                     "IQ".into(),
                                 )));
@@ -1077,15 +1145,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             break 'll_src_pin;
                         } else if let Some(pin) = in_wire_name.strip_prefix("OUT_BSCAN_") {
                             props.push(Box::new(BaseBelMode::new(
-                                defs::bslots::BSCAN,
+                                bslots::BSCAN,
                                 0,
                                 "BSCAN".into(),
                             )));
-                            props.push(Box::new(BaseBelPin::new(
-                                defs::bslots::BSCAN,
-                                0,
-                                pin.into(),
-                            )));
+                            props.push(Box::new(BaseBelPin::new(bslots::BSCAN, 0, pin.into())));
                             break 'll_src_pin;
                         } else if wires::OUT_BUFGCE_O.contains(wire_from.wire)
                             || wires::OUT_CLKPAD.contains(wire_from.wire)
@@ -1096,23 +1160,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             // already ok
                             break 'll_src_pin;
                         }
-                        panic!("NO WAY TO PIN {tcname} {mux_name} {in_wire_name}");
+                        panic!(
+                            "NO WAY TO PIN {tcname} {dst} {src}",
+                            dst = wire_to.to_string(backend.edev.db, tcls),
+                            src = wire_from.to_string(backend.edev.db, tcls),
+                        );
                     };
                 }
 
                 for &wire_from in ins {
                     let wire_from = wire_from.tw;
-                    let in_wire_name = intdb.wires.key(wire_from.wire);
-                    let in_name = if tcls.cells.len() == 1 {
-                        in_wire_name.to_string()
-                    } else {
-                        format!("{:#}.{}", wire_from.cell, in_wire_name)
-                    };
 
                     let mut props = props.clone();
                     props.push(Box::new(FuzzIntPip::new(wire_to, wire_from)));
 
-                    let mut builder = ctx.build().test_manual_legacy("INT", &mux_name, &in_name);
+                    let mut builder = ctx.build().test_routing(wire_to, wire_from.pos());
                     for prop in &props {
                         builder = builder.prop_box(prop.clone());
                     }
@@ -1122,15 +1184,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
                 if let Some(pin) = out_name.strip_prefix("IMUX_STARTUP_") {
                     props.push(Box::new(BaseBelMode::new(
-                        defs::bslots::STARTUP,
+                        bslots::STARTUP,
                         0,
                         "STARTUP".into(),
                     )));
-                    props.push(Box::new(BaseBelPin::new(
-                        defs::bslots::STARTUP,
-                        0,
-                        pin.into(),
-                    )));
+                    props.push(Box::new(BaseBelPin::new(bslots::STARTUP, 0, pin.into())));
                 }
                 let mut alt_out_wire = None;
                 if out_name.starts_with("IMUX_DLL") {
@@ -1154,7 +1212,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 if let Some(idx) = wires::IMUX_BUFGCE_CLK.index_of(wire_to.wire) {
                     props.push(Box::new(FuzzBelMode::new(
-                        defs::bslots::BUFG[idx],
+                        bslots::BUFGCE[idx],
                         0,
                         "".into(),
                         "GCLK".into(),
@@ -1165,8 +1223,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     || wires::IMUX_BRAM_DIB.contains(wire_to.wire)
                 {
                     for &wire_from in ins {
+                        if wire_from.wire == wires::PULLUP {
+                            continue;
+                        }
                         let wire_from = wire_from.tw;
-                        let in_wire_name = intdb.wires.key(wire_from.wire);
                         'imux_pin: {
                             if let Some(wire_unbuf) = wire_unbuf(wire_from.wire) {
                                 let wire_unbuf = TileWireCoord::new_idx(0, wire_unbuf);
@@ -1176,7 +1236,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             } else if wires::IMUX_BRAM_DIA.contains(wire_to.wire)
                                 || wires::IMUX_BRAM_DIB.contains(wire_to.wire)
                             {
-                                for &wire_pin in &tcls_index.pips_bwd[&wire_from] {
+                                for wire_pin in pips_bwd(backend.edev, tcid, wire_from) {
                                     let wire_pin = wire_pin.tw;
                                     if intdb.wires.key(wire_pin.wire).starts_with("HEX") {
                                         props.push(Box::new(BaseIntPip::new(wire_from, wire_pin)));
@@ -1186,11 +1246,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     }
                                 }
                             } else {
-                                for &wire_pin in &tcls_index.pips_fwd[&wire_from] {
+                                for wire_pin in pips_fwd(backend.edev, tcid, wire_from) {
                                     let wire_pin = wire_pin.tw;
                                     if wire_pin != wire_to {
-                                        if let Some(from_mux) = tcls_index.pips_bwd.get(&wire_from)
-                                            && from_mux.contains(&wire_pin.pos())
+                                        if pips_bwd(backend.edev, tcid, wire_from)
+                                            .contains(&wire_pin.pos())
                                         {
                                             continue;
                                         }
@@ -1200,18 +1260,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     }
                                 }
                             }
-                            panic!("NO WAY TO PIN {tcname} {mux_name} {in_wire_name}");
+                            panic!(
+                                "NO WAY TO PIN {tcname} {dst} {src}",
+                                dst = wire_to.to_string(backend.edev.db, tcls),
+                                src = wire_from.to_string(backend.edev.db, tcls),
+                            );
                         };
                     }
                 }
                 for &wire_from in ins {
+                    if wire_from.wire == wires::PULLUP {
+                        continue;
+                    }
                     let wire_from = wire_from.tw;
                     let in_wire_name = intdb.wires.key(wire_from.wire);
-                    let in_name = if tcls.cells.len() == 1 {
-                        in_wire_name.to_string()
-                    } else {
-                        format!("{:#}.{}", wire_from.cell, in_wire_name)
-                    };
 
                     let mut props = props.clone();
                     'imux_pin: {
@@ -1227,7 +1289,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             let related = Delta::new(
                                 0,
                                 0,
-                                if tcid == tcls::PCI_W {
+                                if matches!(tcid, tcls::PCI_W_V | tcls::PCI_W_VE) {
                                     tcls::IO_W
                                 } else {
                                     tcls::IO_E
@@ -1250,11 +1312,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             }
                             break 'imux_pin;
                         } else {
-                            for &wire_pin in &tcls_index.pips_fwd[&wire_from] {
+                            for wire_pin in pips_fwd(backend.edev, tcid, wire_from) {
                                 let wire_pin = wire_pin.tw;
                                 if wire_pin != wire_to {
-                                    if let Some(from_mux) = tcls_index.pips_bwd.get(&wire_from)
-                                        && from_mux.contains(&wire_pin.pos())
+                                    if pips_bwd(backend.edev, tcid, wire_from)
+                                        .contains(&wire_pin.pos())
                                     {
                                         continue;
                                     }
@@ -1264,9 +1326,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 }
                             }
                             // try to drive it instead.
-                            for &wire_pin in &tcls_index.pips_bwd[&wire_from] {
+                            for wire_pin in pips_bwd(backend.edev, tcid, wire_from) {
                                 let wire_pin = wire_pin.tw;
-                                if tcls_index.pips_fwd[&wire_from].contains(&wire_pin.pos()) {
+                                if pips_fwd(backend.edev, tcid, wire_from).contains(&wire_pin.pos())
+                                {
                                     continue;
                                 }
                                 props.push(Box::new(BaseIntPip::new(wire_from, wire_pin)));
@@ -1275,7 +1338,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 break 'imux_pin;
                             }
                         }
-                        panic!("NO WAY TO PIN {tcname} {mux_name} {in_name}");
+                        panic!(
+                            "NO WAY TO PIN {tcname} {dst} {src}",
+                            dst = wire_to.to_string(backend.edev.db, tcls),
+                            src = wire_from.to_string(backend.edev.db, tcls),
+                        );
                     };
 
                     props.push(Box::new(FuzzIntPip::new(wire_to, wire_from)));
@@ -1283,10 +1350,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         && (wires::OUT_CLKPAD.contains(wire_from.wire)
                             || wires::OUT_IOFB.contains(wire_from.wire))
                     {
-                        let mut builder = ctx.build().test_manual_legacy(
-                            "INT",
-                            &mux_name,
-                            format!("{in_name}.NOALT"),
+                        let mut builder = ctx.build().test_routing_pair_special(
+                            wire_to,
+                            wire_from.pos(),
+                            specials::INT_NOALT,
                         );
                         for prop in &props {
                             builder = builder.prop_box(prop.clone());
@@ -1295,14 +1362,52 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         props.push(Box::new(BaseIntPip::new(alt_out, wire_from)));
                     }
 
-                    let mut builder = ctx.build().test_manual_legacy("INT", &mux_name, &in_name);
+                    let mut builder = ctx.build().test_routing(wire_to, wire_from.pos());
                     for prop in &props {
                         builder = builder.prop_box(prop.clone());
                     }
                     builder.commit();
                 }
+            } else if wires::GCLK.contains(wire_to.wire) {
+                // skip
+            } else if wires::GCLK_LEAF.contains(wire_to.wire) {
+                // causes a crash on xcv405e. lmao.
+                if matches!(tcid, tcls::CLKV_BRAM_S | tcls::CLKV_BRAM_N)
+                    && backend.device.name.ends_with('e')
+                {
+                    continue;
+                }
+                for &wire_from in ins {
+                    let wire_from = wire_from.tw;
+                    let mut builder = ctx.build().prop(WireMutexExclusive::new(wire_to));
+                    if matches!(tcid, tcls::CLKV_BRAM_S_S2 | tcls::CLKV_BRAM_N_S2) {
+                        builder = builder.tile_mutex_exclusive("GCLK_LEAF")
+                    } else if matches!(
+                        tcid,
+                        tcls::CLKV_IO
+                            | tcls::CLKV_BRAM_S
+                            | tcls::CLKV_BRAM_N
+                            | tcls::CLK_S_V
+                            | tcls::CLK_N_V
+                            | tcls::CLK_S_VE_4DLL
+                            | tcls::CLK_N_VE_4DLL
+                            | tcls::CLK_S_VE_2DLL
+                            | tcls::CLK_N_VE_2DLL
+                    ) || (tcid == tcls::BRAM_W && matches!(wire_to.cell.to_idx(), 4..8))
+                        || (tcid == tcls::BRAM_E && matches!(wire_to.cell.to_idx(), 8..12))
+                    {
+                        builder = builder.null_bits();
+                    }
+                    builder
+                        .test_routing(wire_to, wire_from.pos())
+                        .prop(FuzzIntPip::new(wire_to, wire_from))
+                        .commit();
+                }
             } else {
-                panic!("UNHANDLED MUX: {tcname} {mux_name}");
+                panic!(
+                    "UNHANDLED MUX: {tcname} {dst}",
+                    dst = wire_to.to_string(backend.edev.db, tcls)
+                );
             }
         }
     }
@@ -1317,123 +1422,91 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if !ctx.has_tcls(tcid) {
             continue;
         }
-        for (bslot, bel) in &tcls.bels {
+        for bel in tcls.bels.values() {
             let BelInfo::SwitchBox(sb) = bel else {
                 continue;
             };
-            let bel = intdb.bel_slots.key(bslot);
             for item in &sb.items {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
-                        let out_name = if tcls.cells.len() == 1 {
-                            intdb.wires.key(mux.dst.wire).to_string()
-                        } else {
-                            format!("{:#}.{}", mux.dst.cell, intdb.wires.key(mux.dst.wire))
-                        };
-                        let mux_name = format!("MUX.{out_name}");
-
-                        let mut inps = vec![];
+                        let mut diffs = vec![];
                         let mut got_empty = false;
-                        for &wire_from in mux.src.keys() {
-                            let wire_from = wire_from.tw;
-                            let in_name = if tcls.cells.len() == 1 {
-                                intdb.wires.key(wire_from.wire).to_string()
-                            } else {
-                                format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
-                            };
-                            let mut diff = ctx.get_diff_legacy(tcname, "INT", &mux_name, &in_name);
+                        let fdst = if let Some(fdst) = wire_from_mux(mux.dst.wire) {
+                            TileWireCoord {
+                                wire: fdst,
+                                cell: mux.dst.cell,
+                            }
+                        } else {
+                            mux.dst
+                        };
+                        for &src in mux.src.keys() {
+                            if src.wire == wires::PULLUP {
+                                got_empty = true;
+                                diffs.push((Some(src), Diff::default()));
+                                continue;
+                            }
+                            let wire_from = src.tw;
+                            let mut diff = ctx.get_diff_routing(tcid, fdst, src);
                             if matches!(mux.dst.wire, wires::IMUX_DLL_CLKIN | wires::IMUX_DLL_CLKFB)
                                 && (wires::OUT_CLKPAD.contains(wire_from.wire)
                                     || wires::OUT_IOFB.contains(wire_from.wire))
                             {
-                                let noalt_diff = ctx.get_diff_legacy(
-                                    tcname,
-                                    "INT",
-                                    &mux_name,
-                                    format!("{in_name}.NOALT"),
+                                let noalt_diff = ctx.get_diff_routing_pair_special(
+                                    tcid,
+                                    mux.dst,
+                                    src,
+                                    specials::INT_NOALT,
                                 );
                                 let (alt, noalt, common) = Diff::split(diff, noalt_diff);
-                                if mux_name.contains("CLKIN") {
-                                    ctx.insert_legacy(
-                                        tcname,
-                                        "DLL",
-                                        "CLKIN_PAD",
-                                        xlat_bit_legacy(noalt),
+                                if mux.dst.wire == wires::IMUX_DLL_CLKIN {
+                                    ctx.insert_bel_attr_bool(
+                                        tcid,
+                                        bslots::DLL,
+                                        DLL::CLKIN_PAD,
+                                        xlat_bit(noalt),
                                     );
-                                    ctx.insert_legacy(
-                                        tcname,
-                                        "DLL",
-                                        "CLKFB_PAD",
-                                        xlat_bit_legacy(!alt),
+                                    ctx.insert_bel_attr_bool(
+                                        tcid,
+                                        bslots::DLL,
+                                        DLL::CLKFB_PAD,
+                                        xlat_bit(!alt),
                                     );
                                 } else {
-                                    ctx.insert_legacy(
-                                        tcname,
-                                        "DLL",
-                                        "CLKFB_PAD",
-                                        xlat_bit_legacy(noalt),
+                                    ctx.insert_bel_attr_bool(
+                                        tcid,
+                                        bslots::DLL,
+                                        DLL::CLKFB_PAD,
+                                        xlat_bit(noalt),
                                     );
-                                    ctx.insert_legacy(
-                                        tcname,
-                                        "DLL",
-                                        "CLKIN_PAD",
-                                        xlat_bit_legacy(!alt),
+                                    ctx.insert_bel_attr_bool(
+                                        tcid,
+                                        bslots::DLL,
+                                        DLL::CLKIN_PAD,
+                                        xlat_bit(!alt),
                                     );
                                 }
                                 diff = common;
                             }
-                            if (in_name.starts_with("OUT_IO") && in_name.ends_with("[0]"))
-                                || (in_name.starts_with("OUT_IO")
-                                    && in_name.ends_with("[3]")
-                                    && matches!(tcid, tcls::IO_S | tcls::IO_N))
-                            {
-                                diff.assert_empty();
-                            } else if (out_name.contains("BRAM_QUAD")
-                                && in_name.contains("BRAM_QUAD"))
-                                || out_name.contains("BRAM_QUAD_DOUT")
-                                || (out_name.contains("HEX_H") && wire_from.wire == wires::PCI_CE)
-                                || (matches!(
-                                    tcid,
-                                    tcls::CNR_SW | tcls::CNR_SE | tcls::CNR_NW | tcls::CNR_NE
-                                ) && wires::LV.contains(mux.dst.wire))
-                                || (matches!(tcid, tcls::BRAM_S | tcls::BRAM_N)
-                                    && wires::LV.contains(mux.dst.wire))
-                            {
-                                if diff.bits.is_empty() {
-                                    println!("UMM {out_name} {in_name} BUF IS EMPTY");
-                                    continue;
-                                }
-                                ctx.insert_legacy(
-                                    tcname,
-                                    bel,
-                                    format!("BUF.{out_name}.{in_name}"),
-                                    xlat_bit_legacy(diff),
-                                );
-                            } else {
-                                if diff.bits.is_empty() {
-                                    got_empty = true;
-                                }
-                                inps.push((in_name.to_string(), diff));
+                            if diff.bits.is_empty() {
+                                got_empty = true;
                             }
+                            diffs.push((Some(src), diff));
                         }
-                        if inps.is_empty() {
-                            continue;
-                        }
-                        if out_name.contains("BRAM_QUAD")
-                            || wires::LV.contains(mux.dst.wire)
-                            || wires::LH.contains(mux.dst.wire)
-                            || out_name.contains("HEX_H")
-                            || out_name.contains("HEX_V")
-                        {
+                        if fdst != mux.dst {
                             let mut drive_bits: HashSet<_> =
-                                inps[0].1.bits.keys().copied().collect();
-                            for (_, diff) in &inps {
+                                diffs[0].1.bits.keys().copied().collect();
+                            for (_, diff) in &diffs {
                                 drive_bits.retain(|bit| diff.bits.contains_key(bit));
                             }
                             if drive_bits.len() > 1 {
                                 if matches!(
                                     tcid,
-                                    tcls::CNR_SW | tcls::CNR_SE | tcls::CNR_NW | tcls::CNR_NE
+                                    tcls::CNR_SW
+                                        | tcls::CNR_SE
+                                        | tcls::CNR_NW
+                                        | tcls::CNR_NE
+                                        | tcls::CNR_SW_S2
+                                        | tcls::CNR_NW_S2
                                 ) {
                                     // sigh. I give up. those are obtained from looking at left-hand
                                     // corners with easier-to-disambiguate muxes, and correlating with
@@ -1450,7 +1523,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                             edev.btile_main(edev.chip.col_e(), RowId::from_idx(1))
                                         }
                                         _ => panic!(
-                                            "CAN'T FIGURE OUT DRIVE {tcname} {mux_name} {drive_bits:?} {inps:?}"
+                                            "CAN'T FIGURE OUT DRIVE {tcname} {dst} {drive_bits:?} {diffs:?}",
+                                            dst = mux.dst.to_string(edev.db, tcls)
                                         ),
                                     };
                                     drive_bits.retain(|bit| {
@@ -1460,111 +1534,68 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 }
                             }
                             if drive_bits.len() != 1 {
-                                panic!("FUCKY WACKY {tcname} {out_name} {inps:?}");
+                                panic!(
+                                    "FUCKY WACKY {tcname} {dst} {diffs:?}",
+                                    dst = mux.dst.to_string(edev.db, tcls)
+                                );
                             }
                             let drive = Diff {
                                 bits: drive_bits
                                     .into_iter()
-                                    .map(|bit| (bit, inps[0].1.bits[&bit]))
+                                    .map(|bit| (bit, diffs[0].1.bits[&bit]))
                                     .collect(),
                             };
-                            for (_, diff) in &mut inps {
+                            for (_, diff) in &mut diffs {
                                 *diff = diff.combine(&!&drive);
                             }
-                            if inps.iter().all(|(_, diff)| !diff.bits.is_empty()) {
-                                inps.push(("NONE".to_string(), Diff::default()));
+                            if diffs.iter().all(|(_, diff)| !diff.bits.is_empty()) {
+                                diffs.push((None, Diff::default()));
                             }
-                            let item = xlat_enum_legacy_ocd(inps, OcdMode::Mux);
-                            ctx.insert_legacy(tcname, bel, mux_name, item);
-                            ctx.insert_legacy(
-                                tcname,
-                                bel,
-                                format!("DRIVE.{out_name}"),
-                                xlat_bit_legacy(drive),
-                            );
+                            ctx.insert_mux(tcid, mux.dst, xlat_enum_raw(diffs, OcdMode::Mux));
+                            ctx.insert_progbuf(tcid, fdst, mux.dst.pos(), xlat_bit(drive));
                         } else {
                             if !got_empty {
-                                inps.push(("NONE".to_string(), Diff::default()));
+                                diffs.push((None, Diff::default()));
                             }
-                            let item = xlat_enum_legacy_ocd(inps, OcdMode::Mux);
+                            let item = xlat_enum_raw(diffs, OcdMode::Mux);
                             if item.bits.is_empty() {
                                 if mux.dst.wire == wires::IMUX_IO_T[0] {
                                     // empty on Virtex E?
                                     continue;
                                 }
-                                if mux_name.starts_with("MUX.HEX_S") && tcid == tcls::IO_N
-                                    || mux_name.starts_with("MUX.HEX_N") && tcid == tcls::IO_S
-                                    || mux_name.starts_with("MUX.HEX_E") && tcid == tcls::IO_W
-                                    || mux_name.starts_with("MUX.HEX_W") && tcid == tcls::IO_E
-                                {
-                                    continue;
-                                }
-                                println!("UMMM MUX {tcname} {mux_name} is empty");
+                                println!(
+                                    "UMMM MUX {tcname} {dst} is empty",
+                                    dst = mux.dst.to_string(edev.db, tcls)
+                                );
                             }
-                            ctx.insert_legacy(tcname, bel, mux_name, item);
+                            ctx.insert_mux(tcid, mux.dst, item);
                         }
+                    }
+                    SwitchBoxItem::ProgBuf(buf) => {
+                        if wire_to_mux(buf.dst.wire) == Some(buf.src.wire) {
+                            continue;
+                        }
+                        if matches!(tcid, tcls::CLKV_BRAM_S_S2 | tcls::CLKV_BRAM_N_S2) {
+                            if buf.dst.cell.to_idx() != 0 {
+                                continue;
+                            }
+                            // TODO: absolutely uncertain
+                            let odst = buf.dst.wire.cell(1);
+                            let mut diff0 = ctx.get_diff_routing(tcid, buf.dst, buf.src);
+                            let diff1 = ctx.get_diff_routing(tcid, odst, buf.src);
+                            assert_eq!(diff0, diff1);
+                            let diff1 = diff0.split_bits_by(|bit| bit.frame.to_idx() >= 9);
+                            ctx.insert_progbuf(tcid, buf.dst, buf.src, xlat_bit(diff0));
+                            ctx.insert_progbuf(tcid, odst, buf.src, xlat_bit(diff1));
+                            continue;
+                        }
+                        ctx.collect_progbuf(tcid, buf.dst, buf.src);
                     }
                     SwitchBoxItem::Pass(pass) => {
-                        let out_name = if tcls.cells.len() == 1 {
-                            intdb.wires.key(pass.dst.wire).to_string()
-                        } else {
-                            format!("{:#}.{}", pass.dst.cell, intdb.wires.key(pass.dst.wire))
-                        };
-                        let in_name = if tcls.cells.len() == 1 {
-                            intdb.wires.key(pass.src.wire).to_string()
-                        } else {
-                            format!("{:#}.{}", pass.src.cell, intdb.wires.key(pass.src.wire))
-                        };
-                        let diff =
-                            ctx.get_diff_legacy(tcname, "INT", format!("MUX.{out_name}"), &in_name);
-                        if (in_name.starts_with("OUT_IO") && in_name.ends_with("[0]"))
-                            || (matches!(tcid, tcls::IO_S | tcls::IO_N)
-                                && in_name.starts_with("OUT_IO")
-                                && in_name.ends_with("[3]"))
-                        {
-                            diff.assert_empty();
-                            continue;
-                        }
-                        if diff.bits.is_empty() {
-                            println!("UMM {out_name} {in_name} PASS IS EMPTY");
-                            continue;
-                        }
-                        let item = xlat_bit_legacy(diff);
-                        let name = format!("PASS.{out_name}.{in_name}");
-                        ctx.insert_legacy(tcname, bel, name, item);
+                        ctx.collect_pass(tcid, pass.dst, pass.src);
                     }
                     SwitchBoxItem::BiPass(pass) => {
-                        let a_name = intdb.wires.key(pass.a.wire);
-                        let b_name = intdb.wires.key(pass.b.wire);
-                        let name = if tcls.cells.len() == 1 {
-                            format!("BIPASS.{a_name}.{b_name}")
-                        } else {
-                            format!(
-                                "BIPASS.{a_cell:#}.{a_name}.{b_cell:#}.{b_name}",
-                                a_cell = pass.a.cell,
-                                b_cell = pass.b.cell,
-                            )
-                        };
-                        for (wdst, wsrc) in [(pass.a, pass.b), (pass.b, pass.a)] {
-                            let out_name = if tcls.cells.len() == 1 {
-                                intdb.wires.key(wdst.wire).to_string()
-                            } else {
-                                format!("{:#}.{}", wdst.cell, intdb.wires.key(wdst.wire))
-                            };
-                            let in_name = if tcls.cells.len() == 1 {
-                                intdb.wires.key(wsrc.wire).to_string()
-                            } else {
-                                format!("{:#}.{}", wsrc.cell, intdb.wires.key(wsrc.wire))
-                            };
-                            let diff = ctx.get_diff_legacy(
-                                tcname,
-                                "INT",
-                                format!("MUX.{out_name}"),
-                                &in_name,
-                            );
-                            let item = xlat_bit_legacy(diff);
-                            ctx.insert_legacy(tcname, bel, &name, item);
-                        }
+                        ctx.collect_bipass(tcid, pass.a, pass.b);
                     }
                     SwitchBoxItem::PermaBuf(_) => (),
                     SwitchBoxItem::ProgInv(_) => (),

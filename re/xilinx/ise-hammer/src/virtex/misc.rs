@@ -1,137 +1,187 @@
-use prjcombine_interconnect::db::TileWireCoord;
-use prjcombine_re_collector::{
-    diff::OcdMode,
-    legacy::{xlat_bit_bi_legacy, xlat_bitvec_legacy, xlat_bitvec_sparse_legacy},
-};
+use prjcombine_interconnect::db::{BelAttributeId, TileWireCoord};
+use prjcombine_re_collector::diff::{OcdMode, xlat_bitvec_sparse_u32};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::TileBit;
 use prjcombine_virtex::{
     chip::ChipKind,
-    defs::{bcls::GLOBAL, bslots, enums, tcls, wires},
+    defs::{
+        bcls::{BSCAN, CAPTURE, GLOBAL, MISC_NE, MISC_NW, MISC_SE, MISC_SW, PCILOGIC, STARTUP},
+        bslots, enums, tcls, wires,
+    },
 };
 
 use crate::{
     backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
     generic::{
-        fbuild::{FuzzBuilderBase, FuzzCtx},
+        fbuild::{FuzzBuilderBase, FuzzCtx, FuzzCtxBel},
         props::mutex::WireMutexExclusive,
     },
+    virtex::specials,
 };
 
+fn test_pull(bctx: &mut FuzzCtxBel, attr: BelAttributeId, opt: &'static str) {
+    for (val, vname) in [
+        (enums::IOB_PULL::NONE, "PULLNONE"),
+        (enums::IOB_PULL::PULLDOWN, "PULLDOWN"),
+        (enums::IOB_PULL::PULLUP, "PULLUP"),
+    ] {
+        bctx.build()
+            .test_bel_attr_val(attr, val)
+            .global(opt, vname)
+            .commit();
+    }
+}
+fn test_pullup(bctx: &mut FuzzCtxBel, attr: BelAttributeId, opt: &'static str) {
+    for (val, vname) in [
+        (enums::IOB_PULL::NONE, "PULLNONE"),
+        (enums::IOB_PULL::PULLUP, "PULLUP"),
+    ] {
+        bctx.build()
+            .test_bel_attr_val(attr, val)
+            .global(opt, vname)
+            .commit();
+    }
+}
+
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    for tcid in [tcls::PCI_W, tcls::PCI_E] {
-        let mut ctx = FuzzCtx::new(session, backend, tcid);
+    let ExpandedDevice::Virtex(edev) = backend.edev else {
+        unreachable!()
+    };
+    for tcid in [tcls::PCI_W_V, tcls::PCI_E_V, tcls::PCI_W_VE, tcls::PCI_E_VE] {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
+            continue;
+        };
         let mut bctx = ctx.bel(bslots::PCILOGIC);
-        bctx.test_manual_legacy("PRESENT", "1")
+        bctx.build()
+            .test_bel_special(specials::PRESENT)
             .mode("PCILOGIC")
             .commit();
-        bctx.mode("PCILOGIC")
-            .pin("I1")
-            .test_enum_legacy("I1MUX", &["0", "1", "I1", "I1_B"]);
-        bctx.mode("PCILOGIC")
-            .pin("I2")
-            .test_enum_legacy("I2MUX", &["0", "1", "I2", "I2_B"]);
+        for pin in [PCILOGIC::I1, PCILOGIC::I2] {
+            let pname = backend.edev.db[PCILOGIC].inputs.key(pin).0;
+            for (val, vname) in [
+                // TODO: this is DIFFERENT from other virtex muxes; ISE bug or actual difference?
+                // not adding the PULLUP edge yet just in case.
+                (false, "0"),
+                (false, pname),
+                (true, "1"),
+                (true, &format!("{pname}_B")),
+            ] {
+                bctx.mode("PCILOGIC")
+                    .pin(pname)
+                    .test_bel_input_inv(pin, val)
+                    .attr(format!("{pname}MUX"), vname)
+                    .commit();
+            }
+        }
     }
     let mut ctx = FuzzCtx::new_null(session, backend);
-    for val in ["00", "01", "10", "11"] {
+    for (val, vname) in [(0, "00"), (1, "01"), (2, "10"), (3, "11")] {
         ctx.build()
-            .extra_tiles_by_bel_legacy(bslots::PCILOGIC, "PCILOGIC")
-            .test_manual_legacy("PCILOGIC", "PCI_DELAY", val)
-            .global("PCIDELAY", val)
+            .extra_tiles_by_bel_attr_u32(bslots::PCILOGIC, PCILOGIC::PCI_DELAY, val)
+            .test_global_special(specials::PCI_DELAY)
+            .global("PCIDELAY", vname)
             .commit();
     }
 
+    let (cnr_sw, cnr_nw) = if edev.chip.kind == ChipKind::Spartan2 {
+        (tcls::CNR_SW_S2, tcls::CNR_NW_S2)
+    } else {
+        (tcls::CNR_SW, tcls::CNR_NW)
+    };
+
     {
-        let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_SW);
-        for attr in ["M0PIN", "M1PIN", "M2PIN"] {
-            for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
-                ctx.test_manual_legacy("MISC", attr, val)
-                    .global(attr, val)
-                    .commit();
-            }
-        }
-        for attr in ["POWERDOWNPIN", "PDSTATUSPIN"] {
-            for val in ["PULLUP", "PULLNONE"] {
-                ctx.test_manual_legacy("MISC", attr, val)
-                    .global(attr, val)
-                    .commit();
-            }
-        }
-        for val in ["NO", "YES"] {
-            ctx.test_manual_legacy("MISC", "DRIVE_PD_STATUS", val)
-                .global("DRIVEPDSTATUS", val)
-                .commit();
-        }
-        for val in ["100US", "200US", "400US"] {
-            ctx.test_manual_legacy("MISC", "POWERUP_DELAY", val)
-                .global("POWERUPDELAY", val)
-                .commit();
-        }
+        let mut ctx = FuzzCtx::new(session, backend, cnr_sw);
+        let mut bctx = ctx.bel(bslots::MISC_SW);
+        test_pull(&mut bctx, MISC_SW::M0_PULL, "M0PIN");
+        test_pull(&mut bctx, MISC_SW::M1_PULL, "M1PIN");
+        test_pull(&mut bctx, MISC_SW::M2_PULL, "M2PIN");
+        test_pullup(&mut bctx, MISC_SW::POWERDOWN_PULL, "POWERDOWNPIN");
+        test_pullup(&mut bctx, MISC_SW::PDSTATUS_PULL, "PDSTATUSPIN");
+        bctx.build().test_global_attr_bool_rename(
+            "DRIVEPDSTATUS",
+            MISC_SW::DRIVE_PD_STATUS,
+            "NO",
+            "YES",
+        );
+        bctx.build()
+            .test_global_attr_rename("POWERUPDELAY", MISC_SW::POWERUP_DELAY);
 
         let mut bctx = ctx.bel(bslots::CAPTURE);
-        bctx.test_manual_legacy("PRESENT", "1")
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
             .mode("CAPTURE")
             .commit();
         bctx.mode("CAPTURE")
             .pin("CLK")
-            .test_enum_legacy("CLKINV", &["0", "1"]);
+            .test_bel_input_inv_enum("CLKINV", CAPTURE::CLK, "1", "0");
+        for (val, vname) in [(false, "1"), (false, "CAP"), (true, "0"), (true, "CAP_B")] {
+            bctx.mode("CAPTURE")
+                .pin("CAP")
+                .test_bel_input_inv(CAPTURE::CAP, val)
+                .attr("CAPMUX", vname)
+                .commit();
+        }
         bctx.mode("CAPTURE")
-            .pin("CAP")
-            .test_enum_legacy("CAPMUX", &["0", "1", "CAP", "CAP_B"]);
-        bctx.mode("CAPTURE")
+            .null_bits()
             .extra_tiles_by_bel_attr_bits(bslots::GLOBAL, GLOBAL::CAPTURE_ONESHOT)
-            .test_manual_legacy("ONESHOT", "1")
+            .test_bel_special(specials::CAPTURE_ONESHOT)
             .attr("ONESHOT_ATTR", "ONE_SHOT")
             .commit();
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NW);
-        for attr in ["TMSPIN", "TCKPIN"] {
-            for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
-                ctx.test_manual_legacy("MISC", attr, val)
-                    .global(attr, val)
-                    .commit();
-            }
-        }
-        for val in ["INTOSC", "USERCLK", "CCLK"] {
-            ctx.test_manual_legacy("MISC", "POWERUP_CLK", val)
-                .global("POWERUPCLK", val)
-                .commit();
-        }
-        for attr in ["IBCLK_N2", "IBCLK_N4", "IBCLK_N8", "IBCLK_N16", "IBCLK_N32"] {
-            for val in ["0", "1"] {
-                ctx.test_manual_legacy("MISC", attr, val)
-                    .global(attr, val)
+        let mut ctx = FuzzCtx::new(session, backend, cnr_nw);
+        let mut bctx = ctx.bel(bslots::MISC_NW);
+        test_pull(&mut bctx, MISC_NW::TCK_PULL, "TCKPIN");
+        test_pull(&mut bctx, MISC_NW::TMS_PULL, "TMSPIN");
+        bctx.build()
+            .test_global_attr_rename("POWERUPCLK", MISC_NW::POWERUP_CLK);
+        for (i, attr) in ["IBCLK_N2", "IBCLK_N4", "IBCLK_N8", "IBCLK_N16", "IBCLK_N32"]
+            .into_iter()
+            .enumerate()
+        {
+            for (val, vname) in [(false, "0"), (true, "1")] {
+                bctx.build()
+                    .test_bel_attr_bits_base_bi(MISC_NW::BCLK_DIV2, i, val)
+                    .global(attr, vname)
                     .commit();
             }
         }
 
         let mut bctx = ctx.bel(bslots::STARTUP);
-        bctx.test_manual_legacy("PRESENT", "1")
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
             .mode("STARTUP")
             .commit();
         bctx.mode("STARTUP")
             .pin("CLK")
-            .test_enum_legacy("CLKINV", &["0", "1"]);
-        bctx.mode("STARTUP")
-            .pin("GWE")
-            .test_enum_legacy("GWEMUX", &["0", "1", "GWE", "GWE_B"]);
-        bctx.mode("STARTUP")
-            .pin("GTS")
-            .test_enum_legacy("GTSMUX", &["0", "1", "GTS", "GTS_B"]);
-        bctx.mode("STARTUP")
-            .pin("GSR")
-            .test_enum_legacy("GSRMUX", &["0", "1", "GSR", "GSR_B"]);
+            .test_bel_input_inv_enum("CLKINV", STARTUP::CLK, "1", "0");
+        for pin in [STARTUP::GSR, STARTUP::GWE, STARTUP::GTS] {
+            let pname = backend.edev.db[STARTUP].inputs.key(pin).0;
+            for (val, vname) in [
+                (false, "1"),
+                (false, pname),
+                (true, "0"),
+                (true, &format!("{pname}_B")),
+            ] {
+                bctx.mode("STARTUP")
+                    .pin(pname)
+                    .test_bel_input_inv(pin, val)
+                    .attr(format!("{pname}MUX"), vname)
+                    .commit();
+            }
+        }
         let wire_gwe = TileWireCoord::new_idx(0, wires::IMUX_STARTUP_GWE);
         let wire_gts = TileWireCoord::new_idx(0, wires::IMUX_STARTUP_GTS);
         let wire_gsr = TileWireCoord::new_idx(0, wires::IMUX_STARTUP_GSR);
         bctx.mode("STARTUP")
             .no_pin("GTS")
             .no_pin("GWE")
-            .test_manual_legacy("GSR", "1")
+            .test_bel_attr_bits(STARTUP::USER_GTS_GWE_GSR_ENABLE)
             .prop(WireMutexExclusive::new(wire_gwe))
             .prop(WireMutexExclusive::new(wire_gts))
             .prop(WireMutexExclusive::new(wire_gsr))
@@ -141,7 +191,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("STARTUP")
             .no_pin("GSR")
             .no_pin("GWE")
-            .test_manual_legacy("GTS", "1")
+            .test_bel_attr_bits(STARTUP::USER_GTS_GWE_GSR_ENABLE)
             .prop(WireMutexExclusive::new(wire_gwe))
             .prop(WireMutexExclusive::new(wire_gts))
             .prop(WireMutexExclusive::new(wire_gsr))
@@ -151,76 +201,72 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("STARTUP")
             .no_pin("GTS")
             .no_pin("GSR")
-            .test_manual_legacy("GWE", "1")
+            .test_bel_attr_bits(STARTUP::USER_GTS_GWE_GSR_ENABLE)
             .prop(WireMutexExclusive::new(wire_gwe))
             .prop(WireMutexExclusive::new(wire_gts))
             .prop(WireMutexExclusive::new(wire_gsr))
             .pin("GWE")
             .attr("GWEMUX", "GWE")
             .commit();
-        for val in ["NO", "YES"] {
-            bctx.test_manual_legacy("GWE_SYNC", val)
-                .global("GWE_SYNC", val)
-                .commit();
-            bctx.test_manual_legacy("GTS_SYNC", val)
-                .global("GTS_SYNC", val)
-                .commit();
-            bctx.test_manual_legacy("GSR_SYNC", val)
-                .global("GSR_SYNC", val)
-                .commit();
-        }
+        bctx.build()
+            .test_global_attr_bool_rename("GWE_SYNC", STARTUP::GWE_SYNC, "NO", "YES");
+        bctx.build()
+            .test_global_attr_bool_rename("GTS_SYNC", STARTUP::GTS_SYNC, "NO", "YES");
+        bctx.build()
+            .test_global_attr_bool_rename("GSR_SYNC", STARTUP::GSR_SYNC, "NO", "YES");
         for (val, vname) in [
             (enums::STARTUP_CLOCK::CCLK, "CCLK"),
             (enums::STARTUP_CLOCK::USERCLK, "USERCLK"),
             (enums::STARTUP_CLOCK::JTAGCLK, "JTAGCLK"),
         ] {
             bctx.mode("STARTUP")
+                .null_bits()
                 .pin("CLK")
                 .extra_tiles_by_bel_attr_val(bslots::GLOBAL, GLOBAL::STARTUP_CLOCK, val)
-                .test_manual_legacy("STARTUPCLK", vname)
+                .test_bel_special(specials::STARTUPCLK)
                 .global("STARTUPCLK", vname)
                 .commit();
         }
 
         let mut bctx = ctx.bel(bslots::BSCAN);
-        bctx.test_manual_legacy("PRESENT", "1")
+        bctx.build()
+            .null_bits()
+            .test_bel_special(specials::PRESENT)
             .mode("BSCAN")
             .commit();
-        bctx.mode("BSCAN")
-            .pin("TDO1")
-            .test_enum_legacy("TDO1MUX", &["0", "1", "TDO1", "TDO1_B"]);
-        bctx.mode("BSCAN")
-            .pin("TDO2")
-            .test_enum_legacy("TDO2MUX", &["0", "1", "TDO2", "TDO2_B"]);
-        bctx.test_manual_legacy("USERID", "")
+        for pin in [BSCAN::TDO1, BSCAN::TDO2] {
+            let pname = backend.edev.db[BSCAN].inputs.key(pin).0;
+            for (val, vname) in [
+                (false, "1"),
+                (false, pname),
+                (true, "0"),
+                (true, &format!("{pname}_B")),
+            ] {
+                bctx.mode("BSCAN")
+                    .pin(pname)
+                    .test_bel_input_inv(pin, val)
+                    .attr(format!("{pname}MUX"), vname)
+                    .commit();
+            }
+        }
+        bctx.build()
+            .test_bel_attr_bits(BSCAN::USERCODE)
             .multi_global("USERID", MultiValue::HexPrefix, 32);
     }
 
     {
         let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_SE);
-        for attr in ["DONEPIN", "PROGPIN"] {
-            for val in ["PULLUP", "PULLNONE"] {
-                ctx.test_manual_legacy("MISC", attr, val)
-                    .global(attr, val)
-                    .commit();
-            }
-        }
+        let mut bctx = ctx.bel(bslots::MISC_SE);
+        test_pullup(&mut bctx, MISC_SE::DONE_PULL, "DONEPIN");
+        test_pullup(&mut bctx, MISC_SE::PROG_PULL, "PROGPIN");
     }
 
     {
         let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NE);
-        for attr in ["TDIPIN", "TDOPIN"] {
-            for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
-                ctx.test_manual_legacy("MISC", attr, val)
-                    .global(attr, val)
-                    .commit();
-            }
-        }
-        for val in ["PULLUP", "PULLNONE"] {
-            ctx.test_manual_legacy("MISC", "CCLKPIN", val)
-                .global("CCLKPIN", val)
-                .commit();
-        }
+        let mut bctx = ctx.bel(bslots::MISC_NE);
+        test_pull(&mut bctx, MISC_NE::TDI_PULL, "TDIPIN");
+        test_pull(&mut bctx, MISC_NE::TDO_PULL, "TDOPIN");
+        test_pullup(&mut bctx, MISC_NE::CCLK_PULL, "CCLKPIN");
     }
 
     {
@@ -293,165 +339,173 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Virtex(edev) = ctx.edev else {
         unreachable!()
     };
-    for tile in ["PCI_W", "PCI_E"] {
-        let bel = "PCILOGIC";
-        let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
-        for (pinmux, pin, pin_b) in [("I1MUX", "I1", "I1_B"), ("I2MUX", "I2", "I2_B")] {
-            // this is different from other virtex muxes!
-            let d0 = ctx.get_diff_legacy(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
-            let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
-            let item = xlat_bit_bi_legacy(d0, d1);
-            present.discard_bits_legacy(&item);
-            ctx.insert_legacy(tile, bel, format!("INV.{pin}"), item);
+    for tcid in [tcls::PCI_W_V, tcls::PCI_W_VE, tcls::PCI_E_V, tcls::PCI_E_VE] {
+        if !ctx.has_tcls(tcid) {
+            continue;
         }
+        let bslot = bslots::PCILOGIC;
+        let mut present = ctx.get_diff_bel_special(tcid, bslot, specials::PRESENT);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, PCILOGIC::I1);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, PCILOGIC::I2);
+        present.discard_polbits(&[
+            ctx.bel_input_inv(tcid, bslot, PCILOGIC::I1),
+            ctx.bel_input_inv(tcid, bslot, PCILOGIC::I2),
+        ]);
         present.assert_empty();
-        if edev.chip.kind == ChipKind::Virtex {
-            let d0 = ctx.get_diff_legacy(tile, bel, "PCI_DELAY", "00");
-            let d1 = ctx.get_diff_legacy(tile, bel, "PCI_DELAY", "01");
-            let d2 = ctx.get_diff_legacy(tile, bel, "PCI_DELAY", "10");
-            let d3 = ctx.get_diff_legacy(tile, bel, "PCI_DELAY", "11");
+        if matches!(tcid, tcls::PCI_W_V | tcls::PCI_E_V) {
+            let d0 = ctx.get_diff_attr_u32(tcid, bslot, PCILOGIC::PCI_DELAY, 0);
+            let d1 = ctx.get_diff_attr_u32(tcid, bslot, PCILOGIC::PCI_DELAY, 1);
+            let d2 = ctx.get_diff_attr_u32(tcid, bslot, PCILOGIC::PCI_DELAY, 2);
+            let d3 = ctx.get_diff_attr_u32(tcid, bslot, PCILOGIC::PCI_DELAY, 3);
             // bug? bug.
             assert_eq!(d0, d1);
-            ctx.insert_legacy(
-                tile,
-                bel,
-                "PCI_DELAY",
-                xlat_bitvec_sparse_legacy(vec![(0, d0), (2, d2), (3, d3)]),
+            ctx.insert_bel_attr_bitvec(
+                tcid,
+                bslot,
+                PCILOGIC::PCI_DELAY,
+                xlat_bitvec_sparse_u32(vec![(0, d0), (2, d2), (3, d3)]),
             );
         } else {
-            for val in ["00", "01", "10", "11"] {
-                ctx.get_diff_legacy(tile, bel, "PCI_DELAY", val)
+            for val in 0..4 {
+                ctx.get_diff_attr_u32(tcid, bslot, PCILOGIC::PCI_DELAY, val)
                     .assert_empty();
             }
         }
     }
+    let (cnr_sw, cnr_nw) = if edev.chip.kind == ChipKind::Spartan2 {
+        (tcls::CNR_SW_S2, tcls::CNR_NW_S2)
+    } else {
+        (tcls::CNR_SW, tcls::CNR_NW)
+    };
     {
-        let tile = "CNR_SW";
-        let bel = "MISC";
-        ctx.collect_enum_legacy(tile, bel, "M0PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "M1PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "M2PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        if edev.chip.kind == ChipKind::Virtex && ctx.device.name.contains("2s") {
-            ctx.collect_enum_legacy(tile, bel, "POWERDOWNPIN", &["PULLUP", "PULLNONE"]);
-            ctx.collect_enum_legacy(tile, bel, "PDSTATUSPIN", &["PULLUP", "PULLNONE"]);
-            ctx.collect_enum_legacy(tile, bel, "POWERUP_DELAY", &["100US", "200US", "400US"]);
-            ctx.collect_bit_bi_legacy(tile, bel, "DRIVE_PD_STATUS", "NO", "YES");
+        let tcid = cnr_sw;
+        let bslot = bslots::MISC_SW;
+        for attr in [MISC_SW::M0_PULL, MISC_SW::M1_PULL, MISC_SW::M2_PULL] {
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                attr,
+                &[
+                    enums::IOB_PULL::NONE,
+                    enums::IOB_PULL::PULLUP,
+                    enums::IOB_PULL::PULLDOWN,
+                ],
+            );
+        }
+        if tcid == tcls::CNR_SW_S2 {
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                MISC_SW::POWERDOWN_PULL,
+                &[enums::IOB_PULL::NONE, enums::IOB_PULL::PULLUP],
+            );
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                MISC_SW::PDSTATUS_PULL,
+                &[enums::IOB_PULL::NONE, enums::IOB_PULL::PULLUP],
+            );
+            ctx.collect_bel_attr(tcid, bslot, MISC_SW::POWERUP_DELAY);
+            ctx.collect_bel_attr_bi(tcid, bslot, MISC_SW::DRIVE_PD_STATUS);
         } else {
             for (attr, val) in [
-                ("POWERDOWNPIN", "PULLUP"),
-                ("POWERDOWNPIN", "PULLNONE"),
-                ("PDSTATUSPIN", "PULLUP"),
-                ("PDSTATUSPIN", "PULLNONE"),
-                ("POWERUP_DELAY", "100US"),
-                ("POWERUP_DELAY", "200US"),
-                ("POWERUP_DELAY", "400US"),
-                ("DRIVE_PD_STATUS", "YES"),
-                ("DRIVE_PD_STATUS", "NO"),
+                (MISC_SW::POWERDOWN_PULL, enums::IOB_PULL::PULLUP),
+                (MISC_SW::POWERDOWN_PULL, enums::IOB_PULL::NONE),
+                (MISC_SW::PDSTATUS_PULL, enums::IOB_PULL::PULLUP),
+                (MISC_SW::PDSTATUS_PULL, enums::IOB_PULL::NONE),
+                (MISC_SW::POWERUP_DELAY, enums::POWERUP_DELAY::_100US),
+                (MISC_SW::POWERUP_DELAY, enums::POWERUP_DELAY::_200US),
+                (MISC_SW::POWERUP_DELAY, enums::POWERUP_DELAY::_400US),
             ] {
-                ctx.get_diff_legacy(tile, bel, attr, val).assert_empty();
+                ctx.get_diff_attr_val(tcid, bslot, attr, val).assert_empty();
+            }
+            for val in [false, true] {
+                ctx.get_diff_attr_bool_bi(tcid, bslot, MISC_SW::DRIVE_PD_STATUS, val)
+                    .assert_empty();
             }
         }
 
-        let bel = "CAPTURE";
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
-        let d0 = ctx.get_diff_legacy(tile, bel, "CAPMUX", "CAP");
-        assert_eq!(d0, ctx.get_diff_legacy(tile, bel, "CAPMUX", "1"));
-        let d1 = ctx.get_diff_legacy(tile, bel, "CAPMUX", "CAP_B");
-        assert_eq!(d1, ctx.get_diff_legacy(tile, bel, "CAPMUX", "0"));
-        let item = xlat_bit_bi_legacy(d0, d1);
-        ctx.insert_legacy(tile, bel, "INV.CAP", item);
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "CLKINV", "1", "0");
-        ctx.insert_legacy(tile, bel, "INV.CLK", item);
-        ctx.get_diff_legacy(tile, bel, "ONESHOT", "1")
-            .assert_empty();
+        let bslot = bslots::CAPTURE;
+        ctx.collect_bel_input_inv_bi(tcid, bslot, CAPTURE::CAP);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, CAPTURE::CLK);
     }
     {
-        let tile = "CNR_NW";
-        let bel = "MISC";
-        ctx.collect_enum_legacy(tile, bel, "TMSPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "TCKPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        let item = xlat_bitvec_legacy(vec![
-            !ctx.get_diff_legacy(tile, bel, "IBCLK_N2", "0"),
-            !ctx.get_diff_legacy(tile, bel, "IBCLK_N4", "0"),
-            !ctx.get_diff_legacy(tile, bel, "IBCLK_N8", "0"),
-            !ctx.get_diff_legacy(tile, bel, "IBCLK_N16", "0"),
-            !ctx.get_diff_legacy(tile, bel, "IBCLK_N32", "0"),
-        ]);
-        ctx.insert_legacy(tile, bel, "BCLK_DIV2", item);
-        for attr in ["IBCLK_N2", "IBCLK_N4", "IBCLK_N8", "IBCLK_N16", "IBCLK_N32"] {
-            ctx.get_diff_legacy(tile, bel, attr, "1").assert_empty();
+        let tcid = cnr_nw;
+        let bslot = bslots::MISC_NW;
+        for attr in [MISC_NW::TCK_PULL, MISC_NW::TMS_PULL] {
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                attr,
+                &[
+                    enums::IOB_PULL::NONE,
+                    enums::IOB_PULL::PULLUP,
+                    enums::IOB_PULL::PULLDOWN,
+                ],
+            );
         }
-        if edev.chip.kind == ChipKind::Virtex && ctx.device.name.contains("2s") {
-            ctx.collect_enum_legacy(tile, bel, "POWERUP_CLK", &["USERCLK", "INTOSC", "CCLK"]);
+
+        ctx.collect_bel_attr_bi(tcid, bslot, MISC_NW::BCLK_DIV2);
+        if tcid == tcls::CNR_NW_S2 {
+            ctx.collect_bel_attr(tcid, bslot, MISC_NW::POWERUP_CLK);
         } else {
             for (attr, val) in [
-                ("POWERUP_CLK", "USERCLK"),
-                ("POWERUP_CLK", "INTOSC"),
-                ("POWERUP_CLK", "CCLK"),
+                (MISC_NW::POWERUP_CLK, enums::POWERUP_CLK::USERCLK),
+                (MISC_NW::POWERUP_CLK, enums::POWERUP_CLK::INTOSC),
+                (MISC_NW::POWERUP_CLK, enums::POWERUP_CLK::CCLK),
             ] {
-                ctx.get_diff_legacy(tile, bel, attr, val).assert_empty();
+                ctx.get_diff_attr_val(tcid, bslot, attr, val).assert_empty();
             }
         }
 
-        let bel = "STARTUP";
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
-        for attr in ["GWE_SYNC", "GSR_SYNC", "GTS_SYNC"] {
-            ctx.collect_bit_bi_legacy(tile, bel, attr, "NO", "YES");
-        }
-        for (pinmux, pin, pin_b) in [
-            ("GWEMUX", "GWE", "GWE_B"),
-            ("GTSMUX", "GTS", "GTS_B"),
-            ("GSRMUX", "GSR", "GSR_B"),
-        ] {
-            let d0 = ctx.get_diff_legacy(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
-            let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
-            let item = xlat_bit_bi_legacy(d0, d1);
-            ctx.insert_legacy(tile, bel, format!("INV.{pin}"), item);
-        }
-        let item = ctx.extract_bit_bi_legacy(tile, bel, "CLKINV", "1", "0");
-        ctx.insert_legacy(tile, bel, "INV.CLK", item);
-        let item = ctx.extract_bit_legacy(tile, bel, "GSR", "1");
-        ctx.insert_legacy(tile, bel, "GSR_GTS_GWE_ENABLE", item);
-        let item = ctx.extract_bit_legacy(tile, bel, "GWE", "1");
-        ctx.insert_legacy(tile, bel, "GSR_GTS_GWE_ENABLE", item);
-        let item = ctx.extract_bit_legacy(tile, bel, "GTS", "1");
-        ctx.insert_legacy(tile, bel, "GSR_GTS_GWE_ENABLE", item);
-        for val in ["JTAGCLK", "CCLK", "USERCLK"] {
-            ctx.get_diff_legacy(tile, bel, "STARTUPCLK", val)
-                .assert_empty();
-        }
+        let bslot = bslots::STARTUP;
+        ctx.collect_bel_attr_bi(tcid, bslot, STARTUP::GWE_SYNC);
+        ctx.collect_bel_attr_bi(tcid, bslot, STARTUP::GSR_SYNC);
+        ctx.collect_bel_attr_bi(tcid, bslot, STARTUP::GTS_SYNC);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, STARTUP::GSR);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, STARTUP::GWE);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, STARTUP::GTS);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, STARTUP::CLK);
+        ctx.collect_bel_attr(tcid, bslot, STARTUP::USER_GTS_GWE_GSR_ENABLE);
 
-        let bel = "BSCAN";
-        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
-            .assert_empty();
-        for (pinmux, pin, pin_b) in [("TDO1MUX", "TDO1", "TDO1_B"), ("TDO2MUX", "TDO2", "TDO2_B")] {
-            let d0 = ctx.get_diff_legacy(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
-            let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
-            let item = xlat_bit_bi_legacy(d0, d1);
-            ctx.insert_legacy(tile, bel, format!("INV.{pin}"), item);
+        let bslot = bslots::BSCAN;
+        ctx.collect_bel_input_inv_bi(tcid, bslot, BSCAN::TDO1);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, BSCAN::TDO2);
+        ctx.collect_bel_attr(tcid, bslot, BSCAN::USERCODE);
+    }
+    {
+        let tcid = tcls::CNR_SE;
+        let bslot = bslots::MISC_SE;
+        for attr in [MISC_SE::DONE_PULL, MISC_SE::PROG_PULL] {
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                attr,
+                &[enums::IOB_PULL::NONE, enums::IOB_PULL::PULLUP],
+            );
         }
-        ctx.collect_bitvec_legacy(tile, bel, "USERID", "");
     }
     {
-        let tile = "CNR_SE";
-        let bel = "MISC";
-        ctx.collect_enum_legacy(tile, bel, "DONEPIN", &["PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "PROGPIN", &["PULLUP", "PULLNONE"]);
-    }
-    {
-        let tile = "CNR_NE";
-        let bel = "MISC";
-        ctx.collect_enum_legacy(tile, bel, "CCLKPIN", &["PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "TDIPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        ctx.collect_enum_legacy(tile, bel, "TDOPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
+        let tcid = tcls::CNR_NE;
+        let bslot = bslots::MISC_NE;
+        ctx.collect_bel_attr_subset(
+            tcid,
+            bslot,
+            MISC_NE::CCLK_PULL,
+            &[enums::IOB_PULL::NONE, enums::IOB_PULL::PULLUP],
+        );
+        for attr in [MISC_NE::TDI_PULL, MISC_NE::TDO_PULL] {
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                attr,
+                &[
+                    enums::IOB_PULL::NONE,
+                    enums::IOB_PULL::PULLUP,
+                    enums::IOB_PULL::PULLDOWN,
+                ],
+            );
+        }
     }
 
     {

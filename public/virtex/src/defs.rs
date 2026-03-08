@@ -1,6 +1,325 @@
+use prjcombine_interconnect::db::WireSlotId;
 use prjcombine_tablegen::target_defs;
 
 target_defs! {
+    enum SLICE_CYINIT { BX, CIN }
+    enum SLICE_CY0 { CONST_0, CONST_1, F1_G1, PROD }
+    enum SLICE_CYSELF { CONST_1, F }
+    enum SLICE_CYSELG { CONST_1, G }
+    enum SLICE_DIF_MUX { BX, BY }
+    enum SLICE_DXMUX { BX, X }
+    enum SLICE_DYMUX { BY, Y }
+    enum SLICE_FXMUX { F, F5, FXOR }
+    enum SLICE_GYMUX { G, F6, GXOR }
+    enum SLICE_YBMUX { GCY, BY }
+
+    bel_class SLICE {
+        input F1, F2, F3, F4;
+        input G1, G2, G3, G4;
+        input BX, BY;
+        input CLK, SR, CE;
+        output X, Y;
+        output XQ, YQ;
+        output XB, YB;
+
+        attribute F, G: bitvec[16];
+
+        attribute DIF_MUX: SLICE_DIF_MUX;
+        attribute F_RAM_ENABLE, G_RAM_ENABLE: bool;
+        attribute F_SHIFT_ENABLE, G_SHIFT_ENABLE: bool;
+        attribute WA4_ENABLE: bool;
+
+        attribute CYINIT: SLICE_CYINIT;
+        attribute CY0: SLICE_CY0;
+        attribute CYSELF: SLICE_CYSELF;
+        attribute CYSELG: SLICE_CYSELG;
+
+        attribute FFX_INIT, FFY_INIT: bitvec[1];
+        attribute FFX_READBACK, FFY_READBACK: bitvec[1];
+        attribute FF_LATCH: bool;
+        attribute FF_REV_ENABLE: bool;
+        attribute FF_SR_SYNC: bool;
+        attribute FF_SR_ENABLE: bool;
+
+        attribute FXMUX: SLICE_FXMUX;
+        attribute GYMUX: SLICE_GYMUX;
+        attribute DXMUX: SLICE_DXMUX;
+        attribute DYMUX: SLICE_DYMUX;
+
+        attribute YBMUX: SLICE_YBMUX;
+    }
+
+    bel_class TBUF {
+        input I, T;
+        attribute OUT_A, OUT_B: bool;
+    }
+
+    bel_class TBUS {
+        output OUT;
+        attribute JOINER_E: bool;
+    }
+
+    bel_class TBUS_WE {
+        output BUS0, BUS1, BUS2, BUS3;
+
+        // IO_W only
+        attribute JOINER: bool;
+        attribute JOINER_E: bool;
+    }
+
+    enum BRAM_DATA_WIDTH { _1, _2, _4, _8, _16 }
+    bel_class BRAM {
+        input CLKA, CLKB;
+        input ENA, ENB;
+        input RSTA, RSTB;
+        input WEA, WEB;
+        input ADDRA[12], ADDRB[12];
+        input DIA[16], DIB[16];
+        output DOA[16], DOB[16];
+
+        attribute DATA_WIDTH_A: BRAM_DATA_WIDTH;
+        attribute DATA_WIDTH_B: BRAM_DATA_WIDTH;
+        attribute INIT: bitvec[0x1000];
+    }
+
+    enum IO_MUX_O { O, FFO }
+    enum IO_MUX_T { T, FFT }
+    bel_class IOI {
+        // the inputs are tied together, but with separate inverts
+        input ICLK, OCLK, TCLK;
+        input SR;
+        input ICE, OCE, TCE;
+        input O, T;
+        output I, IQ;
+
+        attribute SHORTEN_JTAG_CHAIN: bool;
+
+        // input path
+        attribute FFI_INIT: bitvec[1];
+        attribute FFI_READBACK: bitvec[1];
+        attribute FFI_LATCH: bool;
+        attribute FFI_SR_ENABLE: bool;
+        attribute FFI_SR_SYNC: bool;
+        attribute FFI_DELAY_ENABLE: bool;
+        attribute I_DELAY_ENABLE: bool;
+
+        // output path
+        attribute FFO_INIT: bitvec[1];
+        attribute FFO_READBACK: bitvec[1];
+        attribute FFO_LATCH: bool;
+        attribute FFO_SR_ENABLE: bool;
+        attribute FFO_SR_SYNC: bool;
+        attribute FFT_INIT: bitvec[1];
+        attribute FFT_READBACK: bitvec[1];
+        attribute FFT_LATCH: bool;
+        attribute FFT_SR_ENABLE: bool;
+        attribute FFT_SR_SYNC: bool;
+        attribute MUX_O: IO_MUX_O;
+        attribute MUX_T: IO_MUX_T;
+    }
+
+    enum IOB_PULL { NONE, PULLUP, PULLDOWN, KEEPER }
+    // VREF_LV, VREF_HV are virtex only
+    // VREF, DIFF are virtexe only
+    enum IOB_IBUF_MODE { NONE, VREF_LV, VREF_HV, VREF, DIFF, CMOS }
+    bel_class IOB {
+        pad PAD: inout;
+
+        attribute PULL: IOB_PULL;
+        attribute IBUF_MODE: IOB_IBUF_MODE;
+        attribute READBACK_I: bitvec[1];
+        attribute VREF: bool;
+        // duplicated with IOI for unknown reasons
+        attribute MUX_T: IO_MUX_T;
+        attribute MUX_O: IO_MUX_O;
+
+        attribute PDRIVE: bitvec[4];
+        attribute NDRIVE: bitvec[5];
+        attribute V_SLEW: bitvec[4];
+        attribute V_OUTPUT_MISC: bitvec[2];
+        attribute V_IOSTD_MISC: bitvec[3];
+        attribute VE_SLEW: bitvec[5];
+        attribute VE_OUTPUT_MISC: bitvec[3];
+        attribute VE_IOSTD_MISC: bitvec[1];
+    }
+
+    table IOB_DATA_V {
+        field PDRIVE: bitvec[4];
+        field NDRIVE: bitvec[5];
+        field SLEW_FAST: bitvec[4];
+        field SLEW_SLOW: bitvec[4];
+        field OUTPUT_MISC: bitvec[2];
+        field IOSTD_MISC: bitvec[3];
+
+        row OFF;
+
+        row LVTTL_2, LVTTL_4, LVTTL_6, LVTTL_8, LVTTL_12, LVTTL_16, LVTTL_24;
+        row LVCMOS2;
+        row PCI33_3, PCI33_5, PCI66_3;
+
+        row AGP, CTT;
+        row GTL, GTLP;
+        row HSTL_I, HSTL_III, HSTL_IV;
+        row SSTL2_I, SSTL2_II;
+        row SSTL3_I, SSTL3_II;
+    }
+
+    table IOB_DATA_VE {
+        field PDRIVE: bitvec[4];
+        field NDRIVE: bitvec[5];
+        field SLEW_FAST: bitvec[5];
+        field SLEW_SLOW: bitvec[5];
+        field OUTPUT_MISC: bitvec[3];
+        field IOSTD_MISC: bitvec[1];
+
+        row OFF;
+
+        row LVTTL_2, LVTTL_4, LVTTL_6, LVTTL_8, LVTTL_12, LVTTL_16, LVTTL_24;
+        row LVCMOS2, LVCMOS18;
+        row PCI33_3, PCI66_3, PCIX66_3;
+
+        row AGP, CTT;
+        row GTL, GTLP;
+        row HSTL_I, HSTL_III, HSTL_IV;
+        row SSTL2_I, SSTL2_II;
+        row SSTL3_I, SSTL3_II;
+
+        row LVDS, LVPECL;
+    }
+
+    bel_class CAPTURE {
+        input CLK;
+        input CAP;
+    }
+
+    bel_class STARTUP {
+        input CLK;
+        input GSR, GWE, GTS;
+
+        attribute USER_GTS_GWE_GSR_ENABLE: bool;
+        attribute GSR_SYNC: bool;
+        attribute GWE_SYNC: bool;
+        attribute GTS_SYNC: bool;
+    }
+
+    bel_class BSCAN {
+        input TDO1, TDO2;
+        output DRCK1, DRCK2;
+        output SEL1, SEL2;
+        output TDI;
+        output RESET, SHIFT, UPDATE;
+
+        attribute USERCODE: bitvec[32];
+    }
+
+    bel_class BUFGCE {
+        input I, CE;
+        output O;
+        attribute INIT_OUT: bitvec[1];
+    }
+
+    bel_class GCLK_IOB {
+        output I;
+
+        pad PAD: input;
+
+        attribute DELAY: bitvec[5];
+        attribute IBUF_MODE: IOB_IBUF_MODE;
+    }
+
+    bel_class IOFB {
+        output I;
+        attribute IBUF_MODE: IOB_IBUF_MODE;
+    }
+
+    bel_class PCILOGIC {
+        input I1, I2, I3;
+        output PCI_CE;
+        attribute PCI_DELAY: bitvec[2];
+    }
+
+    enum DLL_CLKDV_MODE { HALF, INT }
+    enum DLL_TEST_OSC { _90, _180, _270, _360 }
+    bel_class DLL {
+        input CLKIN, CLKFB, RST;
+        output CLK0, CLK90, CLK180, CLK270, CLK2X, CLK2X90, CLKDV;
+        output LOCKED;
+
+        attribute ENABLE: bool;
+        attribute CLK_FEEDBACK_2X: bool;
+        attribute DUTY_CYCLE_CORRECTION: bitvec[4];
+        attribute CLKIN_PAD: bool;
+        attribute CLKFB_PAD: bool;
+        attribute HIGH_FREQUENCY: bool;
+
+        attribute CLKDV_COUNT_MAX: bitvec[4];
+        attribute CLKDV_COUNT_FALL: bitvec[4];
+        attribute CLKDV_COUNT_FALL_2: bitvec[4];
+        attribute CLKDV_PHASE_RISE: bitvec[2];
+        attribute CLKDV_PHASE_FALL: bitvec[2];
+        attribute CLKDV_MODE: DLL_CLKDV_MODE;
+
+        attribute FACTORY_JF1: bitvec[8];
+        attribute FACTORY_JF2: bitvec[8];
+
+        attribute CFG_O_14: bitvec[1];
+        attribute LVL1_MUX_20: bitvec[1];
+        attribute LVL1_MUX_21: bitvec[1];
+        attribute LVL1_MUX_22: bitvec[1];
+        attribute LVL1_MUX_23: bitvec[1];
+        attribute LVL1_MUX_24: bitvec[1];
+        attribute TESTDLL: bitvec[6];
+        attribute TESTZD2OSC: bool;
+        attribute TEST_OSC: DLL_TEST_OSC;
+    }
+
+    enum POWERUP_DELAY { _100US, _200US, _400US }
+    bel_class MISC_SW {
+        pad M0, M1, M2: input;
+        pad POWERDOWN_B: input;
+
+        attribute M0_PULL: IOB_PULL;
+        attribute M1_PULL: IOB_PULL;
+        attribute M2_PULL: IOB_PULL;
+        attribute POWERDOWN_PULL: IOB_PULL;
+        // ?????
+        attribute PDSTATUS_PULL: IOB_PULL;
+
+        attribute DRIVE_PD_STATUS: bool;
+        attribute POWERUP_DELAY: POWERUP_DELAY;
+    }
+
+    bel_class MISC_SE {
+        pad DONE: inout;
+        pad PROG_B: input;
+
+        attribute DONE_PULL: IOB_PULL;
+        attribute PROG_PULL: IOB_PULL;
+    }
+
+    enum POWERUP_CLK { INTOSC, CCLK, USERCLK }
+    bel_class MISC_NW {
+        pad TCK: input;
+        pad TMS: input;
+
+        attribute TCK_PULL: IOB_PULL;
+        attribute TMS_PULL: IOB_PULL;
+
+        attribute DLL_ENABLE: bool;
+        attribute POWERUP_CLK: POWERUP_CLK;
+        attribute BCLK_DIV2: bitvec[5];
+    }
+
+    bel_class MISC_NE {
+        pad CCLK: inout;
+        pad TDI: input;
+        pad TDO: output;
+
+        attribute CCLK_PULL: IOB_PULL;
+        attribute TDI_PULL: IOB_PULL;
+        attribute TDO_PULL: IOB_PULL;
+    }
+
     enum STARTUP_CYCLE { _0, _1, _2, _3, _4, _5, _6, DONE, KEEP, NOWAIT }
     enum STARTUP_CLOCK { CCLK, USERCLK, JTAGCLK }
     enum CONFIG_RATE { _4, _5, _7, _8, _9, _10, _13, _15, _20, _26, _30, _34, _41, _51, _55, _60, _130 }
@@ -35,7 +354,10 @@ target_defs! {
     region_slot LEAF;
     region_slot PCI_CE;
 
-    wire GCLK[4]: regional LEAF;
+    wire PULLUP: pullup;
+
+    wire GCLK[4]: regional GLOBAL;
+    wire GCLK_LEAF[4]: regional LEAF;
     wire GCLK_BUF[4]: mux;
 
     wire PCI_CE: regional PCI_CE;
@@ -56,6 +378,9 @@ target_defs! {
     wire BRAM_QUAD_DOUT[32]: multi_root;
     wire BRAM_QUAD_DOUT_S[32]: multi_branch N;
 
+    wire BRAM_QUAD_ADDR_MUX[32]: mux;
+    wire BRAM_QUAD_DIN_MUX[32]: mux;
+
     wire HEX_H0[6]: multi_branch E;
     wire HEX_H1[6]: multi_branch E;
     wire HEX_H2[6]: multi_branch E;
@@ -70,6 +395,13 @@ target_defs! {
     wire HEX_H4_BUF[4]: mux;
     wire HEX_H5_BUF[4]: mux;
     wire HEX_H6_BUF[4]: mux;
+    wire HEX_H0_MUX[6]: mux;
+    wire HEX_H1_MUX[6]: mux;
+    wire HEX_H2_MUX[6]: mux;
+    wire HEX_H3_MUX[6]: mux;
+    wire HEX_H4_MUX[6]: mux;
+    wire HEX_H5_MUX[6]: mux;
+    wire HEX_H6_MUX[6]: mux;
 
     wire HEX_W0[4]: mux;
     wire HEX_W1[4]: branch E;
@@ -101,6 +433,13 @@ target_defs! {
     wire HEX_V4_BUF[4]: mux;
     wire HEX_V5_BUF[4]: mux;
     wire HEX_V6_BUF[4]: mux;
+    wire HEX_V0_MUX[4]: mux;
+    wire HEX_V1_MUX[4]: mux;
+    wire HEX_V2_MUX[4]: mux;
+    wire HEX_V3_MUX[4]: mux;
+    wire HEX_V4_MUX[4]: mux;
+    wire HEX_V5_MUX[4]: mux;
+    wire HEX_V6_MUX[4]: mux;
 
     wire HEX_S0[4]: mux;
     wire HEX_S1[4]: branch N;
@@ -118,10 +457,10 @@ target_defs! {
     wire HEX_N5[4]: branch S;
     wire HEX_N6[4]: branch S;
 
+    wire LH_MUX[12]: mux;
     wire LH[12]: multi_branch W;
-    wire LH_FAKE0: mux;
-    wire LH_FAKE6: mux;
 
+    wire LV_MUX[12]: mux;
     wire LV[12]: multi_branch S;
 
     wire IMUX_CLB_CLK[2]: mux;
@@ -225,16 +564,17 @@ target_defs! {
 
     tile_slot MAIN {
         bel_slot INT: routing;
-        bel_slot SLICE[2]: legacy;
-        bel_slot TBUF[2]: legacy;
-        bel_slot TBUS: legacy;
+        bel_slot SLICE[2]: SLICE;
+        bel_slot TBUF[2]: TBUF;
+        bel_slot TBUS: TBUS;
+        bel_slot TBUS_WE: TBUS_WE;
 
         tile_class CLB {
             cell CELL;
             bitrect MAIN: MAIN;
         }
 
-        bel_slot IO[4]: legacy;
+        bel_slot IOI[4]: IOI;
 
         tile_class IO_W {
             cell CELL;
@@ -253,23 +593,8 @@ target_defs! {
             bitrect MAIN: MAIN;
         }
 
-        bel_slot BRAM: legacy;
-        bel_slot CLKV_BRAM: legacy;
-        tile_class BRAM_W {
-            cell CELL[4];
-            cell CELL_W[4];
-            cell CELL_E[4];
-            bitrect MAIN[4]: BRAM;
-            bitrect DATA: BRAM_DATA;
-        }
-        tile_class BRAM_E {
-            cell CELL[4];
-            cell CELL_W[4];
-            cell CELL_E[4];
-            bitrect MAIN[4]: BRAM;
-            bitrect DATA: BRAM_DATA;
-        }
-        tile_class BRAM_M {
+        bel_slot BRAM: BRAM;
+        tile_class BRAM_W, BRAM_E, BRAM_M, BRAM_W_S2, BRAM_E_S2 {
             cell CELL[4];
             cell CELL_W[4];
             cell CELL_E[4];
@@ -277,10 +602,14 @@ target_defs! {
             bitrect DATA: BRAM_DATA;
         }
 
-        bel_slot CAPTURE: legacy;
-        bel_slot STARTUP: legacy;
-        bel_slot BSCAN: legacy;
-        tile_class CNR_SW {
+        bel_slot CAPTURE: CAPTURE;
+        bel_slot STARTUP: STARTUP;
+        bel_slot BSCAN: BSCAN;
+        bel_slot MISC_SW: MISC_SW;
+        bel_slot MISC_SE: MISC_SE;
+        bel_slot MISC_NW: MISC_NW;
+        bel_slot MISC_NE: MISC_NE;
+        tile_class CNR_SW, CNR_SW_S2 {
             cell CELL;
             bitrect MAIN: IO_WE;
         }
@@ -288,7 +617,7 @@ target_defs! {
             cell CELL;
             bitrect MAIN: IO_WE;
         }
-        tile_class CNR_NW {
+        tile_class CNR_NW, CNR_NW_S2 {
             cell CELL;
             bitrect MAIN: IO_WE;
         }
@@ -306,7 +635,7 @@ target_defs! {
 
     tile_slot DLL {
         bel_slot DLL_INT: routing;
-        bel_slot DLL: legacy;
+        bel_slot DLL: DLL;
 
         tile_class DLL_S, DLLS_S, DLL_N, DLLS_N {
             cell CELL, CELL_W, CLK;
@@ -320,73 +649,65 @@ target_defs! {
     }
 
     tile_slot IOB {
+        bel_slot IOB[4]: IOB;
         tile_class IOB_W_V, IOB_W_VE {
             bitrect MAIN: IO_WE;
+            bel IOB[1];
+            bel IOB[2];
+            bel IOB[3];
         }
         tile_class IOB_E_V, IOB_E_VE {
             bitrect MAIN: IO_WE;
+            bel IOB[1];
+            bel IOB[2];
+            bel IOB[3];
         }
         tile_class IOB_S_V, IOB_S_VE {
             bitrect MAIN: MAIN;
+            bel IOB[1];
+            bel IOB[2];
         }
         tile_class IOB_N_V, IOB_N_VE {
             bitrect MAIN: MAIN;
+            bel IOB[1];
+            bel IOB[2];
         }
     }
 
     tile_slot PCILOGIC {
         bel_slot PCI_INT: routing;
-        bel_slot PCILOGIC: legacy;
+        bel_slot PCILOGIC: PCILOGIC;
 
-        tile_class PCI_W, PCI_E {
+        tile_class PCI_W_V, PCI_E_V, PCI_W_VE, PCI_E_VE {
             cell CELL;
             bitrect MAIN: IO_WE;
         }
     }
 
-    tile_slot CLK_SN {
-        bel_slot GCLK_INT: routing;
-        bel_slot GCLK_IO[2]: legacy;
-        bel_slot BUFG[2]: legacy;
-        bel_slot IOFB[2]: legacy;
+    tile_slot CLK {
+        bel_slot CLK_INT: routing;
+        bel_slot GCLK_IOB[2]: GCLK_IOB;
+        bel_slot IOFB[2]: IOFB;
+        bel_slot BUFGCE[2]: BUFGCE;
 
         tile_class CLK_S_V, CLK_N_V {
-            cell CELL, DLL_W, DLL_E;
+            cell W, E, DLL_W, DLL_E;
             bitrect CLK[2]: CLK;
         }
         tile_class CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL {
-            cell CELL, DLLP_W, DLLP_E, DLLS_W, DLLS_E;
+            cell W, E, DLLP_W, DLLP_E, DLLS_W, DLLS_E;
             bitrect CLK[2]: CLK;
         }
-    }
 
-    tile_slot CLKC {
-        bel_slot CLKC: legacy;
-        bel_slot GCLKC: legacy;
-        bel_slot CLKH: legacy;
-        bel_slot BRAM_CLKH: legacy;
-        tile_class CLKC {
-        }
-        tile_class GCLKC {
-        }
-        tile_class BRAM_CLKH {
-            cell CELL;
-        }
-    }
-
-    tile_slot CLKV {
-        bel_slot CLKV: legacy;
-        bel_slot CLKV_BRAM_S: legacy;
-        bel_slot CLKV_BRAM_N: legacy;
         tile_class CLKV_CLKV, CLKV_GCLKV {
             cell W, E;
             bitrect CLKV: CLKV;
         }
-        tile_class CLKV_NULL {
+        tile_class CLKV_IO {
             cell W, E;
         }
-        tile_class CLKV_BRAM_S, CLKV_BRAM_N {
-            cell CELL, W, BRAM;
+        tile_class CLKV_BRAM_S, CLKV_BRAM_N, CLKV_BRAM_S_S2, CLKV_BRAM_N_S2 {
+            cell W, E;
             bitrect MAIN: BRAM;
         }
     }
@@ -486,5 +807,89 @@ target_defs! {
             pass BRAM_QUAD_DIN_S = BRAM_QUAD_DIN;
             pass BRAM_QUAD_DOUT_S = BRAM_QUAD_DOUT;
         }
+    }
+}
+
+pub fn wire_to_mux(wire: WireSlotId) -> Option<WireSlotId> {
+    if let Some(idx) = wires::HEX_H0.index_of(wire) {
+        Some(wires::HEX_H0_MUX[idx])
+    } else if let Some(idx) = wires::HEX_H1.index_of(wire) {
+        Some(wires::HEX_H1_MUX[idx])
+    } else if let Some(idx) = wires::HEX_H2.index_of(wire) {
+        Some(wires::HEX_H2_MUX[idx])
+    } else if let Some(idx) = wires::HEX_H3.index_of(wire) {
+        Some(wires::HEX_H3_MUX[idx])
+    } else if let Some(idx) = wires::HEX_H4.index_of(wire) {
+        Some(wires::HEX_H4_MUX[idx])
+    } else if let Some(idx) = wires::HEX_H5.index_of(wire) {
+        Some(wires::HEX_H5_MUX[idx])
+    } else if let Some(idx) = wires::HEX_H6.index_of(wire) {
+        Some(wires::HEX_H6_MUX[idx])
+    } else if let Some(idx) = wires::HEX_V0.index_of(wire) {
+        Some(wires::HEX_V0_MUX[idx])
+    } else if let Some(idx) = wires::HEX_V1.index_of(wire) {
+        Some(wires::HEX_V1_MUX[idx])
+    } else if let Some(idx) = wires::HEX_V2.index_of(wire) {
+        Some(wires::HEX_V2_MUX[idx])
+    } else if let Some(idx) = wires::HEX_V3.index_of(wire) {
+        Some(wires::HEX_V3_MUX[idx])
+    } else if let Some(idx) = wires::HEX_V4.index_of(wire) {
+        Some(wires::HEX_V4_MUX[idx])
+    } else if let Some(idx) = wires::HEX_V5.index_of(wire) {
+        Some(wires::HEX_V5_MUX[idx])
+    } else if let Some(idx) = wires::HEX_V6.index_of(wire) {
+        Some(wires::HEX_V6_MUX[idx])
+    } else if let Some(idx) = wires::LH.index_of(wire) {
+        Some(wires::LH_MUX[idx])
+    } else if let Some(idx) = wires::LV.index_of(wire) {
+        Some(wires::LV_MUX[idx])
+    } else if let Some(idx) = wires::BRAM_QUAD_DIN.index_of(wire) {
+        Some(wires::BRAM_QUAD_DIN_MUX[idx])
+    } else if let Some(idx) = wires::BRAM_QUAD_ADDR.index_of(wire) {
+        Some(wires::BRAM_QUAD_ADDR_MUX[idx])
+    } else {
+        None
+    }
+}
+
+pub fn wire_from_mux(wire: WireSlotId) -> Option<WireSlotId> {
+    if let Some(idx) = wires::HEX_H0_MUX.index_of(wire) {
+        Some(wires::HEX_H0[idx])
+    } else if let Some(idx) = wires::HEX_H1_MUX.index_of(wire) {
+        Some(wires::HEX_H1[idx])
+    } else if let Some(idx) = wires::HEX_H2_MUX.index_of(wire) {
+        Some(wires::HEX_H2[idx])
+    } else if let Some(idx) = wires::HEX_H3_MUX.index_of(wire) {
+        Some(wires::HEX_H3[idx])
+    } else if let Some(idx) = wires::HEX_H4_MUX.index_of(wire) {
+        Some(wires::HEX_H4[idx])
+    } else if let Some(idx) = wires::HEX_H5_MUX.index_of(wire) {
+        Some(wires::HEX_H5[idx])
+    } else if let Some(idx) = wires::HEX_H6_MUX.index_of(wire) {
+        Some(wires::HEX_H6[idx])
+    } else if let Some(idx) = wires::HEX_V0_MUX.index_of(wire) {
+        Some(wires::HEX_V0[idx])
+    } else if let Some(idx) = wires::HEX_V1_MUX.index_of(wire) {
+        Some(wires::HEX_V1[idx])
+    } else if let Some(idx) = wires::HEX_V2_MUX.index_of(wire) {
+        Some(wires::HEX_V2[idx])
+    } else if let Some(idx) = wires::HEX_V3_MUX.index_of(wire) {
+        Some(wires::HEX_V3[idx])
+    } else if let Some(idx) = wires::HEX_V4_MUX.index_of(wire) {
+        Some(wires::HEX_V4[idx])
+    } else if let Some(idx) = wires::HEX_V5_MUX.index_of(wire) {
+        Some(wires::HEX_V5[idx])
+    } else if let Some(idx) = wires::HEX_V6_MUX.index_of(wire) {
+        Some(wires::HEX_V6[idx])
+    } else if let Some(idx) = wires::LH_MUX.index_of(wire) {
+        Some(wires::LH[idx])
+    } else if let Some(idx) = wires::LV_MUX.index_of(wire) {
+        Some(wires::LV[idx])
+    } else if let Some(idx) = wires::BRAM_QUAD_DIN_MUX.index_of(wire) {
+        Some(wires::BRAM_QUAD_DIN[idx])
+    } else if let Some(idx) = wires::BRAM_QUAD_ADDR_MUX.index_of(wire) {
+        Some(wires::BRAM_QUAD_ADDR[idx])
+    } else {
+        None
     }
 }
