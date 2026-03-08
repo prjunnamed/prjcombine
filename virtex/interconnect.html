@@ -162,19 +162,15 @@
 </thead>
 
 <tbody>
-<tr><td>MAIN</td><td>CLB, IO_W, IO_E, IO_S, IO_N, BRAM_W, BRAM_E, BRAM_M, CNR_SW, CNR_SE, CNR_NW, CNR_NE, BRAM_S, BRAM_N</td><td>INT, SLICE[0], SLICE[1], TBUF[0], TBUF[1], TBUS, IO[0], IO[1], IO[2], IO[3], BRAM, CLKV_BRAM, CAPTURE, STARTUP, BSCAN</td></tr>
+<tr><td>MAIN</td><td>CLB, IO_W, IO_E, IO_S, IO_N, BRAM_W, BRAM_E, BRAM_M, BRAM_W_S2, BRAM_E_S2, CNR_SW, CNR_SW_S2, CNR_SE, CNR_NW, CNR_NW_S2, CNR_NE, BRAM_S, BRAM_N</td><td>INT, SLICE[0], SLICE[1], TBUF[0], TBUF[1], TBUS, TBUS_WE, IOI[0], IOI[1], IOI[2], IOI[3], BRAM, CAPTURE, STARTUP, BSCAN, MISC_SW, MISC_SE, MISC_NW, MISC_NE</td></tr>
 
 <tr><td>DLL</td><td>DLL_S, DLLS_S, DLL_N, DLLS_N, DLLP_S, DLLP_N</td><td>DLL_INT, DLL</td></tr>
 
-<tr><td>IOB</td><td>IOB_W_V, IOB_W_VE, IOB_E_V, IOB_E_VE, IOB_S_V, IOB_S_VE, IOB_N_V, IOB_N_VE</td><td></td></tr>
+<tr><td>IOB</td><td>IOB_W_V, IOB_W_VE, IOB_E_V, IOB_E_VE, IOB_S_V, IOB_S_VE, IOB_N_V, IOB_N_VE</td><td>IOB[0], IOB[1], IOB[2], IOB[3]</td></tr>
 
-<tr><td>PCILOGIC</td><td>PCI_W, PCI_E</td><td>PCI_INT, PCILOGIC</td></tr>
+<tr><td>PCILOGIC</td><td>PCI_W_V, PCI_E_V, PCI_W_VE, PCI_E_VE</td><td>PCI_INT, PCILOGIC</td></tr>
 
-<tr><td>CLK_SN</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td><td>GCLK_INT, GCLK_IO[0], GCLK_IO[1], BUFG[0], BUFG[1], IOFB[0], IOFB[1]</td></tr>
-
-<tr><td>CLKC</td><td>CLKC, GCLKC, BRAM_CLKH</td><td>CLKC, GCLKC, CLKH, BRAM_CLKH</td></tr>
-
-<tr><td>CLKV</td><td>CLKV_CLKV, CLKV_GCLKV, CLKV_NULL, CLKV_BRAM_S, CLKV_BRAM_N</td><td>CLKV, CLKV_BRAM_S, CLKV_BRAM_N</td></tr>
+<tr><td>CLK</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL, CLKV_CLKV, CLKV_GCLKV, CLKV_IO, CLKV_BRAM_S, CLKV_BRAM_N, CLKV_BRAM_S_S2, CLKV_BRAM_N_S2</td><td>CLK_INT, GCLK_IOB[0], GCLK_IOB[1], IOFB[0], IOFB[1], BUFGCE[0], BUFGCE[1]</td></tr>
 
 <tr><td>GLOBAL</td><td>GLOBAL</td><td>GLOBAL</td></tr>
 
@@ -193,71 +189,73 @@
 </thead>
 
 <tbody>
-<tr><td>INT</td><td>routing</td><td>MAIN</td><td>CLB, IO_W, IO_E, IO_S, IO_N, BRAM_W, BRAM_E, BRAM_M, CNR_SW, CNR_SE, CNR_NW, CNR_NE, BRAM_S, BRAM_N</td></tr>
+<tr><td>INT</td><td>routing</td><td>MAIN</td><td>CLB, IO_W, IO_E, IO_S, IO_N, BRAM_W, BRAM_E, BRAM_M, BRAM_W_S2, BRAM_E_S2, CNR_SW, CNR_SW_S2, CNR_SE, CNR_NW, CNR_NW_S2, CNR_NE, BRAM_S, BRAM_N</td></tr>
 
-<tr><td>SLICE[0]</td><td>legacy</td><td>MAIN</td><td>CLB</td></tr>
+<tr><td>SLICE[0]</td><td>SLICE</td><td>MAIN</td><td>CLB</td></tr>
 
-<tr><td>SLICE[1]</td><td>legacy</td><td>MAIN</td><td>CLB</td></tr>
+<tr><td>SLICE[1]</td><td>SLICE</td><td>MAIN</td><td>CLB</td></tr>
 
-<tr><td>TBUF[0]</td><td>legacy</td><td>MAIN</td><td>CLB, IO_W, IO_E</td></tr>
+<tr><td>TBUF[0]</td><td>TBUF</td><td>MAIN</td><td>CLB, IO_W, IO_E</td></tr>
 
-<tr><td>TBUF[1]</td><td>legacy</td><td>MAIN</td><td>CLB, IO_W, IO_E</td></tr>
+<tr><td>TBUF[1]</td><td>TBUF</td><td>MAIN</td><td>CLB, IO_W, IO_E</td></tr>
 
-<tr><td>TBUS</td><td>legacy</td><td>MAIN</td><td>CLB, IO_W, IO_E</td></tr>
+<tr><td>TBUS</td><td>TBUS</td><td>MAIN</td><td>CLB</td></tr>
 
-<tr><td>IO[0]</td><td>legacy</td><td>MAIN</td><td>IO_W, IO_E, IO_S, IO_N</td></tr>
+<tr><td>TBUS_WE</td><td>TBUS_WE</td><td>MAIN</td><td>IO_W, IO_E</td></tr>
 
-<tr><td>IO[1]</td><td>legacy</td><td>MAIN</td><td>IO_W, IO_E, IO_S, IO_N</td></tr>
+<tr><td>IOI[0]</td><td>IOI</td><td>MAIN</td><td>IO_W, IO_E, IO_S, IO_N</td></tr>
 
-<tr><td>IO[2]</td><td>legacy</td><td>MAIN</td><td>IO_W, IO_E, IO_S, IO_N</td></tr>
+<tr><td>IOI[1]</td><td>IOI</td><td>MAIN</td><td>IO_W, IO_E, IO_S, IO_N</td></tr>
 
-<tr><td>IO[3]</td><td>legacy</td><td>MAIN</td><td>IO_W, IO_E, IO_S, IO_N</td></tr>
+<tr><td>IOI[2]</td><td>IOI</td><td>MAIN</td><td>IO_W, IO_E, IO_S, IO_N</td></tr>
 
-<tr><td>BRAM</td><td>legacy</td><td>MAIN</td><td>BRAM_W, BRAM_E, BRAM_M</td></tr>
+<tr><td>IOI[3]</td><td>IOI</td><td>MAIN</td><td>IO_W, IO_E, IO_S, IO_N</td></tr>
 
-<tr><td>CLKV_BRAM</td><td>legacy</td><td>MAIN</td><td>BRAM_W, BRAM_E</td></tr>
+<tr><td>BRAM</td><td>BRAM</td><td>MAIN</td><td>BRAM_W, BRAM_E, BRAM_M, BRAM_W_S2, BRAM_E_S2</td></tr>
 
-<tr><td>CAPTURE</td><td>legacy</td><td>MAIN</td><td>CNR_SW</td></tr>
+<tr><td>CAPTURE</td><td>CAPTURE</td><td>MAIN</td><td>CNR_SW, CNR_SW_S2</td></tr>
 
-<tr><td>STARTUP</td><td>legacy</td><td>MAIN</td><td>CNR_NW</td></tr>
+<tr><td>STARTUP</td><td>STARTUP</td><td>MAIN</td><td>CNR_NW, CNR_NW_S2</td></tr>
 
-<tr><td>BSCAN</td><td>legacy</td><td>MAIN</td><td>CNR_NW</td></tr>
+<tr><td>BSCAN</td><td>BSCAN</td><td>MAIN</td><td>CNR_NW, CNR_NW_S2</td></tr>
+
+<tr><td>MISC_SW</td><td>MISC_SW</td><td>MAIN</td><td>CNR_SW, CNR_SW_S2</td></tr>
+
+<tr><td>MISC_SE</td><td>MISC_SE</td><td>MAIN</td><td>CNR_SE</td></tr>
+
+<tr><td>MISC_NW</td><td>MISC_NW</td><td>MAIN</td><td>CNR_NW, CNR_NW_S2</td></tr>
+
+<tr><td>MISC_NE</td><td>MISC_NE</td><td>MAIN</td><td>CNR_NE</td></tr>
 
 <tr><td>DLL_INT</td><td>routing</td><td>DLL</td><td>DLL_S, DLLS_S, DLL_N, DLLS_N, DLLP_S, DLLP_N</td></tr>
 
-<tr><td>DLL</td><td>legacy</td><td>DLL</td><td>DLL_S, DLLS_S, DLL_N, DLLS_N, DLLP_S, DLLP_N</td></tr>
+<tr><td>DLL</td><td>DLL</td><td>DLL</td><td>DLL_S, DLLS_S, DLL_N, DLLS_N, DLLP_S, DLLP_N</td></tr>
 
-<tr><td>PCI_INT</td><td>routing</td><td>PCILOGIC</td><td>PCI_W, PCI_E</td></tr>
+<tr><td>IOB[0]</td><td>IOB</td><td>IOB</td><td></td></tr>
 
-<tr><td>PCILOGIC</td><td>legacy</td><td>PCILOGIC</td><td>PCI_W, PCI_E</td></tr>
+<tr><td>IOB[1]</td><td>IOB</td><td>IOB</td><td>IOB_W_V, IOB_W_VE, IOB_E_V, IOB_E_VE, IOB_S_V, IOB_S_VE, IOB_N_V, IOB_N_VE</td></tr>
 
-<tr><td>GCLK_INT</td><td>routing</td><td>CLK_SN</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
+<tr><td>IOB[2]</td><td>IOB</td><td>IOB</td><td>IOB_W_V, IOB_W_VE, IOB_E_V, IOB_E_VE, IOB_S_V, IOB_S_VE, IOB_N_V, IOB_N_VE</td></tr>
 
-<tr><td>GCLK_IO[0]</td><td>legacy</td><td>CLK_SN</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
+<tr><td>IOB[3]</td><td>IOB</td><td>IOB</td><td>IOB_W_V, IOB_W_VE, IOB_E_V, IOB_E_VE</td></tr>
 
-<tr><td>GCLK_IO[1]</td><td>legacy</td><td>CLK_SN</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
+<tr><td>PCI_INT</td><td>routing</td><td>PCILOGIC</td><td>PCI_W_V, PCI_E_V, PCI_W_VE, PCI_E_VE</td></tr>
 
-<tr><td>BUFG[0]</td><td>legacy</td><td>CLK_SN</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
+<tr><td>PCILOGIC</td><td>PCILOGIC</td><td>PCILOGIC</td><td>PCI_W_V, PCI_E_V, PCI_W_VE, PCI_E_VE</td></tr>
 
-<tr><td>BUFG[1]</td><td>legacy</td><td>CLK_SN</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
+<tr><td>CLK_INT</td><td>routing</td><td>CLK</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL, CLKV_CLKV, CLKV_GCLKV, CLKV_IO, CLKV_BRAM_S, CLKV_BRAM_N, CLKV_BRAM_S_S2, CLKV_BRAM_N_S2</td></tr>
 
-<tr><td>IOFB[0]</td><td>legacy</td><td>CLK_SN</td><td>CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
+<tr><td>GCLK_IOB[0]</td><td>GCLK_IOB</td><td>CLK</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
 
-<tr><td>IOFB[1]</td><td>legacy</td><td>CLK_SN</td><td>CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
+<tr><td>GCLK_IOB[1]</td><td>GCLK_IOB</td><td>CLK</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
 
-<tr><td>CLKC</td><td>legacy</td><td>CLKC</td><td>CLKC</td></tr>
+<tr><td>IOFB[0]</td><td>IOFB</td><td>CLK</td><td>CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
 
-<tr><td>GCLKC</td><td>legacy</td><td>CLKC</td><td>CLKC, GCLKC</td></tr>
+<tr><td>IOFB[1]</td><td>IOFB</td><td>CLK</td><td>CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
 
-<tr><td>CLKH</td><td>legacy</td><td>CLKC</td><td></td></tr>
+<tr><td>BUFGCE[0]</td><td>BUFGCE</td><td>CLK</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
 
-<tr><td>BRAM_CLKH</td><td>legacy</td><td>CLKC</td><td>BRAM_CLKH</td></tr>
-
-<tr><td>CLKV</td><td>legacy</td><td>CLKV</td><td>CLKV_CLKV, CLKV_GCLKV, CLKV_NULL</td></tr>
-
-<tr><td>CLKV_BRAM_S</td><td>legacy</td><td>CLKV</td><td>CLKV_BRAM_S</td></tr>
-
-<tr><td>CLKV_BRAM_N</td><td>legacy</td><td>CLKV</td><td>CLKV_BRAM_N</td></tr>
+<tr><td>BUFGCE[1]</td><td>BUFGCE</td><td>CLK</td><td>CLK_S_V, CLK_N_V, CLK_S_VE_4DLL, CLK_S_VE_2DLL, CLK_N_VE_4DLL, CLK_N_VE_2DLL</td></tr>
 
 <tr><td>GLOBAL</td><td>GLOBAL</td><td>GLOBAL</td><td>GLOBAL</td></tr>
 
@@ -299,9 +297,9 @@
 </thead>
 
 <tbody>
-<tr><td>GLOBAL</td><td></td></tr>
+<tr><td>GLOBAL</td><td>GCLK[0], GCLK[1], GCLK[2], GCLK[3]</td></tr>
 
-<tr><td>LEAF</td><td>GCLK[0], GCLK[1], GCLK[2], GCLK[3]</td></tr>
+<tr><td>LEAF</td><td>GCLK_LEAF[0], GCLK_LEAF[1], GCLK_LEAF[2], GCLK_LEAF[3]</td></tr>
 
 <tr><td>PCI_CE</td><td>PCI_CE</td></tr>
 
@@ -321,13 +319,23 @@
 </thead>
 
 <tbody>
-<tr><td>GCLK[0]</td><td>regional LEAF</td></tr>
+<tr><td>PULLUP</td><td>pullup</td></tr>
 
-<tr><td>GCLK[1]</td><td>regional LEAF</td></tr>
+<tr><td>GCLK[0]</td><td>regional GLOBAL</td></tr>
 
-<tr><td>GCLK[2]</td><td>regional LEAF</td></tr>
+<tr><td>GCLK[1]</td><td>regional GLOBAL</td></tr>
 
-<tr><td>GCLK[3]</td><td>regional LEAF</td></tr>
+<tr><td>GCLK[2]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK[3]</td><td>regional GLOBAL</td></tr>
+
+<tr><td>GCLK_LEAF[0]</td><td>regional LEAF</td></tr>
+
+<tr><td>GCLK_LEAF[1]</td><td>regional LEAF</td></tr>
+
+<tr><td>GCLK_LEAF[2]</td><td>regional LEAF</td></tr>
+
+<tr><td>GCLK_LEAF[3]</td><td>regional LEAF</td></tr>
 
 <tr><td>GCLK_BUF[0]</td><td>mux</td></tr>
 
@@ -1107,6 +1115,134 @@
 
 <tr><td>BRAM_QUAD_DOUT_S[31]</td><td>multi_branch N</td></tr>
 
+<tr><td>BRAM_QUAD_ADDR_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[5]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[6]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[7]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[8]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[9]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[10]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[11]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[12]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[13]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[14]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[15]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[16]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[17]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[18]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[19]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[20]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[21]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[22]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[23]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[24]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[25]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[26]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[27]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[28]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[29]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[30]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_ADDR_MUX[31]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[5]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[6]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[7]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[8]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[9]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[10]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[11]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[12]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[13]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[14]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[15]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[16]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[17]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[18]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[19]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[20]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[21]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[22]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[23]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[24]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[25]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[26]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[27]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[28]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[29]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[30]</td><td>mux</td></tr>
+
+<tr><td>BRAM_QUAD_DIN_MUX[31]</td><td>mux</td></tr>
+
 <tr><td>HEX_H0[0]</td><td>multi_branch E</td></tr>
 
 <tr><td>HEX_H0[1]</td><td>multi_branch E</td></tr>
@@ -1246,6 +1382,90 @@
 <tr><td>HEX_H6_BUF[2]</td><td>mux</td></tr>
 
 <tr><td>HEX_H6_BUF[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_H0_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_H0_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_H0_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_H0_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_H0_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>HEX_H0_MUX[5]</td><td>mux</td></tr>
+
+<tr><td>HEX_H1_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_H1_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_H1_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_H1_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_H1_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>HEX_H1_MUX[5]</td><td>mux</td></tr>
+
+<tr><td>HEX_H2_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_H2_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_H2_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_H2_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_H2_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>HEX_H2_MUX[5]</td><td>mux</td></tr>
+
+<tr><td>HEX_H3_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_H3_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_H3_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_H3_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_H3_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>HEX_H3_MUX[5]</td><td>mux</td></tr>
+
+<tr><td>HEX_H4_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_H4_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_H4_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_H4_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_H4_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>HEX_H4_MUX[5]</td><td>mux</td></tr>
+
+<tr><td>HEX_H5_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_H5_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_H5_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_H5_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_H5_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>HEX_H5_MUX[5]</td><td>mux</td></tr>
+
+<tr><td>HEX_H6_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_H6_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_H6_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_H6_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_H6_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>HEX_H6_MUX[5]</td><td>mux</td></tr>
 
 <tr><td>HEX_W0[0]</td><td>mux</td></tr>
 
@@ -1471,6 +1691,62 @@
 
 <tr><td>HEX_V6_BUF[3]</td><td>mux</td></tr>
 
+<tr><td>HEX_V0_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_V0_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_V0_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_V0_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_V1_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_V1_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_V1_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_V1_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_V2_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_V2_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_V2_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_V2_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_V3_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_V3_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_V3_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_V3_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_V4_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_V4_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_V4_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_V4_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_V5_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_V5_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_V5_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_V5_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>HEX_V6_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>HEX_V6_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>HEX_V6_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>HEX_V6_MUX[3]</td><td>mux</td></tr>
+
 <tr><td>HEX_S0[0]</td><td>mux</td></tr>
 
 <tr><td>HEX_S0[1]</td><td>mux</td></tr>
@@ -1583,6 +1859,30 @@
 
 <tr><td>HEX_N6[3]</td><td>branch S</td></tr>
 
+<tr><td>LH_MUX[0]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[5]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[6]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[7]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[8]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[9]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[10]</td><td>mux</td></tr>
+
+<tr><td>LH_MUX[11]</td><td>mux</td></tr>
+
 <tr><td>LH[0]</td><td>multi_branch W</td></tr>
 
 <tr><td>LH[1]</td><td>multi_branch W</td></tr>
@@ -1607,9 +1907,29 @@
 
 <tr><td>LH[11]</td><td>multi_branch W</td></tr>
 
-<tr><td>LH_FAKE0</td><td>mux</td></tr>
+<tr><td>LV_MUX[0]</td><td>mux</td></tr>
 
-<tr><td>LH_FAKE6</td><td>mux</td></tr>
+<tr><td>LV_MUX[1]</td><td>mux</td></tr>
+
+<tr><td>LV_MUX[2]</td><td>mux</td></tr>
+
+<tr><td>LV_MUX[3]</td><td>mux</td></tr>
+
+<tr><td>LV_MUX[4]</td><td>mux</td></tr>
+
+<tr><td>LV_MUX[5]</td><td>mux</td></tr>
+
+<tr><td>LV_MUX[6]</td><td>mux</td></tr>
+
+<tr><td>LV_MUX[7]</td><td>mux</td></tr>
+
+<tr><td>LV_MUX[8]</td><td>mux</td></tr>
+
+<tr><td>LV_MUX[9]</td><td>mux</td></tr>
+
+<tr><td>LV_MUX[10]</td><td>mux</td></tr>
+
+<tr><td>LV_MUX[11]</td><td>mux</td></tr>
 
 <tr><td>LV[0]</td><td>multi_branch S</td></tr>
 
