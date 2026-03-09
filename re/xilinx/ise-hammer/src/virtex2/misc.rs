@@ -2774,7 +2774,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             tcid,
             bslot,
             GLOBAL::CONFIG_RATE_DIV,
-            (0..10).map(|i| TileBit::new(3, 0, i).pos()).collect(),
+            (0..10).map(|i| TileBit::new(3, 0, i).pos()),
         );
         ctx.collect_bel_attr_sparse(tcid, bslot, GLOBAL::CCLK_DLY, 0..4);
         ctx.collect_bel_attr_sparse(tcid, bslot, GLOBAL::CCLK_SEP, 0..4);
@@ -2816,7 +2816,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             tcid,
             bslot,
             GLOBAL::POST_CRC_FREQ_DIV,
-            (0..10).map(|i| TileBit::new(11, 0, 4 + i).pos()).collect(),
+            (0..10).map(|i| TileBit::new(11, 0, 4 + i).pos()),
         );
     }
 

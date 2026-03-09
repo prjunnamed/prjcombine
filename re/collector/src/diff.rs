@@ -309,6 +309,12 @@ impl Diff {
         }
         res
     }
+
+    pub fn from_bit(bit: PolTileBit) -> Self {
+        let mut res = Diff::default();
+        res.bits.insert(bit.bit, !bit.inv);
+        res
+    }
 }
 
 impl core::ops::Not for Diff {

@@ -1,28 +1,19 @@
 use prjcombine_types::{
     bitvec::BitVec,
-    bsdata::{PolTileBit, TileItem, TileItemKind},
+    bsdata::{TileItem, TileItemKind},
 };
 
 use crate::{
     collect::Collector,
     diff::{
-        Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_bit_bi,
-        xlat_bit_bi_default, xlat_bit_wide, xlat_bit_wide_bi, xlat_bitvec, xlat_bitvec_sparse_u32,
-        xlat_enum_raw,
+        Diff, DiffKey, FeatureId, OcdMode, xlat_bit, xlat_bit_bi, xlat_bit_wide_bi, xlat_bitvec,
+        xlat_bitvec_sparse_u32, xlat_enum_raw,
     },
 };
 
 impl Diff {
-    pub fn discard_bits_legacy(&mut self, item: &TileItem) {
-        self.discard_bits(&item.bits);
-    }
-
     pub fn apply_bitvec_diff_legacy(&mut self, item: &TileItem, from: &BitVec, to: &BitVec) {
         self.apply_bitvec_diff(&item.as_bitvec(), from, to);
-    }
-
-    pub fn apply_bitvec_diff_int_legacy(&mut self, item: &TileItem, from: u64, to: u64) {
-        self.apply_bitvec_diff_int(&item.as_bitvec(), from, to);
     }
 
     pub fn apply_bit_diff_legacy(&mut self, item: &TileItem, from: bool, to: bool) {
@@ -34,16 +25,6 @@ impl Diff {
             unreachable!()
         };
         self.apply_enum_bits_raw(&item.bits, &values[from], &values[to]);
-    }
-
-    pub fn from_bit(bit: PolTileBit) -> Self {
-        let mut res = Diff::default();
-        res.bits.insert(bit.bit, !bit.inv);
-        res
-    }
-
-    pub fn from_bool_item_legacy(item: &TileItem) -> Self {
-        Diff::from_bit(item.as_bit())
     }
 }
 
@@ -136,32 +117,6 @@ impl Collector<'_, '_> {
     }
 
     #[must_use]
-    pub fn extract_bit_wide_legacy(
-        &mut self,
-        tile: &str,
-        bel: &str,
-        attr: &str,
-        val: &str,
-    ) -> TileItem {
-        let diff = self.get_diff_legacy(tile, bel, attr, val);
-        xlat_bit_wide(diff).into()
-    }
-
-    #[must_use]
-    pub fn extract_bit_bi_default_legacy(
-        &mut self,
-        tile: &str,
-        bel: &str,
-        attr: &str,
-        val0: &str,
-        val1: &str,
-    ) -> (TileItem, bool) {
-        let d0 = self.get_diff_legacy(tile, bel, attr, val0);
-        let d1 = self.get_diff_legacy(tile, bel, attr, val1);
-        xlat_bit_bi_default_legacy(d0, d1)
-    }
-
-    #[must_use]
     pub fn extract_bit_bi_legacy(
         &mut self,
         tile: &str,
@@ -229,80 +184,12 @@ impl Collector<'_, '_> {
             .collect();
         xlat_enum_legacy_ocd(diffs, ocd)
     }
-
-    #[must_use]
-    pub fn extract_enum_legacy_int(
-        &mut self,
-        tile: &str,
-        bel: &str,
-        attr: &str,
-        vals: core::ops::Range<u32>,
-        delta: u32,
-    ) -> TileItem {
-        let diffs = vals
-            .map(|val| {
-                (
-                    val,
-                    self.get_diff_legacy(tile, bel, attr, format!("{v}", v = val + delta)),
-                )
-            })
-            .collect();
-        xlat_bitvec_sparse_legacy(diffs)
-    }
-
-    #[must_use]
-    pub fn extract_enum_default_legacy(
-        &mut self,
-        tile: &str,
-        bel: &str,
-        attr: &str,
-        vals: &[impl AsRef<str>],
-        default: &str,
-    ) -> TileItem {
-        let diffs = vals
-            .iter()
-            .map(|val| {
-                (
-                    val.as_ref().to_string(),
-                    self.get_diff_legacy(tile, bel, attr, val.as_ref()),
-                )
-            })
-            .collect();
-        xlat_enum_default_legacy(diffs, default)
-    }
-
-    #[must_use]
-    pub fn extract_enum_default_legacy_ocd(
-        &mut self,
-        tile: &str,
-        bel: &str,
-        attr: &str,
-        vals: &[impl AsRef<str>],
-        default: &str,
-        ocd: OcdMode,
-    ) -> TileItem {
-        let diffs = vals
-            .iter()
-            .map(|val| {
-                (
-                    val.as_ref().to_string(),
-                    self.get_diff_legacy(tile, bel, attr, val.as_ref()),
-                )
-            })
-            .collect();
-        xlat_enum_default_ocd_legacy(diffs, default, ocd)
-    }
 }
 
 /// Full-service collect functions (get_diff + xlat + insert)
 impl Collector<'_, '_> {
     pub fn collect_bitvec_legacy(&mut self, tile: &str, bel: &str, attr: &str, val: &str) {
         let item = xlat_bitvec_legacy(self.get_diffs_legacy(tile, bel, attr, val));
-        self.data.bsdata.insert(tile, bel, attr, item);
-    }
-
-    pub fn collect_bit_legacy(&mut self, tile: &str, bel: &str, attr: &str, val: &str) {
-        let item = self.extract_bit_legacy(tile, bel, attr, val);
         self.data.bsdata.insert(tile, bel, attr, item);
     }
 
@@ -352,18 +239,6 @@ impl Collector<'_, '_> {
         let item = self.extract_enum_legacy_ocd(tile, bel, attr, vals, ocd);
         self.data.bsdata.insert(tile, bel, attr, item);
     }
-
-    pub fn collect_enum_default_legacy(
-        &mut self,
-        tile: &str,
-        bel: &str,
-        attr: &str,
-        vals: &[impl AsRef<str>],
-        default: &str,
-    ) {
-        let item = self.extract_enum_default_legacy(tile, bel, attr, vals, default);
-        self.data.bsdata.insert(tile, bel, attr, item);
-    }
 }
 
 pub fn xlat_bitvec_legacy(diffs: Vec<Diff>) -> TileItem {
@@ -372,19 +247,6 @@ pub fn xlat_bitvec_legacy(diffs: Vec<Diff>) -> TileItem {
 
 pub fn xlat_bit_legacy(diff: Diff) -> TileItem {
     xlat_bit(diff).into()
-}
-
-pub fn xlat_bit_wide_legacy(diff: Diff) -> TileItem {
-    xlat_bit_wide(diff).into()
-}
-
-pub fn extract_bitvec_val_part_legacy(item: &TileItem, base: &BitVec, diff: &mut Diff) -> BitVec {
-    extract_bitvec_val_part(&item.as_bitvec(), base, diff)
-}
-
-pub fn xlat_bit_bi_default_legacy(diff0: Diff, diff1: Diff) -> (TileItem, bool) {
-    let (bit, default) = xlat_bit_bi_default(diff0, diff1);
-    (bit.into(), default)
 }
 
 pub fn xlat_bit_bi_legacy(diff0: Diff, diff1: Diff) -> TileItem {
@@ -404,23 +266,6 @@ pub fn xlat_enum_legacy_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode)
 
 pub fn xlat_enum_legacy(diffs: Vec<(impl Into<String>, Diff)>) -> TileItem {
     xlat_enum_legacy_ocd(diffs, OcdMode::ValueOrder)
-}
-
-pub fn xlat_enum_default_legacy(
-    mut diffs: Vec<(String, Diff)>,
-    default: impl Into<String>,
-) -> TileItem {
-    diffs.insert(0, (default.into(), Diff::default()));
-    xlat_enum_legacy(diffs)
-}
-
-pub fn xlat_enum_default_ocd_legacy(
-    mut diffs: Vec<(String, Diff)>,
-    default: impl Into<String>,
-    ocd: OcdMode,
-) -> TileItem {
-    diffs.insert(0, (default.into(), Diff::default()));
-    xlat_enum_legacy_ocd(diffs, ocd)
 }
 
 pub fn xlat_bitvec_sparse_legacy(diffs: Vec<(u32, Diff)>) -> TileItem {

@@ -1,4 +1,5 @@
 use prjcombine_interconnect::db::BelInputId;
+use prjcombine_re_collector::diff::OcdMode;
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex4::defs::{bcls::DSP_V5 as DSP, bslots, enums, virtex5::tcls};
 
@@ -134,8 +135,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for &pin in DSP48E_INVPINS {
             ctx.collect_bel_input_inv_bi(tcid, bslot, pin);
         }
-        ctx.collect_bel_attr_default(tcid, bslot, DSP::AREG, enums::DSP_REG2_CASC::NONE);
-        ctx.collect_bel_attr_default(tcid, bslot, DSP::BREG, enums::DSP_REG2_CASC::NONE);
+        for attr in [DSP::AREG, DSP::BREG] {
+            ctx.collect_bel_attr_subset_default_ocd(
+                tcid,
+                bslot,
+                attr,
+                &[
+                    enums::DSP_REG2_CASC::_0,
+                    enums::DSP_REG2_CASC::_1,
+                    enums::DSP_REG2_CASC::_2,
+                    enums::DSP_REG2_CASC::DIRECT_2_CASC_1,
+                ],
+                enums::DSP_REG2_CASC::NONE,
+                OcdMode::ValueOrder,
+            );
+        }
         for attr in [
             DSP::CREG,
             DSP::MREG,

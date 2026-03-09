@@ -347,7 +347,8 @@ target_defs! {
         attribute CREG: bool;
     }
 
-    enum DSP_REG2_CASC { NONE, _0, _1, _2, DIRECT_2_CASC_1 }
+    // TODO: fix this.
+    enum DSP_REG2_CASC { NONE, _0, _1, _2, DIRECT_2_CASC_1, _1_INMODE_GND }
     enum DSP_USE_MULT { NONE, MULT, MULT_S }
     // TODO: pretty obviously the three bits correspond to the three places the carry chain can be broken; nail them down
     enum DSP_USE_SIMD { ONE48, TWO24, FOUR12 }
@@ -429,7 +430,71 @@ target_defs! {
         output SCANOUTM, SCANOUTP;
     }
 
-    // TODO: DSP_V6
+    bel_class DSP_V6 {
+        input CLK;
+
+        input A[30];
+        input RSTA, CEA1, CEA2;
+        attribute AREG: DSP_REG2_CASC;
+        attribute A_INPUT: DSP_AB_INPUT;
+
+        input B[18];
+        input RSTB, CEB1, CEB2;
+        attribute BREG: DSP_REG2_CASC;
+        attribute B_INPUT: DSP_AB_INPUT;
+
+        input C[48];
+        input RSTC, CEC;
+        attribute CREG: bool;
+
+
+        input D[25];
+        input RSTD, CED;
+        attribute DREG: bool;
+        attribute USE_DPORT: bool;
+
+        input INMODE[5];
+        input RSTINMODE, CEINMODE;
+        attribute INMODEREG: bool;
+
+        input CEAD;
+        attribute ADREG: bool;
+
+        input RSTM, CEM;
+        attribute MREG: bool;
+        attribute USE_MULT: bool;
+
+        input OPMODE[7];
+        input CARRYINSEL[3];
+        input RSTCTRL, CECTRL;
+        attribute OPMODEREG: bool;
+        attribute CARRYINSELREG: bool;
+
+        input CARRYIN;
+        input RSTALLCARRYIN, CECARRYIN;
+        attribute CARRYINREG: bool;
+
+        input RSTALUMODE, CEALUMODE;
+        input ALUMODE[4];
+        attribute ALUMODEREG: bool;
+        attribute USE_SIMD: DSP_USE_SIMD;
+
+        input RSTP, CEP;
+        output P[48];
+        output CARRYOUT[4];
+        attribute PREG: bool;
+
+        attribute PATTERN: bitvec[48];
+        attribute SEL_PATTERN: DSP_SEL_PATTERN;
+        attribute MASK: bitvec[48];
+        attribute SEL_MASK: DSP_SEL_MASK;
+        attribute SEL_ROUNDING_MASK: DSP_SEL_ROUNDING_MASK;
+        output PATTERNDETECT, PATTERNBDETECT;
+        output OVERFLOW, UNDERFLOW;
+
+        attribute AUTORESET_PATTERN_DETECT: bool;
+        attribute AUTORESET_PATTERN_DETECT_OPTINV: bool;
+    }
 
     enum IO_DATA_RATE { SDR, DDR }
     // 14 is virtex7 only
@@ -543,6 +608,8 @@ target_defs! {
     }
     device_data IODELAY_V5_IDELAY_DEFAULT: bitvec[6];
 
+    enum IODELAY_V6_DELAY_SRC { NONE, I, IO, O, DATAIN, CLKIN, DELAYCHAIN_OSC }
+    enum IODELAY_V6_DELAY_TYPE { FIXED, VARIABLE, VARIABLE_SWAPPED, VAR_LOADABLE, IO_VAR_LOADABLE }
     bel_class IODELAY_V6 {
         // C is still tied to ILOGIC.CLKDIV, but now with separate inversion, so...
         input C, CINVCTRL;
@@ -550,10 +617,21 @@ target_defs! {
         input CNTVALUEIN[5];
         output CNTVALUEOUT[5];
 
-        // TODO: attributes
+        attribute ENABLE: bool;
+        attribute IDATAIN_INV: bool;
+        attribute CINVCTRL_SEL: bool;
+        attribute EXTRA_DELAY: bool;
+        attribute DELAY_SRC: IODELAY_V6_DELAY_SRC;
+        attribute DELAY_TYPE: IODELAY_V6_DELAY_TYPE;
+        attribute HIGH_PERFORMANCE_MODE: bool;
+        attribute IDELAY_VALUE_CUR: bitvec[5];
+        attribute IDELAY_VALUE_INIT: bitvec[5];
+        attribute ALT_DELAY_VALUE: bitvec[5];
     }
     device_data IODELAY_V6_IDELAY_DEFAULT: bitvec[5];
 
+    enum IDELAY_DELAY_SRC { NONE, IDATAIN, OFB, DATAIN, DELAYCHAIN_OSC }
+    enum IODELAY_V7_DELAY_TYPE { FIXED, VARIABLE, VAR_LOAD }
     bel_class IDELAY {
         input C, CINVCTRL;
         input CE, DATAIN, INC, REGRST;
@@ -562,9 +640,20 @@ target_defs! {
         input CNTVALUEIN[5];
         output CNTVALUEOUT[5];
 
-        // TODO: attributes
+        attribute ENABLE: bool;
+        attribute IDATAIN_INV: bool;
+        attribute CINVCTRL_SEL: bool;
+        // HP only
+        attribute FINEDELAY: bool;
+        attribute DELAY_SRC: IDELAY_DELAY_SRC;
+        attribute DELAY_TYPE: IODELAY_V7_DELAY_TYPE;
+        attribute HIGH_PERFORMANCE_MODE: bool;
+        attribute PIPE_SEL: bool;
+        attribute IDELAY_VALUE_CUR: bitvec[5];
+        attribute IDELAY_VALUE_INIT: bitvec[5];
     }
 
+    enum ODELAY_DELAY_SRC { NONE, ODATAIN, CLKIN, DELAYCHAIN_OSC }
     bel_class ODELAY {
         input C, CINVCTRL;
         input CE, INC, REGRST;
@@ -575,16 +664,27 @@ target_defs! {
         // test-only (routed via INTF test specials)
         output DATAOUT;
 
-        // TODO: attributes
+        attribute ENABLE: bool;
+        attribute ODATAIN_INV: bool;
+        attribute CINVCTRL_SEL: bool;
+        attribute FINEDELAY: bool;
+        attribute DELAY_SRC: ODELAY_DELAY_SRC;
+        attribute DELAY_TYPE: IODELAY_V7_DELAY_TYPE;
+        attribute HIGH_PERFORMANCE_MODE: bool;
+        attribute PIPE_SEL: bool;
+        attribute ODELAY_VALUE_CUR: bitvec[5];
+        attribute ODELAY_VALUE_INIT: bitvec[5];
     }
 
-    // 2 no longer supported on virtex5
+    // 2 no longer supported on virtex5 and up
     enum OLOGIC_TRISTATE_WIDTH { _1, _2, _4 }
     enum OLOGIC_V4_MUX_O { NONE, D1, FFO1, FFODDR }
     enum OLOGIC_V4_MUX_T { NONE, T1, FFT1, FFTDDR }
     enum OLOGIC_V5_MUX_O { NONE, D1, SERDES_SDR, SERDES_DDR, LATCH, FF, DDR }
     enum OLOGIC_V5_MUX_T { NONE, T1, SERDES_SDR, SERDES_DDR, LATCH, FF, DDR }
     enum OLOGIC_MISR_CLK_SELECT { NONE, CLK1, CLK2 }
+    enum OLOGIC_CLOCK_RATIO { NONE, _2, _3, _4, _5, _6, _7_8 }
+    enum OLOGIC_INTERFACE_TYPE { DEFAULT, MEMORY_DDR3 }
     bel_class OLOGIC {
         // CLKB, CLKDIVB are virtex6 and up only
         // CLKPERF is virtex6 only
@@ -608,25 +708,28 @@ target_defs! {
         attribute CLK2_INV: bool;
 
         // ??? what
-        attribute FFO_INIT: bitvec[4];
-        attribute FFO_INIT_SERDES: bitvec[3];
+        attribute FFO_INIT: bitvec[1];
+        attribute FFO_RANK1_INIT: bitvec[6];
+        attribute FFO_RANK2_INIT: bitvec[4];
         attribute FFO_SRVAL: bitvec[3];
-        attribute FFO_SERDES: bitvec[4];
         // merged into MUX_O on virtex5
         attribute FFO_LATCH: bool;
-        attribute FFO_SR_SYNC: bitvec[4];
+        attribute FFO_SR_SYNC: bool;
+        attribute FFO_RANK1_SR_SYNC: bool;
+        attribute FFO_RANK2_SR_SYNC: bool;
+        attribute FFO_LOADGEN_SR_SYNC: bool;
         attribute FFO_SR_ENABLE: bool;
         attribute FFO_REV_ENABLE: bool;
         attribute V4_MUX_O: OLOGIC_V4_MUX_O;
         attribute V5_MUX_O: OLOGIC_V5_MUX_O;
 
-        attribute FFT_INIT: bitvec[5];
-        attribute FFT1_SRVAL: bitvec[1];
-        attribute FFT2_SRVAL: bitvec[1];
-        attribute FFT3_SRVAL: bitvec[1];
+        attribute FFT_INIT: bitvec[1];
+        attribute FFT_RANK1_INIT: bitvec[4];
+        attribute FFT_SRVAL: bitvec[3];
         // merged into MUX_T on virtex5
         attribute FFT_LATCH: bool;
-        attribute FFT_SR_SYNC: bitvec[2];
+        attribute FFT_SR_SYNC: bool;
+        attribute FFT_RANK1_SR_SYNC: bool;
         attribute FFT_SR_ENABLE: bool;
         attribute FFT_REV_ENABLE: bool;
         attribute V4_MUX_T: OLOGIC_V4_MUX_T;
@@ -639,11 +742,32 @@ target_defs! {
         attribute DATA_WIDTH: IO_DATA_WIDTH;
         attribute TRISTATE_WIDTH: OLOGIC_TRISTATE_WIDTH;
 
-        // virtex5 only
+        // virtex5 and up only
         attribute MISR_ENABLE: bool;
         attribute MISR_ENABLE_FDBK: bool;
         attribute MISR_RESET: bool;
         attribute MISR_CLK_SELECT: OLOGIC_MISR_CLK_SELECT;
+
+        // virtex6 and up only
+        attribute CLOCK_RATIO: OLOGIC_CLOCK_RATIO;
+        attribute SELFHEAL: bool;
+
+        // virtex6 only
+        attribute DDR3_BYPASS: bool;
+        attribute DDR3_DATA: bool;
+        attribute WC_DELAY: bool;
+        attribute ODELAY_USED: bool;
+        attribute INIT_DLY_CNT: bitvec[10];
+        attribute INIT_FIFO_ADDR: bitvec[11];
+        attribute INIT_FIFO_RESET: bitvec[13];
+        attribute INIT_PIPE_DATA0: bitvec[12];
+        attribute INIT_PIPE_DATA1: bitvec[12];
+        attribute INTERFACE_TYPE: OLOGIC_INTERFACE_TYPE;
+
+        // virtex7 only
+        attribute RANK3_USED: bool;
+        attribute TBYTE_CTL: bool;
+        attribute TBYTE_SRC: bool;
     }
 
     enum IOB_PULL { NONE, PULLUP, PULLDOWN, KEEPER }
@@ -10333,7 +10457,7 @@ target_defs! {
         wire MGT_CLK_OUT[2]: mux;
         wire MGT_CLK_OUT_SYNCLK: mux;
         wire MGT_CLK_OUT_FWDCLK[2]: mux;
-        wire MGT_FWDCLK_S[4]: multi_branch MGT_S;
+        wire MGT_FWDCLK_S[4]: multi_branch BEL_S;
         wire MGT_FWDCLK_N[4]: multi_root;
 
         wire IMUX_MGT_GREFCLK: mux;
@@ -10756,11 +10880,13 @@ target_defs! {
         wire IMUX_BYP_SITE[8]: mux;
         wire IMUX_BYP_BOUNCE[8]: mux;
         wire IMUX_BYP_BOUNCE_N[8]: branch S;
+        wire IMUX_BYP_DSP[8]: mux;
 
         wire IMUX_FAN[8]: mux;
         wire IMUX_FAN_SITE[8]: mux;
         wire IMUX_FAN_BOUNCE[8]: mux;
         wire IMUX_FAN_BOUNCE_S[8]: branch N;
+        wire IMUX_FAN_DSP[8]: mux;
 
         wire IMUX_IMUX[48]: mux;
         wire IMUX_IMUX_DELAY[48]: mux;
@@ -11027,11 +11153,13 @@ target_defs! {
         wire IMUX_BYP_SITE[8]: mux;
         wire IMUX_BYP_BOUNCE[8]: mux;
         wire IMUX_BYP_BOUNCE_N[8]: branch S;
+        wire IMUX_BYP_DSP[8]: mux;
 
         wire IMUX_FAN[8]: mux;
         wire IMUX_FAN_SITE[8]: mux;
         wire IMUX_FAN_BOUNCE[8]: mux;
         wire IMUX_FAN_BOUNCE_S[8]: branch N;
+        wire IMUX_FAN_DSP[8]: mux;
 
         wire IMUX_IMUX[48]: mux;
         wire IMUX_IMUX_DELAY[48]: mux;
@@ -11156,6 +11284,13 @@ target_defs! {
         wire OUT_GT_RXOUTCLK_HCLK[4]: mux;
         wire OUT_GT_TXOUTCLK_HCLK[4]: mux;
         wire HROW_I_GTP[14]: mux;
+
+        wire BRAM_ADDRA_CASC[15]: mux;
+        wire BRAM_ADDRB_CASC[15]: mux;
+        wire BRAM_ADDRA_CASC_S[15]: branch BEL_N;
+        wire BRAM_ADDRB_CASC_S[15]: branch BEL_N;
+        wire BRAM_ADDRA_CASC_N[15]: branch BEL_S;
+        wire BRAM_ADDRB_CASC_N[15]: branch BEL_S;
     }
 
     bitrect REG32 = horizontal (1, rev 32);
@@ -11296,10 +11431,9 @@ target_defs! {
         } else if variant virtex5 {
             bel_slot DSP[2]: DSP_V5;
         } else {
-            bel_slot DSP[2]: legacy;
+            bel_slot DSP[2]: DSP_V6;
         }
         bel_slot DSP_C: DSP_C;
-        bel_slot TIEOFF_DSP: legacy;
         if variant virtex4 {
             tile_class DSP {
                 cell CELL[4];
@@ -12629,18 +12763,30 @@ target_defs! {
         connector_class CLK_NEXT;
     }
 
-    connector_slot MGT_S {
-        opposite MGT_N;
+    connector_slot BEL_S {
+        opposite BEL_N;
         if variant virtex4 {
             connector_class MGT_S {
                 pass MGT_FWDCLK_S = MGT_FWDCLK_N;
             }
         }
+        if variant virtex7 {
+            connector_class BRAM_S {
+                pass BRAM_ADDRA_CASC_N = BRAM_ADDRA_CASC;
+                pass BRAM_ADDRB_CASC_N = BRAM_ADDRB_CASC;
+            }
+        }
     }
-    connector_slot MGT_N {
-        opposite MGT_S;
+    connector_slot BEL_N {
+        opposite BEL_S;
         if variant virtex4 {
             connector_class MGT_N {
+            }
+        }
+        if variant virtex7 {
+            connector_class BRAM_N {
+                pass BRAM_ADDRA_CASC_S = BRAM_ADDRA_CASC;
+                pass BRAM_ADDRB_CASC_S = BRAM_ADDRB_CASC;
             }
         }
     }

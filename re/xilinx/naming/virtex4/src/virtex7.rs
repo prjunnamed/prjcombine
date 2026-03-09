@@ -620,7 +620,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     tie_grid.xlut[col] + 1
                 };
                 let ty = tie_grid.ylut[die][row];
-                ntile.add_bel(bslots::TIEOFF_DSP, format!("TIEOFF_X{tx}Y{ty}"));
+                ntile.tie_name = Some(format!("TIEOFF_X{tx}Y{ty}"));
             }
             tcls::PCIE => {
                 let (naming, left, rx) = if edev.col_side(col) == DirH::W {

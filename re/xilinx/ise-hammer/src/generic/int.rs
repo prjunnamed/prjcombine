@@ -1191,7 +1191,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             if let ExpandedDevice::Virtex4(edev) = ctx.edev
                 && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex6
-                && matches!(tcid, tcls_v6::IO | tcls_v6::CMT)
+                && matches!(tcid, tcls_v6::IO | tcls_v6::CMT | tcls_v6::DSP)
+            {
+                is_empty_ok = true;
+            }
+            if let ExpandedDevice::Virtex4(edev) = ctx.edev
+                && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex7
+                && tcid == tcls_v7::DSP
             {
                 is_empty_ok = true;
             }

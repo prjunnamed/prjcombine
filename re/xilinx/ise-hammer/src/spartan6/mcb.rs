@@ -554,7 +554,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             reg,
             (0..14)
                 .map(|i| TileBit::new(bittile, 22, 18 + i).pos())
-                .collect(),
+                ,
         );
     }
 }

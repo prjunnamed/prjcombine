@@ -693,7 +693,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tcid,
             bslot,
             bcls::GLOBAL::V5_NEXT_CONFIG_ADDR,
-            (0..26).map(|i| TileBit::new(5, 0, i).pos()).collect(),
+            (0..26).map(|i| TileBit::new(5, 0, i).pos()),
         );
         ctx.insert_bel_attr_bool(
             tcid,
@@ -705,7 +705,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tcid,
             bslot,
             bcls::GLOBAL::REVISION_SELECT,
-            (27..29).map(|i| TileBit::new(5, 0, i).pos()).collect(),
+            (27..29).map(|i| TileBit::new(5, 0, i).pos()),
         );
 
         // TESTMODE

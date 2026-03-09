@@ -29,8 +29,10 @@ impl IntMaker<'_> {
                 Dir::N => ccls::PASS_N,
             }));
 
-        self.builder.wire_names(wires::TIE_0, &["GND_WIRE"]);
-        self.builder.wire_names(wires::TIE_1, &["VCC_WIRE"]);
+        self.builder
+            .wire_names(wires::TIE_0, &["GND_WIRE", "DSP_GND"]);
+        self.builder
+            .wire_names(wires::TIE_1, &["VCC_WIRE", "DSP_VCC"]);
 
         for i in 0..8 {
             self.builder
@@ -958,6 +960,27 @@ impl IntMaker<'_> {
             .mark_optinv(wires::BUFH_TEST_E_IN, wires::BUFH_TEST_E);
     }
 
+    fn fill_dsp_wires(&mut self) {
+        let tk = self.rd.tile_kinds.get("DSP").unwrap().1;
+        for &(wf, wt) in tk.pips.keys() {
+            let wf = self.rd.wires[wf].as_str();
+            let wt = self.rd.wires[wt].as_str();
+            if let Some(suf) = wf.strip_prefix("DSP_BYP_B") {
+                let (idx, cell) = suf.split_once('_').unwrap();
+                let idx: usize = idx.parse().unwrap();
+                let cell: usize = cell.parse().unwrap();
+                self.builder
+                    .extra_name_sub(wt, cell, wires::IMUX_BYP_DSP[idx]);
+            } else if let Some(suf) = wf.strip_prefix("DSP_FAN_B") {
+                let (idx, cell) = suf.split_once('_').unwrap();
+                let idx: usize = idx.parse().unwrap();
+                let cell: usize = cell.parse().unwrap();
+                self.builder
+                    .extra_name_sub(wt, cell, wires::IMUX_FAN_DSP[idx]);
+            }
+        }
+    }
+
     fn fill_int_tiles(&mut self) {
         self.builder
             .int_type_id(tcls::INT, bslots::INT, "INT", "INT");
@@ -1028,28 +1051,21 @@ impl IntMaker<'_> {
     fn fill_clb_tiles(&mut self) {
         for (tcid, tkn) in [(tcls::CLBLL, "CLBLL"), (tcls::CLBLM, "CLBLM")] {
             if let Some(&xy) = self.rd.tiles_by_kind_name(tkn).iter().next() {
-                let int_xy = Coord {
-                    x: xy.x - 1,
-                    y: xy.y,
-                };
-                self.builder.extract_xtile_bels_id(
-                    tcid,
-                    xy,
-                    &[],
-                    &[int_xy],
-                    tkn,
-                    &[
-                        self.builder
-                            .bel_xy(bslots::SLICE[0], "SLICE", 0, 0)
-                            .pin_name_only("CIN", 0)
-                            .pin_name_only("COUT", 1),
-                        self.builder
-                            .bel_xy(bslots::SLICE[1], "SLICE", 1, 0)
-                            .pin_name_only("CIN", 0)
-                            .pin_name_only("COUT", 1),
-                    ],
-                    false,
-                );
+                let bels = [
+                    self.builder
+                        .bel_xy(bslots::SLICE[0], "SLICE", 0, 0)
+                        .pin_name_only("CIN", 0)
+                        .pin_name_only("COUT", 1),
+                    self.builder
+                        .bel_xy(bslots::SLICE[1], "SLICE", 1, 0)
+                        .pin_name_only("CIN", 0)
+                        .pin_name_only("COUT", 1),
+                ];
+                self.builder
+                    .xtile_id(tcid, tkn, xy)
+                    .bels(bels)
+                    .ref_int(xy.delta(-1, 0), 0)
+                    .extract();
             }
         }
     }
@@ -1101,15 +1117,19 @@ impl IntMaker<'_> {
                 bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("RDCOUNT{i}"), 0);
                 bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("WRCOUNT{i}"), 0);
             }
-            self.builder.extract_xtile_bels_intf_id(
-                tcls::BRAM,
-                xy,
-                &[],
-                &int_xy,
-                &intf_xy,
-                "BRAM",
-                &[bel_bram_f, bel_bram_h0, bel_bram_h1],
-            );
+            let bels = [bel_bram_f, bel_bram_h0, bel_bram_h1];
+            let mut x = self
+                .builder
+                .xtile_id(tcls::BRAM, "BRAM", xy)
+                .num_cells(5)
+                .bels(bels);
+            for (i, &xy) in int_xy.iter().enumerate() {
+                x = x.ref_int(xy, i);
+            }
+            for (i, &(xy, naming)) in intf_xy.iter().enumerate() {
+                x = x.ref_single(xy, i, naming);
+            }
+            x.extract();
         }
 
         if let Some(&xy) = self.rd.tiles_by_kind_name("HCLK_BRAM").iter().next() {
@@ -1136,15 +1156,22 @@ impl IntMaker<'_> {
                     y: xy.y + dy,
                 });
             }
-            self.builder.extract_xtile_bels_intf_id(
-                tcls::PMVBRAM,
-                xy,
-                &bram_xy,
-                &int_xy,
-                &intf_xy,
-                "PMVBRAM",
-                &[self.builder.bel_xy(bslots::PMVBRAM, "PMVBRAM", 0, 0)],
-            );
+            let bel = self.builder.bel_xy(bslots::PMVBRAM, "PMVBRAM", 0, 0);
+            let mut x = self
+                .builder
+                .xtile_id(tcls::PMVBRAM, "PMVBRAM", xy)
+                .num_cells(15)
+                .bel(bel);
+            for &xy in &bram_xy {
+                x = x.raw_tile(xy);
+            }
+            for (i, &xy) in int_xy.iter().enumerate() {
+                x = x.ref_int(xy, i);
+            }
+            for (i, &(xy, naming)) in intf_xy.iter().enumerate() {
+                x = x.ref_single(xy, i, naming);
+            }
+            x.extract();
         }
     }
 
@@ -1193,20 +1220,21 @@ impl IntMaker<'_> {
                 }
                 bels_dsp.push(bel);
             }
-            bels_dsp.push(
-                self.builder
-                    .bel_xy(bslots::TIEOFF_DSP, "TIEOFF", 0, 0)
-                    .pins_name_only(&["HARD0", "HARD1"]),
-            );
-            self.builder.extract_xtile_bels_intf_id(
-                tcls::DSP,
-                xy,
-                &[],
-                &int_xy,
-                &intf_xy,
-                "DSP",
-                &bels_dsp,
-            );
+            let mut x = self
+                .builder
+                .xtile_id(tcls::DSP, "DSP", xy)
+                .num_cells(5)
+                .bels(bels_dsp)
+                .switchbox(bslots::SPEC_INT)
+                .optin_muxes(&wires::IMUX_BYP_DSP[..])
+                .optin_muxes(&wires::IMUX_FAN_DSP[..]);
+            for (i, &xy) in int_xy.iter().enumerate() {
+                x = x.ref_int(xy, i);
+            }
+            for (i, &(xy, naming)) in intf_xy.iter().enumerate() {
+                x = x.ref_single(xy, i, naming);
+            }
+            x.extract();
         }
     }
 
@@ -1228,15 +1256,19 @@ impl IntMaker<'_> {
                     n,
                 ));
             }
-            self.builder.extract_xtile_bels_intf_id(
-                tcls::EMAC,
-                xy,
-                &[],
-                &int_xy,
-                &intf_xy,
-                "EMAC",
-                &[self.builder.bel_xy(bslots::EMAC, "TEMAC", 0, 0)],
-            );
+            let bel = self.builder.bel_xy(bslots::EMAC, "TEMAC", 0, 0);
+            let mut x = self
+                .builder
+                .xtile_id(tcls::EMAC, "EMAC", xy)
+                .num_cells(10)
+                .bel(bel);
+            for (i, &xy) in int_xy.iter().enumerate() {
+                x = x.ref_int(xy, i);
+            }
+            for (i, &(xy, naming)) in intf_xy.iter().enumerate() {
+                x = x.ref_single(xy, i, naming);
+            }
+            x.extract();
         }
     }
 
@@ -1272,15 +1304,19 @@ impl IntMaker<'_> {
                     nr,
                 ));
             }
-            self.builder.extract_xtile_bels_intf_id(
-                tcls::PCIE,
-                xy,
-                &[],
-                &int_xy,
-                &intf_xy,
-                "PCIE",
-                &[self.builder.bel_xy(bslots::PCIE, "PCIE", 0, 0)],
-            );
+            let bel = self.builder.bel_xy(bslots::PCIE, "PCIE", 0, 0);
+            let mut x = self
+                .builder
+                .xtile_id(tcls::PCIE, "PCIE", xy)
+                .num_cells(40)
+                .bel(bel);
+            for (i, &xy) in int_xy.iter().enumerate() {
+                x = x.ref_int(xy, i);
+            }
+            for (i, &(xy, naming)) in intf_xy.iter().enumerate() {
+                x = x.ref_single(xy, i, naming);
+            }
+            x.extract();
         }
     }
 
@@ -2414,6 +2450,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     maker.fill_hclk_wires();
     maker.fill_io_wires();
     maker.fill_cmt_wires();
+    maker.fill_dsp_wires();
     maker.fill_int_tiles();
     maker.fill_clb_tiles();
     maker.fill_bram_tiles();

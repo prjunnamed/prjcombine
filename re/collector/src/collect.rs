@@ -536,9 +536,9 @@ impl Collector<'_, '_> {
         tcid: TileClassId,
         bslot: BelSlotId,
         aid: BelAttributeId,
-        bits: Vec<PolTileBit>,
+        bits: impl IntoIterator<Item = PolTileBit>,
     ) {
-        self.insert_bel_attr_raw(tcid, bslot, aid, BelAttribute::BitVec(bits));
+        self.insert_bel_attr_raw(tcid, bslot, aid, BelAttribute::BitVec(Vec::from_iter(bits)));
     }
 
     pub fn insert_bel_input_inv(

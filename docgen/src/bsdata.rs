@@ -1,13 +1,11 @@
-use std::collections::{HashMap, HashSet, btree_map};
+use std::collections::{HashMap, btree_map};
 use std::fmt::Write;
 
 use indexmap::IndexMap;
 use itertools::Itertools;
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_types::bitvec::BitVec;
-use prjcombine_types::bsdata::{
-    BsData, DbValue, RectBitId, RectFrameId, Tile, TileBit, TileItemKind,
-};
+use prjcombine_types::bsdata::{BsData, RectBitId, RectFrameId, Tile, TileBit, TileItemKind};
 
 use crate::DocgenContext;
 
@@ -223,119 +221,5 @@ pub fn gen_bstiles(
 ) {
     for (tname, tile) in &tiledb.tiles {
         gen_tile(ctx, dbname, tname, tile, orientation(tname));
-    }
-}
-
-pub fn gen_devdata_table(
-    ctx: &mut DocgenContext,
-    tiledb: &BsData,
-    part_names: &[&str],
-    devdata_used: &mut HashSet<String>,
-    dbname: &str,
-    tname: &str,
-    keys: &[&str],
-) {
-    let mut kvs = vec![];
-    let mut lens = vec![None; keys.len()];
-    for &key in keys {
-        devdata_used.insert(key.into());
-    }
-    for (dev, devdata) in &tiledb.device_data {
-        let mut data = vec![];
-        for (idx, &key) in keys.iter().enumerate() {
-            if let Some(val) = devdata.get(key) {
-                let l = if let DbValue::BitVec(bv) = val {
-                    Some(bv.len())
-                } else {
-                    None
-                };
-                if let Some(cur_l) = lens[idx] {
-                    assert_eq!(l, cur_l);
-                } else {
-                    lens[idx] = Some(l);
-                }
-                data.push(Some(val));
-            } else {
-                data.push(None);
-            }
-        }
-        kvs.push((dev, data));
-    }
-    kvs.sort_by_key(|&(dev, _)| part_names.iter().position(|&pn| pn == dev));
-    let lens = Vec::from_iter(lens.into_iter().map(Option::unwrap));
-    let mut buf = String::new();
-    writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
-    writeln!(buf, r#"<thead>"#).unwrap();
-    writeln!(buf, r#"<tr><th rowspan="2">Device</th>"#).unwrap();
-    for (&key, &l) in keys.iter().zip(lens.iter()) {
-        match l {
-            None => {
-                writeln!(buf, r#"<th rowspan="2">{key}</th>"#).unwrap();
-            }
-            Some(l) => {
-                writeln!(buf, r#"<th colspan="{l}">{key}</th>"#).unwrap();
-            }
-        }
-    }
-    writeln!(buf, r#"</tr>"#).unwrap();
-    writeln!(buf, r#"<tr>"#).unwrap();
-    for &l in &lens {
-        if let Some(l) = l {
-            for i in (0..l).rev() {
-                writeln!(buf, r#"<th>[{i}]</th>"#).unwrap();
-            }
-        }
-    }
-    writeln!(buf, r#"</tr>"#).unwrap();
-    writeln!(buf, r#"</thead>"#).unwrap();
-    writeln!(buf, r#"<tbody>"#).unwrap();
-    for (name, data) in kvs {
-        writeln!(buf, r#"<tr><td>{name}</td>"#).unwrap();
-        for (val, &l) in data.into_iter().zip(lens.iter()) {
-            match l {
-                None => match val {
-                    Some(DbValue::String(v)) => {
-                        writeln!(buf, r#"<td>{v}</td>"#).unwrap();
-                    }
-                    Some(DbValue::BitVec(_)) => unreachable!(),
-                    Some(DbValue::Int(v)) => {
-                        writeln!(buf, r#"<td>{v}</td>"#).unwrap();
-                    }
-                    None => {
-                        writeln!(buf, r#"<td>-</td>"#).unwrap();
-                    }
-                },
-                Some(l) => {
-                    if let Some(DbValue::BitVec(bv)) = val {
-                        assert_eq!(bv.len(), l);
-                        for bit in bv.iter().rev() {
-                            let bit = u8::from(bit);
-                            writeln!(buf, r#"<td>{bit}</td>"#).unwrap();
-                        }
-                    } else {
-                        for _ in 0..l {
-                            writeln!(buf, r#"<td>-</td>"#).unwrap();
-                        }
-                    }
-                }
-            }
-        }
-        writeln!(buf, r#"</tr>"#).unwrap();
-    }
-    writeln!(buf, r#"</tbody>"#).unwrap();
-    writeln!(buf, r#"</table></div>"#).unwrap();
-    ctx.items.insert(format!("devdata-{dbname}-{tname}"), buf);
-}
-
-pub fn check_devdata(tiledb: &BsData, dbname: &str, devdata_used: &HashSet<String>) {
-    let mut warned = HashSet::new();
-    for data in tiledb.device_data.values() {
-        for key in data.keys() {
-            // TODO: deal with IDCODE properly.
-            if !devdata_used.contains(key) && !warned.contains(key) && !key.starts_with("IDCODE") {
-                eprintln!("WARNING: unused devdata {dbname} {key}");
-                warned.insert(key.clone());
-            }
-        }
     }
 }

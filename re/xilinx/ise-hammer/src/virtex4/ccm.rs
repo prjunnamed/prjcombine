@@ -243,19 +243,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tcid,
             bslot,
             bcls::CCM::VBG_SEL,
-            (22..26).map(|bit| TileBit::new(3, 20, bit).pos()).collect(),
+            (22..26).map(|bit| TileBit::new(3, 20, bit).pos()),
         );
         ctx.insert_bel_attr_bitvec(
             tcid,
             bslot,
             bcls::CCM::VBG_PD,
-            (26..28).map(|bit| TileBit::new(3, 20, bit).pos()).collect(),
+            (26..28).map(|bit| TileBit::new(3, 20, bit).pos()),
         );
         ctx.insert_bel_attr_bitvec(
             tcid,
             bslot,
             bcls::CCM::VREG_PHASE_MARGIN,
-            (29..32).map(|bit| TileBit::new(3, 20, bit).pos()).collect(),
+            (29..32).map(|bit| TileBit::new(3, 20, bit).pos()),
         );
     }
 

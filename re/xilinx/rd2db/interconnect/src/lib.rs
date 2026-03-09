@@ -3825,30 +3825,6 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn extract_intf_tile_multi_id(
-        &mut self,
-        tcid: TileClassId,
-        xy: Coord,
-        int_xy: &[Coord],
-        naming: impl AsRef<str>,
-        bel: BelSlotId,
-        sb: Option<BelSlotId>,
-        has_out_bufs: bool,
-        extract_delay: bool,
-    ) {
-        let mut x = self
-            .xtile_id(tcid, naming.as_ref(), xy)
-            .num_cells(int_xy.len())
-            .extract_intfs(bel, sb, has_out_bufs);
-        if extract_delay {
-            x = x.extract_delay();
-        }
-        for (i, &xy) in int_xy.iter().enumerate() {
-            x = x.ref_int(xy, i);
-        }
-        x.extract();
-    }
-
     pub fn extract_intf_tile_id(
         &mut self,
         tcid: TileClassId,
@@ -3860,16 +3836,14 @@ impl<'a> IntBuilder<'a> {
         has_out_bufs: bool,
         extract_delay: bool,
     ) {
-        self.extract_intf_tile_multi_id(
-            tcid,
-            xy,
-            &[int_xy],
-            naming,
-            bel,
-            sb,
-            has_out_bufs,
-            extract_delay,
-        );
+        let mut x = self
+            .xtile_id(tcid, naming.as_ref(), xy)
+            .extract_intfs(bel, sb, has_out_bufs)
+            .ref_int(int_xy, 0);
+        if extract_delay {
+            x = x.extract_delay();
+        }
+        x.extract();
     }
 
     pub fn extract_intf_id(

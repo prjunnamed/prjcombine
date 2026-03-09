@@ -3939,7 +3939,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bcls::BANK::LVDSBIAS,
             (0..(2 * 12))
                 .map(|i| TileBit::new(0, 23, 29 + i).pos())
-                .collect(),
         );
     }
     {

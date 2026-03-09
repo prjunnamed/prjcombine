@@ -457,6 +457,7 @@ impl DieExpander<'_, '_, '_> {
             self.site_holes
                 .extend([cell_s.rect(1, 5), cell_n.rect(1, 5)]);
         }
+        let mut prev = None;
         for (col, &cd) in &self.chip.columns {
             let tcid = match cd {
                 ColumnKind::Bram => tcls::BRAM,
@@ -468,12 +469,20 @@ impl DieExpander<'_, '_, '_> {
                     continue;
                 }
                 if self.is_site_hole(cell) {
+                    prev = None;
                     continue;
                 }
                 self.egrid.add_tile_n_id(cell, tcid, 5);
                 if cd == ColumnKind::Bram && cell.row.to_idx() % 50 == 25 {
                     self.egrid.add_tile_n_id(cell, tcls::PMVBRAM, 15);
                 }
+                if let Some(prev) = prev
+                    && cd == ColumnKind::Bram
+                {
+                    self.egrid
+                        .fill_conn_pair_id(prev, cell, ccls::BRAM_N, ccls::BRAM_S);
+                }
+                prev = Some(cell);
             }
             if cd == ColumnKind::Bram {
                 for cell in self.egrid.column(self.die, col) {

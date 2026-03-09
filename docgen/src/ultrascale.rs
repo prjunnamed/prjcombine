@@ -1,8 +1,6 @@
-use std::collections::HashSet;
-
 use crate::{
     DocgenContext,
-    bsdata::{FrameDirection, TileOrientation, check_devdata,  gen_bstiles},
+    bsdata::{FrameDirection, TileOrientation, gen_bstiles},
     interconnect::gen_intdb,
 };
 
@@ -32,7 +30,5 @@ pub fn gen_ultrascale(ctx: &mut DocgenContext) {
         .unwrap();
         gen_intdb(ctx, kind, &db.int);
         gen_bstiles(ctx, kind, &db.bsdata, orientation);
-        let devdata_used = HashSet::new();
-        check_devdata(&db.bsdata, kind, &devdata_used);
     }
 }

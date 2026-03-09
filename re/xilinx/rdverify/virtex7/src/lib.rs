@@ -49,8 +49,8 @@ fn verify_slice(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     bel.commit();
 }
 
-fn verify_dsp(vrf: &mut Verifier, bcrd: BelCoord) {
-    let bel = &mut vrf.get_legacy_bel(bcrd);
+fn verify_dsp(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let mut bel = vrf.verify_bel(bcrd).kind("DSP48E1");
     let mut pairs = vec![];
     pairs.push(("MULTSIGNIN".to_string(), "MULTSIGNOUT".to_string()));
     pairs.push(("CARRYCASCIN".to_string(), "CARRYCASCOUT".to_string()));
@@ -63,90 +63,27 @@ fn verify_dsp(vrf: &mut Verifier, bcrd: BelCoord) {
     for i in 0..48 {
         pairs.push((format!("PCIN{i}"), format!("PCOUT{i}")));
     }
-    let mut pins = vec![];
     for (ipin, opin) in &pairs {
-        pins.push((&ipin[..], SitePinDir::In));
-        pins.push((&opin[..], SitePinDir::Out));
-        vrf.claim_net(&[bel.wire(opin)]);
+        bel = bel.extra_in(ipin).extra_out_claim(opin);
         if bcrd.slot == bslots::DSP[0] {
-            if vrf.rd.source == Source::ISE
-                && vrf.find_bel_delta(bel, 0, -5, bslots::DSP[1]).is_none()
-            {
-                vrf.claim_net(&[bel.wire(ipin)]);
+            if bel.vrf.rd.source == Source::ISE && edev.bel_carry_prev(bcrd).is_none() {
+                bel.claim_net(&[bel.wire(ipin)]);
             }
         } else {
-            vrf.claim_net(&[bel.wire(ipin)]);
-            let obel = vrf.find_bel_sibling(bel, bslots::DSP[0]);
-            vrf.claim_pip(bel.wire(ipin), obel.wire(opin));
+            bel.claim_net(&[bel.wire(ipin)]);
+            let obel = bcrd.bel(bslots::DSP[0]);
+            bel.claim_pip(bel.wire(ipin), bel.bel_wire(obel, opin));
 
-            if let Some(obel) = vrf.find_bel_delta(bel, 0, 5, bslots::DSP[0]) {
-                vrf.claim_pip(bel.wire_far(opin), bel.wire(opin));
-                vrf.claim_net(&[obel.wire(ipin), bel.wire_far(opin)]);
-            } else if vrf.rd.source == Source::Vivado {
-                vrf.claim_pip(bel.wire_far(opin), bel.wire(opin));
-                vrf.claim_net(&[bel.wire_far(opin)]);
+            if let Some(obel) = edev.bel_carry_next(bcrd) {
+                bel.claim_pip(bel.wire_far(opin), bel.wire(opin));
+                bel.claim_net(&[bel.bel_wire(obel, ipin), bel.wire_far(opin)]);
+            } else if bel.vrf.rd.source == Source::Vivado {
+                bel.claim_pip(bel.wire_far(opin), bel.wire(opin));
+                bel.claim_net(&[bel.wire_far(opin)]);
             }
         }
     }
-    vrf.verify_legacy_bel(bel, "DSP48E1", &pins, &[]);
-    let obel = vrf.find_bel_sibling(bel, bslots::TIEOFF_DSP);
-    for pin in [
-        "ALUMODE2",
-        "ALUMODE3",
-        "CARRYINSEL2",
-        "CEAD",
-        "CEALUMODE",
-        "CED",
-        "CEINMODE",
-        "INMODE0",
-        "INMODE1",
-        "INMODE2",
-        "INMODE3",
-        "INMODE4",
-        "OPMODE6",
-        "RSTD",
-        "D0",
-        "D1",
-        "D2",
-        "D3",
-        "D4",
-        "D5",
-        "D6",
-        "D7",
-        "D8",
-        "D9",
-        "D10",
-        "D11",
-        "D12",
-        "D13",
-        "D14",
-        "D15",
-        "D16",
-        "D17",
-        "D18",
-        "D19",
-        "D20",
-        "D21",
-        "D22",
-        "D23",
-        "D24",
-    ] {
-        vrf.claim_pip(bel.wire(pin), obel.wire("HARD0"));
-        vrf.claim_pip(bel.wire(pin), obel.wire("HARD1"));
-    }
-}
-
-fn verify_tieoff(vrf: &mut Verifier, bcrd: BelCoord) {
-    let bel = &mut vrf.get_legacy_bel(bcrd);
-    vrf.verify_legacy_bel(
-        bel,
-        "TIEOFF",
-        &[("HARD0", SitePinDir::Out), ("HARD1", SitePinDir::Out)],
-        &[],
-    );
-    for pin in ["HARD0", "HARD1"] {
-        vrf.claim_net(&[bel.wire(pin)]);
-    }
+    bel.commit();
 }
 
 fn verify_bram_f(vrf: &mut Verifier, bcrd: BelCoord) {
@@ -1333,8 +1270,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         | bslots::HCLK_DRP_GTP_MID => (),
         _ if bslots::HCLK_DRP.contains(bcrd.slot) => (),
         _ if bslots::SLICE.contains(bcrd.slot) => verify_slice(edev, vrf, bcrd),
-        _ if bslots::DSP.contains(bcrd.slot) => verify_dsp(vrf, bcrd),
-        bslots::TIEOFF_DSP => verify_tieoff(vrf, bcrd),
+        _ if bslots::DSP.contains(bcrd.slot) => verify_dsp(edev, vrf, bcrd),
         bslots::BRAM_F => verify_bram_f(vrf, bcrd),
         _ if bslots::BRAM_H.contains(bcrd.slot) => verify_bram_h(vrf, bcrd),
         bslots::BRAM_ADDR => verify_bram_addr(vrf, bcrd),

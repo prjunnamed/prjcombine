@@ -883,8 +883,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bcls::GLOBAL::NEXT_CONFIG_ADDR,
             (0..16)
                 .map(|bit| TileBit::new(9, 0, bit).pos())
-                .chain((0..16).map(|bit| TileBit::new(10, 0, bit).pos()))
-                .collect(),
+                .chain((0..16).map(|bit| TileBit::new(10, 0, bit).pos())),
         );
         ctx.insert_bel_attr_bitvec(
             tcid,
@@ -892,20 +891,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bcls::GLOBAL::GOLDEN_CONFIG_ADDR,
             (0..16)
                 .map(|bit| TileBit::new(11, 0, bit).pos())
-                .chain((0..16).map(|bit| TileBit::new(12, 0, bit).pos()))
-                .collect(),
+                .chain((0..16).map(|bit| TileBit::new(12, 0, bit).pos())),
         );
         ctx.insert_bel_attr_bitvec(
             tcid,
             bslot,
             bcls::GLOBAL::FAILSAFE_USER,
-            (0..16).map(|bit| TileBit::new(13, 0, bit).pos()).collect(),
+            (0..16).map(|bit| TileBit::new(13, 0, bit).pos()),
         );
         ctx.insert_bel_attr_bitvec(
             tcid,
             bslot,
             bcls::GLOBAL::TIMER_CFG,
-            (0..16).map(|bit| TileBit::new(16, 0, bit).pos()).collect(),
+            (0..16).map(|bit| TileBit::new(16, 0, bit).pos()),
         );
 
         // SEU_OPT
@@ -931,7 +929,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tcid,
             bslot,
             bcls::GLOBAL::POST_CRC_FREQ_DIV,
-            (4..14).map(|bit| TileBit::new(14, 0, bit).pos()).collect(),
+            (4..14).map(|bit| TileBit::new(14, 0, bit).pos()),
         );
 
         // TESTMODE

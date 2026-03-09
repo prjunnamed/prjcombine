@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelAttributeEnum, EnumValueId, TableRowId, TileClassId, WireSlotIdExt},
@@ -947,7 +949,7 @@ pub fn add_fuzzers<'a>(
             .pin("TQ")
             .test_bel_attr_bool_special_rename(
                 "SRVAL_TQ",
-                OLOGIC::FFT1_SRVAL,
+                OLOGIC::FFT_SRVAL,
                 specials::OLOGIC_FF,
                 "0",
                 "1",
@@ -958,7 +960,7 @@ pub fn add_fuzzers<'a>(
             .pin("TQ")
             .test_bel_attr_bool_special_rename(
                 "SRVAL_TQ",
-                OLOGIC::FFT1_SRVAL,
+                OLOGIC::FFT_SRVAL,
                 specials::OLOGIC_DDR,
                 "0",
                 "1",
@@ -972,7 +974,7 @@ pub fn add_fuzzers<'a>(
         );
         bctx.mode("OSERDES").test_bel_attr_bool_special_rename(
             "SRVAL_TQ",
-            OLOGIC::FFT1_SRVAL,
+            OLOGIC::FFT_SRVAL,
             specials::OSERDES,
             "0",
             "1",
@@ -1988,6 +1990,64 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::CLK1_INV, xlat_bit(!diff_clk1));
         ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::CLK2_INV, xlat_bit(!diff_clk2));
 
+        let ffo_init = TileBit::new(0, 35, [22, 41][i]).neg();
+        let ffo_rank1_init = [
+            TileBit::new(0, 33, [20, 43][i]).neg(),
+            TileBit::new(0, 33, [18, 45][i]).neg(),
+            TileBit::new(0, 32, [15, 48][i]).neg(),
+            TileBit::new(0, 32, [13, 50][i]).neg(),
+            TileBit::new(0, 33, [11, 52][i]).neg(),
+            TileBit::new(0, 33, [8, 55][i]).neg(),
+        ];
+        let ffo_rank2_init = [
+            TileBit::new(0, 35, [13, 50][i]).neg(),
+            TileBit::new(0, 34, [11, 52][i]).neg(),
+            TileBit::new(0, 35, [6, 57][i]).neg(),
+            TileBit::new(0, 34, [2, 61][i]).neg(),
+        ];
+        let ffo_srval = [
+            TileBit::new(0, 34, [31, 32][i]).neg(),
+            TileBit::new(0, 34, [30, 33][i]).neg(),
+            TileBit::new(0, 35, [31, 32][i]).neg(),
+        ];
+        let fft_init = TileBit::new(0, 34, [8, 55][i]).neg();
+        let fft_rank1_init = [
+            TileBit::new(0, 35, [16, 47][i]).neg(),
+            TileBit::new(0, 34, [7, 56][i]).neg(),
+            TileBit::new(0, 35, [4, 59][i]).neg(),
+            TileBit::new(0, 35, [1, 62][i]).neg(),
+        ];
+        let fft_srval = [
+            TileBit::new(0, 35, [12, 51][i]).neg(),
+            TileBit::new(0, 35, [10, 53][i]).neg(),
+            TileBit::new(0, 34, [10, 53][i]).neg(),
+        ];
+        ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::FFO_INIT, ffo_init);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFO_RANK1_INIT, ffo_rank1_init);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFO_RANK2_INIT, ffo_rank2_init);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFO_SRVAL, ffo_srval);
+        ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::FFT_INIT, fft_init);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFT_RANK1_INIT, fft_rank1_init);
+        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFT_SRVAL, fft_srval);
+
+        let ffo_sr_sync = TileBit::new(0, 35, [26, 37][i]).pos();
+        let ffo_rank1_sr_sync = TileBit::new(0, 33, [0, 63][i]).pos();
+        let ffo_rank2_sr_sync = TileBit::new(0, 34, [12, 51][i]).pos();
+        let ffo_loadgen_sr_sync = TileBit::new(0, 32, [26, 37][i]).pos();
+        ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::FFO_SR_SYNC, ffo_sr_sync);
+        ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::FFO_RANK1_SR_SYNC, ffo_rank1_sr_sync);
+        ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::FFO_RANK2_SR_SYNC, ffo_rank2_sr_sync);
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            OLOGIC::FFO_LOADGEN_SR_SYNC,
+            ffo_loadgen_sr_sync,
+        );
+        let fft_sr_sync = TileBit::new(0, 34, [19, 44][i]).pos();
+        let fft_rank1_sr_sync = TileBit::new(0, 32, [1, 62][i]).pos();
+        ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::FFT_SR_SYNC, fft_sr_sync);
+        ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::FFT_RANK1_SR_SYNC, fft_rank1_sr_sync);
+
         ctx.collect_bel_attr(tcid, bslot, OLOGIC::FFO_SR_ENABLE);
         ctx.collect_bel_attr(tcid, bslot, OLOGIC::FFT_SR_ENABLE);
         ctx.collect_bel_attr(tcid, bslot, OLOGIC::FFO_REV_ENABLE);
@@ -2046,12 +2106,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 (enums::OLOGIC_V5_MUX_O::LATCH, diff_latch),
             ]),
         );
-        ctx.insert_bel_attr_bitvec(
-            tcid,
-            bslot,
-            OLOGIC::FFO_SERDES,
-            xlat_bit_wide(diff_off_serdes),
-        );
+        diff_off_serdes.apply_bitvec_diff_int(&ffo_rank2_init, 0, 0xf);
+        diff_off_serdes.assert_empty();
 
         let diff_t1 =
             ctx.get_diff_attr_val(tcid, bslot, OLOGIC::V5_MUX_T, enums::OLOGIC_V5_MUX_T::T1);
@@ -2160,10 +2216,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         diff.apply_bitvec_diff(&item_oq, &bits![1; 4], &bits![0; 4]);
         diff.apply_bitvec_diff(&item_tq, &bits![1; 2], &bits![0; 2]);
         diff.assert_empty();
-        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFO_SR_SYNC, item_oq);
-        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFT_SR_SYNC, item_tq);
+        assert_eq!(
+            BTreeSet::from_iter(item_oq),
+            BTreeSet::from([
+                ffo_sr_sync,
+                ffo_rank1_sr_sync,
+                ffo_rank2_sr_sync,
+                ffo_loadgen_sr_sync
+            ])
+        );
+        assert_eq!(
+            BTreeSet::from_iter(item_tq),
+            BTreeSet::from([fft_sr_sync, fft_rank1_sr_sync,])
+        );
 
-        let diff_ologic = ctx.get_diff_attr_special_bit_bi(
+        let mut diff_ologic = ctx.get_diff_attr_special_bit_bi(
             tcid,
             bslot,
             OLOGIC::FFO_INIT,
@@ -2171,28 +2238,25 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             0,
             false,
         );
-        let diff_oserdes = ctx
-            .get_diff_attr_special_bit_bi(
-                tcid,
-                bslot,
-                OLOGIC::FFO_INIT,
-                specials::OSERDES,
-                0,
-                false,
-            )
-            .combine(&!&diff_ologic);
-        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFO_INIT, xlat_bit_wide(!diff_ologic));
-        ctx.insert_bel_attr_bitvec(
+        diff_ologic.apply_bit_diff(ffo_init, false, true);
+        diff_ologic.apply_bitvec_diff_int(&ffo_rank1_init, 0, 7);
+        diff_ologic.assert_empty();
+        let mut diff_oserdes = ctx.get_diff_attr_special_bit_bi(
             tcid,
             bslot,
-            OLOGIC::FFO_INIT_SERDES,
-            xlat_bit_wide(!diff_oserdes),
+            OLOGIC::FFO_INIT,
+            specials::OSERDES,
+            0,
+            false,
         );
+        diff_oserdes.apply_bit_diff(ffo_init, false, true);
+        diff_oserdes.apply_bitvec_diff_int(&ffo_rank1_init, 0, 0x3f);
+        diff_oserdes.assert_empty();
         ctx.get_diff_attr_special_bit_bi(tcid, bslot, OLOGIC::FFO_INIT, specials::OLOGIC, 0, true)
             .assert_empty();
         ctx.get_diff_attr_special_bit_bi(tcid, bslot, OLOGIC::FFO_INIT, specials::OSERDES, 0, true)
             .assert_empty();
-        let item = xlat_bit_wide_bi(
+        let bits_ologic = xlat_bit_wide_bi(
             ctx.get_diff_attr_special_bit_bi(
                 tcid,
                 bslot,
@@ -2210,8 +2274,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 true,
             ),
         );
-        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFT_INIT, item);
-        let item = xlat_bit_wide_bi(
+        let bits_oserdes = xlat_bit_wide_bi(
             ctx.get_diff_attr_special_bit_bi(
                 tcid,
                 bslot,
@@ -2229,9 +2292,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 true,
             ),
         );
-        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFT_INIT, item);
+        assert_eq!(bits_ologic, bits_oserdes);
+        assert_eq!(
+            BTreeSet::from_iter(bits_ologic),
+            BTreeSet::from_iter(fft_rank1_init.into_iter().chain([fft_init]))
+        );
 
-        let item = xlat_bit_wide_bi(
+        let bits = xlat_bit_wide_bi(
             ctx.get_diff_attr_special_bit_bi(
                 tcid,
                 bslot,
@@ -2249,8 +2316,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 true,
             ),
         );
-        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFO_SRVAL, item);
-        let item = xlat_bit_wide_bi(
+        assert_eq!(BTreeSet::from_iter(bits), BTreeSet::from(ffo_srval));
+        let bits = xlat_bit_wide_bi(
             ctx.get_diff_attr_special_bit_bi(
                 tcid,
                 bslot,
@@ -2268,16 +2335,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 true,
             ),
         );
-        ctx.insert_bel_attr_bitvec(tcid, bslot, OLOGIC::FFO_SRVAL, item);
+        assert_eq!(BTreeSet::from_iter(bits), BTreeSet::from(ffo_srval));
 
         for spec in [specials::OLOGIC_FF, specials::OLOGIC_DDR, specials::OSERDES] {
-            ctx.get_diff_attr_special_bit_bi(tcid, bslot, OLOGIC::FFT1_SRVAL, spec, 0, true)
+            ctx.get_diff_attr_special_bit_bi(tcid, bslot, OLOGIC::FFT_SRVAL, spec, 0, true)
                 .assert_empty();
         }
         let diff1 = ctx.get_diff_attr_special_bit_bi(
             tcid,
             bslot,
-            OLOGIC::FFT1_SRVAL,
+            OLOGIC::FFT_SRVAL,
             specials::OLOGIC_FF,
             0,
             false,
@@ -2285,7 +2352,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let diff2 = ctx.get_diff_attr_special_bit_bi(
             tcid,
             bslot,
-            OLOGIC::FFT1_SRVAL,
+            OLOGIC::FFT_SRVAL,
             specials::OLOGIC_DDR,
             0,
             false,
@@ -2293,18 +2360,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let diff3 = ctx.get_diff_attr_special_bit_bi(
             tcid,
             bslot,
-            OLOGIC::FFT1_SRVAL,
+            OLOGIC::FFT_SRVAL,
             specials::OSERDES,
             0,
             false,
         );
         assert_eq!(diff2, diff3);
         let diff2 = diff2.combine(&!&diff1);
-        ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::FFT1_SRVAL, xlat_bit(!diff1));
+        assert_eq!(xlat_bit(!diff1), fft_srval[0]);
         let bits = xlat_bit_wide(!diff2);
         assert_eq!(bits.len(), 2);
-        ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::FFT2_SRVAL, bits[1]);
-        ctx.insert_bel_attr_bool(tcid, bslot, OLOGIC::FFT3_SRVAL, bits[0]);
+        assert_eq!(bits[1], fft_srval[1]);
+        assert_eq!(bits[0], fft_srval[2]);
 
         ctx.collect_bel_attr_bi(tcid, bslot, OLOGIC::SERDES);
         ctx.collect_bel_attr(tcid, bslot, OLOGIC::SERDES_MODE);

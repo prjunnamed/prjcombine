@@ -1,11 +1,9 @@
-use std::collections::HashSet;
-
 use indexmap::IndexMap;
 use prjcombine_virtex4::defs::devdata;
 
 use crate::{
     DocgenContext,
-    bsdata::{FrameDirection, TileOrientation, check_devdata, gen_bstiles, gen_devdata_table},
+    bsdata::{FrameDirection, TileOrientation, gen_bstiles},
     interconnect::{gen_devdata, gen_intdb},
 };
 
@@ -40,7 +38,6 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
             ctx.ctx.root.join(format!("../databases/{kind}.zstd")),
         )
         .unwrap();
-        let part_names = Vec::from_iter(db.devices.iter().map(|part| part.name.as_str()));
         gen_intdb(ctx, kind, &db.int);
         let mut devdata = IndexMap::new();
         for device in &db.devices {
@@ -48,7 +45,6 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
         }
 
         gen_bstiles(ctx, kind, &db.bsdata, orientation);
-        let mut devdata_used = HashSet::new();
         match kind {
             "virtex4" => {}
             "virtex5" => {
@@ -78,14 +74,13 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
                 );
             }
             "virtex6" => {
-                gen_devdata_table(
+                gen_devdata(
                     ctx,
-                    &db.bsdata,
-                    &part_names,
-                    &mut devdata_used,
                     "virtex6",
+                    &db.int,
                     "iodelay-default",
-                    &["IODELAY:DEFAULT_IDELAY_VALUE"],
+                    &devdata,
+                    &[devdata::IODELAY_V6_IDELAY_DEFAULT],
                 );
                 gen_devdata(
                     ctx,
@@ -99,6 +94,5 @@ pub fn gen_virtex4(ctx: &mut DocgenContext) {
             "virtex7" => {}
             _ => unreachable!(),
         }
-        check_devdata(&db.bsdata, kind, &devdata_used);
     }
 }

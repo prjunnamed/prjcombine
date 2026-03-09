@@ -214,7 +214,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(bslots::DSP[0], format!("DSP48_X{dx}Y{dy0}"));
                 ntile.add_bel(bslots::DSP[1], format!("DSP48_X{dx}Y{dy1}"));
                 let tx = namer.tiexlut[col] + 1;
-                ntile.add_bel(bslots::TIEOFF_DSP, format!("TIEOFF_X{tx}Y{y}"));
+                ntile.tie_name = Some(format!("TIEOFF_X{tx}Y{y}"));
             }
             tcls::IO => {
                 let naming = if col < edev.col_cfg { "LIOI" } else { "RIOI" };

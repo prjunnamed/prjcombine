@@ -150,6 +150,7 @@ pub enum MultiValue {
     Hex(i32),
     HexPrefix,
     Bin,
+    BinRev,
     Dec(i32),
 }
 
@@ -792,6 +793,7 @@ impl<'a> Backend for IseBackend<'a> {
                 Value::String(v)
             }
             MultiValue::Bin => Value::String(y.to_string()),
+            MultiValue::BinRev => Value::String(y.to_string().chars().rev().collect()),
             MultiValue::Dec(delta) => {
                 let val = y.as_u64();
                 let val = val.checked_add_signed(delta.into()).unwrap();

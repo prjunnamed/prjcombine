@@ -4290,7 +4290,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         diffs.push((rid, diff));
                     }
                     let item = xlat_enum_raw(diffs, OcdMode::ValueOrder);
-                    let item_bv = item.bits.iter().map(|&bit| bit.pos()).collect();
                     let (attr, field) = match edev.chip.kind {
                         ChipKind::Virtex2 => (bcls::IOB::V2_OUTPUT_DIFF, IOB_DATA::V2_OUTPUT_DIFF),
                         ChipKind::Virtex2P | ChipKind::Virtex2PX => {
@@ -4305,7 +4304,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             (bcls::IOB::S3A_OUTPUT_DIFF, IOB_DATA::S3A_OUTPUT_DIFF)
                         }
                     };
-                    ctx.insert_bel_attr_bitvec(tcid, bslot, attr, item_bv);
+                    ctx.insert_bel_attr_bitvec(
+                        tcid,
+                        bslot,
+                        attr,
+                        item.bits.iter().map(|&bit| bit.pos()),
+                    );
                     for (row, value) in item.values {
                         ctx.insert_table_bitvec(IOB_DATA, row, field, value);
                     }

@@ -71,11 +71,6 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         !self.edev.tile_index[tcid].is_empty()
     }
 
-    pub fn has_tile_legacy(&self, tile: &str) -> bool {
-        let tcid = self.edev.db.get_tile_class(tile);
-        !self.edev.tile_index[tcid].is_empty()
-    }
-
     pub fn insert_int_inv_wire(
         &mut self,
         int_tiles: &[TileClassId],

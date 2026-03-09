@@ -103,7 +103,6 @@ impl<'sm, 'b> FuzzCtx<'sm, 'b> {
 
 pub trait FuzzBuilderBase<'b>: Sized {
     fn prop_box(self, prop: Box<DynProp<'b>>) -> Self;
-    fn backend(&self) -> &'b IseBackend<'b>;
 
     fn prop(self, prop: impl FuzzerProp<'b, IseBackend<'b>> + 'b) -> Self {
         self.prop_box(Box::new(prop))
@@ -174,14 +173,6 @@ pub trait FuzzBuilderBase<'b>: Sized {
         } else {
             self
         }
-    }
-
-    fn extra_tiles_by_kind_legacy(self, kind: impl AsRef<str>, bel: impl Into<String>) -> Self {
-        let kind = self.backend().edev.db.get_tile_class(kind.as_ref());
-        self.prop(ExtraTilesByClass::new(
-            kind,
-            ExtraKeyLegacy::new(bel.into()),
-        ))
     }
 
     fn extra_tiles_by_class_bel_special(
@@ -438,10 +429,6 @@ impl<'b> FuzzBuilderBase<'b> for FuzzBuilder<'_, 'b> {
         self.props.push(prop);
         self
     }
-
-    fn backend(&self) -> &'b IseBackend<'b> {
-        self.backend
-    }
 }
 
 impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
@@ -611,14 +598,6 @@ impl<'b> FuzzCtxBel<'_, 'b> {
         self.build().mode(mode)
     }
 
-    pub fn test_manual_legacy<'sm>(
-        &'sm mut self,
-        attr: impl AsRef<str>,
-        val: impl AsRef<str>,
-    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
-        self.build().test_manual_legacy(attr, val)
-    }
-
     pub fn sub(mut self, sub: usize) -> Self {
         self.sub = sub;
         self
@@ -639,10 +618,6 @@ impl<'b> FuzzBuilderBase<'b> for FuzzBuilderBel<'_, 'b> {
     fn prop_box(mut self, prop: Box<DynProp<'b>>) -> Self {
         self.props.push(prop);
         self
-    }
-
-    fn backend(&self) -> &'b IseBackend<'b> {
-        self.backend
     }
 }
 

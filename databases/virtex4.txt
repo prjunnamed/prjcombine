@@ -22718,6 +22718,7 @@ intdb {
 		_1,
 		_2,
 		DIRECT_2_CASC_1,
+		_1_INMODE_GND,
 	}
 
 	enum DSP_USE_MULT {
@@ -22821,6 +22822,45 @@ intdb {
 		DEFAULT,
 	}
 
+	enum IODELAY_V6_DELAY_SRC {
+		NONE,
+		I,
+		IO,
+		O,
+		DATAIN,
+		CLKIN,
+		DELAYCHAIN_OSC,
+	}
+
+	enum IODELAY_V6_DELAY_TYPE {
+		FIXED,
+		VARIABLE,
+		VARIABLE_SWAPPED,
+		VAR_LOADABLE,
+		IO_VAR_LOADABLE,
+	}
+
+	enum IDELAY_DELAY_SRC {
+		NONE,
+		IDATAIN,
+		OFB,
+		DATAIN,
+		DELAYCHAIN_OSC,
+	}
+
+	enum IODELAY_V7_DELAY_TYPE {
+		FIXED,
+		VARIABLE,
+		VAR_LOAD,
+	}
+
+	enum ODELAY_DELAY_SRC {
+		NONE,
+		ODATAIN,
+		CLKIN,
+		DELAYCHAIN_OSC,
+	}
+
 	enum OLOGIC_TRISTATE_WIDTH {
 		_1,
 		_2,
@@ -22865,6 +22905,21 @@ intdb {
 		NONE,
 		CLK1,
 		CLK2,
+	}
+
+	enum OLOGIC_CLOCK_RATIO {
+		NONE,
+		_2,
+		_3,
+		_4,
+		_5,
+		_6,
+		_7_8,
+	}
+
+	enum OLOGIC_INTERFACE_TYPE {
+		DEFAULT,
+		MEMORY_DDR3,
 	}
 
 	enum IOB_PULL {
@@ -24237,6 +24292,72 @@ intdb {
 		attribute SCAN_IN_SETVAL_P: bitvec[1];
 	}
 
+	bel_class DSP_V6 {
+		input CLK;
+		input A[30];
+		input RSTA;
+		input CEA1;
+		input CEA2;
+		input B[18];
+		input RSTB;
+		input CEB1;
+		input CEB2;
+		input C[48];
+		input RSTC;
+		input CEC;
+		input D[25];
+		input RSTD;
+		input CED;
+		input INMODE[5];
+		input RSTINMODE;
+		input CEINMODE;
+		input CEAD;
+		input RSTM;
+		input CEM;
+		input OPMODE[7];
+		input CARRYINSEL[3];
+		input RSTCTRL;
+		input CECTRL;
+		input CARRYIN;
+		input RSTALLCARRYIN;
+		input CECARRYIN;
+		input RSTALUMODE;
+		input CEALUMODE;
+		input ALUMODE[4];
+		input RSTP;
+		input CEP;
+		output P[48];
+		output CARRYOUT[4];
+		output PATTERNDETECT;
+		output PATTERNBDETECT;
+		output OVERFLOW;
+		output UNDERFLOW;
+		attribute AREG: DSP_REG2_CASC;
+		attribute A_INPUT: DSP_AB_INPUT;
+		attribute BREG: DSP_REG2_CASC;
+		attribute B_INPUT: DSP_AB_INPUT;
+		attribute CREG: bool;
+		attribute DREG: bool;
+		attribute USE_DPORT: bool;
+		attribute INMODEREG: bool;
+		attribute ADREG: bool;
+		attribute MREG: bool;
+		attribute USE_MULT: bool;
+		attribute OPMODEREG: bool;
+		attribute CARRYINSELREG: bool;
+		attribute CARRYINREG: bool;
+		attribute ALUMODEREG: bool;
+		attribute USE_SIMD: DSP_USE_SIMD;
+		attribute PREG: bool;
+		attribute PATTERN: bitvec[48];
+		attribute SEL_PATTERN: DSP_SEL_PATTERN;
+		attribute MASK: bitvec[48];
+		attribute SEL_MASK: DSP_SEL_MASK;
+		attribute SEL_ROUNDING_MASK: DSP_SEL_ROUNDING_MASK;
+		attribute AUTORESET_PATTERN_DETECT: bool;
+		attribute AUTORESET_PATTERN_DETECT_OPTINV: bool;
+	}
+
 	bel_class ILOGIC {
 		input CLK;
 		input CLKB;
@@ -24332,6 +24453,16 @@ intdb {
 		input RST;
 		input CNTVALUEIN[5];
 		output CNTVALUEOUT[5];
+		attribute ENABLE: bool;
+		attribute IDATAIN_INV: bool;
+		attribute CINVCTRL_SEL: bool;
+		attribute EXTRA_DELAY: bool;
+		attribute DELAY_SRC: IODELAY_V6_DELAY_SRC;
+		attribute DELAY_TYPE: IODELAY_V6_DELAY_TYPE;
+		attribute HIGH_PERFORMANCE_MODE: bool;
+		attribute IDELAY_VALUE_CUR: bitvec[5];
+		attribute IDELAY_VALUE_INIT: bitvec[5];
+		attribute ALT_DELAY_VALUE: bitvec[5];
 	}
 
 	bel_class IDELAY {
@@ -24346,6 +24477,16 @@ intdb {
 		input IFDLY[3];
 		input CNTVALUEIN[5];
 		output CNTVALUEOUT[5];
+		attribute ENABLE: bool;
+		attribute IDATAIN_INV: bool;
+		attribute CINVCTRL_SEL: bool;
+		attribute FINEDELAY: bool;
+		attribute DELAY_SRC: IDELAY_DELAY_SRC;
+		attribute DELAY_TYPE: IODELAY_V7_DELAY_TYPE;
+		attribute HIGH_PERFORMANCE_MODE: bool;
+		attribute PIPE_SEL: bool;
+		attribute IDELAY_VALUE_CUR: bitvec[5];
+		attribute IDELAY_VALUE_INIT: bitvec[5];
 	}
 
 	bel_class ODELAY {
@@ -24360,6 +24501,16 @@ intdb {
 		input CNTVALUEIN[5];
 		output CNTVALUEOUT[5];
 		output DATAOUT;
+		attribute ENABLE: bool;
+		attribute ODATAIN_INV: bool;
+		attribute CINVCTRL_SEL: bool;
+		attribute FINEDELAY: bool;
+		attribute DELAY_SRC: ODELAY_DELAY_SRC;
+		attribute DELAY_TYPE: IODELAY_V7_DELAY_TYPE;
+		attribute HIGH_PERFORMANCE_MODE: bool;
+		attribute PIPE_SEL: bool;
+		attribute ODELAY_VALUE_CUR: bitvec[5];
+		attribute ODELAY_VALUE_INIT: bitvec[5];
 	}
 
 	bel_class OLOGIC {
@@ -24394,22 +24545,25 @@ intdb {
 		output OCBEXTEND;
 		attribute CLK1_INV: bool;
 		attribute CLK2_INV: bool;
-		attribute FFO_INIT: bitvec[4];
-		attribute FFO_INIT_SERDES: bitvec[3];
+		attribute FFO_INIT: bitvec[1];
+		attribute FFO_RANK1_INIT: bitvec[6];
+		attribute FFO_RANK2_INIT: bitvec[4];
 		attribute FFO_SRVAL: bitvec[3];
-		attribute FFO_SERDES: bitvec[4];
 		attribute FFO_LATCH: bool;
-		attribute FFO_SR_SYNC: bitvec[4];
+		attribute FFO_SR_SYNC: bool;
+		attribute FFO_RANK1_SR_SYNC: bool;
+		attribute FFO_RANK2_SR_SYNC: bool;
+		attribute FFO_LOADGEN_SR_SYNC: bool;
 		attribute FFO_SR_ENABLE: bool;
 		attribute FFO_REV_ENABLE: bool;
 		attribute V4_MUX_O: OLOGIC_V4_MUX_O;
 		attribute V5_MUX_O: OLOGIC_V5_MUX_O;
-		attribute FFT_INIT: bitvec[5];
-		attribute FFT1_SRVAL: bitvec[1];
-		attribute FFT2_SRVAL: bitvec[1];
-		attribute FFT3_SRVAL: bitvec[1];
+		attribute FFT_INIT: bitvec[1];
+		attribute FFT_RANK1_INIT: bitvec[4];
+		attribute FFT_SRVAL: bitvec[3];
 		attribute FFT_LATCH: bool;
-		attribute FFT_SR_SYNC: bitvec[2];
+		attribute FFT_SR_SYNC: bool;
+		attribute FFT_RANK1_SR_SYNC: bool;
 		attribute FFT_SR_ENABLE: bool;
 		attribute FFT_REV_ENABLE: bool;
 		attribute V4_MUX_T: OLOGIC_V4_MUX_T;
@@ -24423,6 +24577,21 @@ intdb {
 		attribute MISR_ENABLE_FDBK: bool;
 		attribute MISR_RESET: bool;
 		attribute MISR_CLK_SELECT: OLOGIC_MISR_CLK_SELECT;
+		attribute CLOCK_RATIO: OLOGIC_CLOCK_RATIO;
+		attribute SELFHEAL: bool;
+		attribute DDR3_BYPASS: bool;
+		attribute DDR3_DATA: bool;
+		attribute WC_DELAY: bool;
+		attribute ODELAY_USED: bool;
+		attribute INIT_DLY_CNT: bitvec[10];
+		attribute INIT_FIFO_ADDR: bitvec[11];
+		attribute INIT_FIFO_RESET: bitvec[13];
+		attribute INIT_PIPE_DATA0: bitvec[12];
+		attribute INIT_PIPE_DATA1: bitvec[12];
+		attribute INTERFACE_TYPE: OLOGIC_INTERFACE_TYPE;
+		attribute RANK3_USED: bool;
+		attribute TBYTE_CTL: bool;
+		attribute TBYTE_SRC: bool;
 	}
 
 	bel_class IOB {
@@ -35631,10 +35800,10 @@ intdb {
 	wire MGT_CLK_OUT_SYNCLK: mux;
 	wire MGT_CLK_OUT_FWDCLK[0]: mux;
 	wire MGT_CLK_OUT_FWDCLK[1]: mux;
-	wire MGT_FWDCLK_S[0]: multi_branch MGT_S;
-	wire MGT_FWDCLK_S[1]: multi_branch MGT_S;
-	wire MGT_FWDCLK_S[2]: multi_branch MGT_S;
-	wire MGT_FWDCLK_S[3]: multi_branch MGT_S;
+	wire MGT_FWDCLK_S[0]: multi_branch BEL_S;
+	wire MGT_FWDCLK_S[1]: multi_branch BEL_S;
+	wire MGT_FWDCLK_S[2]: multi_branch BEL_S;
+	wire MGT_FWDCLK_S[3]: multi_branch BEL_S;
 	wire MGT_FWDCLK_N[0]: multi_root;
 	wire MGT_FWDCLK_N[1]: multi_root;
 	wire MGT_FWDCLK_N[2]: multi_root;
@@ -39553,7 +39722,6 @@ intdb {
 		bel_slot DSP[0]: DSP_V4;
 		bel_slot DSP[1]: DSP_V4;
 		bel_slot DSP_C: DSP_C;
-		bel_slot TIEOFF_DSP: legacy;
 		bel_slot ILOGIC[0]: ILOGIC;
 		bel_slot ILOGIC[1]: ILOGIC;
 		bel_slot OLOGIC[0]: OLOGIC;
@@ -41530,12 +41698,15 @@ intdb {
 				output TQ = OUT_SEC_TMIN[1];
 				attribute CLK1_INV @!MAIN[21][6];
 				attribute CLK2_INV @!MAIN[21][7];
-				attribute FFO_INIT @[!MAIN[25][26], !MAIN[24][9], !MAIN[24][3], !MAIN[24][1]];
-				attribute FFO_INIT_SERDES @[!MAIN[24][37], !MAIN[24][36], !MAIN[24][32]];
-				attribute FFO_SRVAL @[!MAIN[25][34], !MAIN[25][33], !MAIN[25][25]];
-				attribute FFO_SERDES @[MAIN[25][14], MAIN[25][8], MAIN[25][4], MAIN[25][0]];
+				attribute FFO_INIT @[!MAIN[25][26]];
+				attribute FFO_RANK1_INIT @[!MAIN[24][37], !MAIN[24][36], !MAIN[24][32], !MAIN[24][9], !MAIN[24][3], !MAIN[24][1]];
+				attribute FFO_RANK2_INIT @[!MAIN[25][14], !MAIN[25][8], !MAIN[25][4], !MAIN[25][0]];
+				attribute FFO_SRVAL @[!MAIN[25][25], !MAIN[25][34], !MAIN[25][33]];
 				attribute FFO_LATCH @MAIN[25][32];
-				attribute FFO_SR_SYNC @[MAIN[25][38], MAIN[25][18], MAIN[24][35], MAIN[24][12]];
+				attribute FFO_SR_SYNC @MAIN[25][38];
+				attribute FFO_RANK1_SR_SYNC @MAIN[24][12];
+				attribute FFO_RANK2_SR_SYNC @MAIN[25][18];
+				attribute FFO_LOADGEN_SR_SYNC @MAIN[24][35];
 				attribute FFO_SR_ENABLE @MAIN[25][35];
 				attribute FFO_REV_ENABLE @MAIN[25][39];
 				attribute V4_MUX_O @[MAIN[25][28], MAIN[25][27], MAIN[25][31]] {
@@ -41544,12 +41715,12 @@ intdb {
 					FFO1 = 0b010,
 					FFODDR = 0b110,
 				}
-				attribute FFT_INIT @[!MAIN[24][26], !MAIN[24][15], !MAIN[24][7], !MAIN[24][2], !MAIN[24][0]];
-				attribute FFT1_SRVAL @[!MAIN[24][28]];
-				attribute FFT2_SRVAL @[!MAIN[24][27]];
-				attribute FFT3_SRVAL @[!MAIN[24][25]];
+				attribute FFT_INIT @[!MAIN[24][26]];
+				attribute FFT_RANK1_INIT @[!MAIN[24][15], !MAIN[24][7], !MAIN[24][2], !MAIN[24][0]];
+				attribute FFT_SRVAL @[!MAIN[24][25], !MAIN[24][27], !MAIN[24][28]];
 				attribute FFT_LATCH @MAIN[24][20];
-				attribute FFT_SR_SYNC @[MAIN[24][33], MAIN[24][5]];
+				attribute FFT_SR_SYNC @MAIN[24][33];
+				attribute FFT_RANK1_SR_SYNC @MAIN[24][5];
 				attribute FFT_SR_ENABLE @MAIN[24][31];
 				attribute FFT_REV_ENABLE @MAIN[24][34];
 				attribute V4_MUX_T @[MAIN[24][11], MAIN[24][10], MAIN[24][24]] {
@@ -41602,12 +41773,15 @@ intdb {
 				output TQ = OUT_SEC_TMIN[3];
 				attribute CLK1_INV @!MAIN[21][73];
 				attribute CLK2_INV @!MAIN[21][72];
-				attribute FFO_INIT @[!MAIN[25][53], !MAIN[24][78], !MAIN[24][76], !MAIN[24][70]];
-				attribute FFO_INIT_SERDES @[!MAIN[24][47], !MAIN[24][43], !MAIN[24][42]];
-				attribute FFO_SRVAL @[!MAIN[25][54], !MAIN[25][46], !MAIN[25][45]];
-				attribute FFO_SERDES @[MAIN[25][79], MAIN[25][75], MAIN[25][71], MAIN[25][65]];
+				attribute FFO_INIT @[!MAIN[25][53]];
+				attribute FFO_RANK1_INIT @[!MAIN[24][42], !MAIN[24][43], !MAIN[24][47], !MAIN[24][70], !MAIN[24][76], !MAIN[24][78]];
+				attribute FFO_RANK2_INIT @[!MAIN[25][65], !MAIN[25][71], !MAIN[25][75], !MAIN[25][79]];
+				attribute FFO_SRVAL @[!MAIN[25][54], !MAIN[25][45], !MAIN[25][46]];
 				attribute FFO_LATCH @MAIN[25][47];
-				attribute FFO_SR_SYNC @[MAIN[25][61], MAIN[25][41], MAIN[24][67], MAIN[24][44]];
+				attribute FFO_SR_SYNC @MAIN[25][41];
+				attribute FFO_RANK1_SR_SYNC @MAIN[24][67];
+				attribute FFO_RANK2_SR_SYNC @MAIN[25][61];
+				attribute FFO_LOADGEN_SR_SYNC @MAIN[24][44];
 				attribute FFO_SR_ENABLE @MAIN[25][44];
 				attribute FFO_REV_ENABLE @MAIN[25][40];
 				attribute V4_MUX_O @[MAIN[25][51], MAIN[25][52], MAIN[25][48]] {
@@ -41616,12 +41790,12 @@ intdb {
 					FFO1 = 0b010,
 					FFODDR = 0b110,
 				}
-				attribute FFT_INIT @[!MAIN[24][79], !MAIN[24][77], !MAIN[24][72], !MAIN[24][64], !MAIN[24][53]];
-				attribute FFT1_SRVAL @[!MAIN[24][51]];
-				attribute FFT2_SRVAL @[!MAIN[24][52]];
-				attribute FFT3_SRVAL @[!MAIN[24][54]];
+				attribute FFT_INIT @[!MAIN[24][53]];
+				attribute FFT_RANK1_INIT @[!MAIN[24][64], !MAIN[24][72], !MAIN[24][77], !MAIN[24][79]];
+				attribute FFT_SRVAL @[!MAIN[24][54], !MAIN[24][52], !MAIN[24][51]];
 				attribute FFT_LATCH @MAIN[24][59];
-				attribute FFT_SR_SYNC @[MAIN[24][74], MAIN[24][46]];
+				attribute FFT_SR_SYNC @MAIN[24][46];
+				attribute FFT_RANK1_SR_SYNC @MAIN[24][74];
 				attribute FFT_SR_ENABLE @MAIN[24][48];
 				attribute FFT_REV_ENABLE @MAIN[24][45];
 				attribute V4_MUX_T @[MAIN[24][68], MAIN[24][69], MAIN[24][55]] {
@@ -64724,8 +64898,8 @@ intdb {
 		}
 	}
 
-	connector_slot MGT_S {
-		opposite MGT_N;
+	connector_slot BEL_S {
+		opposite BEL_N;
 
 		connector_class MGT_S {
 			pass MGT_FWDCLK_S[0] = MGT_FWDCLK_N[0];
@@ -64735,8 +64909,8 @@ intdb {
 		}
 	}
 
-	connector_slot MGT_N {
-		opposite MGT_S;
+	connector_slot BEL_N {
+		opposite BEL_S;
 
 		connector_class MGT_N {
 		}
