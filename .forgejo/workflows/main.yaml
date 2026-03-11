@@ -1,0 +1,27 @@
+on:
+  push:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+name: CI
+jobs:
+  document:
+    runs-on: debian-trixie
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v6
+      - name: Set up mdBook
+        uses: https://github.com/peaceiris/actions-mdbook@v2
+      - name: Set up Rust
+        uses: https://codeberg.org/prjunnamed/setup-rust-toolchain@f0e3fff1ca3442708aa9fb8156820eb859d80846
+      - name: Build the book
+        run: |
+          mdbook build docs
+      - if: ${{ forge.repository == 'prjunnamed/prjcombine' && forge.event.ref == 'refs/heads/main' }}
+        name: Deploy website
+        uses: actions/git-pages@v2
+        with:
+          site: https://prjcombine.org/
+          password: ${{ secrets.GREBEDOC_TOKEN }}
+          source: docs/book/
