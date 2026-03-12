@@ -1,8 +1,8 @@
 # Database schema
 
-The device database is provided in machine-readable form as a JSON file:
+The device database is provided in machine-readable form as a text file:
 
-- [xpla3.json](https://raw.githubusercontent.com/prjunnamed/prjcombine/main/databases/xpla3.json), describing all XPLA3 devices
+- [xpla3.txt](https://codeberg.org/prjunnamed/prjcombine/raw/branch/main/databases/xpla3.txt), describing all XPLA3 devices
 
 
 ## Top level
