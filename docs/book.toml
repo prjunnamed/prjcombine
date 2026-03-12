@@ -14,6 +14,7 @@ after = ["index"]
 [output.html]
 additional-css = ["custom.css"]
 git-repository-url = "https://codeberg.org/prjunnamed/prjcombine/"
+git-repository-icon = "fas-code-fork"
 
 [output.html.print]
 enable = false
