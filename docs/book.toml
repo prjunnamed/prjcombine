@@ -13,6 +13,7 @@ after = ["index"]
 
 [output.html]
 additional-css = ["custom.css"]
+git-repository-url = "https://codeberg.org/prjunnamed/prjcombine/"
 
 [output.html.print]
 enable = false
