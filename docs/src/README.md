@@ -28,12 +28,14 @@ Project Combine consists of:
 
    The public crates include:
 
+   - `prjcombine-entity`: provides variants of `Vec` and other types with newtype-based indexing
    - `prjcombine-types`: common data types used across multiple targets
      - `bsdata`: bitstream format description (for the databases)
      - `speed`: raw speed data description (for the databases)
      - `units`: newtypes over `f64` associated with physical units (used for speed data)
      - `bscan`: boundary scan chain description
    - `prjcombine-interconnect`: implements data structures for FPGA-like tile grids and general interconnect; this is the crate that FPGA targets are generally based around
+   - `prjcombine-tablegen`: a proc macro for generating target description structures
    - `prjcombine-jed`: implements JESD3 bitstream format, also known as the `.jed` file format
    - `prjcombine-xilinx-bitstream`: the Xilinx bitstream format (common across Xilinx FPGA targets)
    - per-target crates (listed below)
